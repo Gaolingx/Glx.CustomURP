@@ -137,7 +137,8 @@ public sealed class ScreenSpaceLightingBaselineRunner : MonoBehaviour
                 frame = i,
                 timingReturned = timingReturned,
                 cpuMs = timingReturned ? timings[0].cpuFrameTime : 0.0,
-                gpuMs = timingReturned ? timings[0].gpuFrameTime : 0.0
+                gpuMs = timingReturned ? timings[0].gpuFrameTime : 0.0,
+                utcTicks = DateTime.UtcNow.Ticks
             });
             if (!timingReturned)
                 continue;
@@ -216,7 +217,7 @@ public sealed class ScreenSpaceLightingBaselineRunner : MonoBehaviour
         using (var writer = new StreamWriter(path, true))
         {
             if (writer.BaseStream.Length == 0)
-                writer.WriteLine("Mode,Frame,TimingReturned,CpuMs,GpuMs");
+                writer.WriteLine("Mode,Frame,TimingReturned,CpuMs,GpuMs,UtcTicks");
             foreach (var timing in rawTimings)
             {
                 writer.WriteLine(string.Join(",", new[]
@@ -225,7 +226,8 @@ public sealed class ScreenSpaceLightingBaselineRunner : MonoBehaviour
                     timing.frame.ToString(CultureInfo.InvariantCulture),
                     timing.timingReturned.ToString(CultureInfo.InvariantCulture),
                     timing.cpuMs.ToString("F6", CultureInfo.InvariantCulture),
-                    timing.gpuMs.ToString("F6", CultureInfo.InvariantCulture)
+                    timing.gpuMs.ToString("F6", CultureInfo.InvariantCulture),
+                    timing.utcTicks.ToString(CultureInfo.InvariantCulture)
                 }));
             }
         }
@@ -266,6 +268,7 @@ public sealed class ScreenSpaceLightingBaselineRunner : MonoBehaviour
         public bool timingReturned;
         public double cpuMs;
         public double gpuMs;
+        public long utcTicks;
     }
 
     [Serializable]

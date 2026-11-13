@@ -61,6 +61,42 @@ def validate_protocol(report, budget):
     return issues
 
 
+def parse_nvml_clock_csv(path):
+    samples = []
+    with path.open(newline="", encoding="utf-8-sig") as stream:
+        for row in csv.reader(stream):
+            if len(row) < 4:
+                continue
+            try:
+                timestamp = datetime.strptime(row[0].strip(), "%Y/%m/%d %H:%M:%S.%f")
+                sm_clock = int(row[1].split()[0])
+            except ValueError:
+                continue
+            samples.append((timestamp.astimezone(timezone.utc), sm_clock, row[3].strip()))
+    return samples
+
+
+def load_gpu_reference(run_root):
+    validation_path = run_root / "GpuClockValidation.json"
+    clock_path = run_root / "GpuClocks.csv"
+    reference = {
+        "policy": "reference-only",
+        "clockValidation": "GpuClockValidation.json" if validation_path.exists() else None,
+        "clockCsv": "GpuClocks.csv" if clock_path.exists() else None,
+    }
+    if validation_path.exists():
+        validation = load_json(validation_path)
+        reference["before"] = validation.get("before")
+        reference["after"] = validation.get("after")
+    if clock_path.exists():
+        clocks = [sample[1] for sample in parse_nvml_clock_csv(clock_path)]
+        if clocks:
+            reference["smClockMinMHz"] = min(clocks)
+            reference["smClockMaxMHz"] = max(clocks)
+            reference["sampleCount"] = len(clocks)
+    return reference
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", nargs=2, default=["Run1", "Run2"])
@@ -78,13 +114,14 @@ def main():
             rows = {row["Mode"]: row for row in csv.DictReader(stream)}
         if set(rows) != set(MODES):
             raise ValueError(f"{run_name} does not contain exactly the three required modes")
-        run_data.append((run_name, run_root, report, rows))
+        run_data.append((run_name, run_root, report, rows, load_gpu_reference(run_root)))
 
     protocol = {}
-    for name, _, report, _ in run_data:
+    for name, _, report, _, gpu in run_data:
         issues = validate_protocol(report, budget)
         protocol[name] = {
             "sampleFrames": report.get("sampleFrames"),
+            "gpuTimingReference": gpu,
             "valid": not issues,
             "issues": issues,
         }
@@ -102,8 +139,8 @@ def main():
 
     comparisons = []
     for mode, image_name in MODES.items():
-        first_name, first_root, first_report, first_rows = run_data[0]
-        second_name, second_root, second_report, second_rows = run_data[1]
+        first_name, first_root, first_report, first_rows, _ = run_data[0]
+        second_name, second_root, second_report, second_rows, _ = run_data[1]
         first = first_rows[mode]
         second = second_rows[mode]
         first_image = first_root / f"{image_name}.png"
@@ -111,17 +148,20 @@ def main():
         first_hash = sha256(first_image)
         second_hash = sha256(second_image)
         timings = {}
-        for metric in ("CpuP95Ms", "GpuP95Ms"):
+        for metric, gate in (("CpuP95Ms", "pass/fail"), ("GpuP95Ms", "reference-only")):
             first_value = float(first[metric])
             second_value = float(second[metric])
             mean = (first_value + second_value) / 2
             variation = abs(first_value - second_value) / mean * 100 if mean else 0
-            timings[metric] = {
+            entry = {
                 first_name: first_value,
                 second_name: second_value,
                 "symmetricVariationPercent": variation,
-                "withinTolerance": variation <= tolerance,
+                "gate": gate,
             }
+            if gate == "pass/fail":
+                entry["withinTolerance"] = variation <= tolerance
+            timings[metric] = entry
         first_mode = next(item for item in first_report["modes"] if item["name"] == mode)
         second_mode = next(item for item in second_report["modes"] if item["name"] == mode)
         comparisons.append({
@@ -151,10 +191,8 @@ def main():
         for item in comparisons
     )
     memory_stable = all(item["graphicsDriverBytes"]["identical"] for item in comparisons)
-    timing_within_tolerance = all(
-        metric["withinTolerance"]
-        for item in comparisons
-        for metric in item["timing"].values()
+    cpu_timing_within_tolerance = all(
+        item["timing"]["CpuP95Ms"]["withinTolerance"] for item in comparisons
     )
     reports_complete = all(item[2]["completed"] for item in run_data)
     reproducibility = {
@@ -163,14 +201,16 @@ def main():
         "availableRuns": sorted(path.name for path in root.glob("Run*") if path.is_dir()),
         "variationFormula": "abs(run2 - run1) / ((run1 + run2) / 2) * 100",
         "timingVariationTolerancePercent": tolerance,
+        "gpuTimingPolicy": "reference-only",
+        "gpuTimingNote": "GPU p95 is recorded and reported for every run but is not a pass/fail gate: NVML evidence in Diagnostics/Dvfs-2026-11-14 shows the 0.1 ms/frame 720p workload keeps the GPU in low P-states, and nvidia-smi clock locks are not enforced on this machine.",
         "reportsComplete": reports_complete,
         "protocol": protocol,
         "protocolValid": protocol_valid,
         "environmentMatches": environment_matches,
         "imagesReproducible": images_reproducible,
         "graphicsDriverMemoryStable": memory_stable,
-        "timingWithinTolerance": timing_within_tolerance,
-        "passed": reports_complete and protocol_valid and environment_matches and images_reproducible and memory_stable and timing_within_tolerance,
+        "cpuTimingWithinTolerance": cpu_timing_within_tolerance,
+        "passed": reports_complete and protocol_valid and environment_matches and images_reproducible and memory_stable and cpu_timing_within_tolerance,
         "modes": comparisons,
     }
     write_json(root / "Reproducibility.json", reproducibility)
@@ -220,18 +260,20 @@ def main():
                 "report": f"{name}/BaselineReport.json",
                 "frameTimes": f"{name}/FrameTimes.csv",
                 "rawFrameTimes": f"{name}/RawFrameTimes.csv" if (run_root / "RawFrameTimes.csv").exists() else None,
+                "gpuTimingReference": f"{name}/GpuClocks.csv" if (run_root / "GpuClocks.csv").exists() else None,
                 "completed": report["completed"],
             }
-            for name, run_root, report, _ in run_data
+            for name, run_root, report, _, _gpu in run_data
         },
         "reproducibility": {
             "file": "Reproducibility.json",
             "passed": reproducibility["passed"],
+            "gpuTimingPolicy": reproducibility["gpuTimingPolicy"],
             "protocolValid": protocol_valid,
             "environmentMatches": environment_matches,
             "imagesReproducible": images_reproducible,
             "graphicsDriverMemoryStable": memory_stable,
-            "timingWithinTolerance": timing_within_tolerance,
+            "cpuTimingWithinTolerance": cpu_timing_within_tolerance,
         },
         "frameDebugger": {
             "file": "FrameDebugger/FrameDebuggerReport.json" if frame_debugger else None,

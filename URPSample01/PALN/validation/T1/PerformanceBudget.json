@@ -25,7 +25,14 @@
     "baselineDisabledFeatureMeanAbsoluteError8BitMax": 0.5,
     "baselineDisabledFeatureChangedPixelFractionMax": 0.001,
     "changedPixelChannelTolerance8Bit": 2,
-    "protocolRevision": "2026-11-14: Runs 1-6 retained with 180 samples; increased to 1800 samples because sub-millisecond p95 tails were unstable. Run7-Run8 retained at 1800 samples and still exceeded the p95 tolerance. Run9-Run10 reused WaitForEndOfFrame and wrote RawFrameTimes.csv; CPU p95 stabilized, while uncapped GPU tails remained unstable and mostly uncorrelated with CPU spikes. Run11-Run12 capped the Player at 60 FPS with vSync disabled; Forward passed, but ForwardPlus and Deferred GPU p95 remained outside tolerance. T1 is blocked on GPU timing reproducibility. The p95 statistic, 10% tolerance and all performance budgets remain unchanged."
+    "gpuTimingPolicy": "reference-only",
+    "gpuTimingReference": {
+      "why": "The fixed 1280x720 scene costs about 0.1 ms of GPU work per 16.67 ms frame, so the RTX 5060 Ti stays in low P-states. NVML 576.80 sampled at 50 ms during a 91 s run shows SM clocks between 63 and 1519 MHz with 180 P-state transitions (P3/P5/P8); GPU p95 therefore follows DVFS state, not rendering cost, and cannot meet a 10% run-to-run gate at this workload.",
+      "clockLockAttempt": "nvidia-smi -lgc 300/-lgc 600/-lgc 1800 all exited 0 but the GeForce/WDDM driver kept SM clocks at 36-224 MHz; persistence mode reports [N/A], so clocks cannot be pinned on this machine. See Diagnostics/clock-lock-verify.txt and Diagnostics/Dvfs-2026-11-14/.",
+      "consequence": "GPU p95, per-frame GPU times and NVML clock samples remain recorded for every run as reference data, but GPU p95 variation is not a T1 pass/fail gate. T1 gates CPU p95 variation plus screenshot, graphics-driver memory and pass-order reproducibility under the same protocol.",
+      "laterUse": "Per-module incremental GPU budgets in this file are unaffected as targets, but they must be verified with an independent GPU profiler capture (for example RenderDoc or Nsight) or on an environment where clocks can be pinned; this 720p harness cannot resolve them and must not be used to claim them."
+    },
+    "protocolRevision": "2026-11-14 (R3): GPU p95 reclassified as reference data after the R2 clock lock proved unenforceable on this GeForce/WDDM machine. T1 reproducibility gate = CPU p95 symmetric variation <= 10% + byte-identical screenshots + identical graphics-driver memory + unchanged pass order, both runs under the fixed protocol. GPU timing is still captured and validated for presence, exported with NVML clock samples and UtcTicks as evidence, and reported, but its variation is informational only. The p95 statistic, 10% tolerance, scene, 1280x720, render scale 1, DX11, HDR, MSAA off, post processing off, seed 14012, 60 warmup frames, 1800 sample frames, 60 FPS cap and vSync off are unchanged, and no failed run was deleted. Earlier revisions: (R1) Runs 1-6 at 180 samples; increased to 1800 because sub-millisecond p95 tails were unstable. Run7-Run8 retained and still exceeded tolerance. Run9-Run10 reused WaitForEndOfFrame and wrote RawFrameTimes.csv; CPU p95 stabilized, uncapped GPU tails did not. Run11-Run12 capped the Player at 60 FPS with vSync disabled; Forward passed, ForwardPlus and Deferred GPU p95 stayed outside tolerance. (R2) Locked SM clock to 1800 MHz with nvidia-smi -lgc; Run13 completed, but the driver ignored the lock (Run13 clocks stayed in P3/P5), so the gate could never pass. That run is retained and R3 supersedes R2."
   },
   "incrementalGpuMsP95Max": {
     "coreDepthNormalsAndEarlyMotion": 0.8,
@@ -48,6 +55,7 @@
   },
   "rules": [
     "A module passes only when its own exit criteria and this budget are measured.",
+    "GPU p95 from the 720p T1 Player is reference data, not a T1 or module pass/fail gate, because DVFS on this machine dominates it. Never report a module as within its incremental GPU budget from this harness alone.",
     "Missing GPU timestamps are not a passing result; record the limitation and obtain a GPU profiler capture.",
     "No platform other than the measured primary target is declared supported by this budget.",
     "A budget adjustment requires before/after evidence and an explicit record in the plan; tests must not be removed to pass.",

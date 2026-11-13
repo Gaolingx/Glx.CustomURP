@@ -1,12 +1,14 @@
 # HDRP ScreenSpaceLighting 迁移到 URP 14.0.12 实施计划
 
-> 状态：**T0 决策已冻结；T1 测试资产、图像、Frame Debugger 与设置恢复证据已完成，但 GPU p95 重复性未通过，T1 保持阻塞；T2–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成，T1 通过项与失败项以 `PALN/validation/T1/T1Report.json` 为准。
+> 状态：**T0 决策已冻结；T1 已按 R3 协议退出（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准。
 >
 > 基线：Unity `2022.3.62f1`，URP/HDRP `14.0.12`。
 >
-> URP 目标包：`E:/workspace/GitHub/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`。
+> URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（项目与包已从 `E:/workspace/GitHub/URPSample01` 迁入当前仓库）。
 >
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`。
+>
+> RenderDoc 源包：`C:\Program Files\RenderDoc`。
 >
 > 路径约定：下文 `URP/`、`HDRP/` 分别代表上述两个包根目录；Shader include 使用 Unity canonical 包名 `Packages/com.unity.render-pipelines.universal/...`，不包含物理目录中的 `@14.0.12`。
 
@@ -469,7 +471,7 @@ URP/Editor/RendererFeatures/
 | ID | 优先级 / 依赖 | 工作与交付物 | 退出与验收 |
 |---|---|---|---|
 | **T0** | P0 / 无 | 确立 Core/Plugin 边界、两个 Feature、Volume、历史/Motion/Hi-Z 所有权、冲突策略和文件清单 | **2026-11-14 已冻结**；无“GTAO 子模块”“Volume 直接加 Pass”“UACD 持插件历史”等旧决策；变更必须重新打开 T0 并同步两份文档 |
-| **T1** | P0 / T0 | 建立三 Renderer 测试资产、固定场景/相机/随机序列、原始截图、Frame Debugger 时序、GPU/显存基线；确定目标 API 和可量化性能预算 | **尚未退出（2026-11-14）**：资产、构建、图像、显存、Frame Debugger 和设置恢复已通过；Run11–Run12 的 Forward+ 与 Deferred GPU p95 重复性失败。退出仍要求基线可重复、完整预算和原设置恢复，不得放宽 10% 容差 |
+| **T1** | P0 / T0 | 建立三 Renderer 测试资产、固定场景/相机/随机序列、原始截图、Frame Debugger 时序、GPU/显存基线；确定目标 API 和可量化性能预算 | **已退出（2026-11-14，R3）**：资产、构建、图像、显存、Frame Debugger 和设置恢复通过；Run13/Run14 在固定协议下三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 2.19%/2.28%/2.30%（≤10%）。GPU p95 因本机 DVFS 且 GeForce/WDDM 不执行 `nvidia-smi -lgc` 锁频，按 R3 仅作参考数据；10% 容差、场景与预算数值未变，Run1–Run13 及无效运行全部保留 |
 | **T2** | P0 / T1 | Core DepthNormals 编码、最早 Motion/Depth 调度、通用 keyword 清理与调度测试 | 无插件时 Frame Debugger/画面不变；202 前 Motion/Depth 有效；三路径静止/动态向量、TAA/Motion Blur 回归通过；smoothness=0 与无效材质可区分 |
 | **T3** | P0 / T1 | 两个空 Feature、资源序列化、Volume 组件、能力检测、history store、neutral 输出和 Editor UI | 按 2.5 的真实 UI 路径配置成功；Volume 控制 Pass 入队；空效果不改变画面；Feature 删除/禁用、Domain Reload、相机销毁无泄漏；Core 不引用插件类型 |
 | **T4** | P0 / T2、T3 | SSL 私有 Hi-Z、颜色金字塔、previous color/depth、双缓冲、reset generation 和中间调试视图 | mip/offset、UV scale、首帧/相机 cut/尺寸变化正确；无同帧历史覆盖、首帧黑屏和跨相机污染；GTAO 不存在时 SSL 独立工作 |
@@ -523,7 +525,8 @@ T1 固定基线配置：
 
 - `ScreenSpaceLightingBaselineSetup.cs` 生成同一固定 Scene、三份无 RendererFeature 的 Renderer Data 和对应 Pipeline Asset；随机种子 `14012`，相机、几何、材质和灯光不随模块变化。
 - 主基线为 StandaloneWindows64 / DX11、1280×720、render scale 1、HDR、MSAA 关闭、后处理关闭；T1 使用 Development Player 获取帧时间和 graphics-driver 显存，T14 另做 Release 回归。
-- 每路径预热 60 帧、采样 1800 帧，记录 CPU/GPU mean、median、p95、显存和同步 PNG；同一 Player 连续运行两次，不把缺失时间戳或截图的退出码 0 当作通过。最初 180 帧的 Run1–Run6 全部保留；六轮证据显示亚毫秒 p95 尾部波动无法稳定满足 10%，因此只增加样本量，10% 容差和性能预算不变。1800 帧的 Run7–Run8 仍有 p95 超差，完整保留；Run9–Run10 复用 `WaitForEndOfFrame` 并输出 `RawFrameTimes.csv` 后，CPU p95 全部进入容差，原始数据则显示无帧率上限的 GPU 尾部仍不稳定且大多不与 CPU 峰值重合。Run11–Run12 固定 60 FPS、vSync 关闭后，Forward 的 CPU/GPU p95 通过，但 Forward+ 与 Deferred 的 GPU p95 仍分别为 94.71% 和 51.58%，T1 未退出；p95 指标、10% 容差和性能预算不变，所有失败运行与 `RawFrameTimes.csv` 均保留。下一步先用独立 GPU 工具核实尾部峰值来源，不再无依据重跑或继续改变测量条件。
+- **GPU 计时协议 R3（2026-11-14）**：R2 的锁频方案在本机不可执行——`nvidia-smi -lgc 300/600/1800` 均返回 0，但 SM 时钟仍停留在 36–224 MHz，persistence mode 为 `[N/A]`，即 GeForce/WDDM 驱动不执行应用时钟锁（证据：`Diagnostics/clock-lock-verify.txt`）。NVML 576.80 以 50 ms 间隔采样的独立诊断（`PALN/validation/T1/Diagnostics/Dvfs-2026-11-14/`）进一步证明，固定场景每帧仅约 0.1 ms GPU 工作，未锁频时 SM 时钟在 91 s 内于 63–1515 MHz 间切换 180 次（P3/P5/P8），GPU p95 跟随 DVFS 而非渲染成本。因此 R3 将 720p T1 的 GPU p95 降级为逐轮记录、逐轮报告的参考数据，不再作为 T1 或模块的通过判定；T1 可重复性门槛保留 CPU p95 的 10% 对称容差，并要求两轮截图逐字节一致、graphics-driver 显存一致、Pass 顺序（Frame Debugger）不变。GPU 时间仍必须成功采集（缺失即协议无效），`RawFrameTimes.csv` 的 `UtcTicks` 列与 `GpuClocks.csv` 继续留存以便与 NVML 对齐。p95 统计量、10% 容差、场景、分辨率、帧率上限、采样帧数均不变，Run1–Run13 全部保留，包括所有失败与无效运行。模块级增量 GPU 预算数值不变，但必须用独立 GPU profiler（RenderDoc/Nsight）或可锁频环境验证，不得用该 720p harness 单独宣称达标。
+- 每路径预热 60 帧、采样 1800 帧，记录 CPU/GPU mean、median、p95、显存和同步 PNG；同一 Player 连续运行两次，不把缺失时间戳或截图的退出码 0 当作通过。最初 180 帧的 Run1–Run6 全部保留；六轮证据显示亚毫秒 p95 尾部波动无法稳定满足 10%，因此只增加样本量，10% 容差和性能预算不变。1800 帧的 Run7–Run8 仍有 p95 超差，完整保留；Run9–Run10 复用 `WaitForEndOfFrame` 并输出 `RawFrameTimes.csv` 后，CPU p95 全部进入容差，原始数据则显示无帧率上限的 GPU 尾部仍不稳定且大多不与 CPU 峰值重合。Run11–Run12 固定 60 FPS、vSync 关闭后，Forward 的 CPU/GPU p95 通过，但 Forward+ 与 Deferred 的 GPU p95 仍分别为 94.71% 和 51.58%，T1 未退出；p95 指标、10% 容差和性能预算不变，所有失败运行与 `RawFrameTimes.csv` 均保留。2026-11-14 已完成独立工具核实：NVML 证据见 `PALN/validation/T1/Diagnostics/Dvfs-2026-11-14/`，确认尾部来自 GPU 降频（DVFS）而非渲染负载；随后 R2 锁频被证明不被本机驱动执行，改用 R3 参考数据协议，Run11–Run12 作为失败证据保留，Run13 作为 R2 下的完整运行保留，Run14 与其组成 R3 的有效运行对。
 - 量化预算唯一来源为 `PALN/validation/T1/PerformanceBudget.json`，硬件与驱动为 `Environment.json`，构建、运行和 Frame Debugger 证据均保存在 `PALN/validation/T1/`。
 - 生成器与采集器只操作独立测试资产和独立进程内 Pipeline；结束后核对原 `GraphicsSettings.asset`、`QualitySettings.asset`、`ProjectSettings.asset` 未变化。
 

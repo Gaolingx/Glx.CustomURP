@@ -1,0 +1,83 @@
+{
+  "analysisUtc": "2026-11-13T19:38:30.986004+00:00",
+  "tool": {
+    "name": "nvidia-smi / NVML",
+    "version": "576.80",
+    "driver": "576.80",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "maxSmClockMHz": 3090
+  },
+  "capture": {
+    "directory": ".",
+    "clockSamples": 7103,
+    "clockSampleIntervalMs": 50,
+    "windowSamples": 1800,
+    "windowStartLocal": "2026-11-14T03:32:42.400+08:00",
+    "windowSeconds": 91.0018,
+    "smClockTransitions": 180,
+    "smClockHistogram": {
+      "below300MHz": 1176,
+      "300to900MHz": 276,
+      "atLeast900MHz": 348
+    },
+    "pstate": {
+      "P3": 229,
+      "P5": 1184,
+      "P8": 387
+    },
+    "powerWatts": {
+      "mean": 13.58,
+      "max": 23.21
+    },
+    "utilizationPercent": {
+      "mean": 8.04,
+      "median": 6.0,
+      "max": 28
+    }
+  },
+  "perMode": {
+    "SslForwardPipeline": {
+      "clockMedianMHz": 92,
+      "clockMeanMHz": 273,
+      "clockMinMHz": 63,
+      "clockMaxMHz": 1222,
+      "utilizationMeanPercent": 6.87,
+      "below300MHzFraction": 0.798,
+      "estimatedGpuBusyMsPerFrameFromUtilization": 1.146,
+      "gpuMedianMs": 0.1498,
+      "gpuP95Ms": 1.1697,
+      "cpuP95Ms": 16.6881,
+      "graphicsDriverBytes": 42626757,
+      "screenshot": "True"
+    },
+    "SslForwardPlusPipeline": {
+      "clockMedianMHz": 134.0,
+      "clockMeanMHz": 399,
+      "clockMinMHz": 74,
+      "clockMaxMHz": 1402,
+      "utilizationMeanPercent": 8.96,
+      "below300MHzFraction": 0.699,
+      "estimatedGpuBusyMsPerFrameFromUtilization": 1.494,
+      "gpuMedianMs": 0.2007,
+      "gpuP95Ms": 2.3493,
+      "cpuP95Ms": 16.7678,
+      "graphicsDriverBytes": 42708681,
+      "screenshot": "True"
+    },
+    "SslDeferredPipeline": {
+      "clockMedianMHz": 600,
+      "clockMeanMHz": 492,
+      "clockMinMHz": 70,
+      "clockMaxMHz": 1515,
+      "utilizationMeanPercent": 8.41,
+      "below300MHzFraction": 0.486,
+      "estimatedGpuBusyMsPerFrameFromUtilization": 1.402,
+      "gpuMedianMs": 0.191,
+      "gpuP95Ms": 0.9377,
+      "cpuP95Ms": 16.6866,
+      "graphicsDriverBytes": 57373383,
+      "screenshot": "True"
+    }
+  },
+  "conclusion": "GPU SM clock oscillated between 63 and 1519 MHz (185 transitions within the 93.5 s player window, P5/P8) while the fixed scene rendered only about 0.1 ms of GPU work per 16.67 ms frame. GPU p95 therefore tracks DVFS state rather than deterministic rendering cost; a locked SM clock is required for a reproducible p95 baseline."
+}

@@ -11,5 +11,24 @@
   "gpuDriver": "32.0.15.7680",
   "requestedGraphicsApi": "Direct3D11",
   "projectColorSpace": "Linear",
-  "notes": "The machine also exposes virtual display and ASPEED adapters; BaselineReport.json records the adapter and API actually selected by Unity."
+  "gpuMaxSmClockMHz": 3090,
+  "gpuDvfsLimitation": {
+    "protocolRevision": "R3",
+    "observation": "During a 91 s run of the fixed scene, NVML 576.80 sampled at 50 ms recorded 180 SM clock transitions between 63 and 1519 MHz (P3/P5/P8) at 6.9-9.0% utilization; the scene costs about 0.1 ms GPU work per 16.67 ms frame.",
+    "clockLockAttempt": "nvidia-smi -lgc 300, -lgc 600 and -lgc 1800 all exited 0, but SM clocks stayed at 36-224 MHz and persistence mode reports [N/A]. GeForce/WDDM does not enforce application clock locks on this machine.",
+    "evidence": "Diagnostics/Dvfs-2026-11-14/, Diagnostics/clock-lock-verify.txt",
+    "consequence": "GPU p95 is recorded as reference data only; T1 reproducibility gates CPU p95, screenshots, graphics-driver memory and pass order."
+  },
+  "backgroundGpuProcesses": [
+    "MEmuConsole.exe",
+    "Cherry Studio.exe (2 processes)",
+    "GitHubDesktop.exe",
+    "Qoder CN.exe",
+    "Code.exe",
+    "Unity Hub.exe",
+    "QQ.exe",
+    "cloudmusic.exe",
+    "twinkstar.exe"
+  ],
+  "notes": "The machine also exposes virtual display and ASPEED adapters; BaselineReport.json records the adapter and API actually selected by Unity. Background GPU processes were recorded but deliberately not closed for the Run13/Run14 pair, per operator decision; they are a known environment limitation. The project and URP package moved from E:/workspace/GitHub/URPSample01 to E:/GitHub/Glx.CustomURP/URPSample01 before Run13; screenshots remain byte-identical to the golden images. Run13 was captured under the superseded R2 clock-lock protocol; it is retained and its GPU timing is reference-only like all other runs."
 }

@@ -1,0 +1,10 @@
+{
+    "run":  "Run13",
+    "playerExitCode":  0,
+    "expectedLockedSmClockMHz":  1800,
+    "before":  "224 MHz, P5",
+    "after":  "1792 MHz, P3",
+    "clockSampleIntervalMs":  50,
+    "clockSamples":  1741,
+    "playerLog":  "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN\\validation\\T1\\Run13\\PlayerRun.log"
+}

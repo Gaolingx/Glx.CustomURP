@@ -1,12 +1,12 @@
 {
-  "analysisUtc": "2026-11-13T17:25:22.220642+00:00",
+  "analysisUtc": "2026-11-13T19:52:52.871721+00:00",
   "build": {
     "result": "Succeeded",
     "totalErrors": 0,
     "totalWarnings": 2,
-    "totalSizeBytes": 103969292,
-    "totalTimeSeconds": 16.035955299999998,
-    "executablePath": "E:\\workspace\\GitHub\\URPSample01\\PALN\\validation\\T1\\Player\\SslBaselinePlayer.exe"
+    "totalSizeBytes": 103969297,
+    "totalTimeSeconds": 13.4371466,
+    "executablePath": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN\\validation\\T1\\Player\\SslBaselinePlayer.exe"
   },
   "buildPassed": true,
   "buildSettingsRestoration": {
@@ -26,30 +26,52 @@
     "gpuDriver": "32.0.15.7680",
     "requestedGraphicsApi": "Direct3D11",
     "projectColorSpace": "Linear",
-    "notes": "The machine also exposes virtual display and ASPEED adapters; BaselineReport.json records the adapter and API actually selected by Unity."
+    "gpuMaxSmClockMHz": 3090,
+    "gpuDvfsLimitation": {
+      "protocolRevision": "R3",
+      "observation": "During a 91 s run of the fixed scene, NVML 576.80 sampled at 50 ms recorded 180 SM clock transitions between 63 and 1519 MHz (P3/P5/P8) at 6.9-9.0% utilization; the scene costs about 0.1 ms GPU work per 16.67 ms frame.",
+      "clockLockAttempt": "nvidia-smi -lgc 300, -lgc 600 and -lgc 1800 all exited 0, but SM clocks stayed at 36-224 MHz and persistence mode reports [N/A]. GeForce/WDDM does not enforce application clock locks on this machine.",
+      "evidence": "Diagnostics/Dvfs-2026-11-14/, Diagnostics/clock-lock-verify.txt",
+      "consequence": "GPU p95 is recorded as reference data only; T1 reproducibility gates CPU p95, screenshots, graphics-driver memory and pass order."
+    },
+    "backgroundGpuProcesses": [
+      "MEmuConsole.exe",
+      "Cherry Studio.exe (2 processes)",
+      "GitHubDesktop.exe",
+      "Qoder CN.exe",
+      "Code.exe",
+      "Unity Hub.exe",
+      "QQ.exe",
+      "cloudmusic.exe",
+      "twinkstar.exe"
+    ],
+    "notes": "The machine also exposes virtual display and ASPEED adapters; BaselineReport.json records the adapter and API actually selected by Unity. Background GPU processes were recorded but deliberately not closed for the Run13/Run14 pair, per operator decision; they are a known environment limitation. The project and URP package moved from E:/workspace/GitHub/URPSample01 to E:/GitHub/Glx.CustomURP/URPSample01 before Run13; screenshots remain byte-identical to the golden images. Run13 was captured under the superseded R2 clock-lock protocol; it is retained and its GPU timing is reference-only like all other runs."
   },
   "baselineRuns": {
-    "Run11": {
-      "report": "Run11/BaselineReport.json",
-      "frameTimes": "Run11/FrameTimes.csv",
-      "rawFrameTimes": "Run11/RawFrameTimes.csv",
+    "Run13": {
+      "report": "Run13/BaselineReport.json",
+      "frameTimes": "Run13/FrameTimes.csv",
+      "rawFrameTimes": "Run13/RawFrameTimes.csv",
+      "gpuTimingReference": "Run13/GpuClocks.csv",
       "completed": true
     },
-    "Run12": {
-      "report": "Run12/BaselineReport.json",
-      "frameTimes": "Run12/FrameTimes.csv",
-      "rawFrameTimes": "Run12/RawFrameTimes.csv",
+    "Run14": {
+      "report": "Run14/BaselineReport.json",
+      "frameTimes": "Run14/FrameTimes.csv",
+      "rawFrameTimes": "Run14/RawFrameTimes.csv",
+      "gpuTimingReference": "Run14/GpuClocks.csv",
       "completed": true
     }
   },
   "reproducibility": {
     "file": "Reproducibility.json",
-    "passed": false,
+    "passed": true,
+    "gpuTimingPolicy": "reference-only",
     "protocolValid": true,
     "environmentMatches": true,
     "imagesReproducible": true,
     "graphicsDriverMemoryStable": true,
-    "timingWithinTolerance": false
+    "cpuTimingWithinTolerance": true
   },
   "frameDebugger": {
     "file": "FrameDebugger/FrameDebuggerReport.json",
@@ -69,5 +91,5 @@
     "ForwardPlus.png",
     "Deferred.png"
   ],
-  "t1ExitCriteriaMet": false
+  "t1ExitCriteriaMet": true
 }

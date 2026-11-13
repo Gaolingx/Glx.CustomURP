@@ -1,0 +1,11 @@
+baseline 224 MHz, P5
+GPU clocks set to "(gpuClkMin 600, gpuClkMax 600)" for GPU 00000000:C1:00.0
+All done.
+after-lock-600-immediate 224 MHz, P5
+after-lock-600-2s 74 MHz, P5
+GPU clocks set to "(gpuClkMin 300, gpuClkMax 300)" for GPU 00000000:C1:00.0
+All done.
+after-lock-300-immediate 74 MHz, P5
+after-lock-300-2s 36 MHz, P5
+All done.
+after-restore 36 MHz, P5
