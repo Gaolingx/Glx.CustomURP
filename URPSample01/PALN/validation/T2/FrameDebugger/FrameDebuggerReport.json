@@ -1,0 +1,78 @@
+{
+    "utcTimestamp": "2026-11-13T20:56:41.6037413Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "completed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "Forward",
+            "eventCount": 11,
+            "eventsHash": 596422286,
+            "eventDataHash": 4270891561,
+            "eventNames": [
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer/MainLightShadow/Shadows.DrawSRPBatcher",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer/DepthNormalPrepass/RenderLoop.DrawSRPBatcher",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer/MotionVectors",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer/ScreenSpaceLighting Pass Probe",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer/DrawOpaqueObjects/RenderLoop.DrawSRPBatcher",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer/Camera.RenderSkybox",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardRenderer/FinalBlit"
+            ]
+        },
+        {
+            "name": "ForwardPlus",
+            "eventCount": 11,
+            "eventsHash": -401743158,
+            "eventDataHash": 4270891561,
+            "eventNames": [
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer/MainLightShadow/Shadows.DrawSRPBatcher",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer/DepthNormalPrepass/RenderLoop.DrawSRPBatcher",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer/MotionVectors",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer/ScreenSpaceLighting Pass Probe",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer/DrawOpaqueObjects/RenderLoop.DrawSRPBatcher",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer/Camera.RenderSkybox",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2ForwardPlusRenderer/FinalBlit"
+            ]
+        },
+        {
+            "name": "Deferred",
+            "eventCount": 22,
+            "eventsHash": 10430611,
+            "eventDataHash": 2656866981,
+            "eventNames": [
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/MainLightShadow/Shadows.DrawSRPBatcher",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/DepthNormalPrepass/RenderLoop.DrawSRPBatcher",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/CopyDepth",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/MotionVectors",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/ScreenSpaceLighting Pass Probe",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Render GBuffer/RenderLoop.DrawSRPBatcher",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/CopyDepth",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Camera.RenderSkybox",
+                "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/FinalBlit"
+            ]
+        }
+    ]
+}

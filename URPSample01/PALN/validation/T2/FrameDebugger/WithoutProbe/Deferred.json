@@ -1,0 +1,24 @@
+{
+    "name": "Deferred",
+    "eventCount": 16,
+    "eventsHash": 81878703,
+    "eventDataHash": 3259823766,
+    "eventNames": [
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/MainLightShadow/Shadows.DrawSRPBatcher",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Render GBuffer/RenderLoop.DrawSRPBatcher",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/CopyDepth",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/Camera.RenderSkybox",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT2DeferredRenderer/FinalBlit"
+    ]
+}

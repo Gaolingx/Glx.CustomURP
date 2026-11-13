@@ -1,0 +1,11 @@
+{
+    "run":  "Run15",
+    "protocolRevision":  "R3",
+    "gpuTimingPolicy":  "reference-only",
+    "playerExitCode":  0,
+    "before":  "2767 MHz, P0",
+    "after":  "2767 MHz, P0",
+    "clockSampleIntervalMs":  50,
+    "clockSamples":  1879,
+    "playerLog":  "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN\\validation\\T1\\Run15\\PlayerRun.log"
+}

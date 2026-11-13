@@ -5,49 +5,66 @@
 ## 当前位置
 
 - **T0 已冻结**。任何边界变更都必须先重新打开 T0，并同步 PLAN 与本文件。
-- **T1 已按 R3 协议退出（2026-11-14）**。有效运行对为 **Run13 / Run14**：三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 2.19% / 2.28% / 2.30%，构建、Frame Debugger 与设置恢复全部通过。
-- **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run13 与无效运行全部保留。
-- **T2–T14 未开始**。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成。
+- **T1 已按 R3 协议退出（2026-11-14）**，并在 T2 Core 改动后由 **Run15 / Run16** 复验：三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 **0.28% / 0.01% / 0.04%**，构建、Frame Debugger 与设置恢复全部通过。`T1Report.json` 当前指向 Run15/Run16；Run13/Run14 作为 T2 前的有效运行对保留。
+- **T2 已退出（2026-11-14）**。Core 已提供 DepthNormals smoothness 编码、最早 Motion/Depth 调度和调度单元测试；无插件时三路径 Frame Debugger 事件数据与 T1 基线逐事件一致，探针在 203 时 Motion/Depth 已有效，TAA/Motion Blur 早/晚 Motion 输出逐字节一致。
+- **T3–T14 未开始**。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成。
+- **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run16 与无效运行全部保留。
 - 临时 Player 已清理；原始运行目录、日志、CSV、PNG 和报告均保留。四项 ProjectSettings 已恢复原始 SHA-256。
 
-唯一事实入口：[T1Report.json](validation/T1/T1Report.json)。当前 `t1ExitCriteriaMet=true`，可以开始 T2。
+唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）与 [T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）。
 
-## 下一步：T2 Core 通用支持
+## 下一步：T3 空框架
 
-只实施 Core 通用支持，不提前实现效果算法：
+只实现空框架，不提前实现 GTAO/SSGI/SSR 算法：
 
-1. 修改 `UniversalRenderer.cs`，汇总最早 Motion 消费事件并同步提前所需 Depth/CopyDepth；无提前消费者时保持原时序。
-2. 修改 `LitDepthNormalsPass.hlsl` 及计划列出的对应 DepthNormals Pass，使用 `0.5 + 0.5 * smoothness` 有效编码，0 表示不支持。
-3. 增加通用 keyword 清理与调度测试；Core 不引用具体 GTAO/SSL Feature、Module 或 Volume 类型。
-4. 验收无插件时画面和 Frame Debugger 不变，202 前 Motion/Depth 有效，三路径静止/动态向量、TAA/Motion Blur 回归通过，smoothness=0 与无效材质可区分。
+1. 建立两个空 Renderer Feature：独立 GTAO Feature 与共享 SSL Feature；资源序列化、remove/disable/Domain Reload 后可重建。
+2. 增加 Volume 组件（GTAO 与 SSL 各一套）、设置优先级、能力检测和 neutral 输出；未配置或禁用效果时不得改变基线画面。
+3. 建立每个 Feature 私有的 history store 骨架（双缓冲、reset generation、尺寸变化/相机销毁回收），但暂不接算法。
+4. 接入 Renderer Data 与 Volume 的 Editor UI 真实路径；Core 不得引用插件类型。
+5. 验收：按 PLAN 2.5 的真实 UI 路径配置成功；Volume 控制 Pass 入队；空效果不改变画面；删除/禁用 Feature、Domain Reload、相机销毁无泄漏；Core 不引用 GTAO/SSL 具体类型。
+6. T3 退出前重复 T1 无插件回归（下一次使用 **Run17 / Run18**），要求 Frame Debugger 和画面仍与基线一致。
 
-T2 退出后再进入 T3；不得跳过 T2 直接实现效果。
+不得跳过 T3 直接实现效果。
+
+## T2 证据与复现
+
+- 结论：`validation/T2/T2Verification.json`（三路径 `passed=true`）
+- Frame Debugger（带探针）：`validation/T2/FrameDebugger/FrameDebuggerReport.json`；Forward/Forward+ 11 事件，Deferred 22 事件，顺序为 `DepthNormalPrepass → [Deferred: CopyDepth] → MotionVectors(202) → 探针(203) → GBuffer/Opaque → 天空盒/Blit`
+- 无插件不变性：`validation/T2/FrameDebugger/WithoutProbe/`（6/6/16 事件，与 `validation/T1/FrameDebugger/FrameDebuggerReport.json` 的 `eventDataHash` 逐路径相同）
+- EditMode 调度测试：`validation/T2/UnityTests.log`（13 passed / 0 failed）
+- 采集迭代保留：`FrameDebugger/{DiagnosticRun,ProbeNotEnqueued,WithoutProbe}/`、`FrameDebuggerError.BatchmodeDefaultT1.txt` 及各次 Unity 日志
+
+复现注意：
+
+- Frame Debugger 采集必须使用**交互式编辑器**（`BatchMode: 0`）且 Unity 窗口位于前台、未被遮挡；窗口被遮挡时编辑器 tick 会停，采集超时。
+- 探针 Feature 只有在材质与 target 均存在时才入队；`ScreenSpaceLightingFrameDebuggerCapture` 会自行加载 `SslProbe.mat`、创建 `SslT2Probe` 并启用探针。
+- `Invoke-T1Unity.ps1` 现在只等待编辑器进程退出，不再被 `Unity.Licensing.Client`、Hub helper 等孤儿进程阻塞；退出码与设置恢复报告不变。
 
 ### 重建命令
 
-在项目根目录执行；包装器会等待 Unity 退出并恢复四项项目设置：
+在项目根目录执行；包装器会等待 Unity 退出并恢复四项项目设置。下次 T3 复验请使用递增 Run 名，不得覆盖已有运行：
 
 ```bash
 powershell.exe -NoProfile -ExecutionPolicy Bypass \
   -File "PALN/validation/T1/Invoke-T1Unity.ps1" \
   -ExecuteMethod ScreenSpaceLightingBaselineSetup.BuildBaselinePlayer \
-  -LogPath "PALN/validation/T1/UnityBuild.log" \
-  -ReportPath "PALN/validation/T1/BuildSettingsRestoration.json" \
+  -LogPath "PALN/validation/T1/UnityBuild.Run17-Run18.log" \
+  -ReportPath "PALN/validation/T1/BuildSettingsRestoration.Run17-Run18.json" \
   -Quit
 ```
 
 ### 采集与分析命令
 
-若 T2 改动后需要重新核对基线，Player 重建后依次执行下列命令；两轮不得并发：
+Player 重建后依次执行下列命令；两轮不得并发，Run 名必须递增：
 
 ```bash
 powershell.exe -NoProfile -ExecutionPolicy Bypass \
-  -File "PALN/validation/T1/Invoke-T1Run.ps1" -RunName Run15
+  -File "PALN/validation/T1/Invoke-T1Run.ps1" -RunName Run17
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass \
-  -File "PALN/validation/T1/Invoke-T1Run.ps1" -RunName Run16
+  -File "PALN/validation/T1/Invoke-T1Run.ps1" -RunName Run18
 
-python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run15 Run16
+python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
 ```
 
 `Invoke-T1Run.ps1` 会记录 NVML 时钟采样到运行目录，仅作 GPU 参考数据，不参与判定。
@@ -65,12 +82,14 @@ python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run15 Run16
 
 ## 证据入口
 
-- 最新结论：[T1Report.json](validation/T1/T1Report.json)
+- 最新 T1 结论：[T1Report.json](validation/T1/T1Report.json)
 - 两轮比较：[Reproducibility.json](validation/T1/Reproducibility.json)
-- 原始计时：`validation/T1/Run13/RawFrameTimes.csv`、`validation/T1/Run14/RawFrameTimes.csv`
-- GPU 参考数据：`validation/T1/Run13/GpuClocks.csv`、`validation/T1/Run14/GpuClocks.csv`
+- 原始计时：`validation/T1/Run15/RawFrameTimes.csv`、`validation/T1/Run16/RawFrameTimes.csv`
+- GPU 参考数据：`validation/T1/Run15/GpuClocks.csv`、`validation/T1/Run16/GpuClocks.csv`
+- T2 结论：[T2Verification.json](validation/T2/T2Verification.json)
+- T2 Frame Debugger：[FrameDebuggerReport.json](validation/T2/FrameDebugger/FrameDebuggerReport.json)
 - DVFS 诊断：[Diagnostics/Dvfs-2026-11-14/README.md](validation/T1/Diagnostics/Dvfs-2026-11-14/README.md)
-- Frame Debugger：[FrameDebuggerReport.json](validation/T1/FrameDebugger/FrameDebuggerReport.json)
+- T1 Frame Debugger：[FrameDebuggerReport.json](validation/T1/FrameDebugger/FrameDebuggerReport.json)
 - 构建设置恢复：[BuildSettingsRestoration.json](validation/T1/BuildSettingsRestoration.json)
 - Frame Debugger 设置恢复：[FrameDebuggerSettingsRestoration.json](validation/T1/FrameDebuggerSettingsRestoration.json)
 - 量化预算：[PerformanceBudget.json](validation/T1/PerformanceBudget.json)

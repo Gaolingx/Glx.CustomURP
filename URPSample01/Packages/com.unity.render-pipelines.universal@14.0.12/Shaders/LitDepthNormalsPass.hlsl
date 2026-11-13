@@ -19,7 +19,7 @@
 #define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR
 #endif
 
-#if defined(_ALPHATEST_ON) || defined(_PARALLAXMAP) || defined(_NORMALMAP) || defined(_DETAIL)
+#if defined(_ALPHATEST_ON) || defined(_PARALLAXMAP) || defined(_NORMALMAP) || defined(_DETAIL) || defined(_METALLICSPECGLOSSMAP) || defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
 #define REQUIRES_UV_INTERPOLATOR
 #endif
 
@@ -108,12 +108,25 @@ void DepthNormalsFragment(
         LODFadeCrossFade(input.positionCS);
     #endif
 
+    // DepthNormals alpha carries the material smoothness for screen-space lighting.
+    // 0 is reserved for "smoothness unsupported", so supported materials encode at least 0.5.
+    // The uv interpolator only exists when a keyword needs it; the smoothness helpers ignore uv otherwise.
+    half albedoAlpha = 1.0h;
+    float2 smoothnessUV = 0.0;
+    #if defined(REQUIRES_UV_INTERPOLATOR)
+        smoothnessUV = input.uv;
+    #endif
+    #if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
+        albedoAlpha = SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a;
+    #endif
+    half encodedSmoothness = 0.5h + 0.5h * saturate(SampleMetallicSpecGloss(smoothnessUV, albedoAlpha).a);
+
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(input.normalWS);
         float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
         float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
         half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-        outNormalWS = half4(packedNormalWS, 0.0);
+        outNormalWS = half4(packedNormalWS, encodedSmoothness);
     #else
         #if defined(_PARALLAXMAP)
             #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
@@ -140,7 +153,7 @@ void DepthNormalsFragment(
             float3 normalWS = input.normalWS;
         #endif
 
-        outNormalWS = half4(NormalizeNormalPerPixel(normalWS), 0.0);
+        outNormalWS = half4(NormalizeNormalPerPixel(normalWS), encodedSmoothness);
     #endif
 
     #ifdef _WRITE_RENDERING_LAYERS

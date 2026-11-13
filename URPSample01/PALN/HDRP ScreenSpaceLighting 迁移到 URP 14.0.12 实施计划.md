@@ -1,6 +1,6 @@
 # HDRP ScreenSpaceLighting 迁移到 URP 14.0.12 实施计划
 
-> 状态：**T0 决策已冻结；T1 已按 R3 协议退出（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准。
+> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2 已退出（2026-11-14）；T3–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准。
 >
 > 基线：Unity `2022.3.62f1`，URP/HDRP `14.0.12`。
 >
@@ -471,8 +471,8 @@ URP/Editor/RendererFeatures/
 | ID | 优先级 / 依赖 | 工作与交付物 | 退出与验收 |
 |---|---|---|---|
 | **T0** | P0 / 无 | 确立 Core/Plugin 边界、两个 Feature、Volume、历史/Motion/Hi-Z 所有权、冲突策略和文件清单 | **2026-11-14 已冻结**；无“GTAO 子模块”“Volume 直接加 Pass”“UACD 持插件历史”等旧决策；变更必须重新打开 T0 并同步两份文档 |
-| **T1** | P0 / T0 | 建立三 Renderer 测试资产、固定场景/相机/随机序列、原始截图、Frame Debugger 时序、GPU/显存基线；确定目标 API 和可量化性能预算 | **已退出（2026-11-14，R3）**：资产、构建、图像、显存、Frame Debugger 和设置恢复通过；Run13/Run14 在固定协议下三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 2.19%/2.28%/2.30%（≤10%）。GPU p95 因本机 DVFS 且 GeForce/WDDM 不执行 `nvidia-smi -lgc` 锁频，按 R3 仅作参考数据；10% 容差、场景与预算数值未变，Run1–Run13 及无效运行全部保留 |
-| **T2** | P0 / T1 | Core DepthNormals 编码、最早 Motion/Depth 调度、通用 keyword 清理与调度测试 | 无插件时 Frame Debugger/画面不变；202 前 Motion/Depth 有效；三路径静止/动态向量、TAA/Motion Blur 回归通过；smoothness=0 与无效材质可区分 |
+| **T1** | P0 / T0 | 建立三 Renderer 测试资产、固定场景/相机/随机序列、原始截图、Frame Debugger 时序、GPU/显存基线；确定目标 API 和可量化性能预算 | **已退出（2026-11-14，R3）**：资产、构建、图像、显存、Frame Debugger 和设置恢复通过；Run13/Run14 在固定协议下三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 2.19%/2.28%/2.30%（≤10%）。T2 Core 改动后由 Run15/Run16 复验，CPU p95 波动 0.28%/0.01%/0.04%。GPU p95 因本机 DVFS 且 GeForce/WDDM 不执行 `nvidia-smi -lgc` 锁频，按 R3 仅作参考数据；10% 容差、场景与预算数值未变，Run1–Run16 及无效运行全部保留 |
+| **T2** | P0 / T1 | Core DepthNormals 编码、最早 Motion/Depth 调度、通用 keyword 清理与调度测试 | **已退出（2026-11-14）**：Lit/ComplexLit DepthNormals alpha 使用 `0.5+0.5*smoothness`、0 表示不支持；最早 Motion 消费者把共享 Motion 提前到 202，并同步提前 Depth/CopyDepth；Deferred 提前 Motion 时强制完整 DepthNormals prepass，GBuffer2 alpha 仍为原始 smoothness；无插件时三路径事件数据与 T1 基线逐事件一致（`eventDataHash` 相同）。202 前 Motion/Depth 有效（动态 98 px、静止 0）；TAA/Motion Blur 早/晚 Motion 输出逐字节一致；smoothness=0（406 px）与不支持 alpha=0（42 px）可区分，无 0–0.5 保留区像素。证据：`PALN/validation/T2/` |
 | **T3** | P0 / T1 | 两个空 Feature、资源序列化、Volume 组件、能力检测、history store、neutral 输出和 Editor UI | 按 2.5 的真实 UI 路径配置成功；Volume 控制 Pass 入队；空效果不改变画面；Feature 删除/禁用、Domain Reload、相机销毁无泄漏；Core 不引用插件类型 |
 | **T4** | P0 / T2、T3 | SSL 私有 Hi-Z、颜色金字塔、previous color/depth、双缓冲、reset generation 和中间调试视图 | mip/offset、UV scale、首帧/相机 cut/尺寸变化正确；无同帧历史覆盖、首帧黑屏和跨相机污染；GTAO 不存在时 SSL 独立工作 |
 | **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 冲突和 SSAO 式设置 | 三路径 AO 语义正确，无双重 AO；与 SSL 任意顺序/组合工作；neutral 白色，禁用恢复基线；重复 Hi-Z 成本写入报告 |
@@ -495,6 +495,8 @@ URP/Editor/RendererFeatures/
 新增测试代码：
 
 ```text
+URP/Tests/Editor/UniversalRendererPassInputTests.cs # T2 Core：Motion/Depth 输入汇总与调度（已实现）
+
 URP/Tests/Editor/RendererFeatures/GroundTruthAmbientOcclusion/
 ├─ GroundTruthAmbientOcclusionFeatureTests.cs # 独立设置、SSAO 冲突与能力检测
 ├─ GroundTruthAmbientOcclusionShaderPreprocessorTests.cs
@@ -552,6 +554,35 @@ T1 固定基线配置：
 - 无 NaN/Inf、未初始化历史、previous/current 槽混用、XR 双眼串历史。
 - Frame Debugger 证明 Pass 顺序；RenderDoc 证明同一 subresource 未同时作为未解绑读写资源。
 - 两个 Feature 以不同列表顺序安装、分别禁用和同时启用时，除已记录的重复 Hi-Z 成本外结果一致。
+
+### 11.4 T2 实施与证据记录（2026-11-14）
+
+**Core 调度**（`URP/Runtime/UniversalRenderer.cs`）
+
+- 默认 Motion 事件保留在 `m_DefaultMotionVectorPassEvent`（CopyDepth 事件 + 1）。新增 `k_EarlyMotionVectorRenderPassEvent = AfterRenderingPrePasses + 2`（数值 202），仅当队列中存在早于默认事件的 Motion 消费者时使用；没有消费者或只有 TAA/Motion Blur 时保持原时序。
+- 输入汇总抽取为 `AccumulatePassInput`、`ResolveMotionVectorPassEvent`、`ApplyMotionVectorDependencies` 三个 internal 静态函数，`RenderPassInputSummary` 改为 internal，供 EditMode 直接验证调度规则，不依赖真实 Renderer。
+- 提前 Motion 会同步把 Depth 最早事件与 DepthNormals 事件拉到 Motion 之前：Forward/Forward+ 由提前的 depth（或 depth-normal）prepass 提供深度，不再追加 CopyDepth；Deferred 在 201 用 prepass 深度生成提前 CopyDepth（`requiresDepthTextureEarliestEvent - 1`），并强制 `requiresNormalsTexture`（DeferredLights 读取该标志前必须已确定，避免 GBuffer 附件二次分配）。
+- Deferred 的 GBuffer2 alpha 仍是原始 smoothness，`DeferredLights` 不读取 prepass 编码；混合路径仍以 GBuffer 数据为准。
+- 兼容路径在分配 Motion 纹理后、入队 Motion Pass 前显式 `SetGlobalTexture("_MotionVectorTexture", ...)`；Render Graph 路径原本已绑定，两路径行为一致。
+
+**DepthNormals 编码与材质**
+
+- `LitDepthNormalsPass.hlsl` 两个 normal 分支统一写 `0.5 + 0.5 * saturate(smoothness)`；0 保留给“不支持”，因此 smoothness=0 编码为 0.5。`_METALLICSPECGLOSSMAP`、`_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A` 会按需启用 uv 插值器，缺少 uv 时 smoothness helper 使用常量。
+- `Lit.shader`、`ComplexLit.shader` 的 DepthNormals Pass 增加 `_METALLICSPECGLOSSMAP`、`_SPECULAR_SETUP` fragment keyword；移除 ComplexLit DepthOnly Pass 中未使用的 `_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A` 声明。
+- 未适配材质（Unlit 等）继续写 alpha 0，与 URP 既有约定一致；SimpleLit/Particles/Terrain/ShaderGraph 的编码或明确回退留到 T9，透明 prepass 留到 T10。
+
+**证据**
+
+| 项目 | 结果 | 入口 |
+|---|---|---|
+| EditMode 调度测试 | 13 passed / 0 failed，设置恢复 | `PALN/validation/T2/UnityTests.log` |
+| 三路径输入有效性 | 动态 Motion 峰值 0.01128（98 px）、静止 0；深度/法线有效；alpha 0/0.5/高值分别为 42/406/35915，0–0.5 保留区 0 px，无洋红 | `PALN/validation/T2/T2Verification.json`、`T2ProbeDepth_*.png`、`T2ProbeRawNormal_*.png` |
+| TAA/Motion Blur 回归 | 早/默认 Motion 输出哈希逐字节一致（三路径均 0 差异） | 同上 |
+| Pass 顺序（带探针） | Forward/Forward+ 11 事件，Deferred 22 事件：DepthNormalPrepass(150) → [Deferred: CopyDepth(201)] → MotionVectors(202) → 探针(203) → GBuffer(210)/Opaque(250) → 天空盒/最终 Blit | `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` |
+| 无插件不变性 | 无探针调度 6/6/16 事件，与 T1 基线逐事件 `eventDataHash` 相同（仅 Renderer 资产名不同） | `PALN/validation/T2/FrameDebugger/WithoutProbe/`、`PALN/validation/T1/FrameDebugger/FrameDebuggerReport.json` |
+| T1 复验 | Run15/Run16 通过：三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 0.28% / 0.01% / 0.04% | `PALN/validation/T1/Reproducibility.json` |
+
+**已知限制**：T2 只验证 Core 输入与调度，不包含任何 GTAO/SSGI/SSR 算法、透明 prepass 或历史资源；探针 Feature、探针材质与 `SslT2*` Renderer/Pipeline 均为 `Assets/Tests/ScreenSpaceLighting` 下的测试资产，不属于 Core 或后续插件 API。
 
 ## 12. 验证矩阵
 

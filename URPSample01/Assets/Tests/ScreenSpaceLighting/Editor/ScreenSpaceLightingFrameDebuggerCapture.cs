@@ -5,13 +5,27 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 public static class ScreenSpaceLightingFrameDebuggerCapture
 {
-    static readonly string[] ModeNames = { "Forward", "ForwardPlus", "Deferred" };
+    static readonly string[] DefaultModeNames = { "Forward", "ForwardPlus", "Deferred" };
+    static readonly string[] DefaultPipelinePaths =
+    {
+        "Assets/Tests/ScreenSpaceLighting/Renderers/SslForwardPipeline.asset",
+        "Assets/Tests/ScreenSpaceLighting/Renderers/SslForwardPlusPipeline.asset",
+        "Assets/Tests/ScreenSpaceLighting/Renderers/SslDeferredPipeline.asset"
+    };
     static readonly BindingFlags StaticFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+    const int ProbeWidth = 320;
+    const int ProbeHeight = 180;
+
+    static string[] modeNames = DefaultModeNames;
+    static string[] pipelinePaths = DefaultPipelinePaths;
+    static Material probeMaterial;
+    static RenderTexture probeTarget;
 
     static Type utilityType;
     static RenderPipelineAsset previousGraphicsPipeline;
@@ -28,19 +42,33 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
     static int timeoutFrames;
     static string lastDiagnostics;
 
-    [MenuItem("Tests/Screen Space Lighting/Capture T1 Frame Debugger")]
+    [MenuItem("Tests/Screen Space Lighting/Capture Frame Debugger")]
     public static void Capture()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)
-            throw new InvalidOperationException("Leave Play Mode before capturing the T1 Frame Debugger baseline.");
+            throw new InvalidOperationException("Leave Play Mode before capturing the Frame Debugger baseline.");
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().isDirty)
-            throw new InvalidOperationException("Save or discard the active scene before capturing the T1 Frame Debugger baseline.");
+            throw new InvalidOperationException("Save or discard the active scene before capturing the Frame Debugger baseline.");
+
+        modeNames = DefaultModeNames;
+        pipelinePaths = DefaultPipelinePaths;
+        var defaultOutput = Path.Combine("PALN", "validation", "T1", "FrameDebugger");
+        var outputArgument = GetArgument("--ssl-fd-output") ?? defaultOutput;
+        var namesArgument = GetArgument("--ssl-fd-names");
+        var pipelinesArgument = GetArgument("--ssl-fd-pipelines");
+        if (namesArgument != null)
+            modeNames = namesArgument.Split(',');
+        if (pipelinesArgument != null)
+            pipelinePaths = pipelinesArgument.Split(',');
+        if (modeNames.Length != pipelinePaths.Length || modeNames.Length == 0)
+            throw new ArgumentException("--ssl-fd-names and --ssl-fd-pipelines must have the same length.");
 
         previousGraphicsPipeline = GraphicsSettings.defaultRenderPipeline;
         previousQualityPipeline = QualitySettings.renderPipeline;
         previousScenePath = UnityEngine.SceneManagement.SceneManager.GetActiveScene().path;
-        outputRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "PALN", "validation", "T1", "FrameDebugger"));
+        outputRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", outputArgument));
         Directory.CreateDirectory(outputRoot);
+        EnsureProbeResources();
         report = new CaptureReport
         {
             utcTimestamp = DateTime.UtcNow.ToString("O"),
@@ -86,6 +114,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
             if (waitFrames-- > 0)
                 return;
 
+            EnsureProbeResources();
             SetFrameDebuggerEnabled(true);
             var count = (int)utilityType.GetProperty("count", StaticFlags).GetValue(null);
             if (count <= 0)
@@ -100,7 +129,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
 
             var mode = new ModeEvents
             {
-                name = ModeNames[modeIndex],
+                name = modeNames[modeIndex],
                 eventCount = count,
                 eventsHash = (int)utilityType.GetProperty("eventsHash", StaticFlags).GetValue(null),
                 eventDataHash = (uint)utilityType.GetProperty("eventDataHash", StaticFlags).GetValue(null),
@@ -110,10 +139,10 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
             for (var i = 0; i < count; i++)
                 mode.eventNames.Add((string)getName.Invoke(null, new object[] { i }));
             report.modes.Add(mode);
-            File.WriteAllText(Path.Combine(outputRoot, ModeNames[modeIndex] + ".json"), JsonUtility.ToJson(mode, true));
+            File.WriteAllText(Path.Combine(outputRoot, modeNames[modeIndex] + ".json"), JsonUtility.ToJson(mode, true));
 
             modeIndex++;
-            if (modeIndex < ModeNames.Length)
+            if (modeIndex < modeNames.Length)
             {
                 SetFrameDebuggerEnabled(false);
                 EditorApplication.isPaused = false;
@@ -169,12 +198,56 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
 
     static void SetPipeline(int index)
     {
-        var path = "Assets/Tests/ScreenSpaceLighting/Renderers/Ssl" + ModeNames[index] + "Pipeline.asset";
+        var path = pipelinePaths[index];
         var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(path);
         if (pipeline == null)
-            throw new FileNotFoundException("Missing T1 Pipeline Asset.", path);
+            throw new FileNotFoundException("Missing Pipeline Asset.", path);
         GraphicsSettings.defaultRenderPipeline = pipeline;
         QualitySettings.renderPipeline = pipeline;
+
+        // The probe feature only enqueues when it has a material and target; without them the capture
+        // would silently record the baseline schedule instead of the early-input schedule.
+        EnsureProbeResources();
+        var rendererPath = path.Replace("Pipeline.asset", "Renderer.asset");
+        var rendererData = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(rendererPath);
+        if (rendererData == null)
+            return;
+        foreach (var rendererFeature in rendererData.rendererFeatures)
+        {
+            if (rendererFeature is ScreenSpaceLightingPassProbeFeature probe)
+            {
+                probe.probeMaterial = probeMaterial;
+                probe.SetActive(true);
+            }
+        }
+        ScreenSpaceLightingPassProbeFeature.probeTarget = probeTarget;
+    }
+
+    static void EnsureProbeResources()
+    {
+        if (probeMaterial == null)
+        {
+            probeMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Tests/ScreenSpaceLighting/Materials/SslProbe.mat");
+            if (probeMaterial == null)
+                throw new FileNotFoundException("Missing probe material.", "Assets/Tests/ScreenSpaceLighting/Materials/SslProbe.mat");
+        }
+        if (probeTarget == null)
+        {
+            probeTarget = new RenderTexture(ProbeWidth, ProbeHeight, 0, GraphicsFormat.R32G32B32A32_SFloat) { name = "SslT2Probe" };
+            probeTarget.Create();
+        }
+        ScreenSpaceLightingPassProbeFeature.probeTarget = probeTarget;
+    }
+
+    static string GetArgument(string name)
+    {
+        var arguments = Environment.GetCommandLineArgs();
+        for (var i = 0; i < arguments.Length - 1; i++)
+        {
+            if (arguments[i] == name)
+                return arguments[i + 1];
+        }
+        return null;
     }
 
     static void CleanupAndExit()
@@ -189,6 +262,13 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
             EditorSettings.enterPlayModeOptions = previousEnterPlayModeOptions;
             if (!string.IsNullOrEmpty(previousScenePath))
                 EditorSceneManager.OpenScene(previousScenePath, OpenSceneMode.Single);
+            ScreenSpaceLightingPassProbeFeature.probeTarget = null;
+            if (probeTarget != null)
+            {
+                probeTarget.Release();
+                UnityEngine.Object.DestroyImmediate(probeTarget);
+                probeTarget = null;
+            }
         }
         catch (Exception exception)
         {

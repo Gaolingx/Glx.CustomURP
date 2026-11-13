@@ -95,6 +95,10 @@ namespace UnityEngine.Rendering.Universal
         DepthNormalOnlyPass m_DepthNormalPrepass;
         CopyDepthPass m_PrimedDepthCopyPass;
         MotionVectorRenderPass m_MotionVectorPass;
+        readonly RenderPassEvent m_DefaultMotionVectorPassEvent;
+        // Earliest event the shared built-in motion pass can occupy when a render pass consumes motion
+        // before the default (post-opaque) schedule. Depth is primed at BeforeRenderingPrePasses.
+        internal const RenderPassEvent k_EarlyMotionVectorRenderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 2;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
@@ -293,7 +297,8 @@ namespace UnityEngine.Rendering.Universal
                 copyResolvedDepth: RenderingUtils.MultisampleDepthResolveSupported() && SystemInfo.supportsMultisampleAutoResolve && copyDepthAfterTransparents);
 
             // Motion vectors depend on the (copy) depth texture. Depth is reprojected to calculate motion vectors.
-            m_MotionVectorPass = new MotionVectorRenderPass(copyDepthEvent + 1, m_CameraMotionVecMaterial, m_ObjectMotionVecMaterial, data.opaqueLayerMask);
+            m_DefaultMotionVectorPassEvent = copyDepthEvent + 1;
+            m_MotionVectorPass = new MotionVectorRenderPass(m_DefaultMotionVectorPassEvent, m_CameraMotionVecMaterial, m_ObjectMotionVecMaterial, data.opaqueLayerMask);
 
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
@@ -627,6 +632,15 @@ namespace UnityEngine.Rendering.Universal
             if (renderingLayerProvidesByDepthNormalPass)
                 renderPassInputs.requiresNormalsTexture = true;
 
+            // A render pass that consumes motion before the default motion event forces the shared built-in
+            // motion pass (and the depth it reprojects) ahead of that consumer. Must be resolved before
+            // DeferredLights reads the normal prepass flag, otherwise GBuffer attachments are allocated twice.
+            bool earlyMotionVectors = renderPassInputs.requiresMotionVectors &&
+                m_MotionVectorPass.renderPassEvent < m_DefaultMotionVectorPassEvent;
+            // Deferred primes depth only through the depth-normal prepass, so it must also produce normals.
+            if (earlyMotionVectors && this.renderingModeActual == RenderingMode.Deferred)
+                renderPassInputs.requiresNormalsTexture = true;
+
             // TODO: investigate the order of call, had to change because of requiresRenderingLayer
             if (m_DeferredLights != null)
             {
@@ -702,6 +716,9 @@ namespace UnityEngine.Rendering.Universal
 
             requiresDepthPrepass |= useDepthPriming;
 
+            if (earlyMotionVectors)
+                requiresDepthPrepass = true;
+
             // If possible try to merge the opaque and skybox passes instead of splitting them when "Depth Texture" is required.
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
@@ -752,6 +769,10 @@ namespace UnityEngine.Rendering.Universal
             createDepthTexture |= useDepthPriming;
             // Todo seems like with mrt depth is not taken from first target
             createDepthTexture |= (renderingLayerProvidesRenderObjectPass);
+
+            // Deferred primes depth in the camera attachment; early motion needs it in _CameraDepthTexture.
+            bool earlyDeferredDepthCopy = earlyMotionVectors && this.renderingModeActual == RenderingMode.Deferred;
+            createDepthTexture |= earlyDeferredDepthCopy;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             // URP can't handle msaa/size mismatch between depth RT and color RT(for now we create intermediate textures to ensure they match)
@@ -857,7 +878,7 @@ namespace UnityEngine.Rendering.Universal
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
-            bool requiresDepthCopyPass = !requiresDepthPrepass
+            bool requiresDepthCopyPass = (!requiresDepthPrepass || earlyDeferredDepthCopy)
                 && (renderingData.cameraData.requiresDepthTexture || cameraHasPostProcessingWithDepth || renderPassInputs.requiresDepthTexture)
                 && createDepthTexture;
 
@@ -1187,6 +1208,11 @@ namespace UnityEngine.Rendering.Universal
                 RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorDepthTexture");
 
                 m_MotionVectorPass.Setup(m_MotionVectorColor, m_MotionVectorDepth);
+                // The render graph path binds this after the motion pass; injected passes that read motion
+                // by name need the same global on the compatibility path.
+                cmd.SetGlobalTexture("_MotionVectorTexture", m_MotionVectorColor);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
                 EnqueuePass(m_MotionVectorPass);
             }
 
@@ -1434,7 +1460,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
         }
 
-        private struct RenderPassInputSummary
+        internal struct RenderPassInputSummary
         {
             internal bool requiresDepthTexture;
             internal bool requiresDepthPrepass;
@@ -1444,6 +1470,42 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresMotionVectors;
             internal RenderPassEvent requiresDepthNormalAtEvent;
             internal RenderPassEvent requiresDepthTextureEarliestEvent;
+            internal RenderPassEvent requiresMotionVectorEarliestEvent;
+        }
+
+        // Accumulates one render pass input request. Kept separate from GetRenderPassInputs so the
+        // scheduling rules (including the earliest motion consumer) can be tested without a renderer.
+        internal static void AccumulatePassInput(ref RenderPassInputSummary inputSummary, RenderPassEvent passEvent, ScriptableRenderPassInput input, bool eventBeforeMainRendering)
+        {
+            bool needsDepth = (input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
+            bool needsNormals = (input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
+            bool needsColor = (input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
+            bool needsMotion = (input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
+
+            inputSummary.requiresDepthTexture |= needsDepth;
+            inputSummary.requiresDepthPrepass |= needsNormals || needsDepth && eventBeforeMainRendering;
+            inputSummary.requiresNormalsTexture |= needsNormals;
+            inputSummary.requiresColorTexture |= needsColor;
+            inputSummary.requiresMotionVectors |= needsMotion;
+            if (needsDepth)
+                inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)passEvent, (int)inputSummary.requiresDepthTextureEarliestEvent);
+            if (needsNormals || needsDepth)
+                inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)passEvent, (int)inputSummary.requiresDepthNormalAtEvent);
+            if (needsMotion)
+                inputSummary.requiresMotionVectorEarliestEvent = (RenderPassEvent)Mathf.Min((int)passEvent, (int)inputSummary.requiresMotionVectorEarliestEvent);
+        }
+
+        internal static RenderPassEvent ResolveMotionVectorPassEvent(RenderPassEvent defaultEvent, RenderPassEvent earliestConsumerEvent)
+        {
+            return earliestConsumerEvent < defaultEvent ? k_EarlyMotionVectorRenderPassEvent : defaultEvent;
+        }
+
+        // Motion reprojects the depth texture, so the depth that feeds the motion pass must be ready at or before it.
+        internal static void ApplyMotionVectorDependencies(ref RenderPassInputSummary inputSummary, RenderPassEvent motionPassEvent)
+        {
+            inputSummary.requiresDepthTexture = true;
+            inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)motionPassEvent, (int)inputSummary.requiresDepthTextureEarliestEvent);
+            inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)motionPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
         }
 
         private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData)
@@ -1453,13 +1515,10 @@ namespace UnityEngine.Rendering.Universal
             RenderPassInputSummary inputSummary = new RenderPassInputSummary();
             inputSummary.requiresDepthNormalAtEvent = RenderPassEvent.BeforeRenderingOpaques;
             inputSummary.requiresDepthTextureEarliestEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+            inputSummary.requiresMotionVectorEarliestEvent = RenderPassEvent.AfterRendering;
             for (int i = 0; i < activeRenderPassQueue.Count; ++i)
             {
                 ScriptableRenderPass pass = activeRenderPassQueue[i];
-                bool needsDepth = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
-                bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
-                bool needsColor = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
-                bool needsMotion = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
                 bool eventBeforeMainRendering = pass.renderPassEvent <= beforeMainRenderingEvent;
 
                 // TODO: Need a better way to handle this, probably worth to recheck after render graph
@@ -1469,15 +1528,7 @@ namespace UnityEngine.Rendering.Universal
                     inputSummary.requiresColorTextureCreated = true;
                 }
 
-                inputSummary.requiresDepthTexture |= needsDepth;
-                inputSummary.requiresDepthPrepass |= needsNormals || needsDepth && eventBeforeMainRendering;
-                inputSummary.requiresNormalsTexture |= needsNormals;
-                inputSummary.requiresColorTexture |= needsColor;
-                inputSummary.requiresMotionVectors |= needsMotion;
-                if (needsDepth)
-                    inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthTextureEarliestEvent);
-                if (needsNormals || needsDepth)
-                    inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
+                AccumulatePassInput(ref inputSummary, pass.renderPassEvent, pass.input, eventBeforeMainRendering);
             }
 
             // NOTE: TAA and motion vector dependencies added here to share between Execute and Render (Graph) paths.
@@ -1485,12 +1536,11 @@ namespace UnityEngine.Rendering.Universal
             if (renderingData.cameraData.IsTemporalAAEnabled())
                 inputSummary.requiresMotionVectors = true;
 
+            m_MotionVectorPass.renderPassEvent = ResolveMotionVectorPassEvent(m_DefaultMotionVectorPassEvent, inputSummary.requiresMotionVectorEarliestEvent);
+
             // Motion vectors imply depth
             if (inputSummary.requiresMotionVectors)
-            {
-                inputSummary.requiresDepthTexture = true;
-                inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)m_MotionVectorPass.renderPassEvent, (int)inputSummary.requiresDepthTextureEarliestEvent);
-            }
+                ApplyMotionVectorDependencies(ref inputSummary, m_MotionVectorPass.renderPassEvent);
 
             return inputSummary;
         }

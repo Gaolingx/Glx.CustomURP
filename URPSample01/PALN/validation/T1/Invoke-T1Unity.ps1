@@ -66,7 +66,10 @@ try {
         $unityArguments += "-quit"
     }
     $unityArguments += $AdditionalArguments
-    $process = Start-Process -FilePath $UnityPath -ArgumentList $unityArguments -PassThru -Wait
+    # Wait only for the editor, not for Unity helper processes (licensing client, Hub helpers) that
+    # can outlive it; Start-Process -Wait would block until every descendant exits.
+    $process = Start-Process -FilePath $UnityPath -ArgumentList $unityArguments -PassThru
+    $process.WaitForExit()
     $unityExitCode = $process.ExitCode
 }
 catch {

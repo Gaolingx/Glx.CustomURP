@@ -1,6 +1,6 @@
 {
-    "startedUtc":  "2026-11-13T17:18:00.8370092Z",
-    "finishedUtc":  "2026-11-13T17:18:38.0098332Z",
+    "startedUtc":  "2026-11-13T21:03:05.8759890Z",
+    "finishedUtc":  "2026-11-13T21:03:46.2671001Z",
     "executeMethod":  "ScreenSpaceLightingBaselineSetup.BuildBaselinePlayer",
     "unityExitCode":  0,
     "invocationError":  null,
