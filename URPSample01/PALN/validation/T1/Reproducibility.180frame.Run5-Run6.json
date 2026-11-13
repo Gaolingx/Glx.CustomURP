@@ -1,0 +1,129 @@
+{
+  "analysisUtc": "2026-11-13T16:46:02.825682+00:00",
+  "selectedRuns": [
+    "Run5",
+    "Run6"
+  ],
+  "availableRuns": [
+    "Run1",
+    "Run2",
+    "Run3",
+    "Run4",
+    "Run5",
+    "Run6"
+  ],
+  "variationFormula": "abs(run2 - run1) / ((run1 + run2) / 2) * 100",
+  "timingVariationTolerancePercent": 10.0,
+  "reportsComplete": true,
+  "imagesReproducible": true,
+  "graphicsDriverMemoryStable": true,
+  "timingWithinTolerance": false,
+  "passed": false,
+  "modes": [
+    {
+      "mode": "SslForwardPipeline",
+      "screenshots": {
+        "file": "Forward.png",
+        "sha256": {
+          "Run5": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88",
+          "Run6": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88"
+        },
+        "identical": true,
+        "captured": true,
+        "magentaPixelFraction": {
+          "Run5": 0.0,
+          "Run6": 0.0
+        }
+      },
+      "graphicsDriverBytes": {
+        "Run5": 42626757,
+        "Run6": 42626757,
+        "identical": true
+      },
+      "timing": {
+        "CpuP95Ms": {
+          "Run5": 1.3729,
+          "Run6": 1.5339,
+          "symmetricVariationPercent": 11.077473510389433,
+          "withinTolerance": false
+        },
+        "GpuP95Ms": {
+          "Run5": 1.0417,
+          "Run6": 0.3715,
+          "symmetricVariationPercent": 94.84857061986982,
+          "withinTolerance": false
+        }
+      }
+    },
+    {
+      "mode": "SslForwardPlusPipeline",
+      "screenshots": {
+        "file": "ForwardPlus.png",
+        "sha256": {
+          "Run5": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88",
+          "Run6": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88"
+        },
+        "identical": true,
+        "captured": true,
+        "magentaPixelFraction": {
+          "Run5": 0.0,
+          "Run6": 0.0
+        }
+      },
+      "graphicsDriverBytes": {
+        "Run5": 42708681,
+        "Run6": 42708681,
+        "identical": true
+      },
+      "timing": {
+        "CpuP95Ms": {
+          "Run5": 1.4531,
+          "Run6": 1.4045,
+          "symmetricVariationPercent": 3.401455767077266,
+          "withinTolerance": true
+        },
+        "GpuP95Ms": {
+          "Run5": 0.7619,
+          "Run6": 1.057,
+          "symmetricVariationPercent": 32.44818296772774,
+          "withinTolerance": false
+        }
+      }
+    },
+    {
+      "mode": "SslDeferredPipeline",
+      "screenshots": {
+        "file": "Deferred.png",
+        "sha256": {
+          "Run5": "7dcceec85d7758dd964b905642253d23512c6c7b9e9923ef8e76b783de88e109",
+          "Run6": "7dcceec85d7758dd964b905642253d23512c6c7b9e9923ef8e76b783de88e109"
+        },
+        "identical": true,
+        "captured": true,
+        "magentaPixelFraction": {
+          "Run5": 0.0,
+          "Run6": 0.0
+        }
+      },
+      "graphicsDriverBytes": {
+        "Run5": 57373383,
+        "Run6": 57373383,
+        "identical": true
+      },
+      "timing": {
+        "CpuP95Ms": {
+          "Run5": 1.5641,
+          "Run6": 1.5448,
+          "symmetricVariationPercent": 1.2415967062305056,
+          "withinTolerance": true
+        },
+        "GpuP95Ms": {
+          "Run5": 1.0278,
+          "Run6": 0.8028,
+          "symmetricVariationPercent": 24.58210422812194,
+          "withinTolerance": false
+        }
+      }
+    }
+  ]
+}

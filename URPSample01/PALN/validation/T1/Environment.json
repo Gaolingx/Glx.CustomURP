@@ -1,0 +1,15 @@
+{
+  "captureDate": "2026-11-14",
+  "unityVersion": "2022.3.62f1 (4af31df58517)",
+  "urpVersion": "14.0.12",
+  "os": "Microsoft Windows Server 2022 Datacenter",
+  "osVersion": "10.0.20348",
+  "cpu": "AMD Eng Sample: 100-000000897-03",
+  "cpuCores": 32,
+  "cpuLogicalProcessors": 64,
+  "gpu": "NVIDIA GeForce RTX 5060 Ti",
+  "gpuDriver": "32.0.15.7680",
+  "requestedGraphicsApi": "Direct3D11",
+  "projectColorSpace": "Linear",
+  "notes": "The machine also exposes virtual display and ASPEED adapters; BaselineReport.json records the adapter and API actually selected by Unity."
+}

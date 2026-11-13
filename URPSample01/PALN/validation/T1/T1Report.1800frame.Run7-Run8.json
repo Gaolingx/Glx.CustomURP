@@ -1,0 +1,71 @@
+{
+  "analysisUtc": "2026-11-13T17:11:40.491493+00:00",
+  "build": {
+    "result": "Succeeded",
+    "totalErrors": 0,
+    "totalWarnings": 2,
+    "totalSizeBytes": 103967980,
+    "totalTimeSeconds": 14.8571812,
+    "executablePath": "E:\\workspace\\GitHub\\URPSample01\\PALN\\validation\\T1\\Player\\SslBaselinePlayer.exe"
+  },
+  "buildPassed": true,
+  "buildSettingsRestoration": {
+    "file": "BuildSettingsRestoration.json",
+    "passed": true
+  },
+  "environment": {
+    "captureDate": "2026-11-14",
+    "unityVersion": "2022.3.62f1 (4af31df58517)",
+    "urpVersion": "14.0.12",
+    "os": "Microsoft Windows Server 2022 Datacenter",
+    "osVersion": "10.0.20348",
+    "cpu": "AMD Eng Sample: 100-000000897-03",
+    "cpuCores": 32,
+    "cpuLogicalProcessors": 64,
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "gpuDriver": "32.0.15.7680",
+    "requestedGraphicsApi": "Direct3D11",
+    "projectColorSpace": "Linear",
+    "notes": "The machine also exposes virtual display and ASPEED adapters; BaselineReport.json records the adapter and API actually selected by Unity."
+  },
+  "baselineRuns": {
+    "Run7": {
+      "report": "Run7/BaselineReport.json",
+      "frameTimes": "Run7/FrameTimes.csv",
+      "completed": true
+    },
+    "Run8": {
+      "report": "Run8/BaselineReport.json",
+      "frameTimes": "Run8/FrameTimes.csv",
+      "completed": true
+    }
+  },
+  "reproducibility": {
+    "file": "Reproducibility.json",
+    "passed": false,
+    "protocolValid": true,
+    "environmentMatches": true,
+    "imagesReproducible": true,
+    "graphicsDriverMemoryStable": true,
+    "timingWithinTolerance": false
+  },
+  "frameDebugger": {
+    "file": "FrameDebugger/FrameDebuggerReport.json",
+    "passed": true,
+    "eventCounts": {
+      "Forward": 6,
+      "ForwardPlus": 6,
+      "Deferred": 16
+    }
+  },
+  "settingsRestoration": {
+    "file": "FrameDebuggerSettingsRestoration.json",
+    "passed": true
+  },
+  "goldenImages": [
+    "Forward.png",
+    "ForwardPlus.png",
+    "Deferred.png"
+  ],
+  "t1ExitCriteriaMet": false
+}

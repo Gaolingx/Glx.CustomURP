@@ -1,0 +1,2 @@
+System.TimeoutException: Timed out while waiting for Frame Debugger events.
+  at ScreenSpaceLightingFrameDebuggerCapture.Update () [0x00034] in E:\workspace\GitHub\URPSample01\Assets\Tests\ScreenSpaceLighting\Editor\ScreenSpaceLightingFrameDebuggerCapture.cs:84 

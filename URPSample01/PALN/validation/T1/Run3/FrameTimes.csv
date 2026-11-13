@@ -1,0 +1,4 @@
+Mode,CpuSamples,CpuMeanMs,CpuMedianMs,CpuP95Ms,GpuSamples,GpuMeanMs,GpuMedianMs,GpuP95Ms,GraphicsDriverBytes,AllocatedBytes,ReservedBytes,ScreenshotCaptured,MagentaPixelFraction
+SslForwardPipeline,180,0.7613,0.7585,1.0433,165,0.1238,0.0727,0.3249,42626757,56643270,219234304,True,0.000000
+SslForwardPlusPipeline,180,0.8451,0.8080,1.2878,156,0.1576,0.0827,0.3994,42708681,68310484,219234304,True,0.000000
+SslDeferredPipeline,180,0.8716,0.8193,1.3114,161,0.1560,0.1318,0.1884,57373383,72471379,236011520,True,0.000000

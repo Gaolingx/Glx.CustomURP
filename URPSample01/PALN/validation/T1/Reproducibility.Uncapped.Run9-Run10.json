@@ -1,0 +1,149 @@
+{
+  "analysisUtc": "2026-11-13T17:15:58.681832+00:00",
+  "selectedRuns": [
+    "Run9",
+    "Run10"
+  ],
+  "availableRuns": [
+    "Run1",
+    "Run10",
+    "Run2",
+    "Run3",
+    "Run4",
+    "Run5",
+    "Run6",
+    "Run7",
+    "Run7.Generator180Invalid",
+    "Run7.Scene180Invalid",
+    "Run8",
+    "Run9"
+  ],
+  "variationFormula": "abs(run2 - run1) / ((run1 + run2) / 2) * 100",
+  "timingVariationTolerancePercent": 10.0,
+  "reportsComplete": true,
+  "protocol": {
+    "Run9": {
+      "sampleFrames": 1800,
+      "valid": true,
+      "issues": []
+    },
+    "Run10": {
+      "sampleFrames": 1800,
+      "valid": true,
+      "issues": []
+    }
+  },
+  "protocolValid": true,
+  "environmentMatches": true,
+  "imagesReproducible": true,
+  "graphicsDriverMemoryStable": true,
+  "timingWithinTolerance": false,
+  "passed": false,
+  "modes": [
+    {
+      "mode": "SslForwardPipeline",
+      "screenshots": {
+        "file": "Forward.png",
+        "sha256": {
+          "Run9": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88",
+          "Run10": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88"
+        },
+        "identical": true,
+        "captured": true,
+        "magentaPixelFraction": {
+          "Run9": 0.0,
+          "Run10": 0.0
+        }
+      },
+      "graphicsDriverBytes": {
+        "Run9": 42626757,
+        "Run10": 42626757,
+        "identical": true
+      },
+      "timing": {
+        "CpuP95Ms": {
+          "Run9": 1.7174,
+          "Run10": 1.728,
+          "symmetricVariationPercent": 0.6153131711847648,
+          "withinTolerance": true
+        },
+        "GpuP95Ms": {
+          "Run9": 1.1697,
+          "Run10": 0.6405,
+          "symmetricVariationPercent": 58.46867749419954,
+          "withinTolerance": false
+        }
+      }
+    },
+    {
+      "mode": "SslForwardPlusPipeline",
+      "screenshots": {
+        "file": "ForwardPlus.png",
+        "sha256": {
+          "Run9": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88",
+          "Run10": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88"
+        },
+        "identical": true,
+        "captured": true,
+        "magentaPixelFraction": {
+          "Run9": 0.0,
+          "Run10": 0.0
+        }
+      },
+      "graphicsDriverBytes": {
+        "Run9": 42708681,
+        "Run10": 42708681,
+        "identical": true
+      },
+      "timing": {
+        "CpuP95Ms": {
+          "Run9": 1.6828,
+          "Run10": 1.7574,
+          "symmetricVariationPercent": 4.336957153653858,
+          "withinTolerance": true
+        },
+        "GpuP95Ms": {
+          "Run9": 0.9623,
+          "Run10": 1.175,
+          "symmetricVariationPercent": 19.903616712674868,
+          "withinTolerance": false
+        }
+      }
+    },
+    {
+      "mode": "SslDeferredPipeline",
+      "screenshots": {
+        "file": "Deferred.png",
+        "sha256": {
+          "Run9": "7dcceec85d7758dd964b905642253d23512c6c7b9e9923ef8e76b783de88e109",
+          "Run10": "7dcceec85d7758dd964b905642253d23512c6c7b9e9923ef8e76b783de88e109"
+        },
+        "identical": true,
+        "captured": true,
+        "magentaPixelFraction": {
+          "Run9": 0.0,
+          "Run10": 0.0
+        }
+      },
+      "graphicsDriverBytes": {
+        "Run9": 57373383,
+        "Run10": 57373383,
+        "identical": true
+      },
+      "timing": {
+        "CpuP95Ms": {
+          "Run9": 1.7129,
+          "Run10": 1.5982,
+          "symmetricVariationPercent": 6.928211168493855,
+          "withinTolerance": true
+        },
+        "GpuP95Ms": {
+          "Run9": 1.0473,
+          "Run10": 0.9833,
+          "symmetricVariationPercent": 6.3035555993302435,
+          "withinTolerance": true
+        }
+      }
+    }
+  ]
+}

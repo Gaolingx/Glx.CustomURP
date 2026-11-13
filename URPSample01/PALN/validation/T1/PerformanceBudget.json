@@ -1,0 +1,56 @@
+{
+  "name": "ScreenSpaceLighting T1 budget",
+  "date": "2026-11-14",
+  "unityVersion": "2022.3.62f1",
+  "urpVersion": "14.0.12",
+  "primaryTarget": {
+    "platform": "StandaloneWindows64",
+    "buildConfiguration": "Development for T1 graphics memory counters; T14 also requires Release regression",
+    "graphicsApi": "Direct3D11",
+    "resolution": "1280x720",
+    "renderScale": 1.0,
+    "hdr": true,
+    "msaa": 1,
+    "postProcessing": false,
+    "randomSeed": 14012,
+    "warmupFrames": 60,
+    "sampleFrames": 1800,
+    "targetFrameRate": 60
+  },
+  "measurement": {
+    "statistic": "p95 of per-frame timings after warmup",
+    "comparison": "same machine, GPU, driver, API, scene and Player configuration",
+    "repeatRuns": 2,
+    "timingVariationTolerancePercent": 10.0,
+    "baselineDisabledFeatureMeanAbsoluteError8BitMax": 0.5,
+    "baselineDisabledFeatureChangedPixelFractionMax": 0.001,
+    "changedPixelChannelTolerance8Bit": 2,
+    "protocolRevision": "2026-11-14: Runs 1-6 retained with 180 samples; increased to 1800 samples because sub-millisecond p95 tails were unstable. Run7-Run8 retained at 1800 samples and still exceeded the p95 tolerance. Run9-Run10 reused WaitForEndOfFrame and wrote RawFrameTimes.csv; CPU p95 stabilized, while uncapped GPU tails remained unstable and mostly uncorrelated with CPU spikes. Run11-Run12 capped the Player at 60 FPS with vSync disabled; Forward passed, but ForwardPlus and Deferred GPU p95 remained outside tolerance. T1 is blocked on GPU timing reproducibility. The p95 statistic, 10% tolerance and all performance budgets remain unchanged."
+  },
+  "incrementalGpuMsP95Max": {
+    "coreDepthNormalsAndEarlyMotion": 0.8,
+    "gtaoDepthPyramid": 0.35,
+    "sslDepthPyramid": 0.35,
+    "colorPyramidAndHistoryCapture": 0.6,
+    "gtaoHalfResolution": 1.5,
+    "gtaoFullResolution": 2.5,
+    "ssgiHalfResolution": 2.5,
+    "ssgiFullResolution": 4.0,
+    "opaqueSsrApproximation": 2.0,
+    "opaqueSsrPbrAdditional": 1.5,
+    "transparentPrepassAndSsrApproximation": 2.5,
+    "refractionAdditional": 1.0,
+    "gtaoSsgiOpaqueSsrPbrCombined": 7.0
+  },
+  "additionalGraphicsMemoryMiBMax": {
+    "singleCamera720pAllEffects": 192,
+    "singleCamera720pPersistentHistory": 96
+  },
+  "rules": [
+    "A module passes only when its own exit criteria and this budget are measured.",
+    "Missing GPU timestamps are not a passing result; record the limitation and obtain a GPU profiler capture.",
+    "No platform other than the measured primary target is declared supported by this budget.",
+    "A budget adjustment requires before/after evidence and an explicit record in the plan; tests must not be removed to pass.",
+    "The original Assets/Settings, SampleScene and active project Pipeline selection must remain unchanged after baseline capture."
+  ]
+}
