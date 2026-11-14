@@ -1,0 +1,446 @@
+{
+    "utcTimestamp": "2026-11-14T17:34:49.8624575Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "Forward",
+            "passed": true,
+            "issues": [],
+            "states": [
+                {
+                    "state": "Reference",
+                    "sha256": "A9A5C91758B73517C25D5CBEAD6DEBAF614114F61E16B43F77FD26FD00F12650",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": false,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5939643979072571
+                },
+                {
+                    "state": "RefractionOn",
+                    "sha256": "33FFAE3A19B1CD69FA78D2DB74F887292C05E9DA37007B9C83E70A88B0AFF508",
+                    "differingPixels": 17613,
+                    "maxChannelDelta": 2.1206302642822267,
+                    "differsFromReference": true,
+                    "identicalToReference": false,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5999889373779297
+                },
+                {
+                    "state": "ModelsNone",
+                    "sha256": "9A1CCBB1435B32386B0DF0DDD2FD0C1B0EA65F80363E27040BFE925B5B5978A5",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 5.960464477539063e-8,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5939643979072571
+                },
+                {
+                    "state": "Intensity0",
+                    "sha256": "9A1CCBB1435B32386B0DF0DDD2FD0C1B0EA65F80363E27040BFE925B5B5978A5",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 5.960464477539063e-8,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5939643979072571
+                },
+                {
+                    "state": "OffAgain",
+                    "sha256": "9A1CCBB1435B32386B0DF0DDD2FD0C1B0EA65F80363E27040BFE925B5B5978A5",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 5.960464477539063e-8,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5939643979072571
+                },
+                {
+                    "state": "NoProxyFallback",
+                    "sha256": "9A1CCBB1435B32386B0DF0DDD2FD0C1B0EA65F80363E27040BFE925B5B5978A5",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 5.960464477539063e-8,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5939643979072571
+                }
+            ],
+            "boxChangedPixels": 5915,
+            "boxMaxDelta": 0.3278668522834778,
+            "legacyChangedPixels": 0,
+            "legacyMaxDelta": 0.0,
+            "complexChangedPixels": 2996,
+            "complexMaxDelta": 2.1186351776123049,
+            "sphereChangedPixels": 1233,
+            "shaderGraphChangedPixels": 3092,
+            "shaderGraphMaxDelta": 0.32845935225486758,
+            "noProxyChangedPixels": 0,
+            "noProxyMaxDelta": 5.960464477539063e-8,
+            "tintApplied": true,
+            "tint": {
+                "whiteMean": {
+                    "r": 1.5197868347167969,
+                    "g": 0.8665511012077332,
+                    "b": 0.3046540319919586,
+                    "a": 1.0
+                },
+                "tintedMean": {
+                    "r": 0.5523902177810669,
+                    "g": 0.8665511012077332,
+                    "b": 0.3046540319919586,
+                    "a": 1.0
+                },
+                "redRatio": 0.3634655773639679,
+                "applied": true
+            },
+            "tintStartMean": {
+                "r": 1.5197868347167969,
+                "g": 0.8665511012077332,
+                "b": 0.3046540319919586,
+                "a": 1.0
+            },
+            "tintEndMean": {
+                "r": 0.5523902177810669,
+                "g": 0.8665511012077332,
+                "b": 0.3046540319919586,
+                "a": 1.0
+            },
+            "moveBeforeMean": {
+                "r": 1.5021928548812867,
+                "g": 0.8674620985984802,
+                "b": 0.3191251754760742,
+                "a": 1.0
+            },
+            "moveAfterMean": {
+                "r": 0.2743043005466461,
+                "g": 0.43809938430786135,
+                "b": 1.5768945217132569,
+                "a": 1.0
+            },
+            "currentFramePyramidFollowsScene": true,
+            "preRefractionGlassChangedPixels": 0,
+            "preRefractionGlassMaxDelta": 0.0,
+            "preRefractionPanelChangedPixels": 5931,
+            "pyramidWithPanelChangedPixels": 0,
+            "panelDiagnostics": "surface=1 queue=3000 transparentKeyword=True src=5 dst=10 zwrite=0 alpha=0.85",
+            "preRefractionDifference": {
+                "glassChangedPixels": 0,
+                "glassMaxDelta": 0.0,
+                "panelChangedPixels": 5931,
+                "pyramidExcludesTransparents": true
+            },
+            "shaderGraphTransparentSsrChangedPixels": 543,
+            "refractionExecuteCount": 4,
+            "refractionBoundCount": 4,
+            "refractionNoProxyCount": 0,
+            "visibleProbeCount": 0,
+            "sceneProbeCount": 1,
+            "boxProbeCount": 1,
+            "limitations": "The proxy is the box of the active box-projected reflection probe (URP has no per-material proxy volume). The color pyramid is captured before transparents, so pre-refraction transparents are absent from the refraction; a transparent object between the refracting surface and the background is only visible through its own blend, not through the refraction. Refraction is a forward transparent material path only; it is not available in the deferred GBuffer."
+        },
+        {
+            "name": "ForwardPlus",
+            "passed": true,
+            "issues": [],
+            "states": [
+                {
+                    "state": "Reference",
+                    "sha256": "945ABAB3F9851B1162E9ECB959193A6CAF904FB9A93627FEA0A886655C343F0F",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": false,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5939643979072571
+                },
+                {
+                    "state": "RefractionOn",
+                    "sha256": "632FEFB8FCC4F8CFAF46766E27793783C456F63C98B7D091602495FBDEC0FCC5",
+                    "differingPixels": 17613,
+                    "maxChannelDelta": 2.1206302642822267,
+                    "differsFromReference": true,
+                    "identicalToReference": false,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5999889373779297
+                },
+                {
+                    "state": "ModelsNone",
+                    "sha256": "945ABAB3F9851B1162E9ECB959193A6CAF904FB9A93627FEA0A886655C343F0F",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5939643979072571
+                },
+                {
+                    "state": "Intensity0",
+                    "sha256": "945ABAB3F9851B1162E9ECB959193A6CAF904FB9A93627FEA0A886655C343F0F",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5939643979072571
+                },
+                {
+                    "state": "OffAgain",
+                    "sha256": "945ABAB3F9851B1162E9ECB959193A6CAF904FB9A93627FEA0A886655C343F0F",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5939643979072571
+                },
+                {
+                    "state": "NoProxyFallback",
+                    "sha256": "945ABAB3F9851B1162E9ECB959193A6CAF904FB9A93627FEA0A886655C343F0F",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5939643979072571
+                }
+            ],
+            "boxChangedPixels": 5915,
+            "boxMaxDelta": 0.3278668522834778,
+            "legacyChangedPixels": 0,
+            "legacyMaxDelta": 0.0,
+            "complexChangedPixels": 2996,
+            "complexMaxDelta": 2.1186351776123049,
+            "sphereChangedPixels": 1233,
+            "shaderGraphChangedPixels": 3092,
+            "shaderGraphMaxDelta": 0.32845935225486758,
+            "noProxyChangedPixels": 0,
+            "noProxyMaxDelta": 0.0,
+            "tintApplied": true,
+            "tint": {
+                "whiteMean": {
+                    "r": 1.5197868347167969,
+                    "g": 0.8665511012077332,
+                    "b": 0.3046540319919586,
+                    "a": 1.0
+                },
+                "tintedMean": {
+                    "r": 0.5523902177810669,
+                    "g": 0.8665511012077332,
+                    "b": 0.3046540319919586,
+                    "a": 1.0
+                },
+                "redRatio": 0.3634655773639679,
+                "applied": true
+            },
+            "tintStartMean": {
+                "r": 1.5197868347167969,
+                "g": 0.8665511012077332,
+                "b": 0.3046540319919586,
+                "a": 1.0
+            },
+            "tintEndMean": {
+                "r": 0.5523902177810669,
+                "g": 0.8665511012077332,
+                "b": 0.3046540319919586,
+                "a": 1.0
+            },
+            "moveBeforeMean": {
+                "r": 1.5021928548812867,
+                "g": 0.8674620985984802,
+                "b": 0.3191251754760742,
+                "a": 1.0
+            },
+            "moveAfterMean": {
+                "r": 0.2743043005466461,
+                "g": 0.43809938430786135,
+                "b": 1.5768945217132569,
+                "a": 1.0
+            },
+            "currentFramePyramidFollowsScene": true,
+            "preRefractionGlassChangedPixels": 0,
+            "preRefractionGlassMaxDelta": 0.0,
+            "preRefractionPanelChangedPixels": 5931,
+            "pyramidWithPanelChangedPixels": 0,
+            "panelDiagnostics": "surface=1 queue=3000 transparentKeyword=True src=5 dst=10 zwrite=0 alpha=0.85",
+            "preRefractionDifference": {
+                "glassChangedPixels": 0,
+                "glassMaxDelta": 0.0,
+                "panelChangedPixels": 5931,
+                "pyramidExcludesTransparents": true
+            },
+            "shaderGraphTransparentSsrChangedPixels": 543,
+            "refractionExecuteCount": 4,
+            "refractionBoundCount": 4,
+            "refractionNoProxyCount": 0,
+            "visibleProbeCount": 0,
+            "sceneProbeCount": 1,
+            "boxProbeCount": 1,
+            "limitations": "The proxy is the box of the active box-projected reflection probe (URP has no per-material proxy volume). The color pyramid is captured before transparents, so pre-refraction transparents are absent from the refraction; a transparent object between the refracting surface and the background is only visible through its own blend, not through the refraction. Refraction is a forward transparent material path only; it is not available in the deferred GBuffer."
+        },
+        {
+            "name": "Deferred",
+            "passed": true,
+            "issues": [],
+            "states": [
+                {
+                    "state": "Reference",
+                    "sha256": "C642147829D1F29943DADAE9E7F8870F08DFFCA0E9A075218FCC9EA54BAFE57A",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": false,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5942720770835877
+                },
+                {
+                    "state": "RefractionOn",
+                    "sha256": "B07D1DDE0C30F89751225A599715ADD19212DDEE874FB95A5B88C92C5BF0FFEC",
+                    "differingPixels": 17613,
+                    "maxChannelDelta": 2.1206302642822267,
+                    "differsFromReference": true,
+                    "identicalToReference": false,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.6003007292747498
+                },
+                {
+                    "state": "ModelsNone",
+                    "sha256": "C642147829D1F29943DADAE9E7F8870F08DFFCA0E9A075218FCC9EA54BAFE57A",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5942720770835877
+                },
+                {
+                    "state": "Intensity0",
+                    "sha256": "C642147829D1F29943DADAE9E7F8870F08DFFCA0E9A075218FCC9EA54BAFE57A",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5942720770835877
+                },
+                {
+                    "state": "OffAgain",
+                    "sha256": "C642147829D1F29943DADAE9E7F8870F08DFFCA0E9A075218FCC9EA54BAFE57A",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5942720770835877
+                },
+                {
+                    "state": "NoProxyFallback",
+                    "sha256": "C642147829D1F29943DADAE9E7F8870F08DFFCA0E9A075218FCC9EA54BAFE57A",
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "differsFromReference": false,
+                    "identicalToReference": true,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.5942720770835877
+                }
+            ],
+            "boxChangedPixels": 5915,
+            "boxMaxDelta": 0.32765692472457888,
+            "legacyChangedPixels": 0,
+            "legacyMaxDelta": 0.0,
+            "complexChangedPixels": 2996,
+            "complexMaxDelta": 2.1186351776123049,
+            "sphereChangedPixels": 1233,
+            "shaderGraphChangedPixels": 3092,
+            "shaderGraphMaxDelta": 0.32822442054748537,
+            "noProxyChangedPixels": 0,
+            "noProxyMaxDelta": 0.0,
+            "tintApplied": true,
+            "tint": {
+                "whiteMean": {
+                    "r": 1.5197861194610596,
+                    "g": 0.8665507435798645,
+                    "b": 0.30465272068977358,
+                    "a": 1.0
+                },
+                "tintedMean": {
+                    "r": 0.5523898005485535,
+                    "g": 0.8665507435798645,
+                    "b": 0.30465272068977358,
+                    "a": 1.0
+                },
+                "redRatio": 0.36346548795700076,
+                "applied": true
+            },
+            "tintStartMean": {
+                "r": 1.5197861194610596,
+                "g": 0.8665507435798645,
+                "b": 0.30465272068977358,
+                "a": 1.0
+            },
+            "tintEndMean": {
+                "r": 0.5523898005485535,
+                "g": 0.8665507435798645,
+                "b": 0.30465272068977358,
+                "a": 1.0
+            },
+            "moveBeforeMean": {
+                "r": 1.5021923780441285,
+                "g": 0.8674619197845459,
+                "b": 0.3191239833831787,
+                "a": 1.0
+            },
+            "moveAfterMean": {
+                "r": 0.27430254220962527,
+                "g": 0.4380992352962494,
+                "b": 1.5768930912017823,
+                "a": 1.0
+            },
+            "currentFramePyramidFollowsScene": true,
+            "preRefractionGlassChangedPixels": 0,
+            "preRefractionGlassMaxDelta": 0.0,
+            "preRefractionPanelChangedPixels": 5931,
+            "pyramidWithPanelChangedPixels": 0,
+            "panelDiagnostics": "surface=1 queue=3000 transparentKeyword=True src=5 dst=10 zwrite=0 alpha=0.85",
+            "preRefractionDifference": {
+                "glassChangedPixels": 0,
+                "glassMaxDelta": 0.0,
+                "panelChangedPixels": 5931,
+                "pyramidExcludesTransparents": true
+            },
+            "shaderGraphTransparentSsrChangedPixels": 543,
+            "refractionExecuteCount": 4,
+            "refractionBoundCount": 4,
+            "refractionNoProxyCount": 0,
+            "visibleProbeCount": 0,
+            "sceneProbeCount": 1,
+            "boxProbeCount": 1,
+            "limitations": "The proxy is the box of the active box-projected reflection probe (URP has no per-material proxy volume). The color pyramid is captured before transparents, so pre-refraction transparents are absent from the refraction; a transparent object between the refracting surface and the background is only visible through its own blend, not through the refraction. Refraction is a forward transparent material path only; it is not available in the deferred GBuffer."
+        }
+    ]
+}

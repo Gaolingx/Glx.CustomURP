@@ -33,5 +33,13 @@ namespace UnityEditor.Rendering.Universal
         // Global Illumination requires some properties to be named specifically:
         public static readonly string EmissionMap = "_EmissionMap";
         public static readonly string EmissionColor = "_EmissionColor";
+
+        // Screen space lighting material contract shared with the built-in Lit shaders.
+        public static readonly string TransparentSSRReceive = "_TransparentSSRReceive";
+        public static readonly string RefractionModel = "_RefractionModel";
+        public static readonly string Ior = "_Ior";
+        public static readonly string Thickness = "_Thickness";
+        public static readonly string TransmittanceColor = "_TransmittanceColor";
+        public static readonly string TransmittanceDistance = "_TransmittanceDistance";
     }
 }

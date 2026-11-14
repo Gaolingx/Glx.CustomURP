@@ -192,6 +192,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
             collector.AddFloatProperty(Property.QueueOffset, 0.0f);
             collector.AddFloatProperty(Property.QueueControl, -1.0f);
+
+            // Screen space lighting material contract (shared with the built-in Lit shaders). The
+            // properties are added regardless of the surface type so a material can switch to
+            // Transparent without the shader variant missing them.
+            collector.AddToggleProperty(Property.TransparentSSRReceive, false);
+            collector.AddFloatProperty(Property.RefractionModel, 0.0f);
+            collector.AddFloatProperty(Property.Ior, 1.5f);
+            collector.AddFloatProperty(Property.Thickness, 1.0f);
+            collector.AddColorProperty(Property.TransmittanceColor, Color.white);
+            collector.AddFloatProperty(Property.TransmittanceDistance, 1.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -358,6 +368,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target, complexLit), CorePragmas.Instanced));
                 else
                     result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.Instanced));
+
+                result.passes.Add(PassVariant(LitPasses.TransparentDepthNormals(target), CorePragmas.Instanced));
 
                 result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.Default));
 
@@ -695,6 +707,54 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 return result;
             }
+
+            // Transparent ray-origin prepass for the Screen Space Lighting feature. It shares the
+            // DepthNormalsOnly include; URP_TRANSPARENT_DEPTH_NORMALS switches the include to the
+            // opt-in variant that discards materials without Receive Transparent SSR.
+            public static PassDescriptor TransparentDepthNormals(UniversalTarget target)
+            {
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "Transparent Depth Normals",
+                    // The uber template only knows the built-in SHADERPASS values; the transparent
+                    // variant shares the DepthNormalsOnly code path and is selected by
+                    // URP_TRANSPARENT_DEPTH_NORMALS instead of a new SHADERPASS.
+                    referenceName = "SHADERPASS_DEPTHNORMALSONLY",
+                    lightMode = "UniversalTransparentDepthNormals",
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = CoreRequiredFields.DepthNormals,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.DepthNormalsOnly(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection { LitDefines.TransparentSSRReceive },
+                    includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                result.defines.Add(LitDefines.TransparentDepthNormals, 1);
+
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+
+                return result;
+            }
         }
         #endregion
 
@@ -812,6 +872,59 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Local,
                 stages = KeywordShaderStage.Fragment
             };
+
+            // Screen space lighting material contract. The keywords are material controlled exactly
+            // like the built-in Lit shader, so one graph can drive reflective (T10) and refractive
+            // (T11) transparent materials without recompiling the graph.
+            public static readonly KeywordDescriptor TransparentSSRReceive = new KeywordDescriptor()
+            {
+                displayName = "Receive Transparent SSR",
+                referenceName = ShaderKeywordStrings.TransparentSSRReceive,
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment
+            };
+
+            public static readonly KeywordDescriptor RefractionPlane = new KeywordDescriptor()
+            {
+                displayName = "Refraction Plane",
+                referenceName = "_REFRACTION_PLANE",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment
+            };
+
+            public static readonly KeywordDescriptor RefractionSphere = new KeywordDescriptor()
+            {
+                displayName = "Refraction Sphere",
+                referenceName = "_REFRACTION_SPHERE",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment
+            };
+
+            public static readonly KeywordDescriptor RefractionThin = new KeywordDescriptor()
+            {
+                displayName = "Refraction Thin",
+                referenceName = "_REFRACTION_THIN",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment
+            };
+
+            // Switches the shared DepthNormalsOnly include into the transparent prepass variant.
+            public static readonly KeywordDescriptor TransparentDepthNormals = new KeywordDescriptor()
+            {
+                displayName = "Transparent Depth Normals",
+                referenceName = "URP_TRANSPARENT_DEPTH_NORMALS",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
         }
         #endregion
 
@@ -832,6 +945,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
                 { CoreKeywordDescriptors.ScreenSpaceGlobalIllumination },
                 { CoreKeywordDescriptors.ScreenSpaceReflections },
+                { CoreKeywordDescriptors.ScreenSpaceTransparentSSR },
+                { CoreKeywordDescriptors.ScreenSpaceRefraction },
+                { LitDefines.TransparentSSRReceive },
+                { LitDefines.RefractionPlane },
+                { LitDefines.RefractionSphere },
+                { LitDefines.RefractionThin },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
@@ -879,6 +998,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
             const string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
             const string kForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
+            const string kScreenSpaceRefraction = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl";
             const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
             const string kPBRGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
             const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
@@ -896,6 +1016,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
+                { kScreenSpaceRefraction, IncludeLocation.Postgraph },
                 { kForwardPass, IncludeLocation.Postgraph },
             };
 

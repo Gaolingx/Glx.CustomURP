@@ -124,5 +124,23 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int ScreenSpaceTransparentReflectionTexture = Shader.PropertyToID("_ScreenSpaceTransparentSsrTexture");
         internal static readonly int ScreenSpaceTransparentReflectionParams = Shader.PropertyToID("_ScreenSpaceTransparentSsrParams");
         internal static readonly string ScreenSpaceTransparentReflectionKeyword = "_SCREEN_SPACE_TRANSPARENT_SSR";
+
+        // ---------------------------------------------------------------------------------------
+        // Screen Space Refraction
+        // ---------------------------------------------------------------------------------------
+
+        // The current frame color pyramid (opaque + sky, generated before transparents) and the
+        // opaque depth used to reject offsets that would sample foreground geometry.
+        internal static readonly int RefractionColorPyramid = Shader.PropertyToID("_SslRefractionColorPyramid");
+        internal static readonly int RefractionDepthTexture = Shader.PropertyToID("_SslRefractionDepthTexture");
+        internal static readonly int RefractionColorPyramidScaleAndLimit = Shader.PropertyToID("_SslRefractionColorPyramidScaleAndLimit");
+        internal static readonly int RefractionParams = Shader.PropertyToID("_SslRefractionParams");
+
+        // Scene proxy: the world AABB of the active box-projected reflection probe. w of BoxMin is
+        // 1 when a proxy is available (URP has no per-material proxy volume).
+        internal static readonly int RefractionProxyBoxMin = Shader.PropertyToID("_SslRefractionProxyBoxMin");
+        internal static readonly int RefractionProxyBoxMax = Shader.PropertyToID("_SslRefractionProxyBoxMax");
+
+        internal static readonly string ScreenSpaceRefractionKeyword = "_SCREEN_SPACE_REFRACTION";
     }
 }

@@ -60,6 +60,14 @@ Shader "Universal Render Pipeline/Lit"
         // this contribute a ray origin and consume the transparent SSR result.
         [ToggleUI] _TransparentSSRReceive("Receive Transparent SSR", Float) = 0.0
 
+        // Screen-space refraction. The model defaults to None so existing materials keep their
+        // original transparent output. Keywords are only set for transparent materials.
+        [Enum(None, 0, Box, 1, Sphere, 2, Thin, 3)] _RefractionModel("Refraction Model", Float) = 0.0
+        _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.5
+        _Thickness("Thickness", Float) = 1.0
+        _TransmittanceColor("Transmittance Color", Color) = (1, 1, 1, 1)
+        _TransmittanceDistance("Transmittance Absorption Distance", Float) = 1.0
+
         [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
         _QueueOffset("Queue offset", Float) = 0.0
@@ -134,6 +142,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
             #pragma shader_feature_local_fragment _TRANSPARENT_SSR_RECEIVE
+            #pragma shader_feature_local_fragment _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
 
             // -------------------------------------
             // Universal Pipeline keywords
@@ -148,6 +157,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_GI
             #pragma multi_compile_fragment _ _SCREEN_SPACE_SSR
             #pragma multi_compile_fragment _ _SCREEN_SPACE_TRANSPARENT_SSR
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_REFRACTION
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _LIGHT_LAYERS

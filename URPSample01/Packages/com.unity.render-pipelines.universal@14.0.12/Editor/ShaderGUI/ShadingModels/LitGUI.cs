@@ -127,6 +127,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 "Requires the Screen Space Lighting renderer feature and the Transparent option on the Screen Space Reflection volume override.");
 
             /// <summary>
+            /// The text and tooltip for the refraction model selection.
+            /// </summary>
+            public static GUIContent refractionModelText = EditorGUIUtility.TrTextContent("Refraction Model",
+                "Approximates the transparent volume shape. Refraction samples the current frame color pyramid " +
+                "through the nearest box projected reflection probe. Requires the Screen Space Lighting renderer feature " +
+                "and the Screen Space Refraction volume override.");
+
+            /// <summary>
+            /// The display names of the refraction models, in the shader enum order.
+            /// </summary>
+            public static readonly string[] refractionModelNames = { "None", "Box", "Sphere", "Thin" };
+
+            /// <summary>
             /// The text and tooltip for the clear coat Mask GUI.
             /// </summary>
             public static GUIContent clearCoatMaskText = EditorGUIUtility.TrTextContent("Mask",
@@ -256,6 +269,31 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public MaterialProperty transparentSSRReceive;
 
             /// <summary>
+            /// The MaterialProperty for the refraction model selection.
+            /// </summary>
+            public MaterialProperty refractionModel;
+
+            /// <summary>
+            /// The MaterialProperty for the index of refraction.
+            /// </summary>
+            public MaterialProperty ior;
+
+            /// <summary>
+            /// The MaterialProperty for the refraction volume thickness.
+            /// </summary>
+            public MaterialProperty thickness;
+
+            /// <summary>
+            /// The MaterialProperty for the transmittance color.
+            /// </summary>
+            public MaterialProperty transmittanceColor;
+
+            /// <summary>
+            /// The MaterialProperty for the transmittance absorption distance.
+            /// </summary>
+            public MaterialProperty transmittanceDistance;
+
+            /// <summary>
             /// Constructor for the <c>LitProperties</c> container struct.
             /// </summary>
             /// <param name="properties"></param>
@@ -285,6 +323,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 clearCoatMask = BaseShaderGUI.FindProperty("_ClearCoatMask", properties, false);
                 clearCoatSmoothness = BaseShaderGUI.FindProperty("_ClearCoatSmoothness", properties, false);
                 transparentSSRReceive = BaseShaderGUI.FindProperty("_TransparentSSRReceive", properties, false);
+                refractionModel = BaseShaderGUI.FindProperty("_RefractionModel", properties, false);
+                ior = BaseShaderGUI.FindProperty("_Ior", properties, false);
+                thickness = BaseShaderGUI.FindProperty("_Thickness", properties, false);
+                transmittanceColor = BaseShaderGUI.FindProperty("_TransmittanceColor", properties, false);
+                transmittanceDistance = BaseShaderGUI.FindProperty("_TransmittanceDistance", properties, false);
             }
         }
 
@@ -520,10 +563,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             // Transparent SSR is opt-in and only meaningful for transparent materials. Opaque
             // materials must never contribute a transparent ray origin or consume the result.
+            // Refraction is a transparent surface feature: an opaque material with a leftover model
+            // value keeps the original opaque output. None (0) disables every refraction keyword.
+            SetScreenSpaceKeywords(material);
+        }
+
+        // Shared by the built-in Lit/Complex Lit shaders and the ShaderGraph Lit target.
+        internal static void SetScreenSpaceKeywords(Material material)
+        {
             if (material.HasProperty("_TransparentSSRReceive"))
             {
                 bool receiveTransparentSsr = !IsOpaque(material) && material.GetFloat("_TransparentSSRReceive") > 0.0f;
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings.TransparentSSRReceive, receiveTransparentSsr);
+            }
+
+            if (material.HasProperty("_RefractionModel"))
+            {
+                int refractionModel = IsOpaque(material) ? 0 : Mathf.RoundToInt(material.GetFloat("_RefractionModel"));
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings.RefractionPlane, refractionModel == 1);
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings.RefractionSphere, refractionModel == 2);
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings.RefractionThin, refractionModel == 3);
             }
         }
     }

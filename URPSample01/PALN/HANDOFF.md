@@ -1,6 +1,6 @@
 # ScreenSpaceLighting 交接
 
-> 更新：2026-11-15（T10 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
+> 更新：2026-11-15（T11 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
 
 ## 当前位置
 
@@ -15,23 +15,52 @@
 - **T8 已退出（2026-11-14）**。SSR PBR Accumulation（GGX VNDF trace、3×3 cross reproject、双 RGBA16F 累积历史）落地；`usedAlgorithm` 在 Approximation/PBR 间切换并 reset，9 个公开速度拒绝组合各自命中独立 kernel（NoWorld/Hard/Smooth × Both/Source/Target），surface/target 在动态场景产生 226,681 像素差异、speed 参数 0↔1 产生 232,951 像素差异，硬拒绝调试图 100% 红、接受调试图 100% 绿，算法切换 reset 2 次、相机 cut reset 2 次。PBR 仍遵守 T7 权重契约：miss 的 670,222 像素与 probe 基线逐像素一致、首帧与 intensity=0 逐字节恢复基线、无 NaN/Inf/负值。三路径 `T8Verification.json` 全部 `passed=true`，EditMode 126 passed / 0 failed。唯一事实入口为 `validation/T8/T8Report.json`（`t8ExitCriteriaMet=true`）。Transparent SSR 与 Refraction 仍未实现。
 - **T9 已退出（2026-11-14）**。Lit、ComplexLit、ShaderGraph Lit（Forward + GBuffer）全部接入 SSGI/SSR；ComplexLit 的 clear coat 在 DepthNormals 写入 coat SSR smoothness（mask>0 时 alpha=1.0），材质端 base/coat 使用独立 mask/roughness 与 HDRP 式 hierarchy weight，base smoothness 0.3 的 coat 球 trace weight 仍为 1.0。三路径 `T9Verification.json` 全部 `passed=true`：intensity=0 逐字节恢复 probe 基线、572,746 个零权重像素与 probe 图像逐像素一致（最大差 0）、coat smoothness 1↔0.2 改变 270,919 像素（Deferred 270,957）、coat mask 1↔0 改变 271,300 像素（Deferred 271,339）；SimpleLit/Particles/Terrain Lit 的 depth normals alpha 与 SSR weight 均为 0；alpha test 实体/裁剪像素 weight 1.0/0；ForceLOD 0/1 均覆盖；SG Lit 的 SSR/SSGI 均生效。小场景 lightmap（Mixed + Subtractive）回归通过；APV 因 URP 14.0.12 无 ProbeVolume 集成标为不支持。EditMode 132 passed / 0 failed。唯一事实入口为 `validation/T9/T9Report.json`（`t9ExitCriteriaMet=true`）。Transparent SSR 与 Refraction 仍未实现。
 - **T10 已退出（2026-11-15）**。Core 新增 `UniversalTransparentDepthNormals` LightMode 共享实现（`Shaders/Utils/TransparentDepthNormalsPass.hlsl`）并接入 Lit/ComplexLit；透明材质通过 `_TransparentSsrReceive` 属性/`_TRANSPARENT_SSR_RECEIVE` 关键字显式 opt-in，未 opt-in 的片段在 prepass 中 `clip`。SSL 在 447 用 CopyDepth 把 opaque 深度复制到私有 depth 并从该深度起绘制透明 depth/normal，449 完成 Transparent SSR Trace/Reproject（独立 hit point/output、`_SCREEN_SPACE_TRANSPARENT_SSR`、Approximation-only）并在 450 前绑定；主透明 pass 的深度语义未改。Volume 新增 `enabledTransparent`。三路径 `T10Verification.json` 全部 `passed=true`：intensity=0 与关闭后逐字节恢复、opaque weight 与 camera depth 差异 0、receiver 改变 785 像素/weight 1.0、opt-out 与 SimpleLit 改变 0 像素/weight 0、ComplexLit clear coat 透明 1,266 像素/weight 1.0、transparent depth 0.006142 > opaque 0.003819（9,560 像素不同）、双层最近面胜出（near-only=both=0.006007 > far 0.004822）、PBR 下 transparent 4/4 dispatch 且 accumulation 0、移动透明体 ray origin 跟随且无 NaN。EditMode 142 passed / 0 failed。唯一事实入口为 `validation/T10/T10Report.json`（`t10ExitCriteriaMet=true`）。Refraction 仍未实现。
-- **T11–T14 未开始**。
+- **T11 已退出（2026-11-15）**。Core 新增折射材质契约：`_RefractionModel`（None 默认，Box/Sphere/Thin）、`_Ior`、`_Thickness`、`_TransmittanceColor`、`_TransmittanceDistance`、`_REFRACTION_PLANE/SPHERE/THIN` 与 `_SCREEN_SPACE_REFRACTION`，Lit/ComplexLit GUI 与 ShaderGraph Lit 共用同一组属性/关键字；`ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl` 移植 HDRP proxy raycast、深度拒绝、absorption、edge fade 与 (1-FGD) 透射。SSL 在 448 绑定 400 生成的当前帧 color pyramid、opaque depth 与最近的 box-projected probe AABB；Volume 新增 `screenFadeDistance`/`intensity`（默认关闭）。ShaderGraph Lit 补上 T10 遗留的 `UniversalTransparentDepthNormals` Pass、`_TRANSPARENT_SSR_RECEIVE` 和 `_SCREEN_SPACE_TRANSPARENT_SSR` 消费。三路径 `T11Verification.json` 全部 `passed=true`：legacy 透明 0 像素变化、模型 None/intensity=0/关闭相位逐像素恢复（1e-6）、无 box probe 时逐像素回退、box/complex/sphere/SG 分别改变 5,915/2,996/1,233/3,092 像素、SG 透明 prepass 改变 543 像素、红色吸收红通道比 0.363、背景橙→蓝时玻璃均值 (1.502,0.867,0.319)→(0.274,0.438,1.577)、透明面板开关时玻璃圆内与 color pyramid 均 0 像素变化。EditMode 149 passed / 0 failed。唯一事实入口为 `validation/T11/T11Report.json`（`t11ExitCriteriaMet=true`）。T12–T14 未开始。
 - **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run16 与无效运行全部保留。
 - 临时 Player 已清理；原始运行目录、日志、CSV、PNG 和报告均保留。四项 ProjectSettings 已恢复原始 SHA-256。
 
-唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）、[T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）、[T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）、[T6Report.json](validation/T6/T6Report.json)（`t6ExitCriteriaMet=true`）、[T9Report.json](validation/T9/T9Report.json)（`t9ExitCriteriaMet=true`）与 [T10Report.json](validation/T10/T10Report.json)（`t10ExitCriteriaMet=true`）。
+唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）、[T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）、[T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）、[T6Report.json](validation/T6/T6Report.json)（`t6ExitCriteriaMet=true`）、[T9Report.json](validation/T9/T9Report.json)（`t9ExitCriteriaMet=true`）、[T10Report.json](validation/T10/T10Report.json)（`t10ExitCriteriaMet=true`）与 [T11Report.json](validation/T11/T11Report.json)（`t11ExitCriteriaMet=true`）。
 
-## 下一步：T11 Refraction
+## 下一步：T12 全组合加固
 
-按计划 7.5、8.4 节与第 9 节推进；T10 已交付的 Transparent SSR 不得回退：
+按计划第 12 节矩阵推进；T10/T11 已交付的 Transparent SSR、Refraction 与 ShaderGraph 覆盖不得回退：
 
-1. Core 新增折射材质契约：开关/模型、IOR、厚度、transmittance、roughness mip、`receive Transparent SSR` 与旧材质默认值；Lit/ShaderGraph Lit GUI、keyword 与默认行为必须保持原画面。
-2. 当前帧 Color Pyramid（400）供折射使用；首版不含 pre-refraction transparent，proxy 与 pre-refraction 顺序差异必须记录。
-3. 移植 HDRP proxy raycast，映射到 URP `unity_SpecCube0_BoxMin/BoxMax/ProbePosition/HDR` 等 probe box 数据；完成深度拒绝、roughness mip、transmittance 与 edge fade。
-4. 无有效 proxy、深度拒绝或屏幕边缘时回退原 URP probe/透明路径；不读取本帧尚未写入的颜色。
-5. 项目内新增折射材质测试资产，三路径验证正确 fallback、旧材质画面不变和 proxy 顺序差异。
+1. ForwardOnly、Deferred + ForwardOnly 组合、decal、Depth Priming、Opaque Texture、TAA、Motion Blur。
+2. HDR/MSAA 相机、camera stack（base/overlay）、render scale。
+3. 全组合下证实 Pre-GBuffer 输入未触发 AfterGbuffer 回退，无全局 keyword/纹理跨相机污染。
+4. 量化透明 prepass、Hi-Z、颜色金字塔的额外成本，更新支持矩阵与已知差异。
+5. XR 逐眼矩阵、动态分辨率与平台能力仍留 T13；最终回归与归档留 T14。
 
-T10 遗留的 ShaderGraph 透明 prepass/receive 未实现，按计划与折射的 ShaderGraph 目标改造一起在 T11 处理；在完成前 SG 透明材质继续回退 probe，不得宣称支持。
+## T11 证据与复现
+
+- 结论：[T11Report.json](validation/T11/T11Report.json)（`t11ExitCriteriaMet=true`）
+- 渲染/生命周期：[T11Verification.json](validation/T11/T11Verification.json)（三路径 `passed=true`）
+- EditMode：`validation/T11/UnityTests.log`（149 passed / 0 failed）
+- 图：`validation/T11/T11_<Mode>_{Reference,RefractionOn,ModelsNone,Intensity0,OffAgain,NoProxyFallback,Tinted,BackdropMoved,TransparentPanelOff,TransparentPanelOn,CurrentColorPyramidPanelOff,CurrentColorPyramidPanelOn,ShaderGraphTransparentSsr}.png`
+- 资产：`Assets/Tests/ScreenSpaceLighting/Materials/T11Refraction{Box,Sphere,Thin,None,Tint,ComplexLit,ShaderGraph}.mat`、`T11LegacyTransparent.mat`、`Shaders/SslT11Lit.shadergraph`、`Renderers/SslT11{Forward,ForwardPlus,Deferred}{Renderer,Pipeline}.asset`
+
+复现命令（先关闭其他 Unity 编辑器；下次复验请递增 Run 名）：
+
+```bash
+powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT11Verification.CreateT11Assets -LogPath "PALN/validation/T11/UnityT11Compile.Run5.log" -ReportPath "PALN/validation/T11/UnityT11Compile.Run5SettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT11Verification.RunT11Verification -LogPath "PALN/validation/T11/UnityT11Verification.Run8.log" -ReportPath "PALN/validation/T11/UnityT11Verification.Run8SettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T11/UnityTests.log" -ReportPath "PALN/validation/T11/UnityTestsSettingsRestoration.json"
+
+python "PALN/validation/T11/Analyze-T11Evidence.py"
+```
+
+T11 事实与限制：
+
+- 材质契约：`_RefractionModel` 默认 None，关键字只在透明材质上设置；`_Ior` 与 `_Thickness`/`_TransmittanceDistance` 位于 LitInput 的 `UnityPerMaterial` CBUFFER（SRP Batcher 布局稳定）。ShaderGraph Lit 由 target 生成同名属性，材质 Inspector 的 Refraction 区与内置 Lit 共用 `LitGUI` 文案。
+- Proxy：URP 没有 HDRP 的 per-material proxy volume，首版使用**最近的 box-projected 反射探针 AABB**。运行时探针在本验证中未出现在 `CullingResults.visibleReflectionProbes`（计数 0），pass 回退到 30 帧缓存一次的 `FindObjectsOfType<ReflectionProbe>`；没有 box probe 时 weight=0，整图逐像素回到 probe/透明路径。旋转探针只取 AABB，Forward+ 的逐对象 probe atlas 不参与 proxy 选择。
+- 当前帧 pyramid：折射读取 400 生成的 opaque+sky 颜色金字塔，不读取本帧 transparents；透明面板开关时玻璃圆内 0 像素变化、`CurrentColorPyramid` 调试视图 0 像素变化。因此 HDRP 的 pre-refraction transparent 顺序不迁移，作为已知差异记录。
+- 深度拒绝：移植 HDRP 的 `hitLinearDepth > surfaceLinearDepth` 规则，前景遮挡时退回表面自身 UV；opaque depth 由 448 显式绑定，不依赖 `_CameraDepthTexture` 全局。
+- Alpha 语义：与 HDRP 一致，折射材质把 opacity 当 transmittance mask；本实现按折射权重把输出 alpha 强制到 1（`lerp(color.a, 1, weight)`），因此折射成立时背景由颜色金字塔替换，miss 时原透明混合不变。
+- SG：`UniversalTransparentDepthNormals` 复用 `DepthNormalsOnlyPass.hlsl`（`URP_TRANSPARENT_DEPTH_NORMALS` 定义切换为 opt-in clip），Forward 变体新增 `_SCREEN_SPACE_TRANSPARENT_SSR`，T10 遗留的 SG 透明 prepass/receive 已补齐；SG 折射属性由 target `CollectShaderProperties` 生成，材质端与内置 Lit 共用 `ScreenSpaceRefraction.hlsl`。
+- 仅 forward 透明路径；Deferred 的 GBuffer 不参与折射（透明仍走 forward）。SimpleLit/Particles/Terrain 没有该契约，继续走 probe。
+- 仅 Compatibility `ScriptableRenderPass.Execute`；XR 单视图矩阵、逐眼矩阵留到 T13；MSAA、Depth Priming、Opaque Texture、TAA/Motion Blur 组合留到 T12。
 
 ## T9 证据与复现
 

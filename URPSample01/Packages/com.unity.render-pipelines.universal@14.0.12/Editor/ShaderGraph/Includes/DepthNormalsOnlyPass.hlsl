@@ -23,6 +23,19 @@ void frag(
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
+    #if defined(URP_TRANSPARENT_DEPTH_NORMALS)
+        // Transparent contributors must opt in explicitly. An unrelated transparent surface must
+        // never become the ray origin of an opted-in transparent object behind it.
+        #if !defined(_TRANSPARENT_SSR_RECEIVE)
+            clip(-1.0);
+            outNormalWS = half4(0.0, 0.0, 0.0, 0.0);
+            #ifdef _WRITE_RENDERING_LAYERS
+                outRenderingLayers = float4(0.0, 0.0, 0.0, 0.0);
+            #endif
+            return;
+        #endif
+    #endif
+
     #if defined(_ALPHATEST_ON)
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif

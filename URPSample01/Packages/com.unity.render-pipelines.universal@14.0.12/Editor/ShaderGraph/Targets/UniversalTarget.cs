@@ -2107,6 +2107,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
         };
+
+        public static readonly KeywordDescriptor ScreenSpaceRefraction = new KeywordDescriptor()
+        {
+            displayName = "Screen Space Refraction",
+            referenceName = "_SCREEN_SPACE_REFRACTION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ScreenSpaceTransparentSSR = new KeywordDescriptor()
+        {
+            displayName = "Screen Space Transparent Reflections",
+            referenceName = ShaderKeywordStrings.ScreenSpaceTransparentSSR,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
     }
     #endregion
 

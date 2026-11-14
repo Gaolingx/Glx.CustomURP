@@ -169,5 +169,74 @@ namespace UnityEditor.Rendering.Universal.Tests
                 StringAssert.DoesNotContain("_SCREEN_SPACE_TRANSPARENT_SSR", ReadPackageFile(path), $"{path} must not consume transparent SSR.");
             }
         }
+
+        [Test]
+        public void LitDeclaresRefractionContractWithSafeDefaults()
+        {
+            foreach (var shaderPath in new[] { "Shaders/Lit.shader", "Shaders/ComplexLit.shader" })
+            {
+                string shader = ReadPackageFile(shaderPath);
+                AssertContains(shader, "_RefractionModel", shaderPath);
+                AssertContains(shader, "[Enum(None, 0, Box, 1, Sphere, 2, Thin, 3)]", shaderPath);
+                AssertContains(shader, "_Ior", shaderPath);
+                AssertContains(shader, "_Thickness", shaderPath);
+                AssertContains(shader, "_TransmittanceColor", shaderPath);
+                AssertContains(shader, "_TransmittanceDistance", shaderPath);
+                AssertContains(shader, "_REFRACTION_PLANE", shaderPath);
+                AssertContains(shader, "_REFRACTION_SPHERE", shaderPath);
+                AssertContains(shader, "_REFRACTION_THIN", shaderPath);
+                AssertContains(shader, "_SCREEN_SPACE_REFRACTION", shaderPath);
+
+                // The model must default to None so the old transparent output is preserved.
+                StringAssert.Contains("_RefractionModel(\"Refraction Model\", Float) = 0.0", shader, $"{shaderPath} must default the refraction model to None.");
+
+                string input = ReadPackageFile("Shaders/LitInput.hlsl");
+                AssertContains(input, "float _Ior;", "LitInput refraction uniforms");
+                AssertContains(input, "float _TransmittanceDistance;", "LitInput refraction uniforms");
+            }
+        }
+
+        [Test]
+        public void RefractionMaterialPathFallsBackWithoutInputs()
+        {
+            string refraction = ReadPackageFile("ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl");
+            // Missing keyword, probe proxy, pyramid and off-screen hits all keep the original output.
+            AssertContains(refraction, "if (_SslRefractionProxyBoxMin.w <= 0.0)", "refraction proxy guard");
+            AssertContains(refraction, "if (pyramidMipCount <= 0 || intensity <= 0.0)", "refraction pyramid guard");
+            AssertContains(refraction, "ScreenSpaceRefractionEdgeFade", "refraction edge fade");
+            AssertContains(refraction, "ScreenSpaceRefractionToAbsorption", "refraction transmittance");
+            AssertContains(refraction, "RefractionModelSphere", "refraction sphere model");
+            AssertContains(refraction, "RefractionModelBox", "refraction box model");
+            AssertContains(refraction, "LinearEyeDepth(hitDeviceDepth, _ZBufferParams)", "refraction depth rejection");
+            AssertContains(refraction, "_SslRefractionColorPyramid", "refraction color pyramid input");
+            AssertContains(refraction, "(1.0h - input.specularFGD)", "refraction fresnel transmission");
+
+            string forward = ReadPackageFile("Shaders/LitForwardPass.hlsl");
+            AssertContains(forward, "ScreenSpaceRefractionEvaluate", "Lit forward pass refraction");
+            AssertContains(forward, "color.a = lerp(color.a, 1.0, refractionWeight);", "Lit forward pass refraction alpha");
+        }
+
+        [Test]
+        public void ShaderGraphLitWiresRefractionAndTransparentPrepass()
+        {
+            string target = ReadPackageFile("Editor/ShaderGraph/Targets/UniversalTarget.cs");
+            AssertContains(target, "referenceName = \"_SCREEN_SPACE_REFRACTION\"", "ShaderGraph refraction keyword");
+
+            string litSubTarget = ReadPackageFile("Editor/ShaderGraph/Targets/UniversalLitSubTarget.cs");
+            AssertContains(litSubTarget, "CoreKeywordDescriptors.ScreenSpaceRefraction", "ShaderGraph Lit keywords");
+            AssertContains(litSubTarget, "LitDefines.RefractionPlane", "ShaderGraph Lit refraction keywords");
+            AssertContains(litSubTarget, "LitDefines.TransparentSSRReceive", "ShaderGraph Lit transparent SSR keyword");
+            AssertContains(litSubTarget, "lightMode = \"UniversalTransparentDepthNormals\"", "ShaderGraph transparent prepass");
+            AssertContains(litSubTarget, "URP_TRANSPARENT_DEPTH_NORMALS", "ShaderGraph transparent prepass define");
+            AssertContains(litSubTarget, "Property.RefractionModel", "ShaderGraph refraction properties");
+            AssertContains(litSubTarget, "Property.TransmittanceColor", "ShaderGraph refraction properties");
+
+            string depthNormals = ReadPackageFile("Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl");
+            AssertContains(depthNormals, "defined(URP_TRANSPARENT_DEPTH_NORMALS)", "ShaderGraph transparent prepass include");
+            AssertContains(depthNormals, "clip(-1.0)", "ShaderGraph transparent prepass opt-in");
+
+            string forward = ReadPackageFile("Editor/ShaderGraph/Includes/PBRForwardPass.hlsl");
+            AssertContains(forward, "ScreenSpaceRefractionEvaluate", "ShaderGraph forward refraction");
+        }
     }
 }

@@ -124,6 +124,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
         }
 
+        internal static void AddColorProperty(this PropertyCollector collector, string referenceName, Color defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
+        {
+            collector.AddShaderProperty(new ColorShaderProperty
+            {
+                value = defaultValue,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = declarationType,
+                displayName = referenceName,
+                overrideReferenceName = referenceName,
+            });
+        }
+
         // Overloads to do inline PassDescriptor modifications
         // NOTE: param order should match PassDescriptor field order for consistency
         #region PassVariant

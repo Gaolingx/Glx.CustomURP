@@ -11,6 +11,13 @@ namespace UnityEditor
     {
         public MaterialProperty workflowMode;
 
+        MaterialProperty transparentSSRReceive;
+        MaterialProperty refractionModel;
+        MaterialProperty ior;
+        MaterialProperty thickness;
+        MaterialProperty transmittanceColor;
+        MaterialProperty transmittanceDistance;
+
         MaterialProperty[] properties;
 
         // collect properties from the material properties
@@ -25,6 +32,12 @@ namespace UnityEditor
 
             base.FindProperties(properties);
             workflowMode = BaseShaderGUI.FindProperty(Property.SpecularWorkflowMode, properties, false);
+            transparentSSRReceive = BaseShaderGUI.FindProperty(Property.TransparentSSRReceive, properties, false);
+            refractionModel = BaseShaderGUI.FindProperty(Property.RefractionModel, properties, false);
+            ior = BaseShaderGUI.FindProperty(Property.Ior, properties, false);
+            thickness = BaseShaderGUI.FindProperty(Property.Thickness, properties, false);
+            transmittanceColor = BaseShaderGUI.FindProperty(Property.TransmittanceColor, properties, false);
+            transmittanceDistance = BaseShaderGUI.FindProperty(Property.TransmittanceDistance, properties, false);
         }
 
         public static void UpdateMaterial(Material material, MaterialUpdateType updateType)
@@ -36,6 +49,7 @@ namespace UnityEditor
             bool automaticRenderQueue = GetAutomaticQueueControlSetting(material);
             BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue);
             LitGUI.SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkflow);
+            LitGUI.SetScreenSpaceKeywords(material);
         }
 
         public override void ValidateMaterial(Material material)
@@ -58,6 +72,34 @@ namespace UnityEditor
             if (workflowMode != null)
                 DoPopup(LitGUI.Styles.workflowModeText, workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
             base.DrawSurfaceOptions(material);
+
+            // The screen space lighting material contract is shared with the built-in Lit shaders.
+            // These properties are added by the Lit target, so the graph property drawer does not
+            // show them; the surface options section owns them instead.
+            bool opaque = surfaceTypeProp == null ||
+                          (BaseShaderGUI.SurfaceType)surfaceTypeProp.floatValue == BaseShaderGUI.SurfaceType.Opaque;
+            if (!opaque && transparentSSRReceive != null)
+                DrawFloatToggleProperty(LitGUI.Styles.transparentSSRReceiveText, transparentSSRReceive, 1);
+
+            if (!opaque && refractionModel != null)
+            {
+                DoPopup(LitGUI.Styles.refractionModelText, refractionModel, LitGUI.Styles.refractionModelNames);
+                bool refracted = refractionModel.floatValue > 0.5f;
+                EditorGUI.BeginDisabledGroup(!refracted);
+                {
+                    EditorGUI.indentLevel += 2;
+                    if (ior != null)
+                        materialEditor.ShaderProperty(ior, "Index Of Refraction");
+                    if (thickness != null)
+                        materialEditor.ShaderProperty(thickness, "Thickness");
+                    if (transmittanceColor != null)
+                        materialEditor.ShaderProperty(transmittanceColor, "Transmittance Color");
+                    if (transmittanceDistance != null)
+                        materialEditor.ShaderProperty(transmittanceDistance, "Transmittance Absorption Distance");
+                    EditorGUI.indentLevel -= 2;
+                }
+                EditorGUI.EndDisabledGroup();
+            }
         }
 
         // material main surface inputs

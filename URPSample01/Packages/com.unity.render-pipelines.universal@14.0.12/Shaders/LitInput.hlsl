@@ -29,7 +29,15 @@ half _ClearCoatSmoothness;
 half _DetailAlbedoMapScale;
 half _DetailNormalMapScale;
 half _Surface;
+// Screen-space refraction material data. Always declared so the SRP Batcher layout is stable; the
+// refraction keywords decide whether the values are consumed at all.
+float _Ior;
+float _Thickness;
+half4 _TransmittanceColor;
+float _TransmittanceDistance;
 CBUFFER_END
+
+#define URP_REFRACTION_MATERIAL_PROPERTIES_DECLARED 1
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
 // Otherwise you might break CPU-side as property constant-buffer offsets change per variant.

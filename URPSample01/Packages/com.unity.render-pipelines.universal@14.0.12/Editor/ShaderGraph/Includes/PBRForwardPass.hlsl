@@ -138,6 +138,33 @@ void frag(
     half4 color = UniversalFragmentPBR(inputData, surface);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
 
+#if (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)) && defined(_SCREEN_SPACE_REFRACTION)
+    // Same contract as the built-in Lit forward pass; see ScreenSpaceRefraction.hlsl.
+    half refractionAlpha = surface.alpha;
+    BRDFData refractionBrdfData;
+    InitializeBRDFData(surface.albedo, surface.metallic, surface.specular, surface.smoothness, refractionAlpha, refractionBrdfData);
+    half fresnelTerm = Pow4(1.0 - saturate(dot(inputData.normalWS, inputData.viewDirectionWS)));
+
+    ScreenSpaceRefractionInput refractionInput;
+    refractionInput.positionWS = inputData.positionWS;
+    refractionInput.normalWS = inputData.normalWS;
+    refractionInput.viewDirectionWS = inputData.viewDirectionWS;
+    refractionInput.screenUV = inputData.normalizedScreenSpaceUV;
+    refractionInput.screenSize = _ScreenSize.xy;
+    refractionInput.deviceDepth = unpacked.positionCS.z;
+    refractionInput.specularFGD = EnvironmentBRDFSpecular(refractionBrdfData, fresnelTerm);
+    refractionInput.perceptualRoughness = refractionBrdfData.perceptualRoughness;
+    refractionInput.ior = _Ior;
+    refractionInput.thickness = _Thickness;
+    refractionInput.transmittanceColor = _TransmittanceColor.rgb;
+    refractionInput.transmittanceDistance = _TransmittanceDistance;
+
+    half refractionWeight;
+    half3 transmitted = ScreenSpaceRefractionEvaluate(refractionInput, refractionWeight);
+    color.rgb += transmitted;
+    color.a = lerp(color.a, 1.0, refractionWeight);
+#endif
+
     color.a = OutputAlpha(color.a, isTransparent);
 
     outColor = color;

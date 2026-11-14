@@ -2,8 +2,15 @@
 #define UNIVERSAL_FORWARD_LIT_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#endif
+
+// Refraction needs the world position to intersect the reference volume and the camera distance
+// to reject the offset against the opaque depth.
+#if defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)
+#define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR 1
 #endif
 
 // GLES2 has limited amount of interpolators
@@ -233,6 +240,37 @@ void LitPassFragment(
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
+
+#if (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)) && defined(_SCREEN_SPACE_REFRACTION)
+    // The refraction contribution is added after fog: the color pyramid already contains the fogged
+    // background, so applying surface fog to it again would double fog the transmitted light.
+    half refractionAlpha = surfaceData.alpha;
+    BRDFData refractionBrdfData;
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, refractionAlpha, refractionBrdfData);
+    half fresnelTerm = Pow4(1.0 - saturate(dot(inputData.normalWS, inputData.viewDirectionWS)));
+
+    ScreenSpaceRefractionInput refractionInput;
+    refractionInput.positionWS = inputData.positionWS;
+    refractionInput.normalWS = inputData.normalWS;
+    refractionInput.viewDirectionWS = inputData.viewDirectionWS;
+    refractionInput.screenUV = inputData.normalizedScreenSpaceUV;
+    refractionInput.screenSize = _ScreenSize.xy;
+    refractionInput.deviceDepth = input.positionCS.z;
+    refractionInput.specularFGD = EnvironmentBRDFSpecular(refractionBrdfData, fresnelTerm);
+    refractionInput.perceptualRoughness = refractionBrdfData.perceptualRoughness;
+    refractionInput.ior = _Ior;
+    refractionInput.thickness = _Thickness;
+    refractionInput.transmittanceColor = _TransmittanceColor.rgb;
+    refractionInput.transmittanceDistance = _TransmittanceDistance;
+
+    half refractionWeight;
+    half3 transmitted = ScreenSpaceRefractionEvaluate(refractionInput, refractionWeight);
+    color.rgb += transmitted;
+    // HDRP uses opacity as a transmittance mask for refractive materials; the background behind the
+    // surface is replaced by the sampled color pyramid, so the blended surface becomes opaque.
+    color.a = lerp(color.a, 1.0, refractionWeight);
+#endif
+
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent(_Surface));
 
     outColor = color;

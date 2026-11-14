@@ -1,0 +1,456 @@
+{
+  "utcTimestamp": "2026-11-14T17:39:04.331713+00:00",
+  "unityVersion": "2022.3.62f1",
+  "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+  "graphicsDeviceType": "Direct3D11",
+  "verification": {
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": {
+      "Forward": {
+        "passed": true,
+        "issues": [],
+        "state": {
+          "Reference": {
+            "state": "Reference",
+            "sha256": "A9A5C91758B73517C25D5CBEAD6DEBAF614114F61E16B43F77FD26FD00F12650",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": false,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5939643979072571
+          },
+          "RefractionOn": {
+            "state": "RefractionOn",
+            "sha256": "33FFAE3A19B1CD69FA78D2DB74F887292C05E9DA37007B9C83E70A88B0AFF508",
+            "differingPixels": 17613,
+            "maxChannelDelta": 2.1206302642822266,
+            "differsFromReference": true,
+            "identicalToReference": false,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5999889373779297
+          },
+          "ModelsNone": {
+            "state": "ModelsNone",
+            "sha256": "9A1CCBB1435B32386B0DF0DDD2FD0C1B0EA65F80363E27040BFE925B5B5978A5",
+            "differingPixels": 0,
+            "maxChannelDelta": 5.960464477539063e-08,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5939643979072571
+          },
+          "Intensity0": {
+            "state": "Intensity0",
+            "sha256": "9A1CCBB1435B32386B0DF0DDD2FD0C1B0EA65F80363E27040BFE925B5B5978A5",
+            "differingPixels": 0,
+            "maxChannelDelta": 5.960464477539063e-08,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5939643979072571
+          },
+          "OffAgain": {
+            "state": "OffAgain",
+            "sha256": "9A1CCBB1435B32386B0DF0DDD2FD0C1B0EA65F80363E27040BFE925B5B5978A5",
+            "differingPixels": 0,
+            "maxChannelDelta": 5.960464477539063e-08,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5939643979072571
+          },
+          "NoProxyFallback": {
+            "state": "NoProxyFallback",
+            "sha256": "9A1CCBB1435B32386B0DF0DDD2FD0C1B0EA65F80363E27040BFE925B5B5978A5",
+            "differingPixels": 0,
+            "maxChannelDelta": 5.960464477539063e-08,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5939643979072571
+          }
+        },
+        "boxChangedPixels": 5915,
+        "legacyChangedPixels": 0,
+        "complexChangedPixels": 2996,
+        "sphereChangedPixels": 1233,
+        "shaderGraphChangedPixels": 3092,
+        "shaderGraphTransparentSsrChangedPixels": 543,
+        "noProxyChangedPixels": 0,
+        "tint": {
+          "whiteMean": {
+            "r": 1.5197868347167969,
+            "g": 0.8665511012077332,
+            "b": 0.3046540319919586,
+            "a": 1.0
+          },
+          "tintedMean": {
+            "r": 0.5523902177810669,
+            "g": 0.8665511012077332,
+            "b": 0.3046540319919586,
+            "a": 1.0
+          },
+          "redRatio": 0.3634655773639679,
+          "applied": true
+        },
+        "moveBeforeMean": {
+          "r": 1.5021928548812866,
+          "g": 0.8674620985984802,
+          "b": 0.3191251754760742,
+          "a": 1.0
+        },
+        "moveAfterMean": {
+          "r": 0.2743043005466461,
+          "g": 0.43809938430786133,
+          "b": 1.5768945217132568,
+          "a": 1.0
+        },
+        "currentFramePyramidFollowsScene": true,
+        "preRefractionDifference": {
+          "glassChangedPixels": 0,
+          "glassMaxDelta": 0.0,
+          "panelChangedPixels": 5931,
+          "pyramidExcludesTransparents": true
+        },
+        "pyramidWithPanelChangedPixels": 0,
+        "panelDiagnostics": "surface=1 queue=3000 transparentKeyword=True src=5 dst=10 zwrite=0 alpha=0.85",
+        "limitations": "The proxy is the box of the active box-projected reflection probe (URP has no per-material proxy volume). The color pyramid is captured before transparents, so pre-refraction transparents are absent from the refraction; a transparent object between the refracting surface and the background is only visible through its own blend, not through the refraction. Refraction is a forward transparent material path only; it is not available in the deferred GBuffer."
+      },
+      "ForwardPlus": {
+        "passed": true,
+        "issues": [],
+        "state": {
+          "Reference": {
+            "state": "Reference",
+            "sha256": "945ABAB3F9851B1162E9ECB959193A6CAF904FB9A93627FEA0A886655C343F0F",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": false,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5939643979072571
+          },
+          "RefractionOn": {
+            "state": "RefractionOn",
+            "sha256": "632FEFB8FCC4F8CFAF46766E27793783C456F63C98B7D091602495FBDEC0FCC5",
+            "differingPixels": 17613,
+            "maxChannelDelta": 2.1206302642822266,
+            "differsFromReference": true,
+            "identicalToReference": false,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5999889373779297
+          },
+          "ModelsNone": {
+            "state": "ModelsNone",
+            "sha256": "945ABAB3F9851B1162E9ECB959193A6CAF904FB9A93627FEA0A886655C343F0F",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5939643979072571
+          },
+          "Intensity0": {
+            "state": "Intensity0",
+            "sha256": "945ABAB3F9851B1162E9ECB959193A6CAF904FB9A93627FEA0A886655C343F0F",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5939643979072571
+          },
+          "OffAgain": {
+            "state": "OffAgain",
+            "sha256": "945ABAB3F9851B1162E9ECB959193A6CAF904FB9A93627FEA0A886655C343F0F",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5939643979072571
+          },
+          "NoProxyFallback": {
+            "state": "NoProxyFallback",
+            "sha256": "945ABAB3F9851B1162E9ECB959193A6CAF904FB9A93627FEA0A886655C343F0F",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5939643979072571
+          }
+        },
+        "boxChangedPixels": 5915,
+        "legacyChangedPixels": 0,
+        "complexChangedPixels": 2996,
+        "sphereChangedPixels": 1233,
+        "shaderGraphChangedPixels": 3092,
+        "shaderGraphTransparentSsrChangedPixels": 543,
+        "noProxyChangedPixels": 0,
+        "tint": {
+          "whiteMean": {
+            "r": 1.5197868347167969,
+            "g": 0.8665511012077332,
+            "b": 0.3046540319919586,
+            "a": 1.0
+          },
+          "tintedMean": {
+            "r": 0.5523902177810669,
+            "g": 0.8665511012077332,
+            "b": 0.3046540319919586,
+            "a": 1.0
+          },
+          "redRatio": 0.3634655773639679,
+          "applied": true
+        },
+        "moveBeforeMean": {
+          "r": 1.5021928548812866,
+          "g": 0.8674620985984802,
+          "b": 0.3191251754760742,
+          "a": 1.0
+        },
+        "moveAfterMean": {
+          "r": 0.2743043005466461,
+          "g": 0.43809938430786133,
+          "b": 1.5768945217132568,
+          "a": 1.0
+        },
+        "currentFramePyramidFollowsScene": true,
+        "preRefractionDifference": {
+          "glassChangedPixels": 0,
+          "glassMaxDelta": 0.0,
+          "panelChangedPixels": 5931,
+          "pyramidExcludesTransparents": true
+        },
+        "pyramidWithPanelChangedPixels": 0,
+        "panelDiagnostics": "surface=1 queue=3000 transparentKeyword=True src=5 dst=10 zwrite=0 alpha=0.85",
+        "limitations": "The proxy is the box of the active box-projected reflection probe (URP has no per-material proxy volume). The color pyramid is captured before transparents, so pre-refraction transparents are absent from the refraction; a transparent object between the refracting surface and the background is only visible through its own blend, not through the refraction. Refraction is a forward transparent material path only; it is not available in the deferred GBuffer."
+      },
+      "Deferred": {
+        "passed": true,
+        "issues": [],
+        "state": {
+          "Reference": {
+            "state": "Reference",
+            "sha256": "C642147829D1F29943DADAE9E7F8870F08DFFCA0E9A075218FCC9EA54BAFE57A",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": false,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5942720770835876
+          },
+          "RefractionOn": {
+            "state": "RefractionOn",
+            "sha256": "B07D1DDE0C30F89751225A599715ADD19212DDEE874FB95A5B88C92C5BF0FFEC",
+            "differingPixels": 17613,
+            "maxChannelDelta": 2.1206302642822266,
+            "differsFromReference": true,
+            "identicalToReference": false,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.6003007292747498
+          },
+          "ModelsNone": {
+            "state": "ModelsNone",
+            "sha256": "C642147829D1F29943DADAE9E7F8870F08DFFCA0E9A075218FCC9EA54BAFE57A",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5942720770835876
+          },
+          "Intensity0": {
+            "state": "Intensity0",
+            "sha256": "C642147829D1F29943DADAE9E7F8870F08DFFCA0E9A075218FCC9EA54BAFE57A",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5942720770835876
+          },
+          "OffAgain": {
+            "state": "OffAgain",
+            "sha256": "C642147829D1F29943DADAE9E7F8870F08DFFCA0E9A075218FCC9EA54BAFE57A",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5942720770835876
+          },
+          "NoProxyFallback": {
+            "state": "NoProxyFallback",
+            "sha256": "C642147829D1F29943DADAE9E7F8870F08DFFCA0E9A075218FCC9EA54BAFE57A",
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "differsFromReference": false,
+            "identicalToReference": true,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.5942720770835876
+          }
+        },
+        "boxChangedPixels": 5915,
+        "legacyChangedPixels": 0,
+        "complexChangedPixels": 2996,
+        "sphereChangedPixels": 1233,
+        "shaderGraphChangedPixels": 3092,
+        "shaderGraphTransparentSsrChangedPixels": 543,
+        "noProxyChangedPixels": 0,
+        "tint": {
+          "whiteMean": {
+            "r": 1.5197861194610596,
+            "g": 0.8665507435798645,
+            "b": 0.30465272068977356,
+            "a": 1.0
+          },
+          "tintedMean": {
+            "r": 0.5523898005485535,
+            "g": 0.8665507435798645,
+            "b": 0.30465272068977356,
+            "a": 1.0
+          },
+          "redRatio": 0.36346548795700073,
+          "applied": true
+        },
+        "moveBeforeMean": {
+          "r": 1.5021923780441284,
+          "g": 0.8674619197845459,
+          "b": 0.3191239833831787,
+          "a": 1.0
+        },
+        "moveAfterMean": {
+          "r": 0.27430254220962524,
+          "g": 0.4380992352962494,
+          "b": 1.5768930912017822,
+          "a": 1.0
+        },
+        "currentFramePyramidFollowsScene": true,
+        "preRefractionDifference": {
+          "glassChangedPixels": 0,
+          "glassMaxDelta": 0.0,
+          "panelChangedPixels": 5931,
+          "pyramidExcludesTransparents": true
+        },
+        "pyramidWithPanelChangedPixels": 0,
+        "panelDiagnostics": "surface=1 queue=3000 transparentKeyword=True src=5 dst=10 zwrite=0 alpha=0.85",
+        "limitations": "The proxy is the box of the active box-projected reflection probe (URP has no per-material proxy volume). The color pyramid is captured before transparents, so pre-refraction transparents are absent from the refraction; a transparent object between the refracting surface and the background is only visible through its own blend, not through the refraction. Refraction is a forward transparent material path only; it is not available in the deferred GBuffer."
+      }
+    }
+  },
+  "criteria": {
+    "verificationCompleted": true,
+    "threePathsPassed": true,
+    "oldMaterialsUnchanged": true,
+    "intensityAndOffRestoreReference": true,
+    "proxyFallbackRestoresProbePath": true,
+    "currentFramePyramidOnly": true,
+    "transmittanceApplied": true,
+    "supportedMaterialsCovered": true,
+    "shaderGraphCovered": true,
+    "preRefractionOrderingRecorded": true,
+    "requiredAssetsHaveMeta": true,
+    "editModeTestsPassed": true
+  },
+  "t11ExitCriteriaMet": true,
+  "assets": {
+    "Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT11Verification.cs": "d8c110c5845711c93899867a0b161ec8081afdeeb4604803a18c73ab0a04b6e7",
+    "Assets/Tests/ScreenSpaceLighting/Shaders/SslT11Lit.shadergraph": "e8842ca3a0769cab8b7f9b873b789c660b4d0c07eb383265cd3ca9f79dbf9c52",
+    "Assets/Tests/ScreenSpaceLighting/Materials/T11RefractionBox.mat": "ed8859328f8281301c5cf920913649b8772b6fb16341ba149ec474885557d02d",
+    "Assets/Tests/ScreenSpaceLighting/Materials/T11RefractionSphere.mat": "322adc5419273fa03aa1f0376844793ee060631430705e58a49cde5985fd4c6e",
+    "Assets/Tests/ScreenSpaceLighting/Materials/T11RefractionThin.mat": "893b171ba1f6bc80cebb3e30ec918319da74325d8f81e9b451d1f00a18a3dc2a",
+    "Assets/Tests/ScreenSpaceLighting/Materials/T11RefractionNone.mat": "c0c38e14d43fc888043ade15f005957c3aee2e288bee43af40b39a8d6c7c226e",
+    "Assets/Tests/ScreenSpaceLighting/Materials/T11RefractionTint.mat": "8bef3626e757ac46489f724afd96d028564481a448ff3af1305e89c9c59a4745",
+    "Assets/Tests/ScreenSpaceLighting/Materials/T11RefractionComplexLit.mat": "8e74d5a710269c0a8f22700ad6d43f6d4d1d4089737580d1849151270bd48ca1",
+    "Assets/Tests/ScreenSpaceLighting/Materials/T11RefractionShaderGraph.mat": "bc7a1177cb0bec24208c0f1c790036306901b2ab43584fec2b2e97c7e1288c98",
+    "Assets/Tests/ScreenSpaceLighting/Materials/T11LegacyTransparent.mat": "9b74844acc366c62d886b6b89c3e9a1d04795755539d7ebaa69da5991df75fb5",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl": "579a6661d1f1d9df834999804ee72b1e8589f13db9929bdc9025a4e764c4eda2",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Lit.shader": "9bfece4ebbbc65274b4448e34d10b59c4eac68d978b5143b6d0561cfdf11c475",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/ComplexLit.shader": "45baa19306751d0e5f0d8c5d1de24107f38c45466566b1ac3afc679788b10bda",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/LitInput.hlsl": "e2649cb2b8f7ce72e4dba384f6e8f40a55ae4afdf71c0a1731246c392cf5ecec",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/LitForwardPass.hlsl": "1bf98c220a4ce1671d18104ae0cd0553061997d1ae98ad98c4c83baa0716cfff",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl": "deaa944cc97ee295de1efbafbbcc9b703cdf900136f4e5887663b910ac1b0ad6",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl": "f4f12333b54cce67e5888c6420641778a5aede5d9e586d040b0b697be2abdff9",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Editor/ShaderGraph/Targets/UniversalLitSubTarget.cs": "48aa9c6639b46422abb924b0bcd734c13fd6b86931f56d665a5d3bc78828b851",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceRefraction.cs": "68c129b9b689be6c7e59c36e833311ef3cc33317a1969faf07a19f131d394f4b",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/RefractionPass.cs": "3fb2cc988d0c9cdd8e1315a1047c1764fa055070d7aa7570b8f73a819abc436a",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Tests/Editor/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingRefractionTests.cs": "843b95f6fd149e2418cba346c2a46a6045e106abdb795713531cbbfcd340c41b",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Tests/Editor/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingMaterialTests.cs": "5f006a2127170ba44786ead1f715bfe7655414bac1ac892689f4f2cdfeb56618"
+  },
+  "missingMeta": [],
+  "editMode": {
+    "log": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN\\validation\\T11\\UnityTests.log",
+    "present": true,
+    "passed": true,
+    "summary": {
+      "status": "Passed",
+      "passed": 149,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "captures": {
+    "T11_Forward_Reference.png": "4c27ff8203cbc90768a4bbacb55423a65c19f10021fd18d25f0ecceccdf5d8db",
+    "T11_Forward_RefractionOn.png": "ba43e84fae713c37e10f2f81693c5200d3ae637365f875930caa70c83ce41738",
+    "T11_Forward_ModelsNone.png": "4c27ff8203cbc90768a4bbacb55423a65c19f10021fd18d25f0ecceccdf5d8db",
+    "T11_Forward_Intensity0.png": "4c27ff8203cbc90768a4bbacb55423a65c19f10021fd18d25f0ecceccdf5d8db",
+    "T11_Forward_OffAgain.png": "4c27ff8203cbc90768a4bbacb55423a65c19f10021fd18d25f0ecceccdf5d8db",
+    "T11_Forward_NoProxyFallback.png": "4c27ff8203cbc90768a4bbacb55423a65c19f10021fd18d25f0ecceccdf5d8db",
+    "T11_Forward_Tinted.png": "d68dec82c69f5830f9827b905c3fa4fc58cc789af503a39b0ce2eaaef4ea6242",
+    "T11_Forward_BackdropMoved.png": "e5874e234af831699608fe05fb495b796708b3c1a0bc7415b62d467e72cc5c1e",
+    "T11_Forward_TransparentPanelOff.png": "ba43e84fae713c37e10f2f81693c5200d3ae637365f875930caa70c83ce41738",
+    "T11_Forward_TransparentPanelOn.png": "1ca8de6be3c7a76fe6236679ba6cffb5f643d5f6fc3b435ca048f762b4a1ce94",
+    "T11_Forward_CurrentColorPyramidPanelOff.png": "7da857d96049bee668743f4e6f709ebd561d671fe81c7f553b2f23026c8d3d42",
+    "T11_Forward_CurrentColorPyramidPanelOn.png": "7da857d96049bee668743f4e6f709ebd561d671fe81c7f553b2f23026c8d3d42",
+    "T11_Forward_ShaderGraphTransparentSsr.png": "9fed31e4b09953f348c673b8ae9ee9b1be54509347a9a7199ff38296c49a22dd",
+    "T11_ForwardPlus_Reference.png": "4c27ff8203cbc90768a4bbacb55423a65c19f10021fd18d25f0ecceccdf5d8db",
+    "T11_ForwardPlus_RefractionOn.png": "ba43e84fae713c37e10f2f81693c5200d3ae637365f875930caa70c83ce41738",
+    "T11_ForwardPlus_ModelsNone.png": "4c27ff8203cbc90768a4bbacb55423a65c19f10021fd18d25f0ecceccdf5d8db",
+    "T11_ForwardPlus_Intensity0.png": "4c27ff8203cbc90768a4bbacb55423a65c19f10021fd18d25f0ecceccdf5d8db",
+    "T11_ForwardPlus_OffAgain.png": "4c27ff8203cbc90768a4bbacb55423a65c19f10021fd18d25f0ecceccdf5d8db",
+    "T11_ForwardPlus_NoProxyFallback.png": "4c27ff8203cbc90768a4bbacb55423a65c19f10021fd18d25f0ecceccdf5d8db",
+    "T11_ForwardPlus_Tinted.png": "d68dec82c69f5830f9827b905c3fa4fc58cc789af503a39b0ce2eaaef4ea6242",
+    "T11_ForwardPlus_BackdropMoved.png": "e5874e234af831699608fe05fb495b796708b3c1a0bc7415b62d467e72cc5c1e",
+    "T11_ForwardPlus_TransparentPanelOff.png": "ba43e84fae713c37e10f2f81693c5200d3ae637365f875930caa70c83ce41738",
+    "T11_ForwardPlus_TransparentPanelOn.png": "1ca8de6be3c7a76fe6236679ba6cffb5f643d5f6fc3b435ca048f762b4a1ce94",
+    "T11_ForwardPlus_CurrentColorPyramidPanelOff.png": "7da857d96049bee668743f4e6f709ebd561d671fe81c7f553b2f23026c8d3d42",
+    "T11_ForwardPlus_CurrentColorPyramidPanelOn.png": "7da857d96049bee668743f4e6f709ebd561d671fe81c7f553b2f23026c8d3d42",
+    "T11_ForwardPlus_ShaderGraphTransparentSsr.png": "9fed31e4b09953f348c673b8ae9ee9b1be54509347a9a7199ff38296c49a22dd",
+    "T11_Deferred_Reference.png": "69bc0280f2c93607d1886e7d9bf1639cb81cac6ad5150f6a83c37d8df2192197",
+    "T11_Deferred_RefractionOn.png": "2b5259b3f488a602c1392f1aaf4807b907225bfbc2d31312a2a93f5e19d03a94",
+    "T11_Deferred_ModelsNone.png": "69bc0280f2c93607d1886e7d9bf1639cb81cac6ad5150f6a83c37d8df2192197",
+    "T11_Deferred_Intensity0.png": "69bc0280f2c93607d1886e7d9bf1639cb81cac6ad5150f6a83c37d8df2192197",
+    "T11_Deferred_OffAgain.png": "69bc0280f2c93607d1886e7d9bf1639cb81cac6ad5150f6a83c37d8df2192197",
+    "T11_Deferred_NoProxyFallback.png": "69bc0280f2c93607d1886e7d9bf1639cb81cac6ad5150f6a83c37d8df2192197",
+    "T11_Deferred_Tinted.png": "ab543eca9e8113db51b8bf1d54c37bec47b74917a383b3e5f320d9e7f5c8682c",
+    "T11_Deferred_BackdropMoved.png": "624d8fab839222eee0ca05cd9839371c49b0ba1ded99b3fd5ff35b3674d484c1",
+    "T11_Deferred_TransparentPanelOff.png": "2b5259b3f488a602c1392f1aaf4807b907225bfbc2d31312a2a93f5e19d03a94",
+    "T11_Deferred_TransparentPanelOn.png": "d9e1274f06f5530e1d6e023659ac2c67067bb465101952589b542aee8686980e",
+    "T11_Deferred_CurrentColorPyramidPanelOff.png": "b9506b15859323473e84b80b21e73a721558d463e16ebf6dab06e269dea1fa11",
+    "T11_Deferred_CurrentColorPyramidPanelOn.png": "b9506b15859323473e84b80b21e73a721558d463e16ebf6dab06e269dea1fa11",
+    "T11_Deferred_ShaderGraphTransparentSsr.png": "5870e7de0ecccb6f2db6ac61747afd975165936a21e659bf5216f4b60baa791b"
+  }
+}

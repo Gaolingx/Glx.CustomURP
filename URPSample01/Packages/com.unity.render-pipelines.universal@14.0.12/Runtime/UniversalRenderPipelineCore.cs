@@ -1247,6 +1247,18 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Material keyword that opts a transparent material into transparent SSR. </summary>
         public const string TransparentSSRReceive = "_TRANSPARENT_SSR_RECEIVE";
 
+        /// <summary> Keyword used for the screen-space refraction contribution. </summary>
+        public const string RefractionKeyword = "_SCREEN_SPACE_REFRACTION";
+
+        /// <summary> Material keyword that selects the planar (box) refraction model. </summary>
+        public const string RefractionPlane = "_REFRACTION_PLANE";
+
+        /// <summary> Material keyword that selects the sphere refraction model. </summary>
+        public const string RefractionSphere = "_REFRACTION_SPHERE";
+
+        /// <summary> Material keyword that selects the thin refraction model. </summary>
+        public const string RefractionThin = "_REFRACTION_THIN";
+
         /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
         public const string PointSampling = "_POINT_SAMPLING";
 

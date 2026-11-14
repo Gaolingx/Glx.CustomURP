@@ -47,6 +47,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                           (BaseShaderGUI.SurfaceType)surfaceTypeProp.floatValue == BaseShaderGUI.SurfaceType.Opaque;
             if (!opaque && litProperties.transparentSSRReceive != null)
                 DrawFloatToggleProperty(LitGUI.Styles.transparentSSRReceiveText, litProperties.transparentSSRReceive, 1);
+
+            // Refraction is a transparent-only feature. The model defaults to None so existing
+            // materials keep their original transparent output until they explicitly opt in.
+            if (!opaque && litProperties.refractionModel != null)
+            {
+                DoPopup(LitGUI.Styles.refractionModelText, litProperties.refractionModel, LitGUI.Styles.refractionModelNames);
+                bool refracted = litProperties.refractionModel.floatValue > 0.5f;
+                EditorGUI.BeginDisabledGroup(!refracted);
+                {
+                    EditorGUI.indentLevel += 2;
+                    if (litProperties.ior != null)
+                        materialEditor.ShaderProperty(litProperties.ior, "Index Of Refraction");
+                    if (litProperties.thickness != null)
+                        materialEditor.ShaderProperty(litProperties.thickness, "Thickness");
+                    if (litProperties.transmittanceColor != null)
+                        materialEditor.ShaderProperty(litProperties.transmittanceColor, "Transmittance Color");
+                    if (litProperties.transmittanceDistance != null)
+                        materialEditor.ShaderProperty(litProperties.transmittanceDistance, "Transmittance Absorption Distance");
+                    EditorGUI.indentLevel -= 2;
+                }
+                EditorGUI.EndDisabledGroup();
+            }
         }
 
         // material main surface inputs

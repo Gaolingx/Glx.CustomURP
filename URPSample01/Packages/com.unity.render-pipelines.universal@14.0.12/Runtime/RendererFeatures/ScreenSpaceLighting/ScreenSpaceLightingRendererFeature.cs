@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingSsrPass m_SsrPass;
         ScreenSpaceLightingTransparentDepthNormalsPass m_TransparentDepthNormalsPass;
         ScreenSpaceLightingTransparentSsrPass m_TransparentSsrPass;
+        ScreenSpaceLightingRefractionPass m_RefractionPass;
         ScreenSpaceLightingCleanupPass m_CleanupPass;
         ScreenSpaceLightingCurrentColorPyramidPass m_CurrentColorPyramidPass;
         ScreenSpaceLightingColorHistoryCapturePass m_ColorHistoryCapturePass;
@@ -32,6 +33,7 @@ namespace UnityEngine.Rendering.Universal
         internal ScreenSpaceLightingSsrPass ssrPass => m_SsrPass;
         internal ScreenSpaceLightingTransparentDepthNormalsPass transparentDepthNormalsPass => m_TransparentDepthNormalsPass;
         internal ScreenSpaceLightingTransparentSsrPass transparentSsrPass => m_TransparentSsrPass;
+        internal ScreenSpaceLightingRefractionPass refractionPass => m_RefractionPass;
         internal ScreenSpaceLightingCleanupPass cleanupPass => m_CleanupPass;
         internal ScreenSpaceLightingCurrentColorPyramidPass currentColorPyramidPass => m_CurrentColorPyramidPass;
         internal ScreenSpaceLightingColorHistoryCapturePass colorHistoryCapturePass => m_ColorHistoryCapturePass;
@@ -71,6 +73,7 @@ namespace UnityEngine.Rendering.Universal
             m_SsrPass = new ScreenSpaceLightingSsrPass();
             m_TransparentDepthNormalsPass = new ScreenSpaceLightingTransparentDepthNormalsPass();
             m_TransparentSsrPass = new ScreenSpaceLightingTransparentSsrPass();
+            m_RefractionPass = new ScreenSpaceLightingRefractionPass();
             m_CleanupPass = new ScreenSpaceLightingCleanupPass();
             m_CurrentColorPyramidPass = new ScreenSpaceLightingCurrentColorPyramidPass();
             m_ColorHistoryCapturePass = new ScreenSpaceLightingColorHistoryCapturePass();
@@ -123,6 +126,7 @@ namespace UnityEngine.Rendering.Universal
             m_SsrPass.Setup(history, m_Settings.resources, m_Settings);
             m_TransparentDepthNormalsPass.Setup(history, m_Settings.resources);
             m_TransparentSsrPass.Setup(history, m_Settings.resources, m_TransparentDepthNormalsPass);
+            m_RefractionPass.Setup(history);
             m_SetupPass.Setup(m_SsgiPass, m_SsrPass);
             m_CurrentColorPyramidPass.Setup(history, m_Settings.resources);
             m_ColorHistoryCapturePass.Setup(history, m_Settings.resources);
@@ -136,6 +140,7 @@ namespace UnityEngine.Rendering.Universal
             renderer.EnqueuePass(m_CleanupPass);
             renderer.EnqueuePass(m_CurrentColorPyramidPass);
             renderer.EnqueuePass(m_TransparentDepthNormalsPass);
+            renderer.EnqueuePass(m_RefractionPass);
             renderer.EnqueuePass(m_TransparentSsrPass);
             renderer.EnqueuePass(m_ColorHistoryCapturePass);
 
