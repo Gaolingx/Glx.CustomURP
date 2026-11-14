@@ -1,0 +1,1681 @@
+{
+  "utcTimestamp": "2026-11-14T09:21:19.689632+00:00",
+  "unityVersion": "2022.3.62f1",
+  "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+  "graphicsDeviceType": "Direct3D11",
+  "verification": {
+    "passed": true,
+    "completed": true,
+    "modes": {
+      "Forward": {
+        "passed": true,
+        "depthPyramidExecutions": 12,
+        "depthCopyDispatches": 12,
+        "currentColorPyramidExecutions": 12,
+        "historyCaptureExecutions": 12,
+        "entriesWithTemporaryCamera": 2,
+        "entriesAfterCameraDestroy": 1,
+        "states": [
+          {
+            "state": "PyramidsBuilt_DebugOff",
+            "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame1",
+            "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame2",
+            "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame3",
+            "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame4",
+            "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame5",
+            "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame6",
+            "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "SizeChange640x360",
+            "sha256": "7f412af01a89c25a10631fd92fd03eda3231ab4887a8a2bc3c5689599ac16efa",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.2507868707180023
+          },
+          {
+            "state": "AfterSizeAndScaleRestore",
+            "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "TemporaryCamera_FirstFrame",
+            "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "FeatureDisabled_VolumeOn",
+            "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          }
+        ],
+        "historyChecks": [
+          {
+            "label": "AfterWarmup",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 2,
+            "validFrameCount": 11,
+            "bufferIndex": 1,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame1",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 3,
+            "validFrameCount": 1,
+            "bufferIndex": 1,
+            "readSlot": -1,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame2",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 1,
+            "bufferIndex": 1,
+            "readSlot": -1,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame3",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame4",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 3,
+            "bufferIndex": 1,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame5",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 4,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame6",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 5,
+            "bufferIndex": 1,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "SizeChange640x360",
+            "width": 640,
+            "height": 360,
+            "resetCount": 5,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 2,
+            "slices": 1,
+            "colorPyramidMipCount": 8,
+            "depthPyramidMipCount": 11,
+            "depthPyramidWidth": 640,
+            "depthPyramidHeight": 540,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "SizeRestored1280x720",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 6,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 3,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "RenderScale0.5",
+            "width": 640,
+            "height": 360,
+            "resetCount": 7,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 4,
+            "slices": 1,
+            "colorPyramidMipCount": 8,
+            "depthPyramidMipCount": 11,
+            "depthPyramidWidth": 640,
+            "depthPyramidHeight": 540,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "RenderScaleRestored",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 8,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 5,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "TemporaryCamera_FirstFrame",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 1,
+            "validFrameCount": 1,
+            "bufferIndex": 1,
+            "readSlot": -1,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "TemporaryCamera_Settled",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 1,
+            "validFrameCount": 4,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          }
+        ],
+        "debugImages": [
+          {
+            "view": "DepthPyramidMip0",
+            "mip": 0,
+            "file": "T4_Forward_DepthPyramidMip0.png",
+            "sha256": "77a72e20ec82355e773cb1497c54e7a4cde7ddfdd915794ad01d73e0de9e0bf2",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.003757249331101775,
+            "minR": 0.0,
+            "maxR": 0.014829933643341064,
+            "minG": 0.0,
+            "maxG": 0.014829933643341064
+          },
+          {
+            "view": "DepthPyramidMip2",
+            "mip": 2,
+            "file": "T4_Forward_DepthPyramidMip2.png",
+            "sha256": "98143ebe6242442bb499e1620c30a9a0f92a97b3057844b12eae57d5bdc9e535",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.0038027437403798103,
+            "minR": 0.0,
+            "maxR": 0.01481680478900671,
+            "minG": 0.0,
+            "maxG": 0.01481680478900671
+          },
+          {
+            "view": "CurrentColorMip0",
+            "mip": 0,
+            "file": "T4_Forward_CurrentColorMip0.png",
+            "sha256": "f4e4723473a83dde3d038268eed208d3a25306e37964e48e324aee8118a5d513",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.25055715441703796,
+            "minR": 0.0,
+            "maxR": 180.375,
+            "minG": 0.0,
+            "maxG": 167.0
+          },
+          {
+            "view": "CurrentColorMip1",
+            "mip": 1,
+            "file": "T4_Forward_CurrentColorMip1.png",
+            "sha256": "6d259fd30d4271abe60b4b954a988ba86b42706748ece8d960fb98210482dfcb",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.2504723370075226,
+            "minR": 0.00019741058349609375,
+            "maxR": 11.28125,
+            "minG": 0.00017881393432617188,
+            "maxG": 10.4453125
+          },
+          {
+            "view": "PreviousColorMip0",
+            "mip": 0,
+            "file": "T4_Forward_PreviousColorMip0.png",
+            "sha256": "f4e4723473a83dde3d038268eed208d3a25306e37964e48e324aee8118a5d513",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.25055715441703796,
+            "minR": 0.0,
+            "maxR": 180.375,
+            "minG": 0.0,
+            "maxG": 167.0
+          },
+          {
+            "view": "PreviousDepth",
+            "mip": 0,
+            "file": "T4_Forward_PreviousDepth.png",
+            "sha256": "77a72e20ec82355e773cb1497c54e7a4cde7ddfdd915794ad01d73e0de9e0bf2",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.003757249331101775,
+            "minR": 0.0,
+            "maxR": 0.014829933643341064,
+            "minG": 0.0,
+            "maxG": 0.014829933643341064
+          },
+          {
+            "view": "CameraDepth",
+            "mip": 0,
+            "file": "T4_Forward_CameraDepth.png",
+            "sha256": "77a72e20ec82355e773cb1497c54e7a4cde7ddfdd915794ad01d73e0de9e0bf2",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.003757249331101775,
+            "minR": 0.0,
+            "maxR": 0.014829933643341064,
+            "minG": 0.0,
+            "maxG": 0.014829933643341064
+          },
+          {
+            "view": "DepthPyramidUvMip0",
+            "mip": 0,
+            "file": "T4_Forward_DepthPyramidUvMip0.png",
+            "sha256": "b91d39a18ddf9bb0c1c75de76ad8a2f614bcd610ace65f9ad41a0f79f68f0986",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.3446999788284302,
+            "minR": 0.0003906250058207661,
+            "maxR": 0.9996093511581421,
+            "minG": 0.0004629480536095798,
+            "maxG": 0.6662036776542664
+          },
+          {
+            "view": "DepthPyramidUvMip2",
+            "mip": 2,
+            "file": "T4_Forward_DepthPyramidUvMip2.png",
+            "sha256": "ad4aab1e629fc44c6c666789aa0dbf7e290a25eab877240c11b0d347fa8fc594",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.6692749857902527,
+            "minR": 0.5000976324081421,
+            "maxR": 0.7499023675918579,
+            "minG": 0.6667823791503906,
+            "maxG": 0.8332175612449646
+          }
+        ]
+      },
+      "ForwardPlus": {
+        "passed": true,
+        "depthPyramidExecutions": 12,
+        "depthCopyDispatches": 12,
+        "currentColorPyramidExecutions": 12,
+        "historyCaptureExecutions": 12,
+        "entriesWithTemporaryCamera": 2,
+        "entriesAfterCameraDestroy": 1,
+        "states": [
+          {
+            "state": "PyramidsBuilt_DebugOff",
+            "sha256": "e400862f60afa73d0c674045e1a40275e7bd37892b642224f2f0859612501494",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame1",
+            "sha256": "e400862f60afa73d0c674045e1a40275e7bd37892b642224f2f0859612501494",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame2",
+            "sha256": "e400862f60afa73d0c674045e1a40275e7bd37892b642224f2f0859612501494",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame3",
+            "sha256": "e400862f60afa73d0c674045e1a40275e7bd37892b642224f2f0859612501494",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame4",
+            "sha256": "e400862f60afa73d0c674045e1a40275e7bd37892b642224f2f0859612501494",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame5",
+            "sha256": "e400862f60afa73d0c674045e1a40275e7bd37892b642224f2f0859612501494",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "CameraCutReset_Frame6",
+            "sha256": "e400862f60afa73d0c674045e1a40275e7bd37892b642224f2f0859612501494",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "SizeChange640x360",
+            "sha256": "e03efc3b4a4fb6e3ebe4145e073dabe108b75db5d0fb89894303e1cf4a52dfa3",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.2507868707180023
+          },
+          {
+            "state": "AfterSizeAndScaleRestore",
+            "sha256": "e400862f60afa73d0c674045e1a40275e7bd37892b642224f2f0859612501494",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "TemporaryCamera_FirstFrame",
+            "sha256": "e400862f60afa73d0c674045e1a40275e7bd37892b642224f2f0859612501494",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          },
+          {
+            "state": "FeatureDisabled_VolumeOn",
+            "sha256": "e400862f60afa73d0c674045e1a40275e7bd37892b642224f2f0859612501494",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25064578652381897
+          }
+        ],
+        "historyChecks": [
+          {
+            "label": "AfterWarmup",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 2,
+            "validFrameCount": 11,
+            "bufferIndex": 1,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame1",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 3,
+            "validFrameCount": 1,
+            "bufferIndex": 1,
+            "readSlot": -1,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame2",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 1,
+            "bufferIndex": 1,
+            "readSlot": -1,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame3",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame4",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 3,
+            "bufferIndex": 1,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame5",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 4,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame6",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 5,
+            "bufferIndex": 1,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "SizeChange640x360",
+            "width": 640,
+            "height": 360,
+            "resetCount": 5,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 2,
+            "slices": 1,
+            "colorPyramidMipCount": 8,
+            "depthPyramidMipCount": 11,
+            "depthPyramidWidth": 640,
+            "depthPyramidHeight": 540,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "SizeRestored1280x720",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 6,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 3,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "RenderScale0.5",
+            "width": 640,
+            "height": 360,
+            "resetCount": 7,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 4,
+            "slices": 1,
+            "colorPyramidMipCount": 8,
+            "depthPyramidMipCount": 11,
+            "depthPyramidWidth": 640,
+            "depthPyramidHeight": 540,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "RenderScaleRestored",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 8,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 5,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "TemporaryCamera_FirstFrame",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 1,
+            "validFrameCount": 1,
+            "bufferIndex": 1,
+            "readSlot": -1,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "TemporaryCamera_Settled",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 1,
+            "validFrameCount": 4,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          }
+        ],
+        "debugImages": [
+          {
+            "view": "DepthPyramidMip0",
+            "mip": 0,
+            "file": "T4_ForwardPlus_DepthPyramidMip0.png",
+            "sha256": "77a72e20ec82355e773cb1497c54e7a4cde7ddfdd915794ad01d73e0de9e0bf2",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.003757249331101775,
+            "minR": 0.0,
+            "maxR": 0.014829933643341064,
+            "minG": 0.0,
+            "maxG": 0.014829933643341064
+          },
+          {
+            "view": "DepthPyramidMip2",
+            "mip": 2,
+            "file": "T4_ForwardPlus_DepthPyramidMip2.png",
+            "sha256": "98143ebe6242442bb499e1620c30a9a0f92a97b3057844b12eae57d5bdc9e535",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.0038027437403798103,
+            "minR": 0.0,
+            "maxR": 0.01481680478900671,
+            "minG": 0.0,
+            "maxG": 0.01481680478900671
+          },
+          {
+            "view": "CurrentColorMip0",
+            "mip": 0,
+            "file": "T4_ForwardPlus_CurrentColorMip0.png",
+            "sha256": "cf1440da209ba1a7f26f0b308aacb689b3dd96a519a6a01c044f8fb7c61b7de8",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.25055715441703796,
+            "minR": 0.0,
+            "maxR": 180.375,
+            "minG": 0.0,
+            "maxG": 167.0
+          },
+          {
+            "view": "CurrentColorMip1",
+            "mip": 1,
+            "file": "T4_ForwardPlus_CurrentColorMip1.png",
+            "sha256": "6d259fd30d4271abe60b4b954a988ba86b42706748ece8d960fb98210482dfcb",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.2504723370075226,
+            "minR": 0.00019741058349609375,
+            "maxR": 11.28125,
+            "minG": 0.00017881393432617188,
+            "maxG": 10.4453125
+          },
+          {
+            "view": "PreviousColorMip0",
+            "mip": 0,
+            "file": "T4_ForwardPlus_PreviousColorMip0.png",
+            "sha256": "cf1440da209ba1a7f26f0b308aacb689b3dd96a519a6a01c044f8fb7c61b7de8",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.25055715441703796,
+            "minR": 0.0,
+            "maxR": 180.375,
+            "minG": 0.0,
+            "maxG": 167.0
+          },
+          {
+            "view": "PreviousDepth",
+            "mip": 0,
+            "file": "T4_ForwardPlus_PreviousDepth.png",
+            "sha256": "77a72e20ec82355e773cb1497c54e7a4cde7ddfdd915794ad01d73e0de9e0bf2",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.003757249331101775,
+            "minR": 0.0,
+            "maxR": 0.014829933643341064,
+            "minG": 0.0,
+            "maxG": 0.014829933643341064
+          },
+          {
+            "view": "CameraDepth",
+            "mip": 0,
+            "file": "T4_ForwardPlus_CameraDepth.png",
+            "sha256": "77a72e20ec82355e773cb1497c54e7a4cde7ddfdd915794ad01d73e0de9e0bf2",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.003757249331101775,
+            "minR": 0.0,
+            "maxR": 0.014829933643341064,
+            "minG": 0.0,
+            "maxG": 0.014829933643341064
+          },
+          {
+            "view": "DepthPyramidUvMip0",
+            "mip": 0,
+            "file": "T4_ForwardPlus_DepthPyramidUvMip0.png",
+            "sha256": "b91d39a18ddf9bb0c1c75de76ad8a2f614bcd610ace65f9ad41a0f79f68f0986",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.3446999788284302,
+            "minR": 0.0003906250058207661,
+            "maxR": 0.9996093511581421,
+            "minG": 0.0004629480536095798,
+            "maxG": 0.6662036776542664
+          },
+          {
+            "view": "DepthPyramidUvMip2",
+            "mip": 2,
+            "file": "T4_ForwardPlus_DepthPyramidUvMip2.png",
+            "sha256": "ad4aab1e629fc44c6c666789aa0dbf7e290a25eab877240c11b0d347fa8fc594",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.6692749857902527,
+            "minR": 0.5000976324081421,
+            "maxR": 0.7499023675918579,
+            "minG": 0.6667823791503906,
+            "maxG": 0.8332175612449646
+          }
+        ]
+      },
+      "Deferred": {
+        "passed": true,
+        "depthPyramidExecutions": 12,
+        "depthCopyDispatches": 12,
+        "currentColorPyramidExecutions": 12,
+        "historyCaptureExecutions": 12,
+        "entriesWithTemporaryCamera": 2,
+        "entriesAfterCameraDestroy": 1,
+        "states": [
+          {
+            "state": "PyramidsBuilt_DebugOff",
+            "sha256": "f4dfab5a1f9be8eae23975b9f1bb7256938b8f9ba8655d069bae829e1d8f4698",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25086572766304016
+          },
+          {
+            "state": "CameraCutReset_Frame1",
+            "sha256": "f4dfab5a1f9be8eae23975b9f1bb7256938b8f9ba8655d069bae829e1d8f4698",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25086572766304016
+          },
+          {
+            "state": "CameraCutReset_Frame2",
+            "sha256": "f4dfab5a1f9be8eae23975b9f1bb7256938b8f9ba8655d069bae829e1d8f4698",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25086572766304016
+          },
+          {
+            "state": "CameraCutReset_Frame3",
+            "sha256": "f4dfab5a1f9be8eae23975b9f1bb7256938b8f9ba8655d069bae829e1d8f4698",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25086572766304016
+          },
+          {
+            "state": "CameraCutReset_Frame4",
+            "sha256": "f4dfab5a1f9be8eae23975b9f1bb7256938b8f9ba8655d069bae829e1d8f4698",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25086572766304016
+          },
+          {
+            "state": "CameraCutReset_Frame5",
+            "sha256": "f4dfab5a1f9be8eae23975b9f1bb7256938b8f9ba8655d069bae829e1d8f4698",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25086572766304016
+          },
+          {
+            "state": "CameraCutReset_Frame6",
+            "sha256": "f4dfab5a1f9be8eae23975b9f1bb7256938b8f9ba8655d069bae829e1d8f4698",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25086572766304016
+          },
+          {
+            "state": "SizeChange640x360",
+            "sha256": "2e85833ee08629a0906245c3794b38c9fb450c03907dc4d61a37586da0fdf3fd",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.2510700821876526
+          },
+          {
+            "state": "AfterSizeAndScaleRestore",
+            "sha256": "f4dfab5a1f9be8eae23975b9f1bb7256938b8f9ba8655d069bae829e1d8f4698",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25086572766304016
+          },
+          {
+            "state": "TemporaryCamera_FirstFrame",
+            "sha256": "f4dfab5a1f9be8eae23975b9f1bb7256938b8f9ba8655d069bae829e1d8f4698",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25086572766304016
+          },
+          {
+            "state": "FeatureDisabled_VolumeOn",
+            "sha256": "f4dfab5a1f9be8eae23975b9f1bb7256938b8f9ba8655d069bae829e1d8f4698",
+            "identicalToReference": true,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "meanLuminance": 0.25086572766304016
+          }
+        ],
+        "historyChecks": [
+          {
+            "label": "AfterWarmup",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 2,
+            "validFrameCount": 11,
+            "bufferIndex": 1,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame1",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 3,
+            "validFrameCount": 1,
+            "bufferIndex": 1,
+            "readSlot": -1,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame2",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 1,
+            "bufferIndex": 1,
+            "readSlot": -1,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame3",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame4",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 3,
+            "bufferIndex": 1,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame5",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 4,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "CameraCutReset_Frame6",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 4,
+            "validFrameCount": 5,
+            "bufferIndex": 1,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "SizeChange640x360",
+            "width": 640,
+            "height": 360,
+            "resetCount": 5,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 2,
+            "slices": 1,
+            "colorPyramidMipCount": 8,
+            "depthPyramidMipCount": 11,
+            "depthPyramidWidth": 640,
+            "depthPyramidHeight": 540,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "SizeRestored1280x720",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 6,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 3,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "RenderScale0.5",
+            "width": 640,
+            "height": 360,
+            "resetCount": 7,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 4,
+            "slices": 1,
+            "colorPyramidMipCount": 8,
+            "depthPyramidMipCount": 11,
+            "depthPyramidWidth": 640,
+            "depthPyramidHeight": 540,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "RenderScaleRestored",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 8,
+            "validFrameCount": 2,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 5,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "TemporaryCamera_FirstFrame",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 1,
+            "validFrameCount": 1,
+            "bufferIndex": 1,
+            "readSlot": -1,
+            "writeSlot": 1,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          },
+          {
+            "label": "TemporaryCamera_Settled",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 1,
+            "validFrameCount": 4,
+            "bufferIndex": 0,
+            "readSlot": 1,
+            "writeSlot": 0,
+            "resourceGeneration": 1,
+            "slices": 1,
+            "colorPyramidMipCount": 9,
+            "depthPyramidMipCount": 12,
+            "depthPyramidWidth": 1280,
+            "depthPyramidHeight": 1080,
+            "hasValidHistory": true,
+            "resourcesAllocated": true
+          }
+        ],
+        "debugImages": [
+          {
+            "view": "DepthPyramidMip0",
+            "mip": 0,
+            "file": "T4_Deferred_DepthPyramidMip0.png",
+            "sha256": "77a72e20ec82355e773cb1497c54e7a4cde7ddfdd915794ad01d73e0de9e0bf2",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.003757249331101775,
+            "minR": 0.0,
+            "maxR": 0.014829933643341064,
+            "minG": 0.0,
+            "maxG": 0.014829933643341064
+          },
+          {
+            "view": "DepthPyramidMip2",
+            "mip": 2,
+            "file": "T4_Deferred_DepthPyramidMip2.png",
+            "sha256": "98143ebe6242442bb499e1620c30a9a0f92a97b3057844b12eae57d5bdc9e535",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.0038027437403798103,
+            "minR": 0.0,
+            "maxR": 0.01481680478900671,
+            "minG": 0.0,
+            "maxG": 0.01481680478900671
+          },
+          {
+            "view": "CurrentColorMip0",
+            "mip": 0,
+            "file": "T4_Deferred_CurrentColorMip0.png",
+            "sha256": "cbdad6c22342bf5a7bae1e0ae7088fa8ca437476d30334f79c890d56dd9bbd4d",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.2507772743701935,
+            "minR": 0.0,
+            "maxR": 204.875,
+            "minG": 0.0,
+            "maxG": 190.75
+          },
+          {
+            "view": "CurrentColorMip1",
+            "mip": 1,
+            "file": "T4_Deferred_CurrentColorMip1.png",
+            "sha256": "c525210647eb6eec954a2cb8e76df834431a011865cd8df7f2cd0551fa778a55",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.250692218542099,
+            "minR": 0.00018978118896484375,
+            "maxR": 11.1640625,
+            "minG": 0.00017249584197998047,
+            "maxG": 10.4453125
+          },
+          {
+            "view": "PreviousColorMip0",
+            "mip": 0,
+            "file": "T4_Deferred_PreviousColorMip0.png",
+            "sha256": "cbdad6c22342bf5a7bae1e0ae7088fa8ca437476d30334f79c890d56dd9bbd4d",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.2507772743701935,
+            "minR": 0.0,
+            "maxR": 204.875,
+            "minG": 0.0,
+            "maxG": 190.75
+          },
+          {
+            "view": "PreviousDepth",
+            "mip": 0,
+            "file": "T4_Deferred_PreviousDepth.png",
+            "sha256": "77a72e20ec82355e773cb1497c54e7a4cde7ddfdd915794ad01d73e0de9e0bf2",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.003757249331101775,
+            "minR": 0.0,
+            "maxR": 0.014829933643341064,
+            "minG": 0.0,
+            "maxG": 0.014829933643341064
+          },
+          {
+            "view": "CameraDepth",
+            "mip": 0,
+            "file": "T4_Deferred_CameraDepth.png",
+            "sha256": "77a72e20ec82355e773cb1497c54e7a4cde7ddfdd915794ad01d73e0de9e0bf2",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.003757249331101775,
+            "minR": 0.0,
+            "maxR": 0.014829933643341064,
+            "minG": 0.0,
+            "maxG": 0.014829933643341064
+          },
+          {
+            "view": "DepthPyramidUvMip0",
+            "mip": 0,
+            "file": "T4_Deferred_DepthPyramidUvMip0.png",
+            "sha256": "b91d39a18ddf9bb0c1c75de76ad8a2f614bcd610ace65f9ad41a0f79f68f0986",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.3446999788284302,
+            "minR": 0.0003906250058207661,
+            "maxR": 0.9996093511581421,
+            "minG": 0.0004629480536095798,
+            "maxG": 0.6662036776542664
+          },
+          {
+            "view": "DepthPyramidUvMip2",
+            "mip": 2,
+            "file": "T4_Deferred_DepthPyramidUvMip2.png",
+            "sha256": "ad4aab1e629fc44c6c666789aa0dbf7e290a25eab877240c11b0d347fa8fc594",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.6692749857902527,
+            "minR": 0.5000976324081421,
+            "maxR": 0.7499023675918579,
+            "minG": 0.6667823791503906,
+            "maxG": 0.8332175612449646
+          }
+        ]
+      }
+    }
+  },
+  "frameDebugger": {
+    "passed": true,
+    "modes": {
+      "Forward": {
+        "passed": true,
+        "issues": [],
+        "eventCount": 67,
+        "depthPyramidEvents": 11,
+        "currentColorPyramidEvents": 22,
+        "historyCaptureEvents": 23
+      },
+      "ForwardPlus": {
+        "passed": true,
+        "issues": [],
+        "eventCount": 67,
+        "depthPyramidEvents": 11,
+        "currentColorPyramidEvents": 22,
+        "historyCaptureEvents": 23
+      },
+      "Deferred": {
+        "passed": true,
+        "issues": [],
+        "eventCount": 78,
+        "depthPyramidEvents": 11,
+        "currentColorPyramidEvents": 22,
+        "historyCaptureEvents": 23
+      }
+    }
+  },
+  "editModeTests": {
+    "passed": 85,
+    "summary": "EditMode tests finished: status=Passed passed=85 failed=0 skipped=0",
+    "failed": 0,
+    "skipped": 0
+  },
+  "metaCompleteness": {
+    "passed": true,
+    "missing": []
+  },
+  "knownDifferences": [
+    "The depth pyramid uses R32_SFloat raw device depth, matching HDRP's single-channel layout; the T3 capability probe was narrowed from R32G32_SFloat.",
+    "Only the Compatibility ScriptableRenderPass path is implemented; the RenderGraph path is not registered by these passes.",
+    "The current color pyramid is built at AfterRenderingSkybox before transparents; the previous color/depth history is captured after transparents.",
+    "URP's resetHistoryFrames counter has a rising and a falling edge, so one manual reset can invalidate two consecutive SSL generations."
+  ],
+  "problems": [],
+  "manifest": [
+    {
+      "file": "Analyze-T4Evidence.py",
+      "bytes": 11896,
+      "sha256": "72a74c595bf10b9990cd2433487ba1db0bc941938283f25e7f02b3a5a19c4349"
+    },
+    {
+      "file": "T4Verification.json",
+      "bytes": 59258,
+      "sha256": "3131982011828dbe19b11f8cab9cdf8e548ff4a9b8e8fbabf186a71a9f92c2bb"
+    },
+    {
+      "file": "T4_Deferred_BaselineDebugOff.png",
+      "bytes": 132998,
+      "sha256": "b5933320853a09c97707576df3c72d8773a4fcc4b37a5e8361c12df1e4a14c1d"
+    },
+    {
+      "file": "T4_Deferred_CameraDepth.png",
+      "bytes": 27239,
+      "sha256": "5197d82d64d4feaa17c61b0cfc4214407c923b3f5f564178e8db3b96a8367883"
+    },
+    {
+      "file": "T4_Deferred_CurrentColorMip0.png",
+      "bytes": 133519,
+      "sha256": "286804a06394da31a42e1de0427a7d87ac2afc086bb27a80d624c1ef70dd9da0"
+    },
+    {
+      "file": "T4_Deferred_CurrentColorMip1.png",
+      "bytes": 167454,
+      "sha256": "4daa48d1ca1a76fb471da8736df53737ad3f1d970b91332989098b3fff706d22"
+    },
+    {
+      "file": "T4_Deferred_DepthPyramidMip0.png",
+      "bytes": 27239,
+      "sha256": "5197d82d64d4feaa17c61b0cfc4214407c923b3f5f564178e8db3b96a8367883"
+    },
+    {
+      "file": "T4_Deferred_DepthPyramidMip2.png",
+      "bytes": 34618,
+      "sha256": "cde53927ae5cadcfbee6bf5b1a459b43fcfb4fed9563d7ab9c7173489f38fc58"
+    },
+    {
+      "file": "T4_Deferred_DepthPyramidUvMip0.png",
+      "bytes": 18744,
+      "sha256": "0395d207371a9ae2588eb357afe90a01505b867b076848290e19abe3ec5394ba"
+    },
+    {
+      "file": "T4_Deferred_DepthPyramidUvMip2.png",
+      "bytes": 18842,
+      "sha256": "b9749def1998348bf4636a67fecb35dc50b5fa31caf4fa0d20d03b0d5b6bd454"
+    },
+    {
+      "file": "T4_Deferred_PreviousColorMip0.png",
+      "bytes": 133519,
+      "sha256": "286804a06394da31a42e1de0427a7d87ac2afc086bb27a80d624c1ef70dd9da0"
+    },
+    {
+      "file": "T4_Deferred_PreviousDepth.png",
+      "bytes": 27239,
+      "sha256": "5197d82d64d4feaa17c61b0cfc4214407c923b3f5f564178e8db3b96a8367883"
+    },
+    {
+      "file": "T4_Deferred_SizeChange640x360.png",
+      "bytes": 50862,
+      "sha256": "8d2cc483ad797fd909a0e43017cd0e85be6a8d28d59edea031739f5f41064ebb"
+    },
+    {
+      "file": "T4_ForwardPlus_BaselineDebugOff.png",
+      "bytes": 132751,
+      "sha256": "4c682d1f280854e28190107213482e307c1013f9fcd0f16f0e7139f164aa55f0"
+    },
+    {
+      "file": "T4_ForwardPlus_CameraDepth.png",
+      "bytes": 27239,
+      "sha256": "5197d82d64d4feaa17c61b0cfc4214407c923b3f5f564178e8db3b96a8367883"
+    },
+    {
+      "file": "T4_ForwardPlus_CurrentColorMip0.png",
+      "bytes": 133274,
+      "sha256": "9dfefe36c3d5a1c879687938d6cdcc54b557994e5373a8881b0bdf8e97b1d82a"
+    },
+    {
+      "file": "T4_ForwardPlus_CurrentColorMip1.png",
+      "bytes": 167902,
+      "sha256": "5e0d5387487b96f4238257629acc162f003b5f2c5616c4c073ee38f63d58ea34"
+    },
+    {
+      "file": "T4_ForwardPlus_DepthPyramidMip0.png",
+      "bytes": 27239,
+      "sha256": "5197d82d64d4feaa17c61b0cfc4214407c923b3f5f564178e8db3b96a8367883"
+    },
+    {
+      "file": "T4_ForwardPlus_DepthPyramidMip2.png",
+      "bytes": 34618,
+      "sha256": "cde53927ae5cadcfbee6bf5b1a459b43fcfb4fed9563d7ab9c7173489f38fc58"
+    },
+    {
+      "file": "T4_ForwardPlus_DepthPyramidUvMip0.png",
+      "bytes": 18744,
+      "sha256": "0395d207371a9ae2588eb357afe90a01505b867b076848290e19abe3ec5394ba"
+    },
+    {
+      "file": "T4_ForwardPlus_DepthPyramidUvMip2.png",
+      "bytes": 18842,
+      "sha256": "b9749def1998348bf4636a67fecb35dc50b5fa31caf4fa0d20d03b0d5b6bd454"
+    },
+    {
+      "file": "T4_ForwardPlus_PreviousColorMip0.png",
+      "bytes": 133274,
+      "sha256": "9dfefe36c3d5a1c879687938d6cdcc54b557994e5373a8881b0bdf8e97b1d82a"
+    },
+    {
+      "file": "T4_ForwardPlus_PreviousDepth.png",
+      "bytes": 27239,
+      "sha256": "5197d82d64d4feaa17c61b0cfc4214407c923b3f5f564178e8db3b96a8367883"
+    },
+    {
+      "file": "T4_ForwardPlus_SizeChange640x360.png",
+      "bytes": 50847,
+      "sha256": "72ff5652959a252135dc708693a64770d0619a4689585029c3741afb12fd89de"
+    },
+    {
+      "file": "T4_Forward_BaselineDebugOff.png",
+      "bytes": 132751,
+      "sha256": "4c682d1f280854e28190107213482e307c1013f9fcd0f16f0e7139f164aa55f0"
+    },
+    {
+      "file": "T4_Forward_CameraDepth.png",
+      "bytes": 27239,
+      "sha256": "5197d82d64d4feaa17c61b0cfc4214407c923b3f5f564178e8db3b96a8367883"
+    },
+    {
+      "file": "T4_Forward_CurrentColorMip0.png",
+      "bytes": 133274,
+      "sha256": "9dfefe36c3d5a1c879687938d6cdcc54b557994e5373a8881b0bdf8e97b1d82a"
+    },
+    {
+      "file": "T4_Forward_CurrentColorMip1.png",
+      "bytes": 167902,
+      "sha256": "5e0d5387487b96f4238257629acc162f003b5f2c5616c4c073ee38f63d58ea34"
+    },
+    {
+      "file": "T4_Forward_DepthPyramidMip0.png",
+      "bytes": 27239,
+      "sha256": "5197d82d64d4feaa17c61b0cfc4214407c923b3f5f564178e8db3b96a8367883"
+    },
+    {
+      "file": "T4_Forward_DepthPyramidMip2.png",
+      "bytes": 34618,
+      "sha256": "cde53927ae5cadcfbee6bf5b1a459b43fcfb4fed9563d7ab9c7173489f38fc58"
+    },
+    {
+      "file": "T4_Forward_DepthPyramidUvMip0.png",
+      "bytes": 18744,
+      "sha256": "0395d207371a9ae2588eb357afe90a01505b867b076848290e19abe3ec5394ba"
+    },
+    {
+      "file": "T4_Forward_DepthPyramidUvMip2.png",
+      "bytes": 18842,
+      "sha256": "b9749def1998348bf4636a67fecb35dc50b5fa31caf4fa0d20d03b0d5b6bd454"
+    },
+    {
+      "file": "T4_Forward_PreviousColorMip0.png",
+      "bytes": 133274,
+      "sha256": "9dfefe36c3d5a1c879687938d6cdcc54b557994e5373a8881b0bdf8e97b1d82a"
+    },
+    {
+      "file": "T4_Forward_PreviousDepth.png",
+      "bytes": 27239,
+      "sha256": "5197d82d64d4feaa17c61b0cfc4214407c923b3f5f564178e8db3b96a8367883"
+    },
+    {
+      "file": "T4_Forward_SizeChange640x360.png",
+      "bytes": 50847,
+      "sha256": "72ff5652959a252135dc708693a64770d0619a4689585029c3741afb12fd89de"
+    },
+    {
+      "file": "UnityT4Verification.log",
+      "bytes": 106254,
+      "sha256": "7ec05743b55f692def6c8a1f90ea9d63b65ccac989d0909f1954d7b0fd97c2e5"
+    },
+    {
+      "file": "UnityT4VerificationSettingsRestoration.json",
+      "bytes": 2416,
+      "sha256": "fd26da3f62a283a383a9d46d11d8ff9e9dc010e85455d4c037a20c9c540e3b3c"
+    },
+    {
+      "file": "UnityTests.log",
+      "bytes": 118097,
+      "sha256": "765acf6a41edfe34b3aa532c50766c3609665c55eed73c5130fb9e28546d2138"
+    },
+    {
+      "file": "UnityTestsSettingsRestoration.json",
+      "bytes": 2411,
+      "sha256": "f0cdaea162fddb068ac9faca78bf7a60be17ed759958e0cfab0214289a165f39"
+    },
+    {
+      "file": "FrameDebugger/Deferred.json",
+      "bytes": 12093,
+      "sha256": "e033ff9b1a393c4c7aa26f4c1cd442d4d8c6bbd9cef4fc48e5253e74dde8ccf5"
+    },
+    {
+      "file": "FrameDebugger/Forward.json",
+      "bytes": 10256,
+      "sha256": "d9196f94a99ee8b9630b8a73812c337bb9a5f886cef07d779e581ee9ad38098d"
+    },
+    {
+      "file": "FrameDebugger/ForwardPlus.json",
+      "bytes": 10529,
+      "sha256": "38575e479ac2ab7136f9484b0fc9f7f8dac5e0fac4db711c8250f3ca210c5359"
+    },
+    {
+      "file": "FrameDebugger/FrameDebuggerReport.json",
+      "bytes": 35114,
+      "sha256": "3a0a45b9bfbebbea8beef580503e2040910b7829ce111077f0a668175dccef5a"
+    },
+    {
+      "file": "FrameDebugger/UnityT4FrameDebugger.log",
+      "bytes": 243199,
+      "sha256": "6c2058f4e75e373dfa7001bba9917379d30cd1a8d4c48a1ec8e9993cd5f7d76b"
+    },
+    {
+      "file": "FrameDebugger/UnityT4FrameDebuggerSettingsRestoration.json",
+      "bytes": 2412,
+      "sha256": "410b58d1e03836ad0780d39b460a7aa0d02642f7c196bac60713ee32ddc122e3"
+    }
+  ],
+  "t4ExitCriteriaMet": true
+}

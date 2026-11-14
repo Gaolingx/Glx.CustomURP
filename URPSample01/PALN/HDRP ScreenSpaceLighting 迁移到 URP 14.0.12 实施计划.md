@@ -1,6 +1,6 @@
 # HDRP ScreenSpaceLighting 迁移到 URP 14.0.12 实施计划
 
-> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2 已退出（2026-11-14）；T3 已退出（2026-11-14）；T4–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PALN/validation/T3/T3Report.json` 为准。
+> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2 已退出（2026-11-14）；T3 已退出（2026-11-14）；T4 已退出（2026-11-14）；T5–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PALN/validation/T3/T3Report.json` 为准，T4 结论以 `PALN/validation/T4/T4Report.json` 为准。
 >
 > 基线：Unity `2022.3.62f1`，URP/HDRP `14.0.12`。
 >
@@ -287,7 +287,7 @@ smoothness = saturate(encodedAlpha * 2.0 - 1.0);
 
 ### 7.3 Depth/Color Pyramid
 
-- 保留 HDRP packed atlas + mip offsets，减少 `RayMarching.hlsl` 改动；reverse-Z 用 max reduction，非 reverse-Z 用 min。
+- 保留 HDRP packed atlas + mip offsets，减少 `RayMarching.hlsl` 改动；reverse-Z 用 max reduction，非 reverse-Z 用 min。T4 已按 HDRP 单通道布局固定为 `R32_SFloat` 原始设备深度，并在 compute 中显式绑定 `UniversalRenderer.m_DepthTexture`（command-buffer 全局在 CPU 侧不可读）。
 - GTAO 与 SSL 分别分配 pyramid 和 offset ComputeBuffer；Pass 用显式 compute 参数绑定，不通过未定义所有权的全局纹理互相读取。
 - 颜色金字塔保留 Gaussian downsample 和横/纵滤波；mip 限制、UV scale/limit 随 viewport/render scale 更新。
 - RTHandle 使用实际 viewport 尺寸、MSAA=1；历史颜色为线性 HDR，不经过 post exposure、tonemapping 或 TAA 输出。
@@ -474,7 +474,7 @@ URP/Editor/RendererFeatures/
 | **T1** | P0 / T0 | 建立三 Renderer 测试资产、固定场景/相机/随机序列、原始截图、Frame Debugger 时序、GPU/显存基线；确定目标 API 和可量化性能预算 | **已退出（2026-11-14，R3）**：资产、构建、图像、显存、Frame Debugger 和设置恢复通过；Run13/Run14 在固定协议下三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 2.19%/2.28%/2.30%（≤10%）。T2 Core 改动后由 Run15/Run16 复验，CPU p95 波动 0.28%/0.01%/0.04%。GPU p95 因本机 DVFS 且 GeForce/WDDM 不执行 `nvidia-smi -lgc` 锁频，按 R3 仅作参考数据；10% 容差、场景与预算数值未变，Run1–Run16 及无效运行全部保留 |
 | **T2** | P0 / T1 | Core DepthNormals 编码、最早 Motion/Depth 调度、通用 keyword 清理与调度测试 | **已退出（2026-11-14）**：Lit/ComplexLit DepthNormals alpha 使用 `0.5+0.5*smoothness`、0 表示不支持；最早 Motion 消费者把共享 Motion 提前到 202，并同步提前 Depth/CopyDepth；Deferred 提前 Motion 时强制完整 DepthNormals prepass，GBuffer2 alpha 仍为原始 smoothness；无插件时三路径事件数据与 T1 基线逐事件一致（`eventDataHash` 相同）。202 前 Motion/Depth 有效（动态 98 px、静止 0）；TAA/Motion Blur 早/晚 Motion 输出逐字节一致；smoothness=0（406 px）与不支持 alpha=0（42 px）可区分，无 0–0.5 保留区像素。证据：`PALN/validation/T2/` |
 | **T3** | P0 / T1 | 两个空 Feature、资源序列化、Volume 组件、能力检测、history store、neutral 输出和 Editor UI | **已退出（2026-11-14）**：按 2.5 的真实 UI 路径配置成功并保留 13 张截图（`PALN/validation/T3/UI/`）；三路径 Volume 控制 Pass 入队、Feature 关闭不执行；空效果与 T1 基线逐像素一致；history 计数 1→2→1；无插件三路径 `eventDataHash` 与 T1 相同；EditMode 48 passed / 0 failed；`.meta` 完整。`T3Report.json` 的 `t3ExitCriteriaMet=true` |
-| **T4** | P0 / T2、T3 | SSL 私有 Hi-Z、颜色金字塔、previous color/depth、双缓冲、reset generation 和中间调试视图 | mip/offset、UV scale、首帧/相机 cut/尺寸变化正确；无同帧历史覆盖、首帧黑屏和跨相机污染；GTAO 不存在时 SSL 独立工作 |
+| **T4** | P0 / T2、T3 | SSL 私有 Hi-Z、颜色金字塔、previous color/depth、双缓冲、reset generation 和中间调试视图 | **已退出（2026-11-14）**：packed Hi-Z（12 mip，offset/UV scale 数值验证）、Gaussian 颜色金字塔（9 mip）、双缓冲 previous color/depth 和 7 个调试视图落地；三路径 debug-off 与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 均触发 reset，读写槽逐帧分离，双相机独立且销毁后回收，SSL-only Renderer 全部通过；Frame Debugger 顺序 203 → 400 → 501。证据：`PALN/validation/T4/`（`t4ExitCriteriaMet=true`，EditMode 85 passed） |
 | **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 冲突和 SSAO 式设置 | 三路径 AO 语义正确，无双重 AO；与 SSL 任意顺序/组合工作；neutral 白色，禁用恢复基线；重复 Hi-Z 成本写入报告 |
 | **T6** | P0 / T4 | SSGI Trace/Reproject、Temporal/Diffuse Denoise、HF/LF、Bilateral Upsample、材质注入 | 三路径与 ForwardOnly 无 emission 重复、miss 压黑；首帧/disocclusion 有 fallback；raw/denoised/history debug 与最终消费一致 |
 | **T7** | P0 / T4 | Opaque SSR Approximation、radiance+weight、roughness/edge fade 和 probe/sky fallback | 三路径金属/非金属、粗糙度梯度正确；miss 不压黑；BRDF 只乘一次；无 NaN/Inf 和首帧无效历史 |
@@ -583,6 +583,36 @@ T1 固定基线配置：
 | T1 复验 | Run15/Run16 通过：三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 0.28% / 0.01% / 0.04% | `PALN/validation/T1/Reproducibility.json` |
 
 **已知限制**：T2 只验证 Core 输入与调度，不包含任何 GTAO/SSGI/SSR 算法、透明 prepass 或历史资源；探针 Feature、探针材质与 `SslT2*` Renderer/Pipeline 均为 `Assets/Tests/ScreenSpaceLighting` 下的测试资产，不属于 Core 或后续插件 API。
+
+### 11.5 T4 实施与证据记录（2026-11-14）
+
+**私有资源与所有权**（`ScreenSpaceLightingHistory`，仍按相机/XR eye 存在 `CameraHistoryStore`）
+
+- packed 深度金字塔：`DepthPyramid.compute` 的 copy + 8x8 closest-depth downsample，`PackedMipChainInfo` 生成 atlas 尺寸、mip offset 和 `ComputeMipUvScaleOffset`；offset `ComputeBuffer` 与 RTHandle 均由 history entry 持有并在尺寸/布局变化时释放重建。
+- 当前帧颜色金字塔：`ColorPyramid.shader` 的 bilinear downsample + 9-tap 可分离 Gaussian；400 生成，mip 数按 HDRP 规则在 8x8 以下停止。
+- previous color/depth：501 写入 `writeSlot`，`readSlot = bufferIndex`、`writeSlot = bufferIndex ^ 1`，捕获后交换；当帧读槽与写槽恒不相同。颜色/深度各两份，按相机与 XR eye 独立。
+- reset：store 的尺寸变化、`resetHistoryFrames` token 变化和首帧都会调用 `Reset`；`Reset` 清空 valid 标记和 ping-pong 位置，资源在下次 `EnsureResources` 时按新尺寸重建。
+
+**URP 接入**
+
+- 深度金字塔在 `AfterRenderingPrePasses + 3`（203）请求 `Depth | Motion`，复用 T2 的内置 Motion/Depth 提前调度；Deferred 由提前 Motion 强制完整 DepthNormals prepass，金字塔在 GBuffer（210）前完成。
+- 颜色金字塔在 400（sky 后）请求 `Color`，确保相机颜色是中间纹理；历史捕获在 501（transparent 后）并同时复制深度。调试视图在 551，只写相机颜色，不改变材质光照。
+- 深度源直接绑定 `UniversalRenderer.m_DepthTexture`：`CommandBuffer.SetGlobalTexture` 写入的全局纹理在 CPU 侧不可读，且 compute 只声明全局名也读不到有效数据；绑定 RTHandle 后三路径才得到正确深度。
+- 深度金字塔格式收敛为 `R32_SFloat`，与 HDRP 单通道深度一致；T3 能力探测同步收紧。
+- 调试视图：DepthPyramid（可选 mip）、CurrentColorPyramid、PreviousColor、PreviousDepth、CameraDepth，以及输出 atlas UV 的 DepthPyramidUv；UV 视图的 min/max 与 `PackedMipChainInfo` 的 offset/scale 在 0.02 容差内一致。
+- 仍只支持 Compatibility `ScriptableRenderPass.Execute`；RenderGraph 路径未注册这些 Pass，属于已记录限制。
+
+**证据**
+
+| 项目 | 结果 | 入口 |
+|---|---|---|
+| T4 结论 | `t4ExitCriteriaMet=true` | `PALN/validation/T4/T4Report.json` |
+| 三路径渲染/生命周期 | 三路径 `passed=true`；debug-off 与 T1 基线逐字节一致 | `PALN/validation/T4/T4Verification.json` |
+| Frame Debugger | Forward/Forward+ 67 事件，Deferred 78；SSL Depth Pyramid → Current Color Pyramid → CopyColor → Color History Capture → FinalBlit | `PALN/validation/T4/FrameDebugger/FrameDebuggerReport.json` |
+| EditMode | 85 passed / 0 failed | `PALN/validation/T4/UnityTests.log` |
+| 调试图与基线 | 33 张 PNG（含 mip/UV/尺寸变化/首帧 debug-off） | `PALN/validation/T4/T4_*.png` |
+
+**已知差异**：多一次 400 颜色金字塔和 501 颜色/深度捕获；`CopyColor` 因 `ConfigureInput(Color)` 在 SSL 开启时额外执行；`resetHistoryFrames` 的上升/下降边沿可能连续失效两代；GTAO 独立 Hi-Z 成本仍按 T0 保留，T4 不合并。
 
 ## 12. 验证矩阵
 

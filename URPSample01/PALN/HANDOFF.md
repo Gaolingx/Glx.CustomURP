@@ -1,29 +1,62 @@
 # ScreenSpaceLighting 交接
 
-> 更新：2026-11-14。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
+> 更新：2026-11-14（T4 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
 
 ## 当前位置
 
 - **T0 已冻结**。任何边界变更都必须先重新打开 T0，并同步 PLAN 与本文件。
 - **T1 已按 R3 协议退出（2026-11-14）**，并在 T2 Core 改动后由 **Run15 / Run16** 复验：三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 **0.28% / 0.01% / 0.04%**，构建、Frame Debugger 与设置恢复全部通过。`T1Report.json` 当前指向 Run15/Run16；Run13/Run14 作为 T2 前的有效运行对保留。
 - **T2 已退出（2026-11-14）**。Core 已提供 DepthNormals smoothness 编码、最早 Motion/Depth 调度和调度单元测试；无插件时三路径 Frame Debugger 事件数据与 T1 基线逐事件一致，探针在 203 时 Motion/Depth 已有效，TAA/Motion Blur 早/晚 Motion 输出逐字节一致。
-- **T3 已退出（2026-11-14）**。两个空 Renderer Feature（SSL / GTAO）、Volume 组件、能力检测、neutral 输出和私有 history 骨架已落地；真实 UI 路径配置、Volume 控队、空效果逐像素一致、无插件回归和 EditMode 测试全部通过，唯一事实入口为 `validation/T3/T3Report.json`（`t3ExitCriteriaMet=true`）。当前仍没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成。
-- **T4–T14 未开始**。
+- **T3 已退出（2026-11-14）**。两个空 Renderer Feature（SSL / GTAO）、Volume 组件、能力检测、neutral 输出和私有 history 骨架已落地；真实 UI 路径配置、Volume 控队、空效果逐像素一致、无插件回归和 EditMode 测试全部通过，唯一事实入口为 `validation/T3/T3Report.json`（`t3ExitCriteriaMet=true`）。
+- **T4 已退出（2026-11-14）**。SSL 私有 packed Hi-Z（mip/offset/UV scale）、当前帧 Gaussian 颜色金字塔、双缓冲 previous color/depth、reset generation 和 7 个调试视图已落地；三路径下卷开启时 Pass 均执行且最终图像与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 重置、同帧读写槽分离、双相机隔离和 GTAO 缺失时 SSL 独立工作全部通过，Frame Debugger 证明 203 → 400 → 501 顺序。唯一事实入口为 `validation/T4/T4Report.json`（`t4ExitCriteriaMet=true`）。当前仍没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成。
+- **T5–T14 未开始**。
 - **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run16 与无效运行全部保留。
 - 临时 Player 已清理；原始运行目录、日志、CSV、PNG 和报告均保留。四项 ProjectSettings 已恢复原始 SHA-256。
 
 唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）与 [T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）。
 
-## 下一步：T4 SSL 私有 Hi-Z 与颜色金字塔
+## 下一步：T5 独立 GTAO
 
-只实现 SSL 的私有深度/颜色历史骨架，不实现 SSGI/SSR/Refraction 算法：
+按计划第 8.1 节实现 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 冲突仲裁和 SSAO 式 Inspector。T4 已提供可复用的 packed Hi-Z / 历史 / 调试基础设施，但 **GTAO 不得复用 SSL 实例的 RTHandle 或 offset buffer**（T0 资源隔离）：
 
-1. SSL Feature 私有 Hi-Z（mip/offset）、颜色金字塔、previous color/depth，按相机与 XR eye 双缓冲。
-2. reset generation 覆盖首帧、相机 cut、尺寸/render scale 变化；无同帧历史覆盖与跨相机污染。
-3. 增加中间调试视图；GTAO 不存在时 SSL 可独立工作。
-4. 验收：mip/offset、UV scale、首帧/相机 cut/尺寸变化正确；无首帧黑屏和跨相机污染；GTAO 缺失时 SSL 独立工作。
+1. 移植 GTAO Main / Spatial / Temporal / CopyHistory / 必要 Blur+Upsample。
+2. 使用 GTAO 自己的 Hi-Z 和 AO 历史；Motion/Depth 由 Core 提前调度。
+3. 实现 SSAO 冲突仲裁（内置 SSAO 优先、GTAO 一次性警告并禁用）和白色 neutral 清理。
+4. 验收：三路径 AO 语义正确、无双重 AO、与 SSL 任意顺序组合、禁用后恢复基线。
 
-不得跳过 T4 直接实现效果。
+不得跳过 T5 直接实现 SSGI/SSR。
+
+## T4 证据与复现
+
+- 结论：[T4Report.json](validation/T4/T4Report.json)（`t4ExitCriteriaMet=true`）
+- 渲染/生命周期：[T4Verification.json](validation/T4/T4Verification.json)（三路径 `passed=true`）
+- Frame Debugger：[FrameDebuggerReport.json](validation/T4/FrameDebugger/FrameDebuggerReport.json)
+- EditMode：`validation/T4/UnityTests.log`（85 passed / 0 failed）
+- 调试图：`validation/T4/T4_<Mode>_*.png`（深度金字塔 mip0/mip2、当前/上一帧颜色 mip0/mip1、上一帧深度、相机深度、UV scale/limit、尺寸变化、debug-off 基线）
+
+复现命令（先关闭其他 Unity 编辑器）：
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT4Verification.RunT4Verification -LogPath "PALN/validation/T4/UnityT4Verification.log" -ReportPath "PALN/validation/T4/UnityT4VerificationSettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T4/UnityTests.log" -ReportPath "PALN/validation/T4/UnityTestsSettingsRestoration.json"
+
+python "PALN/validation/T4/Analyze-T4Evidence.py"
+```
+
+Frame Debugger 采集（交互式编辑器；参数必须逐项传入，逗号合并会被 `GetArgument` 当成一个参数）：
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PALN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PALN/validation/T4/FrameDebugger/UnityT4FrameDebugger.log' -ReportPath 'PALN/validation/T4/FrameDebugger/UnityT4FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PALN/validation/T4/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT4ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT4ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT4DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
+```
+
+T4 事实与限制：
+
+- 深度金字塔副本 kernel 直接绑定 `UniversalRenderer.m_DepthTexture`。`CommandBuffer.SetGlobalTexture("_CameraDepthTexture")` 的全局在 CPU 侧不可读，`Shader.GetGlobalTexture` 返回 null；只声明全局名在 compute 中也拿不到有效数据。
+- 深度金字塔为 `R32_SFloat` 原始设备深度，与 HDRP 单通道布局一致；T3 能力探测从 `R32G32_SFloat` 收紧为 `R32_SFloat`。
+- 当前颜色金字塔在 400（opaque+sky 后）生成；上一帧颜色/深度在 501（transparent 后）双缓冲捕获，效果读取槽与当帧写入槽不同。
+- URP 的 `resetHistoryFrames` 计数器有上升和下降两个边沿，因此一次手工 reset 可能连续失效两代；这是保守行为，不会复用未初始化历史。
+- 仅实现 Compatibility `ScriptableRenderPass.Execute` 路径；RenderGraph 路径未注册这些 Pass。
 
 ## T3 证据与复现
 
@@ -111,6 +144,9 @@ python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
 - T2 结论：[T2Verification.json](validation/T2/T2Verification.json)
 - T2 Frame Debugger：[FrameDebuggerReport.json](validation/T2/FrameDebugger/FrameDebuggerReport.json)
 - T3 结论：[T3Report.json](validation/T3/T3Report.json)
+- T4 结论：[T4Report.json](validation/T4/T4Report.json)
+- T4 渲染/生命周期：[T4Verification.json](validation/T4/T4Verification.json)
+- T4 Frame Debugger：[FrameDebuggerReport.json](validation/T4/FrameDebugger/FrameDebuggerReport.json)
 - T3 渲染/生命周期：[T3Verification.json](validation/T3/T3Verification.json)
 - T3 真实 UI 路径：[T3UiEvidence.json](validation/T3/UI/T3UiEvidence.json)
 - T3 无插件回归：`validation/T3/FrameDebuggerNoPlugin/`
