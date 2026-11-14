@@ -1,6 +1,6 @@
 # ScreenSpaceLighting 交接
 
-> 更新：2026-11-14（T9 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
+> 更新：2026-11-15（T10 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
 
 ## 当前位置
 
@@ -14,22 +14,24 @@
 - **T7 已退出（2026-11-14）**。Opaque SSR Approximation（Trace → Reproject，RGBA16F radiance + weight）、roughness/edge fade、屏外/非有限/负值拒绝和 probe/sky 回退已落地；三路径 `T7Verification.json` 全部 `passed=true`：miss 像素与 probe 基线逐像素一致（670,152 像素，最大通道差 0）、intensity=0 与首帧逐字节恢复基线、金属粗糙度权重梯度单调（0.444/0.350/0.198/0，低于 minSmoothness 为 0）、非金属光滑球权重 0.410、干净首帧的双倍 intensity 响应比 2.000（误差 0）、调试图与消费纹理 921,600 像素 0 差异、无 NaN/Inf/负值。Frame Debugger 顺序为 Depth Pyramid → Screen Space Reflections → opaque，三路径一致。EditMode 118 passed / 0 failed。唯一事实入口为 `validation/T7/T7Report.json`（`t7ExitCriteriaMet=true`）。SSR PBR Accumulation、Transparent SSR 与 Refraction 仍未实现。
 - **T8 已退出（2026-11-14）**。SSR PBR Accumulation（GGX VNDF trace、3×3 cross reproject、双 RGBA16F 累积历史）落地；`usedAlgorithm` 在 Approximation/PBR 间切换并 reset，9 个公开速度拒绝组合各自命中独立 kernel（NoWorld/Hard/Smooth × Both/Source/Target），surface/target 在动态场景产生 226,681 像素差异、speed 参数 0↔1 产生 232,951 像素差异，硬拒绝调试图 100% 红、接受调试图 100% 绿，算法切换 reset 2 次、相机 cut reset 2 次。PBR 仍遵守 T7 权重契约：miss 的 670,222 像素与 probe 基线逐像素一致、首帧与 intensity=0 逐字节恢复基线、无 NaN/Inf/负值。三路径 `T8Verification.json` 全部 `passed=true`，EditMode 126 passed / 0 failed。唯一事实入口为 `validation/T8/T8Report.json`（`t8ExitCriteriaMet=true`）。Transparent SSR 与 Refraction 仍未实现。
 - **T9 已退出（2026-11-14）**。Lit、ComplexLit、ShaderGraph Lit（Forward + GBuffer）全部接入 SSGI/SSR；ComplexLit 的 clear coat 在 DepthNormals 写入 coat SSR smoothness（mask>0 时 alpha=1.0），材质端 base/coat 使用独立 mask/roughness 与 HDRP 式 hierarchy weight，base smoothness 0.3 的 coat 球 trace weight 仍为 1.0。三路径 `T9Verification.json` 全部 `passed=true`：intensity=0 逐字节恢复 probe 基线、572,746 个零权重像素与 probe 图像逐像素一致（最大差 0）、coat smoothness 1↔0.2 改变 270,919 像素（Deferred 270,957）、coat mask 1↔0 改变 271,300 像素（Deferred 271,339）；SimpleLit/Particles/Terrain Lit 的 depth normals alpha 与 SSR weight 均为 0；alpha test 实体/裁剪像素 weight 1.0/0；ForceLOD 0/1 均覆盖；SG Lit 的 SSR/SSGI 均生效。小场景 lightmap（Mixed + Subtractive）回归通过；APV 因 URP 14.0.12 无 ProbeVolume 集成标为不支持。EditMode 132 passed / 0 failed。唯一事实入口为 `validation/T9/T9Report.json`（`t9ExitCriteriaMet=true`）。Transparent SSR 与 Refraction 仍未实现。
-- **T10–T14 未开始**。
+- **T10 已退出（2026-11-15）**。Core 新增 `UniversalTransparentDepthNormals` LightMode 共享实现（`Shaders/Utils/TransparentDepthNormalsPass.hlsl`）并接入 Lit/ComplexLit；透明材质通过 `_TransparentSsrReceive` 属性/`_TRANSPARENT_SSR_RECEIVE` 关键字显式 opt-in，未 opt-in 的片段在 prepass 中 `clip`。SSL 在 447 用 CopyDepth 把 opaque 深度复制到私有 depth 并从该深度起绘制透明 depth/normal，449 完成 Transparent SSR Trace/Reproject（独立 hit point/output、`_SCREEN_SPACE_TRANSPARENT_SSR`、Approximation-only）并在 450 前绑定；主透明 pass 的深度语义未改。Volume 新增 `enabledTransparent`。三路径 `T10Verification.json` 全部 `passed=true`：intensity=0 与关闭后逐字节恢复、opaque weight 与 camera depth 差异 0、receiver 改变 785 像素/weight 1.0、opt-out 与 SimpleLit 改变 0 像素/weight 0、ComplexLit clear coat 透明 1,266 像素/weight 1.0、transparent depth 0.006142 > opaque 0.003819（9,560 像素不同）、双层最近面胜出（near-only=both=0.006007 > far 0.004822）、PBR 下 transparent 4/4 dispatch 且 accumulation 0、移动透明体 ray origin 跟随且无 NaN。EditMode 142 passed / 0 failed。唯一事实入口为 `validation/T10/T10Report.json`（`t10ExitCriteriaMet=true`）。Refraction 仍未实现。
+- **T11–T14 未开始**。
 - **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run16 与无效运行全部保留。
 - 临时 Player 已清理；原始运行目录、日志、CSV、PNG 和报告均保留。四项 ProjectSettings 已恢复原始 SHA-256。
 
-唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）、[T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）、[T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）、[T6Report.json](validation/T6/T6Report.json)（`t6ExitCriteriaMet=true`）与 [T9Report.json](validation/T9/T9Report.json)（`t9ExitCriteriaMet=true`）。
+唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）、[T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）、[T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）、[T6Report.json](validation/T6/T6Report.json)（`t6ExitCriteriaMet=true`）、[T9Report.json](validation/T9/T9Report.json)（`t9ExitCriteriaMet=true`）与 [T10Report.json](validation/T10/T10Report.json)（`t10ExitCriteriaMet=true`）。
 
-## 下一步：T10 透明 prepass 与 Transparent SSR
+## 下一步：T11 Refraction
 
-按计划 8.4 节与第 9 节推进，不得跳过 T9 已完成的部分，也不得提前实现 Refraction：
+按计划 7.5、8.4 节与第 9 节推进；T10 已交付的 Transparent SSR 不得回退：
 
-1. Core 增加透明 depth/normal Shader Pass（新的 `UniversalTransparentDepthNormals` LightMode）及共享实现，只在显式声明接收 Transparent SSR 的材质上启用；独立 depth/normal target 从当前 opaque depth 初始化，不改变主透明 Pass 的深度测试语义。
-2. SSL 在 447 编排透明输入，Transparent SSR 只使用 Approximation、上一帧 color pyramid 与 opaque Hi-Z，ray origin 取透明表面，不能复用 opaque 像素或误用其背后表面。
-3. 透明 SSR 使用独立输出与 keyword；不支持材质回退 probe；透明 object motion 若未单独生成必须作为已知限制测试。
-4. 项目内新增透明材质与多层透明测试资产；三路径验证 ray origin、独立输出、无历史 accumulation 误用。
+1. Core 新增折射材质契约：开关/模型、IOR、厚度、transmittance、roughness mip、`receive Transparent SSR` 与旧材质默认值；Lit/ShaderGraph Lit GUI、keyword 与默认行为必须保持原画面。
+2. 当前帧 Color Pyramid（400）供折射使用；首版不含 pre-refraction transparent，proxy 与 pre-refraction 顺序差异必须记录。
+3. 移植 HDRP proxy raycast，映射到 URP `unity_SpecCube0_BoxMin/BoxMax/ProbePosition/HDR` 等 probe box 数据；完成深度拒绝、roughness mip、transmittance 与 edge fade。
+4. 无有效 proxy、深度拒绝或屏幕边缘时回退原 URP probe/透明路径；不读取本帧尚未写入的颜色。
+5. 项目内新增折射材质测试资产，三路径验证正确 fallback、旧材质画面不变和 proxy 顺序差异。
 
-Refraction 属 T11，仍需保持未实现。
+T10 遗留的 ShaderGraph 透明 prepass/receive 未实现，按计划与折射的 ShaderGraph 目标改造一起在 T11 处理；在完成前 SG 透明材质继续回退 probe，不得宣称支持。
 
 ## T9 证据与复现
 
@@ -59,6 +61,40 @@ T9 事实与限制：
 - Terrain Lit 用 shader + 平面验证材质契约；运行时创建的 Terrain 对象不被手动 `Camera.Render` 循环绘制，不能作为权重证据。
 - APV 在 URP 14.0.12 没有 ProbeVolume 集成，支持矩阵标为不支持；lightmap/SH/mixed lighting 回归通过。
 - 仅 Compatibility Execute；XR 逐眼矩阵仍留到 T13。
+
+## T10 证据与复现
+
+- 结论：[T10Report.json](validation/T10/T10Report.json)（`t10ExitCriteriaMet=true`）
+- 渲染/生命周期：[T10Verification.json](validation/T10/T10Verification.json)（三路径 `passed=true`）
+- EditMode：`validation/T10/UnityTests.log`（142 passed / 0 failed）
+- 图：`validation/T10/T10_<Mode>_{Reference,OpaqueOnly,TransparentOn,TransparentIntensity0,TransparentOffAgain,SsrWeight,SsrTransparentWeight,SsrTransparentRaw,SsrTransparentWeightPbr,TransparentDepth,CameraDepth,CameraDepthWithTransparentPrepass}.png`
+- 资产：`Assets/Tests/ScreenSpaceLighting/Materials/T10Transparent{Receiver,NoReceiver,SimpleLit,ComplexLit}.mat`、`Renderers/SslT10{Forward,ForwardPlus,Deferred}{Renderer,Pipeline}.asset`
+
+复现命令（先关闭其他 Unity 编辑器；当前证据为 Run3，下次复验请递增 Run 名）：
+
+```bash
+powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT10Verification.CreateT10Assets -LogPath "PALN/validation/T10/UnityT10Compile.Run3.log" -ReportPath "PALN/validation/T10/UnityT10Compile.Run3SettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT10Verification.RunT10Verification -LogPath "PALN/validation/T10/UnityT10Verification.Run3.log" -ReportPath "PALN/validation/T10/UnityT10Verification.Run3SettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T10/UnityTests.log" -ReportPath "PALN/validation/T10/UnityTestsSettingsRestoration.json"
+
+python "PALN/validation/T10/Analyze-T10Evidence.py"
+```
+
+T10 事实与限制：
+
+- 材质契约：透明 Lit/ComplexLit 通过 Inspector 的 `Receive Transparent SSR` 开关（`_TransparentSsrReceive` → `_TRANSPARENT_SSR_RECEIVE`）opt-in；未 opt-in 的片段在 447 prepass 中 `clip`，因此不会成为其他透明物体的 ray origin。SimpleLit/Particles/Terrain 无该 LightMode，继续写正常 alpha，weight 恒 0。
+- 深度语义：447 只写私有 depth/normal；私有 depth 先用 URP CopyDepth 从 `_CameraDepthTexture` 写入 `_OUTPUT_DEPTH`，再以 `ZWrite On`/`CommonTransparent` 绘制 opted-in 表面。`CameraDepth` 调试视图在三路径下运行前后逐像素一致（diff=0），主透明 pass 未被改写。
+- 顺序证明：透明 SSR 只在 `prepass.producedFrameSerial == history.frameSerial` 时 dispatch；该串行号每次相机渲染递增，若 447 未在本帧先执行则 449 不产生任何输出。验证中 PBR 模式 4 帧得到 trace/reproject 4/4，说明三路径的 447→449→450 顺序成立。本轮未另采 Frame Debugger（T4–T7 的事件证据和 EditMode 事件断言保留）；T12 组合回归可补。
+- 输出隔离：opaque SSR 使用 `ssrHitPoint/ssrOutput`，透明使用 `ssrTransparentHitPoint/ssrTransparentOutput`；透明开启与关闭时 opaque `SsrWeight` 逐像素一致（diff=0）。
+- 算法：Transparent SSR 固定 Approximation，`usedAlgorithm=PBRAccumulation` 时仍为 4/4 trace+reproject、accumulation dispatch=0、opaque accumulation kernel=4。透明不使用任何跨帧累积历史，只有“上一帧 color pyramid”这一输入。
+- 权重/回退：intensity=0 与关闭后逐字节恢复；opt-out 材质和 SimpleLit 区域在透明开启前后 0 像素变化、weight 0；ComplexLit clear coat 透明球改变 1,266 像素、weight 1.0。
+- 透明 motion：URP 14.0.12 不把透明 object motion 写入 `_MotionVectorTexture`。移动测试证明 ray origin 每帧跟随当前几何（旧像素回落到 opaque 0.003819、新位置 0.006146、无 NaN），但 reprojection 只使用 hit pixel / camera motion；移动透明体反射可能滞后，属已知限制。
+- 天空：透明反射关闭 sky 命中（`_SsrReflectsSky=0`，与 HDRP 一致），miss 时材质保留 reflection probe。
+- ShaderGraph Lit 透明 prepass/receive 尚未实现，继续回退 probe；与 T11 折射的 ShaderGraph 改造一起处理。
+- 透明 prepass 使用 Renderer Data 的 `transparentLayerMask`（与内置透明 pass 一致），而不是相机 cullingMask；私有 depth/normal 目标恒为单采样，MSAA 相机组合在 T12 验证。
+- 仅 Compatibility `ScriptableRenderPass.Execute`；XR 单视图矩阵，逐眼矩阵留到 T13。私有透明资源（depth/normal/hit point/output）按相机分配，1280×720 约 20 MB。
 
 ## T8 证据与复现
 
@@ -329,6 +365,8 @@ python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
 - T8 渲染/生命周期：[T8Verification.json](validation/T8/T8Verification.json)
 - T9 结论：[T9Report.json](validation/T9/T9Report.json)
 - T9 渲染/生命周期：[T9Verification.json](validation/T9/T9Verification.json)
+- T10 结论：[T10Report.json](validation/T10/T10Report.json)
+- T10 渲染/生命周期：[T10Verification.json](validation/T10/T10Verification.json)
 - T3 渲染/生命周期：[T3Verification.json](validation/T3/T3Verification.json)
 - T3 真实 UI 路径：[T3UiEvidence.json](validation/T3/UI/T3UiEvidence.json)
 - T3 无插件回归：`validation/T3/FrameDebuggerNoPlugin/`
