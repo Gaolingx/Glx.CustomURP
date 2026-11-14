@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.Universal
                 m_History.SwapBuffers();
 
             cmd.SetGlobalTexture(GroundTruthAmbientOcclusionShaderIDs.ScreenSpaceOcclusionTexture, m_History.occlusionTexture);
-            cmd.EnableShaderKeyword("_SCREEN_SPACE_OCCLUSION");
+            cmd.EnableShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
             cmd.SetGlobalVector(
                 GroundTruthAmbientOcclusionShaderIDs.AmbientOcclusionParam,
                 new Vector4(1f, 0f, 0f, m_Settings.directLightingStrength));
@@ -392,7 +392,7 @@ namespace UnityEngine.Rendering.Universal
             if (cmd == null)
                 return;
 
-            cmd.DisableShaderKeyword("_SCREEN_SPACE_OCCLUSION");
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
             cmd.SetGlobalVector(
                 GroundTruthAmbientOcclusionShaderIDs.AmbientOcclusionParam,
                 new Vector4(1f, 0f, 0f, 0f));

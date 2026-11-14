@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         continue;
 
                     // Normal buffer may have already been created if there was a depthNormal prepass before.
-                    // DepthNormal prepass is needed for forward-only materials when SSAO is generated between gbuffer and deferred lighting pass.
+                    // DepthNormal prepass is needed for forward-only materials when GTAO is generated between gbuffer and deferred lighting pass.
                     if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
                         continue;
 

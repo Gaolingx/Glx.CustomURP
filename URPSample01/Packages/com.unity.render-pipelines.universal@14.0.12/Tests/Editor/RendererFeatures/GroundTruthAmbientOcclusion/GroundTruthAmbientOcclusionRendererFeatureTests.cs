@@ -107,22 +107,6 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void BuiltInSsaoSuppressesGtaoWithoutDisablingSsao()
-        {
-            var ssao = ScriptableObject.CreateInstance<ScreenSpaceAmbientOcclusion>();
-            m_RendererData.rendererFeatures.Add(ssao);
-            m_Renderer.Dispose();
-            m_Renderer = new ScreenSpaceTestUtils.TestRenderer(m_RendererData);
-
-            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
-
-            Assert.IsTrue(ssao.isActive, "GTAO must not disable the built-in SSAO feature.");
-            Assert.IsEmpty(m_Renderer.queuedPasses);
-            Assert.AreEqual(0, m_Feature.historyStore.entryCount);
-            Assert.IsTrue(m_Feature.loggedSsaoConflict);
-        }
-
-        [Test]
         public void DestroyedCameraHistoryIsPrunedOnNextFrame()
         {
             InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));

@@ -16,7 +16,6 @@ namespace UnityEngine.Rendering.Universal
         GroundTruthAmbientOcclusionPass m_Pass;
         GroundTruthAmbientOcclusionDebugPass m_DebugPass;
         CameraHistoryStore<GroundTruthAmbientOcclusionHistory> m_HistoryStore;
-        bool m_LoggedSsaoConflict;
         bool m_LoggedMissingResources;
 
         internal GroundTruthAmbientOcclusionSettings settings => m_Settings;
@@ -24,7 +23,6 @@ namespace UnityEngine.Rendering.Universal
         internal GroundTruthAmbientOcclusionDepthPyramidPass depthPyramidPass => m_DepthPyramidPass;
         internal GroundTruthAmbientOcclusionDebugPass debugPass => m_DebugPass;
         internal CameraHistoryStore<GroundTruthAmbientOcclusionHistory> historyStore => m_HistoryStore;
-        internal bool loggedSsaoConflict => m_LoggedSsaoConflict;
         internal bool loggedMissingResources => m_LoggedMissingResources;
 
         /// <inheritdoc/>
@@ -54,7 +52,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (!m_Settings.effectEnabled && !m_Settings.debugEnabled)
             {
-                m_LoggedSsaoConflict = false;
                 m_LoggedMissingResources = false;
                 return;
             }
@@ -64,16 +61,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (!ScreenSpaceCapability.EvaluateCamera(cameraData).supported)
                 return;
-
-            // A single AO producer per pixel: the built-in SSAO keeps working and GTAO steps aside.
-            var ssao = renderer.GetRendererFeature<ScreenSpaceAmbientOcclusion>();
-            if (ssao != null && ssao.isActive)
-            {
-                WarnSsaoConflictOnce();
-                return;
-            }
-
-            m_LoggedSsaoConflict = false;
 
             m_Settings.EnsureResources();
             if (!m_Settings.resources.hasRuntimeResources)
@@ -105,17 +92,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_Settings.debugEnabled && m_Settings.resources.debugShader != null)
                 renderer.EnqueuePass(m_DebugPass);
-        }
-
-        void WarnSsaoConflictOnce()
-        {
-            if (m_LoggedSsaoConflict)
-                return;
-
-            m_LoggedSsaoConflict = true;
-            Debug.LogWarning(
-                "Ground Truth Ambient Occlusion is disabled because the built-in Screen Space Ambient Occlusion " +
-                "renderer feature is active on the same renderer. Disable one of the two ambient occlusion producers.");
         }
 
         void LogMissingResourcesOnce()

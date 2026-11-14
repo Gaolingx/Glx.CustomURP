@@ -133,7 +133,6 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/StencilDeferred", true, false)]
         [TestCase("Hidden/Universal Render Pipeline/UberPost", false, false)]
         [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion", false, false)]
         [TestCase("Hidden/Universal Render Pipeline/DBufferClear", false, false)]
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionVectors", false, false)]
         [TestCase("Hidden/Universal Render Pipeline/CopyDepth", false, false)]
@@ -195,7 +194,6 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/StencilDeferred")]
         [TestCase("Hidden/Universal Render Pipeline/UberPost")]
         [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows")]
-        [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion")]
         [TestCase("Hidden/Universal Render Pipeline/DBufferClear")]
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionVectors")]
         [TestCase("Hidden/Universal Render Pipeline/CopyDepth")]
@@ -422,7 +420,6 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/StencilDeferred", false, false, true)]
         [TestCase("Hidden/Universal Render Pipeline/UberPost", false, false, true)]
         [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows", false, false, true)]
-        [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion", false, false, true)]
         [TestCase("Hidden/Universal Render Pipeline/DBufferClear", false, false, true)]
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionVectors", false, false, true)]
         [TestCase("Hidden/Universal Render Pipeline/CopyDepth", false, false, true)]
@@ -577,7 +574,6 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/StencilDeferred", true, true, true)]
         [TestCase("Hidden/Universal Render Pipeline/UberPost", true, true, true)]
         [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows", true, true, true)]
-        [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion", true, true, true)]
         [TestCase("Hidden/Universal Render Pipeline/DBufferClear", true, true, true)]
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionVectors", true, true, true)]
         [TestCase("Hidden/Universal Render Pipeline/CopyDepth", true, true, true)]
@@ -655,7 +651,6 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/StencilDeferred")]
         [TestCase("Hidden/Universal Render Pipeline/UberPost")]
         [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows")]
-        [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion")]
         [TestCase("Hidden/Universal Render Pipeline/DBufferClear")]
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionVectors")]
         [TestCase("Hidden/Universal Render Pipeline/CopyDepth")]
@@ -681,7 +676,6 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_ReflectionProbes(shader);
             TestStripUnusedFeatures_ForwardPlus(shader);
             TestStripUnusedFeatures_AdditionalLights(shader);
-            TestStripUnusedFeatures_ScreenSpaceOcclusion(shader);
             TestStripUnusedFeatures_DecalsDbuffer(shader);
             TestStripUnusedFeatures_DecalsNormalBlend(shader);
             TestStripUnusedFeatures_DecalLayers(shader);
@@ -1453,51 +1447,6 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.AdditionalLightsPixel };
             TestHelper.s_PassKeywords = additionalLightKeywords;
             helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_AdditionalLights(ref helper.data, ref helper.featureStripTool));
-        }
-
-        public void TestStripUnusedFeatures_ScreenSpaceOcclusion(Shader shader)
-        {
-            TestHelper helper;
-
-            // None
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceOcclusion};
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_ScreenSpaceOcclusion(ref helper.data, ref helper.featureStripTool));
-
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
-            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceOcclusion};
-            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ScreenSpaceOcclusion(ref helper.data, ref helper.featureStripTool));
-
-            // ScreenSpaceOcclusion
-            helper = new TestHelper(shader, ShaderFeatures.ScreenSpaceOcclusion);
-            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceOcclusion};
-            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ScreenSpaceOcclusion(ref helper.data, ref helper.featureStripTool));
-
-            helper = new TestHelper(shader, ShaderFeatures.ScreenSpaceOcclusion);
-            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
-            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceOcclusion};
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_ScreenSpaceOcclusion(ref helper.data, ref helper.featureStripTool));
-
-            // After Opaque..
-            helper = new TestHelper(shader, ShaderFeatures.ScreenSpaceOcclusionAfterOpaque);
-            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceOcclusion};
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_ScreenSpaceOcclusion(ref helper.data, ref helper.featureStripTool));
-
-            helper = new TestHelper(shader, ShaderFeatures.ScreenSpaceOcclusionAfterOpaque);
-            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
-            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceOcclusion};
-            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ScreenSpaceOcclusion(ref helper.data, ref helper.featureStripTool));
-
-            // ScreenSpaceOcclusion
-            helper = new TestHelper(shader, ShaderFeatures.ScreenSpaceOcclusionAfterOpaque | ShaderFeatures.ScreenSpaceOcclusion);
-            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceOcclusion};
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_ScreenSpaceOcclusion(ref helper.data, ref helper.featureStripTool));
-
-            helper = new TestHelper(shader, ShaderFeatures.ScreenSpaceOcclusionAfterOpaque | ShaderFeatures.ScreenSpaceOcclusion);
-            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
-            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceOcclusion};
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_ScreenSpaceOcclusion(ref helper.data, ref helper.featureStripTool));
         }
 
         public void TestStripUnusedFeatures_DecalsDbuffer(Shader shader)

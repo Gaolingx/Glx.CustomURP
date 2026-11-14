@@ -14,8 +14,8 @@ using UnityEngine.SceneManagement;
 
 // T5 acceptance: the independent GTAO feature must produce forward/Forward+/deferred ambient occlusion
 // with its own depth pyramid and AO history, leave the image untouched when disabled, keep the same
-// result regardless of the Screen Space Lighting feature order, yield to the built-in SSAO, and reset
-// its history on camera cuts and resolution changes.
+// result regardless of the Screen Space Lighting feature order, and reset its history on camera cuts
+// and resolution changes.
 public static class ScreenSpaceLightingT5Verification
 {
     const string RendererRoot = "Assets/Tests/ScreenSpaceLighting/Renderers";
@@ -25,10 +25,8 @@ public static class ScreenSpaceLightingT5Verification
     const string T1PipelinePathFormat = RendererRoot + "/Ssl{0}Pipeline.asset";
     const string T5RendererPathFormat = RendererRoot + "/SslT5{0}Renderer.asset";
     const string T5ReversedRendererPathFormat = RendererRoot + "/SslT5{0}ReversedRenderer.asset";
-    const string T5SsaoRendererPathFormat = RendererRoot + "/SslT5{0}SsaoRenderer.asset";
     const string T5PipelinePathFormat = RendererRoot + "/SslT5{0}Pipeline.asset";
     const string T5ReversedPipelinePathFormat = RendererRoot + "/SslT5{0}ReversedPipeline.asset";
-    const string T5SsaoPipelinePathFormat = RendererRoot + "/SslT5{0}SsaoPipeline.asset";
 
     const int ImageWidth = 1280;
     const int ImageHeight = 720;
@@ -183,26 +181,21 @@ public static class ScreenSpaceLightingT5Verification
         var t1Pipeline = LoadPipeline(T1PipelinePathFormat, modeName);
         var t5Pipeline = LoadPipeline(T5PipelinePathFormat, modeName);
         var reversedPipeline = LoadPipeline(T5ReversedPipelinePathFormat, modeName);
-        var ssaoPipeline = LoadPipeline(T5SsaoPipelinePathFormat, modeName);
 
         var t5Renderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(string.Format(T5RendererPathFormat, modeName));
         var reversedRenderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(string.Format(T5ReversedRendererPathFormat, modeName));
-        var ssaoRenderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(string.Format(T5SsaoRendererPathFormat, modeName));
-        if (t5Renderer == null || reversedRenderer == null || ssaoRenderer == null)
+        if (t5Renderer == null || reversedRenderer == null)
             throw new FileNotFoundException("Missing T5 renderer asset. Run Create T5 Assets first.");
 
         var gtao = FindGtaoFeature(t5Pipeline);
         var reversedGtao = FindGtaoFeature(reversedPipeline);
-        var ssaoGtao = FindGtaoFeature(ssaoPipeline);
-        if (gtao == null || reversedGtao == null || ssaoGtao == null)
+        if (gtao == null || reversedGtao == null)
             throw new InvalidOperationException("A T5 renderer is missing the GTAO feature.");
         result.featureOrder = DescribeFeatureOrder(t5Renderer);
         result.reversedFeatureOrder = DescribeFeatureOrder(reversedRenderer);
-        result.ssaoFeatureOrder = DescribeFeatureOrder(ssaoRenderer);
 
         ApplyReferenceSettings(gtao);
         ApplyReferenceSettings(reversedGtao);
-        ApplyReferenceSettings(ssaoGtao);
 
         // Reference: built-in renderer, no plugin features.
         GraphicsSettings.defaultRenderPipeline = t1Pipeline;
@@ -299,7 +292,6 @@ public static class ScreenSpaceLightingT5Verification
             result,
             outputDirectory,
             modeName);
-        CheckSsaoConflict(camera, volumeObject, ssaoPipeline, ssaoGtao, reference, result, outputDirectory, modeName);
         GraphicsSettings.defaultRenderPipeline = t5Pipeline;
         QualitySettings.renderPipeline = t5Pipeline;
         CheckFeatureDisabled(camera, imageTarget, gtao, reference, result);
@@ -307,7 +299,6 @@ public static class ScreenSpaceLightingT5Verification
         // Restore deterministic asset settings for the next run.
         ApplyReferenceSettings(gtao);
         ApplyReferenceSettings(reversedGtao);
-        ApplyReferenceSettings(ssaoGtao);
         volumeObject.SetActive(true);
         GraphicsSettings.defaultRenderPipeline = t1Pipeline;
         QualitySettings.renderPipeline = t1Pipeline;
@@ -689,62 +680,6 @@ public static class ScreenSpaceLightingT5Verification
         RenderAndCapture(camera, imageTargetFor(camera), 2);
     }
 
-    static void CheckSsaoConflict(
-        Camera camera,
-        GameObject volumeObject,
-        UniversalRenderPipelineAsset ssaoPipeline,
-        GroundTruthAmbientOcclusionRendererFeature ssaoGtao,
-        Color[] reference,
-        T5ModeResult result,
-        string outputDirectory,
-        string modeName)
-    {
-        var passType = GetPluginType("GroundTruthAmbientOcclusionPass");
-        int mainBefore = ReadStaticInt(passType, "s_EditorMainDispatchCount");
-        int pyramidBefore = ReadStaticInt(GetPluginType("GroundTruthAmbientOcclusionDepthPyramidPass"), "s_EditorExecuteCount");
-
-        volumeObject.SetActive(false);
-        GraphicsSettings.defaultRenderPipeline = ssaoPipeline;
-        QualitySettings.renderPipeline = ssaoPipeline;
-        var samples = RenderAndCapture(camera, imageTargetFor(camera), 6);
-        var withGtao = DescribeState("NativeSsaoAndGtao", samples, reference);
-        result.states.Add(withGtao);
-        WriteImage(camera.targetTexture, outputDirectory, "T5_" + modeName + "_NativeSsaoAndGtao.png");
-
-        // With the GTAO feature disabled the renderer must produce exactly the same image, which proves
-        // GTAO did not add a second AO term on top of the built-in SSAO.
-        ssaoGtao.SetActive(false);
-        var withoutGtao = RenderAndCapture(camera, imageTargetFor(camera), 3);
-        ssaoGtao.SetActive(true);
-        var withoutGtaoState = DescribeState("NativeSsaoWithoutGtao", withoutGtao, samples);
-        result.states.Add(withoutGtaoState);
-        result.ssaoImageDiffersFromBaseline = withGtao.differsFromReference;
-
-        int mainDelta = ReadStaticInt(passType, "s_EditorMainDispatchCount") - mainBefore;
-        int pyramidDelta = ReadStaticInt(GetPluginType("GroundTruthAmbientOcclusionDepthPyramidPass"), "s_EditorExecuteCount") - pyramidBefore;
-        result.ssaoConflictGtaoDispatches = mainDelta + pyramidDelta;
-        result.ssaoConflictLogged = ReadBool(ssaoGtao, "loggedSsaoConflict");
-        var ssaoFeatureType = typeof(UniversalRendererData).Assembly.GetType("UnityEngine.Rendering.Universal.ScreenSpaceAmbientOcclusion");
-        var ssaoRendererData = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(AssetDatabase.GetAssetPath(ssaoPipeline).Replace("Pipeline.asset", "Renderer.asset"));
-        var ssaoFeature = ssaoRendererData?.rendererFeatures.FirstOrDefault(feature => feature != null && feature.GetType() == ssaoFeatureType);
-        result.ssaoShaderAssigned = ssaoFeature != null && ssaoFeature.GetType().GetField("m_Shader", InstanceFlags)?.GetValue(ssaoFeature) != null;
-        result.ssaoMaterialAssigned = ssaoFeature != null && ssaoFeature.GetType().GetField("m_Material", InstanceFlags)?.GetValue(ssaoFeature) != null;
-
-        if (result.ssaoConflictGtaoDispatches != 0)
-            result.issues.Add("NativeSsaoAndGtao: GTAO executed while the built-in SSAO was active (double AO).");
-        if (!result.ssaoConflictLogged)
-            result.issues.Add("NativeSsaoAndGtao: the SSAO conflict warning was not recorded.");
-        if (!withoutGtaoState.identicalToReference)
-            result.issues.Add(
-                $"NativeSsaoAndGtao: disabling GTAO changed the SSAO image by {withoutGtaoState.differingPixels} pixels; " +
-                "the two AO producers overlap.");
-        if (withGtao.magentaPixels > 0 || withGtao.nonFinitePixels > 0)
-            result.issues.Add("NativeSsaoAndGtao: image is invalid.");
-
-        volumeObject.SetActive(true);
-        RenderAndCapture(camera, imageTargetFor(camera), 2);
-    }
-
     static void CheckFeatureDisabled(
         Camera camera,
         RenderTexture imageTarget,
@@ -800,20 +735,12 @@ public static class ScreenSpaceLightingT5Verification
                 new[] { "gtao", "ssl" },
                 force,
                 out bool reversedChanged);
-            var ssao = EnsureRenderer(
-                string.Format(T5SsaoRendererPathFormat, mode),
-                "SslT5" + mode + "SsaoRenderer",
-                new[] { "ssao", "gtao" },
-                force,
-                out bool ssaoChanged);
 
             EnsureFeatureResources(normal);
             EnsureFeatureResources(reversed);
-            EnsureFeatureResources(ssao);
 
             EnsurePipeline(string.Format(T5PipelinePathFormat, mode), "SslT5" + mode + "Pipeline", normal, force || normalChanged);
             EnsurePipeline(string.Format(T5ReversedPipelinePathFormat, mode), "SslT5" + mode + "ReversedPipeline", reversed, force || reversedChanged);
-            EnsurePipeline(string.Format(T5SsaoPipelinePathFormat, mode), "SslT5" + mode + "SsaoPipeline", ssao, force || ssaoChanged);
         }
 
         AssetDatabase.SaveAssets();
@@ -872,7 +799,7 @@ public static class ScreenSpaceLightingT5Verification
 
     static string GetT1RendererPath(string rendererName)
     {
-        var suffix = rendererName.Replace("SslT5", "Ssl").Replace("ReversedRenderer", "Renderer").Replace("SsaoRenderer", "Renderer");
+        var suffix = rendererName.Replace("SslT5", "Ssl").Replace("ReversedRenderer", "Renderer");
         return RendererRoot + "/" + suffix + ".asset";
     }
 
@@ -882,7 +809,6 @@ public static class ScreenSpaceLightingT5Verification
         {
             case "ssl": return feature is ScreenSpaceLightingRendererFeature;
             case "gtao": return feature is GroundTruthAmbientOcclusionRendererFeature;
-            case "ssao": return feature != null && feature.GetType().Name == "ScreenSpaceAmbientOcclusion";
             default: return false;
         }
     }
@@ -898,19 +824,13 @@ public static class ScreenSpaceLightingT5Verification
             case "gtao":
                 feature = ScriptableObject.CreateInstance<GroundTruthAmbientOcclusionRendererFeature>();
                 break;
-            case "ssao":
-                var type = typeof(UniversalRendererData).Assembly.GetType("UnityEngine.Rendering.Universal.ScreenSpaceAmbientOcclusion");
-                if (type == null)
-                    throw new TypeLoadException("ScreenSpaceAmbientOcclusion was not found.");
-                feature = (ScriptableRendererFeature)ScriptableObject.CreateInstance(type);
-                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(kind));
         }
 
         feature.name = name;
-        // Features created outside the inspector need their editor resource reload (SSAO loads its
-        // shader in Create) before they can enqueue passes.
+        // Features created outside the inspector need their editor resource reload before they can
+        // enqueue passes.
         feature.GetType().GetMethod("Create", InstanceFlags)?.Invoke(feature, null);
         return feature;
     }
@@ -1370,7 +1290,6 @@ public static class ScreenSpaceLightingT5Verification
         public List<string> issues;
         public string featureOrder;
         public string reversedFeatureOrder;
-        public string ssaoFeatureOrder;
         public int pyramidExecutions;
         public int pyramidCopyDispatches;
         public int mainDispatches;
@@ -1384,11 +1303,6 @@ public static class ScreenSpaceLightingT5Verification
         public long gtaoDepthPyramidBytes;
         public long sslGtaoCombinedPyramidBytes;
         public long duplicateHiZBytes;
-        public int ssaoConflictGtaoDispatches;
-        public bool ssaoConflictLogged;
-        public bool ssaoShaderAssigned;
-        public bool ssaoMaterialAssigned;
-        public bool ssaoImageDiffersFromBaseline;
         public int featureDisabledExecutions;
         public bool keywordEnabled;
         public string ambientOcclusionParam;

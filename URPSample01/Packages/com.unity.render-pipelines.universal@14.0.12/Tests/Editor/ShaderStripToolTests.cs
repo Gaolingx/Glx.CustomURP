@@ -105,15 +105,15 @@ namespace ShaderStrippingAndPrefiltering
             s_EnabledKeywords = new List<string>();
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompileKeepOffVariant(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompileKeepOffVariant(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             strippingData = new TestStrippingData();
-            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceOcclusion;
+            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceShadows;
             s_EnabledKeywords = new List<string>();
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompileKeepOffVariant(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompileKeepOffVariant(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             strippingData = new TestStrippingData();
@@ -121,15 +121,15 @@ namespace ShaderStrippingAndPrefiltering
             s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompileKeepOffVariant(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompileKeepOffVariant(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsTrue(actual);
 
             strippingData = new TestStrippingData();
-            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceOcclusion;
+            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceShadows;
             s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompileKeepOffVariant(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompileKeepOffVariant(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
         }
 
@@ -150,16 +150,16 @@ namespace ShaderStrippingAndPrefiltering
             s_EnabledKeywords = new List<string>();
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             strippingData = new TestStrippingData();
             strippingData.stripUnusedVariants = false;
-            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceOcclusion;
+            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceShadows;
             s_EnabledKeywords = new List<string>();
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             strippingData = new TestStrippingData();
@@ -168,7 +168,7 @@ namespace ShaderStrippingAndPrefiltering
             s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsTrue(actual);
 
             strippingData = new TestStrippingData();
@@ -177,25 +177,25 @@ namespace ShaderStrippingAndPrefiltering
             s_EnabledKeywords = new List<string>();
             s_PassKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             strippingData = new TestStrippingData();
             strippingData.stripUnusedVariants = false;
-            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceOcclusion;
+            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceShadows;
             s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             strippingData = new TestStrippingData();
             strippingData.stripUnusedVariants = false;
-            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceOcclusion;
+            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceShadows;
             s_EnabledKeywords = new List<string>();
             s_PassKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             // stripUnusedVariants = true => takes out the Off variant
@@ -205,16 +205,16 @@ namespace ShaderStrippingAndPrefiltering
             s_EnabledKeywords = new List<string>();
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             strippingData = new TestStrippingData();
             strippingData.stripUnusedVariants = true;
-            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceOcclusion;
+            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceShadows;
             s_EnabledKeywords = new List<string>();
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             strippingData = new TestStrippingData();
@@ -223,7 +223,7 @@ namespace ShaderStrippingAndPrefiltering
             s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsTrue(actual);
 
             strippingData = new TestStrippingData();
@@ -232,26 +232,26 @@ namespace ShaderStrippingAndPrefiltering
             s_EnabledKeywords = new List<string>();
             s_PassKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             strippingData = new TestStrippingData();
             strippingData.stripUnusedVariants = true;
-            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceOcclusion;
+            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceShadows;
             s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
             s_PassKeywords = new List<string>();
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsFalse(actual);
 
             // Here the OFF variant is stripped
             strippingData = new TestStrippingData();
             strippingData.stripUnusedVariants = true;
-            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceOcclusion;
+            strippingData.shaderFeatures = ShaderFeatures.ScreenSpaceShadows;
             s_EnabledKeywords = new List<string>();
             s_PassKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
-            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceOcclusion);
+            actual = stripTool.StripMultiCompile(kw, ShaderFeatures.ScreenSpaceShadows);
             Assert.IsTrue(actual);
         }
 

@@ -14,13 +14,11 @@ namespace ShaderStrippingAndPrefiltering
         class TestHelper
         {
             internal bool isAssetUsingforward = true;
-            internal bool everyRendererHasSSAO = false;
             internal bool stripXRKeywords = true;
             internal bool stripHDRKeywords = true;
             internal bool stripDebugDisplay = true;
             internal bool stripScreenCoordOverride = true;
             internal bool stripUnusedVariants = true;
-            internal List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures = new List<ScreenSpaceAmbientOcclusionSettings>();
             internal ShaderPrefilteringData defaultPrefilteringData;
 
             public TestHelper()
@@ -30,7 +28,7 @@ namespace ShaderStrippingAndPrefiltering
 
             internal ShaderPrefilteringData CreatePrefilteringSettings(ShaderFeatures shaderFeatures)
             {
-                return ShaderBuildPreprocessor.CreatePrefilteringSettings(ref shaderFeatures, isAssetUsingforward, everyRendererHasSSAO, stripXRKeywords, stripHDRKeywords, stripDebugDisplay, stripScreenCoordOverride, stripUnusedVariants, ref ssaoRendererFeatures);
+                return ShaderBuildPreprocessor.CreatePrefilteringSettings(ref shaderFeatures, isAssetUsingforward, stripXRKeywords, stripHDRKeywords, stripDebugDisplay, stripScreenCoordOverride, stripUnusedVariants);
             }
 
             internal void AssertPrefilteringData(ShaderPrefilteringData expected, ShaderPrefilteringData actual)
@@ -51,16 +49,6 @@ namespace ShaderStrippingAndPrefiltering
                 Assert.AreEqual(expected.stripDBufferMRT2, actual.stripDBufferMRT2, "stripDBufferMRT2 mismatch");
                 Assert.AreEqual(expected.stripDBufferMRT3, actual.stripDBufferMRT3, "stripDBufferMRT2 mismatch");
                 Assert.AreEqual(expected.stripNativeRenderPass, actual.stripNativeRenderPass, "stripNativeRenderPass mismatch");
-
-                Assert.AreEqual(expected.stripSSAOBlueNoise, actual.stripSSAOBlueNoise, "stripSSAOBlueNoise mismatch");
-                Assert.AreEqual(expected.stripSSAOInterleaved, actual.stripSSAOInterleaved, "stripSSAOInterleaved mismatch");
-                Assert.AreEqual(expected.stripSSAODepthNormals, actual.stripSSAODepthNormals, "stripSSAODepthNormals mismatch");
-                Assert.AreEqual(expected.stripSSAOSourceDepthLow, actual.stripSSAOSourceDepthLow, "stripSSAOSourceDepthLow mismatch");
-                Assert.AreEqual(expected.stripSSAOSourceDepthMedium, actual.stripSSAOSourceDepthMedium, "stripSSAOSourceDepthMedium mismatch");
-                Assert.AreEqual(expected.stripSSAOSourceDepthHigh, actual.stripSSAOSourceDepthHigh, "stripSSAOSourceDepthHigh mismatch");
-                Assert.AreEqual(expected.stripSSAOSampleCountLow, actual.stripSSAOSampleCountLow, "stripSSAOSampleCountLow mismatch");
-                Assert.AreEqual(expected.stripSSAOSampleCountMedium, actual.stripSSAOSampleCountMedium, "stripNativeRenderPass mismatch");
-                Assert.AreEqual(expected.stripSSAOSampleCountHigh, actual.stripSSAOSampleCountHigh, "stripNativeRenderPass mismatch");
 
                 Assert.AreEqual(expected, actual, "Some mismatch between the Prefiltering Data that is not covered in the previous tests.");
             }
@@ -341,102 +329,17 @@ namespace ShaderStrippingAndPrefiltering
         [Test]
         public void TestCreatePrefilteringSettings_ScreenSpaceOcclusion()
         {
-            ShaderPrefilteringData actual;
-            ShaderPrefilteringData expected;
+            // The built-in SSAO feature was removed. GTAO consumes the generic keyword, so the AO
+            // prefiltering mode always keeps both variants regardless of the feature flags.
             TestHelper helper = new();
 
-            // Screen Space Occlusion Enabled
-            expected = helper.defaultPrefilteringData;
-            expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
-            actual = helper.CreatePrefilteringSettings(ShaderFeatures.ScreenSpaceOcclusion);
-            helper.AssertPrefilteringData(expected, actual);
-
-            // Every Renderer has SSAO with & without strip unused variants
-            helper.everyRendererHasSSAO = true;
-            helper.stripUnusedVariants = true;
-            expected = helper.defaultPrefilteringData;
-            expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.SelectOnly;
-            actual = helper.CreatePrefilteringSettings(ShaderFeatures.ScreenSpaceOcclusion);
-            helper.AssertPrefilteringData(expected, actual);
+            ShaderPrefilteringData actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
+            Assert.AreEqual(PrefilteringMode.Select, actual.screenSpaceOcclusionPrefilteringMode);
 
             helper.stripUnusedVariants = false;
-            expected = helper.defaultPrefilteringData;
-            expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
-            actual = helper.CreatePrefilteringSettings(ShaderFeatures.ScreenSpaceOcclusion);
-            helper.AssertPrefilteringData(expected, actual);
-
-            helper.stripUnusedVariants = true;
-            helper.everyRendererHasSSAO = false;
-
-
-            // SSAO shader
-
-            // Single SSAO feature
-            helper.ssaoRendererFeatures.Add(new ScreenSpaceAmbientOcclusionSettings()
-            {
-                AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise,
-                Downsample = false,
-                AfterOpaque = false,
-                Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals,
-                NormalSamples = ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium,
-                Intensity = 3.0f,
-                DirectLightingStrength = 0.25f,
-                Radius = 0.035f,
-                Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium,
-                BlurQuality = ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High,
-                Falloff = 100f,
-            });
-            expected = helper.defaultPrefilteringData;
-            expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
-            expected.stripSSAOBlueNoise = false;
-            expected.stripSSAODepthNormals = false;
-            expected.stripSSAOSampleCountMedium = false;
-            actual = helper.CreatePrefilteringSettings(ShaderFeatures.ScreenSpaceOcclusion);
-            helper.AssertPrefilteringData(expected, actual);
-
-            // Two SSAO features
-            helper.ssaoRendererFeatures.Add(new ScreenSpaceAmbientOcclusionSettings()
-            {
-                AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient,
-                Downsample = false,
-                AfterOpaque = false,
-                Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth,
-                NormalSamples = ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium,
-                Intensity = 3.0f,
-                DirectLightingStrength = 0.25f,
-                Radius = 0.035f,
-                Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High,
-                BlurQuality = ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Medium,
-                Falloff = 100f,
-            });
-            expected = helper.defaultPrefilteringData;
-            expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
-            expected.stripSSAOBlueNoise = false;
-            expected.stripSSAOInterleaved = false;
-            expected.stripSSAODepthNormals = false;
-            expected.stripSSAOSourceDepthMedium = false;
-            expected.stripSSAOSampleCountMedium = false;
-            expected.stripSSAOSampleCountHigh = false;
-            actual = helper.CreatePrefilteringSettings(ShaderFeatures.ScreenSpaceOcclusion);
-            helper.AssertPrefilteringData(expected, actual);
-
-
-            // Two SSAO features - Both set to After Opaque with Interleaved
-            helper.ssaoRendererFeatures[0].AfterOpaque = true;
-            helper.ssaoRendererFeatures[0].AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
-            helper.ssaoRendererFeatures[1].AfterOpaque = true;
-            helper.ssaoRendererFeatures[1].AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
-
-            expected = helper.defaultPrefilteringData;
-            expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Remove;
-            expected.stripSSAOBlueNoise = true;
-            expected.stripSSAOInterleaved = false;
-            expected.stripSSAODepthNormals = false;
-            expected.stripSSAOSourceDepthMedium = false;
-            expected.stripSSAOSampleCountMedium = false;
-            expected.stripSSAOSampleCountHigh = false;
-            actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
-            helper.AssertPrefilteringData(expected, actual);
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.All);
+            Assert.AreEqual(PrefilteringMode.Select, actual.screenSpaceOcclusionPrefilteringMode);
         }
+
     }
 }

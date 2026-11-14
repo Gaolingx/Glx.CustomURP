@@ -2076,7 +2076,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
         {
-            displayName = "Screen Space Ambient Occlusion",
+            displayName = "Screen Space Occlusion",
             referenceName = "_SCREEN_SPACE_OCCLUSION",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,

@@ -1,6 +1,6 @@
 # HDRP ScreenSpaceLighting 迁移到 URP 14.0.12 实施计划
 
-> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2 已退出（2026-11-14）；T3 已退出（2026-11-14）；T4 已退出（2026-11-14）；T5 已退出（2026-11-14）；T6–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有 SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PALN/validation/T3/T3Report.json` 为准，T4 结论以 `PALN/validation/T4/T4Report.json` 为准，T5 结论以 `PALN/validation/T5/T5Report.json` 为准。
+> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2 已退出（2026-11-14）；T3 已退出（2026-11-14）；T4 已退出（2026-11-14）；T5 已退出（2026-11-14）；2026-11-14 按用户要求重新打开 T0，移除 URP 内置 SSAO（像素着色器实现），GTAO 成为唯一 AO 生产者；T6–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有 SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PALN/validation/T3/T3Report.json` 为准，T4 结论以 `PALN/validation/T4/T4Report.json` 为准，T5 结论以 `PALN/validation/T5/T5Report.json` 为准。
 >
 > 基线：Unity `2022.3.62f1`，URP/HDRP `14.0.12`。
 >
@@ -97,7 +97,7 @@ Volume **不直接添加 Pass**。Feature 在每相机 `AddRenderPasses` 中从 
 - **内置 Motion 共用**：Core 将现有 `MotionVectorRenderPass` 提前到最早消费者之前，TAA/Motion Blur 继续读取 `_MotionVectorTexture`。
 - **Hi-Z 代码共用、资源隔离**：SSGI/SSR 共用 SSL 私有金字塔；GTAO 自己拥有另一份金字塔。两个 Feature 同时开启时，首版允许重复的 Hi-Z GPU/显存成本。
 - 这是有意的首版权衡：换取 GTAO 可独立使用、Feature 列表顺序无关、禁用任一 Feature 不影响另一个。后续若要合并，必须先设计通用 per-renderer/per-camera 资源 broker 和引用计数，另立优化任务，不在算法交付中隐式跨 Feature 查找。
-- **AO 单生产者**：若内置 `ScreenSpaceAmbientOcclusion` 与 GTAO 同时有效，内置 SSAO 保持工作，GTAO 不入队并一次性给出明确警告；用户需禁用其中一个。该规则不依赖 Feature 排列顺序，也绝不允许二者轮流覆盖 `_ScreenSpaceOcclusionTexture`。
+- **AO 单生产者（2026-11-14 修订）**：按用户要求已移除 URP 内置 `ScreenSpaceAmbientOcclusion`（像素着色器实现）、其 Editor、Shader、SSAO 专用 keyword 与 BlueNoise256 资源。GTAO 成为唯一 AO 生产者，原先的“内置 SSAO 优先、GTAO 警告并禁用”冲突规则随实现一并退役（`ScriptableRenderer.GetRendererFeature<T>()` 已删除）。`_SCREEN_SPACE_OCCLUSION`、`_ScreenSpaceOcclusionTexture`、`_AmbientOcclusionParam` 与 `AmbientOcclusion.hlsl` 继续作为材质侧契约保留，由 GTAO 写入。构建期 AO keyword 预过滤固定为 `Select`（保留 ON/OFF 两个变体），插件级 strip 优化留到 T14。
 - Core 可增加通用 `ScriptableRenderer.GetRendererFeature<T>()` 供冲突检测使用，但不得增加 `GetGtaoFeature()` 等专用 API。
 - GTAO、SSL 的中间纹理、CB、history 和 debug ID 必须带各自前缀；只有本文明确规定的最终材质/AO 输入可以共享全局名称。
 
@@ -131,11 +131,19 @@ Volume **不直接添加 Pass**。Feature 在每相机 `AddRenderPasses` 中从 
 3. 添加 `Screen Space Lighting`；需要 GTAO 时再添加 `Ground Truth Ambient Occlusion`。Forward、Forward+、Deferred 使用不同 Renderer Data 时分别配置。
 4. 创建/选择 Global Volume 和其 Profile，点击 **Add Override > Lighting**，添加 SSGI、SSR、Refraction 组件并勾选对应 `enabled`。
 5. 确认相机使用目标 Renderer、Volume Mask 能命中该 Global Volume，且相机不处于不支持类型。
-6. GTAO 只在其 Feature Inspector 中调参；若内置 SSAO 已存在，按警告禁用其中一个。
+6. GTAO 只在其 Feature Inspector 中调参；内置 SSAO 已于 2026-11-14 移除，不再存在两个 AO Feature 的取舍。
 
 T3 必须按以上真实 UI 路径做一次手工验收并保留截图；只通过脚本创建对象不算完成该验收。
 
-## 3. 对旧草稿的基线修正
+### 2.6 T0 修订：移除内置 SSAO（2026-11-14）
+
+**决策**：在 T5 验证 GTAO 于 Forward/Forward+/Deferred 正常工作后，按用户要求删除 URP 内置 SSAO（像素着色器实现）。GTAO 成为唯一 AO 生产者。
+
+**删除范围**：`Runtime/RendererFeatures/ScreenSpaceAmbientOcclusion.cs`、`Editor/RendererFeatures/ScreenSpaceAmbientOcclusionEditor.cs`、`Shaders/Utils/ScreenSpaceAmbientOcclusion.shader`、`ShaderLibrary/SSAO.hlsl`、`Textures/BlueNoise256/`，以及 Shader Build Preprocessor / Shader Stripper / Asset Prefiltering 中全部 SSAO 专用设置、keyword 和 `ShaderFeatures.ScreenSpaceOcclusionAfterOpaque` 分支。
+
+**保留契约**：`_SCREEN_SPACE_OCCLUSION`、`_ScreenSpaceOcclusionTexture`、`_AmbientOcclusionParam`、`AmbientOcclusion.hlsl`、Deferred 的 AO-only pass（重命名为 `AmbientOcclusionOnly`）继续存在，由 GTAO 写入；材质端无需改动。
+
+**影响**：原 §2.3 的“内置 SSAO 优先、GTAO 警告并禁用”规则退役，`ScriptableRenderer.GetRendererFeature<T>()` 删除；已序列化 SSAO Feature 的旧 Renderer Data 会出现 Missing Script，需要手动删除并改用 GTAO。构建期 AO keyword 预过滤固定为 `Select`（ON/OFF 都保留）；插件级 strip 优化留到 T14。T5 验证器、EditMode 测试和证据已同步更新并重新生成。
 
 旧草稿基于 Unity 6000.5/URP 17，以下结论不能直接用于当前 14.0.12：
 
@@ -218,7 +226,7 @@ GBuffer 后直接叠加会重复环境 GI；要替换又必须从 `emission + in
 DepthNormals(encoded normal + smoothness) + Built-in Early Motion + Hi-Z + Previous History
     -> GTAO / SSGI / SSR
     -> Deferred GBuffer 材质调用与 Forward 相同的 GI 混合
-    -> DeferredLights 只追加直接光，并按现有规则应用 SSAO/GTAO
+    -> DeferredLights 只追加直接光，并按现有规则应用屏幕空间 AO
 ```
 
 收益是不分解 GBuffer3、不重复 emission/GI，Forward、ForwardOnly、Deferred 共用 GI 混合，并避开 AfterGbuffer framebuffer-fetch 回退。代价是 Deferred 多一次 DepthNormals prepass，且 tracing 使用 prepass 材质数据。GBuffer 后独立 indirect lighting pass 仅作为后续优化，不在首版范围。
@@ -327,7 +335,7 @@ Refraction 只在显式支持的透明 Lit/ShaderGraph Lit 中启用。无有效
 2. 使用 GTAO 私有 Hi-Z、URP normal/depth 和内置 Motion；AO 历史由 Feature 自管。
 3. CBuffer 用 `[GenerateHLSL]` 生成并校验 C#/HLSL 布局。
 4. 无 Motion/历史无效时使用空间结果并清历史；输出转换为 URP AO 语义。
-5. 实现 SSAO 冲突仲裁、一次性警告和禁用后的 neutral 清理。
+5. GTAO 是唯一 AO 生产者（2026-11-14 起内置 SSAO 已移除）；实现白色 neutral 清理与禁用恢复基线。
 6. 验证三路径、ForwardOnly、全/半分辨率、动态物体、相机切换和与 SSL 的任意 Feature 顺序。
 
 ### 8.2 SSGI
@@ -481,7 +489,7 @@ URP/Editor/RendererFeatures/
 | **T2** | P0 / T1 | Core DepthNormals 编码、最早 Motion/Depth 调度、通用 keyword 清理与调度测试 | **已退出（2026-11-14）**：Lit/ComplexLit DepthNormals alpha 使用 `0.5+0.5*smoothness`、0 表示不支持；最早 Motion 消费者把共享 Motion 提前到 202，并同步提前 Depth/CopyDepth；Deferred 提前 Motion 时强制完整 DepthNormals prepass，GBuffer2 alpha 仍为原始 smoothness；无插件时三路径事件数据与 T1 基线逐事件一致（`eventDataHash` 相同）。202 前 Motion/Depth 有效（动态 98 px、静止 0）；TAA/Motion Blur 早/晚 Motion 输出逐字节一致；smoothness=0（406 px）与不支持 alpha=0（42 px）可区分，无 0–0.5 保留区像素。证据：`PALN/validation/T2/` |
 | **T3** | P0 / T1 | 两个空 Feature、资源序列化、Volume 组件、能力检测、history store、neutral 输出和 Editor UI | **已退出（2026-11-14）**：按 2.5 的真实 UI 路径配置成功并保留 13 张截图（`PALN/validation/T3/UI/`）；三路径 Volume 控制 Pass 入队、Feature 关闭不执行；空效果与 T1 基线逐像素一致；history 计数 1→2→1；无插件三路径 `eventDataHash` 与 T1 相同；EditMode 48 passed / 0 failed；`.meta` 完整。`T3Report.json` 的 `t3ExitCriteriaMet=true` |
 | **T4** | P0 / T2、T3 | SSL 私有 Hi-Z、颜色金字塔、previous color/depth、双缓冲、reset generation 和中间调试视图 | **已退出（2026-11-14）**：packed Hi-Z（12 mip，offset/UV scale 数值验证）、Gaussian 颜色金字塔（9 mip）、双缓冲 previous color/depth 和 7 个调试视图落地；三路径 debug-off 与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 均触发 reset，读写槽逐帧分离，双相机独立且销毁后回收，SSL-only Renderer 全部通过；Frame Debugger 顺序 203 → 400 → 501。证据：`PALN/validation/T4/`（`t4ExitCriteriaMet=true`，EditMode 85 passed） |
-| **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 冲突和 SSAO 式设置 | **已退出（2026-11-14）**：Main/Spatial/Temporal/CopyHistory/Blur+Upsample、私有 packed Hi-Z（12 mip）、双缓冲 AO 历史、raw/final/global AO 与深度金字塔调试视图落地；三路径 AO 可见、half/full 与 temporal/spatial 真实选择对应 kernel；`intensity=0` 与 Feature 关闭恢复基线逐字节一致；SSL+GTAO 两种 Feature 顺序图像一致；内置 SSAO 有效时 GTAO 零 dispatch 且仅一次警告；重复 Hi-Z 成本 11,059,200 字节已记录。证据：`PALN/validation/T5/`（`t5ExitCriteriaMet=true`，EditMode 104 passed） |
+| **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 式设置 | **已退出（2026-11-14）**：Main/Spatial/Temporal/CopyHistory/Blur+Upsample、私有 packed Hi-Z（12 mip）、双缓冲 AO 历史、raw/final/global AO 与深度金字塔调试视图落地；三路径 AO 可见、half/full 与 temporal/spatial 真实选择对应 kernel；`intensity=0` 与 Feature 关闭恢复基线逐字节一致；SSL+GTAO 两种 Feature 顺序图像一致；重复 Hi-Z 成本 11,059,200 字节已记录。**同日按用户要求移除 URP 内置 SSAO，GTAO 成为唯一 AO 生产者**；证据：`PALN/validation/T5/`（`t5ExitCriteriaMet=true`，EditMode 103 passed） |
 | **T6** | P0 / T4 | SSGI Trace/Reproject、Temporal/Diffuse Denoise、HF/LF、Bilateral Upsample、材质注入 | 三路径与 ForwardOnly 无 emission 重复、miss 压黑；首帧/disocclusion 有 fallback；raw/denoised/history debug 与最终消费一致 |
 | **T7** | P0 / T4 | Opaque SSR Approximation、radiance+weight、roughness/edge fade 和 probe/sky fallback | 三路径金属/非金属、粗糙度梯度正确；miss 不压黑；BRDF 只乘一次；无 NaN/Inf 和首帧无效历史 |
 | **T8** | P1 / T7 | SSR PBR Accumulation、双历史、全部速度拒绝组合、算法切换 reset | 每个公开组合选择真实 kernel；surface/hit/both 设置有效；算法切换不污染历史；速度和 debug 图像符合预期 |
@@ -504,7 +512,7 @@ URP/Editor/RendererFeatures/
 URP/Tests/Editor/UniversalRendererPassInputTests.cs # T2 Core：Motion/Depth 输入汇总与调度（已实现）
 
 URP/Tests/Editor/RendererFeatures/GroundTruthAmbientOcclusion/
-├─ GroundTruthAmbientOcclusionRendererFeatureTests.cs # 调度事件、输入、SSAO 冲突、能力
+├─ GroundTruthAmbientOcclusionRendererFeatureTests.cs # 调度事件、输入、调试、能力
 ├─ GroundTruthAmbientOcclusionHistoryTests.cs          # reset、ping-pong、重分配、半/全分辨率
 └─ GroundTruthAmbientOcclusionCBufferTests.cs          # GenerateHLSL 布局与字段顺序
 
@@ -542,7 +550,7 @@ T1 固定基线配置：
 
 | 层级 | 必测内容 | 证据 |
 |---|---|---|
-| EditMode | Feature 创建/重复添加、Volume 菜单与 stack override、设置优先级、SSAO 冲突、CBuffer 布局、格式回退、history reset/realloc/prune、strip 规则 | NUnit XML；失败日志 |
+| EditMode | Feature 创建/重复添加、Volume 菜单与 stack override、设置优先级、CBuffer 布局、格式回退、history reset/realloc/prune、strip 规则 | NUnit XML；失败日志 |
 | PlayMode | 三 Renderer 入队、运行中开关、相机 cut/创建销毁、Domain Reload、Base/Overlay、资源释放、无 Feature 回退 | NUnit XML；Pass 时序；内存计数 |
 | 图形 | 固定相机/时间/随机种子的 raw hit、reproject、denoise、weight、最终消费 golden images | PNG、容差、GPU/API/分辨率元数据 |
 | 手工 UI | 2.5 的 Renderer Data + Volume 真实操作；GTAO Inspector；冲突警告；debug 视图 | 配置截图、Volume 截图、Frame Debugger 截图 |
@@ -629,8 +637,8 @@ T1 固定基线配置：
 - CBuffer：`GroundTruthAmbientOcclusionShaderVariables` 使用 `[GenerateHLSL(generateCBuffer = true)]` 并配备 `.cs.hlsl`；视图矩阵改为 3 个行向量（`_GtaoViewRow0..2`），避免 compute 矩阵绑定差异；EditMode 测试固定字段顺序与 240 字节布局。
 - 语义：`GTAOOutputFinalAO` 输出 URP 可见度（`pow(integral, intensity)`）；禁用时白色 neutral，`OnCameraCleanup` 关闭 `_SCREEN_SPACE_OCCLUSION` 并复位 `_AmbientOcclusionParam`。
 - 调度：深度金字塔 203（Depth|Motion）、GTAO 主 pass 204（Depth|Normal|Motion），Forward/Forward+ 在 opaque 前、Deferred 在 GBuffer/Deferred Shading 前完成；Deferred 法线通过新增的 `UniversalRenderer.cameraNormalsTextureHandle`（GBuffer2 附件）读取。
-- 冲突：`ScriptableRenderer.GetRendererFeature<T>()` 通用查询 + 内置 SSAO 优先；冲突时 GTAO 不入队、仅一次警告，禁用 GTAO 后 SSAO 图像不变。
-- 验证器：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT5Verification.cs` 生成 9 个 T5 Renderer/Pipeline（正常/反向顺序/SSAO+GTAO）并覆盖 half/full、temporal/spatial、intensity=0、Feature 关闭、相机 cut、尺寸变化、双相机隔离、顺序无关和 SSAO 仲裁；场景渲染前调用 `DynamicGI.UpdateEnvironment()` 保证间接光有效。
+- 冲突：内置 SSAO 于 2026-11-14 移除；GTAO 是唯一 AO 生产者，材质侧继续消费 `_SCREEN_SPACE_OCCLUSION`/`_ScreenSpaceOcclusionTexture`/`_AmbientOcclusionParam`。
+- 验证器：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT5Verification.cs` 生成 6 个 T5 Renderer/Pipeline（正常/反向 Feature 顺序）并覆盖 half/full、temporal/spatial、intensity=0、Feature 关闭、相机 cut、尺寸变化、双相机隔离和顺序无关；场景渲染前调用 `DynamicGI.UpdateEnvironment()` 保证间接光有效。
 
 **证据**
 
@@ -639,18 +647,18 @@ T1 固定基线配置：
 | T5 结论 | `t5ExitCriteriaMet=true` | `PALN/validation/T5/T5Report.json` |
 | 三路径渲染/生命周期 | 三路径 `passed=true`；临时相机条目回收、尺寸重分配、历史 reset 全部通过 | `PALN/validation/T5/T5Verification.json` |
 | Frame Debugger | Forward/Forward+ 82 事件，Deferred 93；GTAO Depth Pyramid → GTAO dispatch → opaque/GBuffer；Deferred 在 Deferred Shading 前 | `PALN/validation/T5/FrameDebugger/FrameDebuggerReport.json` |
-| EditMode | 104 passed / 0 failed | `PALN/validation/T5/UnityTests.log` |
-| 调试图与对比图 | 36 张 PNG（raw/final/global AO、深度金字塔、half/full、spatial-only、顺序组合、SSAO、尺寸变化） | `PALN/validation/T5/T5_*.png` |
+| EditMode | 103 passed / 0 failed | `PALN/validation/T5/UnityTests.log` |
+| 调试图与对比图 | 33 张 PNG（raw/final/global AO、深度金字塔、half/full、spatial-only、顺序组合、尺寸变化） | `PALN/validation/T5/T5_*.png` |
 | 重复 Hi-Z 成本 | `duplicateHiZBytes=11,059,200`（1280×720 私有 pyramid 两份） | `T5Verification.json` 的各 mode 字段 |
 
-**已知限制**：Deferred 验证渲染器中的 stock SSAO 图像等于基线（GTAO 已零 dispatch，仲裁不受影响）；XR single-pass 复用单视图矩阵（T13）；仅 Compatibility 路径。
+**已知限制**：URP 内置 SSAO 已按用户要求在 T5 后移除，现有引用该 Feature 的 Renderer Data 会出现 Missing Script，需要手动删除后改用 GTAO；AO keyword 的构建期精简固定为保留 ON/OFF，插件级 strip 优化留到 T14；XR single-pass 复用单视图矩阵（T13）；仅 Compatibility 路径。
 
 ## 12. 验证矩阵
 
 | 维度 | 用例 |
 |---|---|
 | Renderer | Forward、Forward+、Deferred、Deferred 实际回退 Forward、Deferred ForwardOnly |
-| Feature 安装 | 仅 GTAO、仅 SSL、两者不同顺序、内置 SSAO+GTAO 冲突、无 Feature |
+| Feature 安装 | 仅 GTAO、仅 SSL、两者不同顺序、无 Feature |
 | 模块组合 | 单独 GTAO/SSGI/SSR、GTAO+SSGI、GTAO+SSR、SSGI+SSR、全部开启、运行中切换 |
 | Volume | 组件缺失、active 开关、enabled 开关、overrideState、两个 Volume 混合、相机 Volume Mask、Post Processing 开关 |
 | 分辨率 | 全/半分辨率、render scale 改变、窗口改变、历史重新分配 |
@@ -658,7 +666,7 @@ T1 固定基线配置：
 | 几何 | 静态/动态、disocclusion、alpha test、薄物体、屏幕边缘、天空、近/远裁剪 |
 | 材质 | metallic/specular、粗糙度 0 与渐变、clear coat、emission、lightmap、SH/APV、reflection probes、不支持自定义 Shader |
 | 透明 | 多层透明、透明在 opaque 前/后投影、无 prepass 材质、折射深度拒绝、transmittance、屏幕边缘 |
-| URP 组合 | 内置 SSAO、DBuffer/ScreenSpace Decal、Depth Priming、Opaque Texture、TAA、Motion Blur、HDR/MSAA |
+| URP 组合 | DBuffer/ScreenSpace Decal、Depth Priming、Opaque Texture、TAA、Motion Blur、HDR/MSAA |
 | 相机 | Base/Overlay、Scene/Game、Preview、reflection、offscreen-depth |
 | XR/平台 | multipass、single-pass、foveation；各目标 API 的 compute/UAV 格式 |
 

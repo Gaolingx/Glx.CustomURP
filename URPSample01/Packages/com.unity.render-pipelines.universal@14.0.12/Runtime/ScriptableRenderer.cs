@@ -509,19 +509,6 @@ namespace UnityEngine.Rendering.Universal
             get => m_ActiveRenderPassQueue;
         }
 
-        // Generic feature lookup for cross-feature arbitration (for example AO producers).
-        // It stays type-agnostic so the renderer never depends on a concrete plugin feature.
-        internal T GetRendererFeature<T>() where T : ScriptableRendererFeature
-        {
-            for (int i = 0; i < m_RendererFeatures.Count; ++i)
-            {
-                if (m_RendererFeatures[i] is T feature)
-                    return feature;
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// Supported rendering features by this renderer.
         /// <see cref="SupportedRenderingFeatures"/>
@@ -1427,6 +1414,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        static readonly int s_AmbientOcclusionParamID = Shader.PropertyToID("_AmbientOcclusionParam");
+
         static void ClearRenderingState(CommandBuffer cmd)
         {
             using var profScope = new ProfilingScope(null, Profiling.clearRenderingState);
@@ -1449,7 +1438,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LightLayers);
-            cmd.SetGlobalVector(ScreenSpaceAmbientOcclusion.ScreenSpaceAmbientOcclusionPass.s_AmbientOcclusionParamID, Vector4.zero);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
+            cmd.SetGlobalVector(s_AmbientOcclusionParamID, Vector4.zero);
         }
 
         internal void Clear(CameraRenderType cameraType)

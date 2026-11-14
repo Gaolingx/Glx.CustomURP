@@ -428,13 +428,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 7 - SSAO Only
+        // 7 - Ambient Occlusion Only
         // This pass only runs when there is no fullscreen deferred light rendered (no directional light). It will adjust indirect/baked lighting with realtime occlusion
         // by rendering just before deferred shading pass.
-        // This pass is also completely discarded from vertex shader when SSAO renderer feature is not enabled.
+        // This pass is also completely discarded from vertex shader when no screen-space AO producer is enabled.
         Pass
         {
-            Name "SSAOOnly"
+            Name "AmbientOcclusionOnly"
 
             // -------------------------------------
             // Render State Commands
@@ -454,11 +454,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             // -------------------------------------
             // Shader Stages
             #pragma vertex Vertex
-            #pragma fragment FragSSAOOnly
+            #pragma fragment FragAmbientOcclusionOnly
 
             // -------------------------------------
             // Defines
-            #define _SSAO_ONLY
+            #define _AMBIENT_OCCLUSION_ONLY
 
             // -------------------------------------
             // Universal Pipeline keywords

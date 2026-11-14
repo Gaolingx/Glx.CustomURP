@@ -115,14 +115,6 @@ def analyze_mode(mode):
     if not mode.get("orderIndependent"):
         problems.append("the feature order comparison did not report order independence")
 
-    ssao_without = require("NativeSsaoWithoutGtao")
-    if ssao_without is not None and not ssao_without.get("identicalToReference"):
-        problems.append("disabling GTAO changed the SSAO image (overlapping AO producers)")
-    if mode.get("ssaoConflictGtaoDispatches") != 0:
-        problems.append(f"GTAO dispatched {mode.get('ssaoConflictGtaoDispatches')} passes while SSAO was active")
-    if not mode.get("ssaoConflictLogged"):
-        problems.append("the SSAO conflict warning was not logged")
-
     if mode.get("pyramidExecutions", 0) <= 0:
         problems.append("the GTAO depth pyramid pass never executed")
     for key in ("mainDispatches", "spatialDispatches", "temporalDispatches", "upsampleDispatches"):
@@ -277,7 +269,6 @@ def main():
             "issues": mode_problems + list(mode.get("issues", [])),
             "featureOrder": mode.get("featureOrder"),
             "reversedFeatureOrder": mode.get("reversedFeatureOrder"),
-            "ssaoFeatureOrder": mode.get("ssaoFeatureOrder"),
             "pyramidExecutions": mode.get("pyramidExecutions"),
             "mainDispatches": mode.get("mainDispatches"),
             "spatialDispatches": mode.get("spatialDispatches"),
@@ -285,9 +276,6 @@ def main():
             "upsampleDispatches": mode.get("upsampleDispatches"),
             "orderIndependent": mode.get("orderIndependent"),
             "duplicateHiZBytes": mode.get("duplicateHiZBytes"),
-            "ssaoConflictGtaoDispatches": mode.get("ssaoConflictGtaoDispatches"),
-            "ssaoConflictLogged": mode.get("ssaoConflictLogged"),
-            "ssaoImageDiffersFromBaseline": mode.get("ssaoImageDiffersFromBaseline"),
             "featureDisabledExecutions": mode.get("featureDisabledExecutions"),
             "states": mode.get("states"),
             "historyChecks": mode.get("historyChecks"),
@@ -323,7 +311,7 @@ def main():
             "GTAO owns a private packed depth pyramid and AO history; SSL keeps its own pyramid, so enabling both duplicates the Hi-Z allocation (recorded as duplicateHiZBytes).",
             "The AO output is URP visibility (1 = unoccluded, white neutral); HDRP's inverse AO is converted in GTAOOutputFinalAO.",
             "The verification scene needs DynamicGI.UpdateEnvironment so the skybox ambient probe provides indirect lighting for AO to attenuate.",
-            "The built-in SSAO keeps the AO producer role; GTAO skips its passes and logs exactly one warning. In the deferred verification renderer the stock SSAO image happens to equal the baseline; the arbitration evidence is the zero GTAO dispatches.",
+            "The built-in SSAO feature (pixel shader based) was removed on request; GTAO is the renderer's only ambient occlusion producer and owns the generic _SCREEN_SPACE_OCCLUSION contract.",
             "Only the Compatibility ScriptableRenderPass path is implemented; the RenderGraph path is not registered by these passes.",
             "XR single-pass reuses one camera view matrix for both eyes (array textures are allocated); per-eye matrices are deferred to T13.",
             "The GTAO normals come from the DepthNormals prepass and therefore use pre-decal normal/roughness on the deferred path.",

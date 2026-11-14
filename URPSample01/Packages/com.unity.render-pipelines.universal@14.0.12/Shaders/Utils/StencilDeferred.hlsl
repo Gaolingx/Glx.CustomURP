@@ -53,13 +53,13 @@
         }
         #endif
 
-        #if defined(_DIRECTIONAL) || defined(_FOG) || defined(_CLEAR_STENCIL_PARTIAL) || (defined(_SSAO_ONLY) && defined(_SCREEN_SPACE_OCCLUSION))
+        #if defined(_DIRECTIONAL) || defined(_FOG) || defined(_CLEAR_STENCIL_PARTIAL) || (defined(_AMBIENT_OCCLUSION_ONLY) && defined(_SCREEN_SPACE_OCCLUSION))
             // Full screen render using a large triangle.
             output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
-        #elif defined(_SSAO_ONLY) && !defined(_SCREEN_SPACE_OCCLUSION)
-            // Deferred renderer does not know whether there is a SSAO feature or not at the C# scripting level.
-            // However, this is known at the shader level because of the shader keyword SSAO feature enables.
-            // If the keyword was not enabled, discard the SSAO_only pass by rendering the geometry outside the screen.
+        #elif defined(_AMBIENT_OCCLUSION_ONLY) && !defined(_SCREEN_SPACE_OCCLUSION)
+            // Deferred renderer does not know at the C# scripting level whether an ambient occlusion producer is active.
+            // The shader keyword makes it known at the shader level; without it the AO-only pass is discarded
+            // by rendering the geometry outside the screen.
             output.positionCS = float4(positionOS.xy, -2, 1.0); // Force triangle to be discarded
         #else
             // Light shape geometry is projected as normal.
@@ -287,7 +287,7 @@
             AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
             unityLight.color *= aoFactor.directAmbientOcclusion;
             #if defined(_DIRECTIONAL) && defined(_DEFERRED_FIRST_LIGHT)
-            // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
+            // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time screen-space occlusion.
             // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
             // We must also avoid divide-by-0 that the reciprocal can generate.
             half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
@@ -336,16 +336,15 @@
         return half4(unity_FogColor.rgb, fogIntensity);
     }
 
-    half4 FragSSAOOnly(Varyings input) : SV_Target
+    half4 FragAmbientOcclusionOnly(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
         half surfaceDataOcclusion = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0).a;
-        // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
-        // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
-        // We must also avoid divide-by-0 that the reciprocal can generate.
+        // Apply the minimum of the baked surface occlusion and the real-time screen-space occlusion.
+        // The baked value was already applied during the GBuffer pass, so it is cancelled out here.
         half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
         return half4(0.0, 0.0, 0.0, occlusion);
     }

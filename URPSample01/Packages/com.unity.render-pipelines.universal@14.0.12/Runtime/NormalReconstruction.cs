@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Matrix4x4 proj = cameraData.GetProjectionMatrix(eyeIndex);
                 s_NormalReconstructionMatrix[eyeIndex] = proj * view;
 
-                // camera view space without translation, used by SSAO.hlsl ReconstructViewPos() to calculate view vector.
+                // camera view space without translation, used by the screen-space AO normal reconstruction to calculate the view vector.
                 Matrix4x4 cview = view;
                 cview.SetColumn(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
                 Matrix4x4 cviewProj = proj * cview;

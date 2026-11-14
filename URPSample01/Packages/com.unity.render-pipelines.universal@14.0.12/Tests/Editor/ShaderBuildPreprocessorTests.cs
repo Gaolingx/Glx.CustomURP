@@ -22,11 +22,9 @@ namespace ShaderStrippingAndPrefiltering
             internal ScriptableRenderer ScriptableRenderer;
             internal UniversalRenderer universalRenderer;
             internal List<ShaderFeatures> rendererShaderFeatures;
-            internal List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures;
             internal List<ScriptableRendererFeature> rendererFeatures;
             internal bool stripUnusedVariants;
             internal bool containsForwardRenderer;
-            internal bool everyRendererHasSSAO;
 
             internal ShaderFeatures defaultURPAssetFeatures
             {
@@ -67,7 +65,6 @@ namespace ShaderStrippingAndPrefiltering
                     stripUnusedVariants = true;
                     Assert.AreNotEqual(null, universalRenderer);
 
-                    ssaoRendererFeatures = new List<ScreenSpaceAmbientOcclusionSettings>();
                     rendererFeatures = new List<ScriptableRendererFeature>();
 
                     ResetData();
@@ -96,17 +93,17 @@ namespace ShaderStrippingAndPrefiltering
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromAsset()
             {
-                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out bool containsForwardRenderer, out bool everyRendererHasSSAO);
+                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, stripUnusedVariants, out bool containsForwardRenderer);
             }
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromRenderer(RendererRequirements rendererRequirements, ShaderFeatures urpAssetShaderFeatures)
             {
-                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromRenderer(ref rendererRequirements, ref scriptableRendererData, ref ssaoRendererFeatures, ref containsForwardRenderer, urpAssetShaderFeatures);
+                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromRenderer(ref rendererRequirements, ref scriptableRendererData, ref containsForwardRenderer, urpAssetShaderFeatures);
             }
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromRendererFeatures(RendererRequirements rendererRequirements)
             {
-                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromRendererFeatures(ref rendererRequirements, ref rendererFeatures, ref ssaoRendererFeatures);
+                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromRendererFeatures(ref rendererRequirements, ref rendererFeatures);
             }
 
 
@@ -219,7 +216,6 @@ namespace ShaderStrippingAndPrefiltering
                 Object.DestroyImmediate(urpAsset);
                 Object.DestroyImmediate(rendererData);
                 rendererFeatures.Clear();
-                ssaoRendererFeatures.Clear();
             }
         }
 
@@ -780,35 +776,7 @@ namespace ShaderStrippingAndPrefiltering
             expected = ShaderFeatures.DecalGBuffer | ShaderFeatures.DecalNormalBlendLow | ShaderFeatures.DecalLayers | ShaderFeatures.DepthNormalPassRenderingLayers | ShaderFeatures.GBufferWriteRenderingLayers;
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
 
-            // Test with DepthNormal prepass enabled (Is enabled implicitly by SSAO f.ex)
-            ScreenSpaceAmbientOcclusion ssaoFeature = ScriptableObject.CreateInstance<ScreenSpaceAmbientOcclusion>();
-            ssaoFeature.settings = new ScreenSpaceAmbientOcclusionSettings()
-            {
-                AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise,
-                Downsample = false,
-                AfterOpaque = false,
-                Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals,
-                NormalSamples = ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium,
-                Intensity = 3.0f,
-                DirectLightingStrength = 0.25f,
-                Radius = 0.035f,
-                Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium,
-                BlurQuality = ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High,
-                Falloff = 100f,
-            };
-            ssaoFeature.SetActive(true);
-            m_TestHelper.rendererFeatures.Add(ssaoFeature);
-
-            ((DecalRendererFeature)m_TestHelper.rendererFeatures[0]).settings.technique = DecalTechniqueOption.ScreenSpace;
-            ((DecalRendererFeature)m_TestHelper.rendererFeatures[0]).settings.decalLayers = true;
-            rendererRequirements = m_TestHelper.defaultRendererRequirements;
-            actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-            expected = ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.DecalScreenSpace |
-                       ShaderFeatures.DecalNormalBlendLow | ShaderFeatures.DecalLayers |
-                       ShaderFeatures.OpaqueWriteRenderingLayers;
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
-
-            m_TestHelper.rendererFeatures.Remove(ssaoFeature);
         }
 
         [Test]
@@ -828,58 +796,6 @@ namespace ShaderStrippingAndPrefiltering
             actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
             expected = ShaderFeatures.None;
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
-        }
-
-        // Screen Space Ambient Occlusion (SSAO)...
-        [Test]
-        public void TestGetSupportedShaderFeaturesFromRendererFeatures_SSAO()
-        {
-            ScreenSpaceAmbientOcclusion ssaoFeature = ScriptableObject.CreateInstance<ScreenSpaceAmbientOcclusion>();
-            ssaoFeature.settings = new ScreenSpaceAmbientOcclusionSettings()
-            {
-                AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise,
-                Downsample = false,
-                AfterOpaque = false,
-                Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals,
-                NormalSamples = ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium,
-                Intensity = 3.0f,
-                DirectLightingStrength = 0.25f,
-                Radius = 0.035f,
-                Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium,
-                BlurQuality = ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High,
-                Falloff = 100f,
-            };
-            m_TestHelper.rendererFeatures.Add(ssaoFeature);
-
-            // Enabled feature
-            m_TestHelper.rendererFeatures[0].SetActive(true);
-
-            RendererRequirements rendererRequirements = m_TestHelper.defaultRendererRequirements;
-            ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-            ShaderFeatures expected = ShaderFeatures.ScreenSpaceOcclusion;
-            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
-
-            ((ScreenSpaceAmbientOcclusion)m_TestHelper.rendererFeatures[0]).settings.AfterOpaque = true;
-            rendererRequirements = m_TestHelper.defaultRendererRequirements;
-            actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-            expected = ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
-            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
-
-            // Disabled feature
-            m_TestHelper.rendererFeatures[0].SetActive(false);
-            rendererRequirements = m_TestHelper.defaultRendererRequirements;
-            actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-            expected = ShaderFeatures.None;
-            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
-
-            m_TestHelper.rendererFeatures[0].SetActive(false);
-            ((ScreenSpaceAmbientOcclusion)m_TestHelper.rendererFeatures[0]).settings.AfterOpaque = true;
-            rendererRequirements = m_TestHelper.defaultRendererRequirements;
-            actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-            expected = ShaderFeatures.None;
-            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
-
-            Object.DestroyImmediate(ssaoFeature);
         }
 
         [Test]

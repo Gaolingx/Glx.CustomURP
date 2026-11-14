@@ -1232,7 +1232,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for Dithering. </summary>
         public const string Dithering = "_DITHERING";
 
-        /// <summary> Keyword used for Screen Space Occlusion, such as Screen Space Ambient Occlusion (SSAO). </summary>
+        /// <summary> Keyword used for Screen Space Occlusion (the GTAO feature). </summary>
         public const string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
 
         /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
@@ -1805,7 +1805,6 @@ namespace UnityEngine.Rendering.Universal
 
         MainLightShadow,
         ResolveShadows,
-        SSAO,
 
         // PostProcessPass
         StopNaNs,

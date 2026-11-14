@@ -144,7 +144,6 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_AlphaTestOn;
         LocalKeyword m_GbufferNormalsOct;
         LocalKeyword m_UseDrawProcedural;
-        LocalKeyword m_ScreenSpaceOcclusion;
         LocalKeyword m_UseFastSRGBLinearConversion;
         LocalKeyword m_LightLayers;
         LocalKeyword m_DecalLayers;
@@ -210,7 +209,6 @@ namespace UnityEditor.Rendering.Universal
             m_AlphaTestOn = TryGetLocalKeyword(shader, ShaderKeywordStrings._ALPHATEST_ON);
             m_GbufferNormalsOct = TryGetLocalKeyword(shader, ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
             m_UseDrawProcedural = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseDrawProcedural);
-            m_ScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
             m_UseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
             m_LightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
             m_DecalLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalLayers);
@@ -586,23 +584,6 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        internal bool StripUnusedFeatures_ScreenSpaceOcclusion(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
-        {
-            // Screen Space Occlusion
-            if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.ScreenSpaceOcclusionAfterOpaque))
-            {
-                // SSAO after opaque setting requires off variants
-                if (stripTool.StripMultiCompileKeepOffVariant(m_ScreenSpaceOcclusion, ShaderFeatures.ScreenSpaceOcclusion))
-                    return true;
-            }
-            else
-            {
-                if (stripTool.StripMultiCompile(m_ScreenSpaceOcclusion, ShaderFeatures.ScreenSpaceOcclusion))
-                    return true;
-            }
-            return false;
-        }
-
         internal bool StripUnusedFeatures_DecalsDbuffer(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
         {
             // DBuffer
@@ -759,9 +740,6 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_SHAuto(ref strippingData, ref stripTool))
-                return true;
-
-            if (StripUnusedFeatures_ScreenSpaceOcclusion(ref strippingData, ref stripTool))
                 return true;
 
             if (StripUnusedFeatures_DecalsDbuffer(ref strippingData, ref stripTool))

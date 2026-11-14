@@ -1,5 +1,5 @@
 {
-  "utcTimestamp": "2026-11-14T11:09:28.044768+00:00",
+  "utcTimestamp": "2026-11-14T12:23:18.523530+00:00",
   "unityVersion": "2022.3.62f1",
   "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
   "graphicsDeviceType": "Direct3D11",
@@ -12,7 +12,6 @@
         "issues": [],
         "featureOrder": "ScreenSpaceLightingRendererFeature>GroundTruthAmbientOcclusionRendererFeature",
         "reversedFeatureOrder": "GroundTruthAmbientOcclusionRendererFeature>ScreenSpaceLightingRendererFeature",
-        "ssaoFeatureOrder": "ScreenSpaceAmbientOcclusion>GroundTruthAmbientOcclusionRendererFeature",
         "pyramidExecutions": 12,
         "mainDispatches": 12,
         "spatialDispatches": 12,
@@ -20,9 +19,6 @@
         "upsampleDispatches": 12,
         "orderIndependent": true,
         "duplicateHiZBytes": 11059200,
-        "ssaoConflictGtaoDispatches": 0,
-        "ssaoConflictLogged": true,
-        "ssaoImageDiffersFromBaseline": true,
         "featureDisabledExecutions": 0,
         "states": [
           {
@@ -101,28 +97,6 @@
             "magentaPixels": 0,
             "nonFinitePixels": 0,
             "meanLuminance": 0.2572116553783417
-          },
-          {
-            "state": "NativeSsaoAndGtao",
-            "sha256": "9b30199ed39f54186a62a43f81caa32011fb7a7589e23d2c47aef33024ac58c2",
-            "identicalToReference": false,
-            "differsFromReference": true,
-            "differingPixels": 215602,
-            "maxChannelDelta": 3.814697265625e-06,
-            "magentaPixels": 0,
-            "nonFinitePixels": 0,
-            "meanLuminance": 0.25791066884994507
-          },
-          {
-            "state": "NativeSsaoWithoutGtao",
-            "sha256": "9b30199ed39f54186a62a43f81caa32011fb7a7589e23d2c47aef33024ac58c2",
-            "identicalToReference": true,
-            "differsFromReference": false,
-            "differingPixels": 0,
-            "maxChannelDelta": 0.0,
-            "magentaPixels": 0,
-            "nonFinitePixels": 0,
-            "meanLuminance": 0.25791066884994507
           },
           {
             "state": "FeatureDisabled",
@@ -391,7 +365,6 @@
         "issues": [],
         "featureOrder": "ScreenSpaceLightingRendererFeature>GroundTruthAmbientOcclusionRendererFeature",
         "reversedFeatureOrder": "GroundTruthAmbientOcclusionRendererFeature>ScreenSpaceLightingRendererFeature",
-        "ssaoFeatureOrder": "ScreenSpaceAmbientOcclusion>GroundTruthAmbientOcclusionRendererFeature",
         "pyramidExecutions": 12,
         "mainDispatches": 12,
         "spatialDispatches": 12,
@@ -399,17 +372,14 @@
         "upsampleDispatches": 12,
         "orderIndependent": true,
         "duplicateHiZBytes": 11059200,
-        "ssaoConflictGtaoDispatches": 0,
-        "ssaoConflictLogged": true,
-        "ssaoImageDiffersFromBaseline": true,
         "featureDisabledExecutions": 0,
         "states": [
           {
             "state": "GtaoHalfResTemporal",
-            "sha256": "2e125a17aa6b697e779dfd8e114545626ef200b597536e45b385d159e9e4ef90",
+            "sha256": "e9ad5e2d54ef720c029ab37ab8e2965a5f993d2944cb4e0ab148f226bcbbe2ea",
             "identicalToReference": false,
             "differsFromReference": true,
-            "differingPixels": 286700,
+            "differingPixels": 286724,
             "maxChannelDelta": 0.14275506138801575,
             "magentaPixels": 0,
             "nonFinitePixels": 0,
@@ -417,7 +387,7 @@
           },
           {
             "state": "GtaoFullRes",
-            "sha256": "89c08d1e53cdb7e3d2c8bc3813f2945e5512fa17efee6cd6c3e70e203be20bfe",
+            "sha256": "3b64810c87aaf1472e05208a6f27a8be2f387d042f4730daea414de9bf63743f",
             "identicalToReference": false,
             "differsFromReference": true,
             "differingPixels": 221374,
@@ -428,10 +398,10 @@
           },
           {
             "state": "GtaoSpatialOnly",
-            "sha256": "a76206291a0254846827582992ba6ce02cfc0760ae86bb179ecf61d1b5ae0945",
+            "sha256": "15b6dee2c85860ad2e53a2cfe5744fc1d40412b54fcbf3c0dd4b64e5ca6acef5",
             "identicalToReference": false,
             "differsFromReference": true,
-            "differingPixels": 247649,
+            "differingPixels": 247663,
             "maxChannelDelta": 0.15758559107780457,
             "magentaPixels": 0,
             "nonFinitePixels": 0,
@@ -439,7 +409,7 @@
           },
           {
             "state": "ZeroIntensityRestoresBaseline",
-            "sha256": "b83ffc10e66b91114388edb85f50cd5a01491752e814051e65d21b5c35777742",
+            "sha256": "557fdd5de6faab0b54dd6503875e01a5c8e3ce217f0160cd2192140a4acf8399",
             "identicalToReference": true,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -450,7 +420,7 @@
           },
           {
             "state": "SizeChange640x360",
-            "sha256": "47f0106cb4eb5e424360cdeeb1bf9e8ad80c4254d16cd18d33afbd7698ec5ef3",
+            "sha256": "358203dc18fd07de463a7aeef36036b1074ef822b97d1d6668341d2dde7cfb09",
             "identicalToReference": false,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -461,10 +431,10 @@
           },
           {
             "state": "CombinedOrder_SSLThenGtao",
-            "sha256": "a76206291a0254846827582992ba6ce02cfc0760ae86bb179ecf61d1b5ae0945",
+            "sha256": "15b6dee2c85860ad2e53a2cfe5744fc1d40412b54fcbf3c0dd4b64e5ca6acef5",
             "identicalToReference": false,
             "differsFromReference": true,
-            "differingPixels": 247649,
+            "differingPixels": 247663,
             "maxChannelDelta": 0.15758559107780457,
             "magentaPixels": 0,
             "nonFinitePixels": 0,
@@ -472,7 +442,7 @@
           },
           {
             "state": "CombinedOrder_GtaoThenSsl",
-            "sha256": "a76206291a0254846827582992ba6ce02cfc0760ae86bb179ecf61d1b5ae0945",
+            "sha256": "15b6dee2c85860ad2e53a2cfe5744fc1d40412b54fcbf3c0dd4b64e5ca6acef5",
             "identicalToReference": true,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -482,30 +452,8 @@
             "meanLuminance": 0.2572116553783417
           },
           {
-            "state": "NativeSsaoAndGtao",
-            "sha256": "8ccae408269bed2210a06fd90a7e37d6e9b7ac399b05b3dab9a9579c78be3002",
-            "identicalToReference": false,
-            "differsFromReference": true,
-            "differingPixels": 215606,
-            "maxChannelDelta": 3.814697265625e-06,
-            "magentaPixels": 0,
-            "nonFinitePixels": 0,
-            "meanLuminance": 0.25791066884994507
-          },
-          {
-            "state": "NativeSsaoWithoutGtao",
-            "sha256": "8ccae408269bed2210a06fd90a7e37d6e9b7ac399b05b3dab9a9579c78be3002",
-            "identicalToReference": true,
-            "differsFromReference": false,
-            "differingPixels": 0,
-            "maxChannelDelta": 0.0,
-            "magentaPixels": 0,
-            "nonFinitePixels": 0,
-            "meanLuminance": 0.25791066884994507
-          },
-          {
             "state": "FeatureDisabled",
-            "sha256": "b83ffc10e66b91114388edb85f50cd5a01491752e814051e65d21b5c35777742",
+            "sha256": "557fdd5de6faab0b54dd6503875e01a5c8e3ce217f0160cd2192140a4acf8399",
             "identicalToReference": true,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -770,7 +718,6 @@
         "issues": [],
         "featureOrder": "ScreenSpaceLightingRendererFeature>GroundTruthAmbientOcclusionRendererFeature",
         "reversedFeatureOrder": "GroundTruthAmbientOcclusionRendererFeature>ScreenSpaceLightingRendererFeature",
-        "ssaoFeatureOrder": "ScreenSpaceAmbientOcclusion>GroundTruthAmbientOcclusionRendererFeature",
         "pyramidExecutions": 12,
         "mainDispatches": 12,
         "spatialDispatches": 12,
@@ -778,14 +725,11 @@
         "upsampleDispatches": 12,
         "orderIndependent": true,
         "duplicateHiZBytes": 11059200,
-        "ssaoConflictGtaoDispatches": 0,
-        "ssaoConflictLogged": true,
-        "ssaoImageDiffersFromBaseline": false,
         "featureDisabledExecutions": 0,
         "states": [
           {
             "state": "GtaoHalfResTemporal",
-            "sha256": "55b5270680b49ccae9b1931d7f06f9c486b0d3af289e2d619400b9ea25306a5a",
+            "sha256": "584412e59f05c3c5cac62dba9ba9610a7f8440ce856d566f41f81e583b4352e2",
             "identicalToReference": false,
             "differsFromReference": true,
             "differingPixels": 208662,
@@ -796,7 +740,7 @@
           },
           {
             "state": "GtaoFullRes",
-            "sha256": "36310bb527c2e0ff36c5be7ebacae675197cc715192f5ad1f02e1492802ce7a6",
+            "sha256": "5d1ff47692828f19de024d13969605318df302937c85c558c088a93f24218748",
             "identicalToReference": false,
             "differsFromReference": true,
             "differingPixels": 221374,
@@ -807,7 +751,7 @@
           },
           {
             "state": "GtaoSpatialOnly",
-            "sha256": "fac283ea02dcc8e85cdee8065d5789c1318edddd85b969666375d825e9a4da14",
+            "sha256": "cfd46eb5dd0c9dbbfbf020f38c9b1eb3ff419501beeda51ec4a381987acc1d22",
             "identicalToReference": false,
             "differsFromReference": true,
             "differingPixels": 82043,
@@ -818,7 +762,7 @@
           },
           {
             "state": "ZeroIntensityRestoresBaseline",
-            "sha256": "ae462ddfb7e19e477e659a2df0edbcadd2e7d49a516bfa4ac527f633d5714bb6",
+            "sha256": "fbfa83f6570f0646a158a8452ce2be58ca631f3744cc3614293c4f72229f8fa6",
             "identicalToReference": true,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -829,7 +773,7 @@
           },
           {
             "state": "SizeChange640x360",
-            "sha256": "911fa927f19574c5db98a522ebae0cc93a960fe350648398ce04dfe3ced81e57",
+            "sha256": "3be2bd784f96bf16a95408b43923aa65c226c7d6f8e8bc333ac74beaf2e0fb84",
             "identicalToReference": false,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -840,7 +784,7 @@
           },
           {
             "state": "CombinedOrder_SSLThenGtao",
-            "sha256": "fac283ea02dcc8e85cdee8065d5789c1318edddd85b969666375d825e9a4da14",
+            "sha256": "cfd46eb5dd0c9dbbfbf020f38c9b1eb3ff419501beeda51ec4a381987acc1d22",
             "identicalToReference": false,
             "differsFromReference": true,
             "differingPixels": 82043,
@@ -851,7 +795,7 @@
           },
           {
             "state": "CombinedOrder_GtaoThenSsl",
-            "sha256": "fac283ea02dcc8e85cdee8065d5789c1318edddd85b969666375d825e9a4da14",
+            "sha256": "cfd46eb5dd0c9dbbfbf020f38c9b1eb3ff419501beeda51ec4a381987acc1d22",
             "identicalToReference": true,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -861,30 +805,8 @@
             "meanLuminance": 0.25743162631988525
           },
           {
-            "state": "NativeSsaoAndGtao",
-            "sha256": "ae462ddfb7e19e477e659a2df0edbcadd2e7d49a516bfa4ac527f633d5714bb6",
-            "identicalToReference": true,
-            "differsFromReference": false,
-            "differingPixels": 0,
-            "maxChannelDelta": 0.0,
-            "magentaPixels": 0,
-            "nonFinitePixels": 0,
-            "meanLuminance": 0.25813063979148865
-          },
-          {
-            "state": "NativeSsaoWithoutGtao",
-            "sha256": "ae462ddfb7e19e477e659a2df0edbcadd2e7d49a516bfa4ac527f633d5714bb6",
-            "identicalToReference": true,
-            "differsFromReference": false,
-            "differingPixels": 0,
-            "maxChannelDelta": 0.0,
-            "magentaPixels": 0,
-            "nonFinitePixels": 0,
-            "meanLuminance": 0.25813063979148865
-          },
-          {
             "state": "FeatureDisabled",
-            "sha256": "ae462ddfb7e19e477e659a2df0edbcadd2e7d49a516bfa4ac527f633d5714bb6",
+            "sha256": "fbfa83f6570f0646a158a8452ce2be58ca631f3744cc3614293c4f72229f8fa6",
             "identicalToReference": true,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -1173,8 +1095,8 @@
     }
   },
   "editModeTests": {
-    "passed": 104,
-    "summary": "EditMode tests finished: status=Passed passed=104 failed=0 skipped=0",
+    "passed": 103,
+    "summary": "EditMode tests finished: status=Passed passed=103 failed=0 skipped=0",
     "failed": 0,
     "skipped": 0
   },
@@ -1186,7 +1108,7 @@
     "GTAO owns a private packed depth pyramid and AO history; SSL keeps its own pyramid, so enabling both duplicates the Hi-Z allocation (recorded as duplicateHiZBytes).",
     "The AO output is URP visibility (1 = unoccluded, white neutral); HDRP's inverse AO is converted in GTAOOutputFinalAO.",
     "The verification scene needs DynamicGI.UpdateEnvironment so the skybox ambient probe provides indirect lighting for AO to attenuate.",
-    "The built-in SSAO keeps the AO producer role; GTAO skips its passes and logs exactly one warning. In the deferred verification renderer the stock SSAO image happens to equal the baseline; the arbitration evidence is the zero GTAO dispatches.",
+    "The built-in SSAO feature (pixel shader based) was removed on request; GTAO is the renderer's only ambient occlusion producer and owns the generic _SCREEN_SPACE_OCCLUSION contract.",
     "Only the Compatibility ScriptableRenderPass path is implemented; the RenderGraph path is not registered by these passes.",
     "XR single-pass reuses one camera view matrix for both eyes (array textures are allocated); per-eye matrices are deferred to T13.",
     "The GTAO normals come from the DepthNormals prepass and therefore use pre-decal normal/roughness on the deferred path."
@@ -1195,8 +1117,8 @@
   "manifest": [
     {
       "file": "Analyze-T5Evidence.py",
-      "bytes": 16405,
-      "sha256": "4480757c3dc78821246a23d326d8ad94c9546b91ea5c7bd5d211d4af192942c0"
+      "bytes": 15544,
+      "sha256": "87f938a831888c044a8e63d1bd59939c5b9854a561d867ad5ba9b651a403089c"
     },
     {
       "file": "CreateAssetsSettingsRestoration.json",
@@ -1205,8 +1127,8 @@
     },
     {
       "file": "T5Verification.json",
-      "bytes": 49834,
-      "sha256": "e57f8bf6aa57e42dd97fbb8bd540928a3e9999e11b0b199ff75d749e665a70e4"
+      "bytes": 45742,
+      "sha256": "26e6201c5c64e59b94c847b0a7bd03991814ef887aa4e300903323c22b1f5ddb"
     },
     {
       "file": "T5_Deferred_AmbientOcclusion.png",
@@ -1252,11 +1174,6 @@
       "file": "T5_Deferred_GtaoSpatialOnly.png",
       "bytes": 152216,
       "sha256": "1d67a7c9f35dbe4e8755e0570a728f130cbb49fb1703d4da46f00ea8fbd9123c"
-    },
-    {
-      "file": "T5_Deferred_NativeSsaoAndGtao.png",
-      "bytes": 129883,
-      "sha256": "6725adc06967efdfb9a6ec5f099413509f8fcb3f60f72842be3eb183ba690e7e"
     },
     {
       "file": "T5_Deferred_RawAmbientOcclusion.png",
@@ -1314,11 +1231,6 @@
       "sha256": "dbc4f5b18dcc65cf2c213556c2674bc03d94995376f101f9c9f2941e1f07a3d7"
     },
     {
-      "file": "T5_ForwardPlus_NativeSsaoAndGtao.png",
-      "bytes": 129296,
-      "sha256": "4991085e1963c0d3f54dc0c82980235b28771d2dc8f4922f475e048c0f84a32e"
-    },
-    {
       "file": "T5_ForwardPlus_RawAmbientOcclusion.png",
       "bytes": 39560,
       "sha256": "aaa019ae83512023173f55c6a8d3396c7e57e44bd2eaa6c63837d5c2e76261d0"
@@ -1374,11 +1286,6 @@
       "sha256": "dbc4f5b18dcc65cf2c213556c2674bc03d94995376f101f9c9f2941e1f07a3d7"
     },
     {
-      "file": "T5_Forward_NativeSsaoAndGtao.png",
-      "bytes": 129296,
-      "sha256": "4991085e1963c0d3f54dc0c82980235b28771d2dc8f4922f475e048c0f84a32e"
-    },
-    {
       "file": "T5_Forward_RawAmbientOcclusion.png",
       "bytes": 39560,
       "sha256": "aaa019ae83512023173f55c6a8d3396c7e57e44bd2eaa6c63837d5c2e76261d0"
@@ -1395,53 +1302,53 @@
     },
     {
       "file": "UnityT5Verification.log",
-      "bytes": 121980,
-      "sha256": "13ef1bc3fcc422bcf7afae073f5ccdf138a1c7564849f24bcc90c3256d7d105a"
+      "bytes": 105656,
+      "sha256": "1a0e9db3e9c9bc0ee1737d50032f403133e74bfaa40cab41b8942c0b94af8257"
     },
     {
       "file": "UnityT5VerificationSettingsRestoration.json",
       "bytes": 2416,
-      "sha256": "36f4f515418e6cc92ce2152716bf581e3a63e828780a2dbeedb6f671c8910894"
+      "sha256": "23ccd946b73500972d934a762ad6e570201be653a4daae0e0428867838dc8876"
     },
     {
       "file": "UnityTests.log",
-      "bytes": 127370,
-      "sha256": "628f0f7914df8e70694102f8af6073b811d0df8aa985c94b0f195abce366cd40"
+      "bytes": 125645,
+      "sha256": "678efada91a1298ec0a554820e5789c1ea41f6fb41a1a6c5c4ff91b45d6a28ff"
     },
     {
       "file": "UnityTestsSettingsRestoration.json",
       "bytes": 2411,
-      "sha256": "f2105bd2cf4d6a3207537bd6b9c47aad0812b16ec2be1ff392b385956ede474a"
+      "sha256": "ef0eb9587a197626fc5a9e079f1e314abd4c8d57f0c200603a0f9b9629eaa98e"
     },
     {
       "file": "FrameDebugger/Deferred.json",
-      "bytes": 14361,
-      "sha256": "739336bcdcb5145d3e146945634ff0d565cfc101fd32c1e6ec22c30fe59b9061"
+      "bytes": 14363,
+      "sha256": "1ee6eb695f2a717149970c25fba0e47efd9d275cc80d60e39baee9173b7da75d"
     },
     {
       "file": "FrameDebugger/Forward.json",
-      "bytes": 12513,
-      "sha256": "d71cfca7007de4e185cbc200b1622bb7e071602438d5aed1a39fdade19ebbd12"
+      "bytes": 12514,
+      "sha256": "cc2558fc3f15452c24120b29e7635d9425aa53e08ec2fff4b394bb424d8778cf"
     },
     {
       "file": "FrameDebugger/ForwardPlus.json",
-      "bytes": 12845,
-      "sha256": "24a07eb2bab496e5a6409f1a23affbf65f2bcb883a32de3635e25c20f8a4ced0"
+      "bytes": 12847,
+      "sha256": "31908f6f36409168b0de6dab93b84406f564d47b938fc2a8f0967beebfe8dee8"
     },
     {
       "file": "FrameDebugger/FrameDebuggerReport.json",
-      "bytes": 42315,
-      "sha256": "ceb89051beacd2bbf6c6080591e57ce3f429ac6c830c87a1be8313a1c6a23a6b"
+      "bytes": 42320,
+      "sha256": "aec8f7ed2f3f9d3567fde24d639c18ee08059cc971a32e281dfe71eb1366807b"
     },
     {
       "file": "FrameDebugger/UnityT5FrameDebugger.log",
-      "bytes": 239580,
-      "sha256": "1d42406842f15eab6d07e7db01a1acf17985323b905124444742315f6663c102"
+      "bytes": 247015,
+      "sha256": "4b7b17fe04f60b7dde3d06dbb8336497b2c09d12b7f0e0487a01f9ab39cf1664"
     },
     {
       "file": "FrameDebugger/UnityT5FrameDebuggerSettingsRestoration.json",
       "bytes": 2412,
-      "sha256": "f220a66fc4beab1b7fbac3eda445c29c25f60581b6f1aca9322545997e4bff5b"
+      "sha256": "9563adbdb2d735245c69b7b180f6de8b13cc726ac57c1868fee8914325b26aa3"
     }
   ],
   "t5ExitCriteriaMet": true

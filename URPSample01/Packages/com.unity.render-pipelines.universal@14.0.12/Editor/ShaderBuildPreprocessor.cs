@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.Universal
         TerrainHoles = (1L << 7),
         DeferredShading = (1L << 8), // DeferredRenderer is in the list of renderer
         AccurateGbufferNormals = (1L << 9),
-        ScreenSpaceOcclusion = (1L << 10),
+        // (1L << 10) was ScreenSpaceOcclusion; the built-in SSAO feature was removed.
         ScreenSpaceShadows = (1L << 11),
         UseFastSRGBLinearConversion = (1L << 12),
         LightLayers = (1L << 13),
@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal
         RenderPassEnabled = (1L << 25),
         MainLightShadowsCascade = (1L << 26),
         DrawProcedural = (1L << 27),
-        ScreenSpaceOcclusionAfterOpaque = (1L << 28),
+        // (1L << 28) was ScreenSpaceOcclusionAfterOpaque; the built-in SSAO feature was removed.
         AdditionalLightsKeepOffVariants = (1L << 29),
         ShadowsKeepOffVariants = (1L << 30),
         // Unused = (1L << 31),
@@ -402,7 +402,6 @@ namespace UnityEditor.Rendering.Universal
         // Checks each Universal Render Pipeline Asset for features used...
         private static void GetSupportedShaderFeaturesFromAssets(ref List<UniversalRenderPipelineAsset> urpAssets, ref List<ShaderFeatures> rendererFeaturesList, bool stripUnusedVariants)
         {
-            List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures = new List<ScreenSpaceAmbientOcclusionSettings>(16);
             for (int urpAssetIndex = 0; urpAssetIndex < urpAssets.Count; urpAssetIndex++)
             {
                 // Get the asset and check if it's valid
@@ -414,23 +413,19 @@ namespace UnityEditor.Rendering.Universal
                 ShaderFeatures urpAssetShaderFeatures = GetSupportedShaderFeaturesFromAsset(
                     ref urpAsset,
                     ref rendererFeaturesList,
-                    ref ssaoRendererFeatures,
                     stripUnusedVariants,
-                    out bool containsForwardRenderer,
-                    out bool everyRendererHasSSAO
+                    out bool containsForwardRenderer
                 );
 
                 // Creates a struct containing all the prefiltering settings for this asset
                 ShaderPrefilteringData spd = CreatePrefilteringSettings(
                     ref urpAssetShaderFeatures,
                     containsForwardRenderer,
-                    everyRendererHasSSAO,
                     s_StripXRVariants,
                     !PlayerSettings.allowHDRDisplaySupport || !urpAsset.supportsHDR,
                     s_StripDebugDisplayShaders,
                     s_StripScreenCoordOverrideVariants,
-                    s_StripUnusedVariants,
-                    ref ssaoRendererFeatures
+                    s_StripUnusedVariants
                     );
 
                 // Update the Prefiltering settings for this URP asset
@@ -438,9 +433,6 @@ namespace UnityEditor.Rendering.Universal
 
                 // Mark the asset dirty so it can be serialized once the build is finished
                 EditorUtility.SetDirty(urpAsset);
-
-                // Clean up
-                ssaoRendererFeatures.Clear();
             }
         }
 
@@ -448,10 +440,8 @@ namespace UnityEditor.Rendering.Universal
         internal static ShaderFeatures GetSupportedShaderFeaturesFromAsset(
             ref UniversalRenderPipelineAsset urpAsset,
             ref List<ShaderFeatures> rendererFeaturesList,
-            ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures,
             bool stripUnusedVariants,
-            out bool containsForwardRenderer,
-            out bool everyRendererHasSSAO)
+            out bool containsForwardRenderer)
         {
             ShaderFeatures urpAssetShaderFeatures = ShaderFeatures.MainLight;
 
@@ -503,10 +493,8 @@ namespace UnityEditor.Rendering.Universal
                 ref urpAsset,
                 ref rendererFeaturesList,
                 urpAssetShaderFeatures,
-                ref ssaoRendererFeatures,
                 stripUnusedVariants,
-                out containsForwardRenderer,
-                out everyRendererHasSSAO);
+                out containsForwardRenderer);
 
             return urpAssetShaderFeatures;
         }
@@ -516,10 +504,8 @@ namespace UnityEditor.Rendering.Universal
             ref UniversalRenderPipelineAsset urpAsset,
             ref List<ShaderFeatures> rendererFeaturesList,
             ShaderFeatures urpAssetShaderFeatures,
-            ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures,
             bool stripUnusedVariants,
-            out bool containsForwardRenderer,
-            out bool everyRendererHasSSAO)
+            out bool containsForwardRenderer)
         {
             // Sanity check
             if (rendererFeaturesList == null)
@@ -531,7 +517,6 @@ namespace UnityEditor.Rendering.Universal
             ShaderFeatures combinedURPAssetShaderFeatures = ShaderFeatures.None;
 
             containsForwardRenderer = false;
-            everyRendererHasSSAO = true;
             ScriptableRendererData[] rendererDataArray = urpAsset.m_RendererDataList;
             for (int rendererIndex = 0; rendererIndex < rendererDataArray.Length; ++rendererIndex)
             {
@@ -541,11 +526,8 @@ namespace UnityEditor.Rendering.Universal
                 RendererRequirements rendererRequirements = GetRendererRequirements(ref urpAsset, ref renderer, ref rendererData);
 
                 // Get & add Supported features from renderers used for Scriptable Stripping and prefiltering.
-                ShaderFeatures rendererShaderFeatures = GetSupportedShaderFeaturesFromRenderer(ref rendererRequirements, ref rendererData, ref ssaoRendererFeatures, ref containsForwardRenderer, urpAssetShaderFeatures);
+                ShaderFeatures rendererShaderFeatures = GetSupportedShaderFeaturesFromRenderer(ref rendererRequirements, ref rendererData, ref containsForwardRenderer, urpAssetShaderFeatures);
                 rendererFeaturesList.Add(rendererShaderFeatures);
-
-                // Check to see if it's possible to remove the OFF variant for SSAO
-                everyRendererHasSSAO &= IsFeatureEnabled(rendererShaderFeatures, ShaderFeatures.ScreenSpaceOcclusion);
 
                 // Check for completely removing 2D passes
                 s_Strip2DPasses &= renderer is not Renderer2D;
@@ -593,7 +575,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // Checks the assigned Universal renderer for features used...
-        internal static ShaderFeatures GetSupportedShaderFeaturesFromRenderer(ref RendererRequirements rendererRequirements, ref ScriptableRendererData rendererData, ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures, ref bool containsForwardRenderer, ShaderFeatures urpAssetShaderFeatures)
+        internal static ShaderFeatures GetSupportedShaderFeaturesFromRenderer(ref RendererRequirements rendererRequirements, ref ScriptableRendererData rendererData, ref bool containsForwardRenderer, ShaderFeatures urpAssetShaderFeatures)
         {
             ShaderFeatures shaderFeatures = urpAssetShaderFeatures;
 
@@ -620,7 +602,7 @@ namespace UnityEditor.Rendering.Universal
             if (rendererData != null)
             {
                 List<ScriptableRendererFeature> rendererFeatures = rendererData.rendererFeatures;
-                shaderFeatures |= GetSupportedShaderFeaturesFromRendererFeatures(ref rendererRequirements, ref rendererFeatures, ref ssaoRendererFeatures);
+                shaderFeatures |= GetSupportedShaderFeaturesFromRendererFeatures(ref rendererRequirements, ref rendererFeatures);
             }
 
             // The Off variant for Additional Lights
@@ -693,7 +675,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // Checks each Universal Renderer Feature in the assigned renderer...
-        internal static ShaderFeatures GetSupportedShaderFeaturesFromRendererFeatures(ref RendererRequirements rendererRequirements, ref List<ScriptableRendererFeature> rendererFeatures, ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures)
+        internal static ShaderFeatures GetSupportedShaderFeaturesFromRendererFeatures(ref RendererRequirements rendererRequirements, ref List<ScriptableRendererFeature> rendererFeatures)
         {
             ShaderFeatures shaderFeatures = ShaderFeatures.None;
 
@@ -727,24 +709,6 @@ namespace UnityEditor.Rendering.Universal
                     if (sssFeature.isActive)
                         shaderFeatures |= ShaderFeatures.ScreenSpaceShadows;
 
-                    continue;
-                }
-
-                // Screen Space Ambient Occlusion (SSAO)...
-                // Removing the OFF variant requires every renderer to use SSAO. That is checked later.
-                ScreenSpaceAmbientOcclusion ssaoFeature = rendererFeature as ScreenSpaceAmbientOcclusion;
-                if (ssaoFeature != null)
-                {
-                    ScreenSpaceAmbientOcclusionSettings ssaoSettings = ssaoFeature.settings;
-                    ssaoRendererFeatures.Add(ssaoSettings);
-
-                    // The feature is active (Tested a few lines above) so check for AfterOpaque
-                    if (ssaoSettings.AfterOpaque)
-                        shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
-                    else
-                        shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;
-
-                    // Otherwise the keyword will not be used
                     continue;
                 }
 
@@ -848,13 +812,11 @@ namespace UnityEditor.Rendering.Universal
         internal static ShaderPrefilteringData CreatePrefilteringSettings(
             ref ShaderFeatures shaderFeatures,
             bool isAssetUsingForward,
-            bool everyRendererHasSSAO,
             bool stripXR,
             bool stripHDR,
             bool stripDebug,
             bool stripScreenCoord,
-            bool stripUnusedVariants,
-            ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures
+            bool stripUnusedVariants
             )
         {
             bool isAssetUsingForwardPlus = IsFeatureEnabled(shaderFeatures, ShaderFeatures.ForwardPlus);
@@ -955,42 +917,10 @@ namespace UnityEditor.Rendering.Universal
                 && !IsFeatureEnabled(shaderFeatures, ShaderFeatures.GBufferWriteRenderingLayers)
                 && !IsFeatureEnabled(shaderFeatures, ShaderFeatures.OpaqueWriteRenderingLayers);
 
-            // Screen Space Ambient Occlusion
-            spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Remove;
-            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceOcclusion))
-            {
-                // Remove the SSAO's OFF variant if Global Settings allow it and every renderer uses it.
-                if (stripUnusedVariants && everyRendererHasSSAO)
-                    spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.SelectOnly;
-                // Otherwise we keep both
-                else
-                    spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
-            }
-
-            // SSAO shader keywords
-            spd.stripSSAODepthNormals      = true;
-            spd.stripSSAOSourceDepthLow    = true;
-            spd.stripSSAOSourceDepthMedium = true;
-            spd.stripSSAOSourceDepthHigh   = true;
-            spd.stripSSAOBlueNoise         = true;
-            spd.stripSSAOInterleaved       = true;
-            spd.stripSSAOSampleCountLow    = true;
-            spd.stripSSAOSampleCountMedium = true;
-            spd.stripSSAOSampleCountHigh   = true;
-            for (int i = 0; i < ssaoRendererFeatures.Count; i++)
-            {
-                ScreenSpaceAmbientOcclusionSettings ssaoSettings = ssaoRendererFeatures[i];
-                bool isUsingDepthNormals = ssaoSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
-                spd.stripSSAODepthNormals      &= !isUsingDepthNormals;
-                spd.stripSSAOSourceDepthLow    &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.Low;
-                spd.stripSSAOSourceDepthMedium &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium;
-                spd.stripSSAOSourceDepthHigh   &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.High;
-                spd.stripSSAOBlueNoise         &= ssaoSettings.AOMethod != ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
-                spd.stripSSAOInterleaved       &= ssaoSettings.AOMethod != ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
-                spd.stripSSAOSampleCountLow    &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Low;
-                spd.stripSSAOSampleCountMedium &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium;
-                spd.stripSSAOSampleCountHigh   &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High;
-            }
+            // Screen Space Occlusion
+            // The built-in SSAO feature was removed. GTAO consumes the generic _SCREEN_SPACE_OCCLUSION
+            // keyword, so both the ON and OFF variants stay available in players.
+            spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
 
             return spd;
         }

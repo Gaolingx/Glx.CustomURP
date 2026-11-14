@@ -129,24 +129,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private bool m_PrefilterHDROutput = false;
 
         // Screen Space Ambient Occlusion (SSAO) specific keywords
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthNormalsKeyword)]
-        [SerializeField] private bool m_PrefilterSSAODepthNormals = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthLowKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSourceDepthLow = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthMediumKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSourceDepthMedium = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthHighKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSourceDepthHigh = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_AOInterleavedGradientKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOInterleaved = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_AOBlueNoiseKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOBlueNoise = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SampleCountLowKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSampleCountLow = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SampleCountMediumKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSampleCountMedium = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SampleCountHighKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSampleCountHigh = false;
+        // The built-in SSAO feature and its keywords were removed; the generic _SCREEN_SPACE_OCCLUSION
+        // keyword is kept for the Ground Truth Ambient Occlusion feature and is never stripped here.
 
         // Decals
         [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES2, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
@@ -209,16 +193,6 @@ namespace UnityEngine.Rendering.Universal
             public bool stripSoftShadowsQualityMedium;
             public bool stripSoftShadowsQualityHigh;
 
-            public bool stripSSAOBlueNoise;
-            public bool stripSSAOInterleaved;
-            public bool stripSSAODepthNormals;
-            public bool stripSSAOSourceDepthLow;
-            public bool stripSSAOSourceDepthMedium;
-            public bool stripSSAOSourceDepthHigh;
-            public bool stripSSAOSampleCountLow;
-            public bool stripSSAOSampleCountMedium;
-            public bool stripSSAOSampleCountHigh;
-
             public static ShaderPrefilteringData GetDefault()
             {
                 return new ShaderPrefilteringData()
@@ -260,16 +234,6 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterSoftShadowsQualityMedium      = prefilteringData.stripSoftShadowsQualityMedium;
             m_PrefilterSoftShadowsQualityHigh        = prefilteringData.stripSoftShadowsQualityHigh;
             m_PrefilterSoftShadows                   = !m_PrefilterSoftShadowsQualityLow || !m_PrefilterSoftShadowsQualityMedium || !m_PrefilterSoftShadowsQualityHigh;
-
-            m_PrefilterSSAOBlueNoise                 = prefilteringData.stripSSAOBlueNoise;
-            m_PrefilterSSAOInterleaved               = prefilteringData.stripSSAOInterleaved;
-            m_PrefilterSSAODepthNormals              = prefilteringData.stripSSAODepthNormals;
-            m_PrefilterSSAOSourceDepthLow            = prefilteringData.stripSSAOSourceDepthLow;
-            m_PrefilterSSAOSourceDepthMedium         = prefilteringData.stripSSAOSourceDepthMedium;
-            m_PrefilterSSAOSourceDepthHigh           = prefilteringData.stripSSAOSourceDepthHigh;
-            m_PrefilterSSAOSampleCountLow            = prefilteringData.stripSSAOSampleCountLow;
-            m_PrefilterSSAOSampleCountMedium         = prefilteringData.stripSSAOSampleCountMedium;
-            m_PrefilterSSAOSampleCountHigh           = prefilteringData.stripSSAOSampleCountHigh;
         }
     }
 }

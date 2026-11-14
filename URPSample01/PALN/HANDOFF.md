@@ -9,7 +9,7 @@
 - **T2 已退出（2026-11-14）**。Core 已提供 DepthNormals smoothness 编码、最早 Motion/Depth 调度和调度单元测试；无插件时三路径 Frame Debugger 事件数据与 T1 基线逐事件一致，探针在 203 时 Motion/Depth 已有效，TAA/Motion Blur 早/晚 Motion 输出逐字节一致。
 - **T3 已退出（2026-11-14）**。两个空 Renderer Feature（SSL / GTAO）、Volume 组件、能力检测、neutral 输出和私有 history 骨架已落地；真实 UI 路径配置、Volume 控队、空效果逐像素一致、无插件回归和 EditMode 测试全部通过，唯一事实入口为 `validation/T3/T3Report.json`（`t3ExitCriteriaMet=true`）。
 - **T4 已退出（2026-11-14）**。SSL 私有 packed Hi-Z（mip/offset/UV scale）、当前帧 Gaussian 颜色金字塔、双缓冲 previous color/depth、reset generation 和 7 个调试视图已落地；三路径下卷开启时 Pass 均执行且最终图像与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 重置、同帧读写槽分离、双相机隔离和 GTAO 缺失时 SSL 独立工作全部通过，Frame Debugger 证明 203 → 400 → 501 顺序。唯一事实入口为 `validation/T4/T4Report.json`（`t4ExitCriteriaMet=true`）。当前仍没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成。
-- **T5 已退出（2026-11-14）**。独立 GTAO 全 kernel（Main / Spatial / Temporal / CopyHistory / Blur+Upsample）、私有 packed Hi-Z、双缓冲 AO 历史、SSAO 冲突仲裁和 SSAO 式 Inspector 已落地；Forward/Forward+/Deferred 三路径 AO 可见且无双重 AO，SSL 特征顺序任意组合图像逐字节一致，intensity=0 与 Feature 关闭恢复 T1 基线逐字节一致，禁用 SSAO 冲突时 GTAO 零 dispatch。唯一事实入口为 `validation/T5/T5Report.json`（`t5ExitCriteriaMet=true`）。SSGI、SSR、Refraction 仍未实现。
+- **T5 已退出（2026-11-14）**。独立 GTAO 全 kernel（Main / Spatial / Temporal / CopyHistory / Blur+Upsample）、私有 packed Hi-Z、双缓冲 AO 历史、调试视图和 SSAO 式 Inspector 已落地；Forward/Forward+/Deferred 三路径 AO 可见，SSL 特征顺序任意组合图像逐字节一致，intensity=0 与 Feature 关闭恢复 T1 基线逐字节一致。**同日按用户要求移除 URP 内置 SSAO（像素着色器实现）**：GTAO 成为唯一 AO 生产者，材质侧 `_SCREEN_SPACE_OCCLUSION` 契约保留。唯一事实入口为 `validation/T5/T5Report.json`（`t5ExitCriteriaMet=true`）。SSGI、SSR、Refraction 仍未实现。
 - **T6–T14 未开始**。
 - **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run16 与无效运行全部保留。
 - 临时 Player 已清理；原始运行目录、日志、CSV、PNG 和报告均保留。四项 ProjectSettings 已恢复原始 SHA-256。
@@ -64,8 +64,8 @@ T4 事实与限制：
 - 结论：[T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）
 - 渲染/生命周期：[T5Verification.json](validation/T5/T5Verification.json)（三路径 `passed=true`）
 - Frame Debugger：[FrameDebuggerReport.json](validation/T5/FrameDebugger/FrameDebuggerReport.json)（Forward/Forward+ 82 事件，Deferred 93；GTAO Depth Pyramid → GTAO dispatch → opaque/GBuffer）
-- EditMode：`validation/T5/UnityTests.log`（104 passed / 0 failed）
-- 调试图：`validation/T5/T5_<Mode>_*.png`（raw/final/global AO、深度金字塔 mip0/mip2、half/full、spatial-only、combined order、SSAO conflict、尺寸变化）
+- EditMode：`validation/T5/UnityTests.log`（103 passed / 0 failed）
+- 调试图：`validation/T5/T5_<Mode>_*.png`（raw/final/global AO、深度金字塔 mip0/mip2、half/full、spatial-only、combined order、尺寸变化）
 
 复现命令（先关闭其他 Unity 编辑器）：
 
@@ -89,7 +89,8 @@ T5 事实与限制：
 - AO 输出为 URP 可见度（1=无遮挡、白色 neutral）；HDRP 的 inverse AO 在 `GTAOOutputFinalAO` 中转成正向。
 - Deferred 路径中法线来自 GBuffer2：`UniversalRenderer.cameraNormalsTextureHandle` 统一返回 forward 的 `m_NormalsTexture` 或 deferred 的 GBuffer2 附件；tracing 使用 decal 前材质数据。
 - 三路径 GTAO 主 pass 均在 204（GBuffer 210 / opaque 250 之前）；深度金字塔 203，Motion 202；Frame Debugger 已逐事件确认。
-- 内置 SSAO 有效时 GTAO 不入队并一次性警告；禁用 GTAO 后 SSAO 图像逐字节不变，证明未叠加第二份 AO。Deferred 验证渲染器中 stock SSAO 图像恰好等于基线，仲裁证据以 GTAO 零 dispatch 为准。
+- URP 内置 SSAO 已按用户要求移除（2026-11-14），包括其 Feature、Editor、Shader、SSAO 专用 keyword 和 BlueNoise256 资源；GTAO 是唯一 AO 生产者，继续写入 `_SCREEN_SPACE_OCCLUSION`/`_ScreenSpaceOcclusionTexture`/`_AmbientOcclusionParam`。旧 Renderer Data 中若仍序列化 SSAO Feature，会出现 Missing Script，需手动删除后改用 GTAO。
+- 构建期 AO keyword 预过滤固定为 `Select`（ON/OFF 都保留）；插件级 strip 优化留到 T14。`ScriptableRenderer.GetRendererFeature<T>()` 随冲突仲裁一并删除。
 - 验证场景必须调用 `DynamicGI.UpdateEnvironment()`，否则 skybox 环境探针为黑，AO 只能通过 `directLightingStrength>0` 才可见；T5 验证使用默认 `directLightingStrength=0` 直接验证 indirect AO。
 - 仅支持 Compatibility `ScriptableRenderPass.Execute`；RenderGraph 路径未注册。XR single-pass 复用单视图矩阵，逐眼矩阵留到 T13。
 

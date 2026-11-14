@@ -725,7 +725,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Current aim of depth prepass is to generate a copy of depth buffer, it is NOT to prime depth buffer and reduce overdraw on non-mobile platforms.
             // When deferred renderer is enabled, depth buffer is already accessible so depth prepass is not needed.
-            // The only exception is for generating depth-normal textures: SSAO pass needs it and it must run before forward-only geometry.
+            // The only exception is for generating depth-normal textures: the GTAO pass needs them and it must run before forward-only geometry.
             // DepthNormal prepass will render:
             // - forward-only geometry when deferred renderer is enabled
             // - all geometry when forward renderer is enabled
@@ -1049,7 +1049,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // In deferred mode, depth-normal prepass does really primes the depth and normal buffers, instead of creating a copy.
                         // It is necessary because we need to render depth&normal for forward-only geometry and it is the only way
-                        // to get them before the SSAO pass.
+                        // to get them before the screen-space AO pass.
 
                         int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
                         if (m_DeferredLights.UseRenderingLayers)

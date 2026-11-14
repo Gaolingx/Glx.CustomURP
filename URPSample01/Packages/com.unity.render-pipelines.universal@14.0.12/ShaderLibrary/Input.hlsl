@@ -104,7 +104,7 @@ half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
 uint _MainLightLayerMask;
 
-// x: SSAO Enabled/Disabled (Needed for situations when OFF keyword is stripped out but feature disabled in runtime)
+// x: Screen Space Occlusion Enabled/Disabled (Needed for situations when OFF keyword is stripped out but the feature is disabled in runtime)
 // yz are currently unused
 // w: directLightStrength
 half4 _AmbientOcclusionParam;

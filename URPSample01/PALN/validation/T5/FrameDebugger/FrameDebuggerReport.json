@@ -1,5 +1,5 @@
 {
-    "utcTimestamp": "2026-11-14T11:03:21.3749498Z",
+    "utcTimestamp": "2026-11-14T12:23:06.8524300Z",
     "unityVersion": "2022.3.62f1",
     "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
     "graphicsDeviceType": "Direct3D11",
@@ -10,8 +10,8 @@
         {
             "name": "Forward",
             "eventCount": 82,
-            "eventsHash": 947535921,
-            "eventDataHash": 657677703,
+            "eventsHash": 873918700,
+            "eventDataHash": 3311188789,
             "eventNames": [
                 "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT5ForwardRenderer",
                 "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT5ForwardRenderer/MainLightShadow/Shadows.DrawSRPBatcher",
@@ -100,8 +100,8 @@
         {
             "name": "ForwardPlus",
             "eventCount": 82,
-            "eventsHash": 325803585,
-            "eventDataHash": 657677703,
+            "eventsHash": 1734987824,
+            "eventDataHash": 3311188789,
             "eventNames": [
                 "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT5ForwardPlusRenderer",
                 "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT5ForwardPlusRenderer/MainLightShadow/Shadows.DrawSRPBatcher",
@@ -190,8 +190,8 @@
         {
             "name": "Deferred",
             "eventCount": 93,
-            "eventsHash": 1682542387,
-            "eventDataHash": 169463088,
+            "eventsHash": -1797696114,
+            "eventDataHash": 3724967708,
             "eventNames": [
                 "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT5DeferredRenderer",
                 "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT5DeferredRenderer/MainLightShadow/Shadows.DrawSRPBatcher",

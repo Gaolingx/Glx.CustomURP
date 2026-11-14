@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             "Deferred Directional Light (SimpleLit)",
             "ClearStencilPartial",
             "Fog",
-            "SSAOOnly"
+            "AmbientOcclusionOnly"
         };
 
         internal enum StencilDeferredPasses
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             DirectionalSimpleLit,
             ClearStencilPartial,
             Fog,
-            SSAOOnly
+            AmbientOcclusionOnly
         };
 
         static readonly ushort k_InvalidLightOffset = 0xFFFF;
@@ -583,9 +583,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // This must be set for each eye in XR mode multipass.
                 SetupMatrixConstants(cmd, ref renderingData);
 
-                // Firt directional light will apply SSAO if possible, unless there is none.
+                // First directional light applies the screen-space ambient occlusion if possible, unless there is none.
                 if (!HasStencilLightsOfType(LightType.Directional))
-                    RenderSSAOBeforeShading(cmd, ref renderingData);
+                    RenderAmbientOcclusionBeforeShading(cmd, ref renderingData);
 
                 RenderStencilLights(context, cmd, ref renderingData);
 
@@ -825,7 +825,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
 
                 ShadowUtils.SetPerLightSoftShadowKeyword(cmd, hasSoftShadow);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies screen-space AO
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MAIN_LIGHT, visLightIndex == mainLightIndex); // main directional light use different uniform constants from additional directional lights
 
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor); // VisibleLight.finalColor already returns color in active color space
@@ -982,12 +982,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
         }
 
-        void RenderSSAOBeforeShading(CommandBuffer cmd, ref RenderingData renderingData)
+        void RenderAmbientOcclusionBeforeShading(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
-            cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.SSAOOnly]);
+            cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.AmbientOcclusionOnly]);
         }
 
         void RenderFog(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
