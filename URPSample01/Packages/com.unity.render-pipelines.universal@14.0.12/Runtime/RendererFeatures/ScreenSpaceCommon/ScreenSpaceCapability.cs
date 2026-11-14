@@ -40,6 +40,13 @@ namespace UnityEngine.Rendering.Universal
         // pyramid layout; the compute shaders need load/store access to it.
         internal static readonly GraphicsFormat k_DepthPyramidFormat = GraphicsFormat.R32_SFloat;
 
+        // Final AO visibility is a single channel in [0, 1]; R32_SFloat keeps the compute output
+        // working on the rare targets that cannot store to R8_UNorm.
+        internal static GraphicsFormat occlusionFormat =>
+            SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.LoadStore)
+                ? GraphicsFormat.R8_UNorm
+                : GraphicsFormat.R32_SFloat;
+
         static bool s_PlatformEvaluated;
         static ScreenSpaceCapabilityResult s_PlatformResult;
 

@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.Tests
@@ -41,19 +42,35 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void PassUsesReservedDispatchEvent()
+        public void PassesUseTheReservedDispatchEvents()
         {
+            Assert.AreEqual(203, (int)GroundTruthAmbientOcclusionDepthPyramidPass.k_RenderPassEvent);
             Assert.AreEqual(204, (int)GroundTruthAmbientOcclusionPass.k_RenderPassEvent);
-            Assert.AreEqual(204, (int)m_Feature.pass.renderPassEvent);
-            Assert.AreEqual(ScriptableRenderPassInput.None, m_Feature.pass.input,
-                "The empty T3 pass must not change built-in URP input scheduling.");
+            Assert.AreEqual((int)RenderPassEvent.BeforeRenderingPostProcessing + 2, (int)GroundTruthAmbientOcclusionDebugPass.k_RenderPassEvent);
+            Assert.AreEqual(GroundTruthAmbientOcclusionDepthPyramidPass.k_RenderPassEvent, m_Feature.depthPyramidPass.renderPassEvent);
+            Assert.AreEqual(GroundTruthAmbientOcclusionPass.k_RenderPassEvent, m_Feature.pass.renderPassEvent);
         }
 
         [Test]
-        public void GameCameraEnqueuesPassAndCreatesHistory()
+        public void PassesDeclareTheirDepthNormalAndMotionInputs()
+        {
+            const ScriptableRenderPassInput expected = ScriptableRenderPassInput.Depth |
+                                                       ScriptableRenderPassInput.Normal |
+                                                       ScriptableRenderPassInput.Motion;
+            Assert.AreEqual(expected, m_Feature.pass.input,
+                "GTAO must request normals, depth and the shared early motion vectors.");
+            Assert.AreEqual(
+                ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Motion,
+                m_Feature.depthPyramidPass.input,
+                "The depth pyramid only needs depth and the early motion schedule.");
+        }
+
+        [Test]
+        public void GameCameraEnqueuesBothPassesAndCreatesHistory()
         {
             InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
 
+            Assert.Contains(m_Feature.depthPyramidPass, m_Renderer.queuedPasses);
             Assert.Contains(m_Feature.pass, m_Renderer.queuedPasses);
             Assert.AreEqual(1, m_Feature.historyStore.entryCount);
         }
@@ -74,8 +91,35 @@ namespace UnityEditor.Rendering.Universal.Tests
             InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera, CameraType.Preview));
             InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera, CameraType.Game, CameraRenderType.Overlay));
 
-            Assert.IsFalse(m_Renderer.queuedPasses.Contains(m_Feature.pass));
+            Assert.IsEmpty(m_Renderer.queuedPasses);
             Assert.AreEqual(0, m_Feature.historyStore.entryCount);
+        }
+
+        [Test]
+        public void ZeroIntensityDoesNotEnqueue()
+        {
+            m_Feature.settings.intensity = 0f;
+
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+
+            Assert.IsEmpty(m_Renderer.queuedPasses);
+            Assert.AreEqual(0, m_Feature.historyStore.entryCount);
+        }
+
+        [Test]
+        public void BuiltInSsaoSuppressesGtaoWithoutDisablingSsao()
+        {
+            var ssao = ScriptableObject.CreateInstance<ScreenSpaceAmbientOcclusion>();
+            m_RendererData.rendererFeatures.Add(ssao);
+            m_Renderer.Dispose();
+            m_Renderer = new ScreenSpaceTestUtils.TestRenderer(m_RendererData);
+
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+
+            Assert.IsTrue(ssao.isActive, "GTAO must not disable the built-in SSAO feature.");
+            Assert.IsEmpty(m_Renderer.queuedPasses);
+            Assert.AreEqual(0, m_Feature.historyStore.entryCount);
+            Assert.IsTrue(m_Feature.loggedSsaoConflict);
         }
 
         [Test]
@@ -93,16 +137,31 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void CreateRebuildsPassAndHistoryStore()
+        public void CreateRebuildsPassesAndHistoryStore()
         {
             var previousPass = m_Feature.pass;
+            var previousPyramidPass = m_Feature.depthPyramidPass;
             var previousStore = m_Feature.historyStore;
 
             m_Feature.Create();
 
             Assert.AreNotSame(previousPass, m_Feature.pass);
+            Assert.AreNotSame(previousPyramidPass, m_Feature.depthPyramidPass);
             Assert.AreNotSame(previousStore, m_Feature.historyStore);
             Assert.AreEqual(GroundTruthAmbientOcclusionPass.k_RenderPassEvent, m_Feature.pass.renderPassEvent);
+        }
+
+        [Test]
+        public void DebugPassIsOnlyEnqueuedWhileADebugViewIsSelected()
+        {
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+            Assert.IsFalse(m_Renderer.queuedPasses.Contains(m_Feature.debugPass));
+
+            m_Feature.settings.debugMode = GroundTruthAmbientOcclusionDebugMode.AmbientOcclusion;
+            m_Renderer.queuedPasses.Clear();
+
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+            Assert.Contains(m_Feature.debugPass, m_Renderer.queuedPasses);
         }
     }
 }

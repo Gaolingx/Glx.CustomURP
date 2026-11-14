@@ -1,0 +1,128 @@
+// GTAO temporal denoise, ported from HDRP 14.0.12 GTAOTemporalDenoise.compute.
+#pragma kernel TemporalDenoise
+
+#pragma multi_compile HALF_RES FULL_RES
+#pragma multi_compile _ GTAO_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl"
+
+GTAO_TEXTURE2D_FLOAT(_GtaoPackedBlurred);
+GTAO_TEXTURE2D_FLOAT4(_GtaoPackedHistory);
+GTAO_RW_TEXTURE2D_FLOAT4(_GtaoOutputHistory);
+GTAO_RW_TEXTURE2D_FLOAT(_GtaoOcclusionTexture);
+GTAO_TEXTURE2D_FLOAT2(_GtaoMotionTexture);
+
+float4 PackHistoryData(float AO, float depth, float mvLen)
+{
+    float4 finalHistory;
+    finalHistory.xy = PackFloatToR8G8(depth);
+    finalHistory.z = saturate(AO);
+    finalHistory.w = saturate(mvLen);
+    return finalHistory;
+}
+
+void UnpackHistoryData(float4 historyData, out float AO, out float depth, out float mvLen)
+{
+    AO = historyData.z;
+    mvLen = saturate(historyData.w);
+    depth = UnpackFloatFromR8G8(historyData.xy);
+}
+
+// The compute samplers stay unbound, so the history is resampled with an explicit bilinear filter
+// instead of relying on a sampler state.
+float4 GTAOSampleHistoryBilinear(float2 uv)
+{
+    float2 size = _GtaoHistorySize;
+    float2 pixelPos = uv * size - 0.5;
+    int2 base = (int2)floor(pixelPos);
+    float2 f = frac(pixelPos);
+    int2 maxCoord = max((int2)size - 1, int2(0, 0));
+
+    float4 p00 = GTAO_LOAD(_GtaoPackedHistory, min(max(base, int2(0, 0)), maxCoord));
+    float4 p10 = GTAO_LOAD(_GtaoPackedHistory, min(max(base + int2(1, 0), int2(0, 0)), maxCoord));
+    float4 p01 = GTAO_LOAD(_GtaoPackedHistory, min(max(base + int2(0, 1), int2(0, 0)), maxCoord));
+    float4 p11 = GTAO_LOAD(_GtaoPackedHistory, min(max(base + int2(1, 1), int2(0, 0)), maxCoord));
+
+    return lerp(lerp(p00, p10, f.x), lerp(p01, p11, f.x), f.y);
+}
+
+float3 FindMinMaxAvgAO(int2 centralPos)
+{
+    int2 maxCoord = max((int2)_GtaoBufferSize.xy - 1, int2(0, 0));
+    float minAO = 2.0f;
+    float maxAO = -2.0f;
+    float avg = 0;
+    for (int i = -1; i <= 1; ++i)
+    {
+        for (int j = -1; j <= 1; ++j)
+        {
+            int2 p = min(max(centralPos + int2(i, j), int2(0, 0)), maxCoord);
+            float data = GTAO_LOAD(_GtaoPackedBlurred, p);
+            float currAO, ignored;
+            GTAOUnpackData(data, currAO, ignored);
+            avg += currAO;
+            minAO = min(minAO, currAO);
+            maxAO = max(maxAO, currAO);
+        }
+    }
+
+    return float3(minAO, maxAO, avg / 9.0f);
+}
+
+[numthreads(8, 8, 1)]
+void TemporalDenoise(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    GTAO_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    if (dispatchThreadId.x >= (uint)_GtaoBufferSize.x || dispatchThreadId.y >= (uint)_GtaoBufferSize.y)
+        return;
+
+    float currFrameData = GTAO_LOAD(_GtaoPackedBlurred, dispatchThreadId.xy);
+    float currDepth, currAO;
+    GTAOUnpackData(currFrameData, currAO, currDepth);
+
+#ifdef HALF_RES
+    float2 closest = dispatchThreadId.xy * 2.0;
+#else
+    float2 closest = dispatchThreadId.xy;
+#endif
+    int2 motionPixel = min(max((int2)closest, int2(0, 0)), (int2)_GtaoScreenSize.xy - 1);
+    float2 motionVector = GTAO_LOAD(_GtaoMotionTexture, motionPixel);
+    float motionVecLength = length(motionVector);
+
+    float2 uv = (dispatchThreadId.xy + 0.5) * _GtaoBufferSize.zw;
+    float2 prevFrameNDC = uv - motionVector;
+    float4 prevData = GTAOSampleHistoryBilinear(prevFrameNDC);
+    float prevMotionVecLen, prevAO, prevDepth;
+    UnpackHistoryData(prevData, prevAO, prevDepth, prevMotionVecLen);
+
+    float motionVecWeighting = saturate(motionVecLength * 100.0);
+    float velWeight = 1.0f - saturate((abs(prevMotionVecLen - motionVecWeighting)) * 3.0f);
+
+    float3 minMax = FindMinMaxAvgAO((int2)dispatchThreadId.xy);
+    float minAO = minMax.x;
+    float maxAO = minMax.y;
+    float avg = minMax.z;
+    float nudge = lerp(_GtaoTemporalUpperNudgeLimit, _GtaoTemporalLowerNudgeLimit, motionVecWeighting) * abs(avg - currAO);
+    minAO -= nudge;
+    maxAO += nudge;
+
+    float diff = abs(currAO - prevAO) / Max3(prevAO, currAO, 0.1f);
+    float weight = 1.0 - diff;
+    float feedback = lerp(0.85, 0.95, weight * weight);
+
+    prevAO = clamp(prevAO, minAO, maxAO);
+
+    float depthSimilarity = saturate(pow(prevDepth / currDepth, 1) + 0.01);
+
+    float newAO = (lerp(currAO, prevAO, feedback * depthSimilarity * velWeight));
+
+    GTAO_STORE(_GtaoOutputHistory, dispatchThreadId.xy, PackHistoryData(newAO, currDepth, motionVecWeighting));
+
+#ifdef HALF_RES
+    // The conversion and the intensity pow happen in the upsample phase.
+    GTAO_STORE(_GtaoOcclusionTexture, dispatchThreadId.xy, GTAOPackAOOutput(newAO, currDepth));
+#else
+    GTAO_STORE(_GtaoOcclusionTexture, dispatchThreadId.xy, GTAOOutputFinalAO(newAO));
+#endif
+}

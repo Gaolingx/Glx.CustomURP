@@ -1,0 +1,21 @@
+// Copies the current packed AO into the history slot that will be read on the next frame.
+// Ported from HDRP 14.0.12 GTAOCopyHistory.compute.
+#pragma kernel GTAODenoise_CopyHistory
+
+#pragma multi_compile _ GTAO_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl"
+
+GTAO_TEXTURE2D_FLOAT4(_GtaoInputTexture);
+GTAO_RW_TEXTURE2D_FLOAT4(_GtaoOutputTexture);
+
+[numthreads(8, 8, 1)]
+void GTAODenoise_CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    GTAO_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    if (dispatchThreadId.x >= (uint)_GtaoBufferSize.x || dispatchThreadId.y >= (uint)_GtaoBufferSize.y)
+        return;
+
+    GTAO_STORE(_GtaoOutputTexture, dispatchThreadId.xy, GTAO_LOAD(_GtaoInputTexture, dispatchThreadId.xy));
+}

@@ -1,6 +1,6 @@
 # HDRP ScreenSpaceLighting 迁移到 URP 14.0.12 实施计划
 
-> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2 已退出（2026-11-14）；T3 已退出（2026-11-14）；T4 已退出（2026-11-14）；T5–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PALN/validation/T3/T3Report.json` 为准，T4 结论以 `PALN/validation/T4/T4Report.json` 为准。
+> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2 已退出（2026-11-14）；T3 已退出（2026-11-14）；T4 已退出（2026-11-14）；T5 已退出（2026-11-14）；T6–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有 SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PALN/validation/T3/T3Report.json` 为准，T4 结论以 `PALN/validation/T4/T4Report.json` 为准，T5 结论以 `PALN/validation/T5/T5Report.json` 为准。
 >
 > 基线：Unity `2022.3.62f1`，URP/HDRP `14.0.12`。
 >
@@ -405,8 +405,13 @@ URP/Runtime/RendererFeatures/GroundTruthAmbientOcclusion/
 ├─ GroundTruthAmbientOcclusionRendererFeature.cs
 ├─ GroundTruthAmbientOcclusionSettings.cs
 ├─ GroundTruthAmbientOcclusionResources.cs
+├─ GroundTruthAmbientOcclusionShaderIDs.cs
+├─ GroundTruthAmbientOcclusionShaderVariables.cs(+.cs.hlsl)
+├─ GroundTruthAmbientOcclusionHistory.cs
+├─ GroundTruthAmbientOcclusionDepthPyramidPass.cs
 ├─ GroundTruthAmbientOcclusionPass.cs
-└─ GroundTruthAmbientOcclusionHistory.cs
+├─ GroundTruthAmbientOcclusionDebugPass.cs
+└─ GroundTruthAmbientOcclusionDebugMode.cs
 
 URP/Runtime/RendererFeatures/ScreenSpaceLighting/
 ├─ ScreenSpaceLightingRendererFeature.cs
@@ -439,7 +444,8 @@ URP/Shaders/Utils/GroundTruthAmbientOcclusion/
 ├─ GTAOTemporalDenoise.compute
 ├─ GTAOCopyHistory.compute
 ├─ GTAOBlurAndUpsample.compute
-└─ GTAOCommon.hlsl
+├─ GTAOCommon.hlsl
+└─ GTAODebug.shader
 
 URP/Shaders/Utils/ScreenSpaceLighting/
 ├─ ColorPyramid.compute
@@ -475,7 +481,7 @@ URP/Editor/RendererFeatures/
 | **T2** | P0 / T1 | Core DepthNormals 编码、最早 Motion/Depth 调度、通用 keyword 清理与调度测试 | **已退出（2026-11-14）**：Lit/ComplexLit DepthNormals alpha 使用 `0.5+0.5*smoothness`、0 表示不支持；最早 Motion 消费者把共享 Motion 提前到 202，并同步提前 Depth/CopyDepth；Deferred 提前 Motion 时强制完整 DepthNormals prepass，GBuffer2 alpha 仍为原始 smoothness；无插件时三路径事件数据与 T1 基线逐事件一致（`eventDataHash` 相同）。202 前 Motion/Depth 有效（动态 98 px、静止 0）；TAA/Motion Blur 早/晚 Motion 输出逐字节一致；smoothness=0（406 px）与不支持 alpha=0（42 px）可区分，无 0–0.5 保留区像素。证据：`PALN/validation/T2/` |
 | **T3** | P0 / T1 | 两个空 Feature、资源序列化、Volume 组件、能力检测、history store、neutral 输出和 Editor UI | **已退出（2026-11-14）**：按 2.5 的真实 UI 路径配置成功并保留 13 张截图（`PALN/validation/T3/UI/`）；三路径 Volume 控制 Pass 入队、Feature 关闭不执行；空效果与 T1 基线逐像素一致；history 计数 1→2→1；无插件三路径 `eventDataHash` 与 T1 相同；EditMode 48 passed / 0 failed；`.meta` 完整。`T3Report.json` 的 `t3ExitCriteriaMet=true` |
 | **T4** | P0 / T2、T3 | SSL 私有 Hi-Z、颜色金字塔、previous color/depth、双缓冲、reset generation 和中间调试视图 | **已退出（2026-11-14）**：packed Hi-Z（12 mip，offset/UV scale 数值验证）、Gaussian 颜色金字塔（9 mip）、双缓冲 previous color/depth 和 7 个调试视图落地；三路径 debug-off 与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 均触发 reset，读写槽逐帧分离，双相机独立且销毁后回收，SSL-only Renderer 全部通过；Frame Debugger 顺序 203 → 400 → 501。证据：`PALN/validation/T4/`（`t4ExitCriteriaMet=true`，EditMode 85 passed） |
-| **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 冲突和 SSAO 式设置 | 三路径 AO 语义正确，无双重 AO；与 SSL 任意顺序/组合工作；neutral 白色，禁用恢复基线；重复 Hi-Z 成本写入报告 |
+| **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 冲突和 SSAO 式设置 | **已退出（2026-11-14）**：Main/Spatial/Temporal/CopyHistory/Blur+Upsample、私有 packed Hi-Z（12 mip）、双缓冲 AO 历史、raw/final/global AO 与深度金字塔调试视图落地；三路径 AO 可见、half/full 与 temporal/spatial 真实选择对应 kernel；`intensity=0` 与 Feature 关闭恢复基线逐字节一致；SSL+GTAO 两种 Feature 顺序图像一致；内置 SSAO 有效时 GTAO 零 dispatch 且仅一次警告；重复 Hi-Z 成本 11,059,200 字节已记录。证据：`PALN/validation/T5/`（`t5ExitCriteriaMet=true`，EditMode 104 passed） |
 | **T6** | P0 / T4 | SSGI Trace/Reproject、Temporal/Diffuse Denoise、HF/LF、Bilateral Upsample、材质注入 | 三路径与 ForwardOnly 无 emission 重复、miss 压黑；首帧/disocclusion 有 fallback；raw/denoised/history debug 与最终消费一致 |
 | **T7** | P0 / T4 | Opaque SSR Approximation、radiance+weight、roughness/edge fade 和 probe/sky fallback | 三路径金属/非金属、粗糙度梯度正确；miss 不压黑；BRDF 只乘一次；无 NaN/Inf 和首帧无效历史 |
 | **T8** | P1 / T7 | SSR PBR Accumulation、双历史、全部速度拒绝组合、算法切换 reset | 每个公开组合选择真实 kernel；surface/hit/both 设置有效；算法切换不污染历史；速度和 debug 图像符合预期 |
@@ -498,9 +504,9 @@ URP/Editor/RendererFeatures/
 URP/Tests/Editor/UniversalRendererPassInputTests.cs # T2 Core：Motion/Depth 输入汇总与调度（已实现）
 
 URP/Tests/Editor/RendererFeatures/GroundTruthAmbientOcclusion/
-├─ GroundTruthAmbientOcclusionFeatureTests.cs # 独立设置、SSAO 冲突与能力检测
-├─ GroundTruthAmbientOcclusionShaderPreprocessorTests.cs
-└─ GroundTruthAmbientOcclusionCBufferTests.cs
+├─ GroundTruthAmbientOcclusionRendererFeatureTests.cs # 调度事件、输入、SSAO 冲突、能力
+├─ GroundTruthAmbientOcclusionHistoryTests.cs          # reset、ping-pong、重分配、半/全分辨率
+└─ GroundTruthAmbientOcclusionCBufferTests.cs          # GenerateHLSL 布局与字段顺序
 
 URP/Tests/Editor/RendererFeatures/ScreenSpaceLighting/
 ├─ ScreenSpaceLightingFeatureTests.cs       # RendererData/Volume/设置优先级/能力
@@ -613,6 +619,31 @@ T1 固定基线配置：
 | 调试图与基线 | 33 张 PNG（含 mip/UV/尺寸变化/首帧 debug-off） | `PALN/validation/T4/T4_*.png` |
 
 **已知差异**：多一次 400 颜色金字塔和 501 颜色/深度捕获；`CopyColor` 因 `ConfigureInput(Color)` 在 SSL 开启时额外执行；`resetHistoryFrames` 的上升/下降边沿可能连续失效两代；GTAO 独立 Hi-Z 成本仍按 T0 保留，T4 不合并。
+
+### 11.6 T5 实施与证据记录（2026-11-14）
+
+**独立 GTAO**（`URP/Runtime/RendererFeatures/GroundTruthAmbientOcclusion/`）
+
+- 全 kernel 移植：`GTAO.compute`（horizon search）、`GTAOSpatialDenoise.compute`、`GTAOTemporalDenoise.compute`、`GTAOCopyHistory.compute`、`GTAOBlurAndUpsample.compute`（BlurUpsample / BilateralUpsampling / BoxUpsampling）；删除未使用的 `Blur`/`Blur_FullRes` kernel。
+- 资源：`GroundTruthAmbientOcclusionHistory` 持有私有 packed depth pyramid（`R32_SFloat`、12 mip、独立 offset buffer）、`packedData`/`packedBlurred`/`packedTemporal`、双缓冲 `R8G8B8A8_UNorm` AO 历史与全分辨率 `R8_UNorm`（回退 `R32_SFloat`）可见度输出；与 SSL 实例完全隔离。
+- CBuffer：`GroundTruthAmbientOcclusionShaderVariables` 使用 `[GenerateHLSL(generateCBuffer = true)]` 并配备 `.cs.hlsl`；视图矩阵改为 3 个行向量（`_GtaoViewRow0..2`），避免 compute 矩阵绑定差异；EditMode 测试固定字段顺序与 240 字节布局。
+- 语义：`GTAOOutputFinalAO` 输出 URP 可见度（`pow(integral, intensity)`）；禁用时白色 neutral，`OnCameraCleanup` 关闭 `_SCREEN_SPACE_OCCLUSION` 并复位 `_AmbientOcclusionParam`。
+- 调度：深度金字塔 203（Depth|Motion）、GTAO 主 pass 204（Depth|Normal|Motion），Forward/Forward+ 在 opaque 前、Deferred 在 GBuffer/Deferred Shading 前完成；Deferred 法线通过新增的 `UniversalRenderer.cameraNormalsTextureHandle`（GBuffer2 附件）读取。
+- 冲突：`ScriptableRenderer.GetRendererFeature<T>()` 通用查询 + 内置 SSAO 优先；冲突时 GTAO 不入队、仅一次警告，禁用 GTAO 后 SSAO 图像不变。
+- 验证器：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT5Verification.cs` 生成 9 个 T5 Renderer/Pipeline（正常/反向顺序/SSAO+GTAO）并覆盖 half/full、temporal/spatial、intensity=0、Feature 关闭、相机 cut、尺寸变化、双相机隔离、顺序无关和 SSAO 仲裁；场景渲染前调用 `DynamicGI.UpdateEnvironment()` 保证间接光有效。
+
+**证据**
+
+| 项目 | 结果 | 入口 |
+|---|---|---|
+| T5 结论 | `t5ExitCriteriaMet=true` | `PALN/validation/T5/T5Report.json` |
+| 三路径渲染/生命周期 | 三路径 `passed=true`；临时相机条目回收、尺寸重分配、历史 reset 全部通过 | `PALN/validation/T5/T5Verification.json` |
+| Frame Debugger | Forward/Forward+ 82 事件，Deferred 93；GTAO Depth Pyramid → GTAO dispatch → opaque/GBuffer；Deferred 在 Deferred Shading 前 | `PALN/validation/T5/FrameDebugger/FrameDebuggerReport.json` |
+| EditMode | 104 passed / 0 failed | `PALN/validation/T5/UnityTests.log` |
+| 调试图与对比图 | 36 张 PNG（raw/final/global AO、深度金字塔、half/full、spatial-only、顺序组合、SSAO、尺寸变化） | `PALN/validation/T5/T5_*.png` |
+| 重复 Hi-Z 成本 | `duplicateHiZBytes=11,059,200`（1280×720 私有 pyramid 两份） | `T5Verification.json` 的各 mode 字段 |
+
+**已知限制**：Deferred 验证渲染器中的 stock SSAO 图像等于基线（GTAO 已零 dispatch，仲裁不受影响）；XR single-pass 复用单视图矩阵（T13）；仅 Compatibility 路径。
 
 ## 12. 验证矩阵
 

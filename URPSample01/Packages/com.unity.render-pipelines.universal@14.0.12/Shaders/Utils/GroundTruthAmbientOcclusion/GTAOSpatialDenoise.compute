@@ -1,0 +1,126 @@
+// GTAO spatial bilateral denoise, ported from HDRP 14.0.12 GTAOSpatialDenoise.compute.
+#pragma kernel SpatialDenoise
+
+#pragma multi_compile _ TO_TEMPORAL
+#pragma multi_compile _ GTAO_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl"
+
+GTAO_TEXTURE2D_FLOAT(_GtaoPackedData);
+GTAO_RW_TEXTURE2D_FLOAT(_GtaoOcclusionTexture);
+
+#define BILATERAL_EPSILON 0.01
+
+float BilateralWeight(float sampleDepth, float linearCentralDepth)
+{
+    float linearSample = LinearEyeDepth(sampleDepth, _GtaoZBufferParams);
+    float delta = abs(linearSample - linearCentralDepth);
+    float w = saturate(1.0f - (_GtaoSpatialBilateralAggressiveness * delta + BILATERAL_EPSILON));
+
+    return w;
+}
+
+float Blur(float2 centralPos, out float centralDepth, out float centralAO)
+{
+    float4 UnpackedAOs, UnpackedDepths;
+
+    float2 UV = GTAOClampAndScaleUVForBilinear((centralPos + float2(0.0, 0.0)) * _GtaoBufferSize.zw);
+    GTAOGatherAOData(_GtaoPackedData, UV, UnpackedAOs, UnpackedDepths);
+
+    centralDepth = UnpackedDepths.y;
+    float linearCentralDepth = LinearEyeDepth(centralDepth, _GtaoZBufferParams);
+    centralAO = UnpackedAOs.y;
+    float total = UnpackedAOs.y;
+    float totalWeight = 1;
+
+    // Manual unrolling keeps the register pressure predictable on older compilers.
+    float weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
+    total += weight * UnpackedAOs.x;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
+    total += weight * UnpackedAOs.z;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.w, linearCentralDepth);
+    total += weight * UnpackedAOs.w;
+    totalWeight += weight;
+
+    UV = GTAOClampAndScaleUVForBilinear((centralPos + float2(2.0, 0.0)) * _GtaoBufferSize.zw);
+    GTAOGatherAOData(_GtaoPackedData, UV, UnpackedAOs, UnpackedDepths);
+
+    weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
+    total += weight * UnpackedAOs.x;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.y, linearCentralDepth);
+    total += weight * UnpackedAOs.y;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
+    total += weight * UnpackedAOs.z;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.w, linearCentralDepth);
+    total += weight * UnpackedAOs.w;
+    totalWeight += weight;
+
+    UV = GTAOClampAndScaleUVForBilinear((centralPos + float2(0.0, 2.0)) * _GtaoBufferSize.zw);
+    GTAOGatherAOData(_GtaoPackedData, UV, UnpackedAOs, UnpackedDepths);
+
+    weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
+    total += weight * UnpackedAOs.x;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.y, linearCentralDepth);
+    total += weight * UnpackedAOs.y;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
+    total += weight * UnpackedAOs.z;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.w, linearCentralDepth);
+    total += weight * UnpackedAOs.w;
+    totalWeight += weight;
+
+    UV = GTAOClampAndScaleUVForBilinear((centralPos + float2(2.0, 2.0)) * _GtaoBufferSize.zw);
+    GTAOGatherAOData(_GtaoPackedData, UV, UnpackedAOs, UnpackedDepths);
+
+    weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
+    total += weight * UnpackedAOs.x;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.y, linearCentralDepth);
+    total += weight * UnpackedAOs.y;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
+    total += weight * UnpackedAOs.z;
+    totalWeight += weight;
+
+    weight = BilateralWeight(UnpackedDepths.w, linearCentralDepth);
+    total += weight * UnpackedAOs.w;
+    totalWeight += weight;
+
+    total /= totalWeight;
+    return total;
+}
+
+[numthreads(8, 8, 1)]
+void SpatialDenoise(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    GTAO_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    if (dispatchThreadId.x >= (uint)_GtaoBufferSize.x || dispatchThreadId.y >= (uint)_GtaoBufferSize.y)
+        return;
+
+    float centralDepth, centralAO;
+    float final = Blur(dispatchThreadId.xy, centralDepth, centralAO);
+
+#if TO_TEMPORAL
+    GTAO_STORE(_GtaoOcclusionTexture, dispatchThreadId.xy, GTAOPackAOOutput(final, centralDepth));
+#else
+    GTAO_STORE(_GtaoOcclusionTexture, dispatchThreadId.xy, GTAOOutputFinalAO(final));
+#endif
+}

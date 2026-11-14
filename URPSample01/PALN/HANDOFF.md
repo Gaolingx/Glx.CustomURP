@@ -1,6 +1,6 @@
 # ScreenSpaceLighting 交接
 
-> 更新：2026-11-14（T4 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
+> 更新：2026-11-14（T5 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
 
 ## 当前位置
 
@@ -9,22 +9,23 @@
 - **T2 已退出（2026-11-14）**。Core 已提供 DepthNormals smoothness 编码、最早 Motion/Depth 调度和调度单元测试；无插件时三路径 Frame Debugger 事件数据与 T1 基线逐事件一致，探针在 203 时 Motion/Depth 已有效，TAA/Motion Blur 早/晚 Motion 输出逐字节一致。
 - **T3 已退出（2026-11-14）**。两个空 Renderer Feature（SSL / GTAO）、Volume 组件、能力检测、neutral 输出和私有 history 骨架已落地；真实 UI 路径配置、Volume 控队、空效果逐像素一致、无插件回归和 EditMode 测试全部通过，唯一事实入口为 `validation/T3/T3Report.json`（`t3ExitCriteriaMet=true`）。
 - **T4 已退出（2026-11-14）**。SSL 私有 packed Hi-Z（mip/offset/UV scale）、当前帧 Gaussian 颜色金字塔、双缓冲 previous color/depth、reset generation 和 7 个调试视图已落地；三路径下卷开启时 Pass 均执行且最终图像与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 重置、同帧读写槽分离、双相机隔离和 GTAO 缺失时 SSL 独立工作全部通过，Frame Debugger 证明 203 → 400 → 501 顺序。唯一事实入口为 `validation/T4/T4Report.json`（`t4ExitCriteriaMet=true`）。当前仍没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成。
-- **T5–T14 未开始**。
+- **T5 已退出（2026-11-14）**。独立 GTAO 全 kernel（Main / Spatial / Temporal / CopyHistory / Blur+Upsample）、私有 packed Hi-Z、双缓冲 AO 历史、SSAO 冲突仲裁和 SSAO 式 Inspector 已落地；Forward/Forward+/Deferred 三路径 AO 可见且无双重 AO，SSL 特征顺序任意组合图像逐字节一致，intensity=0 与 Feature 关闭恢复 T1 基线逐字节一致，禁用 SSAO 冲突时 GTAO 零 dispatch。唯一事实入口为 `validation/T5/T5Report.json`（`t5ExitCriteriaMet=true`）。SSGI、SSR、Refraction 仍未实现。
+- **T6–T14 未开始**。
 - **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run16 与无效运行全部保留。
 - 临时 Player 已清理；原始运行目录、日志、CSV、PNG 和报告均保留。四项 ProjectSettings 已恢复原始 SHA-256。
 
-唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）与 [T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）。
+唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）、[T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）与 [T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）。
 
-## 下一步：T5 独立 GTAO
+## 下一步：T6 SSGI
 
-按计划第 8.1 节实现 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 冲突仲裁和 SSAO 式 Inspector。T4 已提供可复用的 packed Hi-Z / 历史 / 调试基础设施，但 **GTAO 不得复用 SSL 实例的 RTHandle 或 offset buffer**（T0 资源隔离）：
+按计划 8.2 节实现 SSGI：全/半分辨率 Trace + Reproject、TemporalFilter validation/accumulation/copy、DiffuseDenoiser 必要支路、Bilateral Upsample、HF/LF 历史与相机 reset。复用 T4 的 SSL 私有 Hi-Z、previous color/depth 和 T5 的 GTAO 调度/调试经验，但 SSGI 必须使用 SSL 自己的实例资源，不得读取 GTAO 的 pyramid/offset/history：
 
-1. 移植 GTAO Main / Spatial / Temporal / CopyHistory / 必要 Blur+Upsample。
-2. 使用 GTAO 自己的 Hi-Z 和 AO 历史；Motion/Depth 由 Core 提前调度。
-3. 实现 SSAO 冲突仲裁（内置 SSAO 优先、GTAO 一次性警告并禁用）和白色 neutral 清理。
-4. 验收：三路径 AO 语义正确、无双重 AO、与 SSL 任意顺序组合、禁用后恢复基线。
+1. 移植 `ScreenSpaceGlobalIllumination.compute` 的 Trace/Reproject 与 denoise compute，绑定 SSL 颜色金字塔/上一帧深度/内置 Motion。
+2. 输出 hit radiance + 有效权重；miss 时权重为 0，保留 bakedGI/SH/APV。
+3. 接入材质端 GI 混合（Core 新增输入/混合头），Forward/Forward+/Deferred 统一 Pre-GBuffer 消费。
+4. 验收：三路径无 emission 重复、miss 不压黑、首帧/disocclusion fallback，raw/denoised/history 调试图与最终消费一致。
 
-不得跳过 T5 直接实现 SSGI/SSR。
+不得跳过 T6 直接实现 SSR/Refraction。
 
 ## T4 证据与复现
 
@@ -57,6 +58,40 @@ T4 事实与限制：
 - 当前颜色金字塔在 400（opaque+sky 后）生成；上一帧颜色/深度在 501（transparent 后）双缓冲捕获，效果读取槽与当帧写入槽不同。
 - URP 的 `resetHistoryFrames` 计数器有上升和下降两个边沿，因此一次手工 reset 可能连续失效两代；这是保守行为，不会复用未初始化历史。
 - 仅实现 Compatibility `ScriptableRenderPass.Execute` 路径；RenderGraph 路径未注册这些 Pass。
+
+## T5 证据与复现
+
+- 结论：[T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）
+- 渲染/生命周期：[T5Verification.json](validation/T5/T5Verification.json)（三路径 `passed=true`）
+- Frame Debugger：[FrameDebuggerReport.json](validation/T5/FrameDebugger/FrameDebuggerReport.json)（Forward/Forward+ 82 事件，Deferred 93；GTAO Depth Pyramid → GTAO dispatch → opaque/GBuffer）
+- EditMode：`validation/T5/UnityTests.log`（104 passed / 0 failed）
+- 调试图：`validation/T5/T5_<Mode>_*.png`（raw/final/global AO、深度金字塔 mip0/mip2、half/full、spatial-only、combined order、SSAO conflict、尺寸变化）
+
+复现命令（先关闭其他 Unity 编辑器）：
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT5Verification.RunT5Verification -LogPath "PALN/validation/T5/UnityT5Verification.log" -ReportPath "PALN/validation/T5/UnityT5VerificationSettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T5/UnityTests.log" -ReportPath "PALN/validation/T5/UnityTestsSettingsRestoration.json"
+
+python "PALN/validation/T5/Analyze-T5Evidence.py"
+```
+
+Frame Debugger 采集（交互式编辑器，参数必须逐项传入）：
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PALN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PALN/validation/T5/FrameDebugger/UnityT5FrameDebugger.log' -ReportPath 'PALN/validation/T5/FrameDebugger/UnityT5FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PALN/validation/T5/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT5ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT5ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT5DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
+```
+
+T5 事实与限制：
+
+- GTAO 拥有自己的 `GtaoDepthPyramid` + offset buffer + 双缓冲 AO 历史；与 SSL 同时开启时 Hi-Z 显存翻倍（1280×720 验证中 `duplicateHiZBytes=11,059,200`），按 T0 资源隔离接受。
+- AO 输出为 URP 可见度（1=无遮挡、白色 neutral）；HDRP 的 inverse AO 在 `GTAOOutputFinalAO` 中转成正向。
+- Deferred 路径中法线来自 GBuffer2：`UniversalRenderer.cameraNormalsTextureHandle` 统一返回 forward 的 `m_NormalsTexture` 或 deferred 的 GBuffer2 附件；tracing 使用 decal 前材质数据。
+- 三路径 GTAO 主 pass 均在 204（GBuffer 210 / opaque 250 之前）；深度金字塔 203，Motion 202；Frame Debugger 已逐事件确认。
+- 内置 SSAO 有效时 GTAO 不入队并一次性警告；禁用 GTAO 后 SSAO 图像逐字节不变，证明未叠加第二份 AO。Deferred 验证渲染器中 stock SSAO 图像恰好等于基线，仲裁证据以 GTAO 零 dispatch 为准。
+- 验证场景必须调用 `DynamicGI.UpdateEnvironment()`，否则 skybox 环境探针为黑，AO 只能通过 `directLightingStrength>0` 才可见；T5 验证使用默认 `directLightingStrength=0` 直接验证 indirect AO。
+- 仅支持 Compatibility `ScriptableRenderPass.Execute`；RenderGraph 路径未注册。XR single-pass 复用单视图矩阵，逐眼矩阵留到 T13。
 
 ## T3 证据与复现
 
@@ -147,6 +182,9 @@ python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
 - T4 结论：[T4Report.json](validation/T4/T4Report.json)
 - T4 渲染/生命周期：[T4Verification.json](validation/T4/T4Verification.json)
 - T4 Frame Debugger：[FrameDebuggerReport.json](validation/T4/FrameDebugger/FrameDebuggerReport.json)
+- T5 结论：[T5Report.json](validation/T5/T5Report.json)
+- T5 渲染/生命周期：[T5Verification.json](validation/T5/T5Verification.json)
+- T5 Frame Debugger：[FrameDebuggerReport.json](validation/T5/FrameDebugger/FrameDebuggerReport.json)
 - T3 渲染/生命周期：[T3Verification.json](validation/T3/T3Verification.json)
 - T3 真实 UI 路径：[T3UiEvidence.json](validation/T3/UI/T3UiEvidence.json)
 - T3 无插件回归：`validation/T3/FrameDebuggerNoPlugin/`

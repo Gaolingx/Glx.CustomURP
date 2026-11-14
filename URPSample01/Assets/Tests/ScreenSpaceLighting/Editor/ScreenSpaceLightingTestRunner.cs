@@ -24,7 +24,9 @@ public static class ScreenSpaceLightingTestRunner
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests",
-                "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests"
+                "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests",
+                "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests",
+                "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests"
             }
         }));
     }

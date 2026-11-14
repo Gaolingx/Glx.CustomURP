@@ -509,6 +509,19 @@ namespace UnityEngine.Rendering.Universal
             get => m_ActiveRenderPassQueue;
         }
 
+        // Generic feature lookup for cross-feature arbitration (for example AO producers).
+        // It stays type-agnostic so the renderer never depends on a concrete plugin feature.
+        internal T GetRendererFeature<T>() where T : ScriptableRendererFeature
+        {
+            for (int i = 0; i < m_RendererFeatures.Count; ++i)
+            {
+                if (m_RendererFeatures[i] is T feature)
+                    return feature;
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Supported rendering features by this renderer.
         /// <see cref="SupportedRenderingFeatures"/>

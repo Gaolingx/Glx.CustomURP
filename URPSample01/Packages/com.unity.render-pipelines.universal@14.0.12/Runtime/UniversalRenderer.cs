@@ -134,11 +134,29 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_XRTargetHandleAlias;
         internal RTHandle m_CameraDepthAttachment_D3d_11;
         internal RTHandle m_DepthTexture;
-        RTHandle m_NormalsTexture;
+        internal RTHandle m_NormalsTexture;
         RTHandle m_DecalLayersTexture;
         RTHandle m_OpaqueColor;
-        RTHandle m_MotionVectorColor;
+        internal RTHandle m_MotionVectorColor;
         RTHandle m_MotionVectorDepth;
+
+        // Absolute normal buffer of the current pass. In deferred mode the normals are written into
+        // the GBuffer2 attachment, so m_NormalsTexture alone is null there.
+        internal RTHandle cameraNormalsTextureHandle
+        {
+            get
+            {
+                if (renderingModeActual == RenderingMode.Deferred &&
+                    m_DeferredLights != null &&
+                    m_DeferredLights.GbufferAttachments != null &&
+                    m_DeferredLights.GBufferNormalSmoothnessIndex < m_DeferredLights.GbufferAttachments.Length)
+                {
+                    return m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex];
+                }
+
+                return m_NormalsTexture;
+            }
+        }
 
         ForwardLights m_ForwardLights;
         DeferredLights m_DeferredLights;
