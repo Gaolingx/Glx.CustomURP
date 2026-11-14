@@ -1241,6 +1241,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for the opaque screen-space reflection contribution. </summary>
         public const string ScreenSpaceSSR = "_SCREEN_SPACE_SSR";
 
+        /// <summary> Keyword used for the transparent screen-space reflection contribution. </summary>
+        public const string ScreenSpaceTransparentSSR = "_SCREEN_SPACE_TRANSPARENT_SSR";
+
+        /// <summary> Material keyword that opts a transparent material into transparent SSR. </summary>
+        public const string TransparentSSRReceive = "_TRANSPARENT_SSR_RECEIVE";
+
         /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
         public const string PointSampling = "_POINT_SAMPLING";
 

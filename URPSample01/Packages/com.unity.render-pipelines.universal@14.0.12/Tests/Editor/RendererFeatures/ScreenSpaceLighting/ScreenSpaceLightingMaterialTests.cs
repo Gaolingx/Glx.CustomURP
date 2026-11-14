@@ -133,5 +133,41 @@ namespace UnityEditor.Rendering.Universal.Tests
             AssertContains(blend, "baseSpecular = environmentSpecular;", "Screen Space Lighting blend");
             AssertContains(blend, "coatSpecular = coatEnvironmentSpecular;", "Screen Space Lighting blend");
         }
+
+        [Test]
+        public void TransparentSsrIsOptInAndUsesItsOwnResult()
+        {
+            string lit = ReadPackageFile("Shaders/Lit.shader");
+            string complexLit = ReadPackageFile("Shaders/ComplexLit.shader");
+            foreach (var shader in new[] { lit, complexLit })
+            {
+                AssertContains(shader, "\"LightMode\" = \"UniversalTransparentDepthNormals\"", "transparent depth normals light mode");
+                AssertContains(shader, "_TRANSPARENT_SSR_RECEIVE", "transparent SSR material keyword");
+                AssertContains(shader, "_SCREEN_SPACE_TRANSPARENT_SSR", "transparent SSR global keyword");
+                AssertContains(shader, "_TransparentSSRReceive", "transparent SSR material property");
+            }
+
+            string sharedPass = ReadPackageFile("Shaders/Utils/TransparentDepthNormalsPass.hlsl");
+            AssertContains(sharedPass, "#if defined(_TRANSPARENT_SSR_RECEIVE)", "shared transparent prepass");
+            AssertContains(sharedPass, "clip(-1.0)", "shared transparent prepass");
+            AssertContains(sharedPass, "DepthNormalsFragment", "shared transparent prepass");
+
+            string blend = ReadPackageFile("ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingBlend.hlsl");
+            AssertContains(blend, "_ScreenSpaceTransparentSsrTexture", "transparent SSR blend input");
+            AssertContains(blend, "_ScreenSpaceTransparentSsrParams", "transparent SSR blend input");
+            AssertContains(blend, "defined(_TRANSPARENT_SSR_RECEIVE) && defined(_SCREEN_SPACE_TRANSPARENT_SSR)", "transparent SSR blend branch");
+
+            // Materials without the transparent pass can never contribute a ray origin.
+            foreach (var path in new[]
+                     {
+                         "Shaders/SimpleLit.shader",
+                         "Shaders/Particles/ParticlesLit.shader",
+                         "Shaders/Terrain/TerrainLit.shader",
+                     })
+            {
+                StringAssert.DoesNotContain("UniversalTransparentDepthNormals", ReadPackageFile(path), $"{path} must not be drawn by the transparent prepass.");
+                StringAssert.DoesNotContain("_SCREEN_SPACE_TRANSPARENT_SSR", ReadPackageFile(path), $"{path} must not consume transparent SSR.");
+            }
+        }
     }
 }

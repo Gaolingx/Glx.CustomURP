@@ -15,6 +15,8 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingSettings m_Settings;
         ScreenSpaceLightingSsgiPass m_SsgiPass;
         ScreenSpaceLightingSsrPass m_SsrPass;
+        ScreenSpaceLightingTransparentDepthNormalsPass m_TransparentDepthNormalsPass;
+        ScreenSpaceLightingTransparentSsrPass m_TransparentSsrPass;
         readonly MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
 #if UNITY_EDITOR
@@ -26,12 +28,20 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = k_RenderPassEvent;
         }
 
-        internal void Setup(ScreenSpaceLightingHistory history, ScreenSpaceLightingSettings settings, ScreenSpaceLightingSsgiPass ssgiPass, ScreenSpaceLightingSsrPass ssrPass)
+        internal void Setup(
+            ScreenSpaceLightingHistory history,
+            ScreenSpaceLightingSettings settings,
+            ScreenSpaceLightingSsgiPass ssgiPass,
+            ScreenSpaceLightingSsrPass ssrPass,
+            ScreenSpaceLightingTransparentDepthNormalsPass transparentDepthNormalsPass,
+            ScreenSpaceLightingTransparentSsrPass transparentSsrPass)
         {
             m_History = history;
             m_Settings = settings;
             m_SsgiPass = ssgiPass;
             m_SsrPass = ssrPass;
+            m_TransparentDepthNormalsPass = transparentDepthNormalsPass;
+            m_TransparentSsrPass = transparentSsrPass;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -186,6 +196,25 @@ namespace UnityEngine.Rendering.Universal
                         return false;
                     outputMode = 1;
                     texture = m_SsrPass.outputTexture.rt;
+                    return true;
+                }
+                case ScreenSpaceLightingDebugMode.TransparentDepth:
+                {
+                    if (m_TransparentDepthNormalsPass == null || !m_TransparentDepthNormalsPass.producedOutput ||
+                        m_History.transparentDepth == null || m_History.transparentDepth.rt == null)
+                        return false;
+                    outputMode = 0;
+                    texture = m_History.transparentDepth.rt;
+                    return true;
+                }
+                case ScreenSpaceLightingDebugMode.SsrTransparentRaw:
+                case ScreenSpaceLightingDebugMode.SsrTransparentWeight:
+                {
+                    if (m_TransparentSsrPass == null || !m_TransparentSsrPass.producedOutput ||
+                        m_TransparentSsrPass.outputTexture == null || m_TransparentSsrPass.outputTexture.rt == null)
+                        return false;
+                    outputMode = m_Settings.debugMode == ScreenSpaceLightingDebugMode.SsrTransparentWeight ? 3 : 1;
+                    texture = m_TransparentSsrPass.outputTexture.rt;
                     return true;
                 }
                 default:

@@ -113,5 +113,16 @@ namespace UnityEngine.Rendering.Universal
 
         internal static readonly string SsrNormalsOctKeyword = "SSR_NORMALS_OCT";
         internal static readonly string SsrApproxKeyword = "SSR_APPROX";
+
+        // ---------------------------------------------------------------------------------------
+        // Transparent Screen Space Reflections
+        // ---------------------------------------------------------------------------------------
+
+        internal static readonly int CameraDepthAttachment = Shader.PropertyToID("_CameraDepthAttachment");
+        internal const string OutputDepthKeyword = "_OUTPUT_DEPTH";
+
+        internal static readonly int ScreenSpaceTransparentReflectionTexture = Shader.PropertyToID("_ScreenSpaceTransparentSsrTexture");
+        internal static readonly int ScreenSpaceTransparentReflectionParams = Shader.PropertyToID("_ScreenSpaceTransparentSsrParams");
+        internal static readonly string ScreenSpaceTransparentReflectionKeyword = "_SCREEN_SPACE_TRANSPARENT_SSR";
     }
 }

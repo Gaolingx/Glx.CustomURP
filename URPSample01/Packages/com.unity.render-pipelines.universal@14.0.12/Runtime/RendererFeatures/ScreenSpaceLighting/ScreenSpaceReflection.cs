@@ -46,6 +46,14 @@ namespace UnityEngine.Rendering.Universal
         public BoolParameter enabled = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
+        /// Allows transparent materials that opt in (Receive Transparent SSR) to trace reflections.
+        /// Transparent reflections always use the Approximation algorithm and the previous frame
+        /// color pyramid; the opaque algorithm setting is not applied to them.
+        /// </summary>
+        [Tooltip("Lets transparent materials that enable Receive Transparent SSR reflect the scene. Always uses the Approximation algorithm.")]
+        public BoolParameter enabledTransparent = new BoolParameter(false);
+
+        /// <summary>
         /// Selects the reflection algorithm. Switching resets the accumulation history.
         /// </summary>
         [Tooltip("Reflection algorithm. Switching the algorithm resets the accumulation history.")]

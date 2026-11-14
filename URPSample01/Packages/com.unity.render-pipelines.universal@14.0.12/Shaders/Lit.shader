@@ -56,6 +56,9 @@ Shader "Universal Render Pipeline/Lit"
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _BlendModePreserveSpecular("_BlendModePreserveSpecular", Float) = 1.0
         [HideInInspector] _AlphaToMask("__alphaToMask", Float) = 0.0
+        // Opt-in for transparent screen-space reflections. Only transparent materials that enable
+        // this contribute a ray origin and consume the transparent SSR result.
+        [ToggleUI] _TransparentSSRReceive("Receive Transparent SSR", Float) = 0.0
 
         [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
@@ -130,6 +133,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
+            #pragma shader_feature_local_fragment _TRANSPARENT_SSR_RECEIVE
 
             // -------------------------------------
             // Universal Pipeline keywords
@@ -143,6 +147,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _SCREEN_SPACE_GI
             #pragma multi_compile_fragment _ _SCREEN_SPACE_SSR
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_TRANSPARENT_SSR
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _LIGHT_LAYERS
@@ -397,6 +402,58 @@ Shader "Universal Render Pipeline/Lit"
             // Includes
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitDepthNormalsPass.hlsl"
+            ENDHLSL
+        }
+
+        // Writes the transparent depth/normal input for screen-space reflections. The Screen Space
+        // Lighting feature draws this light mode into a private target seeded from the opaque depth,
+        // so the main transparent pass keeps its own depth test and write state. Materials that do
+        // not opt in with _TRANSPARENT_SSR_RECEIVE are discarded.
+        Pass
+        {
+            Name "TransparentDepthNormals"
+            Tags
+            {
+                "LightMode" = "UniversalTransparentDepthNormals"
+            }
+
+            // -------------------------------------
+            // Render State Commands
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Shader Stages
+            #pragma vertex TransparentDepthNormalsVertex
+            #pragma fragment TransparentDepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
+            #pragma shader_feature_local_fragment _SPECULAR_SETUP
+            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local_fragment _TRANSPARENT_SSR_RECEIVE
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+
+            // -------------------------------------
+            // Includes
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/TransparentDepthNormalsPass.hlsl"
             ENDHLSL
         }
 

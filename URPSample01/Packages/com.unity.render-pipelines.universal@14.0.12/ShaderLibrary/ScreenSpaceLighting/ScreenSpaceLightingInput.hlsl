@@ -14,4 +14,10 @@ TEXTURE2D_X(_ScreenSpaceSsrTexture);
 // x: weight scale (volume intensity), y..w: reserved, always zero
 float4 _ScreenSpaceSsrParams;
 
+// Transparent reflections use their own result: the opaque trace never covers transparent ray
+// origins, and the opaque material keyword is disabled before transparents are drawn.
+TEXTURE2D_X(_ScreenSpaceTransparentSsrTexture);
+// x: weight scale (volume intensity), y..w: reserved, always zero
+float4 _ScreenSpaceTransparentSsrParams;
+
 #endif

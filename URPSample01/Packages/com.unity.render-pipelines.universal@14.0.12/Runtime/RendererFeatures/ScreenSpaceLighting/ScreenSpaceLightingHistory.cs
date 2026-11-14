@@ -13,6 +13,10 @@ namespace UnityEngine.Rendering.Universal
         public int height { get; private set; }
         public int resetCount { get; private set; }
         public int lastResetFrame { get; private set; }
+        // Monotonic per-camera render serial. The transparent SSR pass requires that the transparent
+        // prepass produced its input with the same serial, which proves the 447 -> 449 order instead
+        // of consuming the previous frame's depth and normals.
+        internal int frameSerial { get; private set; }
         public int bufferIndex { get; private set; }
         public bool hasValidHistory { get; private set; }
         public int validFrameCount { get; private set; }
@@ -292,6 +296,114 @@ namespace UnityEngine.Rendering.Universal
         int m_SsrSlices;
         TextureDimension m_SsrDimension;
 
+        // ---------------------------------------------------------------------------------------
+        // Transparent Screen Space Reflections (Approximation only)
+        // ---------------------------------------------------------------------------------------
+
+        // The prepass writes the transparent ray origin into a private depth/normal pair. The depth
+        // target starts as a copy of the opaque camera depth, so transparent surfaces behind opaque
+        // geometry are never used as an origin. The SSR output and hit point are separate from the
+        // opaque ones so neither trace can overwrite the other.
+        internal RTHandle transparentDepth { get; private set; }
+        internal RTHandle transparentNormals { get; private set; }
+        internal RTHandle ssrTransparentHitPoint { get; private set; }
+        internal RTHandle ssrTransparentOutput { get; private set; }
+        internal int transparentWidth { get; private set; }
+        internal int transparentHeight { get; private set; }
+        internal int transparentResourceGeneration { get; private set; }
+        internal bool ssrTransparentOutputProduced { get; private set; }
+        internal bool transparentResourcesAllocated =>
+            transparentDepth != null && transparentNormals != null &&
+            ssrTransparentHitPoint != null && ssrTransparentOutput != null;
+
+        internal void EnsureTransparentSsrResources(int width, int height, int viewCount, TextureDimension resourceDimension)
+        {
+            width = Mathf.Max(1, width);
+            height = Mathf.Max(1, height);
+            viewCount = Mathf.Max(1, viewCount);
+
+            if (transparentResourcesAllocated &&
+                m_TransparentWidth == width &&
+                m_TransparentHeight == height &&
+                m_TransparentSlices == viewCount &&
+                m_TransparentDimension == resourceDimension)
+            {
+                return;
+            }
+
+            ReleaseTransparentResources();
+
+            m_TransparentWidth = width;
+            m_TransparentHeight = height;
+            m_TransparentSlices = viewCount;
+            m_TransparentDimension = resourceDimension;
+            transparentWidth = width;
+            transparentHeight = height;
+
+            transparentDepth = RTHandles.Alloc(
+                width,
+                height,
+                slices: viewCount,
+                depthBufferBits: DepthBits.Depth32,
+                colorFormat: GraphicsFormat.None,
+                filterMode: FilterMode.Point,
+                wrapMode: TextureWrapMode.Clamp,
+                dimension: resourceDimension,
+                enableRandomWrite: false,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "SslTransparentDepth");
+
+            transparentNormals = RTHandles.Alloc(
+                width,
+                height,
+                slices: viewCount,
+                depthBufferBits: DepthBits.None,
+                colorFormat: Internal.DepthNormalOnlyPass.GetGraphicsFormat(),
+                filterMode: FilterMode.Point,
+                wrapMode: TextureWrapMode.Clamp,
+                dimension: resourceDimension,
+                enableRandomWrite: false,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "SslTransparentNormals");
+
+            ssrTransparentHitPoint = RTHandles.Alloc(
+                width,
+                height,
+                slices: viewCount,
+                depthBufferBits: DepthBits.None,
+                colorFormat: GraphicsFormat.R16G16_SFloat,
+                filterMode: FilterMode.Point,
+                wrapMode: TextureWrapMode.Clamp,
+                dimension: resourceDimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "SslSsrTransparentHitPoint");
+
+            ssrTransparentOutput = RTHandles.Alloc(
+                width,
+                height,
+                slices: viewCount,
+                depthBufferBits: DepthBits.None,
+                colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                filterMode: FilterMode.Bilinear,
+                wrapMode: TextureWrapMode.Clamp,
+                dimension: resourceDimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "SslSsrTransparentOutput");
+
+            transparentResourceGeneration++;
+        }
+
+        int m_TransparentWidth;
+        int m_TransparentHeight;
+        int m_TransparentSlices;
+        TextureDimension m_TransparentDimension;
+
         // PBR accumulation owns two full resolution RGBA16F histories plus the current reproject
         // output. They are only allocated while the PBR algorithm is selected.
         internal RTHandle ssrPbrOriginal { get; private set; }
@@ -430,17 +542,26 @@ namespace UnityEngine.Rendering.Universal
 
         public void BeginFrame()
         {
+            frameSerial++;
             readSlot = hasValidHistory ? bufferIndex : -1;
             writeSlot = bufferIndex ^ 1;
             readColorPyramid = readSlot >= 0 ? m_HistoryColorPyramids[readSlot] : null;
             readPreviousDepth = readSlot >= 0 ? m_PreviousDepths[readSlot] : null;
             ssrOutputProduced = false;
+            ssrTransparentOutputProduced = false;
         }
 
         // Called by ScreenSpaceLightingSsrPass once both kernels dispatched for this camera.
         internal void MarkSsrOutputProduced()
         {
             ssrOutputProduced = true;
+        }
+
+        // Called by ScreenSpaceLightingTransparentSsrPass; the transparent result is never reused
+        // across frames, so this only marks the current frame.
+        internal void MarkSsrTransparentOutputProduced()
+        {
+            ssrTransparentOutputProduced = true;
         }
 
         public void Reset(int width, int height, int frameIndex)
@@ -457,6 +578,7 @@ namespace UnityEngine.Rendering.Universal
             readColorPyramid = null;
             readPreviousDepth = null;
             ssrOutputProduced = false;
+            ssrTransparentOutputProduced = false;
             ResetSsgiHistory();
             ResetSsrPbrHistory();
         }
@@ -599,6 +721,7 @@ namespace UnityEngine.Rendering.Universal
         {
             ReleaseSsgiResources();
             ReleaseSsrResources();
+            ReleaseTransparentResources();
             ReleaseResources();
             width = 0;
             height = 0;
@@ -690,6 +813,25 @@ namespace UnityEngine.Rendering.Universal
             ssrPbrReadSlot = -1;
             ssrPbrWriteSlot = 0;
             ssrPbrBufferIndex = 0;
+        }
+
+        void ReleaseTransparentResources()
+        {
+            RTHandles.Release(transparentDepth);
+            transparentDepth = null;
+            RTHandles.Release(transparentNormals);
+            transparentNormals = null;
+            RTHandles.Release(ssrTransparentHitPoint);
+            ssrTransparentHitPoint = null;
+            RTHandles.Release(ssrTransparentOutput);
+            ssrTransparentOutput = null;
+
+            transparentWidth = 0;
+            transparentHeight = 0;
+            m_TransparentWidth = 0;
+            m_TransparentHeight = 0;
+            m_TransparentSlices = 0;
+            ssrTransparentOutputProduced = false;
         }
 
         void ReleaseResources()

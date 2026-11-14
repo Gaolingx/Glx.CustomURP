@@ -40,6 +40,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, workflowModeNames);
 
             base.DrawSurfaceOptions(material);
+
+            // The transparent screen-space reflection opt-in only applies to transparent materials;
+            // opaque materials are already covered by the opaque SSR path.
+            bool opaque = surfaceTypeProp == null ||
+                          (BaseShaderGUI.SurfaceType)surfaceTypeProp.floatValue == BaseShaderGUI.SurfaceType.Opaque;
+            if (!opaque && litProperties.transparentSSRReceive != null)
+                DrawFloatToggleProperty(LitGUI.Styles.transparentSSRReceiveText, litProperties.transparentSSRReceive, 1);
         }
 
         // material main surface inputs

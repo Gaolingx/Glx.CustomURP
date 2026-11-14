@@ -20,8 +20,13 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal ComputeShader bilateralUpsampleCompute;
         [SerializeField] internal ComputeShader ssrCompute;
 
+        // Seeds the private transparent depth target from the opaque camera depth. The URP
+        // CopyDepth shader is reused so the _OUTPUT_DEPTH (SV_Depth) path is identical.
+        [SerializeField] internal Shader transparentDepthCopyShader;
+
         [NonSerialized] Material m_ColorPyramidMaterial;
         [NonSerialized] Material m_DebugMaterial;
+        [NonSerialized] Material m_TransparentDepthCopyMaterial;
 
         // The depth pyramid and color pyramid are the T4 contract; SSGI resources are optional so a
         // renderer that only uses the color history keeps working.
@@ -35,8 +40,13 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool hasSsrResources => ssrCompute != null;
 
+        // Transparent SSR additionally needs the depth copy shader to seed the private depth target.
+        internal bool hasTransparentSsrResources => ssrCompute != null && transparentDepthCopyShader != null;
+
         // The debug view is optional at runtime; the feature editor and tests require the full set.
-        internal bool isComplete => hasRuntimeResources && hasSsgiResources && hasSsrResources && debugShader != null;
+        internal bool isComplete =>
+            hasRuntimeResources && hasSsgiResources && hasSsrResources &&
+            transparentDepthCopyShader != null && debugShader != null;
 
         internal Material colorPyramidMaterial
         {
@@ -58,12 +68,24 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal Material transparentDepthCopyMaterial
+        {
+            get
+            {
+                if (m_TransparentDepthCopyMaterial == null && transparentDepthCopyShader != null)
+                    m_TransparentDepthCopyMaterial = CoreUtils.CreateEngineMaterial(transparentDepthCopyShader);
+                return m_TransparentDepthCopyMaterial;
+            }
+        }
+
         internal void DisposeMaterials()
         {
             CoreUtils.Destroy(m_ColorPyramidMaterial);
             m_ColorPyramidMaterial = null;
             CoreUtils.Destroy(m_DebugMaterial);
             m_DebugMaterial = null;
+            CoreUtils.Destroy(m_TransparentDepthCopyMaterial);
+            m_TransparentDepthCopyMaterial = null;
         }
     }
 
@@ -129,6 +151,13 @@ namespace UnityEngine.Rendering.Universal
                 resources.ssrCompute = FindPackageAsset<ComputeShader>(
                     "ScreenSpaceReflections t:ComputeShader",
                     "/ScreenSpaceLighting/ScreenSpaceReflections.compute");
+            }
+
+            if (resources.transparentDepthCopyShader == null)
+            {
+                resources.transparentDepthCopyShader = FindPackageAsset<Shader>(
+                    "CopyDepth t:Shader",
+                    "/Shaders/Utils/CopyDepth.shader");
             }
 #endif
         }

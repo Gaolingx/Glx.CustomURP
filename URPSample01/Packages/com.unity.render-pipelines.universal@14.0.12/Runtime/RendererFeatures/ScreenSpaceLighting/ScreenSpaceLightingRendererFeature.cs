@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingDepthPyramidPass m_DepthPyramidPass;
         ScreenSpaceLightingSsgiPass m_SsgiPass;
         ScreenSpaceLightingSsrPass m_SsrPass;
+        ScreenSpaceLightingTransparentDepthNormalsPass m_TransparentDepthNormalsPass;
+        ScreenSpaceLightingTransparentSsrPass m_TransparentSsrPass;
         ScreenSpaceLightingCleanupPass m_CleanupPass;
         ScreenSpaceLightingCurrentColorPyramidPass m_CurrentColorPyramidPass;
         ScreenSpaceLightingColorHistoryCapturePass m_ColorHistoryCapturePass;
@@ -28,6 +30,8 @@ namespace UnityEngine.Rendering.Universal
         internal ScreenSpaceLightingDepthPyramidPass depthPyramidPass => m_DepthPyramidPass;
         internal ScreenSpaceLightingSsgiPass ssgiPass => m_SsgiPass;
         internal ScreenSpaceLightingSsrPass ssrPass => m_SsrPass;
+        internal ScreenSpaceLightingTransparentDepthNormalsPass transparentDepthNormalsPass => m_TransparentDepthNormalsPass;
+        internal ScreenSpaceLightingTransparentSsrPass transparentSsrPass => m_TransparentSsrPass;
         internal ScreenSpaceLightingCleanupPass cleanupPass => m_CleanupPass;
         internal ScreenSpaceLightingCurrentColorPyramidPass currentColorPyramidPass => m_CurrentColorPyramidPass;
         internal ScreenSpaceLightingColorHistoryCapturePass colorHistoryCapturePass => m_ColorHistoryCapturePass;
@@ -65,6 +69,8 @@ namespace UnityEngine.Rendering.Universal
             m_DepthPyramidPass = new ScreenSpaceLightingDepthPyramidPass();
             m_SsgiPass = new ScreenSpaceLightingSsgiPass();
             m_SsrPass = new ScreenSpaceLightingSsrPass();
+            m_TransparentDepthNormalsPass = new ScreenSpaceLightingTransparentDepthNormalsPass();
+            m_TransparentSsrPass = new ScreenSpaceLightingTransparentSsrPass();
             m_CleanupPass = new ScreenSpaceLightingCleanupPass();
             m_CurrentColorPyramidPass = new ScreenSpaceLightingCurrentColorPyramidPass();
             m_ColorHistoryCapturePass = new ScreenSpaceLightingColorHistoryCapturePass();
@@ -115,10 +121,13 @@ namespace UnityEngine.Rendering.Universal
             m_DepthPyramidPass.Setup(history, m_Settings.resources);
             m_SsgiPass.Setup(history, m_Settings.resources);
             m_SsrPass.Setup(history, m_Settings.resources, m_Settings);
+            m_TransparentDepthNormalsPass.Setup(history, m_Settings.resources);
+            m_TransparentSsrPass.Setup(history, m_Settings.resources, m_TransparentDepthNormalsPass);
             m_SetupPass.Setup(m_SsgiPass, m_SsrPass);
             m_CurrentColorPyramidPass.Setup(history, m_Settings.resources);
             m_ColorHistoryCapturePass.Setup(history, m_Settings.resources);
-            m_DebugPass.Setup(history, m_Settings, m_SsgiPass, m_SsrPass);
+            m_DebugPass.Setup(history, m_Settings, m_SsgiPass, m_SsrPass,
+                m_TransparentDepthNormalsPass, m_TransparentSsrPass);
 
             renderer.EnqueuePass(m_SetupPass);
             renderer.EnqueuePass(m_DepthPyramidPass);
@@ -126,6 +135,8 @@ namespace UnityEngine.Rendering.Universal
             renderer.EnqueuePass(m_SsrPass);
             renderer.EnqueuePass(m_CleanupPass);
             renderer.EnqueuePass(m_CurrentColorPyramidPass);
+            renderer.EnqueuePass(m_TransparentDepthNormalsPass);
+            renderer.EnqueuePass(m_TransparentSsrPass);
             renderer.EnqueuePass(m_ColorHistoryCapturePass);
 
             if (m_Settings.debugEnabled && m_Settings.resources.debugShader != null)

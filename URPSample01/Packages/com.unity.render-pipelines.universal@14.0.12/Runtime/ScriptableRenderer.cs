@@ -1443,6 +1443,7 @@ namespace UnityEngine.Rendering.Universal
             // previous camera when the feature is absent.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceGI);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceSSR);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceTransparentSSR);
             cmd.SetGlobalVector(s_AmbientOcclusionParamID, Vector4.zero);
         }
 

@@ -30,13 +30,24 @@ half3 ScreenSpaceLightingApplyIndirectDiffuse(half3 bakedGI, float2 normalizedSc
 // once, and the probe contribution keeps its (1 - weight) share.
 // The result is point sampled: SSR is evaluated per full resolution pixel (HDRP uses a LOAD), and a
 // bilinear tap would mix covered pixels with zero-weight miss pixels at the mask boundary.
+half3 ScreenSpaceLightingEvaluateIndirectSpecular(half3 environmentSpecular, half4 ssrSample, half ssrIntensity)
+{
+    half weight = saturate(ssrSample.a * max(ssrIntensity, 0.0h));
+    half3 radiance = max(ssrSample.rgb, half3(0.0, 0.0, 0.0));
+    return lerp(environmentSpecular, radiance, weight);
+}
+
+// Transparent materials use a separate result and keyword. They are drawn after the opaque SSR
+// keyword has been disabled, so a transparent surface never consumes the opaque trace (which was
+// started from opaque depth) and an opaque material never consumes the transparent trace.
 half3 ScreenSpaceLightingApplyIndirectSpecular(half3 environmentSpecular, float2 normalizedScreenSpaceUV)
 {
 #if defined(_SCREEN_SPACE_SSR)
     half4 ssr = SAMPLE_TEXTURE2D_X(_ScreenSpaceSsrTexture, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV));
-    half weight = saturate(ssr.a * _ScreenSpaceSsrParams.x);
-    half3 radiance = max(ssr.rgb, half3(0.0, 0.0, 0.0));
-    return lerp(environmentSpecular, radiance, weight);
+    return ScreenSpaceLightingEvaluateIndirectSpecular(environmentSpecular, ssr, _ScreenSpaceSsrParams.x);
+#elif defined(_TRANSPARENT_SSR_RECEIVE) && defined(_SCREEN_SPACE_TRANSPARENT_SSR)
+    half4 ssr = SAMPLE_TEXTURE2D_X(_ScreenSpaceTransparentSsrTexture, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV));
+    return ScreenSpaceLightingEvaluateIndirectSpecular(environmentSpecular, ssr, _ScreenSpaceTransparentSsrParams.x);
 #else
     return environmentSpecular;
 #endif
@@ -89,6 +100,11 @@ void ScreenSpaceLightingApplyIndirectSpecularClearCoat(
 #if defined(_SCREEN_SPACE_SSR)
     half4 ssr = SAMPLE_TEXTURE2D_X(_ScreenSpaceSsrTexture, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV));
     ScreenSpaceLightingEvaluateIndirectSpecularClearCoat(ssr, _ScreenSpaceSsrParams.x,
+        environmentSpecular, coatEnvironmentSpecular, basePerceptualRoughness, coatMask,
+        baseSpecular, coatSpecular);
+#elif defined(_TRANSPARENT_SSR_RECEIVE) && defined(_SCREEN_SPACE_TRANSPARENT_SSR)
+    half4 ssr = SAMPLE_TEXTURE2D_X(_ScreenSpaceTransparentSsrTexture, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV));
+    ScreenSpaceLightingEvaluateIndirectSpecularClearCoat(ssr, _ScreenSpaceTransparentSsrParams.x,
         environmentSpecular, coatEnvironmentSpecular, basePerceptualRoughness, coatMask,
         baseSpecular, coatSpecular);
 #else

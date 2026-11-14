@@ -13,8 +13,10 @@ namespace UnityEditor.Rendering.Universal
             var settings = feature.settings;
 
             EditorGUILayout.HelpBox(
-                "SSGI, screen-space reflections and refraction are enabled per volume through " +
+                "SSGI, screen-space reflections (opaque and transparent) and refraction are enabled per volume through " +
                 "Add Override > Lighting > Screen Space Global Illumination / Reflection / Refraction. " +
+                "Transparent reflections additionally require the Transparent option on the Reflection override and " +
+                "Receive Transparent SSR on the transparent material. " +
                 "The intermediate debug view only changes the image while a mode other than Off is selected.",
                 MessageType.Info);
 

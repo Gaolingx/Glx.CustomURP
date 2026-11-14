@@ -185,6 +185,10 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
 
+        // Renderer features that draw their own transparent geometry (for example the transparent SSR
+        // prepass) must use the same layer filter as the built-in transparent pass.
+        internal int transparentLayerMask { get; private set; }
+
         /// <summary>
         /// Constructor for the Universal Renderer.
         /// </summary>
@@ -204,6 +208,7 @@ namespace UnityEngine.Rendering.Universal
             m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
             m_CameraMotionVecMaterial = CoreUtils.CreateEngineMaterial(data.shaders.cameraMotionVector);
             m_ObjectMotionVecMaterial = CoreUtils.CreateEngineMaterial(data.shaders.objectMotionVector);
+            transparentLayerMask = data.transparentLayerMask.value;
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;

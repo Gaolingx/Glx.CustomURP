@@ -36,5 +36,11 @@ namespace UnityEngine.Rendering.Universal
         SsrAccumulationSpeed = 13,
         /// <summary>PBR constant buffer diagnostics: accumulation, bias, speed rejection and history validity.</summary>
         SsrPbrParams = 14,
+        /// <summary>Private transparent depth written by the transparent prepass, initialized from opaque depth.</summary>
+        TransparentDepth = 15,
+        /// <summary>Transparent SSR radiance reprojected from the previous color pyramid.</summary>
+        SsrTransparentRaw = 16,
+        /// <summary>Blend weight of the transparent SSR result. Black means the material keeps the reflection probe.</summary>
+        SsrTransparentWeight = 17,
     }
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
@@ -117,6 +118,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public static GUIContent clearCoatText = EditorGUIUtility.TrTextContent("Clear Coat",
                 "A multi-layer material feature which simulates a thin layer of coating on top of the surface material." +
                 "\nPerformance cost is considerable as the specular component is evaluated twice, once per layer.");
+
+            /// <summary>
+            /// The text and tooltip for the transparent screen-space reflection opt-in.
+            /// </summary>
+            public static GUIContent transparentSSRReceiveText = EditorGUIUtility.TrTextContent("Receive Transparent SSR",
+                "Lets this transparent material contribute a ray origin and receive screen-space reflections. " +
+                "Requires the Screen Space Lighting renderer feature and the Transparent option on the Screen Space Reflection volume override.");
 
             /// <summary>
             /// The text and tooltip for the clear coat Mask GUI.
@@ -243,6 +251,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public MaterialProperty clearCoatSmoothness;
 
             /// <summary>
+            /// The MaterialProperty for the transparent screen-space reflection opt-in.
+            /// </summary>
+            public MaterialProperty transparentSSRReceive;
+
+            /// <summary>
             /// Constructor for the <c>LitProperties</c> container struct.
             /// </summary>
             /// <param name="properties"></param>
@@ -271,6 +284,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 clearCoatMap = BaseShaderGUI.FindProperty("_ClearCoatMap", properties, false);
                 clearCoatMask = BaseShaderGUI.FindProperty("_ClearCoatMask", properties, false);
                 clearCoatSmoothness = BaseShaderGUI.FindProperty("_ClearCoatSmoothness", properties, false);
+                transparentSSRReceive = BaseShaderGUI.FindProperty("_TransparentSSRReceive", properties, false);
             }
         }
 
@@ -502,6 +516,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             {
                 CoreUtils.SetKeyword(material, "_CLEARCOAT", false);
                 CoreUtils.SetKeyword(material, "_CLEARCOATMAP", false);
+            }
+
+            // Transparent SSR is opt-in and only meaningful for transparent materials. Opaque
+            // materials must never contribute a transparent ray origin or consume the result.
+            if (material.HasProperty("_TransparentSSRReceive"))
+            {
+                bool receiveTransparentSsr = !IsOpaque(material) && material.GetFloat("_TransparentSSRReceive") > 0.0f;
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings.TransparentSSRReceive, receiveTransparentSsr);
             }
         }
     }
