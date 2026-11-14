@@ -1,0 +1,82 @@
+// Screen Space Lighting private depth pyramid.
+// Ported from HDRP 14.0.12 Runtime/RenderPipeline/RenderPass/DepthPyramid.compute.
+// The packed mip atlas keeps every level inside the top level so the chain works for non power-of-two sizes.
+#pragma kernel KDepthPyramidCopy
+#pragma kernel KDepthPyramidDownsample
+
+#pragma multi_compile _ SSL_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+// SSL_XR_ARRAY is set from C# to match the dimension of the bound depth texture and the private atlas.
+// It is a runtime keyword instead of a texture-array platform default because URP depth textures are
+// plain 2D outside XR single pass.
+#if defined(SSL_XR_ARRAY)
+    #define SSL_TEXTURE2D_X_FLOAT(name)     Texture2DArray<float> name
+    #define SSL_RW_TEXTURE2D_X_FLOAT(name)  RWTexture2DArray<float> name
+    #define SSL_LOAD_SOURCE(coord, z)       _CameraDepthTexture.Load(int4(coord, z, 0))
+    #define SSL_LOAD_ATLAS(coord, z)        _SslDepthMipChain[int3(coord, z)]
+    #define SSL_STORE_ATLAS(coord, z, value) _SslDepthMipChain[int3(coord, z)] = value
+#else
+    #define SSL_TEXTURE2D_X_FLOAT(name)     Texture2D<float> name
+    #define SSL_RW_TEXTURE2D_X_FLOAT(name)  RWTexture2D<float> name
+    #define SSL_LOAD_SOURCE(coord, z)       _CameraDepthTexture.Load(int3(coord, 0))
+    #define SSL_LOAD_ATLAS(coord, z)        _SslDepthMipChain[coord]
+    #define SSL_STORE_ATLAS(coord, z, value) _SslDepthMipChain[coord] = value
+#endif
+
+// Bound explicitly by the depth pyramid pass (the texture handle is not readable through
+// CommandBuffer global texture state on the CPU).
+SSL_TEXTURE2D_X_FLOAT(_CameraDepthTexture);
+SSL_RW_TEXTURE2D_X_FLOAT(_SslDepthMipChain);
+
+CBUFFER_START(SslDepthPyramidCBuffer)
+    uint4 _SslSrcOffsetAndLimit; // {x, y, w - 1, h - 1}
+    uint4 _SslDstOffset;         // {x, y, 0, 0}
+    uint2 _SslDstSize;           // packed level size, guards the 8x8 dispatch tail
+CBUFFER_END
+
+#if UNITY_REVERSED_Z
+    #define SSL_MIN_DEPTH(l, r) max(l, r)
+#else
+    #define SSL_MIN_DEPTH(l, r) min(l, r)
+#endif
+
+// Copies the camera depth (or a resolved depth texture) into mip 0 of the packed atlas.
+// HDRP binds a pre-linearised depth copy; URP stores device depth, which is what reverse-Z
+// ray marching compares against.
+[numthreads(8, 8, 1)]
+void KDepthPyramidCopy(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 limit = _SslSrcOffsetAndLimit.zw;
+    if (dispatchThreadId.x > limit.x || dispatchThreadId.y > limit.y)
+        return;
+
+    uint2 src = _SslSrcOffsetAndLimit.xy + dispatchThreadId.xy;
+    float depth = SSL_LOAD_SOURCE(src, dispatchThreadId.z);
+    SSL_STORE_ATLAS(_SslDstOffset.xy + dispatchThreadId.xy, dispatchThreadId.z, depth);
+}
+
+// Downsamples one mip level into the next packed region by taking the closest sample.
+[numthreads(8, 8, 1)]
+void KDepthPyramidDownsample(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    if (dispatchThreadId.x >= _SslDstSize.x || dispatchThreadId.y >= _SslDstSize.y)
+        return;
+
+    uint2 srcOffset = _SslSrcOffsetAndLimit.xy;
+    uint2 srcLimit = _SslSrcOffsetAndLimit.zw;
+    uint2 dstOffset = _SslDstOffset.xy;
+
+    uint2 srcPixelUL = srcOffset + (dispatchThreadId.xy << 1);
+
+    float p00 = SSL_LOAD_ATLAS(min(srcPixelUL + uint2(0u, 0u), srcLimit), dispatchThreadId.z);
+    float p10 = SSL_LOAD_ATLAS(min(srcPixelUL + uint2(1u, 0u), srcLimit), dispatchThreadId.z);
+    float p01 = SSL_LOAD_ATLAS(min(srcPixelUL + uint2(0u, 1u), srcLimit), dispatchThreadId.z);
+    float p11 = SSL_LOAD_ATLAS(min(srcPixelUL + uint2(1u, 1u), srcLimit), dispatchThreadId.z);
+
+    float closest = SSL_MIN_DEPTH(SSL_MIN_DEPTH(p00, p10), SSL_MIN_DEPTH(p01, p11));
+    SSL_STORE_ATLAS(dstOffset + dispatchThreadId.xy, dispatchThreadId.z, closest);
+}
+
+#undef SSL_MIN_DEPTH

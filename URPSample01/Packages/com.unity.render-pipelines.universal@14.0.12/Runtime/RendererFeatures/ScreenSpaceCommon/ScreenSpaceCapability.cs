@@ -36,9 +36,9 @@ namespace UnityEngine.Rendering.Universal
 
     internal static class ScreenSpaceCapability
     {
-        // The packed depth pyramid samples two depth-linearising values; the compute shaders need
-        // load/store access to it, which is what separates supported graphics devices.
-        internal static readonly GraphicsFormat k_DepthPyramidFormat = GraphicsFormat.R32G32_SFloat;
+        // The packed depth pyramid stores raw device depth in a single channel, matching the HDRP
+        // pyramid layout; the compute shaders need load/store access to it.
+        internal static readonly GraphicsFormat k_DepthPyramidFormat = GraphicsFormat.R32_SFloat;
 
         static bool s_PlatformEvaluated;
         static ScreenSpaceCapabilityResult s_PlatformResult;

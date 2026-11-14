@@ -111,6 +111,15 @@ namespace UnityEngine.Rendering.Universal
             return history;
         }
 
+        internal bool TryGet(Camera camera, int xrEye, out T history)
+        {
+            history = null;
+            if (camera == null)
+                return false;
+
+            return m_Entries.TryGetValue(new Key(camera.GetInstanceID(), xrEye), out var entry) && (history = entry.history) != null;
+        }
+
         internal void PruneDestroyedCameras()
         {
             m_KeysToRemove.Clear();

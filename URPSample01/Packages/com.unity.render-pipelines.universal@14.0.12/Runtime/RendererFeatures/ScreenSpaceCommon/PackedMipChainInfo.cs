@@ -90,5 +90,31 @@ namespace UnityEngine.Rendering.Universal
 
             return mipLevelOffsetsBuffer;
         }
+
+        internal bool IsValid()
+        {
+            return mipLevelCount > 0 && mipLevelSizes != null && mipLevelOffsets != null;
+        }
+
+        // Maps [0, 1] over one packed level to the atlas: xy scales the sample uv, zw moves it to the
+        // level origin. Tracing and the debug views use the same mapping so a level can never leak
+        // into a neighbouring packed region.
+        internal Vector4 ComputeMipUvScaleOffset(int mipLevel)
+        {
+            if (!IsValid())
+                return new Vector4(1f, 1f, 0f, 0f);
+
+            mipLevel = Mathf.Clamp(mipLevel, 0, mipLevelCount - 1);
+            var size = mipLevelSizes[mipLevel];
+            var offset = mipLevelOffsets[mipLevel];
+            float rcpWidth = 1f / Mathf.Max(1, textureSize.x);
+            float rcpHeight = 1f / Mathf.Max(1, textureSize.y);
+
+            return new Vector4(
+                size.x * rcpWidth,
+                size.y * rcpHeight,
+                offset.x * rcpWidth,
+                offset.y * rcpHeight);
+        }
     }
 }

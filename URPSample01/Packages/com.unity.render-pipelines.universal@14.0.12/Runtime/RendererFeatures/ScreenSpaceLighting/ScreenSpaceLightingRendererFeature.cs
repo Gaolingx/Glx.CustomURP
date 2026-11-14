@@ -13,10 +13,19 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ScreenSpaceLightingSettings m_Settings = new ScreenSpaceLightingSettings();
 
         ScreenSpaceLightingSetupPass m_SetupPass;
+        ScreenSpaceLightingDepthPyramidPass m_DepthPyramidPass;
+        ScreenSpaceLightingCurrentColorPyramidPass m_CurrentColorPyramidPass;
+        ScreenSpaceLightingColorHistoryCapturePass m_ColorHistoryCapturePass;
+        ScreenSpaceLightingDebugPass m_DebugPass;
         CameraHistoryStore<ScreenSpaceLightingHistory> m_HistoryStore;
+        bool m_LoggedMissingResources;
 
         internal ScreenSpaceLightingSettings settings => m_Settings;
         internal ScreenSpaceLightingSetupPass setupPass => m_SetupPass;
+        internal ScreenSpaceLightingDepthPyramidPass depthPyramidPass => m_DepthPyramidPass;
+        internal ScreenSpaceLightingCurrentColorPyramidPass currentColorPyramidPass => m_CurrentColorPyramidPass;
+        internal ScreenSpaceLightingColorHistoryCapturePass colorHistoryCapturePass => m_ColorHistoryCapturePass;
+        internal ScreenSpaceLightingDebugPass debugPass => m_DebugPass;
         internal CameraHistoryStore<ScreenSpaceLightingHistory> historyStore => m_HistoryStore;
 
         internal static bool HasAnyEffectEnabled(VolumeStack stack)
@@ -42,9 +51,15 @@ namespace UnityEngine.Rendering.Universal
             if (m_Settings == null)
                 m_Settings = new ScreenSpaceLightingSettings();
 
+            m_Settings.EnsureResources();
+
             m_HistoryStore?.Dispose();
             m_HistoryStore = new CameraHistoryStore<ScreenSpaceLightingHistory>();
             m_SetupPass = new ScreenSpaceLightingSetupPass();
+            m_DepthPyramidPass = new ScreenSpaceLightingDepthPyramidPass();
+            m_CurrentColorPyramidPass = new ScreenSpaceLightingCurrentColorPyramidPass();
+            m_ColorHistoryCapturePass = new ScreenSpaceLightingColorHistoryCapturePass();
+            m_DebugPass = new ScreenSpaceLightingDebugPass();
         }
 
         /// <inheritdoc/>
@@ -63,14 +78,54 @@ namespace UnityEngine.Rendering.Universal
             if (!ScreenSpaceCapability.EvaluateCamera(cameraData).supported)
                 return;
 
-            if (!HasAnyEffectEnabled(VolumeManager.instance.stack))
+            bool anyEffectEnabled = HasAnyEffectEnabled(VolumeManager.instance.stack);
+            if (!anyEffectEnabled && !m_Settings.debugEnabled)
                 return;
+
+            m_Settings.EnsureResources();
+            if (!m_Settings.resources.hasRuntimeResources)
+            {
+                LogMissingResourcesOnce();
+                return;
+            }
+
+            m_LoggedMissingResources = false;
 
             int xrEye = cameraData.xr.enabled ? cameraData.xr.multipassId : 0;
             var descriptor = cameraData.cameraTargetDescriptor;
-            m_HistoryStore.GetOrCreate(cameraData.camera, xrEye, descriptor.width, descriptor.height, frameIndex, cameraData.taaSettings.resetHistoryFrames, out _);
+            var history = m_HistoryStore.GetOrCreate(
+                cameraData.camera,
+                xrEye,
+                descriptor.width,
+                descriptor.height,
+                frameIndex,
+                cameraData.taaSettings.resetHistoryFrames,
+                out _);
+            history.BeginFrame();
+
+            m_DepthPyramidPass.Setup(history, m_Settings.resources);
+            m_CurrentColorPyramidPass.Setup(history, m_Settings.resources);
+            m_ColorHistoryCapturePass.Setup(history, m_Settings.resources);
+            m_DebugPass.Setup(history, m_Settings);
 
             renderer.EnqueuePass(m_SetupPass);
+            renderer.EnqueuePass(m_DepthPyramidPass);
+            renderer.EnqueuePass(m_CurrentColorPyramidPass);
+            renderer.EnqueuePass(m_ColorHistoryCapturePass);
+
+            if (m_Settings.debugEnabled && m_Settings.resources.debugShader != null)
+                renderer.EnqueuePass(m_DebugPass);
+        }
+
+        void LogMissingResourcesOnce()
+        {
+            if (m_LoggedMissingResources)
+                return;
+
+            m_LoggedMissingResources = true;
+            Debug.LogWarning(
+                "Screen Space Lighting is enabled but its depth pyramid compute or color pyramid shader is missing. " +
+                "Assign the package resources in the renderer feature inspector.");
         }
 
         /// <inheritdoc/>
@@ -80,6 +135,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_HistoryStore?.Dispose();
                 m_HistoryStore = null;
+                m_Settings?.resources?.DisposeMaterials();
             }
 
             base.Dispose(disposing);

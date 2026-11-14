@@ -17,8 +17,8 @@ namespace UnityEngine.Rendering.Universal
         internal ScreenSpaceLightingSetupPass()
         {
             renderPassEvent = k_RenderPassEvent;
-            // Trace, reproject and denoise passes are added by T4/T6/T7. Until they exist, requesting
-            // Depth/Normal/Motion would change built-in URP scheduling, so the skeleton stays empty.
+            // Reserved slot for the SSGI/SSR material bindings added by T6/T7. The temporal and
+            // pyramid passes request their own inputs, so this marker requests none.
             ConfigureInput(ScriptableRenderPassInput.None);
         }
 

@@ -18,6 +18,14 @@ namespace UnityEditor.Rendering.Universal.Tests
             "CameraHistoryStore",
             "PackedMipChainInfo",
             "ScreenSpaceCapability",
+            "ScreenSpaceLightingResources",
+            "ScreenSpaceLightingShaderIDs",
+            "ScreenSpaceLightingRenderUtils",
+            "ScreenSpaceLightingDepthPyramidPass",
+            "ScreenSpaceLightingCurrentColorPyramidPass",
+            "ScreenSpaceLightingColorHistoryCapturePass",
+            "ScreenSpaceLightingDebugPass",
+            "ScreenSpaceLightingDebugMode",
         };
 
         // T0 dependency direction: URP core runtime must not know about the renderer-feature plugin types.
