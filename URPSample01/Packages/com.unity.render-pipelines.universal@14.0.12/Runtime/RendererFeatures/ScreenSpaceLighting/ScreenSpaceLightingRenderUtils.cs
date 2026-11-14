@@ -15,6 +15,22 @@ namespace UnityEngine.Rendering.Universal
             return (value + divisor - 1) / divisor;
         }
 
+        internal static RTHandle GetNormalTexture(ScriptableRenderer renderer)
+        {
+            if (renderer is UniversalRenderer universalRenderer)
+                return universalRenderer.cameraNormalsTextureHandle;
+
+            return null;
+        }
+
+        internal static RTHandle GetMotionTexture(ScriptableRenderer renderer)
+        {
+            if (renderer is UniversalRenderer universalRenderer)
+                return universalRenderer.m_MotionVectorColor;
+
+            return null;
+        }
+
         internal static void RenderColorGaussianPyramid(
             CommandBuffer cmd,
             Material material,

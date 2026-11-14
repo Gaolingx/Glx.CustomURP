@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal ComputeShader ssgiTemporalFilterCompute;
         [SerializeField] internal ComputeShader ssgiDiffuseDenoiserCompute;
         [SerializeField] internal ComputeShader bilateralUpsampleCompute;
+        [SerializeField] internal ComputeShader ssrCompute;
 
         [NonSerialized] Material m_ColorPyramidMaterial;
         [NonSerialized] Material m_DebugMaterial;
@@ -32,8 +33,10 @@ namespace UnityEngine.Rendering.Universal
             ssgiDiffuseDenoiserCompute != null &&
             bilateralUpsampleCompute != null;
 
+        internal bool hasSsrResources => ssrCompute != null;
+
         // The debug view is optional at runtime; the feature editor and tests require the full set.
-        internal bool isComplete => hasRuntimeResources && hasSsgiResources && debugShader != null;
+        internal bool isComplete => hasRuntimeResources && hasSsgiResources && hasSsrResources && debugShader != null;
 
         internal Material colorPyramidMaterial
         {
@@ -119,6 +122,13 @@ namespace UnityEngine.Rendering.Universal
                 resources.bilateralUpsampleCompute = FindPackageAsset<ComputeShader>(
                     "BilateralUpsample t:ComputeShader",
                     "/ScreenSpaceCommon/BilateralUpsample.compute");
+            }
+
+            if (resources.ssrCompute == null)
+            {
+                resources.ssrCompute = FindPackageAsset<ComputeShader>(
+                    "ScreenSpaceReflections t:ComputeShader",
+                    "/ScreenSpaceLighting/ScreenSpaceReflections.compute");
             }
 #endif
         }

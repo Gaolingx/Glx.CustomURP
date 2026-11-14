@@ -23,4 +23,18 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _SsgiCameraPositionWS;                // current camera world space position
         public Matrix4x4 _SsgiPrevInvViewProj;               // previous inverse non-jittered view projection
     }
+
+    // Constant buffer of the opaque SSR Approximation kernels. The layout mirrors the subset of
+    // HDRP's ShaderVariablesScreenSpaceReflection the Trace/Reproject pair needs. Every value is a
+    // Vector4 so pushing the buffer only requires SetComputeVectorParam.
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    internal struct ScreenSpaceLightingSsrShaderVariables
+    {
+        public Vector4 _SsrScreenSize;                       // full camera size xy, reciprocal zw
+        public Vector4 _SsrRayMarchingParams;                // step limit, thickness scale, thickness bias, reflects sky
+        public Vector4 _SsrRoughnessFadeParams;              // roughness fade rcp length, fade end times rcp length, fade end, edge fade rcp length
+        public Vector4 _SsrPyramidParams;                    // color pyramid max mip, depth pyramid max mip, unused, unused
+        public Vector4 _SsrColorPyramidScaleAndLimitPrev;    // previous color pyramid uv scale xy, uv limit zw
+        public Vector4 _SsrCameraPositionWS;                 // current camera world space position
+    }
 }

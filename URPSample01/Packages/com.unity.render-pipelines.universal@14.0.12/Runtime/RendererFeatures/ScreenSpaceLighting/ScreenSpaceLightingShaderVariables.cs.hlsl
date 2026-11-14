@@ -21,4 +21,15 @@ CBUFFER_START(ScreenSpaceLightingSsgiShaderVariables)
     float4x4 _SsgiPrevInvViewProj;
 CBUFFER_END
 
+// Generated from UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrShaderVariables
+// PackingRules = Exact
+CBUFFER_START(ScreenSpaceLightingSsrShaderVariables)
+    float4 _SsrScreenSize;
+    float4 _SsrRayMarchingParams;
+    float4 _SsrRoughnessFadeParams;
+    float4 _SsrPyramidParams;
+    float4 _SsrColorPyramidScaleAndLimitPrev;
+    float4 _SsrCameraPositionWS;
+CBUFFER_END
+
 #endif

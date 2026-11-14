@@ -1,0 +1,180 @@
+// Opaque Screen Space Reflections, Approximation algorithm.
+// Ported from HDRP 14.0.12 Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceReflections.compute
+// (SSR_APPROX trace + reproject). PBR accumulation is T8 and is not part of this file yet.
+//
+// Differences from HDRP:
+// - URP has no stencil bit for SSR receivers. The depth-normals alpha carries the material
+//   smoothness (forward) or the raw GBuffer2 smoothness (deferred), so unsupported materials keep
+//   weight 0 instead of being filtered by stencil.
+// - The result is un-premultiplied radiance in rgb plus the blend weight in a. HDRP writes
+//   radiance * weight; the URP material blend applies lerp(probe, radiance, weight) so the probe
+//   keeps its (1 - weight) share and the BRDF is evaluated exactly once.
+// - The previous frame color pyramid is the SSL private linear HDR history (no pre-exposure).
+// - Ray marching is clamped to mip 6, identical to the shared SSGI Hi-Z helper.
+#pragma kernel ScreenSpaceReflectionsTracing
+#pragma kernel ScreenSpaceReflectionsReprojection
+
+#pragma multi_compile _ SSR_NORMALS_OCT
+#pragma multi_compile _ SSL_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayMarching.hlsl"
+
+#define SSR_TILE_SIZE 8
+#define SSR_MIP_LEVEL_CLAMP 6
+
+// Full resolution inputs.
+SSGI_TEXTURE2D_FLOAT(_SsrDepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_SsrNormalTexture);
+SSGI_TEXTURE2D_FLOAT2(_SsrMotionTexture);
+
+// Previous frame color pyramid, captured after transparents by the SSL history pass.
+SSGI_TEXTURE2D_FLOAT4(_SsrColorPyramid);
+
+// Trace output: ndc of the hit point, or (99, 0) for a miss.
+SSGI_RW_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
+// Reproject output: rgb = radiance, a = blend weight.
+SSGI_RW_TEXTURE2D_FLOAT4(_SsrOutputTextureRW);
+
+#define _SsrIterLimit (int)_SsrRayMarchingParams.x
+#define _SsrThicknessScale _SsrRayMarchingParams.y
+#define _SsrThicknessBias _SsrRayMarchingParams.z
+#define _SsrReflectsSky (_SsrRayMarchingParams.w != 0)
+
+#define _SsrRoughnessFadeRcpLength _SsrRoughnessFadeParams.x
+#define _SsrRoughnessFadeEndTimesRcpLength _SsrRoughnessFadeParams.y
+#define _SsrRoughnessFadeEnd _SsrRoughnessFadeParams.z
+#define _SsrEdgeFadeRcpLength _SsrRoughnessFadeParams.w
+
+#define _SsrColorPyramidMaxMip _SsrPyramidParams.x
+
+#define SSR_TRACE_EPS 0.000488281f
+#define SSR_MISS_SENTINEL 99.0
+
+float3 SsrDecodeNormalSS(float4 normalBuffer)
+{
+#if defined(SSR_NORMALS_OCT)
+    float2 remappedOctNormalWS = Unpack888ToFloat2(normalBuffer.rgb);
+    return UnpackNormalOctQuadEncode(remappedOctNormalWS * 2.0 - 1.0);
+#else
+    float3 rawNormalWS = normalBuffer.rgb;
+    float lenSq = dot(rawNormalWS, rawNormalWS);
+    return lenSq > 1e-8 ? rawNormalWS * rsqrt(lenSq) : float3(0.0, 0.0, 0.0);
+#endif
+}
+
+// Returns false for materials that do not provide a valid normal/smoothness pair. The depth-normals
+// alpha uses 0.5 + 0.5 * smoothness in both paths: on Deferred the SSR pass runs before the GBuffer
+// overwrites GBuffer2, so it reads the same encoded prepass value Forward reads. Zero marks an
+// unsupported material (Unlit, SimpleLit, custom shaders).
+bool SsrDecodeMaterial(float4 normalSample, out float3 normalWS, out float perceptualRoughness)
+{
+    normalWS = SsrDecodeNormalSS(normalSample);
+    float encodedSmoothness = normalSample.a;
+    if (encodedSmoothness <= 0.0)
+    {
+        perceptualRoughness = 1.0;
+        return false;
+    }
+
+    float smoothness = saturate(encodedSmoothness * 2.0 - 1.0);
+    perceptualRoughness = 1.0 - smoothness;
+    return dot(normalWS, normalWS) > 0.5;
+}
+
+[numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
+void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 positionSS = dispatchThreadId.xy;
+    float2 hitUv = float2(SSR_MISS_SENTINEL, 0.0);
+
+    float deviceDepth = SSGI_LOAD(_SsrDepthTexture, positionSS);
+    float4 normalSample = SSGI_LOAD(_SsrNormalTexture, positionSS);
+    float3 normalWS;
+    float perceptualRoughness;
+    bool materialValid = SsrDecodeMaterial(normalSample, normalWS, perceptualRoughness);
+
+    if (!SsgiIsBackgroundDepth(deviceDepth) && materialValid)
+    {
+        float3 positionWS = SsgiReconstructPositionWS((float2)positionSS, deviceDepth);
+        float3 camPosWS = _SsrCameraPositionWS.xyz;
+        float3 viewWS = normalize(camPosWS - positionWS);
+
+        // Normal bias with a distance dependent magnitude, matching HDRP. The shading normal is the
+        // only normal available here, which is a known limitation of screen-space tracing.
+        positionWS = camPosWS + (positionWS - camPosWS) * (1.0 - 0.001 * rcp(max(dot(normalWS, viewWS), FLT_EPS)));
+        deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, unity_MatrixVP).z;
+
+        bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
+        killRay = killRay || (dot(normalWS, viewWS) <= 0.0);
+        killRay = killRay || (perceptualRoughness > _SsrRoughnessFadeEnd);
+
+        float3 reflectDir = reflect(-viewWS, normalWS);
+        float3 rayPos;
+        bool hit = SslRayMarch(
+            positionWS,
+            reflectDir,
+            (float2)positionSS,
+            deviceDepth,
+            killRay,
+            _SsrIterLimit,
+            _SsrThicknessScale,
+            _SsrThicknessBias,
+            _SsrReflectsSky,
+            SSR_MIP_LEVEL_CLAMP,
+            _SsrScreenSize,
+            rayPos);
+
+        if (hit)
+            hitUv = floor(rayPos.xy) * _SsrScreenSize.zw + 0.5 * _SsrScreenSize.zw;
+    }
+
+    SSGI_STORE(_SsrHitPointTextureRW, positionSS, hitUv);
+}
+
+[numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
+void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 positionSS = dispatchThreadId.xy;
+    float4 result = float4(0.0, 0.0, 0.0, 0.0);
+
+    float2 hitUv = SSGI_LOAD(_SsrHitPointTextureRW, positionSS);
+    float4 normalSample = SSGI_LOAD(_SsrNormalTexture, positionSS);
+    float3 normalWS;
+    float perceptualRoughness;
+    bool materialValid = SsrDecodeMaterial(normalSample, normalWS, perceptualRoughness);
+
+    if (hitUv.x <= 1.0 && hitUv.y >= 0.0 && materialValid)
+    {
+        // Reproduce the hit point in the previous frame. HDRP reads the motion vector of the hit
+        // surface, not of the reflecting pixel, because the reflected color belongs to that surface.
+        uint2 hitPixel = (uint2)(hitUv * _SsrScreenSize.xy);
+        hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
+        float2 motion = SSGI_LOAD(_SsrMotionTexture, hitPixel).xy;
+        float2 prevFrameUv = hitUv - motion;
+        float2 prevPyramidUv = prevFrameUv * _SsrColorPyramidScaleAndLimitPrev.xy;
+
+        float mipLevel = lerp(0.0, _SsrColorPyramidMaxMip, perceptualRoughness);
+        float2 diffLimit = _SsrColorPyramidScaleAndLimitPrev.xy - _SsrColorPyramidScaleAndLimitPrev.zw;
+        float2 diffLimitMipAdjusted = diffLimit * pow(2.0, 1.5 + ceil(abs(mipLevel)));
+        float2 limit = _SsrColorPyramidScaleAndLimitPrev.xy - diffLimitMipAdjusted;
+
+        bool offScreen = any(prevFrameUv < 0.0) || any(prevFrameUv > limit);
+        if (!offScreen)
+        {
+            float opacity = EdgeOfScreenFade(prevFrameUv, _SsrEdgeFadeRcpLength)
+                          * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
+
+            float3 color = SSGI_SAMPLE_LOD(_SsrColorPyramid, s_ssgi_linear_clamp_sampler, prevPyramidUv, mipLevel).rgb;
+            bool colorValid = !any(isnan(color)) && !any(isinf(color)) && all(color >= 0.0);
+            if (colorValid && opacity > 0.0)
+                result = float4(color, saturate(opacity));
+        }
+    }
+
+    SSGI_STORE(_SsrOutputTextureRW, positionSS, result);
+}

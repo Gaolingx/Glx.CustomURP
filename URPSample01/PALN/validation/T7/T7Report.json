@@ -1,0 +1,996 @@
+{
+  "utcTimestamp": "2026-11-14T13:48:07.827590+00:00",
+  "unityVersion": "2022.3.62f1",
+  "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+  "graphicsDeviceType": "Direct3D11",
+  "verification": {
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": {
+      "Forward": {
+        "passed": true,
+        "issues": [],
+        "state": {
+          "Reference": {
+            "state": "Reference",
+            "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+            "identicalToReference": false,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46949508786201477
+          },
+          "SsrFullRes": {
+            "state": "SsrFullRes",
+            "sha256": "54c2cfa8f35904f9d8bc75684aacafee657973368d84554993d89073fcaaaa6f",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 251444,
+            "maxChannelDelta": 762.4534301757812,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.481716513633728
+          },
+          "ZeroIntensityRestoresBaseline": {
+            "state": "ZeroIntensityRestoresBaseline",
+            "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+            "identicalToReference": true,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46949508786201477
+          },
+          "FirstFrameAfterReset": {
+            "state": "FirstFrameAfterReset",
+            "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+            "identicalToReference": true,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46949508786201477
+          },
+          "CameraCut": {
+            "state": "CameraCut",
+            "sha256": "059982bf110f27f3480a9532d4ee1a918e63cf88a0c9ed0bef40235bf872bcca",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 654546,
+            "maxChannelDelta": 1070.3660888671875,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.42524802684783936
+          }
+        },
+        "dispatches": {
+          "ssrExecutions": 32,
+          "traceDispatches": 30,
+          "reprojectDispatches": 30,
+          "setupExecutions": 32,
+          "ssrBoundFrames": 30,
+          "cameraCutResetCount": 2
+        },
+        "weight": {
+          "pixelCount": 921600,
+          "nonFinitePixels": 0,
+          "negativePixels": 0,
+          "coveredPixels": 244957,
+          "partialPixels": 6488,
+          "missPixels": 670155,
+          "meanWeight": 0.2705385684967041,
+          "coveredFraction": 0.26579535007476807,
+          "partialFraction": 0.007039930671453476,
+          "missFraction": 0.7271646857261658
+        },
+        "missPixelsCompared": 670152,
+        "missPixelsDifferent": 0,
+        "missMaxChannelDelta": 0.0,
+        "linearityPixels": 88212,
+        "linearityRatio": 2.0,
+        "linearityRelativeError": 1.1082985906796239e-07,
+        "materialProbes": [
+          {
+            "name": "T7 Metal Sphere 0",
+            "smoothness": 0.949999988079071,
+            "metallic": true,
+            "pixels": 1400,
+            "meanWeight": 0.44357141852378845,
+            "meanReferenceLuminance": 0.47813981771469116
+          },
+          {
+            "name": "T7 Dielectric Sphere",
+            "smoothness": 0.949999988079071,
+            "metallic": false,
+            "pixels": 780,
+            "meanWeight": 0.41025641560554504,
+            "meanReferenceLuminance": 0.41026654839515686
+          },
+          {
+            "name": "T7 Metal Sphere 1",
+            "smoothness": 0.800000011920929,
+            "metallic": true,
+            "pixels": 1258,
+            "meanWeight": 0.3503747880458832,
+            "meanReferenceLuminance": 1.3365198373794556
+          },
+          {
+            "name": "T7 Metal Sphere 2",
+            "smoothness": 0.6499999761581421,
+            "metallic": true,
+            "pixels": 1190,
+            "meanWeight": 0.19759079813957214,
+            "meanReferenceLuminance": 1.1339534521102905
+          },
+          {
+            "name": "T7 Metal Sphere 3",
+            "smoothness": 0.4000000059604645,
+            "metallic": true,
+            "pixels": 1122,
+            "meanWeight": 0.0,
+            "meanReferenceLuminance": 0.6366932988166809
+          }
+        ],
+        "debugConsumptionPixels": 921600,
+        "debugConsumptionMismatchPixels": 0,
+        "outputTextureBytes": {
+          "width": 1280,
+          "height": 720,
+          "volumeDepth": 1,
+          "bytes": 7372800
+        },
+        "historyChecks": [
+          {
+            "label": "AfterWarmup",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 2,
+            "validFrameCount": 31,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "ssrWidth": 1280,
+            "ssrHeight": 720,
+            "ssrResourceGeneration": 1,
+            "ssrResourcesAllocated": true,
+            "ssrOutputProduced": true
+          }
+        ],
+        "debugImages": [
+          {
+            "view": "SsrRaw",
+            "file": "T7_Forward_SsrRaw.png",
+            "sha256": "b894b7b5940f2bf475dce8ed8279dc27c671c33731bfd7aaefbbd4f213a8c49c",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.014071280136704445,
+            "minLuminance": 0.0,
+            "maxLuminance": 242.38314819335938
+          },
+          {
+            "view": "SsrWeight",
+            "file": "T7_Forward_SsrWeight.png",
+            "sha256": "a6ec2e6633fa111f948829cb9041a08363c8d770bd46c11babe001aa6aadad86",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.2705385684967041,
+            "minLuminance": 0.0,
+            "maxLuminance": 1.0
+          }
+        ]
+      },
+      "ForwardPlus": {
+        "passed": true,
+        "issues": [],
+        "state": {
+          "Reference": {
+            "state": "Reference",
+            "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+            "identicalToReference": false,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46949508786201477
+          },
+          "SsrFullRes": {
+            "state": "SsrFullRes",
+            "sha256": "54c2cfa8f35904f9d8bc75684aacafee657973368d84554993d89073fcaaaa6f",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 251444,
+            "maxChannelDelta": 762.4534301757812,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.481716513633728
+          },
+          "ZeroIntensityRestoresBaseline": {
+            "state": "ZeroIntensityRestoresBaseline",
+            "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+            "identicalToReference": true,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46949508786201477
+          },
+          "FirstFrameAfterReset": {
+            "state": "FirstFrameAfterReset",
+            "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+            "identicalToReference": true,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46949508786201477
+          },
+          "CameraCut": {
+            "state": "CameraCut",
+            "sha256": "059982bf110f27f3480a9532d4ee1a918e63cf88a0c9ed0bef40235bf872bcca",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 654546,
+            "maxChannelDelta": 1070.3660888671875,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.42524802684783936
+          }
+        },
+        "dispatches": {
+          "ssrExecutions": 32,
+          "traceDispatches": 30,
+          "reprojectDispatches": 30,
+          "setupExecutions": 32,
+          "ssrBoundFrames": 30,
+          "cameraCutResetCount": 2
+        },
+        "weight": {
+          "pixelCount": 921600,
+          "nonFinitePixels": 0,
+          "negativePixels": 0,
+          "coveredPixels": 244957,
+          "partialPixels": 6488,
+          "missPixels": 670155,
+          "meanWeight": 0.2705385684967041,
+          "coveredFraction": 0.26579535007476807,
+          "partialFraction": 0.007039930671453476,
+          "missFraction": 0.7271646857261658
+        },
+        "missPixelsCompared": 670152,
+        "missPixelsDifferent": 0,
+        "missMaxChannelDelta": 0.0,
+        "linearityPixels": 88212,
+        "linearityRatio": 2.0,
+        "linearityRelativeError": 1.1082985906796239e-07,
+        "materialProbes": [
+          {
+            "name": "T7 Metal Sphere 0",
+            "smoothness": 0.949999988079071,
+            "metallic": true,
+            "pixels": 1400,
+            "meanWeight": 0.44357141852378845,
+            "meanReferenceLuminance": 0.47813981771469116
+          },
+          {
+            "name": "T7 Dielectric Sphere",
+            "smoothness": 0.949999988079071,
+            "metallic": false,
+            "pixels": 780,
+            "meanWeight": 0.41025641560554504,
+            "meanReferenceLuminance": 0.41026654839515686
+          },
+          {
+            "name": "T7 Metal Sphere 1",
+            "smoothness": 0.800000011920929,
+            "metallic": true,
+            "pixels": 1258,
+            "meanWeight": 0.3503747880458832,
+            "meanReferenceLuminance": 1.3365198373794556
+          },
+          {
+            "name": "T7 Metal Sphere 2",
+            "smoothness": 0.6499999761581421,
+            "metallic": true,
+            "pixels": 1190,
+            "meanWeight": 0.19759079813957214,
+            "meanReferenceLuminance": 1.1339534521102905
+          },
+          {
+            "name": "T7 Metal Sphere 3",
+            "smoothness": 0.4000000059604645,
+            "metallic": true,
+            "pixels": 1122,
+            "meanWeight": 0.0,
+            "meanReferenceLuminance": 0.6366932988166809
+          }
+        ],
+        "debugConsumptionPixels": 921600,
+        "debugConsumptionMismatchPixels": 0,
+        "outputTextureBytes": {
+          "width": 1280,
+          "height": 720,
+          "volumeDepth": 1,
+          "bytes": 7372800
+        },
+        "historyChecks": [
+          {
+            "label": "AfterWarmup",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 2,
+            "validFrameCount": 31,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "ssrWidth": 1280,
+            "ssrHeight": 720,
+            "ssrResourceGeneration": 1,
+            "ssrResourcesAllocated": true,
+            "ssrOutputProduced": true
+          }
+        ],
+        "debugImages": [
+          {
+            "view": "SsrRaw",
+            "file": "T7_ForwardPlus_SsrRaw.png",
+            "sha256": "b894b7b5940f2bf475dce8ed8279dc27c671c33731bfd7aaefbbd4f213a8c49c",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.014071280136704445,
+            "minLuminance": 0.0,
+            "maxLuminance": 242.38314819335938
+          },
+          {
+            "view": "SsrWeight",
+            "file": "T7_ForwardPlus_SsrWeight.png",
+            "sha256": "a6ec2e6633fa111f948829cb9041a08363c8d770bd46c11babe001aa6aadad86",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.2705385684967041,
+            "minLuminance": 0.0,
+            "maxLuminance": 1.0
+          }
+        ]
+      },
+      "Deferred": {
+        "passed": true,
+        "issues": [],
+        "state": {
+          "Reference": {
+            "state": "Reference",
+            "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+            "identicalToReference": false,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.4692102074623108
+          },
+          "SsrFullRes": {
+            "state": "SsrFullRes",
+            "sha256": "7ba50e93a8d50348dded0ad259fedb0b43a5c99590d11149aee8c7f9edef10d0",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 251444,
+            "maxChannelDelta": 468.4714050292969,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.4793750047683716
+          },
+          "ZeroIntensityRestoresBaseline": {
+            "state": "ZeroIntensityRestoresBaseline",
+            "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+            "identicalToReference": true,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.4692102074623108
+          },
+          "FirstFrameAfterReset": {
+            "state": "FirstFrameAfterReset",
+            "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+            "identicalToReference": true,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.4692102074623108
+          },
+          "CameraCut": {
+            "state": "CameraCut",
+            "sha256": "f722bdd6c4bf2ee673f46fe5c9c5e9b2f3d13d0848b1f49cb69dd36aea491492",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 628724,
+            "maxChannelDelta": 1064.1962890625,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.4254758656024933
+          }
+        },
+        "dispatches": {
+          "ssrExecutions": 32,
+          "traceDispatches": 30,
+          "reprojectDispatches": 30,
+          "setupExecutions": 32,
+          "ssrBoundFrames": 30,
+          "cameraCutResetCount": 2
+        },
+        "weight": {
+          "pixelCount": 921600,
+          "nonFinitePixels": 0,
+          "negativePixels": 0,
+          "coveredPixels": 244957,
+          "partialPixels": 6488,
+          "missPixels": 670155,
+          "meanWeight": 0.2705385684967041,
+          "coveredFraction": 0.26579535007476807,
+          "partialFraction": 0.007039930671453476,
+          "missFraction": 0.7271646857261658
+        },
+        "missPixelsCompared": 670152,
+        "missPixelsDifferent": 0,
+        "missMaxChannelDelta": 0.0,
+        "linearityPixels": 88213,
+        "linearityRatio": 2.0,
+        "linearityRelativeError": 8.05283306704041e-08,
+        "materialProbes": [
+          {
+            "name": "T7 Metal Sphere 0",
+            "smoothness": 0.949999988079071,
+            "metallic": true,
+            "pixels": 1400,
+            "meanWeight": 0.44357141852378845,
+            "meanReferenceLuminance": 0.35130566358566284
+          },
+          {
+            "name": "T7 Dielectric Sphere",
+            "smoothness": 0.949999988079071,
+            "metallic": false,
+            "pixels": 780,
+            "meanWeight": 0.41025641560554504,
+            "meanReferenceLuminance": 0.3427342176437378
+          },
+          {
+            "name": "T7 Metal Sphere 1",
+            "smoothness": 0.800000011920929,
+            "metallic": true,
+            "pixels": 1258,
+            "meanWeight": 0.3503747880458832,
+            "meanReferenceLuminance": 1.3283454179763794
+          },
+          {
+            "name": "T7 Metal Sphere 2",
+            "smoothness": 0.6499999761581421,
+            "metallic": true,
+            "pixels": 1190,
+            "meanWeight": 0.19759079813957214,
+            "meanReferenceLuminance": 1.1358025074005127
+          },
+          {
+            "name": "T7 Metal Sphere 3",
+            "smoothness": 0.4000000059604645,
+            "metallic": true,
+            "pixels": 1122,
+            "meanWeight": 0.0,
+            "meanReferenceLuminance": 0.6397865414619446
+          }
+        ],
+        "debugConsumptionPixels": 921600,
+        "debugConsumptionMismatchPixels": 0,
+        "outputTextureBytes": {
+          "width": 1280,
+          "height": 720,
+          "volumeDepth": 1,
+          "bytes": 7372800
+        },
+        "historyChecks": [
+          {
+            "label": "AfterWarmup",
+            "width": 1280,
+            "height": 720,
+            "resetCount": 2,
+            "validFrameCount": 31,
+            "readSlot": 0,
+            "writeSlot": 1,
+            "ssrWidth": 1280,
+            "ssrHeight": 720,
+            "ssrResourceGeneration": 1,
+            "ssrResourcesAllocated": true,
+            "ssrOutputProduced": true
+          }
+        ],
+        "debugImages": [
+          {
+            "view": "SsrRaw",
+            "file": "T7_Deferred_SsrRaw.png",
+            "sha256": "ddc40f6aacbbe82891a684e7e95e85d6e83e1c50c5ed6ce451d3c2e6a7e62662",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.012027557007968426,
+            "minLuminance": 0.0,
+            "maxLuminance": 210.1574249267578
+          },
+          {
+            "view": "SsrWeight",
+            "file": "T7_Deferred_SsrWeight.png",
+            "sha256": "a6ec2e6633fa111f948829cb9041a08363c8d770bd46c11babe001aa6aadad86",
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.2705385684967041,
+            "minLuminance": 0.0,
+            "maxLuminance": 1.0
+          }
+        ]
+      }
+    }
+  },
+  "designNotes": {
+    "materialBlend": "ScreenSpaceLightingApplyIndirectSpecular lerps the environment specular with the SSR radiance before EnvironmentBRDF; EnvironmentBRDFSpecular/FGD is therefore applied to the combined result exactly once.",
+    "resultContract": "RGBA16F un-premultiplied radiance with the blend weight in alpha. miss/off-screen/non-finite write weight 0 and keep the reflection probe.",
+    "deferredSmoothness": "SSR runs at event 206, before the GBuffer overwrites GBuffer2, so it reads the same 0.5 + 0.5 * smoothness encoding the Forward depth-normals prepass writes.",
+    "colorHistoryFeedback": "The color pyramid includes the previous frame's SSR contribution; intensity linearity is measured on the first SSR frame after a reset, which reads an SSR-free color history."
+  },
+  "editModeTests": {
+    "log": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN\\validation\\T7\\UnityTests.log",
+    "present": true,
+    "passed": true,
+    "summary": {
+      "status": "Passed",
+      "passed": 118,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "frameDebugger": {
+    "utcTimestamp": "2026-11-14T13:47:57.3929219Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "scene": "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity",
+    "completed": true,
+    "error": "",
+    "modes": [
+      {
+        "name": "Forward",
+        "eventCount": 76,
+        "eventsHash": -826063087,
+        "eventDataHash": 3994638604,
+        "eventNames": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/MainLightShadow/Shadows.DrawSRPBatcher",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/DepthNormalPrepass/RenderLoop.DrawSRPBatcher",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/MotionVectors",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/Screen Space Reflections",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/Screen Space Reflections",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/DrawOpaqueObjects/RenderLoop.DrawSRPBatcher",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/Camera.RenderSkybox",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/CopyColor",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardRenderer/FinalBlit"
+        ]
+      },
+      {
+        "name": "ForwardPlus",
+        "eventCount": 76,
+        "eventsHash": -1564598767,
+        "eventDataHash": 3994638604,
+        "eventNames": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/MainLightShadow/Shadows.DrawSRPBatcher",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/DepthNormalPrepass/RenderLoop.DrawSRPBatcher",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/MotionVectors",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/Screen Space Reflections",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/Screen Space Reflections",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/DrawOpaqueObjects/RenderLoop.DrawSRPBatcher",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/Camera.RenderSkybox",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/CopyColor",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7ForwardPlusRenderer/FinalBlit"
+        ]
+      },
+      {
+        "name": "Deferred",
+        "eventCount": 87,
+        "eventsHash": 236761466,
+        "eventDataHash": 1546581384,
+        "eventNames": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/MainLightShadow/Shadows.DrawSRPBatcher",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/DepthNormalPrepass/RenderLoop.DrawSRPBatcher",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/CopyDepth",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/MotionVectors",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Depth Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Screen Space Global Illumination",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Screen Space Reflections",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Screen Space Reflections",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Render GBuffer/RenderLoop.DrawSRPBatcher",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/CopyDepth",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Deferred Pass/Deferred Shading (Stencil)",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/Camera.RenderSkybox",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Current Color Pyramid",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/CopyColor",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/SSL Color History Capture",
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT7DeferredRenderer/FinalBlit"
+        ]
+      }
+    ]
+  },
+  "frameDebuggerOrder": {
+    "Forward": {
+      "depthPyramid": 7,
+      "ssr": 25,
+      "opaque": 27,
+      "historyCapture": 52,
+      "ordered": true
+    },
+    "ForwardPlus": {
+      "depthPyramid": 7,
+      "ssr": 25,
+      "opaque": 27,
+      "historyCapture": 52,
+      "ordered": true
+    },
+    "Deferred": {
+      "depthPyramid": 8,
+      "ssr": 26,
+      "opaque": 28,
+      "historyCapture": 63,
+      "ordered": true
+    }
+  },
+  "requiredAssets": [
+    {
+      "path": "Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT7Verification.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/ScreenSpaceLightingSetupPass.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingShaderVariables.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingShaderVariables.cs.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingShaderIDs.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingResources.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingHistory.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceReflection.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/RayMarching.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceCommon/DepthPyramid.compute",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingInput.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingBlend.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/GlobalIllumination.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Lit.shader",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/ComplexLit.shader",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/UniversalRenderPipelineCore.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ScriptableRenderer.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Tests/Editor/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingSsrTests.cs",
+      "exists": true,
+      "meta": true
+    }
+  ],
+  "missingMeta": [],
+  "captures": {
+    "T7_Forward_Reference.png": "0918322d94e68e46220b19c93e280783ab9b7bf0fe327d68de2d78e7bc2aef84",
+    "T7_Forward_SsrFullRes.png": "d5c392cb1121d11f3eb78fa5f0ce03373099715b1baf02a3c3bd873f8ba1199e",
+    "T7_Forward_SsrRaw.png": "5320bc1c587c46d6654e56aabdac336d18b8366e15c8dad39ae503e0b3939f0c",
+    "T7_Forward_SsrWeight.png": "4770aa795d57e2af120d0bcc6788dc493451cebff6f96bc1e5fe231c3cc1ba68",
+    "T7_ForwardPlus_Reference.png": "0918322d94e68e46220b19c93e280783ab9b7bf0fe327d68de2d78e7bc2aef84",
+    "T7_ForwardPlus_SsrFullRes.png": "d5c392cb1121d11f3eb78fa5f0ce03373099715b1baf02a3c3bd873f8ba1199e",
+    "T7_ForwardPlus_SsrRaw.png": "5320bc1c587c46d6654e56aabdac336d18b8366e15c8dad39ae503e0b3939f0c",
+    "T7_ForwardPlus_SsrWeight.png": "4770aa795d57e2af120d0bcc6788dc493451cebff6f96bc1e5fe231c3cc1ba68",
+    "T7_Deferred_Reference.png": "aec7267fbca5f81b1e7cc7f5c7b29d64b452b2f8bbcfbd685e9972295906d91a",
+    "T7_Deferred_SsrFullRes.png": "af6c793ce2c4e2113fc8cbc01fa6886319587c599d6063b81393220191fc5662",
+    "T7_Deferred_SsrRaw.png": "d73a3b1e470fe6f9acc54a4547dd14451bc76b1b8ac57567217deea6872b01bd",
+    "T7_Deferred_SsrWeight.png": "4770aa795d57e2af120d0bcc6788dc493451cebff6f96bc1e5fe231c3cc1ba68"
+  },
+  "criteria": {
+    "verificationCompleted": true,
+    "threePathsPassed": true,
+    "dispatchChainExecuted": true,
+    "missKeepsReflectionProbe": true,
+    "firstFrameFallback": true,
+    "zeroIntensityRestoresBaseline": true,
+    "roughnessGradient": true,
+    "nonMetalSupported": true,
+    "intensityAppliedOnce": true,
+    "noInvalidPixels": true,
+    "debugViewMatchesConsumedTexture": true,
+    "frameDebuggerOrder": true,
+    "requiredAssetsHaveMeta": true,
+    "editModeTestsPassed": true
+  },
+  "t7ExitCriteriaMet": true
+}

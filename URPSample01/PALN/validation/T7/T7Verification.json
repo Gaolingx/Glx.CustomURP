@@ -1,0 +1,548 @@
+{
+    "utcTimestamp": "2026-11-14T13:47:08.9585530Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "Forward",
+            "passed": true,
+            "issues": [],
+            "ssrExecutions": 32,
+            "traceDispatches": 30,
+            "reprojectDispatches": 30,
+            "setupExecutions": 32,
+            "ssrBoundFrames": 30,
+            "cameraCutResetCount": 2,
+            "missPixelsCompared": 670152,
+            "missPixelsDifferent": 0,
+            "missMaxChannelDelta": 0.0,
+            "linearityPixels": 88212,
+            "linearityRelativeError": 1.1082985906796239e-7,
+            "linearityMeanHalf": 0.03076052851974964,
+            "linearityMeanFull": 0.06152105703949928,
+            "linearityRatio": 2.0,
+            "debugConsumptionPixels": 921600,
+            "debugConsumptionMismatchPixels": 0,
+            "debugConsumptionMaxDelta": 0.0,
+            "consumedLuminance": 0.014071280136704445,
+            "outputLuminance": 0.014071280136704445,
+            "weight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 244957,
+                "partialPixels": 6488,
+                "missPixels": 670155,
+                "meanWeight": 0.2705385684967041,
+                "coveredFraction": 0.26579535007476809,
+                "partialFraction": 0.007039930671453476,
+                "missFraction": 0.7271646857261658
+            },
+            "outputTextureBytes": {
+                "width": 1280,
+                "height": 720,
+                "volumeDepth": 1,
+                "bytes": 7372800
+            },
+            "materialProbes": [
+                {
+                    "name": "T7 Metal Sphere 0",
+                    "smoothness": 0.949999988079071,
+                    "metallic": true,
+                    "pixels": 1400,
+                    "meanWeight": 0.44357141852378847,
+                    "meanReferenceLuminance": 0.47813981771469118
+                },
+                {
+                    "name": "T7 Dielectric Sphere",
+                    "smoothness": 0.949999988079071,
+                    "metallic": false,
+                    "pixels": 780,
+                    "meanWeight": 0.41025641560554507,
+                    "meanReferenceLuminance": 0.41026654839515688
+                },
+                {
+                    "name": "T7 Metal Sphere 1",
+                    "smoothness": 0.800000011920929,
+                    "metallic": true,
+                    "pixels": 1258,
+                    "meanWeight": 0.3503747880458832,
+                    "meanReferenceLuminance": 1.3365198373794556
+                },
+                {
+                    "name": "T7 Metal Sphere 2",
+                    "smoothness": 0.6499999761581421,
+                    "metallic": true,
+                    "pixels": 1190,
+                    "meanWeight": 0.19759079813957215,
+                    "meanReferenceLuminance": 1.1339534521102906
+                },
+                {
+                    "name": "T7 Metal Sphere 3",
+                    "smoothness": 0.4000000059604645,
+                    "metallic": true,
+                    "pixels": 1122,
+                    "meanWeight": 0.0,
+                    "meanReferenceLuminance": 0.6366932988166809
+                }
+            ],
+            "states": [
+                {
+                    "state": "Reference",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": false,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "SsrFullRes",
+                    "sha256": "54c2cfa8f35904f9d8bc75684aacafee657973368d84554993d89073fcaaaa6f",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 251444,
+                    "maxChannelDelta": 762.4534301757813,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.481716513633728
+                },
+                {
+                    "state": "ZeroIntensityRestoresBaseline",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "FirstFrameAfterReset",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "CameraCut",
+                    "sha256": "059982bf110f27f3480a9532d4ee1a918e63cf88a0c9ed0bef40235bf872bcca",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 654546,
+                    "maxChannelDelta": 1070.3660888671875,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.42524802684783938
+                }
+            ],
+            "historyChecks": [
+                {
+                    "label": "AfterWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 2,
+                    "validFrameCount": 31,
+                    "readSlot": 0,
+                    "writeSlot": 1,
+                    "ssrWidth": 1280,
+                    "ssrHeight": 720,
+                    "ssrResourceGeneration": 1,
+                    "ssrResourcesAllocated": true,
+                    "ssrOutputProduced": true
+                }
+            ],
+            "debugImages": [
+                {
+                    "view": "SsrRaw",
+                    "file": "T7_Forward_SsrRaw.png",
+                    "sha256": "b894b7b5940f2bf475dce8ed8279dc27c671c33731bfd7aaefbbd4f213a8c49c",
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.014071280136704445,
+                    "minLuminance": 0.0,
+                    "maxLuminance": 242.38314819335938
+                },
+                {
+                    "view": "SsrWeight",
+                    "file": "T7_Forward_SsrWeight.png",
+                    "sha256": "a6ec2e6633fa111f948829cb9041a08363c8d770bd46c11babe001aa6aadad86",
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.2705385684967041,
+                    "minLuminance": 0.0,
+                    "maxLuminance": 1.0
+                }
+            ]
+        },
+        {
+            "name": "ForwardPlus",
+            "passed": true,
+            "issues": [],
+            "ssrExecutions": 32,
+            "traceDispatches": 30,
+            "reprojectDispatches": 30,
+            "setupExecutions": 32,
+            "ssrBoundFrames": 30,
+            "cameraCutResetCount": 2,
+            "missPixelsCompared": 670152,
+            "missPixelsDifferent": 0,
+            "missMaxChannelDelta": 0.0,
+            "linearityPixels": 88212,
+            "linearityRelativeError": 1.1082985906796239e-7,
+            "linearityMeanHalf": 0.03076052851974964,
+            "linearityMeanFull": 0.06152105703949928,
+            "linearityRatio": 2.0,
+            "debugConsumptionPixels": 921600,
+            "debugConsumptionMismatchPixels": 0,
+            "debugConsumptionMaxDelta": 0.0,
+            "consumedLuminance": 0.014071280136704445,
+            "outputLuminance": 0.014071280136704445,
+            "weight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 244957,
+                "partialPixels": 6488,
+                "missPixels": 670155,
+                "meanWeight": 0.2705385684967041,
+                "coveredFraction": 0.26579535007476809,
+                "partialFraction": 0.007039930671453476,
+                "missFraction": 0.7271646857261658
+            },
+            "outputTextureBytes": {
+                "width": 1280,
+                "height": 720,
+                "volumeDepth": 1,
+                "bytes": 7372800
+            },
+            "materialProbes": [
+                {
+                    "name": "T7 Metal Sphere 0",
+                    "smoothness": 0.949999988079071,
+                    "metallic": true,
+                    "pixels": 1400,
+                    "meanWeight": 0.44357141852378847,
+                    "meanReferenceLuminance": 0.47813981771469118
+                },
+                {
+                    "name": "T7 Dielectric Sphere",
+                    "smoothness": 0.949999988079071,
+                    "metallic": false,
+                    "pixels": 780,
+                    "meanWeight": 0.41025641560554507,
+                    "meanReferenceLuminance": 0.41026654839515688
+                },
+                {
+                    "name": "T7 Metal Sphere 1",
+                    "smoothness": 0.800000011920929,
+                    "metallic": true,
+                    "pixels": 1258,
+                    "meanWeight": 0.3503747880458832,
+                    "meanReferenceLuminance": 1.3365198373794556
+                },
+                {
+                    "name": "T7 Metal Sphere 2",
+                    "smoothness": 0.6499999761581421,
+                    "metallic": true,
+                    "pixels": 1190,
+                    "meanWeight": 0.19759079813957215,
+                    "meanReferenceLuminance": 1.1339534521102906
+                },
+                {
+                    "name": "T7 Metal Sphere 3",
+                    "smoothness": 0.4000000059604645,
+                    "metallic": true,
+                    "pixels": 1122,
+                    "meanWeight": 0.0,
+                    "meanReferenceLuminance": 0.6366932988166809
+                }
+            ],
+            "states": [
+                {
+                    "state": "Reference",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": false,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "SsrFullRes",
+                    "sha256": "54c2cfa8f35904f9d8bc75684aacafee657973368d84554993d89073fcaaaa6f",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 251444,
+                    "maxChannelDelta": 762.4534301757813,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.481716513633728
+                },
+                {
+                    "state": "ZeroIntensityRestoresBaseline",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "FirstFrameAfterReset",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "CameraCut",
+                    "sha256": "059982bf110f27f3480a9532d4ee1a918e63cf88a0c9ed0bef40235bf872bcca",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 654546,
+                    "maxChannelDelta": 1070.3660888671875,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.42524802684783938
+                }
+            ],
+            "historyChecks": [
+                {
+                    "label": "AfterWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 2,
+                    "validFrameCount": 31,
+                    "readSlot": 0,
+                    "writeSlot": 1,
+                    "ssrWidth": 1280,
+                    "ssrHeight": 720,
+                    "ssrResourceGeneration": 1,
+                    "ssrResourcesAllocated": true,
+                    "ssrOutputProduced": true
+                }
+            ],
+            "debugImages": [
+                {
+                    "view": "SsrRaw",
+                    "file": "T7_ForwardPlus_SsrRaw.png",
+                    "sha256": "b894b7b5940f2bf475dce8ed8279dc27c671c33731bfd7aaefbbd4f213a8c49c",
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.014071280136704445,
+                    "minLuminance": 0.0,
+                    "maxLuminance": 242.38314819335938
+                },
+                {
+                    "view": "SsrWeight",
+                    "file": "T7_ForwardPlus_SsrWeight.png",
+                    "sha256": "a6ec2e6633fa111f948829cb9041a08363c8d770bd46c11babe001aa6aadad86",
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.2705385684967041,
+                    "minLuminance": 0.0,
+                    "maxLuminance": 1.0
+                }
+            ]
+        },
+        {
+            "name": "Deferred",
+            "passed": true,
+            "issues": [],
+            "ssrExecutions": 32,
+            "traceDispatches": 30,
+            "reprojectDispatches": 30,
+            "setupExecutions": 32,
+            "ssrBoundFrames": 30,
+            "cameraCutResetCount": 2,
+            "missPixelsCompared": 670152,
+            "missPixelsDifferent": 0,
+            "missMaxChannelDelta": 0.0,
+            "linearityPixels": 88213,
+            "linearityRelativeError": 8.05283306704041e-8,
+            "linearityMeanHalf": 0.027542708441615106,
+            "linearityMeanFull": 0.05508541688323021,
+            "linearityRatio": 2.0,
+            "debugConsumptionPixels": 921600,
+            "debugConsumptionMismatchPixels": 0,
+            "debugConsumptionMaxDelta": 1.1920928955078126e-7,
+            "consumedLuminance": 0.012027557007968426,
+            "outputLuminance": 0.012027557007968426,
+            "weight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 244957,
+                "partialPixels": 6488,
+                "missPixels": 670155,
+                "meanWeight": 0.2705385684967041,
+                "coveredFraction": 0.26579535007476809,
+                "partialFraction": 0.007039930671453476,
+                "missFraction": 0.7271646857261658
+            },
+            "outputTextureBytes": {
+                "width": 1280,
+                "height": 720,
+                "volumeDepth": 1,
+                "bytes": 7372800
+            },
+            "materialProbes": [
+                {
+                    "name": "T7 Metal Sphere 0",
+                    "smoothness": 0.949999988079071,
+                    "metallic": true,
+                    "pixels": 1400,
+                    "meanWeight": 0.44357141852378847,
+                    "meanReferenceLuminance": 0.35130566358566286
+                },
+                {
+                    "name": "T7 Dielectric Sphere",
+                    "smoothness": 0.949999988079071,
+                    "metallic": false,
+                    "pixels": 780,
+                    "meanWeight": 0.41025641560554507,
+                    "meanReferenceLuminance": 0.3427342176437378
+                },
+                {
+                    "name": "T7 Metal Sphere 1",
+                    "smoothness": 0.800000011920929,
+                    "metallic": true,
+                    "pixels": 1258,
+                    "meanWeight": 0.3503747880458832,
+                    "meanReferenceLuminance": 1.3283454179763795
+                },
+                {
+                    "name": "T7 Metal Sphere 2",
+                    "smoothness": 0.6499999761581421,
+                    "metallic": true,
+                    "pixels": 1190,
+                    "meanWeight": 0.19759079813957215,
+                    "meanReferenceLuminance": 1.1358025074005128
+                },
+                {
+                    "name": "T7 Metal Sphere 3",
+                    "smoothness": 0.4000000059604645,
+                    "metallic": true,
+                    "pixels": 1122,
+                    "meanWeight": 0.0,
+                    "meanReferenceLuminance": 0.6397865414619446
+                }
+            ],
+            "states": [
+                {
+                    "state": "Reference",
+                    "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+                    "identicalToReference": false,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4692102074623108
+                },
+                {
+                    "state": "SsrFullRes",
+                    "sha256": "7ba50e93a8d50348dded0ad259fedb0b43a5c99590d11149aee8c7f9edef10d0",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 251444,
+                    "maxChannelDelta": 468.4714050292969,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4793750047683716
+                },
+                {
+                    "state": "ZeroIntensityRestoresBaseline",
+                    "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4692102074623108
+                },
+                {
+                    "state": "FirstFrameAfterReset",
+                    "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4692102074623108
+                },
+                {
+                    "state": "CameraCut",
+                    "sha256": "f722bdd6c4bf2ee673f46fe5c9c5e9b2f3d13d0848b1f49cb69dd36aea491492",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 628724,
+                    "maxChannelDelta": 1064.1962890625,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4254758656024933
+                }
+            ],
+            "historyChecks": [
+                {
+                    "label": "AfterWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 2,
+                    "validFrameCount": 31,
+                    "readSlot": 0,
+                    "writeSlot": 1,
+                    "ssrWidth": 1280,
+                    "ssrHeight": 720,
+                    "ssrResourceGeneration": 1,
+                    "ssrResourcesAllocated": true,
+                    "ssrOutputProduced": true
+                }
+            ],
+            "debugImages": [
+                {
+                    "view": "SsrRaw",
+                    "file": "T7_Deferred_SsrRaw.png",
+                    "sha256": "ddc40f6aacbbe82891a684e7e95e85d6e83e1c50c5ed6ce451d3c2e6a7e62662",
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.012027557007968426,
+                    "minLuminance": 0.0,
+                    "maxLuminance": 210.1574249267578
+                },
+                {
+                    "view": "SsrWeight",
+                    "file": "T7_Deferred_SsrWeight.png",
+                    "sha256": "a6ec2e6633fa111f948829cb9041a08363c8d770bd46c11babe001aa6aadad86",
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.2705385684967041,
+                    "minLuminance": 0.0,
+                    "maxLuminance": 1.0
+                }
+            ]
+        }
+    ]
+}

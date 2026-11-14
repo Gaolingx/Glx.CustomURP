@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingHistory m_History;
         ScreenSpaceLightingSettings m_Settings;
         ScreenSpaceLightingSsgiPass m_SsgiPass;
+        ScreenSpaceLightingSsrPass m_SsrPass;
         readonly MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
 #if UNITY_EDITOR
@@ -25,11 +26,12 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = k_RenderPassEvent;
         }
 
-        internal void Setup(ScreenSpaceLightingHistory history, ScreenSpaceLightingSettings settings, ScreenSpaceLightingSsgiPass ssgiPass)
+        internal void Setup(ScreenSpaceLightingHistory history, ScreenSpaceLightingSettings settings, ScreenSpaceLightingSsgiPass ssgiPass, ScreenSpaceLightingSsrPass ssrPass)
         {
             m_History = history;
             m_Settings = settings;
             m_SsgiPass = ssgiPass;
+            m_SsrPass = ssrPass;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -150,6 +152,22 @@ namespace UnityEngine.Rendering.Universal
                         return false;
                     outputMode = 1;
                     texture = source.rt;
+                    return true;
+                }
+                case ScreenSpaceLightingDebugMode.SsrRaw:
+                {
+                    if (m_SsrPass == null || !m_SsrPass.producedOutput || m_SsrPass.outputTexture == null || m_SsrPass.outputTexture.rt == null)
+                        return false;
+                    outputMode = 1;
+                    texture = m_SsrPass.outputTexture.rt;
+                    return true;
+                }
+                case ScreenSpaceLightingDebugMode.SsrWeight:
+                {
+                    if (m_SsrPass == null || !m_SsrPass.producedOutput || m_SsrPass.outputTexture == null || m_SsrPass.outputTexture.rt == null)
+                        return false;
+                    outputMode = 3;
+                    texture = m_SsrPass.outputTexture.rt;
                     return true;
                 }
                 default:

@@ -129,4 +129,20 @@ float3 SsgiClampRadiance(float3 color)
     return HsvToRgb(color);
 }
 
+// Maps the perceptual smoothness stored by the material to the SSR roughness fade.
+float PerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, float fadeEndTimesRcpLength)
+{
+    float t = Remap10(perceptualRoughness, fadeRcpLength, fadeEndTimesRcpLength);
+    return Smoothstep01(t);
+}
+
+// Fades the screen-space result out near the border so a reflection never pops when its hit point
+// leaves the viewport.
+float EdgeOfScreenFade(float2 coordNDC, float fadeRcpLength)
+{
+    float2 coordCS = coordNDC * 2.0 - 1.0;
+    float2 t = Remap10(abs(coordCS), fadeRcpLength, fadeRcpLength);
+    return Smoothstep01(t.x) * Smoothstep01(t.y);
+}
+
 #endif

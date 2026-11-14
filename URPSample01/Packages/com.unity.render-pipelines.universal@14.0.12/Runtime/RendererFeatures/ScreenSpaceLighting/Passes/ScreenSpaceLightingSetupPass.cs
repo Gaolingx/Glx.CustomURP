@@ -11,12 +11,14 @@ namespace UnityEngine.Rendering.Universal
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler("Screen Space Lighting Setup");
 
         ScreenSpaceLightingSsgiPass m_SsgiPass;
+        ScreenSpaceLightingSsrPass m_SsrPass;
 
 #if UNITY_EDITOR
         // Editor-only evidence hook: verification code reads this counter to prove the pass ran and
         // that the material keyword was enabled with a valid SSGI texture.
         internal static int s_EditorExecuteCount;
         internal static int s_EditorSsgiBoundCount;
+        internal static int s_EditorSsrBoundCount;
 #endif
 
         internal ScreenSpaceLightingSetupPass()
@@ -25,9 +27,10 @@ namespace UnityEngine.Rendering.Universal
             ConfigureInput(ScriptableRenderPassInput.None);
         }
 
-        internal void Setup(ScreenSpaceLightingSsgiPass ssgiPass)
+        internal void Setup(ScreenSpaceLightingSsgiPass ssgiPass, ScreenSpaceLightingSsrPass ssrPass)
         {
             m_SsgiPass = ssgiPass;
+            m_SsrPass = ssrPass;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -63,13 +66,38 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationParams, Vector4.zero);
                     cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
                 }
+
+                var ssrSettings = stack != null ? stack.GetComponent<ScreenSpaceReflection>() : null;
+                bool ssrActive = ssrSettings != null && ssrSettings.enabled.value;
+                bool bindSsr = ssrActive &&
+                               m_SsrPass != null &&
+                               m_SsrPass.producedOutput &&
+                               m_SsrPass.outputTexture != null;
+
+                if (bindSsr)
+                {
+                    cmd.SetGlobalTexture(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionTexture, m_SsrPass.outputTexture);
+                    cmd.SetGlobalVector(
+                        ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionParams,
+                        new Vector4(ssrSettings.intensity.value, 0f, 0f, 0f));
+                    cmd.EnableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionKeyword);
+#if UNITY_EDITOR
+                    s_EditorSsrBoundCount++;
+#endif
+                }
+                else
+                {
+                    cmd.SetGlobalTexture(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionTexture, Texture2D.blackTexture);
+                    cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionParams, Vector4.zero);
+                    cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionKeyword);
+                }
             }
         }
     }
 
-    // SSGI only feeds opaque materials. Transparent forward objects run in the same material shader,
-    // so the keyword is disabled right after the opaques event to keep baked GI on transparents and
-    // to avoid leaking the SSGI texture into a later camera.
+    // SSGI and opaque SSR only feed opaque materials. Transparent forward objects run in the same
+    // material shader, so the keywords are disabled right after the opaques event to keep the baked
+    // GI and reflection probes on transparents and to avoid leaking the textures into a later camera.
     internal sealed class ScreenSpaceLightingCleanupPass : ScriptableRenderPass
     {
         internal const RenderPassEvent k_RenderPassEvent = RenderPassEvent.AfterRenderingOpaques;
@@ -97,6 +125,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
                 cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationParams, Vector4.zero);
+                cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionKeyword);
+                cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionParams, Vector4.zero);
             }
         }
 
@@ -107,6 +137,8 @@ namespace UnityEngine.Rendering.Universal
 
             cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
             cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationParams, Vector4.zero);
+            cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionKeyword);
+            cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionParams, Vector4.zero);
         }
     }
 }

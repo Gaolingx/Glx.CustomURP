@@ -363,6 +363,7 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     // keeps bakedGI so lightmaps, SH and APV are preserved.
     half3 indirectDiffuse = ScreenSpaceLightingApplyIndirectDiffuse(bakedGI, normalizedScreenSpaceUV);
     half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, 1.0h, normalizedScreenSpaceUV);
+    indirectSpecular = ScreenSpaceLightingApplyIndirectSpecular(indirectSpecular, normalizedScreenSpaceUV);
 
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 

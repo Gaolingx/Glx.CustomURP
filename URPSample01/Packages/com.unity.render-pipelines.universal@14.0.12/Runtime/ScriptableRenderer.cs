@@ -1442,6 +1442,7 @@ namespace UnityEngine.Rendering.Universal
             // The Screen Space Lighting plugin owns this keyword per camera; never inherit it from a
             // previous camera when the feature is absent.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceGI);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceSSR);
             cmd.SetGlobalVector(s_AmbientOcclusionParamID, Vector4.zero);
         }
 

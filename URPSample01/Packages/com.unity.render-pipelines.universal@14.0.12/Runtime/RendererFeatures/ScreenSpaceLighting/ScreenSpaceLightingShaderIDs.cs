@@ -75,5 +75,34 @@ namespace UnityEngine.Rendering.Universal
 
         internal static readonly string SsgiHalfResKeyword = "SSGI_HALF_RES";
         internal static readonly string SsgiNormalsOctKeyword = "SSGI_NORMALS_OCT";
+
+        // ---------------------------------------------------------------------------------------
+        // Opaque Screen Space Reflections (Approximation)
+        // ---------------------------------------------------------------------------------------
+
+        // Inputs.
+        internal static readonly int SsrDepthTexture = Shader.PropertyToID("_SsrDepthTexture");
+        internal static readonly int SsrNormalTexture = Shader.PropertyToID("_SsrNormalTexture");
+        internal static readonly int SsrMotionTexture = Shader.PropertyToID("_SsrMotionTexture");
+        internal static readonly int SsrColorPyramid = Shader.PropertyToID("_SsrColorPyramid");
+
+        // Trace / reproject.
+        internal static readonly int SsrHitPointTextureRW = Shader.PropertyToID("_SsrHitPointTextureRW");
+        internal static readonly int SsrOutputTextureRW = Shader.PropertyToID("_SsrOutputTextureRW");
+
+        // Constant buffer members.
+        internal static readonly int SsrScreenSize = Shader.PropertyToID("_SsrScreenSize");
+        internal static readonly int SsrRayMarchingParams = Shader.PropertyToID("_SsrRayMarchingParams");
+        internal static readonly int SsrRoughnessFadeParams = Shader.PropertyToID("_SsrRoughnessFadeParams");
+        internal static readonly int SsrPyramidParams = Shader.PropertyToID("_SsrPyramidParams");
+        internal static readonly int SsrColorPyramidScaleAndLimitPrev = Shader.PropertyToID("_SsrColorPyramidScaleAndLimitPrev");
+        internal static readonly int SsrCameraPositionWS = Shader.PropertyToID("_SsrCameraPositionWS");
+
+        // Material-facing result consumed by the Core GlobalIllumination blend.
+        internal static readonly int ScreenSpaceReflectionTexture = Shader.PropertyToID("_ScreenSpaceSsrTexture");
+        internal static readonly int ScreenSpaceReflectionParams = Shader.PropertyToID("_ScreenSpaceSsrParams");
+        internal static readonly string ScreenSpaceReflectionKeyword = "_SCREEN_SPACE_SSR";
+
+        internal static readonly string SsrNormalsOctKeyword = "SSR_NORMALS_OCT";
     }
 }

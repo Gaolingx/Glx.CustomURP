@@ -1,0 +1,166 @@
+using System.Linq;
+using System.Reflection;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+
+namespace UnityEditor.Rendering.Universal.Tests
+{
+    [TestFixture]
+    class ScreenSpaceLightingSsrTests
+    {
+        ScreenSpaceLightingHistory m_History;
+
+        [SetUp]
+        public void SetUp()
+        {
+            m_History = new ScreenSpaceLightingHistory();
+            m_History.Reset(320, 180, 1);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            m_History?.Dispose();
+        }
+
+        [Test]
+        public void SsrPassRunsAfterSsgiAndBeforeMaterialBinding()
+        {
+            Assert.AreEqual(206, (int)ScreenSpaceLightingSsrPass.k_RenderPassEvent);
+            Assert.Less((int)ScreenSpaceLightingSsgiPass.k_RenderPassEvent, (int)ScreenSpaceLightingSsrPass.k_RenderPassEvent);
+            Assert.Less((int)ScreenSpaceLightingSsrPass.k_RenderPassEvent, (int)ScreenSpaceLightingSetupPass.k_RenderPassEvent);
+            Assert.Less((int)ScreenSpaceLightingSetupPass.k_RenderPassEvent, (int)RenderPassEvent.BeforeRenderingGbuffer);
+        }
+
+        [Test]
+        public void VolumeComponentExposesApproximationControls()
+        {
+            var ssr = ScriptableObject.CreateInstance<ScreenSpaceReflection>();
+            try
+            {
+                Assert.IsFalse(ssr.enabled.value);
+                Assert.AreEqual(0.9f, ssr.minSmoothness.value, 1e-5f);
+                Assert.AreEqual(0.9f, ssr.smoothnessFadeStart.value, 1e-5f);
+                Assert.AreEqual(0.01f, ssr.depthBufferThickness.value, 1e-5f);
+                Assert.AreEqual(0.1f, ssr.screenFadeDistance.value, 1e-5f);
+                Assert.AreEqual(64, ssr.rayMaxIterations.value);
+                Assert.IsTrue(ssr.reflectSky.value);
+                Assert.AreEqual(1f, ssr.intensity.value, 1e-5f);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(ssr);
+            }
+        }
+
+        [Test]
+        public void FirstFrameHasNoPreviousColorButStillAllocatesTheOutput()
+        {
+            m_History.BeginFrame();
+            m_History.EnsureSsrResources(320, 180, 1, TextureDimension.Tex2D);
+
+            Assert.IsNull(m_History.readColorPyramid);
+            Assert.IsFalse(m_History.ssrHasValidHistory);
+            Assert.IsFalse(m_History.ssrOutputProduced);
+            Assert.IsTrue(m_History.ssrResourcesAllocated);
+            Assert.IsNotNull(m_History.ssrOutput);
+            Assert.IsNotNull(m_History.ssrHitPoint);
+        }
+
+        [Test]
+        public void SsrResourcesFollowTheCameraResolution()
+        {
+            m_History.EnsureSsrResources(320, 180, 1, TextureDimension.Tex2D);
+            int generation = m_History.ssrResourceGeneration;
+
+            m_History.EnsureSsrResources(320, 180, 1, TextureDimension.Tex2D);
+            Assert.AreEqual(generation, m_History.ssrResourceGeneration, "an unchanged size must not reallocate");
+
+            m_History.EnsureSsrResources(640, 360, 1, TextureDimension.Tex2D);
+            Assert.AreEqual(generation + 1, m_History.ssrResourceGeneration);
+            Assert.AreEqual(640, m_History.ssrWidth);
+            Assert.AreEqual(360, m_History.ssrHeight);
+        }
+
+        [Test]
+        public void SsrOutputIsMarkedProducedOnlyAfterAFrame()
+        {
+            m_History.EnsureSsrResources(320, 180, 1, TextureDimension.Tex2D);
+            m_History.BeginFrame();
+            Assert.IsFalse(m_History.ssrOutputProduced);
+
+            m_History.MarkSsrOutputProduced();
+            Assert.IsTrue(m_History.ssrOutputProduced);
+
+            m_History.BeginFrame();
+            Assert.IsFalse(m_History.ssrOutputProduced, "the output of the previous frame must not be reused");
+        }
+
+        [Test]
+        public void SsrConstantBufferLayoutMatchesTheGeneratedInclude()
+        {
+            var expectedFields = new[]
+            {
+                "_SsrScreenSize",
+                "_SsrRayMarchingParams",
+                "_SsrRoughnessFadeParams",
+                "_SsrPyramidParams",
+                "_SsrColorPyramidScaleAndLimitPrev",
+                "_SsrCameraPositionWS",
+            };
+
+            var fields = typeof(ScreenSpaceLightingSsrShaderVariables)
+                .GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .Select(field => field.Name)
+                .ToArray();
+
+            CollectionAssert.AreEqual(expectedFields, fields);
+
+            foreach (var field in typeof(ScreenSpaceLightingSsrShaderVariables).GetFields(BindingFlags.Public | BindingFlags.Instance))
+                Assert.AreEqual(typeof(Vector4), field.FieldType, $"{field.Name} does not map to a Vector4 constant buffer slot.");
+
+            Assert.AreEqual(6 * 16, System.Runtime.InteropServices.Marshal.SizeOf<ScreenSpaceLightingSsrShaderVariables>());
+        }
+
+        [Test]
+        public void FeatureEnqueuesSsrPassWhenOnlyTheReflectionVolumeIsEnabled()
+        {
+            var camera = ScreenSpaceTestUtils.CreateCamera("SsrCamera");
+            var rendererData = ScriptableObject.CreateInstance<UniversalRendererData>();
+            rendererData.debugShaders = new ScriptableRendererData.DebugShaderResources();
+            var renderer = new ScreenSpaceTestUtils.TestRenderer(rendererData);
+            var feature = ScriptableObject.CreateInstance<ScreenSpaceLightingRendererFeature>();
+            var stack = VolumeManager.instance.CreateStack();
+            var previousStack = VolumeManager.instance.stack;
+            VolumeManager.instance.stack = stack;
+            try
+            {
+                feature.Create();
+                stack.GetComponent<ScreenSpaceGlobalIllumination>().enabled.Override(false);
+                stack.GetComponent<ScreenSpaceReflection>().enabled.Override(true);
+                var renderingData = ScreenSpaceTestUtils.CreateRenderingData(ScreenSpaceTestUtils.CreateCameraData(camera));
+                feature.AddRenderPasses(renderer, ref renderingData);
+
+                Assert.Contains(feature.ssrPass, renderer.queuedPasses);
+                Assert.Contains(feature.setupPass, renderer.queuedPasses);
+                Assert.IsFalse(feature.ssgiPass.producedOutput);
+                Assert.Less(
+                    (int)feature.ssrPass.renderPassEvent,
+                    (int)feature.setupPass.renderPassEvent);
+            }
+            finally
+            {
+                VolumeManager.instance.stack = previousStack;
+                stack.Dispose();
+                feature.Dispose();
+                UnityEngine.Object.DestroyImmediate(feature);
+                renderer.Dispose();
+                UnityEngine.Object.DestroyImmediate(rendererData);
+                ScreenSpaceTestUtils.DestroyCamera(camera);
+            }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 # ScreenSpaceLighting 交接
 
-> 更新：2026-11-14（T6 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
+> 更新：2026-11-14（T7 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
 
 ## 当前位置
 
@@ -11,21 +11,57 @@
 - **T4 已退出（2026-11-14）**。SSL 私有 packed Hi-Z（mip/offset/UV scale）、当前帧 Gaussian 颜色金字塔、双缓冲 previous color/depth、reset generation 和 7 个调试视图已落地；三路径下卷开启时 Pass 均执行且最终图像与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 重置、同帧读写槽分离、双相机隔离和 GTAO 缺失时 SSL 独立工作全部通过，Frame Debugger 证明 203 → 400 → 501 顺序。唯一事实入口为 `validation/T4/T4Report.json`（`t4ExitCriteriaMet=true`）。当前仍没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成。
 - **T5 已退出（2026-11-14）**。独立 GTAO 全 kernel（Main / Spatial / Temporal / CopyHistory / Blur+Upsample）、私有 packed Hi-Z、双缓冲 AO 历史、调试视图和 SSAO 式 Inspector 已落地；Forward/Forward+/Deferred 三路径 AO 可见，SSL 特征顺序任意组合图像逐字节一致，intensity=0 与 Feature 关闭恢复 T1 基线逐字节一致。**同日按用户要求移除 URP 内置 SSAO（像素着色器实现）**：GTAO 成为唯一 AO 生产者，材质侧 `_SCREEN_SPACE_OCCLUSION` 契约保留。唯一事实入口为 `validation/T5/T5Report.json`（`t5ExitCriteriaMet=true`）。SSGI、SSR、Refraction 仍未实现。
 - **T6 已退出（2026-11-14）**。SSGI Trace/Reproject、TemporalFilter validation/accumulation、DiffuseDenoiser 必要支路、半分辨率 Bilateral Upsample、HF/LF 历史与相机 reset 已落地；材质端 `_SCREEN_SPACE_GI` 混合在 Forward/Forward+/Deferred 统一消费。三路径 `T6Verification.json` 全部 `passed=true`：miss 像素与 baked GI 逐像素一致（最大通道差 1.19e-7）、首帧与 intensity=0 逐字节恢复基线、半分辨率 upsample 真实派发、调试图与最终消费纹理一致（921,600 像素中 19 像素差异、最大 0.0012）、发光立方体自身亮度比 0.991（未重复叠加 emission）、相机 reset 计数 2。Frame Debugger 顺序为 Depth Pyramid → Screen Space Global Illumination → opaque，三路径一致。EditMode 111 passed / 0 failed。唯一事实入口为 `validation/T6/T6Report.json`（`t6ExitCriteriaMet=true`）。SSR、Transparent SSR 与 Refraction 仍未实现。
-- **T7–T14 未开始**。
+- **T7 已退出（2026-11-14）**。Opaque SSR Approximation（Trace → Reproject，RGBA16F radiance + weight）、roughness/edge fade、屏外/非有限/负值拒绝和 probe/sky 回退已落地；三路径 `T7Verification.json` 全部 `passed=true`：miss 像素与 probe 基线逐像素一致（670,152 像素，最大通道差 0）、intensity=0 与首帧逐字节恢复基线、金属粗糙度权重梯度单调（0.444/0.350/0.198/0，低于 minSmoothness 为 0）、非金属光滑球权重 0.410、干净首帧的双倍 intensity 响应比 2.000（误差 0）、调试图与消费纹理 921,600 像素 0 差异、无 NaN/Inf/负值。Frame Debugger 顺序为 Depth Pyramid → Screen Space Reflections → opaque，三路径一致。EditMode 118 passed / 0 failed。唯一事实入口为 `validation/T7/T7Report.json`（`t7ExitCriteriaMet=true`）。SSR PBR Accumulation、Transparent SSR 与 Refraction 仍未实现。
+- **T8–T14 未开始**。
 - **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run16 与无效运行全部保留。
 - 临时 Player 已清理；原始运行目录、日志、CSV、PNG 和报告均保留。四项 ProjectSettings 已恢复原始 SHA-256。
 
 唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）、[T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）、[T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）与 [T6Report.json](validation/T6/T6Report.json)（`t6ExitCriteriaMet=true`）。
 
-## 下一步：T7 Opaque SSR
+## 下一步：T8 SSR PBR Accumulation
 
-按计划 8.3 节实现不透明 SSR Approximation：Trace → Reproject 输出 RGBA16F radiance + weight，保留 roughness/edge fade、屏外拒绝、非有限颜色拒绝和 probe/sky 回退。复用 T6 的 SSL 私有 Hi-Z、上一帧颜色/深度、调度与调试经验，但与 SSGI 使用独立输出/历史资源：
+按计划 8.3 节在 T7 的 Trace/Reproject 之上实现 PBR Accumulation：双历史（current/previous accumulation）、surface/hit/both 三类速度拒绝的组合 kernel、world-space 速度拒绝与 smooth/hard 阈值、`accumulationFactor`/`biasFactor`/speed 参数和算法切换 reset。公开设置必须真实选择对应 kernel，不能只解析参数。
 
-1. 新增 `ScreenSpaceReflections.compute`（Approximation 首版）和 `SsrPass`，复用 `ScreenSpaceLightingCommon.hlsl`/`RayMarching.hlsl`。
-2. 接入 Core 的 `indirectSpecular` 混合（`ScreenSpaceLightingBlend.hlsl` 新增 SSR 采样和 miss 回退），Forward/Forward+/Deferred 统一消费。
-3. 验收：三路径金属/非金属、粗糙度梯度正确；miss 不压黑（`ssr.a=0` 时保留 probe/sky）；BRDF 只乘一次；无 NaN/Inf 和首帧无效历史。
+1. 扩展 `ScreenSpaceReflections.compute` 的 Accumulate/Debug kernel 与 `ScreenSpaceLightingHistory` 的 SSR 双历史；T7 的输出资源契约保持不变。
+2. Volume 增加 `usedAlgorithm`、accumulation/bias/speed 参数；切换算法时清空历史，调试速度视图与 kernel 选择由测试覆盖。
+3. 验收：每个公开组合选择真实 kernel；速度拒绝组合生效且调试图像符合预期；算法切换不污染历史；三路径无 NaN/Inf。
 
-不得跳过 T7 直接实现 Transparent SSR/Refraction。
+不得跳过 T8 直接实现 Transparent SSR/Refraction。
+
+## T7 证据与复现
+
+- 结论：[T7Report.json](validation/T7/T7Report.json)（`t7ExitCriteriaMet=true`）
+- 渲染/生命周期：[T7Verification.json](validation/T7/T7Verification.json)（三路径 `passed=true`）
+- Frame Debugger：[FrameDebuggerReport.json](validation/T7/FrameDebugger/FrameDebuggerReport.json)（Forward/Forward+ 76 事件，Deferred 87；`SSL Depth Pyramid → Screen Space Reflections → opaque → SSL Color Pyramids`）
+- EditMode：`validation/T7/UnityTests.log`（118 passed / 0 failed）
+- 调试图：`validation/T7/T7_<Mode>_{Reference,SsrFullRes,SsrRaw,SsrWeight}.png`
+
+复现命令（先关闭其他 Unity 编辑器）：
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT7Verification.CreateT7Assets -LogPath "PALN/validation/T7/UnityT7Compile.log" -ReportPath "PALN/validation/T7/UnityT7CompileSettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT7Verification.RunT7Verification -LogPath "PALN/validation/T7/UnityT7Verification.Run6.log" -ReportPath "PALN/validation/T7/UnityT7Verification.Run6SettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T7/UnityTests.log" -ReportPath "PALN/validation/T7/UnityTestsSettingsRestoration.json"
+
+python "PALN/validation/T7/Analyze-T7Evidence.py"
+```
+
+Frame Debugger 采集（交互式编辑器，参数必须逐项传入）：
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PALN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PALN/validation/T7/FrameDebugger/UnityT7FrameDebugger.log' -ReportPath 'PALN/validation/T7/FrameDebugger/UnityT7FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PALN/validation/T7/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT7ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT7ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT7DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
+```
+
+T7 事实与限制：
+
+- 权重契约：Reproject 写 `(radiance, weight)` 且 radiance 不预乘；Core `ScreenSpaceLightingApplyIndirectSpecular` 在 `EnvironmentBRDF` 之前 `lerp(env, radiance, weight)`，因此 FGD/BRDF 只乘一次，miss 时 probe/sky 完整保留。干净首帧上 intensity 0.5→1.0 的整图响应比为 2.000、误差 0，证明权重只应用一次。
+- Deferred smoothness：SSR 事件 206 早于 GBuffer 210，`cameraNormalsTextureHandle` 返回的 GBuffer2 仍是 DepthNormals prepass 写入的 `0.5 + 0.5 * smoothness`；因此三条路径统一按编码值解码，未使用 GBuffer 覆盖后的 raw smoothness。Deferred 与 Forward 的权重统计逐项一致。
+- 颜色历史反馈：上一帧颜色金字塔包含上一帧 SSR 贡献，长时间平均会形成有界反馈；除首帧线性测试外，其余验证使用 32 帧预热后的稳定图像。
+- 仅 Approximation；`usedAlgorithm`、双历史、速度拒绝和 PBR accumulation 属 T8。仅 Lit/ComplexLit base layer；ComplexLit coat 仍走 probe（T9）。
+- 仅 Compatibility `ScriptableRenderPass.Execute` 路径；RenderGraph 路径未注册。XR 使用单视图矩阵，逐眼矩阵留到 T13。
+- SSR 输出按相机分配 1280×720 RGBA16F 约 7.4 MB，hit point 约 7.4 MB；SSGI 资源策略不变。
 
 ## T6 证据与复现
 
@@ -225,6 +261,9 @@ python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
 - T6 结论：[T6Report.json](validation/T6/T6Report.json)
 - T6 渲染/生命周期：[T6Verification.json](validation/T6/T6Verification.json)
 - T6 Frame Debugger：[FrameDebuggerReport.json](validation/T6/FrameDebugger/FrameDebuggerReport.json)
+- T7 结论：[T7Report.json](validation/T7/T7Report.json)
+- T7 渲染/生命周期：[T7Verification.json](validation/T7/T7Verification.json)
+- T7 Frame Debugger：[FrameDebuggerReport.json](validation/T7/FrameDebugger/FrameDebuggerReport.json)
 - T3 渲染/生命周期：[T3Verification.json](validation/T3/T3Verification.json)
 - T3 真实 UI 路径：[T3UiEvidence.json](validation/T3/UI/T3UiEvidence.json)
 - T3 无插件回归：`validation/T3/FrameDebuggerNoPlugin/`

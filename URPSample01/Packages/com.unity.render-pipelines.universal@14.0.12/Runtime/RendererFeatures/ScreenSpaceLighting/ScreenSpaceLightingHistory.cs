@@ -222,6 +222,76 @@ namespace UnityEngine.Rendering.Universal
         int m_SsgiSlices;
         TextureDimension m_SsgiDimension;
 
+        // ---------------------------------------------------------------------------------------
+        // Opaque Screen Space Reflections (Approximation)
+        // ---------------------------------------------------------------------------------------
+
+        internal RTHandle ssrHitPoint { get; private set; }
+        internal RTHandle ssrOutput { get; private set; }
+        internal int ssrWidth { get; private set; }
+        internal int ssrHeight { get; private set; }
+        internal int ssrResourceGeneration { get; private set; }
+        internal bool ssrOutputProduced { get; private set; }
+        internal bool ssrResourcesAllocated => ssrHitPoint != null && ssrOutput != null;
+        internal bool ssrHasValidHistory => hasValidHistory && readColorPyramid != null;
+
+        internal void EnsureSsrResources(int width, int height, int viewCount, TextureDimension resourceDimension)
+        {
+            width = Mathf.Max(1, width);
+            height = Mathf.Max(1, height);
+            viewCount = Mathf.Max(1, viewCount);
+
+            if (ssrResourcesAllocated &&
+                m_SsrWidth == width &&
+                m_SsrHeight == height &&
+                m_SsrSlices == viewCount &&
+                m_SsrDimension == resourceDimension)
+            {
+                return;
+            }
+
+            ReleaseSsrResources();
+
+            m_SsrWidth = width;
+            m_SsrHeight = height;
+            m_SsrSlices = viewCount;
+            m_SsrDimension = resourceDimension;
+            ssrWidth = width;
+            ssrHeight = height;
+
+            // The hit point holds NDC coordinates and writes 99 for a miss, so it cannot use UNorm.
+            ssrHitPoint = RTHandles.Alloc(
+                width, height,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: viewCount,
+                colorFormat: GraphicsFormat.R16G16_SFloat,
+                filterMode: FilterMode.Point,
+                dimension: resourceDimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "SslSsrHitPoint");
+
+            ssrOutput = RTHandles.Alloc(
+                width, height,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: viewCount,
+                colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                filterMode: FilterMode.Bilinear,
+                dimension: resourceDimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "SslSsrOutput");
+
+            ssrResourceGeneration++;
+        }
+
+        int m_SsrWidth;
+        int m_SsrHeight;
+        int m_SsrSlices;
+        TextureDimension m_SsrDimension;
+
         PackedMipChainInfo m_DepthPyramidInfo;
         readonly RTHandle[] m_HistoryColorPyramids = new RTHandle[k_HistoryBufferCount];
         readonly RTHandle[] m_PreviousDepths = new RTHandle[k_HistoryBufferCount];
@@ -252,6 +322,13 @@ namespace UnityEngine.Rendering.Universal
             writeSlot = bufferIndex ^ 1;
             readColorPyramid = readSlot >= 0 ? m_HistoryColorPyramids[readSlot] : null;
             readPreviousDepth = readSlot >= 0 ? m_PreviousDepths[readSlot] : null;
+            ssrOutputProduced = false;
+        }
+
+        // Called by ScreenSpaceLightingSsrPass once both kernels dispatched for this camera.
+        internal void MarkSsrOutputProduced()
+        {
+            ssrOutputProduced = true;
         }
 
         public void Reset(int width, int height, int frameIndex)
@@ -267,6 +344,7 @@ namespace UnityEngine.Rendering.Universal
             writeSlot = bufferIndex ^ 1;
             readColorPyramid = null;
             readPreviousDepth = null;
+            ssrOutputProduced = false;
             ResetSsgiHistory();
         }
 
@@ -407,6 +485,7 @@ namespace UnityEngine.Rendering.Universal
         public void Dispose()
         {
             ReleaseSsgiResources();
+            ReleaseSsrResources();
             ReleaseResources();
             width = 0;
             height = 0;
@@ -462,6 +541,20 @@ namespace UnityEngine.Rendering.Universal
             m_SsgiTraceHeight = 0;
             m_SsgiSlices = 0;
             ResetSsgiHistory();
+        }
+
+        void ReleaseSsrResources()
+        {
+            RTHandles.Release(ssrHitPoint);
+            ssrHitPoint = null;
+            RTHandles.Release(ssrOutput);
+            ssrOutput = null;
+            ssrWidth = 0;
+            ssrHeight = 0;
+            m_SsrWidth = 0;
+            m_SsrHeight = 0;
+            m_SsrSlices = 0;
+            ssrOutputProduced = false;
         }
 
         void ReleaseResources()

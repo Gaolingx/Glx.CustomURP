@@ -10,4 +10,8 @@ TEXTURE2D_X(_ScreenSpaceGiTexture);
 // x: weight scale (volume intensity), y..w: reserved, always zero
 float4 _ScreenSpaceGiParams;
 
+TEXTURE2D_X(_ScreenSpaceSsrTexture);
+// x: weight scale (volume intensity), y..w: reserved, always zero
+float4 _ScreenSpaceSsrParams;
+
 #endif

@@ -1238,6 +1238,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for Screen Space Global Illumination (the Screen Space Lighting feature). </summary>
         public const string ScreenSpaceGI = "_SCREEN_SPACE_GI";
 
+        /// <summary> Keyword used for the opaque screen-space reflection contribution. </summary>
+        public const string ScreenSpaceSSR = "_SCREEN_SPACE_SSR";
+
         /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
         public const string PointSampling = "_POINT_SAMPLING";
 

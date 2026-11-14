@@ -28,5 +28,9 @@ namespace UnityEngine.Rendering.Universal
         SsgiHistory = 9,
         /// <summary>Validity weight of the final SSGI result. Black means the material keeps baked GI.</summary>
         SsgiWeight = 10,
+        /// <summary>Reflection radiance reprojected from the previous color pyramid (opaque SSR).</summary>
+        SsrRaw = 11,
+        /// <summary>Blend weight of the opaque SSR result. Black means the material keeps the reflection probe.</summary>
+        SsrWeight = 12,
     }
 }

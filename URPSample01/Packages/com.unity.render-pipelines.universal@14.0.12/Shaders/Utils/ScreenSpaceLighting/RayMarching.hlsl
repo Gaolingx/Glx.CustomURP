@@ -18,7 +18,21 @@ StructuredBuffer<int2> _SsgiDepthPyramidMipLevelOffsets;
 #define _SsgiRayMarchingThicknessBias _SsgiRayMarchingParams.z
 #define _SsgiRayMarchingReflectsSky (int)_SsgiRayMarchingParams.w
 
-bool SsgiRayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 positionSS, float deviceDepth, bool killRay, out float3 rayPos)
+// Shared screen-space Hi-Z marching used by SSGI and opaque SSR. The caller owns the depth pyramid
+// and the marching parameters so the two effects never depend on each other's constant buffer.
+bool SslRayMarch(
+    float3 positionWS,
+    float3 sampleDir,
+    float2 positionSS,
+    float deviceDepth,
+    bool killRay,
+    int stepLimit,
+    float thicknessScale,
+    float thicknessBias,
+    bool reflectsSky,
+    int maxMipLevel,
+    float4 screenSize,
+    out float3 rayPos)
 {
     rayPos = float3(-1.0, -1.0, -1.0);
     bool status = false;
@@ -28,7 +42,7 @@ bool SsgiRayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 p
 
     float3 reflPosWS = positionWS + sampleDir;
     float3 reflPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(reflPosWS, unity_MatrixVP);
-    float3 reflPosSS = float3(reflPosNDC.xy * _SsgiScreenSize.xy, reflPosNDC.z);
+    float3 reflPosSS = float3(reflPosNDC.xy * screenSize.xy, reflPosNDC.z);
     float3 rayDir = reflPosSS - rayOrigin;
     float3 rcpRayDir = rcp(rayDir);
     int2 rayStep = int2(rcpRayDir.x >= 0 ? 1 : 0,
@@ -48,9 +62,9 @@ bool SsgiRayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 p
     {
         const float halfTexel = 0.5;
         float3 bounds;
-        bounds.x = (rcpRayDir.x >= 0) ? _SsgiScreenSize.x - halfTexel : halfTexel;
-        bounds.y = (rcpRayDir.y >= 0) ? _SsgiScreenSize.y - halfTexel : halfTexel;
-        float maxDepth = (_SsgiRayMarchingReflectsSky != 0) ? -0.00000024 : 0.00000024;
+        bounds.x = (rcpRayDir.x >= 0) ? screenSize.x - halfTexel : halfTexel;
+        bounds.y = (rcpRayDir.y >= 0) ? screenSize.y - halfTexel : halfTexel;
+        float maxDepth = reflectsSky ? -0.00000024 : 0.00000024;
         bounds.z = (rcpRayDir.z >= 0) ? 1 : maxDepth;
 
         float3 dist = bounds * rcpRayDir - (rayOrigin * rcpRayDir);
@@ -64,6 +78,7 @@ bool SsgiRayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 p
         t = min(dist.x, dist.y);
     }
 
+    maxMipLevel = max(0, maxMipLevel);
     int mipLevel = 0;
     int2 mipOffset = _SsgiDepthPyramidMipLevelOffsets[mipLevel];
     int iterCount = 0;
@@ -71,7 +86,7 @@ bool SsgiRayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 p
     bool miss = false;
     bool belowMip0 = false;
 
-    while (!(hit || miss) && (t <= tMax) && (iterCount < _SsgiRayMarchingSteps))
+    while (!(hit || miss) && (t <= tMax) && (iterCount < stepLimit))
     {
         rayPos = rayOrigin + t * rayDir;
 
@@ -83,7 +98,7 @@ bool SsgiRayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 p
         float4 bounds;
         bounds.z = SSGI_LOAD(_SsgiDepthPyramid, mipOffset + mipCoord);
         bounds.xy = (mipCoord + rayStep) << mipLevel;
-        bounds.w = bounds.z * _SsgiRayMarchingThicknessScale + _SsgiRayMarchingThicknessBias;
+        bounds.w = bounds.z * thicknessScale + thicknessBias;
 
         float4 dist = bounds * rcpRayDir.xyzz - (rayOrigin.xyzz * rcpRayDir.xyzz);
         float distWall = min(dist.x, dist.y);
@@ -104,14 +119,34 @@ bool SsgiRayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 p
         rayPos.z = bounds.z;
 
         mipLevel += (hitFloor || belowFloor || rayTowardsEye) ? -1 : 1;
-        mipLevel = clamp(mipLevel, 0, 6);
+        mipLevel = clamp(mipLevel, 0, maxMipLevel);
         mipOffset = _SsgiDepthPyramidMipLevelOffsets[mipLevel];
         iterCount++;
     }
 
-    miss = miss || ((_SsgiRayMarchingReflectsSky == 0) && (rayPos.z == 0));
+    miss = miss || (!reflectsSky && (rayPos.z == 0));
     status = hit && !miss;
     return status;
+}
+
+// SSGI entry point: uses the SSGI constant buffer and the SSGI-owned pyramid.
+bool SsgiRayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 positionSS, float deviceDepth, bool killRay, out float3 rayPos)
+{
+    return SslRayMarch(
+        positionWS,
+        sampleDir,
+        positionSS,
+        deviceDepth,
+        killRay,
+        _SsgiRayMarchingSteps,
+        _SsgiRayMarchingThicknessScale,
+        _SsgiRayMarchingThicknessBias,
+        _SsgiRayMarchingReflectsSky != 0,
+        // HDRP allows the full pyramid; the URP port stops at mip 6 because the single closest depth
+        // layout makes tracing towards the eye and behind objects linear rather than logarithmic.
+        6,
+        _SsgiScreenSize,
+        rayPos);
 }
 
 #endif
