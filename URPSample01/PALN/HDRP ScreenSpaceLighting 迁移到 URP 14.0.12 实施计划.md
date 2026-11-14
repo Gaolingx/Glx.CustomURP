@@ -703,7 +703,7 @@ T1 固定基线配置：
 |---|---|---|
 | T9 结论 | `t9ExitCriteriaMet=true` | `PALN/validation/T9/T9Report.json` |
 | 三路径渲染/生命周期 | 三路径 `passed=true`；`CoatIntensity0` 逐字节恢复 probe 基线（三路径同一 SHA） | `PALN/validation/T9/T9Verification.json` |
-| Clear coat 独立数据 | base smoothness 0.3 + coat mask 1 的球 trace weight 1.0（无 coat 编码时为 0）；coat smoothness 0.2↔1 改变 270,919 像素，coat mask 1↔0 改变 271,300 像素 | 同上 |
+| Clear coat 独立数据 | base smoothness 0.3 + coat mask 1 的球 trace weight 1.0（无 coat 编码时为 0）；coat smoothness 0.2↔1 改变 270,919 像素（Deferred 270,957），coat mask 1↔0 改变 271,300 像素（Deferred 271,339） | 同上 |
 | 深度法线编码 | coat 球 alpha 1.000、coat mask 0 球 0.654、SimpleLit/Particles/Terrain 0.000、SG Lit 0.748、SG Complex Lit 1.000 | 同上 |
 | 不支持材质 | SimpleLit/Particles/Terrain 的 SSR weight 全为 0；Terrain Lit 用其 shader + 平面隔离材质契约 | 同上 |
 | 无二次 probe/BRDF | SSR on 时 572,746 个零权重像素与 probe 图像逐像素一致（最大通道差 0）；intensity=0 逐字节恢复 | 同上 |
