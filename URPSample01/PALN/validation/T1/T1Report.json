@@ -1,11 +1,11 @@
 {
-  "analysisUtc": "2026-11-13T21:12:10.977513+00:00",
+  "analysisUtc": "2026-11-13T21:55:36.848572+00:00",
   "build": {
     "result": "Succeeded",
     "totalErrors": 0,
     "totalWarnings": 2,
-    "totalSizeBytes": 103976629,
-    "totalTimeSeconds": 23.2641508,
+    "totalSizeBytes": 104004620,
+    "totalTimeSeconds": 21.4488979,
     "executablePath": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN\\validation\\T1\\Player\\SslBaselinePlayer.exe"
   },
   "buildPassed": true,
@@ -48,18 +48,18 @@
     "notes": "The machine also exposes virtual display and ASPEED adapters; BaselineReport.json records the adapter and API actually selected by Unity. Background GPU processes were recorded but deliberately not closed for the Run13/Run14 pair, per operator decision; they are a known environment limitation. The project and URP package moved from E:/workspace/GitHub/URPSample01 to E:/GitHub/Glx.CustomURP/URPSample01 before Run13; screenshots remain byte-identical to the golden images. Run13 was captured under the superseded R2 clock-lock protocol; it is retained and its GPU timing is reference-only like all other runs."
   },
   "baselineRuns": {
-    "Run15": {
-      "report": "Run15/BaselineReport.json",
-      "frameTimes": "Run15/FrameTimes.csv",
-      "rawFrameTimes": "Run15/RawFrameTimes.csv",
-      "gpuTimingReference": "Run15/GpuClocks.csv",
+    "Run17": {
+      "report": "Run17/BaselineReport.json",
+      "frameTimes": "Run17/FrameTimes.csv",
+      "rawFrameTimes": "Run17/RawFrameTimes.csv",
+      "gpuTimingReference": "Run17/GpuClocks.csv",
       "completed": true
     },
-    "Run16": {
-      "report": "Run16/BaselineReport.json",
-      "frameTimes": "Run16/FrameTimes.csv",
-      "rawFrameTimes": "Run16/RawFrameTimes.csv",
-      "gpuTimingReference": "Run16/GpuClocks.csv",
+    "Run18": {
+      "report": "Run18/BaselineReport.json",
+      "frameTimes": "Run18/FrameTimes.csv",
+      "rawFrameTimes": "Run18/RawFrameTimes.csv",
+      "gpuTimingReference": "Run18/GpuClocks.csv",
       "completed": true
     }
   },

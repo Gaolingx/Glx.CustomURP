@@ -1,0 +1,14 @@
+{
+    "name": "ForwardPlus",
+    "eventCount": 6,
+    "eventsHash": 72926354,
+    "eventDataHash": 4091911510,
+    "eventNames": [
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT3ForwardPlusRenderer",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT3ForwardPlusRenderer/MainLightShadow/Shadows.DrawSRPBatcher",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT3ForwardPlusRenderer",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT3ForwardPlusRenderer/DrawOpaqueObjects/RenderLoop.DrawSRPBatcher",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT3ForwardPlusRenderer/Camera.RenderSkybox",
+        "UniversalRenderPipeline.RenderSingleCameraInternal: Baseline Camera/ScriptableRenderer.Execute: SslT3ForwardPlusRenderer/FinalBlit"
+    ]
+}

@@ -1,6 +1,6 @@
 # HDRP ScreenSpaceLighting 迁移到 URP 14.0.12 实施计划
 
-> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2 已退出（2026-11-14）；T3–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准。
+> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2 已退出（2026-11-14）；T3 已退出（2026-11-14）；T4–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成，T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PALN/validation/T3/T3Report.json` 为准。
 >
 > 基线：Unity `2022.3.62f1`，URP/HDRP `14.0.12`。
 >
@@ -473,7 +473,7 @@ URP/Editor/RendererFeatures/
 | **T0** | P0 / 无 | 确立 Core/Plugin 边界、两个 Feature、Volume、历史/Motion/Hi-Z 所有权、冲突策略和文件清单 | **2026-11-14 已冻结**；无“GTAO 子模块”“Volume 直接加 Pass”“UACD 持插件历史”等旧决策；变更必须重新打开 T0 并同步两份文档 |
 | **T1** | P0 / T0 | 建立三 Renderer 测试资产、固定场景/相机/随机序列、原始截图、Frame Debugger 时序、GPU/显存基线；确定目标 API 和可量化性能预算 | **已退出（2026-11-14，R3）**：资产、构建、图像、显存、Frame Debugger 和设置恢复通过；Run13/Run14 在固定协议下三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 2.19%/2.28%/2.30%（≤10%）。T2 Core 改动后由 Run15/Run16 复验，CPU p95 波动 0.28%/0.01%/0.04%。GPU p95 因本机 DVFS 且 GeForce/WDDM 不执行 `nvidia-smi -lgc` 锁频，按 R3 仅作参考数据；10% 容差、场景与预算数值未变，Run1–Run16 及无效运行全部保留 |
 | **T2** | P0 / T1 | Core DepthNormals 编码、最早 Motion/Depth 调度、通用 keyword 清理与调度测试 | **已退出（2026-11-14）**：Lit/ComplexLit DepthNormals alpha 使用 `0.5+0.5*smoothness`、0 表示不支持；最早 Motion 消费者把共享 Motion 提前到 202，并同步提前 Depth/CopyDepth；Deferred 提前 Motion 时强制完整 DepthNormals prepass，GBuffer2 alpha 仍为原始 smoothness；无插件时三路径事件数据与 T1 基线逐事件一致（`eventDataHash` 相同）。202 前 Motion/Depth 有效（动态 98 px、静止 0）；TAA/Motion Blur 早/晚 Motion 输出逐字节一致；smoothness=0（406 px）与不支持 alpha=0（42 px）可区分，无 0–0.5 保留区像素。证据：`PALN/validation/T2/` |
-| **T3** | P0 / T1 | 两个空 Feature、资源序列化、Volume 组件、能力检测、history store、neutral 输出和 Editor UI | 按 2.5 的真实 UI 路径配置成功；Volume 控制 Pass 入队；空效果不改变画面；Feature 删除/禁用、Domain Reload、相机销毁无泄漏；Core 不引用插件类型 |
+| **T3** | P0 / T1 | 两个空 Feature、资源序列化、Volume 组件、能力检测、history store、neutral 输出和 Editor UI | **已退出（2026-11-14）**：按 2.5 的真实 UI 路径配置成功并保留 13 张截图（`PALN/validation/T3/UI/`）；三路径 Volume 控制 Pass 入队、Feature 关闭不执行；空效果与 T1 基线逐像素一致；history 计数 1→2→1；无插件三路径 `eventDataHash` 与 T1 相同；EditMode 48 passed / 0 failed；`.meta` 完整。`T3Report.json` 的 `t3ExitCriteriaMet=true` |
 | **T4** | P0 / T2、T3 | SSL 私有 Hi-Z、颜色金字塔、previous color/depth、双缓冲、reset generation 和中间调试视图 | mip/offset、UV scale、首帧/相机 cut/尺寸变化正确；无同帧历史覆盖、首帧黑屏和跨相机污染；GTAO 不存在时 SSL 独立工作 |
 | **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 冲突和 SSAO 式设置 | 三路径 AO 语义正确，无双重 AO；与 SSL 任意顺序/组合工作；neutral 白色，禁用恢复基线；重复 Hi-Z 成本写入报告 |
 | **T6** | P0 / T4 | SSGI Trace/Reproject、Temporal/Diffuse Denoise、HF/LF、Bilateral Upsample、材质注入 | 三路径与 ForwardOnly 无 emission 重复、miss 压黑；首帧/disocclusion 有 fallback；raw/denoised/history debug 与最终消费一致 |

@@ -73,3 +73,6 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Local T1 player build (rebuilt by ScreenSpaceLightingBaselineSetup.BuildBaselinePlayer)
+/PALN/validation/T1/Player/

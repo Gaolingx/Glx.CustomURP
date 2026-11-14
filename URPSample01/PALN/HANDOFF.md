@@ -7,24 +7,46 @@
 - **T0 已冻结**。任何边界变更都必须先重新打开 T0，并同步 PLAN 与本文件。
 - **T1 已按 R3 协议退出（2026-11-14）**，并在 T2 Core 改动后由 **Run15 / Run16** 复验：三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 **0.28% / 0.01% / 0.04%**，构建、Frame Debugger 与设置恢复全部通过。`T1Report.json` 当前指向 Run15/Run16；Run13/Run14 作为 T2 前的有效运行对保留。
 - **T2 已退出（2026-11-14）**。Core 已提供 DepthNormals smoothness 编码、最早 Motion/Depth 调度和调度单元测试；无插件时三路径 Frame Debugger 事件数据与 T1 基线逐事件一致，探针在 203 时 Motion/Depth 已有效，TAA/Motion Blur 早/晚 Motion 输出逐字节一致。
-- **T3–T14 未开始**。当前没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成。
+- **T3 已退出（2026-11-14）**。两个空 Renderer Feature（SSL / GTAO）、Volume 组件、能力检测、neutral 输出和私有 history 骨架已落地；真实 UI 路径配置、Volume 控队、空效果逐像素一致、无插件回归和 EditMode 测试全部通过，唯一事实入口为 `validation/T3/T3Report.json`（`t3ExitCriteriaMet=true`）。当前仍没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成。
+- **T4–T14 未开始**。
 - **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run16 与无效运行全部保留。
 - 临时 Player 已清理；原始运行目录、日志、CSV、PNG 和报告均保留。四项 ProjectSettings 已恢复原始 SHA-256。
 
 唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）与 [T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）。
 
-## 下一步：T3 空框架
+## 下一步：T4 SSL 私有 Hi-Z 与颜色金字塔
 
-只实现空框架，不提前实现 GTAO/SSGI/SSR 算法：
+只实现 SSL 的私有深度/颜色历史骨架，不实现 SSGI/SSR/Refraction 算法：
 
-1. 建立两个空 Renderer Feature：独立 GTAO Feature 与共享 SSL Feature；资源序列化、remove/disable/Domain Reload 后可重建。
-2. 增加 Volume 组件（GTAO 与 SSL 各一套）、设置优先级、能力检测和 neutral 输出；未配置或禁用效果时不得改变基线画面。
-3. 建立每个 Feature 私有的 history store 骨架（双缓冲、reset generation、尺寸变化/相机销毁回收），但暂不接算法。
-4. 接入 Renderer Data 与 Volume 的 Editor UI 真实路径；Core 不得引用插件类型。
-5. 验收：按 PLAN 2.5 的真实 UI 路径配置成功；Volume 控制 Pass 入队；空效果不改变画面；删除/禁用 Feature、Domain Reload、相机销毁无泄漏；Core 不引用 GTAO/SSL 具体类型。
-6. T3 退出前重复 T1 无插件回归（下一次使用 **Run17 / Run18**），要求 Frame Debugger 和画面仍与基线一致。
+1. SSL Feature 私有 Hi-Z（mip/offset）、颜色金字塔、previous color/depth，按相机与 XR eye 双缓冲。
+2. reset generation 覆盖首帧、相机 cut、尺寸/render scale 变化；无同帧历史覆盖与跨相机污染。
+3. 增加中间调试视图；GTAO 不存在时 SSL 可独立工作。
+4. 验收：mip/offset、UV scale、首帧/相机 cut/尺寸变化正确；无首帧黑屏和跨相机污染；GTAO 缺失时 SSL 独立工作。
 
-不得跳过 T3 直接实现效果。
+不得跳过 T4 直接实现效果。
+
+## T3 证据与复现
+
+- 结论：`validation/T3/T3Report.json`（`t3ExitCriteriaMet=true`）
+- 渲染/生命周期验证：`validation/T3/T3Verification.json`（三路径 `passed=true`；Volume 开启时 SSL/GTAO 均入队，Feature 关闭时不入队；空效果与 T1 基线逐像素一致；history 计数 1→2→1）
+- 真实 UI 路径：`validation/T3/UI/T3UiEvidence.json` 与 13 张 `T3_UI_01..13`（Renderer List → Add Renderer Feature → SSL/GTAO → Volume Add Override → Camera Volume Mask）
+- 无插件回归：`validation/T3/FrameDebuggerNoPlugin/`（三路径 `eventDataHash` 与 `validation/T1/FrameDebugger/FrameDebuggerReport.json` 相同）
+- EditMode 测试：`validation/T3/UnityTests.log`（48 passed / 0 failed）
+
+复现命令（先关闭其他 Unity 编辑器；UI 采集必须使用交互式编辑器并保持窗口可见）：
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass \
+  -File "PALN/validation/T1/Invoke-T1Unity.ps1" \
+  -ExecuteMethod ScreenSpaceLightingT3UiEvidence.RunEvidence \
+  -LogPath "PALN/validation/T3/UnityUiEvidence.Run.log" \
+  -ReportPath "PALN/validation/T3/UnityUiEvidenceSettingsRestoration.json" \
+  -InteractiveEditor
+
+python "PALN/validation/T3/Analyze-T3Evidence.py"
+```
+
+`ScreenSpaceLightingT3UiEvidence` 走真实编辑器入口（`ScriptableRendererDataEditor.AddComponent`、`VolumeComponentListEditor.AddComponent` 与对应 FilterWindow 下拉），截图用 `PrintWindow` 合成；Popup 窗口按原生窗口类合成在最上层。
 
 ## T2 证据与复现
 
@@ -88,6 +110,10 @@ python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
 - GPU 参考数据：`validation/T1/Run15/GpuClocks.csv`、`validation/T1/Run16/GpuClocks.csv`
 - T2 结论：[T2Verification.json](validation/T2/T2Verification.json)
 - T2 Frame Debugger：[FrameDebuggerReport.json](validation/T2/FrameDebugger/FrameDebuggerReport.json)
+- T3 结论：[T3Report.json](validation/T3/T3Report.json)
+- T3 渲染/生命周期：[T3Verification.json](validation/T3/T3Verification.json)
+- T3 真实 UI 路径：[T3UiEvidence.json](validation/T3/UI/T3UiEvidence.json)
+- T3 无插件回归：`validation/T3/FrameDebuggerNoPlugin/`
 - DVFS 诊断：[Diagnostics/Dvfs-2026-11-14/README.md](validation/T1/Diagnostics/Dvfs-2026-11-14/README.md)
 - T1 Frame Debugger：[FrameDebuggerReport.json](validation/T1/FrameDebugger/FrameDebuggerReport.json)
 - 构建设置恢复：[BuildSettingsRestoration.json](validation/T1/BuildSettingsRestoration.json)

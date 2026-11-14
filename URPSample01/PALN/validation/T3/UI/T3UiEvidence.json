@@ -1,0 +1,139 @@
+{
+    "utcTimestamp": "2026-11-14T04:20:43.2256020Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDevice": "NVIDIA GeForce RTX 5060 Ti / Direct3D11",
+    "status": "completed",
+    "scenePath": "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity",
+    "demoRendererPath": "Assets/Tests/ScreenSpaceLighting/Renderers/SslT3UiDemoRenderer.asset",
+    "demoPipelinePath": "Assets/Tests/ScreenSpaceLighting/Renderers/SslT3UiDemoPipeline.asset",
+    "demoProfilePath": "Assets/Tests/ScreenSpaceLighting/Profiles/SslT3UiDemoProfile.asset",
+    "rendererFeatures": [
+        "ScreenSpaceLightingRendererFeature",
+        "GroundTruthAmbientOcclusionRendererFeature"
+    ],
+    "volumeComponents": [
+        {
+            "type": "ScreenSpaceGlobalIllumination",
+            "enabled": true
+        },
+        {
+            "type": "ScreenSpaceReflection",
+            "enabled": true
+        },
+        {
+            "type": "ScreenSpaceRefraction",
+            "enabled": true
+        }
+    ],
+    "cameraName": "Baseline Camera",
+    "cameraVolumeMask": 1,
+    "cameraVolumeMaskLayers": "Default (0)",
+    "globalVolumeProfile": "ScreenSpaceLightingT3Profile",
+    "captures": [
+        {
+            "step": "pipeline-selected",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_01_pipeline_renderer_list.png",
+            "width": 2387,
+            "height": 1269,
+            "bytes": 466611,
+            "filterWindowOpen": false
+        },
+        {
+            "step": "renderer-selected",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_02_renderer_features_empty.png",
+            "width": 2387,
+            "height": 1269,
+            "bytes": 454283,
+            "filterWindowOpen": false
+        },
+        {
+            "step": "renderer-popup-open",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_03_add_renderer_feature.png",
+            "width": 2389,
+            "height": 1269,
+            "bytes": 468957,
+            "filterWindowOpen": true
+        },
+        {
+            "step": "ssl-added",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_04_ssl_added.png",
+            "width": 2387,
+            "height": 1269,
+            "bytes": 453840,
+            "filterWindowOpen": false
+        },
+        {
+            "step": "renderer-popup-again",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_05_ssl_not_duplicated.png",
+            "width": 2389,
+            "height": 1269,
+            "bytes": 466964,
+            "filterWindowOpen": true
+        },
+        {
+            "step": "gtao-added",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_06_gtao_added.png",
+            "width": 2387,
+            "height": 1269,
+            "bytes": 458306,
+            "filterWindowOpen": false
+        },
+        {
+            "step": "gtao-selected",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_07_gtao_feature_inspector.png",
+            "width": 2387,
+            "height": 1269,
+            "bytes": 418162,
+            "filterWindowOpen": false
+        },
+        {
+            "step": "profile-selected",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_08_volume_profile_empty.png",
+            "width": 2387,
+            "height": 1269,
+            "bytes": 412862,
+            "filterWindowOpen": false
+        },
+        {
+            "step": "volume-popup-open",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_09_add_override_lighting.png",
+            "width": 2389,
+            "height": 1269,
+            "bytes": 394775,
+            "filterWindowOpen": true
+        },
+        {
+            "step": "overrides-added",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_10_volume_overrides_added.png",
+            "width": 2387,
+            "height": 1269,
+            "bytes": 430817,
+            "filterWindowOpen": false
+        },
+        {
+            "step": "overrides-enabled",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_11_volume_overrides_enabled.png",
+            "width": 2387,
+            "height": 1269,
+            "bytes": 419041,
+            "filterWindowOpen": false
+        },
+        {
+            "step": "global-volume-selected",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_12_global_volume.png",
+            "width": 2387,
+            "height": 1269,
+            "bytes": 484170,
+            "filterWindowOpen": false
+        },
+        {
+            "step": "camera-selected",
+            "file": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T3/UI\\T3_UI_13_camera_volume_mask.png",
+            "width": 2387,
+            "height": 1269,
+            "bytes": 526764,
+            "filterWindowOpen": false
+        }
+    ],
+    "errors": []
+}

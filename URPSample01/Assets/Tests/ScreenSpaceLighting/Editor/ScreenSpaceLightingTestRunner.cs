@@ -14,7 +14,16 @@ public static class ScreenSpaceLightingTestRunner
         {
             testMode = TestMode.EditMode,
             assemblyNames = new[] { "Unity.RenderPipelines.Universal.Editor.Tests" },
-            testNames = new[] { "UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" }
+            testNames = new[]
+            {
+                "UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests",
+                "UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests",
+                "UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests",
+                "UnityEditor.Rendering.Universal.Tests.PluginIsolationTests",
+                "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests",
+                "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests",
+                "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests"
+            }
         }));
     }
 

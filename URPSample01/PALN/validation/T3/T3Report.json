@@ -1,0 +1,424 @@
+{
+    "uiPath": {
+        "passed": true,
+        "problems": [],
+        "status": "completed",
+        "captures": [
+            {
+                "step": "pipeline-selected",
+                "file": "T3_UI_01_pipeline_renderer_list.png",
+                "width": 2387,
+                "height": 1269,
+                "sha256": "d4a74aeb5c6990b7ddb9844d4f01e5aae8db5c01209bf5f52380a479066976ec"
+            },
+            {
+                "step": "renderer-selected",
+                "file": "T3_UI_02_renderer_features_empty.png",
+                "width": 2387,
+                "height": 1269,
+                "sha256": "aa41586ec59a4e82447036274c3594d9321a7102c86c5203beb836e61a0e8ef5"
+            },
+            {
+                "step": "renderer-popup-open",
+                "file": "T3_UI_03_add_renderer_feature.png",
+                "width": 2389,
+                "height": 1269,
+                "sha256": "17809afbdf5346300c56b23c17c319a223b3ae9a18071c2c0254e9f635344d6d"
+            },
+            {
+                "step": "ssl-added",
+                "file": "T3_UI_04_ssl_added.png",
+                "width": 2387,
+                "height": 1269,
+                "sha256": "8452218b3eb56b75103cab069e3a14b99eba68ea05434d8454fc0387acc01219"
+            },
+            {
+                "step": "renderer-popup-again",
+                "file": "T3_UI_05_ssl_not_duplicated.png",
+                "width": 2389,
+                "height": 1269,
+                "sha256": "57c1c157912c18da88389d8286ddc47c3767836583b6f229fe1108f3bce5abab"
+            },
+            {
+                "step": "gtao-added",
+                "file": "T3_UI_06_gtao_added.png",
+                "width": 2387,
+                "height": 1269,
+                "sha256": "bb9d82a9bdb0a6a47c30f2027a44a052cc4a3a7365ca093e5236a530376e037c"
+            },
+            {
+                "step": "gtao-selected",
+                "file": "T3_UI_07_gtao_feature_inspector.png",
+                "width": 2387,
+                "height": 1269,
+                "sha256": "a5ab63f9eecddf79f4c8a83773f71bcb9b18eaa86d6057a3cedca7478627eab7"
+            },
+            {
+                "step": "profile-selected",
+                "file": "T3_UI_08_volume_profile_empty.png",
+                "width": 2387,
+                "height": 1269,
+                "sha256": "59ffb18929686e138fcd69c6baec02b51a25824e09af81e7e37f48d03e5ef007"
+            },
+            {
+                "step": "volume-popup-open",
+                "file": "T3_UI_09_add_override_lighting.png",
+                "width": 2389,
+                "height": 1269,
+                "sha256": "9e925821b1f966c2dd474ed419f4d48299d8822580e1a7705d253c0805e2b77d"
+            },
+            {
+                "step": "overrides-added",
+                "file": "T3_UI_10_volume_overrides_added.png",
+                "width": 2387,
+                "height": 1269,
+                "sha256": "a8d5cc98e347357be33cd14c7ddd47d1f25598116045f3ca4aec6e5c6e025681"
+            },
+            {
+                "step": "overrides-enabled",
+                "file": "T3_UI_11_volume_overrides_enabled.png",
+                "width": 2387,
+                "height": 1269,
+                "sha256": "af3923d6377a57573acaa9641fda871b7eb70b25549072d80573f3c5a63557a5"
+            },
+            {
+                "step": "global-volume-selected",
+                "file": "T3_UI_12_global_volume.png",
+                "width": 2387,
+                "height": 1269,
+                "sha256": "417c91c72942338749fe82b878ac36fa9761463cbbe41d1db73334290d58a748"
+            },
+            {
+                "step": "camera-selected",
+                "file": "T3_UI_13_camera_volume_mask.png",
+                "width": 2387,
+                "height": 1269,
+                "sha256": "1118173312738f2086d91cafdcf533719aeffe82da41f12d492b2381a29469e0"
+            }
+        ],
+        "rendererFeatures": [
+            "ScreenSpaceLightingRendererFeature",
+            "GroundTruthAmbientOcclusionRendererFeature"
+        ],
+        "volumeComponents": [
+            {
+                "type": "ScreenSpaceGlobalIllumination",
+                "enabled": true
+            },
+            {
+                "type": "ScreenSpaceReflection",
+                "enabled": true
+            },
+            {
+                "type": "ScreenSpaceRefraction",
+                "enabled": true
+            }
+        ],
+        "cameraName": "Baseline Camera",
+        "cameraVolumeMask": 1,
+        "cameraVolumeMaskLayers": "Default (0)",
+        "globalVolumeProfile": "ScreenSpaceLightingT3Profile"
+    },
+    "verification": {
+        "passed": true,
+        "problems": [],
+        "modes": {
+            "Forward": {
+                "name": "Forward",
+                "passed": true,
+                "issues": [],
+                "featureCount": 2,
+                "gtaoFeatureFound": true,
+                "sslFeatureFound": true,
+                "gtaoHistoryEntries": 1,
+                "sslHistoryEntries": 1,
+                "gtaoHistoryEntriesWithTempCamera": 2,
+                "sslHistoryEntriesWithTempCamera": 2,
+                "gtaoHistoryEntriesAfterCameraDestroy": 1,
+                "sslHistoryEntriesAfterCameraDestroy": 1,
+                "states": [
+                    {
+                        "state": "T1Baseline",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 0,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    },
+                    {
+                        "state": "FeaturesOn_VolumeOff",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 12,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    },
+                    {
+                        "state": "FeaturesOff_VolumeOn",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 0,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    },
+                    {
+                        "state": "FeaturesOn_VolumeOn",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 12,
+                        "sslExecutions": 12,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    },
+                    {
+                        "state": "GtaoOnly",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 12,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    },
+                    {
+                        "state": "SslOnly",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 0,
+                        "sslExecutions": 12,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    }
+                ]
+            },
+            "ForwardPlus": {
+                "name": "ForwardPlus",
+                "passed": true,
+                "issues": [],
+                "featureCount": 2,
+                "gtaoFeatureFound": true,
+                "sslFeatureFound": true,
+                "gtaoHistoryEntries": 1,
+                "sslHistoryEntries": 1,
+                "gtaoHistoryEntriesWithTempCamera": 2,
+                "sslHistoryEntriesWithTempCamera": 2,
+                "gtaoHistoryEntriesAfterCameraDestroy": 1,
+                "sslHistoryEntriesAfterCameraDestroy": 1,
+                "states": [
+                    {
+                        "state": "T1Baseline",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 0,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    },
+                    {
+                        "state": "FeaturesOn_VolumeOff",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 12,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    },
+                    {
+                        "state": "FeaturesOff_VolumeOn",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 0,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    },
+                    {
+                        "state": "FeaturesOn_VolumeOn",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 12,
+                        "sslExecutions": 12,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    },
+                    {
+                        "state": "GtaoOnly",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 12,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    },
+                    {
+                        "state": "SslOnly",
+                        "sha256": "daf2cffb2e293f9a1b84c118449782c9ea11d7a4cdfe7e94cc55362589b58c5a",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 0,
+                        "sslExecutions": 12,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25064578652381897
+                    }
+                ]
+            },
+            "Deferred": {
+                "name": "Deferred",
+                "passed": true,
+                "issues": [],
+                "featureCount": 2,
+                "gtaoFeatureFound": true,
+                "sslFeatureFound": true,
+                "gtaoHistoryEntries": 1,
+                "sslHistoryEntries": 1,
+                "gtaoHistoryEntriesWithTempCamera": 2,
+                "sslHistoryEntriesWithTempCamera": 2,
+                "gtaoHistoryEntriesAfterCameraDestroy": 1,
+                "sslHistoryEntriesAfterCameraDestroy": 1,
+                "states": [
+                    {
+                        "state": "T1Baseline",
+                        "sha256": "945eff3ce751de217f576fe8c27b1b939846b4c17c25613643240bc4b8303505",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 0,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25086572766304016
+                    },
+                    {
+                        "state": "FeaturesOn_VolumeOff",
+                        "sha256": "945eff3ce751de217f576fe8c27b1b939846b4c17c25613643240bc4b8303505",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 12,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25086572766304016
+                    },
+                    {
+                        "state": "FeaturesOff_VolumeOn",
+                        "sha256": "945eff3ce751de217f576fe8c27b1b939846b4c17c25613643240bc4b8303505",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 0,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25086572766304016
+                    },
+                    {
+                        "state": "FeaturesOn_VolumeOn",
+                        "sha256": "945eff3ce751de217f576fe8c27b1b939846b4c17c25613643240bc4b8303505",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 12,
+                        "sslExecutions": 12,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25086572766304016
+                    },
+                    {
+                        "state": "GtaoOnly",
+                        "sha256": "945eff3ce751de217f576fe8c27b1b939846b4c17c25613643240bc4b8303505",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 12,
+                        "sslExecutions": 0,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25086572766304016
+                    },
+                    {
+                        "state": "SslOnly",
+                        "sha256": "945eff3ce751de217f576fe8c27b1b939846b4c17c25613643240bc4b8303505",
+                        "identicalToReference": true,
+                        "gtaoExecutions": 0,
+                        "sslExecutions": 12,
+                        "differingPixels": 0,
+                        "maxChannelDelta": 0.0,
+                        "meanChannelDelta": 0.0,
+                        "magentaPixels": 0,
+                        "meanLuminance": 0.25086572766304016
+                    }
+                ]
+            }
+        }
+    },
+    "t1Regression": {
+        "passed": true,
+        "problems": [],
+        "eventHashes": {
+            "Forward": {
+                "eventCount": 6,
+                "eventDataHash": 4091911510,
+                "baselineEventDataHash": 4091911510
+            },
+            "ForwardPlus": {
+                "eventCount": 6,
+                "eventDataHash": 4091911510,
+                "baselineEventDataHash": 4091911510
+            },
+            "Deferred": {
+                "eventCount": 16,
+                "eventDataHash": 3259823766,
+                "baselineEventDataHash": 3259823766
+            }
+        }
+    },
+    "editModeTests": {
+        "passed": true,
+        "summary": "EditMode tests finished: status=Passed passed=48 failed=0 skipped=0"
+    },
+    "metaCompleteness": {
+        "passed": true,
+        "missing": []
+    },
+    "t3ExitCriteriaMet": true,
+    "utcTimestamp": "2026-11-14T04:22:39.727418Z",
+    "unityVersion": "2022.3.62f1"
+}

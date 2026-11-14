@@ -56,6 +56,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
         var outputArgument = GetArgument("--ssl-fd-output") ?? defaultOutput;
         var namesArgument = GetArgument("--ssl-fd-names");
         var pipelinesArgument = GetArgument("--ssl-fd-pipelines");
+        var sceneArgument = GetArgument("--ssl-fd-scene") ?? ScreenSpaceLightingBaselineSetup.ScenePath;
         if (namesArgument != null)
             modeNames = namesArgument.Split(',');
         if (pipelinesArgument != null)
@@ -75,13 +76,14 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
             unityVersion = Application.unityVersion,
             graphicsDeviceName = SystemInfo.graphicsDeviceName,
             graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString(),
+            scene = sceneArgument,
             modes = new List<ModeEvents>()
         };
         utilityType = typeof(EditorWindow).Assembly.GetType("UnityEditorInternal.FrameDebuggerInternal.FrameDebuggerUtility");
         if (utilityType == null)
             throw new TypeLoadException("Unity FrameDebuggerUtility type was not found.");
 
-        EditorSceneManager.OpenScene(ScreenSpaceLightingBaselineSetup.ScenePath, OpenSceneMode.Single);
+        EditorSceneManager.OpenScene(sceneArgument, OpenSceneMode.Single);
         modeIndex = 0;
         waitFrames = 30;
         finishing = false;
@@ -285,6 +287,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
         public string unityVersion;
         public string graphicsDeviceName;
         public string graphicsDeviceType;
+        public string scene;
         public bool completed;
         public string error;
         public List<ModeEvents> modes;

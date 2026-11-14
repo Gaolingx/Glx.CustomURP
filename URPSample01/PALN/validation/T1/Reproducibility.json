@@ -1,8 +1,8 @@
 {
-  "analysisUtc": "2026-11-13T21:12:10.971249+00:00",
+  "analysisUtc": "2026-11-13T21:55:36.842661+00:00",
   "selectedRuns": [
-    "Run15",
-    "Run16"
+    "Run17",
+    "Run18"
   ],
   "availableRuns": [
     "Run1",
@@ -14,6 +14,8 @@
     "Run14",
     "Run15",
     "Run16",
+    "Run17",
+    "Run18",
     "Run2",
     "Run3",
     "Run4",
@@ -31,32 +33,32 @@
   "gpuTimingNote": "GPU p95 is recorded and reported for every run but is not a pass/fail gate: NVML evidence in Diagnostics/Dvfs-2026-11-14 shows the 0.1 ms/frame 720p workload keeps the GPU in low P-states, and nvidia-smi clock locks are not enforced on this machine.",
   "reportsComplete": true,
   "protocol": {
-    "Run15": {
+    "Run17": {
       "sampleFrames": 1800,
       "gpuTimingReference": {
         "policy": "reference-only",
         "clockValidation": "GpuClockValidation.json",
         "clockCsv": "GpuClocks.csv",
-        "before": "2767 MHz, P0",
-        "after": "2767 MHz, P0",
-        "smClockMinMHz": 2745,
-        "smClockMaxMHz": 2805,
-        "sampleCount": 1879
+        "before": "2775 MHz, P0",
+        "after": "2752 MHz, P0",
+        "smClockMinMHz": 2407,
+        "smClockMaxMHz": 2790,
+        "sampleCount": 1706
       },
       "valid": true,
       "issues": []
     },
-    "Run16": {
+    "Run18": {
       "sampleFrames": 1800,
       "gpuTimingReference": {
         "policy": "reference-only",
         "clockValidation": "GpuClockValidation.json",
         "clockCsv": "GpuClocks.csv",
-        "before": "2760 MHz, P0",
-        "after": "2782 MHz, P0",
-        "smClockMinMHz": 2647,
-        "smClockMaxMHz": 2797,
-        "sampleCount": 1716
+        "before": "2685 MHz, P0",
+        "after": "2775 MHz, P0",
+        "smClockMinMHz": 2640,
+        "smClockMaxMHz": 2790,
+        "sampleCount": 1714
       },
       "valid": true,
       "issues": []
@@ -74,33 +76,33 @@
       "screenshots": {
         "file": "Forward.png",
         "sha256": {
-          "Run15": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88",
-          "Run16": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88"
+          "Run17": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88",
+          "Run18": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88"
         },
         "identical": true,
         "captured": true,
         "magentaPixelFraction": {
-          "Run15": 0.0,
-          "Run16": 0.0
+          "Run17": 0.0,
+          "Run18": 0.0
         }
       },
       "graphicsDriverBytes": {
-        "Run15": 42626757,
-        "Run16": 42626757,
+        "Run17": 42626757,
+        "Run18": 42626757,
         "identical": true
       },
       "timing": {
         "CpuP95Ms": {
-          "Run15": 16.692,
-          "Run16": 16.7389,
-          "symmetricVariationPercent": 0.2805787460104324,
+          "Run17": 16.6948,
+          "Run18": 16.7,
+          "symmetricVariationPercent": 0.031142573095203675,
           "gate": "pass/fail",
           "withinTolerance": true
         },
         "GpuP95Ms": {
-          "Run15": 1.367,
-          "Run16": 1.2672,
-          "symmetricVariationPercent": 7.57725305595626,
+          "Run17": 1.3512,
+          "Run18": 2.9932,
+          "symmetricVariationPercent": 75.59156615412944,
           "gate": "reference-only"
         }
       }
@@ -110,33 +112,33 @@
       "screenshots": {
         "file": "ForwardPlus.png",
         "sha256": {
-          "Run15": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88",
-          "Run16": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88"
+          "Run17": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88",
+          "Run18": "313a23a6779ca1ba0d0c2291dc4393ece5753f92bc02d8cd064b8be11cbc8e88"
         },
         "identical": true,
         "captured": true,
         "magentaPixelFraction": {
-          "Run15": 0.0,
-          "Run16": 0.0
+          "Run17": 0.0,
+          "Run18": 0.0
         }
       },
       "graphicsDriverBytes": {
-        "Run15": 42708681,
-        "Run16": 42708681,
+        "Run17": 42708681,
+        "Run18": 42708681,
         "identical": true
       },
       "timing": {
         "CpuP95Ms": {
-          "Run15": 16.697,
-          "Run16": 16.6953,
-          "symmetricVariationPercent": 0.010181988063113896,
+          "Run17": 16.6968,
+          "Run18": 16.6939,
+          "symmetricVariationPercent": 0.017370106047494345,
           "gate": "pass/fail",
           "withinTolerance": true
         },
         "GpuP95Ms": {
-          "Run15": 1.4446,
-          "Run16": 0.5591,
-          "symmetricVariationPercent": 88.38648500274492,
+          "Run17": 3.4778,
+          "Run18": 2.5426,
+          "symmetricVariationPercent": 31.067703142648313,
           "gate": "reference-only"
         }
       }
@@ -146,33 +148,33 @@
       "screenshots": {
         "file": "Deferred.png",
         "sha256": {
-          "Run15": "7dcceec85d7758dd964b905642253d23512c6c7b9e9923ef8e76b783de88e109",
-          "Run16": "7dcceec85d7758dd964b905642253d23512c6c7b9e9923ef8e76b783de88e109"
+          "Run17": "7dcceec85d7758dd964b905642253d23512c6c7b9e9923ef8e76b783de88e109",
+          "Run18": "7dcceec85d7758dd964b905642253d23512c6c7b9e9923ef8e76b783de88e109"
         },
         "identical": true,
         "captured": true,
         "magentaPixelFraction": {
-          "Run15": 0.0,
-          "Run16": 0.0
+          "Run17": 0.0,
+          "Run18": 0.0
         }
       },
       "graphicsDriverBytes": {
-        "Run15": 57373383,
-        "Run16": 57373383,
+        "Run17": 57373383,
+        "Run18": 57373383,
         "identical": true
       },
       "timing": {
         "CpuP95Ms": {
-          "Run15": 16.7028,
-          "Run16": 16.6955,
-          "symmetricVariationPercent": 0.043714799855086944,
+          "Run17": 16.6969,
+          "Run18": 16.6922,
+          "symmetricVariationPercent": 0.028152900197967026,
           "gate": "pass/fail",
           "withinTolerance": true
         },
         "GpuP95Ms": {
-          "Run15": 2.7085,
-          "Run16": 2.4013,
-          "symmetricVariationPercent": 12.023953970801204,
+          "Run17": 2.5948,
+          "Run18": 2.58,
+          "symmetricVariationPercent": 0.5720027827162458,
           "gate": "reference-only"
         }
       }
