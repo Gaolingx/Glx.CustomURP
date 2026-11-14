@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
 
         ScreenSpaceLightingHistory m_History;
         ScreenSpaceLightingSettings m_Settings;
+        ScreenSpaceLightingSsgiPass m_SsgiPass;
         readonly MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
 #if UNITY_EDITOR
@@ -24,10 +25,11 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = k_RenderPassEvent;
         }
 
-        internal void Setup(ScreenSpaceLightingHistory history, ScreenSpaceLightingSettings settings)
+        internal void Setup(ScreenSpaceLightingHistory history, ScreenSpaceLightingSettings settings, ScreenSpaceLightingSsgiPass ssgiPass)
         {
             m_History = history;
             m_Settings = settings;
+            m_SsgiPass = ssgiPass;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -114,9 +116,42 @@ namespace UnityEngine.Rendering.Universal
                     texture = m_History.readPreviousDepth.rt;
                     return true;
                 }
+                case ScreenSpaceLightingDebugMode.SsgiWeight:
+                {
+                    if (m_SsgiPass == null || !m_SsgiPass.producedOutput || m_SsgiPass.finalTexture == null || m_SsgiPass.finalTexture.rt == null)
+                        return false;
+                    outputMode = 3;
+                    texture = m_SsgiPass.finalTexture.rt;
+                    return true;
+                }
                 case ScreenSpaceLightingDebugMode.CameraDepth:
                     // Drawn by pass 1 with the URP global depth texture.
                     return true;
+                case ScreenSpaceLightingDebugMode.SsgiRaw:
+                {
+                    if (m_SsgiPass == null || !m_SsgiPass.producedOutput || m_SsgiPass.rawTexture == null || m_SsgiPass.rawTexture.rt == null)
+                        return false;
+                    outputMode = 1;
+                    texture = m_SsgiPass.rawTexture.rt;
+                    return true;
+                }
+                case ScreenSpaceLightingDebugMode.SsgiDenoised:
+                {
+                    if (m_SsgiPass == null || !m_SsgiPass.producedOutput || m_SsgiPass.finalTexture == null || m_SsgiPass.finalTexture.rt == null)
+                        return false;
+                    outputMode = 1;
+                    texture = m_SsgiPass.finalTexture.rt;
+                    return true;
+                }
+                case ScreenSpaceLightingDebugMode.SsgiHistory:
+                {
+                    var source = m_SsgiPass != null ? (m_SsgiPass.historyTexture ?? m_SsgiPass.accumulationTexture) : null;
+                    if (m_SsgiPass == null || !m_SsgiPass.producedOutput || source == null || source.rt == null)
+                        return false;
+                    outputMode = 1;
+                    texture = source.rt;
+                    return true;
+                }
                 default:
                     return false;
             }

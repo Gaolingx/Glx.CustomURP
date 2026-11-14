@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace UnityEngine.Rendering.Universal
 {
     internal sealed class ScreenSpaceLightingSetupPass : ScriptableRenderPass
@@ -8,17 +10,80 @@ namespace UnityEngine.Rendering.Universal
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler("Screen Space Lighting Setup");
 
+        ScreenSpaceLightingSsgiPass m_SsgiPass;
+
 #if UNITY_EDITOR
-        // Editor-only evidence hook: the skeleton dispatches no GPU work, so Frame Debugger cannot
-        // show the pass. Verification code reads this counter to prove the pass really executed.
+        // Editor-only evidence hook: verification code reads this counter to prove the pass ran and
+        // that the material keyword was enabled with a valid SSGI texture.
         internal static int s_EditorExecuteCount;
+        internal static int s_EditorSsgiBoundCount;
 #endif
 
         internal ScreenSpaceLightingSetupPass()
         {
             renderPassEvent = k_RenderPassEvent;
-            // Reserved slot for the SSGI/SSR material bindings added by T6/T7. The temporal and
-            // pyramid passes request their own inputs, so this marker requests none.
+            ConfigureInput(ScriptableRenderPassInput.None);
+        }
+
+        internal void Setup(ScreenSpaceLightingSsgiPass ssgiPass)
+        {
+            m_SsgiPass = ssgiPass;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+#if UNITY_EDITOR
+            s_EditorExecuteCount++;
+#endif
+            var cmd = renderingData.commandBuffer;
+            using (new ProfilingScope(cmd, s_ProfilingSampler))
+            {
+                var stack = VolumeManager.instance.stack;
+                var settings = stack != null ? stack.GetComponent<ScreenSpaceGlobalIllumination>() : null;
+                bool ssgiActive = settings != null && settings.enabled.value;
+                bool bindSsgi = ssgiActive &&
+                                m_SsgiPass != null &&
+                                m_SsgiPass.producedOutput &&
+                                m_SsgiPass.finalTexture != null;
+
+                if (bindSsgi)
+                {
+                    cmd.SetGlobalTexture(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationTexture, m_SsgiPass.finalTexture);
+                    cmd.SetGlobalVector(
+                        ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationParams,
+                        new Vector4(settings.intensity.value, 0f, 0f, 0f));
+                    cmd.EnableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
+#if UNITY_EDITOR
+                    s_EditorSsgiBoundCount++;
+#endif
+                }
+                else
+                {
+                    cmd.SetGlobalTexture(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationTexture, Texture2D.blackTexture);
+                    cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationParams, Vector4.zero);
+                    cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
+                }
+            }
+        }
+    }
+
+    // SSGI only feeds opaque materials. Transparent forward objects run in the same material shader,
+    // so the keyword is disabled right after the opaques event to keep baked GI on transparents and
+    // to avoid leaking the SSGI texture into a later camera.
+    internal sealed class ScreenSpaceLightingCleanupPass : ScriptableRenderPass
+    {
+        internal const RenderPassEvent k_RenderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+        internal const string k_ProfilingSamplerName = "SSL Cleanup";
+
+        static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
+
+#if UNITY_EDITOR
+        internal static int s_EditorExecuteCount;
+#endif
+
+        internal ScreenSpaceLightingCleanupPass()
+        {
+            renderPassEvent = k_RenderPassEvent;
             ConfigureInput(ScriptableRenderPassInput.None);
         }
 
@@ -27,10 +92,21 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             s_EditorExecuteCount++;
 #endif
-            // Only a profiling marker until T4/T6/T7 bind the SSL resources.
-            using (new ProfilingScope(renderingData.commandBuffer, s_ProfilingSampler))
+            var cmd = renderingData.commandBuffer;
+            using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
+                cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
+                cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationParams, Vector4.zero);
             }
+        }
+
+        public override void OnCameraCleanup(CommandBuffer cmd)
+        {
+            if (cmd == null)
+                return;
+
+            cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
+            cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationParams, Vector4.zero);
         }
     }
 }

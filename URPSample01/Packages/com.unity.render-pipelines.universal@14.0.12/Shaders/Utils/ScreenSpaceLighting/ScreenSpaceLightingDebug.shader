@@ -60,6 +60,8 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceLighting/Debug"
 
                     if (_SslDebugOutput == 2)
                         return float4(uv, 0.0, 1.0);
+                    if (_SslDebugOutput == 3)
+                        return float4(value.aaa, 1.0);
                     if (_SslDebugOutput == 1)
                         return float4(value.rgb, 1.0);
                     return float4(value.rrr, 1.0);

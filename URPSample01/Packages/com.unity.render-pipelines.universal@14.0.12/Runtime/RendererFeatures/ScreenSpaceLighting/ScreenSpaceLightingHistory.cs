@@ -36,6 +36,192 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle readColorPyramid { get; private set; }
         internal RTHandle readPreviousDepth { get; private set; }
 
+        // ---------------------------------------------------------------------------------------
+        // Screen Space Global Illumination
+        // ---------------------------------------------------------------------------------------
+
+        internal int ssgiTraceWidth { get; private set; }
+        internal int ssgiTraceHeight { get; private set; }
+        internal int ssgiReadSlot { get; private set; }
+        internal int ssgiWriteSlot { get; private set; }
+        internal bool ssgiHasValidHistory { get; private set; }
+        internal int ssgiBufferIndex { get; private set; }
+        internal int ssgiResourceGeneration { get; private set; }
+        internal bool ssgiResourcesAllocated => ssgiHitPoint != null && ssgiFinal != null && m_SsgiHistoryHF[0] != null;
+
+        internal RTHandle ssgiHitPoint { get; private set; }
+        internal RTHandle ssgiProjection { get; private set; }
+        internal RTHandle ssgiValidation { get; private set; }
+        internal RTHandle ssgiAccumulation { get; private set; }
+        internal RTHandle ssgiDenoisedHF { get; private set; }
+        internal RTHandle ssgiDenoisedLF { get; private set; }
+        internal RTHandle ssgiFinal { get; private set; }
+        internal ComputeBuffer ssgiPointDistribution { get; private set; }
+
+        internal RTHandle GetSsgiHistoryHF(int slot)
+        {
+            return slot >= 0 && slot < k_HistoryBufferCount ? m_SsgiHistoryHF[slot] : null;
+        }
+
+        internal RTHandle GetSsgiSampleCountHF(int slot)
+        {
+            return slot >= 0 && slot < k_HistoryBufferCount ? m_SsgiSampleCountHF[slot] : null;
+        }
+
+        internal RTHandle GetSsgiHistoryLF(int slot)
+        {
+            return slot >= 0 && slot < k_HistoryBufferCount ? m_SsgiHistoryLF[slot] : null;
+        }
+
+        internal RTHandle GetSsgiSampleCountLF(int slot)
+        {
+            return slot >= 0 && slot < k_HistoryBufferCount ? m_SsgiSampleCountLF[slot] : null;
+        }
+
+        internal void BeginSsgiFrame()
+        {
+            ssgiReadSlot = ssgiHasValidHistory ? ssgiBufferIndex : -1;
+            ssgiWriteSlot = ssgiBufferIndex ^ 1;
+        }
+
+        internal void SwapSsgiBuffers()
+        {
+            ssgiBufferIndex = ssgiWriteSlot;
+            ssgiHasValidHistory = true;
+        }
+
+        internal void ResetSsgiHistory()
+        {
+            ssgiBufferIndex = 0;
+            ssgiHasValidHistory = false;
+            ssgiReadSlot = -1;
+            ssgiWriteSlot = 1;
+        }
+
+        // The trace resolution follows the volume's full/half resolution switch, so the SSGI buffers
+        // are managed separately from the color history but still owned by the same per-camera entry.
+        internal void EnsureSsgiResources(
+            int screenWidth,
+            int screenHeight,
+            int traceWidth,
+            int traceHeight,
+            int viewCount,
+            TextureDimension resourceDimension)
+        {
+            screenWidth = Mathf.Max(1, screenWidth);
+            screenHeight = Mathf.Max(1, screenHeight);
+            traceWidth = Mathf.Max(1, traceWidth);
+            traceHeight = Mathf.Max(1, traceHeight);
+            viewCount = Mathf.Max(1, viewCount);
+
+            if (ssgiResourcesAllocated &&
+                m_SsgiScreenWidth == screenWidth &&
+                m_SsgiScreenHeight == screenHeight &&
+                m_SsgiTraceWidth == traceWidth &&
+                m_SsgiTraceHeight == traceHeight &&
+                m_SsgiSlices == viewCount &&
+                m_SsgiDimension == resourceDimension)
+            {
+                return;
+            }
+
+            ReleaseSsgiResources();
+
+            m_SsgiScreenWidth = screenWidth;
+            m_SsgiScreenHeight = screenHeight;
+            m_SsgiTraceWidth = traceWidth;
+            m_SsgiTraceHeight = traceHeight;
+            m_SsgiSlices = viewCount;
+            m_SsgiDimension = resourceDimension;
+
+            ssgiTraceWidth = traceWidth;
+            ssgiTraceHeight = traceHeight;
+
+            ssgiHitPoint = RTHandles.Alloc(
+                traceWidth, traceHeight,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: viewCount,
+                colorFormat: GraphicsFormat.R16G16_SFloat,
+                filterMode: FilterMode.Point,
+                dimension: resourceDimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "SslSsgiHitPoint");
+
+            ssgiProjection = AllocSsgiColor(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiProjection");
+            ssgiAccumulation = AllocSsgiColor(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiAccumulation");
+            ssgiDenoisedHF = AllocSsgiColor(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiDenoisedHF");
+            ssgiDenoisedLF = AllocSsgiColor(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiDenoisedLF");
+            ssgiFinal = AllocSsgiColor(screenWidth, screenHeight, resourceDimension, viewCount, "SslSsgiFinal");
+
+            ssgiValidation = RTHandles.Alloc(
+                screenWidth, screenHeight,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: viewCount,
+                colorFormat: ScreenSpaceCapability.ssgiValidationFormat,
+                filterMode: FilterMode.Point,
+                dimension: resourceDimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "SslSsgiValidation");
+
+            for (int i = 0; i < k_HistoryBufferCount; i++)
+            {
+                m_SsgiHistoryHF[i] = AllocSsgiColor(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiHistoryHF" + i);
+                m_SsgiHistoryLF[i] = AllocSsgiColor(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiHistoryLF" + i);
+                m_SsgiSampleCountHF[i] = AllocSsgiSampleCount(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiSampleCountHF" + i);
+                m_SsgiSampleCountLF[i] = AllocSsgiSampleCount(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiSampleCountLF" + i);
+            }
+
+            ssgiPointDistribution = new ComputeBuffer(64, sizeof(float) * 2);
+
+            ssgiResourceGeneration++;
+            ResetSsgiHistory();
+        }
+
+        static RTHandle AllocSsgiColor(int width, int height, TextureDimension dimension, int slices, string name)
+        {
+            return RTHandles.Alloc(
+                width, height,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: slices,
+                colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                filterMode: FilterMode.Bilinear,
+                dimension: dimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: name);
+        }
+
+        static RTHandle AllocSsgiSampleCount(int width, int height, TextureDimension dimension, int slices, string name)
+        {
+            return RTHandles.Alloc(
+                width, height,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: slices,
+                colorFormat: GraphicsFormat.R16_SFloat,
+                filterMode: FilterMode.Point,
+                dimension: dimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: name);
+        }
+
+        readonly RTHandle[] m_SsgiHistoryHF = new RTHandle[k_HistoryBufferCount];
+        readonly RTHandle[] m_SsgiSampleCountHF = new RTHandle[k_HistoryBufferCount];
+        readonly RTHandle[] m_SsgiHistoryLF = new RTHandle[k_HistoryBufferCount];
+        readonly RTHandle[] m_SsgiSampleCountLF = new RTHandle[k_HistoryBufferCount];
+        int m_SsgiScreenWidth;
+        int m_SsgiScreenHeight;
+        int m_SsgiTraceWidth;
+        int m_SsgiTraceHeight;
+        int m_SsgiSlices;
+        TextureDimension m_SsgiDimension;
+
         PackedMipChainInfo m_DepthPyramidInfo;
         readonly RTHandle[] m_HistoryColorPyramids = new RTHandle[k_HistoryBufferCount];
         readonly RTHandle[] m_PreviousDepths = new RTHandle[k_HistoryBufferCount];
@@ -81,6 +267,7 @@ namespace UnityEngine.Rendering.Universal
             writeSlot = bufferIndex ^ 1;
             readColorPyramid = null;
             readPreviousDepth = null;
+            ResetSsgiHistory();
         }
 
         // Called by the history capture pass after it recorded the current color and depth.
@@ -219,6 +406,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Dispose()
         {
+            ReleaseSsgiResources();
             ReleaseResources();
             width = 0;
             height = 0;
@@ -229,6 +417,51 @@ namespace UnityEngine.Rendering.Universal
             writeSlot = 0;
             readColorPyramid = null;
             readPreviousDepth = null;
+        }
+
+        void ReleaseSsgiResources()
+        {
+            RTHandles.Release(ssgiHitPoint);
+            ssgiHitPoint = null;
+            RTHandles.Release(ssgiProjection);
+            ssgiProjection = null;
+            RTHandles.Release(ssgiValidation);
+            ssgiValidation = null;
+            RTHandles.Release(ssgiAccumulation);
+            ssgiAccumulation = null;
+            RTHandles.Release(ssgiDenoisedHF);
+            ssgiDenoisedHF = null;
+            RTHandles.Release(ssgiDenoisedLF);
+            ssgiDenoisedLF = null;
+            RTHandles.Release(ssgiFinal);
+            ssgiFinal = null;
+
+            for (int i = 0; i < k_HistoryBufferCount; i++)
+            {
+                RTHandles.Release(m_SsgiHistoryHF[i]);
+                m_SsgiHistoryHF[i] = null;
+                RTHandles.Release(m_SsgiHistoryLF[i]);
+                m_SsgiHistoryLF[i] = null;
+                RTHandles.Release(m_SsgiSampleCountHF[i]);
+                m_SsgiSampleCountHF[i] = null;
+                RTHandles.Release(m_SsgiSampleCountLF[i]);
+                m_SsgiSampleCountLF[i] = null;
+            }
+
+            if (ssgiPointDistribution != null)
+            {
+                ssgiPointDistribution.Release();
+                ssgiPointDistribution = null;
+            }
+
+            ssgiTraceWidth = 0;
+            ssgiTraceHeight = 0;
+            m_SsgiScreenWidth = 0;
+            m_SsgiScreenHeight = 0;
+            m_SsgiTraceWidth = 0;
+            m_SsgiTraceHeight = 0;
+            m_SsgiSlices = 0;
+            ResetSsgiHistory();
         }
 
         void ReleaseResources()

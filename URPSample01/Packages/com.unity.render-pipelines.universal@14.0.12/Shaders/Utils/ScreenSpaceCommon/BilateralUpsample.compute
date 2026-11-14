@@ -1,0 +1,64 @@
+// Bilateral upsampling for the half resolution Screen Space Global Illumination result.
+// Ported from HDRP 14.0.12 Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute.
+// The HDRP 6x6 LDS neighbourhood and the precomputed tap tables are replaced by a direct 2x2
+// depth weighted fetch: a full resolution pixel only reads the low resolution texels it overlaps,
+// and the depth term rejects texels that belong to a different surface. The signal is RGBA, where
+// alpha carries the SSGI validity weight, so it is filtered with the same weights.
+#pragma kernel BilateralUpSampleColor
+
+#pragma multi_compile _ SSL_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
+
+#define SSGI_UPSAMPLE_TILE_SIZE 8
+#define SSGI_UPSAMPLE_TOLERANCE 1e-5
+
+SSGI_TEXTURE2D_FLOAT(_SsgiDepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_SsgiLowResolutionTexture);
+SSGI_RW_TEXTURE2D_FLOAT4(_SsgiUpsampledTextureRW);
+
+#define _SsgiResolutionMultiplier _SsgiTemporalParams.x
+#define _SsgiInvResolutionMultiplier _SsgiTemporalParams.y
+
+[numthreads(SSGI_UPSAMPLE_TILE_SIZE, SSGI_UPSAMPLE_TILE_SIZE, 1)]
+void BilateralUpSampleColor(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 coord = dispatchThreadId.xy;
+    if (any(coord >= (uint2)_SsgiScreenSize.xy))
+        return;
+
+    float hiDepth = SSGI_LOAD(_SsgiDepthTexture, coord);
+    float2 lowResPixel = (float2)coord * _SsgiResolutionMultiplier;
+    int2 base = (int2)floor(lowResPixel - 0.5);
+    int2 maxLow = (int2)_SsgiTraceSize.xy - 1;
+
+    float4 weightedSum = 0.0;
+    float weightSum = 0.0;
+
+    [unroll] for (int y = 0; y < 2; y++)
+    {
+        [unroll] for (int x = 0; x < 2; x++)
+        {
+            int2 lowCoord = clamp(base + int2(x, y), int2(0, 0), maxLow);
+            float4 lowValue = SSGI_LOAD(_SsgiLowResolutionTexture, lowCoord);
+
+            uint2 lowDepthCoord = (uint2)((float2)lowCoord * _SsgiInvResolutionMultiplier);
+            lowDepthCoord = min(lowDepthCoord, (uint2)_SsgiScreenSize.xy - 1u);
+            float lowDepth = SSGI_LOAD(_SsgiDepthTexture, lowDepthCoord);
+
+            float2 lowCenter = ((float2)lowCoord + 0.5) * _SsgiInvResolutionMultiplier;
+            float2 delta = ((float2)coord + 0.5) - lowCenter;
+            float spatialWeight = exp(-dot(delta, delta) * 0.5);
+            float depthWeight = 1.0 / (abs(hiDepth - lowDepth) + SSGI_UPSAMPLE_TOLERANCE);
+
+            float w = spatialWeight * depthWeight;
+            weightedSum += lowValue * w;
+            weightSum += w;
+        }
+    }
+
+    float4 result = weightSum > 0.0 ? weightedSum / weightSum : float4(0.0, 0.0, 0.0, 0.0);
+    SSGI_STORE(_SsgiUpsampledTextureRW, coord, result);
+}

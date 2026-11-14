@@ -217,7 +217,11 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
+    // The full overload consumes the Screen Space Lighting plugin output before the GBuffer is
+    // written, so deferred shading receives the same indirect diffuse as the forward path.
+    const BRDFData noClearCoat = (BRDFData)0;
+    half3 color = GlobalIllumination(brdfData, noClearCoat, 0.0, inputData.bakedGI, surfaceData.occlusion,
+        inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
     return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
 }

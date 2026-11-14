@@ -20,5 +20,13 @@ namespace UnityEngine.Rendering.Universal
         DepthPyramidUv = 5,
         /// <summary>The camera depth texture exactly as the pyramid pass reads it; diagnostic for source binding.</summary>
         CameraDepth = 6,
+        /// <summary>Radiance reprojected from the previous color pyramid before any denoising.</summary>
+        SsgiRaw = 7,
+        /// <summary>The final denoised SSGI radiance that materials consume.</summary>
+        SsgiDenoised = 8,
+        /// <summary>This frame's accumulated SSGI history (radiance, alpha is the validity weight).</summary>
+        SsgiHistory = 9,
+        /// <summary>Validity weight of the final SSGI result. Black means the material keeps baked GI.</summary>
+        SsgiWeight = 10,
     }
 }

@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering.Universal
 
         ScreenSpaceLightingSetupPass m_SetupPass;
         ScreenSpaceLightingDepthPyramidPass m_DepthPyramidPass;
+        ScreenSpaceLightingSsgiPass m_SsgiPass;
+        ScreenSpaceLightingCleanupPass m_CleanupPass;
         ScreenSpaceLightingCurrentColorPyramidPass m_CurrentColorPyramidPass;
         ScreenSpaceLightingColorHistoryCapturePass m_ColorHistoryCapturePass;
         ScreenSpaceLightingDebugPass m_DebugPass;
@@ -23,6 +25,8 @@ namespace UnityEngine.Rendering.Universal
         internal ScreenSpaceLightingSettings settings => m_Settings;
         internal ScreenSpaceLightingSetupPass setupPass => m_SetupPass;
         internal ScreenSpaceLightingDepthPyramidPass depthPyramidPass => m_DepthPyramidPass;
+        internal ScreenSpaceLightingSsgiPass ssgiPass => m_SsgiPass;
+        internal ScreenSpaceLightingCleanupPass cleanupPass => m_CleanupPass;
         internal ScreenSpaceLightingCurrentColorPyramidPass currentColorPyramidPass => m_CurrentColorPyramidPass;
         internal ScreenSpaceLightingColorHistoryCapturePass colorHistoryCapturePass => m_ColorHistoryCapturePass;
         internal ScreenSpaceLightingDebugPass debugPass => m_DebugPass;
@@ -57,6 +61,8 @@ namespace UnityEngine.Rendering.Universal
             m_HistoryStore = new CameraHistoryStore<ScreenSpaceLightingHistory>();
             m_SetupPass = new ScreenSpaceLightingSetupPass();
             m_DepthPyramidPass = new ScreenSpaceLightingDepthPyramidPass();
+            m_SsgiPass = new ScreenSpaceLightingSsgiPass();
+            m_CleanupPass = new ScreenSpaceLightingCleanupPass();
             m_CurrentColorPyramidPass = new ScreenSpaceLightingCurrentColorPyramidPass();
             m_ColorHistoryCapturePass = new ScreenSpaceLightingColorHistoryCapturePass();
             m_DebugPass = new ScreenSpaceLightingDebugPass();
@@ -104,12 +110,16 @@ namespace UnityEngine.Rendering.Universal
             history.BeginFrame();
 
             m_DepthPyramidPass.Setup(history, m_Settings.resources);
+            m_SsgiPass.Setup(history, m_Settings.resources);
+            m_SetupPass.Setup(m_SsgiPass);
             m_CurrentColorPyramidPass.Setup(history, m_Settings.resources);
             m_ColorHistoryCapturePass.Setup(history, m_Settings.resources);
-            m_DebugPass.Setup(history, m_Settings);
+            m_DebugPass.Setup(history, m_Settings, m_SsgiPass);
 
             renderer.EnqueuePass(m_SetupPass);
             renderer.EnqueuePass(m_DepthPyramidPass);
+            renderer.EnqueuePass(m_SsgiPass);
+            renderer.EnqueuePass(m_CleanupPass);
             renderer.EnqueuePass(m_CurrentColorPyramidPass);
             renderer.EnqueuePass(m_ColorHistoryCapturePass);
 

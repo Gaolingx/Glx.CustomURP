@@ -1235,6 +1235,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for Screen Space Occlusion (the GTAO feature). </summary>
         public const string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
 
+        /// <summary> Keyword used for Screen Space Global Illumination (the Screen Space Lighting feature). </summary>
+        public const string ScreenSpaceGI = "_SCREEN_SPACE_GI";
+
         /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
         public const string PointSampling = "_POINT_SAMPLING";
 

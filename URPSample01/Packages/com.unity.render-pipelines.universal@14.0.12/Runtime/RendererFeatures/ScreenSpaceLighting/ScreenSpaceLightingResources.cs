@@ -14,13 +14,26 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal Shader colorPyramidShader;
         [SerializeField] internal Shader debugShader;
 
+        [SerializeField] internal ComputeShader ssgiCompute;
+        [SerializeField] internal ComputeShader ssgiTemporalFilterCompute;
+        [SerializeField] internal ComputeShader ssgiDiffuseDenoiserCompute;
+        [SerializeField] internal ComputeShader bilateralUpsampleCompute;
+
         [NonSerialized] Material m_ColorPyramidMaterial;
         [NonSerialized] Material m_DebugMaterial;
 
+        // The depth pyramid and color pyramid are the T4 contract; SSGI resources are optional so a
+        // renderer that only uses the color history keeps working.
         internal bool hasRuntimeResources => depthPyramidCompute != null && colorPyramidShader != null;
 
+        internal bool hasSsgiResources =>
+            ssgiCompute != null &&
+            ssgiTemporalFilterCompute != null &&
+            ssgiDiffuseDenoiserCompute != null &&
+            bilateralUpsampleCompute != null;
+
         // The debug view is optional at runtime; the feature editor and tests require the full set.
-        internal bool isComplete => hasRuntimeResources && debugShader != null;
+        internal bool isComplete => hasRuntimeResources && hasSsgiResources && debugShader != null;
 
         internal Material colorPyramidMaterial
         {
@@ -78,6 +91,34 @@ namespace UnityEngine.Rendering.Universal
                 resources.debugShader = FindPackageAsset<Shader>(
                     "ScreenSpaceLightingDebug t:Shader",
                     "/ScreenSpaceLighting/ScreenSpaceLightingDebug.shader");
+            }
+
+            if (resources.ssgiCompute == null)
+            {
+                resources.ssgiCompute = FindPackageAsset<ComputeShader>(
+                    "ScreenSpaceGlobalIllumination t:ComputeShader",
+                    "/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute");
+            }
+
+            if (resources.ssgiTemporalFilterCompute == null)
+            {
+                resources.ssgiTemporalFilterCompute = FindPackageAsset<ComputeShader>(
+                    "TemporalFilter t:ComputeShader",
+                    "/ScreenSpaceLighting/TemporalFilter.compute");
+            }
+
+            if (resources.ssgiDiffuseDenoiserCompute == null)
+            {
+                resources.ssgiDiffuseDenoiserCompute = FindPackageAsset<ComputeShader>(
+                    "DiffuseDenoiser t:ComputeShader",
+                    "/ScreenSpaceLighting/DiffuseDenoiser.compute");
+            }
+
+            if (resources.bilateralUpsampleCompute == null)
+            {
+                resources.bilateralUpsampleCompute = FindPackageAsset<ComputeShader>(
+                    "BilateralUpsample t:ComputeShader",
+                    "/ScreenSpaceCommon/BilateralUpsample.compute");
             }
 #endif
         }

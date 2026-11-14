@@ -1,0 +1,121 @@
+// Screen Space Global Illumination diffuse denoiser.
+// Ported from HDRP 14.0.12 Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute.
+// The gather variant used by ray traced GI is not needed for the screen-space path; the bilateral
+// filter carries both the radiance and the validity weight, so the alpha channel is filtered with
+// the same weights.
+#pragma kernel GeneratePointDistribution
+#pragma kernel BilateralFilterColor
+
+#pragma multi_compile _ SSGI_NORMALS_OCT
+#pragma multi_compile _ SSL_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/Denoising.hlsl"
+
+#define SSGI_DIFFUSE_DENOISER_TILE_SIZE 8
+#define SSGI_POINT_DISTRIBUTION_COUNT 64
+#define SSGI_PIXEL_RADIUS_TOLERANCE_THRESHOLD 2
+
+SSGI_TEXTURE2D_FLOAT(_SsgiDepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_SsgiNormalTexture);
+SSGI_TEXTURE2D_FLOAT4(_SsgiDenoiseInputTexture);
+SSGI_RW_TEXTURE2D_FLOAT4(_SsgiDenoiseOutputTextureRW);
+RWStructuredBuffer<float2> _SsgiPointDistributionRW;
+
+#define _SsgiFilterRadius _SsgiTemporalParams.z
+#define _SsgiJitterFramePeriod (int)_SsgiDenoiserParams.y
+#define _SsgiHalfResolutionFilter (int)_SsgiDenoiserParams.z
+#define _SsgiResolutionMultiplier _SsgiTemporalParams.x
+#define _SsgiInvResolutionMultiplier _SsgiTemporalParams.y
+#define _SsgiPixelSpreadAngleTangent _SsgiDenoiserParams.x
+
+[numthreads(SSGI_POINT_DISTRIBUTION_COUNT, 1, 1)]
+void GeneratePointDistribution(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint index = dispatchThreadId.x;
+    _SsgiPointDistributionRW[index] = SampleDiskCubic(
+        SsgiGetPointSequenceSample(index, 0),
+        SsgiGetPointSequenceSample(index, 1));
+}
+
+float SsgiComputeMaxDenoisingRadius(float3 positionWS)
+{
+    float distanceToPoint = length(positionWS - _SsgiCameraPositionWS.xyz);
+    return distanceToPoint * _SsgiFilterRadius / lerp(5.0, 50.0, saturate(distanceToPoint / 500.0));
+}
+
+[numthreads(SSGI_DIFFUSE_DENOISER_TILE_SIZE, SSGI_DIFFUSE_DENOISER_TILE_SIZE, 1)]
+void BilateralFilterColor(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 currentCoord = dispatchThreadId.xy;
+    if (any(currentCoord >= (uint2)_SsgiTraceSize.xy))
+        return;
+
+    uint2 sourceCoord = min((uint2)(currentCoord * _SsgiInvResolutionMultiplier), (uint2)_SsgiScreenSize.xy - 1u);
+    const SsgiBilateralData center = SsgiTapBilateralData(_SsgiDepthTexture, _SsgiNormalTexture, sourceCoord);
+
+    if (SsgiIsBackgroundDepth(SSGI_LOAD(_SsgiDepthTexture, sourceCoord)) || dot(center.normal, center.normal) < 0.5)
+    {
+        SSGI_STORE(_SsgiDenoiseOutputTextureRW, currentCoord, float4(0.0, 0.0, 0.0, 0.0));
+        return;
+    }
+
+    float3x3 localToWorld = GetLocalFrame(center.normal);
+
+    float4 colorSum = 0.0;
+    float wSum = 0.0;
+
+    float denoisingRadius = SsgiComputeMaxReprojectionWorldRadius(
+        center.position,
+        center.normal,
+        _SsgiPixelSpreadAngleTangent,
+        SsgiComputeMaxDenoisingRadius(center.position),
+        SSGI_PIXEL_RADIUS_TOLERANCE_THRESHOLD);
+    float sigma = 0.9 * denoisingRadius;
+
+    int localIndex = (currentCoord.x & 1) + (currentCoord.y & 1) * 2;
+    const int numSamples = _SsgiHalfResolutionFilter ? 4 : 16;
+    int sampleOffset = _SsgiHalfResolutionFilter != 0 ? localIndex * numSamples : 0;
+    if (_SsgiJitterFramePeriod != -1)
+        sampleOffset += _SsgiJitterFramePeriod * 16;
+
+    for (uint sampleIndex = 0; sampleIndex < (uint)numSamples; ++sampleIndex)
+    {
+        float2 newSample = _SsgiPointDistributionRW[sampleIndex + sampleOffset] * denoisingRadius;
+
+        float3 wsPos = center.position + localToWorld[0] * newSample.x + localToWorld[1] * newSample.y;
+        float4 hClip = mul(unity_MatrixVP, float4(wsPos, 1.0));
+        hClip.xyz /= hClip.w;
+
+        if (hClip.x > 1.0 || hClip.x < -1.0 || hClip.y > 1.0 || hClip.y < -1.0)
+            continue;
+
+        float2 nDC = hClip.xy * 0.5 + 0.5;
+        uint2 tapCoord = (uint2)(nDC * _SsgiScreenSize.xy);
+        tapCoord = min(tapCoord, (uint2)_SsgiScreenSize.xy - 1u);
+        uint2 lowResTapCoord = (uint2)(tapCoord * _SsgiResolutionMultiplier);
+        lowResTapCoord = min(lowResTapCoord, (uint2)_SsgiTraceSize.xy - 1u);
+
+        const SsgiBilateralData tapData = SsgiTapBilateralData(_SsgiDepthTexture, _SsgiNormalTexture, tapCoord);
+        if (SsgiIsBackgroundDepth(SSGI_LOAD(_SsgiDepthTexture, tapCoord)) || dot(tapData.normal, tapData.normal) < 0.5)
+            continue;
+
+        float r = length(newSample);
+        float w = r > 0.001 ? SsgiGaussian(r, sigma) * SsgiComputeBilateralWeight(center, tapData) : 1.0;
+
+        colorSum += SSGI_LOAD(_SsgiDenoiseInputTexture, lowResTapCoord) * w;
+        wSum += w;
+    }
+
+    if (wSum == 0.0)
+    {
+        colorSum = SSGI_LOAD(_SsgiDenoiseInputTexture, currentCoord);
+        wSum = 1.0;
+    }
+
+    SSGI_STORE(_SsgiDenoiseOutputTextureRW, currentCoord, colorSum / wSum);
+}

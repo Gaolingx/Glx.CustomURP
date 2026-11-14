@@ -47,6 +47,12 @@ namespace UnityEngine.Rendering.Universal
                 ? GraphicsFormat.R8_UNorm
                 : GraphicsFormat.R32_SFloat;
 
+        // Temporal history validation is a flag mask; an integer target keeps the rejection bits exact.
+        internal static GraphicsFormat ssgiValidationFormat =>
+            SystemInfo.IsFormatSupported(GraphicsFormat.R8_UInt, FormatUsage.LoadStore)
+                ? GraphicsFormat.R8_UInt
+                : GraphicsFormat.R32_UInt;
+
         static bool s_PlatformEvaluated;
         static ScreenSpaceCapabilityResult s_PlatformResult;
 

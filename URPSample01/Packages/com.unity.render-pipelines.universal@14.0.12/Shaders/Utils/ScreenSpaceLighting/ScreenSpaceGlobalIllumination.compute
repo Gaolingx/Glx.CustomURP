@@ -1,0 +1,121 @@
+// Screen Space Global Illumination trace and reproject.
+// Ported from HDRP 14.0.12 Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute.
+// The HDRP reflection probe / sky fallback hierarchy is replaced by an explicit valid weight: a miss
+// writes weight 0 and the material keeps its baked GI. Reflection probes, SH and APV therefore stay
+// on the original URP path.
+#pragma kernel TraceGlobalIllumination
+#pragma kernel ReprojectGlobalIllumination
+
+#pragma multi_compile _ SSGI_HALF_RES
+#pragma multi_compile _ SSGI_NORMALS_OCT
+#pragma multi_compile _ SSL_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayMarching.hlsl"
+
+#define SSGI_TILE_SIZE 8
+
+// Full resolution inputs.
+SSGI_TEXTURE2D_FLOAT(_SsgiDepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_SsgiNormalTexture);
+SSGI_TEXTURE2D_FLOAT2(_SsgiMotionTexture);
+
+// Temporal inputs.
+SSGI_TEXTURE2D_FLOAT4(_SsgiColorPyramid);
+SSGI_TEXTURE2D_FLOAT(_SsgiPreviousDepthTexture);
+
+// Trace output: uv of the hit point, or (99, 0) for a miss.
+SSGI_RW_TEXTURE2D_FLOAT2(_SsgiHitPointTextureRW);
+// Reproject output: rgb = radiance, a = validity weight.
+SSGI_RW_TEXTURE2D_FLOAT4(_SsgiProjectionTextureRW);
+
+#define _SsgiFrameIndex (int)_SsgiRayMarchingParams2.y
+#define _SsgiLowResPercentageInv _SsgiRayMarchingParams2.x
+
+[numthreads(SSGI_TILE_SIZE, SSGI_TILE_SIZE, 1)]
+void TraceGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 traceCoord = dispatchThreadId.xy;
+    uint2 inputCoord = SsgiGetFullResCoord(traceCoord);
+
+    // Initialize the hit point to a miss before any early out.
+    SSGI_STORE(_SsgiHitPointTextureRW, traceCoord, float2(99.0, 0.0));
+
+    float deviceDepth = SSGI_LOAD(_SsgiDepthTexture, inputCoord);
+    if (SsgiIsBackgroundDepth(deviceDepth))
+        return;
+
+    float3 normalWS = SsgiDecodeNormalSS(SSGI_LOAD(_SsgiNormalTexture, inputCoord));
+    if (dot(normalWS, normalWS) < 0.5)
+        return;
+
+    float2 newSample = float2(
+        SsgiGetSequenceSample(traceCoord, _SsgiFrameIndex, 0),
+        SsgiGetSequenceSample(traceCoord, _SsgiFrameIndex, 1));
+    float3 sampleDir = SampleHemisphereCosine(newSample.x, newSample.y, normalWS);
+
+    float3 camPosWS = _SsgiCameraPositionWS.xyz;
+    float3 positionWS = SsgiReconstructPositionWS((float2)inputCoord, deviceDepth);
+    float3 viewWS = normalize(camPosWS - positionWS);
+
+    // Normal bias with a distance dependent magnitude, matching HDRP.
+    positionWS = camPosWS + (positionWS - camPosWS) * (1.0 - 0.001 / max(dot(normalWS, viewWS), FLT_EPS));
+    deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, unity_MatrixVP).z;
+
+    float3 rayPos;
+    bool hit = SsgiRayMarch(positionWS, sampleDir, normalWS, (float2)inputCoord, deviceDepth, false, rayPos);
+    if (hit)
+    {
+        float2 hitUv = floor(rayPos.xy) * _SsgiScreenSize.zw + 0.5 * _SsgiScreenSize.zw;
+        SSGI_STORE(_SsgiHitPointTextureRW, traceCoord, hitUv);
+    }
+}
+
+[numthreads(SSGI_TILE_SIZE, SSGI_TILE_SIZE, 1)]
+void ReprojectGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 traceCoord = dispatchThreadId.xy;
+    uint2 inputCoord = SsgiGetFullResCoord(traceCoord);
+
+    float4 result = float4(0.0, 0.0, 0.0, 0.0);
+    float deviceDepth = SSGI_LOAD(_SsgiDepthTexture, inputCoord);
+    float3 normalWS = SsgiDecodeNormalSS(SSGI_LOAD(_SsgiNormalTexture, inputCoord));
+
+    if (!SsgiIsBackgroundDepth(deviceDepth) && dot(normalWS, normalWS) >= 0.5)
+    {
+        float2 hitUv = SSGI_LOAD(_SsgiHitPointTextureRW, traceCoord);
+        bool invalid = hitUv.x > 1.0;
+
+        // Fetch the current depth of the hit point so the previous frame depth can reject a hit
+        // whose surface moved between frames.
+        float hitDepth = invalid ? 0.0 : SSGI_LOAD(_SsgiDepthTexture, (uint2)(hitUv * _SsgiScreenSize.xy));
+
+        float2 motion = SSGI_LOAD(_SsgiMotionTexture, inputCoord).xy;
+        float2 prevUv = hitUv - motion;
+        float2 prevPyramidUv = prevUv * _SsgiColorPyramidScaleAndLimitPrev.xy;
+
+        if (prevPyramidUv.x < 0.0 || prevPyramidUv.x > _SsgiColorPyramidScaleAndLimitPrev.z ||
+            prevPyramidUv.y < 0.0 || prevPyramidUv.y > _SsgiColorPyramidScaleAndLimitPrev.w)
+            invalid = true;
+
+        if (!invalid)
+        {
+            float hitHistoryDepth = SSGI_SAMPLE_LOD(_SsgiPreviousDepthTexture, s_ssgi_point_clamp_sampler, prevUv, 0);
+            if (abs(hitHistoryDepth - hitDepth) > SSGI_DEPTH_DIFFERENCE_THRESHOLD)
+                invalid = true;
+        }
+
+        if (!invalid)
+        {
+            float3 color = SSGI_SAMPLE_LOD(_SsgiColorPyramid, s_ssgi_linear_clamp_sampler, prevPyramidUv, SSGI_MIP_OFFSET).rgb;
+            result = float4(SsgiClampRadiance(color), 1.0);
+        }
+    }
+
+    SSGI_STORE(_SsgiProjectionTextureRW, traceCoord, result);
+}

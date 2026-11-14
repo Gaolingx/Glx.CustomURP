@@ -490,7 +490,7 @@ URP/Editor/RendererFeatures/
 | **T3** | P0 / T1 | 两个空 Feature、资源序列化、Volume 组件、能力检测、history store、neutral 输出和 Editor UI | **已退出（2026-11-14）**：按 2.5 的真实 UI 路径配置成功并保留 13 张截图（`PALN/validation/T3/UI/`）；三路径 Volume 控制 Pass 入队、Feature 关闭不执行；空效果与 T1 基线逐像素一致；history 计数 1→2→1；无插件三路径 `eventDataHash` 与 T1 相同；EditMode 48 passed / 0 failed；`.meta` 完整。`T3Report.json` 的 `t3ExitCriteriaMet=true` |
 | **T4** | P0 / T2、T3 | SSL 私有 Hi-Z、颜色金字塔、previous color/depth、双缓冲、reset generation 和中间调试视图 | **已退出（2026-11-14）**：packed Hi-Z（12 mip，offset/UV scale 数值验证）、Gaussian 颜色金字塔（9 mip）、双缓冲 previous color/depth 和 7 个调试视图落地；三路径 debug-off 与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 均触发 reset，读写槽逐帧分离，双相机独立且销毁后回收，SSL-only Renderer 全部通过；Frame Debugger 顺序 203 → 400 → 501。证据：`PALN/validation/T4/`（`t4ExitCriteriaMet=true`，EditMode 85 passed） |
 | **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 式设置 | **已退出（2026-11-14）**：Main/Spatial/Temporal/CopyHistory/Blur+Upsample、私有 packed Hi-Z（12 mip）、双缓冲 AO 历史、raw/final/global AO 与深度金字塔调试视图落地；三路径 AO 可见、half/full 与 temporal/spatial 真实选择对应 kernel；`intensity=0` 与 Feature 关闭恢复基线逐字节一致；SSL+GTAO 两种 Feature 顺序图像一致；重复 Hi-Z 成本 11,059,200 字节已记录。**同日按用户要求移除 URP 内置 SSAO，GTAO 成为唯一 AO 生产者**；证据：`PALN/validation/T5/`（`t5ExitCriteriaMet=true`，EditMode 103 passed） |
-| **T6** | P0 / T4 | SSGI Trace/Reproject、Temporal/Diffuse Denoise、HF/LF、Bilateral Upsample、材质注入 | 三路径与 ForwardOnly 无 emission 重复、miss 压黑；首帧/disocclusion 有 fallback；raw/denoised/history debug 与最终消费一致 |
+| **T6** | P0 / T4 | SSGI Trace/Reproject、Temporal/Diffuse Denoise、HF/LF、Bilateral Upsample、材质注入 | **已退出（2026-11-14）**：Trace/Reproject、history validation/accumulation、DiffuseDenoiser 必要支路、半分辨率 Bilateral Upsample 与 HF/LF 历史落地；Core `_SCREEN_SPACE_GI` 材质混合在 Forward/Forward+/Deferred 统一消费；三路径 `passed=true`，零权重像素与 baked GI 逐像素一致（最大差 1.19e-7），首帧/intensity=0 逐字节恢复基线，emission 亮度比 0.991，调试图与消费纹理一致（19/921,600 像素、最大差 0.0012），Frame Debugger 顺序 203→205→207→opaque。证据：`PALN/validation/T6/`（`t6ExitCriteriaMet=true`，EditMode 111 passed） |
 | **T7** | P0 / T4 | Opaque SSR Approximation、radiance+weight、roughness/edge fade 和 probe/sky fallback | 三路径金属/非金属、粗糙度梯度正确；miss 不压黑；BRDF 只乘一次；无 NaN/Inf 和首帧无效历史 |
 | **T8** | P1 / T7 | SSR PBR Accumulation、双历史、全部速度拒绝组合、算法切换 reset | 每个公开组合选择真实 kernel；surface/hit/both 设置有效；算法切换不污染历史；速度和 debug 图像符合预期 |
 | **T9** | P1 / T6、T8 | Lit、ComplexLit、ShaderGraph Lit 完整覆盖；clear coat 独立数据；SimpleLit/Particles/Terrain 支持或明确回退 | 支持矩阵无隐性行为；不支持 Shader weight=0；base/coat 不双重 probe/BRDF；alpha test、LOD、lightmap/APV、mixed lighting 回归通过 |
@@ -652,6 +652,14 @@ T1 固定基线配置：
 | 重复 Hi-Z 成本 | `duplicateHiZBytes=11,059,200`（1280×720 私有 pyramid 两份） | `T5Verification.json` 的各 mode 字段 |
 
 **已知限制**：URP 内置 SSAO 已按用户要求在 T5 后移除，现有引用该 Feature 的 Renderer Data 会出现 Missing Script，需要手动删除后改用 GTAO；AO keyword 的构建期精简固定为保留 ON/OFF，插件级 strip 优化留到 T14；XR single-pass 复用单视图矩阵（T13）；仅 Compatibility 路径。
+
+### 11.7 T6 实施与证据记录（2026-11-14）
+
+- 新增 Compute：`Shaders/Utils/ScreenSpaceLighting/{ScreenSpaceGlobalIllumination,TemporalFilter,DiffuseDenoiser}.compute`、`Shaders/Utils/ScreenSpaceCommon/BilateralUpsample.compute`，共享 `ScreenSpaceLightingCommon.hlsl`、`RayMarching.hlsl`、`Sampling.hlsl`、`Denoising.hlsl`。
+- 新增 Runtime：`Passes/SsgiPass.cs`（trace/reproject/validation/accumulation/denoise/upsample 编排与资源绑定）、`ScreenSpaceLightingShaderVariables.cs(+.cs.hlsl)`；扩展 `ScreenSpaceGlobalIllumination` Volume（full/half、ray steps、thickness、intensity、temporal、denoise、second pass、half-res denoiser、bilateral upsample）；`ScreenSpaceLightingHistory` 增加 SSGI 私有资源与 HF/LF 双缓冲。
+- Core 材质契约：新增 `ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingInput.hlsl` 与 `ScreenSpaceLightingBlend.hlsl`；`GlobalIllumination.hlsl` 完整重载与 `LitGBufferPass.hlsl` 混入 `lerp(bakedGI, ssgiRadiance, weight)`；`Lit/ComplexLit` 增加 `_SCREEN_SPACE_GI`；`ScriptableRenderer.ClearRenderingState` 每相机禁用。
+- 退出证据：`T6Verification.json`（三路径 `passed=true`）、`FrameDebugger/FrameDebuggerReport.json`（Depth Pyramid → SSGI → opaque）、`UnityTests.log`（111 passed / 0 failed）、`T6Report.json`（`t6ExitCriteriaMet=true`）。调试图覆盖 raw/denoised/history/weight 与 half-res。
+- 有意差异与限制：miss 保留 baked GI（不使用 HDRP probe/sky fallback）；无上一帧法线和 object-motion 拒绝；采样使用 IGN + R2 而非 blue-noise set（轻微 stipple）；仅 Lit/ComplexLit 材质；透明不接收 SSGI；仅 Compatibility Execute 路径，XR 逐眼矩阵留到 T13。
 
 ## 12. 验证矩阵
 

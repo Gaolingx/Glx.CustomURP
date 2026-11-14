@@ -1,6 +1,6 @@
 # ScreenSpaceLighting 交接
 
-> 更新：2026-11-14（T5 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
+> 更新：2026-11-14（T6 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
 
 ## 当前位置
 
@@ -10,22 +10,58 @@
 - **T3 已退出（2026-11-14）**。两个空 Renderer Feature（SSL / GTAO）、Volume 组件、能力检测、neutral 输出和私有 history 骨架已落地；真实 UI 路径配置、Volume 控队、空效果逐像素一致、无插件回归和 EditMode 测试全部通过，唯一事实入口为 `validation/T3/T3Report.json`（`t3ExitCriteriaMet=true`）。
 - **T4 已退出（2026-11-14）**。SSL 私有 packed Hi-Z（mip/offset/UV scale）、当前帧 Gaussian 颜色金字塔、双缓冲 previous color/depth、reset generation 和 7 个调试视图已落地；三路径下卷开启时 Pass 均执行且最终图像与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 重置、同帧读写槽分离、双相机隔离和 GTAO 缺失时 SSL 独立工作全部通过，Frame Debugger 证明 203 → 400 → 501 顺序。唯一事实入口为 `validation/T4/T4Report.json`（`t4ExitCriteriaMet=true`）。当前仍没有任何 GTAO、SSGI、SSR 或 Refraction 渲染效果实现完成。
 - **T5 已退出（2026-11-14）**。独立 GTAO 全 kernel（Main / Spatial / Temporal / CopyHistory / Blur+Upsample）、私有 packed Hi-Z、双缓冲 AO 历史、调试视图和 SSAO 式 Inspector 已落地；Forward/Forward+/Deferred 三路径 AO 可见，SSL 特征顺序任意组合图像逐字节一致，intensity=0 与 Feature 关闭恢复 T1 基线逐字节一致。**同日按用户要求移除 URP 内置 SSAO（像素着色器实现）**：GTAO 成为唯一 AO 生产者，材质侧 `_SCREEN_SPACE_OCCLUSION` 契约保留。唯一事实入口为 `validation/T5/T5Report.json`（`t5ExitCriteriaMet=true`）。SSGI、SSR、Refraction 仍未实现。
-- **T6–T14 未开始**。
+- **T6 已退出（2026-11-14）**。SSGI Trace/Reproject、TemporalFilter validation/accumulation、DiffuseDenoiser 必要支路、半分辨率 Bilateral Upsample、HF/LF 历史与相机 reset 已落地；材质端 `_SCREEN_SPACE_GI` 混合在 Forward/Forward+/Deferred 统一消费。三路径 `T6Verification.json` 全部 `passed=true`：miss 像素与 baked GI 逐像素一致（最大通道差 1.19e-7）、首帧与 intensity=0 逐字节恢复基线、半分辨率 upsample 真实派发、调试图与最终消费纹理一致（921,600 像素中 19 像素差异、最大 0.0012）、发光立方体自身亮度比 0.991（未重复叠加 emission）、相机 reset 计数 2。Frame Debugger 顺序为 Depth Pyramid → Screen Space Global Illumination → opaque，三路径一致。EditMode 111 passed / 0 failed。唯一事实入口为 `validation/T6/T6Report.json`（`t6ExitCriteriaMet=true`）。SSR、Transparent SSR 与 Refraction 仍未实现。
+- **T7–T14 未开始**。
 - **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run16 与无效运行全部保留。
 - 临时 Player 已清理；原始运行目录、日志、CSV、PNG 和报告均保留。四项 ProjectSettings 已恢复原始 SHA-256。
 
-唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）、[T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）与 [T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）。
+唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）、[T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）、[T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）与 [T6Report.json](validation/T6/T6Report.json)（`t6ExitCriteriaMet=true`）。
 
-## 下一步：T6 SSGI
+## 下一步：T7 Opaque SSR
 
-按计划 8.2 节实现 SSGI：全/半分辨率 Trace + Reproject、TemporalFilter validation/accumulation/copy、DiffuseDenoiser 必要支路、Bilateral Upsample、HF/LF 历史与相机 reset。复用 T4 的 SSL 私有 Hi-Z、previous color/depth 和 T5 的 GTAO 调度/调试经验，但 SSGI 必须使用 SSL 自己的实例资源，不得读取 GTAO 的 pyramid/offset/history：
+按计划 8.3 节实现不透明 SSR Approximation：Trace → Reproject 输出 RGBA16F radiance + weight，保留 roughness/edge fade、屏外拒绝、非有限颜色拒绝和 probe/sky 回退。复用 T6 的 SSL 私有 Hi-Z、上一帧颜色/深度、调度与调试经验，但与 SSGI 使用独立输出/历史资源：
 
-1. 移植 `ScreenSpaceGlobalIllumination.compute` 的 Trace/Reproject 与 denoise compute，绑定 SSL 颜色金字塔/上一帧深度/内置 Motion。
-2. 输出 hit radiance + 有效权重；miss 时权重为 0，保留 bakedGI/SH/APV。
-3. 接入材质端 GI 混合（Core 新增输入/混合头），Forward/Forward+/Deferred 统一 Pre-GBuffer 消费。
-4. 验收：三路径无 emission 重复、miss 不压黑、首帧/disocclusion fallback，raw/denoised/history 调试图与最终消费一致。
+1. 新增 `ScreenSpaceReflections.compute`（Approximation 首版）和 `SsrPass`，复用 `ScreenSpaceLightingCommon.hlsl`/`RayMarching.hlsl`。
+2. 接入 Core 的 `indirectSpecular` 混合（`ScreenSpaceLightingBlend.hlsl` 新增 SSR 采样和 miss 回退），Forward/Forward+/Deferred 统一消费。
+3. 验收：三路径金属/非金属、粗糙度梯度正确；miss 不压黑（`ssr.a=0` 时保留 probe/sky）；BRDF 只乘一次；无 NaN/Inf 和首帧无效历史。
 
-不得跳过 T6 直接实现 SSR/Refraction。
+不得跳过 T7 直接实现 Transparent SSR/Refraction。
+
+## T6 证据与复现
+
+- 结论：[T6Report.json](validation/T6/T6Report.json)（`t6ExitCriteriaMet=true`）
+- 渲染/生命周期：[T6Verification.json](validation/T6/T6Verification.json)（三路径 `passed=true`）
+- Frame Debugger：[FrameDebuggerReport.json](validation/T6/FrameDebugger/FrameDebuggerReport.json)（Forward/Forward+ 74 事件，Deferred 85；`SSL Depth Pyramid → Screen Space Global Illumination → opaque → SSL Color Pyramids`）
+- EditMode：`validation/T6/UnityTests.log`（111 passed / 0 failed）
+- 调试图：`validation/T6/T6_<Mode>_{SsgiRaw,SsgiDenoised,SsgiHistory,SsgiWeight}.png` 与 `Reference/SsgiFullRes/SsgiHalfRes`
+
+复现命令（先关闭其他 Unity 编辑器）：
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT6Verification.RunT6Verification -LogPath "PALN/validation/T6/UnityT6Verification.log" -ReportPath "PALN/validation/T6/UnityT6VerificationSettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T6/UnityTests.log" -ReportPath "PALN/validation/T6/UnityTestsSettingsRestoration.json"
+
+python "PALN/validation/T6/Analyze-T6Evidence.py"
+```
+
+Frame Debugger 采集（交互式编辑器，参数必须逐项传入）：
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PALN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PALN/validation/T6/FrameDebugger/UnityT6FrameDebugger.log' -ReportPath 'PALN/validation/T6/FrameDebugger/UnityT6FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PALN/validation/T6/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT6ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT6ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT6DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
+```
+
+T6 事实与限制：
+
+- 权重契约：reprojection 输出 `(radiance, weight)`；miss/历史无效写 weight=0，材质 `lerp(bakedGI, radiance, weight)` 保留 baked GI/SH/APV。三路径 791,186 个零权重像素与 SSGI 关闭图像逐像素一致（最大差 1.19e-7）；`intensity=0` 与首帧逐字节恢复基线。
+- 三路径 Pass 顺序：`SSL Depth Pyramid (203) → SSGI dispatch (205) → SSL Setup bind (207) → GBuffer (210) / Opaque (250) → Cleanup (300)`。Setup 只写全局纹理/keyword，无 GPU 事件，因此 Frame Debugger 中不出现；`s_EditorSsgiBoundCount` 证明绑定发生。
+- 材质端：Core 新增 `ShaderLibrary/ScreenSpaceLighting/{ScreenSpaceLightingInput,ScreenSpaceLightingBlend}.hlsl`，`GlobalIllumination.hlsl` 完整重载和 `LitGBufferPass.hlsl` 消费；`Lit.shader`/`ComplexLit.shader` 增加 `_SCREEN_SPACE_GI` 变体；`ClearRenderingState` 每相机禁用 keyword。仅 Lit/ComplexLit；SimpleLit/Particles/Terrain/ShaderGraph 属 T9。
+- 透明物体不接收 SSGI：Cleanup Pass 在 opaque 事件后立即禁用 keyword。折射/透明 SSR 留到 T10/T11。
+- 历史验证使用当前深度/法线、上一帧深度、内置 Motion 和位置半径；T4 未保存上一帧法线，因此没有法线历史拒绝；也没有 object-motion stencil 拒绝（T13 前记录为限制）。
+- 采样序列使用 IGN + R2 低差异序列替代 HDRP 的 blue-noise set；1 spp/帧、32 帧预热后仍有轻微 stipple，属已知画质限制（T14 可补 blue-noise 纹理）。
+- 仅 Compatibility `ScriptableRenderPass.Execute` 路径；RenderGraph 路径未注册。XR 使用单视图矩阵，逐眼矩阵留到 T13。
+- 曝光：URP 材质端消费发生在 post exposure 之前，SSGI 读取的颜色金字塔是线性 HDR 场景色（不含 exposure/tonemap），因此不需要 HDRP 的 pre-exposure 补偿；本实现不引入 exposure 控制。
+- SSGI 资源按相机分配：1280×720 全分辨率约 79 MB（4 张当帧/降噪 RGBA16F + 4 张 HF/LF 历史 + 4 张 sample count + hitpoint/validation/final）。半分辨率时 trace 相关减半；第二 Pass 与 `ssgiFinal` 目前始终分配，T14 可按设置懒分配。
 
 ## T4 证据与复现
 
@@ -186,6 +222,9 @@ python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
 - T5 结论：[T5Report.json](validation/T5/T5Report.json)
 - T5 渲染/生命周期：[T5Verification.json](validation/T5/T5Verification.json)
 - T5 Frame Debugger：[FrameDebuggerReport.json](validation/T5/FrameDebugger/FrameDebuggerReport.json)
+- T6 结论：[T6Report.json](validation/T6/T6Report.json)
+- T6 渲染/生命周期：[T6Verification.json](validation/T6/T6Verification.json)
+- T6 Frame Debugger：[FrameDebuggerReport.json](validation/T6/FrameDebugger/FrameDebuggerReport.json)
 - T3 渲染/生命周期：[T3Verification.json](validation/T3/T3Verification.json)
 - T3 真实 UI 路径：[T3UiEvidence.json](validation/T3/UI/T3UiEvidence.json)
 - T3 无插件回归：`validation/T3/FrameDebuggerNoPlugin/`
