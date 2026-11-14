@@ -1,6 +1,6 @@
 # ScreenSpaceLighting 交接
 
-> 更新：2026-11-15（T11 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
+> 更新：2026-11-15（T12 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
 
 ## 当前位置
 
@@ -15,21 +15,58 @@
 - **T8 已退出（2026-11-14）**。SSR PBR Accumulation（GGX VNDF trace、3×3 cross reproject、双 RGBA16F 累积历史）落地；`usedAlgorithm` 在 Approximation/PBR 间切换并 reset，9 个公开速度拒绝组合各自命中独立 kernel（NoWorld/Hard/Smooth × Both/Source/Target），surface/target 在动态场景产生 226,681 像素差异、speed 参数 0↔1 产生 232,951 像素差异，硬拒绝调试图 100% 红、接受调试图 100% 绿，算法切换 reset 2 次、相机 cut reset 2 次。PBR 仍遵守 T7 权重契约：miss 的 670,222 像素与 probe 基线逐像素一致、首帧与 intensity=0 逐字节恢复基线、无 NaN/Inf/负值。三路径 `T8Verification.json` 全部 `passed=true`，EditMode 126 passed / 0 failed。唯一事实入口为 `validation/T8/T8Report.json`（`t8ExitCriteriaMet=true`）。Transparent SSR 与 Refraction 仍未实现。
 - **T9 已退出（2026-11-14）**。Lit、ComplexLit、ShaderGraph Lit（Forward + GBuffer）全部接入 SSGI/SSR；ComplexLit 的 clear coat 在 DepthNormals 写入 coat SSR smoothness（mask>0 时 alpha=1.0），材质端 base/coat 使用独立 mask/roughness 与 HDRP 式 hierarchy weight，base smoothness 0.3 的 coat 球 trace weight 仍为 1.0。三路径 `T9Verification.json` 全部 `passed=true`：intensity=0 逐字节恢复 probe 基线、572,746 个零权重像素与 probe 图像逐像素一致（最大差 0）、coat smoothness 1↔0.2 改变 270,919 像素（Deferred 270,957）、coat mask 1↔0 改变 271,300 像素（Deferred 271,339）；SimpleLit/Particles/Terrain Lit 的 depth normals alpha 与 SSR weight 均为 0；alpha test 实体/裁剪像素 weight 1.0/0；ForceLOD 0/1 均覆盖；SG Lit 的 SSR/SSGI 均生效。小场景 lightmap（Mixed + Subtractive）回归通过；APV 因 URP 14.0.12 无 ProbeVolume 集成标为不支持。EditMode 132 passed / 0 failed。唯一事实入口为 `validation/T9/T9Report.json`（`t9ExitCriteriaMet=true`）。Transparent SSR 与 Refraction 仍未实现。
 - **T10 已退出（2026-11-15）**。Core 新增 `UniversalTransparentDepthNormals` LightMode 共享实现（`Shaders/Utils/TransparentDepthNormalsPass.hlsl`）并接入 Lit/ComplexLit；透明材质通过 `_TransparentSsrReceive` 属性/`_TRANSPARENT_SSR_RECEIVE` 关键字显式 opt-in，未 opt-in 的片段在 prepass 中 `clip`。SSL 在 447 用 CopyDepth 把 opaque 深度复制到私有 depth 并从该深度起绘制透明 depth/normal，449 完成 Transparent SSR Trace/Reproject（独立 hit point/output、`_SCREEN_SPACE_TRANSPARENT_SSR`、Approximation-only）并在 450 前绑定；主透明 pass 的深度语义未改。Volume 新增 `enabledTransparent`。三路径 `T10Verification.json` 全部 `passed=true`：intensity=0 与关闭后逐字节恢复、opaque weight 与 camera depth 差异 0、receiver 改变 785 像素/weight 1.0、opt-out 与 SimpleLit 改变 0 像素/weight 0、ComplexLit clear coat 透明 1,266 像素/weight 1.0、transparent depth 0.006142 > opaque 0.003819（9,560 像素不同）、双层最近面胜出（near-only=both=0.006007 > far 0.004822）、PBR 下 transparent 4/4 dispatch 且 accumulation 0、移动透明体 ray origin 跟随且无 NaN。EditMode 142 passed / 0 failed。唯一事实入口为 `validation/T10/T10Report.json`（`t10ExitCriteriaMet=true`）。Refraction 仍未实现。
-- **T11 已退出（2026-11-15）**。Core 新增折射材质契约：`_RefractionModel`（None 默认，Box/Sphere/Thin）、`_Ior`、`_Thickness`、`_TransmittanceColor`、`_TransmittanceDistance`、`_REFRACTION_PLANE/SPHERE/THIN` 与 `_SCREEN_SPACE_REFRACTION`，Lit/ComplexLit GUI 与 ShaderGraph Lit 共用同一组属性/关键字；`ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl` 移植 HDRP proxy raycast、深度拒绝、absorption、edge fade 与 (1-FGD) 透射。SSL 在 448 绑定 400 生成的当前帧 color pyramid、opaque depth 与最近的 box-projected probe AABB；Volume 新增 `screenFadeDistance`/`intensity`（默认关闭）。ShaderGraph Lit 补上 T10 遗留的 `UniversalTransparentDepthNormals` Pass、`_TRANSPARENT_SSR_RECEIVE` 和 `_SCREEN_SPACE_TRANSPARENT_SSR` 消费。三路径 `T11Verification.json` 全部 `passed=true`：legacy 透明 0 像素变化、模型 None/intensity=0/关闭相位逐像素恢复（1e-6）、无 box probe 时逐像素回退、box/complex/sphere/SG 分别改变 5,915/2,996/1,233/3,092 像素、SG 透明 prepass 改变 543 像素、红色吸收红通道比 0.363、背景橙→蓝时玻璃均值 (1.502,0.867,0.319)→(0.274,0.438,1.577)、透明面板开关时玻璃圆内与 color pyramid 均 0 像素变化。EditMode 149 passed / 0 failed。唯一事实入口为 `validation/T11/T11Report.json`（`t11ExitCriteriaMet=true`）。T12–T14 未开始。
+- **T11 已退出（2026-11-15）**。Core 新增折射材质契约：`_RefractionModel`（None 默认，Box/Sphere/Thin）、`_Ior`、`_Thickness`、`_TransmittanceColor`、`_TransmittanceDistance`、`_REFRACTION_PLANE/SPHERE/THIN` 与 `_SCREEN_SPACE_REFRACTION`，Lit/ComplexLit GUI 与 ShaderGraph Lit 共用同一组属性/关键字；`ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl` 移植 HDRP proxy raycast、深度拒绝、absorption、edge fade 与 (1-FGD) 透射。SSL 在 448 绑定 400 生成的当前帧 color pyramid、opaque depth 与最近的 box-projected probe AABB；Volume 新增 `screenFadeDistance`/`intensity`（默认关闭）。ShaderGraph Lit 补上 T10 遗留的 `UniversalTransparentDepthNormals` Pass、`_TRANSPARENT_SSR_RECEIVE` 和 `_SCREEN_SPACE_TRANSPARENT_SSR` 消费。三路径 `T11Verification.json` 全部 `passed=true`：legacy 透明 0 像素变化、模型 None/intensity=0/关闭相位逐像素恢复（1e-6）、无 box probe 时逐像素回退、box/complex/sphere/SG 分别改变 5,915/2,996/1,233/3,092 像素、SG 透明 prepass 改变 543 像素、红色吸收红通道比 0.363、背景橙→蓝时玻璃均值 (1.502,0.867,0.319)→(0.274,0.438,1.577)、透明面板开关时玻璃圆内与 color pyramid 均 0 像素变化。EditMode 149 passed / 0 failed。唯一事实入口为 `validation/T11/T11Report.json`（`t11ExitCriteriaMet=true`）。
+- **T12 已退出（2026-11-15）**。三渲染器各 34 个组合用例（Deferred 35，含实际 Forward 回退）全部通过：Forward/Forward+/Deferred、Deferred + ForwardOnly ComplexLit（5,214 px）、Deferred 实际 Forward 回退（`GL.wireframe` 触发 `renderingModeActual`）、SSL/GTAO 单开与组合、GTAO 前置顺序（0 px 差异）、Volume 缺失组件/overrideState=off/双 Volume 混合/相机 Volume Mask、render scale 与目标尺寸重置（reset 计数 2/2）、camera cut（2）、SSR 算法切换（3）、Depth Priming、Opaque Texture、TAA、Motion Blur、DBuffer/ScreenSpace Decal（70,054/64,017 px）、HDR/MSAA（Forward/F+ MSAA 生效，Deferred 兼容路径忽略 MSAA）、Base+Overlay 相机栈（效果可见 541,499 px，overlay 由能力检测拒绝）、Preview/Reflection 相机、SimpleLit 回退（0 px）。Frame Debugger 三路径 94/94/105 事件，顺序 `MotionVectors → SSL Depth Pyramid → GTAO Depth Pyramid → SSGI/SSR → DrawOpaque/GBuffer`，Pre-GBuffer 未进入 AfterGbuffer 回退；全部 SSL 全局 keyword 在相机清理后关闭。私有资源 1280×720（base level）：SSL 98,611,832 B、GTAO 9,216,120 B、SSL packed Hi-Z 5,529,600 B（12 mip，1 次 copy + 11 次 downsample），颜色金字塔 9 mip，每帧 1 次透明 prepass。EditMode 153 passed / 0 failed。唯一事实入口为 `validation/T12/T12Report.json`（`t12ExitCriteriaMet=true`）。T13–T14 未开始。
 - **GPU p95 为参考数据**。本机 DVFS 与 GeForce/WDDM 不执行 `nvidia-smi -lgc` 导致 720p GPU p95 无法重复；证据与理由见 [Environment.json](validation/T1/Environment.json) 和 `Diagnostics/Dvfs-2026-11-14/`。10% 容差、场景、预算数值均未变，Run1–Run16 与无效运行全部保留。
 - 临时 Player 已清理；原始运行目录、日志、CSV、PNG 和报告均保留。四项 ProjectSettings 已恢复原始 SHA-256。
 
-唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）、[T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）、[T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）、[T6Report.json](validation/T6/T6Report.json)（`t6ExitCriteriaMet=true`）、[T9Report.json](validation/T9/T9Report.json)（`t9ExitCriteriaMet=true`）、[T10Report.json](validation/T10/T10Report.json)（`t10ExitCriteriaMet=true`）与 [T11Report.json](validation/T11/T11Report.json)（`t11ExitCriteriaMet=true`）。
+唯一事实入口：[T1Report.json](validation/T1/T1Report.json)（`t1ExitCriteriaMet=true`）、[T2Verification.json](validation/T2/T2Verification.json)（`passed=true`）、[T5Report.json](validation/T5/T5Report.json)（`t5ExitCriteriaMet=true`）、[T6Report.json](validation/T6/T6Report.json)（`t6ExitCriteriaMet=true`）、[T9Report.json](validation/T9/T9Report.json)（`t9ExitCriteriaMet=true`）、[T10Report.json](validation/T10/T10Report.json)（`t10ExitCriteriaMet=true`）、[T11Report.json](validation/T11/T11Report.json)（`t11ExitCriteriaMet=true`）与 [T12Report.json](validation/T12/T12Report.json)（`t12ExitCriteriaMet=true`）。
 
-## 下一步：T12 全组合加固
+## 下一步：T13 XR 与平台能力
 
-按计划第 12 节矩阵推进；T10/T11 已交付的 Transparent SSR、Refraction 与 ShaderGraph 覆盖不得回退：
+按计划 T13 推进；T12 的组合矩阵结果不得回退：
 
-1. ForwardOnly、Deferred + ForwardOnly 组合、decal、Depth Priming、Opaque Texture、TAA、Motion Blur。
-2. HDR/MSAA 相机、camera stack（base/overlay）、render scale。
-3. 全组合下证实 Pre-GBuffer 输入未触发 AfterGbuffer 回退，无全局 keyword/纹理跨相机污染。
-4. 量化透明 prepass、Hi-Z、颜色金字塔的额外成本，更新支持矩阵与已知差异。
-5. XR 逐眼矩阵、动态分辨率与平台能力仍留 T13；最终回归与归档留 T14。
+1. XR multipass / single-pass instanced 的逐眼矩阵、slice 索引、dispatch 与 history 隔离。
+2. render scale / 动态分辨率变化下的历史重分配与 UV scale，DX11/DX12/Vulkan 能力探测。
+3. 未实测平台在支持矩阵中明确标记；性能不得以删除测试换取通过。
+4. T14 再做最终 Edit/Play/图形/Player/stripping 回归、产物归档与清理。
+
+## T12 证据与复现
+
+- 结论：[T12Report.json](validation/T12/T12Report.json)（`t12ExitCriteriaMet=true`）
+- 组合矩阵：[T12Verification.json](validation/T12/T12Verification.json)（三路径全部用例通过）
+- Frame Debugger：[FrameDebuggerReport.json](validation/T12/FrameDebugger/FrameDebuggerReport.json)（Forward/Forward+ 94 事件，Deferred 105；Motion → SSL Depth Pyramid → GTAO Depth Pyramid → SSGI/SSR → opaque/GBuffer）
+- EditMode：`validation/T12/UnityTests.log`（153 passed / 0 failed）
+- 资产：`Assets/Tests/ScreenSpaceLighting/Renderers/SslT12{Forward,ForwardPlus,Deferred}{Renderer,Pipeline}.asset`
+- 图：`validation/T12/T12_<Mode>_<Case>.png`（Reference/AllOn/AllOffAgain/GtaoFirst/DepthPrimingForced/OpaqueTexture/TemporalAA/MotionBlur/DecalDBuffer/DecalScreenSpace/MSAA4x/DeferredFallbackForward 等）
+
+复现命令（先关闭其他 Unity 编辑器；Frame Debugger 必须使用交互式编辑器并保持窗口前台）：
+
+```bash
+powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT12Verification.CreateT12Assets -LogPath "PALN/validation/T12/UnityT12Compile.Run3.log" -ReportPath "PALN/validation/T12/UnityT12Compile.Run3SettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT12Verification.RunT12Verification -LogPath "PALN/validation/T12/UnityT12Verification.Run8.log" -ReportPath "PALN/validation/T12/UnityT12Verification.Run8SettingsRestoration.json" -Quit
+
+powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T12/UnityTests.log" -ReportPath "PALN/validation/T12/UnityTestsSettingsRestoration.json"
+
+python "PALN/validation/T12/Analyze-T12Evidence.py"
+```
+
+Frame Debugger 采集：
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PALN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PALN/validation/T12/FrameDebugger/UnityT12FrameDebugger.Run2.log' -ReportPath 'PALN/validation/T12/FrameDebugger/UnityT12FrameDebugger.Run2SettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PALN/validation/T12/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT12DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
+```
+
+T12 事实与限制：
+
+- **Deferred MSAA**：URP 14 兼容路径的 Deferred 渲染器忽略 MSAA（Deferred 的 `MSAA4x` 与 `AllOn` 图像逐字节一致；Forward/Forward+ 则不同）；这是 URP 行为，不是 SSL 缺陷，支持矩阵中按“Deferred 不承诺 MSAA”记录。
+- **相机栈**：ScreenSpaceCapability 拒绝 Overlay 相机；Base 相机在栈中仍输出效果。URP 栈路径会改变中间色彩精度，因此“加 overlay 前后”不做逐字节比较，只验证效果可见、无 NaN/Inf。
+- **Post Processing / Opaque Texture**：PP 与 Opaque Texture 会改变 URP 的中间色彩管线/格式，因此仅验证效果在对应路径下可见且有限，不宣称与关闭路径逐字节一致。
+- **Deferred 实际回退**：用 `GL.wireframe` 触发 `renderingModeActual=Forward` 的编辑期确定性用例；回退路径下效果有限、无错误。
+- **Decal**：DBuffer 与 ScreenSpace 两种技术均渲染成功；Deferred 的 SSGI/SSR 仍使用 DepthNormals prepass（decal 前材质数据），属于 T0/计划记录的已知差异。
+- **成本**：`sslPrivateBytes`/`gtaoPrivateBytes` 为 base-level RTHandle + ComputeBuffer 字节和；颜色金字塔 mip 链未乘 4/3，Hi-Z 为 packed atlas 实际字节（5,529,600 B）。透明 prepass 每帧 1 次；GTAO Hi-Z 与 SSL Hi-Z 不合并（T5 记录的重复显存仍成立）。
+- Scene View 相机无法在 batchmode 中可靠采样，标为未测试；Preview/Reflection 相机由能力检测拒绝并验证无异常。XR/platform 逐眼矩阵仍留 T13。
 
 ## T11 证据与复现
 
