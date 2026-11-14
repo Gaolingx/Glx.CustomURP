@@ -493,7 +493,7 @@ URP/Editor/RendererFeatures/
 | **T6** | P0 / T4 | SSGI Trace/Reproject、Temporal/Diffuse Denoise、HF/LF、Bilateral Upsample、材质注入 | **已退出（2026-11-14）**：Trace/Reproject、history validation/accumulation、DiffuseDenoiser 必要支路、半分辨率 Bilateral Upsample 与 HF/LF 历史落地；Core `_SCREEN_SPACE_GI` 材质混合在 Forward/Forward+/Deferred 统一消费；三路径 `passed=true`，零权重像素与 baked GI 逐像素一致（最大差 1.19e-7），首帧/intensity=0 逐字节恢复基线，emission 亮度比 0.991，调试图与消费纹理一致（19/921,600 像素、最大差 0.0012），Frame Debugger 顺序 203→205→207→opaque。证据：`PALN/validation/T6/`（`t6ExitCriteriaMet=true`，EditMode 111 passed） |
 | **T7** | P0 / T4 | Opaque SSR Approximation、radiance+weight、roughness/edge fade 和 probe/sky fallback | **已退出（2026-11-14）**：Trace/Reproject Approximation、RGBA16F 非预乘 radiance + weight、roughness/edge fade、屏外/非有限/负值拒绝和 probe/sky 回退落地；Core `_SCREEN_SPACE_SSR` 在 `EnvironmentBRDF` 前统一混合；三路径 `passed=true`，miss 的 670,152 像素与 probe 基线逐像素一致（最大差 0）、intensity=0 与首帧逐字节恢复基线、金属粗糙度权重 0.444/0.350/0.198/0 且低于 minSmoothness 为 0、非金属光滑球 0.410、干净首帧 intensity 响应比 2.000（误差 0）、调试图 921,600 像素 0 差异、无 NaN/Inf/负值；Frame Debugger 顺序 Depth Pyramid → SSR → opaque。证据：`PALN/validation/T7/`（`t7ExitCriteriaMet=true`，EditMode 118 passed） |
 | **T8** | P1 / T7 | SSR PBR Accumulation、双历史、全部速度拒绝组合、算法切换 reset | **已退出（2026-11-14）**：GGX VNDF trace、3×3 cross reproject、双 RGBA16F 累积历史落地；9 个公开组合各自只命中独立 kernel（每组 3 次派发），surface/target 在动态场景差异 226,681 像素、speed 参数 0↔1 差异 232,951 像素，硬拒绝调试 100% 红、接受调试 100% 绿；算法切换 reset 2 次、相机 cut reset 2 次；PBR 的 miss 670,222 像素与 probe 基线一致、首帧/intensity=0 恢复基线、CB 回读 `(0.0263,0.5,0.5,1)`、无 NaN/Inf/负值。证据：`PALN/validation/T8/`（`t8ExitCriteriaMet=true`，EditMode 126 passed） |
-| **T9** | P1 / T6、T8 | Lit、ComplexLit、ShaderGraph Lit 完整覆盖；clear coat 独立数据；SimpleLit/Particles/Terrain 支持或明确回退 | 支持矩阵无隐性行为；不支持 Shader weight=0；base/coat 不双重 probe/BRDF；alpha test、LOD、lightmap/APV、mixed lighting 回归通过 |
+| **T9** | P1 / T6、T8 | Lit、ComplexLit、ShaderGraph Lit 完整覆盖；clear coat 独立数据；SimpleLit/Particles/Terrain 支持或明确回退 | **已退出（2026-11-14）**：Lit/ComplexLit/ShaderGraph Lit（Forward + GBuffer）均消费 `_SCREEN_SPACE_GI/_SCREEN_SPACE_SSR`；ComplexLit 的 DepthNormals 在 coat mask>0 时写 coat SSR smoothness（alpha 1.0），材质端 base/coat 使用独立 mask/roughness 与 hierarchy weight，base smoothness 0.3 的 coat 球 trace weight 仍为 1.0；SimpleLit/Particles/Terrain Lit 保持 alpha 0、weight 0；572,746 个零权重像素与 probe 图像逐像素一致、intensity=0 逐字节恢复；alpha test、LOD、lightmap + mixed lighting 回归通过。APV 因 URP 14.0.12 无 ProbeVolume 集成标为不支持。证据：`PALN/validation/T9/`（`t9ExitCriteriaMet=true`，EditMode 132 passed） |
 | **T10** | P1 / T7、T9 | Core 透明 depth/normal Pass，SSL 透明 prepass、独立 Transparent SSR Approx 和材质消费 | ray origin 不取自 opaque 背景；主透明深度语义不变；不透明/透明输出不互踩；无历史 accumulation 误用；透明 motion 限制有测试和记录 |
 | **T11** | P1 / T4、T9 | 折射材质属性/GUI/ShaderGraph、当前帧 Color Pyramid、proxy raycast、深度拒绝、transmittance、edge fade | 支持的透明 Lit 三路径正确 fallback；不读尚未写入颜色；旧材质默认画面不变；proxy 与 pre-refraction 顺序差异记录完整 |
 | **T12** | P1 / T5、T6、T8–T11 | 全组合 Deferred/Forward 加固：ForwardOnly、decal、Depth Priming、Opaque Texture、TAA、Motion Blur、HDR/MSAA、camera stack | 第 12 节矩阵全部有结果；Pre-GBuffer 未触发 AfterGbuffer 回退；无全局状态污染；额外 prepass/Hi-Z 成本已量化 |
@@ -677,6 +677,50 @@ T1 固定基线配置：
 - 结果契约：累积非预乘 radiance + weight，材质端与 T7 完全一致；HDRP 累积预乘 radiance，属有意差异。
 - 退出证据：`T8Verification.json`（三路径 `passed=true`）、`UnityTests.log`（126 passed / 0 failed）、`T8Report.json`（`t8ExitCriteriaMet=true`）。9 组合 kernel 计数、动态场景 surface/target 与 speed 0↔1 差异、红/绿调试图、算法切换 reset、CB 回读全部记录在报告。
 - 已知限制：world speed 重建沿用 HDRP 公式，静态场景基线会饱和归一化速度，因此接受/拒绝行为测试使用屏幕空间 kernel；18 个 Accumulate kernel 在 Frame Debugger 中同名，kernel 选择改由逐组合计数器证明；仅 Compatibility Execute，XR 逐眼矩阵留到 T13。
+
+### 11.10 T9 实施与证据记录（2026-11-14）
+
+**Core 材质契约**
+
+- `ScreenSpaceLightingBlend.hlsl`：新增 `ScreenSpaceLightingApplyIndirectSpecularClearCoat` / `ScreenSpaceLightingEvaluateIndirectSpecularClearCoat`。clear coat 用一条共享 trace 和两个独立 reflection hierarchy：
+  - coat 层使用 `weight` 与材质自己的 `clearCoatMask` / coat smoothness，采样 `lerp(coatEnv, radiance, weight)`；
+  - base 层使用 `weight * lerp(1, 0, saturate((basePerceptualRoughness - CLEAR_COAT_PERCEPTUAL_ROUGHNESS) / 0.2))`（HDRP 的 coat-on-bottom-layer 规则），rough base 保留 probe；
+  - `coatMask <= 0` 时退化为 base 单层，与 Lit 完全相同；miss（weight=0）时两层分别保留自己的 probe，不产生黑色反射或二次 probe/BRDF。
+- `GlobalIllumination.hlsl`：clear coat 分支改用上述函数，base/coat 各自在 `EnvironmentBRDF` / `EnvironmentBRDFClearCoat` 中只乘一次 BRDF；SSR keyword 关闭时该函数直接返回原 probe 值，因此非 SSR 图像不变。
+- `LitDepthNormalsPass.hlsl`：ComplexLit 的 `_CLEARCOAT` / `_CLEARCOATMAP` 变体在 DepthNormals alpha 写入 `0.5 + 0.5 * (1 - CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS)`（即 1.0），并在 `clearCoatMask > 0` 时才覆盖；mask=0 保留 base smoothness。`REQUIRES_UV_INTERPOLATOR` 增加 `_CLEARCOATMAP`。`ComplexLit.shader` 的 `DepthNormalsOnly` pass 增加 coat 关键字变体，使 SSR 与 HDRP 一样按 coat roughness 追踪。
+- ShaderGraph：`UniversalTarget` 增加 `_SCREEN_SPACE_GI` / `_SCREEN_SPACE_SSR` 关键字描述符，`UniversalLitSubTarget` 的 Forward/GBuffer 关键字集合加入两者；`PBRGBufferPass.hlsl` 改用带 `positionWS + normalizedScreenSpaceUV` 的完整 GI 重载；`DepthNormalsOnlyPass.hlsl` 写 smoothness 编码（`0.5 + 0.5 * smoothness`），complex lit 时按 `CoatMask` 写 coat SSR smoothness；`FragmentDepthNormals` 端口掩码增加 Smoothness/CoatMask/CoatSmoothness，`DepthNormalOnly` pass 在 complex lit 时定义 `_CLEARCOAT`。
+- 不支持材质：SimpleLit、Particles Lit、Terrain Lit 的 DepthNormals 继续写 alpha 0，且不声明 `_SCREEN_SPACE_GI/_SCREEN_SPACE_SSR`；Terrain 的 forward 路径仍走不带 screen UV 的 legacy GI 重载。它们因此不可能获得非零 SSR/SSGI 权重。
+
+**验证器**
+
+- `Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT9Verification.cs` 生成三份 T9 Renderer/Pipeline（各含 SSL + 读深度法线的探针 Feature）、两个 ShaderGraph（Lit 与 Complex Lit，后者 CoatMask=1），运行时搭建 clear coat 球、alpha test 棋盘面、LODGroup、ShaderGraph 球、SimpleLit/Particles/Terrain Lit 球，以及镜像地面。
+- SSR 权重通过 `SsrWeight` 调试视图读取（屏幕空间栅格化，避免直接读取 compute 纹理时的坐标约定差异）；深度法线 alpha 由 203 处的探针 Feature 读取。
+- 额外烘焙一个小场景（Mixed + Subtractive，1 张 lightmap）验证 SSGI/SSR 的 miss 与 intensity=0 不破坏 lightmap。
+
+**退出证据**
+
+| 项目 | 结果 | 入口 |
+|---|---|---|
+| T9 结论 | `t9ExitCriteriaMet=true` | `PALN/validation/T9/T9Report.json` |
+| 三路径渲染/生命周期 | 三路径 `passed=true`；`CoatIntensity0` 逐字节恢复 probe 基线（三路径同一 SHA） | `PALN/validation/T9/T9Verification.json` |
+| Clear coat 独立数据 | base smoothness 0.3 + coat mask 1 的球 trace weight 1.0（无 coat 编码时为 0）；coat smoothness 0.2↔1 改变 270,919 像素，coat mask 1↔0 改变 271,300 像素 | 同上 |
+| 深度法线编码 | coat 球 alpha 1.000、coat mask 0 球 0.654、SimpleLit/Particles/Terrain 0.000、SG Lit 0.748、SG Complex Lit 1.000 | 同上 |
+| 不支持材质 | SimpleLit/Particles/Terrain 的 SSR weight 全为 0；Terrain Lit 用其 shader + 平面隔离材质契约 | 同上 |
+| 无二次 probe/BRDF | SSR on 时 572,746 个零权重像素与 probe 图像逐像素一致（最大通道差 0）；intensity=0 逐字节恢复 | 同上 |
+| Alpha test | 棋盘面 974 个实体像素 weight 1.0、19,713 个裁剪像素 weight 0 | 同上 |
+| LOD | ForceLOD 0/1 均为 weight 1.0，两级图像差 1,299 像素 | 同上 |
+| ShaderGraph | SG Lit 的 SSR/SSGI 均改变图像，SSR weight 1.0；SG Complex Lit 在 intensity=0 时与基线逐字节一致 | 同上 |
+| Lightmap/Mixed | 1 张 lightmap、Subtractive；三路径 intensity=0 恢复 lightmap 基线、效果开启后图像改变、无 NaN/洋红 | 同上 |
+| 支持矩阵 | Lit/ComplexLit/ShaderGraph Lit 支持；SimpleLit/Particles/Terrain Lit 明确回退（weight 0）；APV 在 URP 14.0.12 无 ProbeVolume 集成，标为不支持 | `T9Report.json` |
+| EditMode | 132 passed / 0 failed（新增 `ScreenSpaceLightingMaterialTests` 6 项） | `PALN/validation/T9/UnityTests.log` |
+
+**已知限制**
+
+- SSR 只追踪 base 法线；clear coat 仅把 trace roughness 提升到 coat SSR roughness（0），不写几何法线，也不追踪独立的 coat 法线；coat 层与 base 层共用同一 radiance，仅权重/mask/probe 独立。
+- `minSmoothness=1` 的“全 miss”配置仍会让 coat roughness 0 的像素通过（`>` 判定），因此 miss 回归以 572,746 个实际零权重像素与 probe 图像逐点比较，而不是整图相等。
+- 测试场景中的 Terrain 使用 Terrain Lit shader + 平面，原因是用手动 `Camera.Render` 循环时运行时创建的 Terrain 对象不被绘制；Terrain 的材质契约（DepthNormals alpha 0、无 SSL 关键字、legacy GI 重载）由 EditMode 源测试与图形权重共同固定。
+- SSR 权重读取改用 `SsrWeight` 调试视图；直接 blit compute 输出的 RTHandle 会因坐标约定导致纵向偏移，不作为证据来源。
+- APV：URP 14.0.12 Runtime 没有 ProbeVolume 集成，无法在本包内验收；lightmap/SH/mixed lighting 回归通过。
 
 ## 12. 验证矩阵
 

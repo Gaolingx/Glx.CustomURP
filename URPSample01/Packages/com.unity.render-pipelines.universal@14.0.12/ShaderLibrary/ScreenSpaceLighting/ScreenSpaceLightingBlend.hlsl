@@ -8,6 +8,7 @@
 // keeps bakedGI, which is what keeps lightmaps, SH and APV on their original path and prevents a
 // miss from darkening the image. The radiance is already one-bounce incoming light, so it is blended
 // before EnvironmentBRDF, exactly like bakedGI; emission is never part of this term.
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingInput.hlsl"
 
 half3 ScreenSpaceLightingApplyIndirectDiffuse(half3 bakedGI, float2 normalizedScreenSpaceUV)
@@ -38,6 +39,61 @@ half3 ScreenSpaceLightingApplyIndirectSpecular(half3 environmentSpecular, float2
     return lerp(environmentSpecular, radiance, weight);
 #else
     return environmentSpecular;
+#endif
+}
+
+// Clear coat keeps a separate reflection hierarchy for the base and the coat lobe. The trace is
+// shared (URP has a single opaque trace), but each lobe mixes it against its own environment
+// reflection with its own weight:
+// - the coat lobe consumes the trace with the SSR weight and its own mask / coat smoothness;
+// - the base lobe only consumes the trace while it is not much rougher than the coat, mirroring
+//   HDRP's "coat-traced light on the bottom layer" rule. A rough base keeps its probe.
+// A miss (weight 0) leaves both lobes on their probes, so no probe or BRDF term is applied twice.
+// The coat mask is never derived from the base smoothness; it is the independent material value.
+void ScreenSpaceLightingEvaluateIndirectSpecularClearCoat(
+    half4 ssrSample,
+    half ssrIntensity,
+    half3 environmentSpecular,
+    half3 coatEnvironmentSpecular,
+    half basePerceptualRoughness,
+    half coatMask,
+    out half3 baseSpecular,
+    out half3 coatSpecular)
+{
+    half weight = saturate(ssrSample.a * max(ssrIntensity, 0.0h));
+    half3 radiance = max(ssrSample.rgb, half3(0.0, 0.0, 0.0));
+
+    if (coatMask > 0.0h)
+    {
+        half baseToCoatRoughness = saturate((basePerceptualRoughness - CLEAR_COAT_PERCEPTUAL_ROUGHNESS) / 0.2h);
+        half baseHierarchyWeight = weight * lerp(1.0h, 0.0h, baseToCoatRoughness);
+        baseSpecular = lerp(environmentSpecular, radiance, baseHierarchyWeight);
+        coatSpecular = lerp(coatEnvironmentSpecular, radiance, weight);
+    }
+    else
+    {
+        baseSpecular = lerp(environmentSpecular, radiance, weight);
+        coatSpecular = coatEnvironmentSpecular;
+    }
+}
+
+void ScreenSpaceLightingApplyIndirectSpecularClearCoat(
+    half3 environmentSpecular,
+    half3 coatEnvironmentSpecular,
+    half basePerceptualRoughness,
+    half coatMask,
+    float2 normalizedScreenSpaceUV,
+    out half3 baseSpecular,
+    out half3 coatSpecular)
+{
+#if defined(_SCREEN_SPACE_SSR)
+    half4 ssr = SAMPLE_TEXTURE2D_X(_ScreenSpaceSsrTexture, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV));
+    ScreenSpaceLightingEvaluateIndirectSpecularClearCoat(ssr, _ScreenSpaceSsrParams.x,
+        environmentSpecular, coatEnvironmentSpecular, basePerceptualRoughness, coatMask,
+        baseSpecular, coatSpecular);
+#else
+    baseSpecular = environmentSpecular;
+    coatSpecular = coatEnvironmentSpecular;
 #endif
 }
 

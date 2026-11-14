@@ -362,8 +362,24 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     // Screen Space Lighting (when enabled) replaces the baked diffuse term where a ray hit; a miss
     // keeps bakedGI so lightmaps, SH and APV are preserved.
     half3 indirectDiffuse = ScreenSpaceLightingApplyIndirectDiffuse(bakedGI, normalizedScreenSpaceUV);
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, 1.0h, normalizedScreenSpaceUV);
+    half3 indirectSpecular;
+    half3 coatIndirectSpecular;
+
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    // Clear coat has its own reflection hierarchy: the base lobe and the coat lobe sample the same
+    // trace but keep independent weights and environment reflections (see
+    // ScreenSpaceLightingBlend.hlsl). Without screen-space reflections this reduces to the original
+    // two probe lookups below, so the no-SSR image is unchanged.
+    half3 environmentSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, 1.0h, normalizedScreenSpaceUV);
+    half3 coatEnvironmentSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfDataClearCoat.perceptualRoughness, 1.0h, normalizedScreenSpaceUV);
+    ScreenSpaceLightingApplyIndirectSpecularClearCoat(environmentSpecular, coatEnvironmentSpecular,
+        brdfData.perceptualRoughness, clearCoatMask, normalizedScreenSpaceUV,
+        indirectSpecular, coatIndirectSpecular);
+#else
+    indirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, 1.0h, normalizedScreenSpaceUV);
     indirectSpecular = ScreenSpaceLightingApplyIndirectSpecular(indirectSpecular, normalizedScreenSpaceUV);
+    coatIndirectSpecular = half3(0.0, 0.0, 0.0);
+#endif
 
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
@@ -373,7 +389,6 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     }
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfDataClearCoat.perceptualRoughness, 1.0h, normalizedScreenSpaceUV);
     // TODO: "grazing term" causes problems on full roughness
     half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
 

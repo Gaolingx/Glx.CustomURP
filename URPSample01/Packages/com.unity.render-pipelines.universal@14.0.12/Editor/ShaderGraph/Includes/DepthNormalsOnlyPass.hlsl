@@ -31,12 +31,23 @@ void frag(
         LODFadeCrossFade(unpacked.positionCS);
     #endif
 
+    // DepthNormals alpha carries the material smoothness for screen-space lighting: 0 is reserved
+    // for "unsupported", so a supported material encodes at least 0.5. Clear coat traces at the coat
+    // roughness (CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS is 0); the material coat mask gates it so a
+    // graph without a visible coat keeps the base smoothness.
+    half smoothness = saturate(surfaceDescription.Smoothness);
+    #if defined(_CLEARCOAT)
+        if (saturate(surfaceDescription.CoatMask) > 0.0h)
+            smoothness = 1.0h;
+    #endif
+    half encodedSmoothness = 0.5h + 0.5h * smoothness;
+
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(unpacked.normalWS);
         float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
         float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
         half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-        outNormalWS = half4(packedNormalWS, 0.0);
+        outNormalWS = half4(packedNormalWS, encodedSmoothness);
     #else
         // Retrieve the normal from the bump map or mesh normal
         #if defined(_NORMALMAP)
@@ -54,7 +65,7 @@ void frag(
             float3 normalWS = unpacked.normalWS;
         #endif
 
-        outNormalWS = half4(NormalizeNormalPerPixel(normalWS), 0.0);
+        outNormalWS = half4(NormalizeNormalPerPixel(normalWS), encodedSmoothness);
     #endif
 
     #ifdef _WRITE_RENDERING_LAYERS

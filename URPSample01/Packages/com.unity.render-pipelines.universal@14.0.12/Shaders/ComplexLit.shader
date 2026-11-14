@@ -381,6 +381,8 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            // Clear coat changes the smoothed trace roughness written to the depth normals buffer.
+            #pragma shader_feature_local_fragment _ _CLEARCOAT _CLEARCOATMAP
 
             // -------------------------------------
             // Universal Pipeline keywords

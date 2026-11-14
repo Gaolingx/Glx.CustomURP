@@ -1245,6 +1245,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             BlockFields.SurfaceDescription.NormalOS,
             BlockFields.SurfaceDescription.NormalTS,
             BlockFields.SurfaceDescription.NormalWS,
+            // Smoothness is encoded into the depth normals alpha for screen-space lighting.
+            BlockFields.SurfaceDescription.Smoothness,
+            BlockFields.SurfaceDescription.CoatMask,
+            BlockFields.SurfaceDescription.CoatSmoothness,
             BlockFields.SurfaceDescription.Alpha,
             BlockFields.SurfaceDescription.AlphaClipThreshold,
         };
@@ -2078,6 +2082,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "Screen Space Occlusion",
             referenceName = "_SCREEN_SPACE_OCCLUSION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ScreenSpaceGlobalIllumination = new KeywordDescriptor()
+        {
+            displayName = "Screen Space Global Illumination",
+            referenceName = "_SCREEN_SPACE_GI",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ScreenSpaceReflections = new KeywordDescriptor()
+        {
+            displayName = "Screen Space Reflections",
+            referenceName = "_SCREEN_SPACE_SSR",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

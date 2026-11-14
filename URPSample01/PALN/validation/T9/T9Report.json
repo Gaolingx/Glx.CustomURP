@@ -1,0 +1,720 @@
+{
+  "utcTimestamp": "2026-11-14T15:43:59.487434+00:00",
+  "unityVersion": "2022.3.62f1",
+  "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+  "graphicsDeviceType": "Direct3D11",
+  "verification": {
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": {
+      "Forward": {
+        "passed": true,
+        "issues": [],
+        "state": {
+          "Reference": {
+            "state": "Reference",
+            "sha256": "45049d2e1b7641b9a8268a48134c21f28a5e330e5493e68f464751a665cc3b94",
+            "identicalToReference": false,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46738773584365845
+          },
+          "CoatIntensity0": {
+            "state": "CoatIntensity0",
+            "sha256": "45049d2e1b7641b9a8268a48134c21f28a5e330e5493e68f464751a665cc3b94",
+            "identicalToReference": true,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46738773584365845
+          },
+          "CoatMiss": {
+            "state": "CoatMiss",
+            "sha256": "89bff5a20baaec563ff9e45c524f220cfa4794f535f1fabf0a853e5dba9ff8a1",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 3411,
+            "maxChannelDelta": 16.116165161132812,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46748676896095276
+          },
+          "CoatHits": {
+            "state": "CoatHits",
+            "sha256": "7031b378536a4bc3d03256b7e41bda5540b097d457d5151f025fb2ec8cb09672",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 348854,
+            "maxChannelDelta": 16.116165161132812,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46857795119285583
+          }
+        },
+        "objects": [
+          {
+            "name": "CoatSmoothBase",
+            "expectCovered": true,
+            "screenX": 393,
+            "screenY": 422,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "CoatRoughBase",
+            "expectCovered": true,
+            "screenX": 516,
+            "screenY": 422,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "CoatRoughCoat",
+            "expectCovered": true,
+            "screenX": 640,
+            "screenY": 422,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "CoatMaskOff",
+            "expectCovered": false,
+            "screenX": 764,
+            "screenY": 422,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.6499999761581421,
+            "normalsAlpha": 0.6535432934761047
+          },
+          {
+            "name": "SimpleLitUnsupported",
+            "expectCovered": false,
+            "screenX": 651,
+            "screenY": 567,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.0,
+            "normalsAlpha": 0.0
+          },
+          {
+            "name": "ParticlesUnsupported",
+            "expectCovered": false,
+            "screenX": 769,
+            "screenY": 567,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.0,
+            "normalsAlpha": 0.0
+          },
+          {
+            "name": "TerrainUnsupported",
+            "expectCovered": false,
+            "screenX": 1026,
+            "screenY": 355,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.0,
+            "normalsAlpha": 0.0
+          },
+          {
+            "name": "ShaderGraphLit",
+            "expectCovered": true,
+            "screenX": 398,
+            "screenY": 567,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 0.75,
+            "normalsAlpha": 0.748031497001648
+          },
+          {
+            "name": "ShaderGraphCoat",
+            "expectCovered": true,
+            "screenX": 522,
+            "screenY": 567,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "Lod0",
+            "expectCovered": true,
+            "screenX": 246,
+            "screenY": 441,
+            "weight": 1.0,
+            "expectedNormalsAlpha": -1.0,
+            "normalsAlpha": 0.7716535329818726
+          },
+          {
+            "name": "Lod1",
+            "expectCovered": true,
+            "screenX": 246,
+            "screenY": 441,
+            "weight": 1.0,
+            "expectedNormalsAlpha": -1.0,
+            "normalsAlpha": 0.7716535329818726
+          }
+        ],
+        "roughBaseWeight": 1.0,
+        "smoothBaseWeight": 1.0,
+        "maskOnVsOffPixels": 271300,
+        "coatSmoothnessPixels": 270919,
+        "alphaTest": {
+          "solidPixels": 974,
+          "cutPixels": 19713,
+          "solidWeight": 1.0,
+          "cutWeight": 0.0
+        },
+        "lod": {
+          "lod0Weight": 1.0,
+          "lod1Weight": 1.0,
+          "levelPixels": 1299,
+          "levelMaxDelta": 475.28436279296875
+        },
+        "shaderGraph": {
+          "ssrDiffers": true,
+          "ssgiDiffers": true,
+          "coatIntensityZeroIdentical": true,
+          "ssrWeight": 1.0
+        }
+      },
+      "ForwardPlus": {
+        "passed": true,
+        "issues": [],
+        "state": {
+          "Reference": {
+            "state": "Reference",
+            "sha256": "3b4ee4f62d328ade18bb8c3633f2a19c37febeaa8fec1a2d167f2cd430dba873",
+            "identicalToReference": false,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46738773584365845
+          },
+          "CoatIntensity0": {
+            "state": "CoatIntensity0",
+            "sha256": "3b4ee4f62d328ade18bb8c3633f2a19c37febeaa8fec1a2d167f2cd430dba873",
+            "identicalToReference": true,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46738773584365845
+          },
+          "CoatMiss": {
+            "state": "CoatMiss",
+            "sha256": "204bd544afacc6d6ba8a1bc5e7de1e17d315f15a067fe3c2ed92703a9461c616",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 3411,
+            "maxChannelDelta": 16.116165161132812,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46748676896095276
+          },
+          "CoatHits": {
+            "state": "CoatHits",
+            "sha256": "428871c2670501df69a0dbaa91e1b30a1c5b656ad8a4f12c65bdb01f26ec3a8b",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 348854,
+            "maxChannelDelta": 16.116165161132812,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46857795119285583
+          }
+        },
+        "objects": [
+          {
+            "name": "CoatSmoothBase",
+            "expectCovered": true,
+            "screenX": 393,
+            "screenY": 422,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "CoatRoughBase",
+            "expectCovered": true,
+            "screenX": 516,
+            "screenY": 422,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "CoatRoughCoat",
+            "expectCovered": true,
+            "screenX": 640,
+            "screenY": 422,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "CoatMaskOff",
+            "expectCovered": false,
+            "screenX": 764,
+            "screenY": 422,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.6499999761581421,
+            "normalsAlpha": 0.6535432934761047
+          },
+          {
+            "name": "SimpleLitUnsupported",
+            "expectCovered": false,
+            "screenX": 651,
+            "screenY": 567,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.0,
+            "normalsAlpha": 0.0
+          },
+          {
+            "name": "ParticlesUnsupported",
+            "expectCovered": false,
+            "screenX": 769,
+            "screenY": 567,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.0,
+            "normalsAlpha": 0.0
+          },
+          {
+            "name": "TerrainUnsupported",
+            "expectCovered": false,
+            "screenX": 1026,
+            "screenY": 355,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.0,
+            "normalsAlpha": 0.0
+          },
+          {
+            "name": "ShaderGraphLit",
+            "expectCovered": true,
+            "screenX": 398,
+            "screenY": 567,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 0.75,
+            "normalsAlpha": 0.748031497001648
+          },
+          {
+            "name": "ShaderGraphCoat",
+            "expectCovered": true,
+            "screenX": 522,
+            "screenY": 567,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "Lod0",
+            "expectCovered": true,
+            "screenX": 246,
+            "screenY": 441,
+            "weight": 1.0,
+            "expectedNormalsAlpha": -1.0,
+            "normalsAlpha": 0.7716535329818726
+          },
+          {
+            "name": "Lod1",
+            "expectCovered": true,
+            "screenX": 246,
+            "screenY": 441,
+            "weight": 1.0,
+            "expectedNormalsAlpha": -1.0,
+            "normalsAlpha": 0.7716535329818726
+          }
+        ],
+        "roughBaseWeight": 1.0,
+        "smoothBaseWeight": 1.0,
+        "maskOnVsOffPixels": 271300,
+        "coatSmoothnessPixels": 270919,
+        "alphaTest": {
+          "solidPixels": 974,
+          "cutPixels": 19713,
+          "solidWeight": 1.0,
+          "cutWeight": 0.0
+        },
+        "lod": {
+          "lod0Weight": 1.0,
+          "lod1Weight": 1.0,
+          "levelPixels": 1299,
+          "levelMaxDelta": 475.28436279296875
+        },
+        "shaderGraph": {
+          "ssrDiffers": true,
+          "ssgiDiffers": true,
+          "coatIntensityZeroIdentical": true,
+          "ssrWeight": 1.0
+        }
+      },
+      "Deferred": {
+        "passed": true,
+        "issues": [],
+        "state": {
+          "Reference": {
+            "state": "Reference",
+            "sha256": "b1d1436b87d57383b352bfd0f9cf72776814e00592cdf3eca7666c2aa782a527",
+            "identicalToReference": false,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46741795539855957
+          },
+          "CoatIntensity0": {
+            "state": "CoatIntensity0",
+            "sha256": "b1d1436b87d57383b352bfd0f9cf72776814e00592cdf3eca7666c2aa782a527",
+            "identicalToReference": true,
+            "differsFromReference": false,
+            "differingPixels": 0,
+            "maxChannelDelta": 0.0,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.46741795539855957
+          },
+          "CoatMiss": {
+            "state": "CoatMiss",
+            "sha256": "8690f285108af04cf83b0b12f1110fe1c39025e6c003a2420061b28e82bec9b4",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 3411,
+            "maxChannelDelta": 16.116165161132812,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.4675166606903076
+          },
+          "CoatHits": {
+            "state": "CoatHits",
+            "sha256": "e7809e34b654e7e479ffc2172396d6c3f4e763054942fdff12f46956fcb71209",
+            "identicalToReference": false,
+            "differsFromReference": true,
+            "differingPixels": 348854,
+            "maxChannelDelta": 16.116165161132812,
+            "magentaPixels": 0,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.4686107337474823
+          }
+        },
+        "objects": [
+          {
+            "name": "CoatSmoothBase",
+            "expectCovered": true,
+            "screenX": 393,
+            "screenY": 422,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "CoatRoughBase",
+            "expectCovered": true,
+            "screenX": 516,
+            "screenY": 422,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "CoatRoughCoat",
+            "expectCovered": true,
+            "screenX": 640,
+            "screenY": 422,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "CoatMaskOff",
+            "expectCovered": false,
+            "screenX": 764,
+            "screenY": 422,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.6499999761581421,
+            "normalsAlpha": 0.6535432934761047
+          },
+          {
+            "name": "SimpleLitUnsupported",
+            "expectCovered": false,
+            "screenX": 651,
+            "screenY": 567,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.0,
+            "normalsAlpha": 0.0
+          },
+          {
+            "name": "ParticlesUnsupported",
+            "expectCovered": false,
+            "screenX": 769,
+            "screenY": 567,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.0,
+            "normalsAlpha": 0.0
+          },
+          {
+            "name": "TerrainUnsupported",
+            "expectCovered": false,
+            "screenX": 1026,
+            "screenY": 355,
+            "weight": 0.0,
+            "expectedNormalsAlpha": 0.0,
+            "normalsAlpha": 0.0
+          },
+          {
+            "name": "ShaderGraphLit",
+            "expectCovered": true,
+            "screenX": 398,
+            "screenY": 567,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 0.75,
+            "normalsAlpha": 0.748031497001648
+          },
+          {
+            "name": "ShaderGraphCoat",
+            "expectCovered": true,
+            "screenX": 522,
+            "screenY": 567,
+            "weight": 1.0,
+            "expectedNormalsAlpha": 1.0,
+            "normalsAlpha": 1.0
+          },
+          {
+            "name": "Lod0",
+            "expectCovered": true,
+            "screenX": 246,
+            "screenY": 441,
+            "weight": 1.0,
+            "expectedNormalsAlpha": -1.0,
+            "normalsAlpha": 0.7716535329818726
+          },
+          {
+            "name": "Lod1",
+            "expectCovered": true,
+            "screenX": 246,
+            "screenY": 441,
+            "weight": 1.0,
+            "expectedNormalsAlpha": -1.0,
+            "normalsAlpha": 0.7716535329818726
+          }
+        ],
+        "roughBaseWeight": 1.0,
+        "smoothBaseWeight": 1.0,
+        "maskOnVsOffPixels": 271339,
+        "coatSmoothnessPixels": 270957,
+        "alphaTest": {
+          "solidPixels": 974,
+          "cutPixels": 19713,
+          "solidWeight": 1.0,
+          "cutWeight": 0.0
+        },
+        "lod": {
+          "lod0Weight": 1.0,
+          "lod1Weight": 1.0,
+          "levelPixels": 1299,
+          "levelMaxDelta": 1110.8699951171875
+        },
+        "shaderGraph": {
+          "ssrDiffers": true,
+          "ssgiDiffers": true,
+          "coatIntensityZeroIdentical": true,
+          "ssrWeight": 1.0
+        }
+      }
+    },
+    "lightmap": {
+      "passed": true,
+      "issues": [],
+      "baked": true,
+      "lightmapCount": 1,
+      "mixedBakeMode": "Subtractive",
+      "apvAvailable": false,
+      "modes": [
+        {
+          "name": "Forward",
+          "intensityZeroIdentical": true,
+          "effectsDiffer": true,
+          "nonFinitePixels": 0,
+          "magentaPixels": 0,
+          "issues": []
+        },
+        {
+          "name": "ForwardPlus",
+          "intensityZeroIdentical": true,
+          "effectsDiffer": true,
+          "nonFinitePixels": 0,
+          "magentaPixels": 0,
+          "issues": []
+        },
+        {
+          "name": "Deferred",
+          "intensityZeroIdentical": true,
+          "effectsDiffer": true,
+          "nonFinitePixels": 0,
+          "magentaPixels": 0,
+          "issues": []
+        }
+      ]
+    },
+    "apvSupport": "not available in URP 14.0.12 (no ProbeVolume integration); baked lightmap + mixed lighting verified instead"
+  },
+  "criteria": {
+    "verificationCompleted": true,
+    "threePathsPassed": true,
+    "coatLobeConsumesIndependentData": true,
+    "depthNormalsEncoding": true,
+    "noDoubleProbeOrBrdf": true,
+    "unsupportedMaterialsHaveZeroWeight": true,
+    "alphaTestRegression": true,
+    "lodRegression": true,
+    "shaderGraphCoverage": true,
+    "lightmapAndMixedLightingRegression": true,
+    "noInvalidPixels": true,
+    "requiredAssetsHaveMeta": true,
+    "editModeTestsPassed": true
+  },
+  "t9ExitCriteriaMet": true,
+  "assets": [
+    {
+      "path": "Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT9Verification.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingBlend.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingInput.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/GlobalIllumination.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Lit.shader",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/ComplexLit.shader",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/LitDepthNormalsPass.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/SimpleLitDepthNormalsPass.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Particles/ParticlesDepthNormalsPass.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Terrain/TerrainLitDepthNormalsPass.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Editor/ShaderGraph/Targets/UniversalTarget.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Editor/ShaderGraph/Targets/UniversalLitSubTarget.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Packages/com.unity.render-pipelines.universal@14.0.12/Tests/Editor/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingMaterialTests.cs",
+      "exists": true,
+      "meta": true
+    },
+    {
+      "path": "Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingTestRunner.cs",
+      "exists": true,
+      "meta": true
+    }
+  ],
+  "missingMeta": [],
+  "editMode": {
+    "log": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN\\validation\\T9\\UnityTests.log",
+    "present": true,
+    "passed": true,
+    "summary": {
+      "status": "Passed",
+      "passed": 132,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "captures": {
+    "T9_Forward_Reference.png": "896d0f16bc89d278a08f8c20a7507ff755c4c83d78d13bb18b1bac06477e2491",
+    "T9_Forward_CoatIntensity0.png": "896d0f16bc89d278a08f8c20a7507ff755c4c83d78d13bb18b1bac06477e2491",
+    "T9_Forward_CoatMiss.png": "c6acf99ed5c39c86eb2508b58c0f65798d5c4c6482254880c7afd66681cdf300",
+    "T9_Forward_CoatHits.png": "c404fdc4281678195ad530fbabec7d24cde00d767de4c1a05f81fe04242db318",
+    "T9_Forward_CoatMaskOff.png": "2827878a6bb4a0b79205d8eca4877db5c83f828e2ecead8814e4a424b2650b65",
+    "T9_Forward_CoatRoughness.png": "150bed6dbf15bafeca8398cf471ba579ae3f335ef0f80c8c8ae6743f6fea2bbb",
+    "T9_Forward_AlphaTestWeight.png": "150bed6dbf15bafeca8398cf471ba579ae3f335ef0f80c8c8ae6743f6fea2bbb",
+    "T9_Forward_Lod1.png": "835341c625106d16c10c34edd67cf321be35d8e19bfb197e21b266d84308e3d5",
+    "T9_Forward_ShaderGraphSsr.png": "896d0f16bc89d278a08f8c20a7507ff755c4c83d78d13bb18b1bac06477e2491",
+    "T9_Forward_SsrWeight.png": "835341c625106d16c10c34edd67cf321be35d8e19bfb197e21b266d84308e3d5",
+    "T9_Forward_NormalsAlpha.png": "d9a298594c20249276b0c5e215cfceab51bc82c6f146192cb323eb51ab36075b",
+    "T9_ForwardPlus_Reference.png": "896d0f16bc89d278a08f8c20a7507ff755c4c83d78d13bb18b1bac06477e2491",
+    "T9_ForwardPlus_CoatIntensity0.png": "896d0f16bc89d278a08f8c20a7507ff755c4c83d78d13bb18b1bac06477e2491",
+    "T9_ForwardPlus_CoatMiss.png": "c6acf99ed5c39c86eb2508b58c0f65798d5c4c6482254880c7afd66681cdf300",
+    "T9_ForwardPlus_CoatHits.png": "c404fdc4281678195ad530fbabec7d24cde00d767de4c1a05f81fe04242db318",
+    "T9_ForwardPlus_CoatMaskOff.png": "2827878a6bb4a0b79205d8eca4877db5c83f828e2ecead8814e4a424b2650b65",
+    "T9_ForwardPlus_CoatRoughness.png": "150bed6dbf15bafeca8398cf471ba579ae3f335ef0f80c8c8ae6743f6fea2bbb",
+    "T9_ForwardPlus_AlphaTestWeight.png": "150bed6dbf15bafeca8398cf471ba579ae3f335ef0f80c8c8ae6743f6fea2bbb",
+    "T9_ForwardPlus_Lod1.png": "835341c625106d16c10c34edd67cf321be35d8e19bfb197e21b266d84308e3d5",
+    "T9_ForwardPlus_ShaderGraphSsr.png": "896d0f16bc89d278a08f8c20a7507ff755c4c83d78d13bb18b1bac06477e2491",
+    "T9_ForwardPlus_SsrWeight.png": "835341c625106d16c10c34edd67cf321be35d8e19bfb197e21b266d84308e3d5",
+    "T9_ForwardPlus_NormalsAlpha.png": "d9a298594c20249276b0c5e215cfceab51bc82c6f146192cb323eb51ab36075b",
+    "T9_Deferred_Reference.png": "0ac4ac539c0c12aa2f2616c91da24dbfeeb5b77ac56db1b213e42cf8da16dfe9",
+    "T9_Deferred_CoatIntensity0.png": "0ac4ac539c0c12aa2f2616c91da24dbfeeb5b77ac56db1b213e42cf8da16dfe9",
+    "T9_Deferred_CoatMiss.png": "c32659bf74377ed10bf63d8372d65858a9ba318b556eb1c27ffdf1001215a7f2",
+    "T9_Deferred_CoatHits.png": "44c6b86753e3f3c1b958d2c4ef7d968df41f7c569f729f1148dd0e5963e6817a",
+    "T9_Deferred_CoatMaskOff.png": "a9d01b6e748c0e0620819bcc2052d9c253f9aaeac174d2033a3b464bae5837aa",
+    "T9_Deferred_CoatRoughness.png": "445e891d1d201fafe7fa28854ee214411eacb307c31df5a5bbb3e009bdbf3d21",
+    "T9_Deferred_AlphaTestWeight.png": "445e891d1d201fafe7fa28854ee214411eacb307c31df5a5bbb3e009bdbf3d21",
+    "T9_Deferred_Lod1.png": "835341c625106d16c10c34edd67cf321be35d8e19bfb197e21b266d84308e3d5",
+    "T9_Deferred_ShaderGraphSsr.png": "0ac4ac539c0c12aa2f2616c91da24dbfeeb5b77ac56db1b213e42cf8da16dfe9",
+    "T9_Deferred_SsrWeight.png": "835341c625106d16c10c34edd67cf321be35d8e19bfb197e21b266d84308e3d5",
+    "T9_Deferred_NormalsAlpha.png": "d9a298594c20249276b0c5e215cfceab51bc82c6f146192cb323eb51ab36075b",
+    "T9_Lightmap_Forward.png": "39aeae3bb343333d0c2af0ec9a9f4948bd62047e29e47fdc3b496b45a3ed8da6",
+    "T9_Lightmap_ForwardPlus.png": "39aeae3bb343333d0c2af0ec9a9f4948bd62047e29e47fdc3b496b45a3ed8da6",
+    "T9_Lightmap_Deferred.png": "39aeae3bb343333d0c2af0ec9a9f4948bd62047e29e47fdc3b496b45a3ed8da6"
+  }
+}

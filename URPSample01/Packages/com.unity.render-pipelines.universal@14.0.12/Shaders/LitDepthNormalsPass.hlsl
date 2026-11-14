@@ -19,7 +19,7 @@
 #define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR
 #endif
 
-#if defined(_ALPHATEST_ON) || defined(_PARALLAXMAP) || defined(_NORMALMAP) || defined(_DETAIL) || defined(_METALLICSPECGLOSSMAP) || defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
+#if defined(_ALPHATEST_ON) || defined(_PARALLAXMAP) || defined(_NORMALMAP) || defined(_DETAIL) || defined(_METALLICSPECGLOSSMAP) || defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A) || defined(_CLEARCOATMAP)
 #define REQUIRES_UV_INTERPOLATOR
 #endif
 
@@ -120,6 +120,16 @@ void DepthNormalsFragment(
         albedoAlpha = SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a;
     #endif
     half encodedSmoothness = 0.5h + 0.5h * saturate(SampleMetallicSpecGloss(smoothnessUV, albedoAlpha).a);
+
+    // Clear coat is traced at the coat roughness (HDRP writes CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS in
+    // its depth prepass), so the shared screen-space trace is not limited by the base layer. The coat
+    // mask gates the encoding: pixels without a visible coat keep the base smoothness. The material
+    // side still applies the independent coat mask and coat smoothness to the reflection probes.
+    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+        half coatMask = SampleClearCoat(smoothnessUV).r;
+        if (coatMask > 0.0h)
+            encodedSmoothness = 0.5h + 0.5h * (1.0h - CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS);
+    #endif
 
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(input.normalWS);

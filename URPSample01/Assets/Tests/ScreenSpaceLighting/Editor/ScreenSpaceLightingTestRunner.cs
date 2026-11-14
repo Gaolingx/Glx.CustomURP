@@ -27,6 +27,7 @@ public static class ScreenSpaceLightingTestRunner
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests",
+                "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests",
                 "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests",
                 "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests",
                 "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests"

@@ -355,7 +355,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.Instanced));
 
                 if (complexLit)
-                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.Instanced));
+                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target, complexLit), CorePragmas.Instanced));
                 else
                     result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.Instanced));
 
@@ -651,7 +651,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
-            public static PassDescriptor DepthNormalOnly(UniversalTarget target)
+            public static PassDescriptor DepthNormalOnly(UniversalTarget target, bool complexLit)
             {
                 var result = new PassDescriptor()
                 {
@@ -684,6 +684,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
+
+                // Clear coat traces at the coat roughness, so the depth normals pass needs the coat
+                // mask/smoothness fields that the surface description already provides.
+                if (complexLit)
+                    result.defines.Add(LitDefines.ClearCoat, 1);
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
@@ -825,6 +830,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordCollection Forward = new KeywordCollection
             {
                 { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
+                { CoreKeywordDescriptors.ScreenSpaceGlobalIllumination },
+                { CoreKeywordDescriptors.ScreenSpaceReflections },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
@@ -846,6 +853,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
+                { CoreKeywordDescriptors.ScreenSpaceGlobalIllumination },
+                { CoreKeywordDescriptors.ScreenSpaceReflections },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },

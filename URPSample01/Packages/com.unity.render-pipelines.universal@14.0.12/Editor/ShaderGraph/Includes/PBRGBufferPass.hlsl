@@ -112,7 +112,11 @@ FragmentOutput frag(PackedVaryings packedInput)
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceDescription.Occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
+    // The full overload carries positionWS / screen UV so the GBuffer can consume screen-space GI and
+    // reflections. With both keywords off it returns exactly the probe/lightmap result.
+    const BRDFData noClearCoat = (BRDFData)0;
+    half3 color = GlobalIllumination(brdfData, noClearCoat, 0.0, inputData.bakedGI, surfaceDescription.Occlusion,
+        inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
     return BRDFDataToGbuffer(brdfData, inputData, surfaceDescription.Smoothness, surfaceDescription.Emission + color, surfaceDescription.Occlusion);
 }
