@@ -20,8 +20,10 @@ public static class ScreenSpaceLightingTestRunner
                 "UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests",
                 "UnityEditor.Rendering.Universal.Tests.PluginIsolationTests",
+                "UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests",
+                "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests",
                 "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests"
             }
         }));
