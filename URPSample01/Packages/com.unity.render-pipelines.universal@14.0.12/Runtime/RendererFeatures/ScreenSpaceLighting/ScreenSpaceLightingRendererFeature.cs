@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_DepthPyramidPass.Setup(history, m_Settings.resources);
             m_SsgiPass.Setup(history, m_Settings.resources);
-            m_SsrPass.Setup(history, m_Settings.resources);
+            m_SsrPass.Setup(history, m_Settings.resources, m_Settings);
             m_SetupPass.Setup(m_SsgiPass, m_SsrPass);
             m_CurrentColorPyramidPass.Setup(history, m_Settings.resources);
             m_ColorHistoryCapturePass.Setup(history, m_Settings.resources);

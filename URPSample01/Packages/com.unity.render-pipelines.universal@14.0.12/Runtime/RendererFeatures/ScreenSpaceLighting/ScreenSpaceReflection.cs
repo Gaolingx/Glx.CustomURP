@@ -3,13 +3,38 @@ using System;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
+    /// Screen space reflection algorithm.
+    /// </summary>
+    public enum ScreenSpaceReflectionAlgorithm
+    {
+        /// <summary>Single frame reflection that samples the previous frame color pyramid.</summary>
+        Approximation = 0,
+        /// <summary>Physically based trace with temporal accumulation over multiple frames.</summary>
+        PBRAccumulation = 1,
+    }
+
+    /// <summary>
+    /// A volume parameter that selects the screen space reflection algorithm.
+    /// </summary>
+    [Serializable]
+    public sealed class ScreenSpaceReflectionAlgorithmParameter : VolumeParameter<ScreenSpaceReflectionAlgorithm>
+    {
+        /// <summary>
+        /// Creates a new algorithm parameter.
+        /// </summary>
+        /// <param name="value">Initial algorithm.</param>
+        /// <param name="overrideState">Initial override state.</param>
+        public ScreenSpaceReflectionAlgorithmParameter(ScreenSpaceReflectionAlgorithm value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
+    /// <summary>
     /// A volume component that controls screen-space reflections.
     /// The effect also requires a <c>ScreenSpaceLightingRendererFeature</c> on the active renderer.
     /// </summary>
     /// <remarks>
-    /// The defaults and the ray marching parameters mirror HDRP 14.0.12. Unlike HDRP this volume
-    /// does not expose a raytracing or PBR accumulation algorithm yet; only the Approximation
-    /// algorithm is implemented.
+    /// The defaults and the ray marching parameters mirror HDRP 14.0.12. Ray tracing modes are not
+    /// migrated; the algorithm choice is limited to Approximation and PBRAccumulation.
     /// </remarks>
     [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Screen Space Reflection", typeof(UniversalRenderPipeline))]
     public sealed class ScreenSpaceReflection : VolumeComponent
@@ -19,6 +44,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [Tooltip("Enables screen-space reflections for this volume.")]
         public BoolParameter enabled = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
+
+        /// <summary>
+        /// Selects the reflection algorithm. Switching resets the accumulation history.
+        /// </summary>
+        [Tooltip("Reflection algorithm. Switching the algorithm resets the accumulation history.")]
+        public ScreenSpaceReflectionAlgorithmParameter usedAlgorithm =
+            new ScreenSpaceReflectionAlgorithmParameter(ScreenSpaceReflectionAlgorithm.Approximation);
 
         /// <summary>
         /// The smoothness at which the effect starts. Below this value the material keeps its
@@ -64,5 +96,53 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [Tooltip("Intensity of the screen-space reflection. Zero leaves the image unchanged.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(1.0f, 0.0f, 4.0f);
+
+        /// <summary>
+        /// Controls how much of the previous accumulation is kept. Only used by the PBR algorithm.
+        /// </summary>
+        [Tooltip("Amount of temporal accumulation. Higher values keep more history. PBR algorithm only.")]
+        public ClampedFloatParameter accumulationFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Biases the GGX visible normal samples towards the normal. Only used by the PBR algorithm.
+        /// </summary>
+        [Tooltip("Biases the GGX reflection samples. PBR algorithm only.")]
+        public ClampedFloatParameter biasFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Fraction of the speed range used to reject the accumulation history.
+        /// </summary>
+        [Tooltip("Fraction of the speed range that rejects the accumulation history.")]
+        public ClampedFloatParameter speedRejectionParam = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Upper bound of the world/screen speed used by the rejection.
+        /// </summary>
+        [Tooltip("Upper speed range used by the rejection. Increase it when objects move faster.")]
+        public ClampedFloatParameter speedRejectionScalerFactor = new ClampedFloatParameter(0.2f, 0.001f, 1f);
+
+        /// <summary>
+        /// Blends the rejection smoothly instead of using a hard threshold.
+        /// </summary>
+        [Tooltip("Rejects the history smoothly instead of using a hard threshold.")]
+        public BoolParameter speedSmoothReject = new BoolParameter(false);
+
+        /// <summary>
+        /// Uses the motion of the reflecting surface for the speed rejection.
+        /// </summary>
+        [Tooltip("Uses the motion of the reflecting surface for the speed rejection.")]
+        public BoolParameter speedSurfaceOnly = new BoolParameter(true);
+
+        /// <summary>
+        /// Uses the motion of the reflected hit surface for the speed rejection.
+        /// </summary>
+        [Tooltip("Uses the motion of the reflected hit surface for the speed rejection.")]
+        public BoolParameter speedTargetOnly = new BoolParameter(true);
+
+        /// <summary>
+        /// Reconstructs the motion in world space instead of using the screen-space length.
+        /// </summary>
+        [Tooltip("Uses world-space motion for the rejection instead of screen-space motion.")]
+        public BoolParameter enableWorldSpeedRejection = new BoolParameter(false);
     }
 }

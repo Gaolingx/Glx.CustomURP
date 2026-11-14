@@ -1,0 +1,1307 @@
+{
+    "utcTimestamp": "2026-11-14T14:22:23.7680553Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "Forward",
+            "passed": true,
+            "issues": [],
+            "approxExecutions": 16,
+            "approxAccumulations": 0,
+            "approxUsingPbr": false,
+            "pbrExecutions": 16,
+            "pbrTraceDispatches": 14,
+            "pbrReprojectDispatches": 14,
+            "pbrAccumulationDispatches": 14,
+            "pbrClearDispatches": 2,
+            "pbrUsingPbr": true,
+            "pbrDefaultKernelCounts": [
+                {
+                    "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                    "count": 14
+                }
+            ],
+            "combinations": [
+                {
+                    "name": "NoWorld_Both",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "NoWorld_SurfaceOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "NoWorld_TargetOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Hard_Both",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Hard_SurfaceOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Hard_TargetOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Smooth_Both",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Smooth_SurfaceOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Smooth_TargetOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                }
+            ],
+            "surfaceVsTargetPixels": 226681,
+            "surfaceVsTargetMaxDelta": 120.49264526367188,
+            "rejectionPixels": 232951,
+            "rejectionMaxDelta": 120.49264526367188,
+            "debugRejectRedFraction": 1.0,
+            "debugRejectGreenFraction": 0.0,
+            "debugRejectColoredPixels": 251363,
+            "debugRejectSpeedRejection": 0.0,
+            "debugRejectAccumulationAmount": 1.0,
+            "debugRejectPbrParams": {
+                "x": 1.0,
+                "y": 0.5,
+                "z": 0.0,
+                "w": 0.000400000048102811
+            },
+            "debugRejectPbrFlags": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "debugAcceptRedFraction": 0.0,
+            "debugAcceptGreenFraction": 1.0,
+            "debugAcceptColoredPixels": 251365,
+            "debugAcceptSpeedRejection": 0.0,
+            "debugAcceptAccumulationAmount": 1.0,
+            "debugAcceptPbrParams": {
+                "x": 1.0,
+                "y": 0.5,
+                "z": 0.0,
+                "w": 0.000400000048102811
+            },
+            "debugAcceptPbrFlags": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "diagPbrParams": {
+                "x": 0.026275634765625,
+                "y": 0.5,
+                "z": 0.5,
+                "w": 1.0
+            },
+            "algorithmSwitchResets": 2,
+            "cameraCutResets": 2,
+            "missPixelsCompared": 670222,
+            "missPixelsDifferent": 0,
+            "missMaxChannelDelta": 0.0,
+            "weight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 244937,
+                "partialPixels": 6438,
+                "missPixels": 670225,
+                "meanWeight": 0.27049756050109866,
+                "coveredFraction": 0.2657736539840698,
+                "partialFraction": 0.0069856769405305389,
+                "missFraction": 0.7272406816482544
+            },
+            "states": [
+                {
+                    "state": "Reference",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": false,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "Approximation",
+                    "sha256": "45f6b774a8f57114767aab4d6b6f28ae47b11eb18af0078f5226a181885592b4",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 251444,
+                    "maxChannelDelta": 715.4562377929688,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4789562523365021
+                },
+                {
+                    "state": "PbrDefault",
+                    "sha256": "cdf4ba1dae9278b47c00624011fe721b0c5cf54831b44f4403c6e7f180037b71",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 251378,
+                    "maxChannelDelta": 249.3597869873047,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4728742837905884
+                },
+                {
+                    "state": "MovingNoRejection",
+                    "sha256": "c9b2f2dff369ef4bbda452eb51c3bd77c5a4cd22467055922b4b43b6aa660239",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 369974,
+                    "maxChannelDelta": 853.54052734375,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.47920700907707217
+                },
+                {
+                    "state": "MovingRejectAll",
+                    "sha256": "e4aa6a2fcdb75ada769c13dad0af023729e6cdfa5b3959b657d1ed111b3eb8a7",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 369537,
+                    "maxChannelDelta": 853.081787109375,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.48254168033599856
+                },
+                {
+                    "state": "MovingSmooth",
+                    "sha256": "f256861a44d634ae34f601046a3c8d9e70ce6053996a54f6d031aea2a54829cb",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 369974,
+                    "maxChannelDelta": 852.7103271484375,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.48102235794067385
+                },
+                {
+                    "state": "PbrFirstFrameAfterReset",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "PbrZeroIntensityRestoresBaseline",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "CameraCut",
+                    "sha256": "f09704ebd52f8e44896c9168a787dced0a9b97d236538c50cea80dfc0842fb53",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 654546,
+                    "maxChannelDelta": 1070.3660888671875,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.42105832695961
+                }
+            ],
+            "historyChecks": [
+                {
+                    "label": "AfterPbrWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 4,
+                    "ssrPbrWidth": 1280,
+                    "ssrPbrHeight": 720,
+                    "ssrPbrReadSlot": 1,
+                    "ssrPbrWriteSlot": 0,
+                    "ssrPbrBufferIndex": 0,
+                    "ssrPbrResourceGeneration": 1,
+                    "ssrPbrResetCount": 6,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                },
+                {
+                    "label": "AfterAlgorithmSwitch",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 40,
+                    "ssrPbrWidth": 1280,
+                    "ssrPbrHeight": 720,
+                    "ssrPbrReadSlot": 0,
+                    "ssrPbrWriteSlot": 1,
+                    "ssrPbrBufferIndex": 1,
+                    "ssrPbrResourceGeneration": 1,
+                    "ssrPbrResetCount": 44,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                }
+            ]
+        },
+        {
+            "name": "ForwardPlus",
+            "passed": true,
+            "issues": [],
+            "approxExecutions": 16,
+            "approxAccumulations": 0,
+            "approxUsingPbr": false,
+            "pbrExecutions": 16,
+            "pbrTraceDispatches": 14,
+            "pbrReprojectDispatches": 14,
+            "pbrAccumulationDispatches": 14,
+            "pbrClearDispatches": 2,
+            "pbrUsingPbr": true,
+            "pbrDefaultKernelCounts": [
+                {
+                    "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                    "count": 14
+                }
+            ],
+            "combinations": [
+                {
+                    "name": "NoWorld_Both",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "NoWorld_SurfaceOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "NoWorld_TargetOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Hard_Both",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Hard_SurfaceOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Hard_TargetOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Smooth_Both",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Smooth_SurfaceOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Smooth_TargetOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                }
+            ],
+            "surfaceVsTargetPixels": 226681,
+            "surfaceVsTargetMaxDelta": 120.49264526367188,
+            "rejectionPixels": 232951,
+            "rejectionMaxDelta": 120.49264526367188,
+            "debugRejectRedFraction": 1.0,
+            "debugRejectGreenFraction": 0.0,
+            "debugRejectColoredPixels": 251363,
+            "debugRejectSpeedRejection": 0.0,
+            "debugRejectAccumulationAmount": 1.0,
+            "debugRejectPbrParams": {
+                "x": 1.0,
+                "y": 0.5,
+                "z": 0.0,
+                "w": 0.000400000048102811
+            },
+            "debugRejectPbrFlags": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "debugAcceptRedFraction": 0.0,
+            "debugAcceptGreenFraction": 1.0,
+            "debugAcceptColoredPixels": 251365,
+            "debugAcceptSpeedRejection": 0.0,
+            "debugAcceptAccumulationAmount": 1.0,
+            "debugAcceptPbrParams": {
+                "x": 1.0,
+                "y": 0.5,
+                "z": 0.0,
+                "w": 0.000400000048102811
+            },
+            "debugAcceptPbrFlags": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "diagPbrParams": {
+                "x": 0.026275634765625,
+                "y": 0.5,
+                "z": 0.5,
+                "w": 1.0
+            },
+            "algorithmSwitchResets": 2,
+            "cameraCutResets": 2,
+            "missPixelsCompared": 670222,
+            "missPixelsDifferent": 0,
+            "missMaxChannelDelta": 0.0,
+            "weight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 244937,
+                "partialPixels": 6438,
+                "missPixels": 670225,
+                "meanWeight": 0.27049756050109866,
+                "coveredFraction": 0.2657736539840698,
+                "partialFraction": 0.0069856769405305389,
+                "missFraction": 0.7272406816482544
+            },
+            "states": [
+                {
+                    "state": "Reference",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": false,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "Approximation",
+                    "sha256": "45f6b774a8f57114767aab4d6b6f28ae47b11eb18af0078f5226a181885592b4",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 251444,
+                    "maxChannelDelta": 715.4562377929688,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4789562523365021
+                },
+                {
+                    "state": "PbrDefault",
+                    "sha256": "cdf4ba1dae9278b47c00624011fe721b0c5cf54831b44f4403c6e7f180037b71",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 251378,
+                    "maxChannelDelta": 249.3597869873047,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4728742837905884
+                },
+                {
+                    "state": "MovingNoRejection",
+                    "sha256": "c9b2f2dff369ef4bbda452eb51c3bd77c5a4cd22467055922b4b43b6aa660239",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 369974,
+                    "maxChannelDelta": 853.54052734375,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.47920700907707217
+                },
+                {
+                    "state": "MovingRejectAll",
+                    "sha256": "e4aa6a2fcdb75ada769c13dad0af023729e6cdfa5b3959b657d1ed111b3eb8a7",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 369537,
+                    "maxChannelDelta": 853.081787109375,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.48254168033599856
+                },
+                {
+                    "state": "MovingSmooth",
+                    "sha256": "f256861a44d634ae34f601046a3c8d9e70ce6053996a54f6d031aea2a54829cb",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 369974,
+                    "maxChannelDelta": 852.7103271484375,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.48102235794067385
+                },
+                {
+                    "state": "PbrFirstFrameAfterReset",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "PbrZeroIntensityRestoresBaseline",
+                    "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "CameraCut",
+                    "sha256": "f09704ebd52f8e44896c9168a787dced0a9b97d236538c50cea80dfc0842fb53",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 654546,
+                    "maxChannelDelta": 1070.3660888671875,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.42105832695961
+                }
+            ],
+            "historyChecks": [
+                {
+                    "label": "AfterPbrWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 4,
+                    "ssrPbrWidth": 1280,
+                    "ssrPbrHeight": 720,
+                    "ssrPbrReadSlot": 1,
+                    "ssrPbrWriteSlot": 0,
+                    "ssrPbrBufferIndex": 0,
+                    "ssrPbrResourceGeneration": 1,
+                    "ssrPbrResetCount": 6,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                },
+                {
+                    "label": "AfterAlgorithmSwitch",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 40,
+                    "ssrPbrWidth": 1280,
+                    "ssrPbrHeight": 720,
+                    "ssrPbrReadSlot": 0,
+                    "ssrPbrWriteSlot": 1,
+                    "ssrPbrBufferIndex": 1,
+                    "ssrPbrResourceGeneration": 1,
+                    "ssrPbrResetCount": 44,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                }
+            ]
+        },
+        {
+            "name": "Deferred",
+            "passed": true,
+            "issues": [],
+            "approxExecutions": 16,
+            "approxAccumulations": 0,
+            "approxUsingPbr": false,
+            "pbrExecutions": 16,
+            "pbrTraceDispatches": 14,
+            "pbrReprojectDispatches": 14,
+            "pbrAccumulationDispatches": 14,
+            "pbrClearDispatches": 2,
+            "pbrUsingPbr": true,
+            "pbrDefaultKernelCounts": [
+                {
+                    "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                    "count": 14
+                }
+            ],
+            "combinations": [
+                {
+                    "name": "NoWorld_Both",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "NoWorld_SurfaceOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "NoWorld_TargetOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Hard_Both",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Hard_SurfaceOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Hard_TargetOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Smooth_Both",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Smooth_SurfaceOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                },
+                {
+                    "name": "Smooth_TargetOnly",
+                    "expectedKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly",
+                    "lastKernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly",
+                    "dispatches": 3,
+                    "kernelCounts": [
+                        {
+                            "kernel": "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly",
+                            "count": 3
+                        }
+                    ],
+                    "weight": {
+                        "pixelCount": 921600,
+                        "nonFinitePixels": 0,
+                        "negativePixels": 0,
+                        "coveredPixels": 244937,
+                        "partialPixels": 6438,
+                        "missPixels": 670225,
+                        "meanWeight": 0.27049756050109866,
+                        "coveredFraction": 0.2657736539840698,
+                        "partialFraction": 0.0069856769405305389,
+                        "missFraction": 0.7272406816482544
+                    }
+                }
+            ],
+            "surfaceVsTargetPixels": 226733,
+            "surfaceVsTargetMaxDelta": 35.80926513671875,
+            "rejectionPixels": 233008,
+            "rejectionMaxDelta": 34.9655647277832,
+            "debugRejectRedFraction": 1.0,
+            "debugRejectGreenFraction": 0.0,
+            "debugRejectColoredPixels": 251366,
+            "debugRejectSpeedRejection": 0.0,
+            "debugRejectAccumulationAmount": 1.0,
+            "debugRejectPbrParams": {
+                "x": 1.0,
+                "y": 0.5,
+                "z": 0.0,
+                "w": 0.000400000048102811
+            },
+            "debugRejectPbrFlags": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "debugAcceptRedFraction": 0.000011934693247894756,
+            "debugAcceptGreenFraction": 0.9999880790710449,
+            "debugAcceptColoredPixels": 251368,
+            "debugAcceptSpeedRejection": 0.0,
+            "debugAcceptAccumulationAmount": 1.0,
+            "debugAcceptPbrParams": {
+                "x": 1.0,
+                "y": 0.5,
+                "z": 0.0,
+                "w": 0.000400000048102811
+            },
+            "debugAcceptPbrFlags": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "diagPbrParams": {
+                "x": 0.026275634765625,
+                "y": 0.5,
+                "z": 0.5,
+                "w": 1.0
+            },
+            "algorithmSwitchResets": 2,
+            "cameraCutResets": 2,
+            "missPixelsCompared": 670222,
+            "missPixelsDifferent": 0,
+            "missMaxChannelDelta": 0.0,
+            "weight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 244937,
+                "partialPixels": 6438,
+                "missPixels": 670225,
+                "meanWeight": 0.27049756050109866,
+                "coveredFraction": 0.2657736539840698,
+                "partialFraction": 0.0069856769405305389,
+                "missFraction": 0.7272406816482544
+            },
+            "states": [
+                {
+                    "state": "Reference",
+                    "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+                    "identicalToReference": false,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4692102074623108
+                },
+                {
+                    "state": "Approximation",
+                    "sha256": "04b67c19193c055972d8e37078a25915e08065a15ec3fd5321df38097b42d3b2",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 251444,
+                    "maxChannelDelta": 429.4737854003906,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.47712647914886477
+                },
+                {
+                    "state": "PbrDefault",
+                    "sha256": "b6ee1654f1e3e5028316dfe7579cc5936dbde9aff77e2f1d4630c9c9a31269a9",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 251378,
+                    "maxChannelDelta": 149.8658447265625,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.47230079770088198
+                },
+                {
+                    "state": "MovingNoRejection",
+                    "sha256": "05d07d994d973a1f06ee4ef20e77f36c4672245642bef1bb680b4f3e06d9edc2",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 337513,
+                    "maxChannelDelta": 946.806884765625,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.47857558727264407
+                },
+                {
+                    "state": "MovingRejectAll",
+                    "sha256": "3fe295c68bed55b59e07bddb42373d283e669dc60b95170e9c746bae8c4adbd1",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 336774,
+                    "maxChannelDelta": 946.806884765625,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.480959415435791
+                },
+                {
+                    "state": "MovingSmooth",
+                    "sha256": "c93227b39206d42e38d8c3192c0605b11d270aa7fac30d4c4dc6394361753b76",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 337513,
+                    "maxChannelDelta": 946.8074951171875,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4798443019390106
+                },
+                {
+                    "state": "PbrFirstFrameAfterReset",
+                    "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4692102074623108
+                },
+                {
+                    "state": "PbrZeroIntensityRestoresBaseline",
+                    "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+                    "identicalToReference": true,
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4692102074623108
+                },
+                {
+                    "state": "CameraCut",
+                    "sha256": "15653ee4cfefaf21ad29690a31395481d71a0875a3c3bd87c1cc7f795ee7d59d",
+                    "identicalToReference": false,
+                    "differsFromReference": true,
+                    "differingPixels": 628722,
+                    "maxChannelDelta": 1064.1962890625,
+                    "magentaPixels": 0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.42123597860336306
+                }
+            ],
+            "historyChecks": [
+                {
+                    "label": "AfterPbrWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 4,
+                    "ssrPbrWidth": 1280,
+                    "ssrPbrHeight": 720,
+                    "ssrPbrReadSlot": 1,
+                    "ssrPbrWriteSlot": 0,
+                    "ssrPbrBufferIndex": 0,
+                    "ssrPbrResourceGeneration": 1,
+                    "ssrPbrResetCount": 6,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                },
+                {
+                    "label": "AfterAlgorithmSwitch",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 40,
+                    "ssrPbrWidth": 1280,
+                    "ssrPbrHeight": 720,
+                    "ssrPbrReadSlot": 0,
+                    "ssrPbrWriteSlot": 1,
+                    "ssrPbrBufferIndex": 1,
+                    "ssrPbrResourceGeneration": 1,
+                    "ssrPbrResetCount": 44,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                }
+            ]
+        }
+    ]
+}

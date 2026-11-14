@@ -90,6 +90,12 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsrHitPointTextureRW = Shader.PropertyToID("_SsrHitPointTextureRW");
         internal static readonly int SsrOutputTextureRW = Shader.PropertyToID("_SsrOutputTextureRW");
 
+        // PBR accumulation.
+        internal static readonly int SsrReprojectTextureRW = Shader.PropertyToID("_SsrReprojectTextureRW");
+        internal static readonly int SsrOriginalTexture = Shader.PropertyToID("_SsrOriginalTexture");
+        internal static readonly int SsrAccumPrevTexture = Shader.PropertyToID("_SsrAccumPrevTexture");
+        internal static readonly int SsrAccumTextureRW = Shader.PropertyToID("_SsrAccumTextureRW");
+
         // Constant buffer members.
         internal static readonly int SsrScreenSize = Shader.PropertyToID("_SsrScreenSize");
         internal static readonly int SsrRayMarchingParams = Shader.PropertyToID("_SsrRayMarchingParams");
@@ -97,6 +103,8 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsrPyramidParams = Shader.PropertyToID("_SsrPyramidParams");
         internal static readonly int SsrColorPyramidScaleAndLimitPrev = Shader.PropertyToID("_SsrColorPyramidScaleAndLimitPrev");
         internal static readonly int SsrCameraPositionWS = Shader.PropertyToID("_SsrCameraPositionWS");
+        internal static readonly int SsrPbrParams = Shader.PropertyToID("_SsrPbrParams");
+        internal static readonly int SsrPbrFlags = Shader.PropertyToID("_SsrPbrFlags");
 
         // Material-facing result consumed by the Core GlobalIllumination blend.
         internal static readonly int ScreenSpaceReflectionTexture = Shader.PropertyToID("_ScreenSpaceSsrTexture");
@@ -104,5 +112,6 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly string ScreenSpaceReflectionKeyword = "_SCREEN_SPACE_SSR";
 
         internal static readonly string SsrNormalsOctKeyword = "SSR_NORMALS_OCT";
+        internal static readonly string SsrApproxKeyword = "SSR_APPROX";
     }
 }

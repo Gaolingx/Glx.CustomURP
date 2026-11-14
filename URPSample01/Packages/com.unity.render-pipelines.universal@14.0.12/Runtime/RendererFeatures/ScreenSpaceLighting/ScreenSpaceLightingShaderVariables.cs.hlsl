@@ -30,6 +30,8 @@ CBUFFER_START(ScreenSpaceLightingSsrShaderVariables)
     float4 _SsrPyramidParams;
     float4 _SsrColorPyramidScaleAndLimitPrev;
     float4 _SsrCameraPositionWS;
+    float4 _SsrPbrParams;
+    float4 _SsrPbrFlags;
 CBUFFER_END
 
 #endif

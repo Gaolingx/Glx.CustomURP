@@ -1,27 +1,60 @@
-// Opaque Screen Space Reflections, Approximation algorithm.
-// Ported from HDRP 14.0.12 Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceReflections.compute
-// (SSR_APPROX trace + reproject). PBR accumulation is T8 and is not part of this file yet.
+// Opaque Screen Space Reflections: Approximation and PBR Accumulation.
+// Ported from HDRP 14.0.12 Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceReflections.compute.
 //
 // Differences from HDRP:
-// - URP has no stencil bit for SSR receivers. The depth-normals alpha carries the material
-//   smoothness (forward) or the raw GBuffer2 smoothness (deferred), so unsupported materials keep
-//   weight 0 instead of being filtered by stencil.
-// - The result is un-premultiplied radiance in rgb plus the blend weight in a. HDRP writes
+// - URP has no SSR stencil bit. The depth-normals alpha carries the material smoothness, so
+//   unsupported materials keep weight 0 instead of being filtered by stencil.
+// - The result is un-premultiplied radiance in rgb plus the blend weight in a. HDRP accumulates
 //   radiance * weight; the URP material blend applies lerp(probe, radiance, weight) so the probe
 //   keeps its (1 - weight) share and the BRDF is evaluated exactly once.
 // - The previous frame color pyramid is the SSL private linear HDR history (no pre-exposure).
 // - Ray marching is clamped to mip 6, identical to the shared SSGI Hi-Z helper.
-#pragma kernel ScreenSpaceReflectionsTracing
-#pragma kernel ScreenSpaceReflectionsReprojection
+// - Reflection samples come from an IGN + R2 sequence instead of the HDRP blue-noise set.
+// - SSS sample weights use the world-space normal for the GGX lambda terms; HDRP evaluates the
+//   lambda terms with world-space vectors as if they were in the local frame.
+#pragma kernel ScreenSpaceReflectionsTracing                  SSR_TRACE
+#pragma kernel ScreenSpaceReflectionsReprojection             SSR_REPROJECT
+#pragma kernel ClearBuffer2D
+#pragma kernel DebugSsrParams
 
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth                    SSR_ACCUMULATE USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly              SSR_ACCUMULATE USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly              SSR_ACCUMULATE USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth              SSR_ACCUMULATE WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly        SSR_ACCUMULATE WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly        SSR_ACCUMULATE WORLD_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth                     SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly               SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly               SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly
+
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBothDebug               SSR_ACCUMULATE REJECT_DEBUG_COLOR USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBothDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnlyDebug         SSR_ACCUMULATE REJECT_DEBUG_COLOR USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnlyDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnlyDebug         SSR_ACCUMULATE REJECT_DEBUG_COLOR USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnlyDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug         SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug   SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug   SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug                SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug          SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug          SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug
+
+#pragma multi_compile _ SSR_APPROX
 #pragma multi_compile _ SSR_NORMALS_OCT
 #pragma multi_compile _ SSL_XR_ARRAY
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayMarching.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 
 #define SSR_TILE_SIZE 8
 #define SSR_MIP_LEVEL_CLAMP 6
+#define SSR_TRACE_EPS 0.000488281f
+#define SSR_MISS_SENTINEL 99.0
+#define MIN_GGX_ROUGHNESS 0.00001f
+#define MAX_GGX_ROUGHNESS 0.99999f
+#define SSR_BLOCK_SAMPLE_RADIUS 1
 
 // Full resolution inputs.
 SSGI_TEXTURE2D_FLOAT(_SsrDepthTexture);
@@ -33,8 +66,14 @@ SSGI_TEXTURE2D_FLOAT4(_SsrColorPyramid);
 
 // Trace output: ndc of the hit point, or (99, 0) for a miss.
 SSGI_RW_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
-// Reproject output: rgb = radiance, a = blend weight.
+// Approximation output: rgb = radiance, a = blend weight.
 SSGI_RW_TEXTURE2D_FLOAT4(_SsrOutputTextureRW);
+
+// PBR accumulation.
+SSGI_RW_TEXTURE2D_FLOAT4(_SsrReprojectTextureRW);
+SSGI_TEXTURE2D_FLOAT4(_SsrOriginalTexture);
+SSGI_TEXTURE2D_FLOAT4(_SsrAccumPrevTexture);
+SSGI_RW_TEXTURE2D_FLOAT4(_SsrAccumTextureRW);
 
 #define _SsrIterLimit (int)_SsrRayMarchingParams.x
 #define _SsrThicknessScale _SsrRayMarchingParams.y
@@ -48,8 +87,20 @@ SSGI_RW_TEXTURE2D_FLOAT4(_SsrOutputTextureRW);
 
 #define _SsrColorPyramidMaxMip _SsrPyramidParams.x
 
-#define SSR_TRACE_EPS 0.000488281f
-#define SSR_MISS_SENTINEL 99.0
+#define _SsrAccumulationAmount _SsrPbrParams.x
+#define _SsrPBRBias _SsrPbrParams.y
+#define _SsrPBRSpeedRejection _SsrPbrParams.z
+#define _SsrPRBSpeedRejectionScalerFactor _SsrPbrParams.w
+#define _SsrFrameIndex (int)_SsrPbrFlags.x
+#define _SsrPbrHistoryValid (_SsrPbrFlags.y != 0)
+
+// The Approximation reproject writes the material-facing texture directly; the PBR path writes the
+// un-accumulated signal consumed by the accumulate kernels.
+#if defined(SSR_APPROX)
+    #define SSR_APPROX_OUTPUT _SsrOutputTextureRW
+#else
+    #define SSR_APPROX_OUTPUT _SsrReprojectTextureRW
+#endif
 
 float3 SsrDecodeNormalSS(float4 normalBuffer)
 {
@@ -82,6 +133,86 @@ bool SsrDecodeMaterial(float4 normalSample, out float3 normalWS, out float perce
     return dot(normalWS, normalWS) > 0.5;
 }
 
+float SsrLambdaGGX(float roughness, float cosTheta)
+{
+    cosTheta = max(1e-4, abs(cosTheta));
+    return 0.5 * (sqrt(1.0 + (roughness * roughness) * (1.0 - cosTheta * cosTheta) / (cosTheta * cosTheta)) - 1.0);
+}
+
+// Value over pdf for a GGX reflection sample (Fresnel excluded).
+float SsrGetSampleWeight(float NdotV, float NdotL, float roughness)
+{
+    float lambdaVPlusOne = SsrLambdaGGX(roughness, NdotV) + 1.0;
+    float lambdaL = SsrLambdaGGX(roughness, NdotL);
+    return lambdaVPlusOne / (lambdaVPlusOne + lambdaL);
+}
+
+// Local-frame variant used by the trace, where localV.z and localL.z are the cosine terms.
+float SsrGetSampleWeightLocal(float3 localV, float3 localL, float roughness)
+{
+    return SsrGetSampleWeight(localV.z, localL.z, roughness);
+}
+
+// Isotropic GGX visible normal sampling. Returns false when the sample is below the surface or its
+// contribution is negligible.
+bool SsrSampleGGX_VNDF(float roughness, float3x3 localToWorld, float3 V, float2 inputSample,
+    out float3 outgoingDir, out float weight)
+{
+    weight = 0.0;
+    float clampedRoughness = clamp(roughness, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
+
+    float VdotH;
+    float3 localV;
+    float3 localH;
+    SampleGGXVisibleNormal(inputSample, V, localToWorld, clampedRoughness, localV, localH, VdotH);
+
+    float3 localL = 2.0 * VdotH * localH - localV;
+    outgoingDir = mul(localL, localToWorld);
+
+    if (localL.z < 0.001)
+        return false;
+
+    weight = SsrGetSampleWeightLocal(localV, localL, clampedRoughness);
+    return weight >= 0.001;
+}
+
+// Reconstructs the previous frame uv and samples the color pyramid with the roughness mip. Returns
+// the un-premultiplied radiance and the fade weight; an invalid sample returns opacity 0.
+float3 SsrSamplePreviousColor(float2 hitPositionNDC, float perceptualRoughness, out float opacity)
+{
+    uint2 hitPixel = (uint2)(saturate(hitPositionNDC) * _SsrScreenSize.xy);
+    hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
+    float2 motion = SSGI_LOAD(_SsrMotionTexture, hitPixel).xy;
+    float2 prevFrameNDC = hitPositionNDC - motion;
+    float2 prevPyramidUv = prevFrameNDC * _SsrColorPyramidScaleAndLimitPrev.xy;
+
+    float mipLevel = lerp(0.0, _SsrColorPyramidMaxMip, perceptualRoughness);
+    float2 diffLimit = _SsrColorPyramidScaleAndLimitPrev.xy - _SsrColorPyramidScaleAndLimitPrev.zw;
+    float2 diffLimitMipAdjusted = diffLimit * pow(2.0, 1.5 + ceil(abs(mipLevel)));
+    float2 limit = _SsrColorPyramidScaleAndLimitPrev.xy - diffLimitMipAdjusted;
+
+    opacity = 0.0;
+    if (any(prevFrameNDC < 0.0) || any(prevFrameNDC > limit))
+        return 0.0;
+
+    opacity = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
+            * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
+
+    float3 color = SSGI_SAMPLE_LOD(_SsrColorPyramid, s_ssgi_linear_clamp_sampler, prevPyramidUv, mipLevel).rgb;
+    bool colorValid = !any(isnan(color)) && !any(isinf(color)) && all(color >= 0.0);
+    if (!colorValid)
+    {
+        opacity = 0.0;
+        return 0.0;
+    }
+
+    return color;
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trace
+//--------------------------------------------------------------------------------------------------
+
 [numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
 void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -111,7 +242,23 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
         killRay = killRay || (dot(normalWS, viewWS) <= 0.0);
         killRay = killRay || (perceptualRoughness > _SsrRoughnessFadeEnd);
 
-        float3 reflectDir = reflect(-viewWS, normalWS);
+        float3 reflectDir;
+#if defined(SSR_APPROX)
+        reflectDir = reflect(-viewWS, normalWS);
+#else
+        float roughness = clamp(PerceptualRoughnessToRoughness(perceptualRoughness), MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
+        float2 Xi = float2(
+            SsgiGetSequenceSample(positionSS, _SsrFrameIndex, 0),
+            SsgiGetSequenceSample(positionSS, _SsrFrameIndex, 1));
+        // Rothko bias: with a high bias the samples concentrate on the mirror direction.
+        Xi.x = lerp(Xi.x, 0.0, _SsrPBRBias);
+
+        float3x3 localToWorld = GetLocalFrame(normalWS);
+        float sampleWeight;
+        bool validSample = SsrSampleGGX_VNDF(roughness, localToWorld, viewWS, Xi, reflectDir, sampleWeight);
+        killRay = killRay || !validSample || (dot(normalWS, reflectDir) < 0.001);
+#endif
+
         float3 rayPos;
         bool hit = SslRayMarch(
             positionWS,
@@ -134,6 +281,10 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
     SSGI_STORE(_SsrHitPointTextureRW, positionSS, hitUv);
 }
 
+//--------------------------------------------------------------------------------------------------
+// Reproject
+//--------------------------------------------------------------------------------------------------
+
 [numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
 void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -148,33 +299,215 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     float perceptualRoughness;
     bool materialValid = SsrDecodeMaterial(normalSample, normalWS, perceptualRoughness);
 
+#if defined(SSR_APPROX)
     if (hitUv.x <= 1.0 && hitUv.y >= 0.0 && materialValid)
     {
-        // Reproduce the hit point in the previous frame. HDRP reads the motion vector of the hit
-        // surface, not of the reflecting pixel, because the reflected color belongs to that surface.
-        uint2 hitPixel = (uint2)(hitUv * _SsrScreenSize.xy);
-        hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
-        float2 motion = SSGI_LOAD(_SsrMotionTexture, hitPixel).xy;
-        float2 prevFrameUv = hitUv - motion;
-        float2 prevPyramidUv = prevFrameUv * _SsrColorPyramidScaleAndLimitPrev.xy;
-
-        float mipLevel = lerp(0.0, _SsrColorPyramidMaxMip, perceptualRoughness);
-        float2 diffLimit = _SsrColorPyramidScaleAndLimitPrev.xy - _SsrColorPyramidScaleAndLimitPrev.zw;
-        float2 diffLimitMipAdjusted = diffLimit * pow(2.0, 1.5 + ceil(abs(mipLevel)));
-        float2 limit = _SsrColorPyramidScaleAndLimitPrev.xy - diffLimitMipAdjusted;
-
-        bool offScreen = any(prevFrameUv < 0.0) || any(prevFrameUv > limit);
-        if (!offScreen)
+        float opacity;
+        float3 color = SsrSamplePreviousColor(hitUv, perceptualRoughness, opacity);
+        if (opacity > 0.0)
+            result = float4(color, saturate(opacity));
+    }
+#else
+    if (hitUv.x <= 1.0 && hitUv.y >= 0.0 && materialValid)
+    {
+        float centerOpacity;
+        SsrSamplePreviousColor(hitUv, perceptualRoughness, centerOpacity);
+        if (centerOpacity > 0.0)
         {
-            float opacity = EdgeOfScreenFade(prevFrameUv, _SsrEdgeFadeRcpLength)
-                          * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
+            // HDRP gathers a 3x3 cross around the reflected surface. Every neighbor contributes its
+            // own hit radiance weighted by the GGX value over pdf.
+            float3 outputs = 0.0;
+            float weightSum = 0.0;
+            for (int y = -SSR_BLOCK_SAMPLE_RADIUS; y <= SSR_BLOCK_SAMPLE_RADIUS; ++y)
+            {
+                for (int x = -SSR_BLOCK_SAMPLE_RADIUS; x <= SSR_BLOCK_SAMPLE_RADIUS; ++x)
+                {
+                    if (abs(x) == abs(y) && abs(x) == 1)
+                        continue;
 
-            float3 color = SSGI_SAMPLE_LOD(_SsrColorPyramid, s_ssgi_linear_clamp_sampler, prevPyramidUv, mipLevel).rgb;
-            bool colorValid = !any(isnan(color)) && !any(isinf(color)) && all(color >= 0.0);
-            if (colorValid && opacity > 0.0)
-                result = float4(color, saturate(opacity));
+                    int2 neighbor = int2(positionSS) + int2(x, y);
+                    if (neighbor.x < 0 || neighbor.y < 0 ||
+                        neighbor.x >= (int)_SsrScreenSize.x || neighbor.y >= (int)_SsrScreenSize.y)
+                        continue;
+
+                    uint2 neighborSS = (uint2)neighbor;
+                    float2 neighborHit = SSGI_LOAD(_SsrHitPointTextureRW, neighborSS);
+                    if (neighborHit.x > 1.0)
+                        continue;
+
+                    float3 neighborN;
+                    float neighborRoughness;
+                    if (!SsrDecodeMaterial(SSGI_LOAD(_SsrNormalTexture, neighborSS), neighborN, neighborRoughness))
+                        continue;
+
+                    float neighborDepth = SSGI_LOAD(_SsrDepthTexture, neighborSS);
+                    if (SsgiIsBackgroundDepth(neighborDepth))
+                        continue;
+
+                    float3 neighborWS = SsgiReconstructPositionWS((float2)neighborSS, neighborDepth);
+                    uint2 hitPixel = (uint2)(saturate(neighborHit) * _SsrScreenSize.xy);
+                    hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
+                    float hitDepth = SSGI_LOAD(_SsrDepthTexture, hitPixel);
+                    float3 hitWS = SsgiReconstructPositionWS((float2)hitPixel, hitDepth);
+
+                    float3 V = normalize(_SsrCameraPositionWS.xyz - neighborWS);
+                    float3 L = normalize(hitWS - neighborWS);
+                    float roughness = clamp(PerceptualRoughnessToRoughness(neighborRoughness), MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
+                    float weight = SsrGetSampleWeight(dot(neighborN, V), dot(neighborN, L), roughness);
+                    if (weight <= 0.0)
+                        continue;
+
+                    float sampleOpacity;
+                    float3 color = SsrSamplePreviousColor(neighborHit, neighborRoughness, sampleOpacity);
+                    if (sampleOpacity > 0.0)
+                    {
+                        outputs += weight * color;
+                        weightSum += weight;
+                    }
+                }
+            }
+
+            if (weightSum > 0.0)
+            {
+                float3 radiance = outputs / weightSum;
+                bool valid = !any(isnan(radiance)) && !any(isinf(radiance)) && all(radiance >= 0.0);
+                if (valid)
+                    result = float4(radiance, saturate(centerOpacity));
+            }
         }
     }
+#endif
 
-    SSGI_STORE(_SsrOutputTextureRW, positionSS, result);
+    SSGI_STORE(SSR_APPROX_OUTPUT, positionSS, result);
 }
+
+//--------------------------------------------------------------------------------------------------
+// Clear
+//--------------------------------------------------------------------------------------------------
+
+[numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
+void ClearBuffer2D(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    if (dispatchThreadId.x >= (uint)_SsrScreenSize.x || dispatchThreadId.y >= (uint)_SsrScreenSize.y)
+        return;
+
+    SSGI_STORE(_SsrAccumTextureRW, dispatchThreadId.xy, float4(0.0, 0.0, 0.0, 0.0));
+}
+
+//--------------------------------------------------------------------------------------------------
+// Parameter debug view (diagnostic, never feeds the material path)
+//--------------------------------------------------------------------------------------------------
+
+[numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
+void DebugSsrParams(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    if (dispatchThreadId.x >= (uint)_SsrScreenSize.x || dispatchThreadId.y >= (uint)_SsrScreenSize.y)
+        return;
+
+    SSGI_STORE(_SsrOutputTextureRW, dispatchThreadId.xy, float4(_SsrPbrParams.xyz, _SsrPbrFlags.y));
+}
+
+//--------------------------------------------------------------------------------------------------
+// PBR accumulation
+//--------------------------------------------------------------------------------------------------
+
+#if defined(SSR_ACCUMULATE)
+
+#define __CHROMINANCE
+
+float3 SsrColorize(float3 current, float3 color)
+{
+    float3 tinted = color * current;
+    return tinted / max(tinted.r, max(tinted.g, tinted.b));
+}
+
+[numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
+void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 positionSS = dispatchThreadId.xy;
+    float4 original = SSGI_LOAD(_SsrOriginalTexture, positionSS);
+    float4 previous = SSGI_LOAD(_SsrAccumPrevTexture, positionSS);
+
+    float2 hitPositionNDC = SSGI_LOAD(_SsrHitPointTextureRW, positionSS);
+
+    float2 hitSS = (hitPositionNDC - (0.5 * _SsrColorPyramidScaleAndLimitPrev.zw)) / _SsrColorPyramidScaleAndLimitPrev.zw;
+    uint2 hitPixel = (uint2)(saturate(hitSS) * _SsrScreenSize.xy);
+    hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
+
+    float2 motionHit = SSGI_LOAD(_SsrMotionTexture, hitPixel);
+    float2 motionCenter = SSGI_LOAD(_SsrMotionTexture, positionSS);
+
+    float coefficient;
+#if defined(WORLD_SPEED_REJECTION)
+    #if USE_SPEED_SURFACE
+        float deviceDepthSrc = SSGI_LOAD(_SsrDepthTexture, positionSS);
+        float4 srcMotion = float4(motionCenter.xy, deviceDepthSrc, 0.0);
+        float4 worldSrcMotion = mul(unity_MatrixInvVP, srcMotion);
+        worldSrcMotion /= worldSrcMotion.w;
+    #endif
+    #if USE_SPEED_TARGET
+        float deviceDepthDst = SSGI_LOAD(_SsrDepthTexture, hitPixel);
+        float4 dstMotion = float4(motionHit.xy, deviceDepthDst, 0.0);
+        float4 worldDstMotion = mul(unity_MatrixInvVP, dstMotion);
+        worldDstMotion /= worldDstMotion.w;
+    #endif
+
+    #if USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 0
+        float speedDiff = length(worldSrcMotion.xyz);
+    #elif USE_SPEED_SURFACE == 0 && USE_SPEED_TARGET == 1
+        float speedDiff = length(worldDstMotion.xyz);
+    #else
+        float speedDiff = length(worldSrcMotion.xyz + worldDstMotion.xyz);
+    #endif
+
+    float speedValue = saturate(speedDiff / max(_SsrPRBSpeedRejectionScalerFactor, 1e-6));
+
+    #ifdef SSR_SMOOTH_SPEED_REJECTION
+        coefficient = lerp(_SsrAccumulationAmount, 1.0, saturate(speedValue * _SsrPBRSpeedRejection));
+    #else
+        coefficient = speedValue >= _SsrPBRSpeedRejection ? 1.0 : _SsrAccumulationAmount;
+    #endif
+#else
+    #if USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 0
+        float speedUsedLocally = length(motionCenter);
+    #elif USE_SPEED_SURFACE == 0 && USE_SPEED_TARGET == 1
+        float speedUsedLocally = length(motionHit);
+    #else
+        float speedUsedLocally = length(motionCenter) + length(motionHit);
+    #endif
+
+    float speedValue = saturate(speedUsedLocally * (128.0 / (0.5 * 0.2)) * _SsrPBRSpeedRejection);
+    coefficient = lerp(_SsrAccumulationAmount, 1.0, speedValue);
+#endif
+
+    if (!_SsrPbrHistoryValid)
+        coefficient = 1.0;
+
+    float4 result = lerp(previous, original, coefficient);
+
+#ifdef REJECT_DEBUG_COLOR
+    #if defined(WORLD_SPEED_REJECTION)
+        #ifdef SSR_SMOOTH_SPEED_REJECTION
+            result.rgb = SsrColorize(result.rgb, HsvToRgb(lerp(float3(0.3333333, 1.0, 1.0), float3(0.0, 1.0, 1.0), saturate(speedValue * _SsrPBRSpeedRejection))));
+        #else
+            if (speedValue >= _SsrPBRSpeedRejection)
+                result.rgb = SsrColorize(result.rgb, float3(1.0, 0.0, 0.0));
+            else
+                result.rgb = SsrColorize(result.rgb, float3(0.0, 1.0, 0.0));
+        #endif
+    #else
+        result.rgb = SsrColorize(result.rgb, HsvToRgb(lerp(float3(0.3333333, 1.0, 1.0), float3(0.0, 1.0, 1.0), saturate(speedValue))));
+    #endif
+#endif
+
+    bool finite = !any(isnan(result.rgb)) && !any(isinf(result.rgb)) && !isnan(result.a) && !isinf(result.a);
+    result = finite ? result : float4(0.0, 0.0, 0.0, 0.0);
+
+    SSGI_STORE(_SsrAccumTextureRW, positionSS, result);
+}
+
+#endif

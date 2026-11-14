@@ -292,6 +292,118 @@ namespace UnityEngine.Rendering.Universal
         int m_SsrSlices;
         TextureDimension m_SsrDimension;
 
+        // PBR accumulation owns two full resolution RGBA16F histories plus the current reproject
+        // output. They are only allocated while the PBR algorithm is selected.
+        internal RTHandle ssrPbrOriginal { get; private set; }
+        internal int ssrPbrWidth { get; private set; }
+        internal int ssrPbrHeight { get; private set; }
+        internal int ssrPbrReadSlot { get; private set; }
+        internal int ssrPbrWriteSlot { get; private set; }
+        internal int ssrPbrBufferIndex { get; private set; }
+        internal bool ssrPbrHasValidHistory { get; private set; }
+        internal int ssrPbrResourceGeneration { get; private set; }
+        internal int ssrPbrResetCount { get; private set; }
+        internal ScreenSpaceReflectionAlgorithm ssrPbrAlgorithm { get; private set; }
+        internal bool ssrPbrAlgorithmInitialized { get; private set; }
+        internal bool ssrPbrResourcesAllocated => ssrPbrOriginal != null && m_SsrPbrHistory[0] != null;
+
+        internal RTHandle GetSsrPbrHistory(int slot)
+        {
+            return slot >= 0 && slot < k_HistoryBufferCount ? m_SsrPbrHistory[slot] : null;
+        }
+
+        internal void EnsureSsrPbrResources(int width, int height, int viewCount, TextureDimension resourceDimension)
+        {
+            width = Mathf.Max(1, width);
+            height = Mathf.Max(1, height);
+            viewCount = Mathf.Max(1, viewCount);
+
+            if (ssrPbrResourcesAllocated &&
+                m_SsrPbrWidth == width &&
+                m_SsrPbrHeight == height &&
+                m_SsrPbrSlices == viewCount &&
+                m_SsrPbrDimension == resourceDimension)
+            {
+                return;
+            }
+
+            ReleaseSsrPbrResources();
+
+            m_SsrPbrWidth = width;
+            m_SsrPbrHeight = height;
+            m_SsrPbrSlices = viewCount;
+            m_SsrPbrDimension = resourceDimension;
+            ssrPbrWidth = width;
+            ssrPbrHeight = height;
+
+            ssrPbrOriginal = AllocSsrPbrTexture(width, height, resourceDimension, viewCount, "SslSsrPbrOriginal");
+            for (int i = 0; i < k_HistoryBufferCount; i++)
+                m_SsrPbrHistory[i] = AllocSsrPbrTexture(width, height, resourceDimension, viewCount, "SslSsrPbrHistory" + i);
+
+            ssrPbrResourceGeneration++;
+            ResetSsrPbrHistory();
+        }
+
+        static RTHandle AllocSsrPbrTexture(int width, int height, TextureDimension dimension, int slices, string name)
+        {
+            return RTHandles.Alloc(
+                width, height,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: slices,
+                colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                filterMode: FilterMode.Point,
+                dimension: dimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: name);
+        }
+
+        internal void BeginSsrPbrFrame()
+        {
+            ssrPbrReadSlot = ssrPbrHasValidHistory ? ssrPbrBufferIndex : -1;
+            ssrPbrWriteSlot = ssrPbrBufferIndex ^ 1;
+        }
+
+        internal void SwapSsrPbrBuffers()
+        {
+            ssrPbrBufferIndex = ssrPbrWriteSlot;
+            ssrPbrHasValidHistory = true;
+        }
+
+        internal void ResetSsrPbrHistory()
+        {
+            ssrPbrBufferIndex = 0;
+            ssrPbrHasValidHistory = false;
+            ssrPbrReadSlot = -1;
+            ssrPbrWriteSlot = 1;
+            ssrPbrResetCount++;
+        }
+
+        // Called once per frame with the algorithm the volume selected for this camera. Switching
+        // between Approximation and PBR must start the accumulation from scratch.
+        internal void SyncSsrPbrAlgorithm(ScreenSpaceReflectionAlgorithm algorithm)
+        {
+            if (!ssrPbrAlgorithmInitialized)
+            {
+                ssrPbrAlgorithm = algorithm;
+                ssrPbrAlgorithmInitialized = true;
+                return;
+            }
+
+            if (ssrPbrAlgorithm == algorithm)
+                return;
+
+            ssrPbrAlgorithm = algorithm;
+            ResetSsrPbrHistory();
+        }
+
+        readonly RTHandle[] m_SsrPbrHistory = new RTHandle[k_HistoryBufferCount];
+        int m_SsrPbrWidth;
+        int m_SsrPbrHeight;
+        int m_SsrPbrSlices;
+        TextureDimension m_SsrPbrDimension;
+
         PackedMipChainInfo m_DepthPyramidInfo;
         readonly RTHandle[] m_HistoryColorPyramids = new RTHandle[k_HistoryBufferCount];
         readonly RTHandle[] m_PreviousDepths = new RTHandle[k_HistoryBufferCount];
@@ -346,6 +458,7 @@ namespace UnityEngine.Rendering.Universal
             readPreviousDepth = null;
             ssrOutputProduced = false;
             ResetSsgiHistory();
+            ResetSsrPbrHistory();
         }
 
         // Called by the history capture pass after it recorded the current color and depth.
@@ -555,6 +668,28 @@ namespace UnityEngine.Rendering.Universal
             m_SsrHeight = 0;
             m_SsrSlices = 0;
             ssrOutputProduced = false;
+            ReleaseSsrPbrResources();
+        }
+
+        void ReleaseSsrPbrResources()
+        {
+            RTHandles.Release(ssrPbrOriginal);
+            ssrPbrOriginal = null;
+            for (int i = 0; i < k_HistoryBufferCount; i++)
+            {
+                RTHandles.Release(m_SsrPbrHistory[i]);
+                m_SsrPbrHistory[i] = null;
+            }
+
+            m_SsrPbrWidth = 0;
+            m_SsrPbrHeight = 0;
+            m_SsrPbrSlices = 0;
+            ssrPbrWidth = 0;
+            ssrPbrHeight = 0;
+            ssrPbrHasValidHistory = false;
+            ssrPbrReadSlot = -1;
+            ssrPbrWriteSlot = 0;
+            ssrPbrBufferIndex = 0;
         }
 
         void ReleaseResources()

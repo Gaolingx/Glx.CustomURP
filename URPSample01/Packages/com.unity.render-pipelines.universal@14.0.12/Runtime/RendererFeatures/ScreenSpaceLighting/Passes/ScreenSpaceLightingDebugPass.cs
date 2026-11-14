@@ -170,6 +170,24 @@ namespace UnityEngine.Rendering.Universal
                     texture = m_SsrPass.outputTexture.rt;
                     return true;
                 }
+                case ScreenSpaceLightingDebugMode.SsrAccumulationSpeed:
+                {
+                    if (m_SsrPass == null || !m_SsrPass.producedOutput || !m_SsrPass.usingPbrAccumulation ||
+                        m_SsrPass.outputTexture == null || m_SsrPass.outputTexture.rt == null)
+                        return false;
+                    outputMode = 1;
+                    texture = m_SsrPass.outputTexture.rt;
+                    return true;
+                }
+                case ScreenSpaceLightingDebugMode.SsrPbrParams:
+                {
+                    if (m_SsrPass == null || !m_SsrPass.producedOutput ||
+                        m_SsrPass.outputTexture == null || m_SsrPass.outputTexture.rt == null)
+                        return false;
+                    outputMode = 1;
+                    texture = m_SsrPass.outputTexture.rt;
+                    return true;
+                }
                 default:
                     return false;
             }

@@ -903,6 +903,7 @@ public static class ScreenSpaceLightingT7Verification
     static void ApplyReferenceSettings(ScreenSpaceReflection settings)
     {
         settings.enabled.Override(true);
+        settings.usedAlgorithm.Override(ScreenSpaceReflectionAlgorithm.Approximation);
         settings.minSmoothness.Override(0.5f);
         settings.smoothnessFadeStart.Override(0.9f);
         settings.depthBufferThickness.Override(0.05f);

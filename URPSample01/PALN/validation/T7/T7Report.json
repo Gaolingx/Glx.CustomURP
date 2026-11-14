@@ -1,5 +1,5 @@
 {
-  "utcTimestamp": "2026-11-14T13:48:07.827590+00:00",
+  "utcTimestamp": "2026-11-14T14:25:39.548035+00:00",
   "unityVersion": "2022.3.62f1",
   "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
   "graphicsDeviceType": "Direct3D11",
@@ -189,7 +189,7 @@
         "state": {
           "Reference": {
             "state": "Reference",
-            "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+            "sha256": "ee4058b96b3e88cee00c0035140b57d9ea0876dd884dd1dae76a7b29560b49fd",
             "identicalToReference": false,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -200,7 +200,7 @@
           },
           "SsrFullRes": {
             "state": "SsrFullRes",
-            "sha256": "54c2cfa8f35904f9d8bc75684aacafee657973368d84554993d89073fcaaaa6f",
+            "sha256": "1e00ede34ef73c4e51b819a2af050907f4dba16a615b14a238a944e17f78eb90",
             "identicalToReference": false,
             "differsFromReference": true,
             "differingPixels": 251444,
@@ -211,7 +211,7 @@
           },
           "ZeroIntensityRestoresBaseline": {
             "state": "ZeroIntensityRestoresBaseline",
-            "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+            "sha256": "ee4058b96b3e88cee00c0035140b57d9ea0876dd884dd1dae76a7b29560b49fd",
             "identicalToReference": true,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -222,7 +222,7 @@
           },
           "FirstFrameAfterReset": {
             "state": "FirstFrameAfterReset",
-            "sha256": "84a8648749f7c2cbfca6d1316b23279d770c95369f35b08ac68cce900dd90792",
+            "sha256": "ee4058b96b3e88cee00c0035140b57d9ea0876dd884dd1dae76a7b29560b49fd",
             "identicalToReference": true,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -233,7 +233,7 @@
           },
           "CameraCut": {
             "state": "CameraCut",
-            "sha256": "059982bf110f27f3480a9532d4ee1a918e63cf88a0c9ed0bef40235bf872bcca",
+            "sha256": "5caba056e3af9c03ec47d9e8987cff032d1b75c26e02356fe386e9e5f122fc2e",
             "identicalToReference": false,
             "differsFromReference": true,
             "differingPixels": 654546,
@@ -268,7 +268,7 @@
         "missMaxChannelDelta": 0.0,
         "linearityPixels": 88212,
         "linearityRatio": 2.0,
-        "linearityRelativeError": 1.1082985906796239e-07,
+        "linearityRelativeError": 1.1083955797630551e-07,
         "materialProbes": [
           {
             "name": "T7 Metal Sphere 0",
@@ -364,7 +364,7 @@
         "state": {
           "Reference": {
             "state": "Reference",
-            "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+            "sha256": "121d3ab2aaa143621f2f63d4538c4028d2a409b807c7741f691bb1dba46fd7b7",
             "identicalToReference": false,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -375,7 +375,7 @@
           },
           "SsrFullRes": {
             "state": "SsrFullRes",
-            "sha256": "7ba50e93a8d50348dded0ad259fedb0b43a5c99590d11149aee8c7f9edef10d0",
+            "sha256": "b8ab47b8f4246245eda28846d00e8670cbc170c525678638a49278e1e3997919",
             "identicalToReference": false,
             "differsFromReference": true,
             "differingPixels": 251444,
@@ -386,7 +386,7 @@
           },
           "ZeroIntensityRestoresBaseline": {
             "state": "ZeroIntensityRestoresBaseline",
-            "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+            "sha256": "121d3ab2aaa143621f2f63d4538c4028d2a409b807c7741f691bb1dba46fd7b7",
             "identicalToReference": true,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -397,7 +397,7 @@
           },
           "FirstFrameAfterReset": {
             "state": "FirstFrameAfterReset",
-            "sha256": "4b0f1da7a24018e3f06be5017a0cbbc7f1dad0d02d6741bca60533811e3b441a",
+            "sha256": "121d3ab2aaa143621f2f63d4538c4028d2a409b807c7741f691bb1dba46fd7b7",
             "identicalToReference": true,
             "differsFromReference": false,
             "differingPixels": 0,
@@ -408,7 +408,7 @@
           },
           "CameraCut": {
             "state": "CameraCut",
-            "sha256": "f722bdd6c4bf2ee673f46fe5c9c5e9b2f3d13d0848b1f49cb69dd36aea491492",
+            "sha256": "2063491574c70ec8e9c1f2952cee800fec4b0a34d897c86b46d454ba4a8971c4",
             "identicalToReference": false,
             "differsFromReference": true,
             "differingPixels": 628724,
@@ -443,7 +443,7 @@
         "missMaxChannelDelta": 0.0,
         "linearityPixels": 88213,
         "linearityRatio": 2.0,
-        "linearityRelativeError": 8.05283306704041e-08,
+        "linearityRelativeError": 8.053513766981268e-08,
         "materialProbes": [
           {
             "name": "T7 Metal Sphere 0",

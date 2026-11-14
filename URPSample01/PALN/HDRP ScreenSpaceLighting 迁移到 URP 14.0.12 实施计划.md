@@ -1,6 +1,6 @@
 # HDRP ScreenSpaceLighting 迁移到 URP 14.0.12 实施计划
 
-> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2–T7 均已退出（2026-11-14）；2026-11-14 按用户要求重新打开 T0，移除 URP 内置 SSAO（像素着色器实现），GTAO 成为唯一 AO 生产者；T8–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。SSGI 与 Opaque SSR Approximation 已实现，Transparent SSR 与 Refraction 未实现；T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PALN/validation/T3/T3Report.json` 为准，T4 结论以 `PALN/validation/T4/T4Report.json` 为准，T5 结论以 `PALN/validation/T5/T5Report.json` 为准，T7 结论以 `PALN/validation/T7/T7Report.json` 为准。
+> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2–T8 均已退出（2026-11-14）；2026-11-14 按用户要求重新打开 T0，移除 URP 内置 SSAO（像素着色器实现），GTAO 成为唯一 AO 生产者；T9–T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。SSGI、Opaque SSR Approximation 与 PBR Accumulation 已实现，Transparent SSR 与 Refraction 未实现；T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PALN/validation/T3/T3Report.json` 为准，T4 结论以 `PALN/validation/T4/T4Report.json` 为准，T5 结论以 `PALN/validation/T5/T5Report.json` 为准，T7 结论以 `PALN/validation/T7/T7Report.json` 为准，T8 结论以 `PALN/validation/T8/T8Report.json` 为准。
 >
 > 基线：Unity `2022.3.62f1`，URP/HDRP `14.0.12`。
 >
@@ -492,7 +492,7 @@ URP/Editor/RendererFeatures/
 | **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 式设置 | **已退出（2026-11-14）**：Main/Spatial/Temporal/CopyHistory/Blur+Upsample、私有 packed Hi-Z（12 mip）、双缓冲 AO 历史、raw/final/global AO 与深度金字塔调试视图落地；三路径 AO 可见、half/full 与 temporal/spatial 真实选择对应 kernel；`intensity=0` 与 Feature 关闭恢复基线逐字节一致；SSL+GTAO 两种 Feature 顺序图像一致；重复 Hi-Z 成本 11,059,200 字节已记录。**同日按用户要求移除 URP 内置 SSAO，GTAO 成为唯一 AO 生产者**；证据：`PALN/validation/T5/`（`t5ExitCriteriaMet=true`，EditMode 103 passed） |
 | **T6** | P0 / T4 | SSGI Trace/Reproject、Temporal/Diffuse Denoise、HF/LF、Bilateral Upsample、材质注入 | **已退出（2026-11-14）**：Trace/Reproject、history validation/accumulation、DiffuseDenoiser 必要支路、半分辨率 Bilateral Upsample 与 HF/LF 历史落地；Core `_SCREEN_SPACE_GI` 材质混合在 Forward/Forward+/Deferred 统一消费；三路径 `passed=true`，零权重像素与 baked GI 逐像素一致（最大差 1.19e-7），首帧/intensity=0 逐字节恢复基线，emission 亮度比 0.991，调试图与消费纹理一致（19/921,600 像素、最大差 0.0012），Frame Debugger 顺序 203→205→207→opaque。证据：`PALN/validation/T6/`（`t6ExitCriteriaMet=true`，EditMode 111 passed） |
 | **T7** | P0 / T4 | Opaque SSR Approximation、radiance+weight、roughness/edge fade 和 probe/sky fallback | **已退出（2026-11-14）**：Trace/Reproject Approximation、RGBA16F 非预乘 radiance + weight、roughness/edge fade、屏外/非有限/负值拒绝和 probe/sky 回退落地；Core `_SCREEN_SPACE_SSR` 在 `EnvironmentBRDF` 前统一混合；三路径 `passed=true`，miss 的 670,152 像素与 probe 基线逐像素一致（最大差 0）、intensity=0 与首帧逐字节恢复基线、金属粗糙度权重 0.444/0.350/0.198/0 且低于 minSmoothness 为 0、非金属光滑球 0.410、干净首帧 intensity 响应比 2.000（误差 0）、调试图 921,600 像素 0 差异、无 NaN/Inf/负值；Frame Debugger 顺序 Depth Pyramid → SSR → opaque。证据：`PALN/validation/T7/`（`t7ExitCriteriaMet=true`，EditMode 118 passed） |
-| **T8** | P1 / T7 | SSR PBR Accumulation、双历史、全部速度拒绝组合、算法切换 reset | 每个公开组合选择真实 kernel；surface/hit/both 设置有效；算法切换不污染历史；速度和 debug 图像符合预期 |
+| **T8** | P1 / T7 | SSR PBR Accumulation、双历史、全部速度拒绝组合、算法切换 reset | **已退出（2026-11-14）**：GGX VNDF trace、3×3 cross reproject、双 RGBA16F 累积历史落地；9 个公开组合各自只命中独立 kernel（每组 3 次派发），surface/target 在动态场景差异 226,681 像素、speed 参数 0↔1 差异 232,951 像素，硬拒绝调试 100% 红、接受调试 100% 绿；算法切换 reset 2 次、相机 cut reset 2 次；PBR 的 miss 670,222 像素与 probe 基线一致、首帧/intensity=0 恢复基线、CB 回读 `(0.0263,0.5,0.5,1)`、无 NaN/Inf/负值。证据：`PALN/validation/T8/`（`t8ExitCriteriaMet=true`，EditMode 126 passed） |
 | **T9** | P1 / T6、T8 | Lit、ComplexLit、ShaderGraph Lit 完整覆盖；clear coat 独立数据；SimpleLit/Particles/Terrain 支持或明确回退 | 支持矩阵无隐性行为；不支持 Shader weight=0；base/coat 不双重 probe/BRDF；alpha test、LOD、lightmap/APV、mixed lighting 回归通过 |
 | **T10** | P1 / T7、T9 | Core 透明 depth/normal Pass，SSL 透明 prepass、独立 Transparent SSR Approx 和材质消费 | ray origin 不取自 opaque 背景；主透明深度语义不变；不透明/透明输出不互踩；无历史 accumulation 误用；透明 motion 限制有测试和记录 |
 | **T11** | P1 / T4、T9 | 折射材质属性/GUI/ShaderGraph、当前帧 Color Pyramid、proxy raycast、深度拒绝、transmittance、edge fade | 支持的透明 Lit 三路径正确 fallback；不读尚未写入颜色；旧材质默认画面不变；proxy 与 pre-refraction 顺序差异记录完整 |
@@ -669,6 +669,14 @@ T1 固定基线配置：
 - Deferred 特殊处理：SSR 在 GBuffer 之前执行，`cameraNormalsTextureHandle` 返回的 GBuffer2 仍是 DepthNormals prepass 的 `0.5 + 0.5 * smoothness` 编码，因此三路径统一按编码值解码，不能使用 GBuffer 覆盖后的 raw smoothness；修正后 Deferred 与 Forward 的权重统计逐项一致。
 - 退出证据：`T7Verification.json`（三路径 `passed=true`）、`FrameDebugger/FrameDebuggerReport.json`（Depth Pyramid → SSR → opaque）、`UnityTests.log`（118 passed / 0 failed）、`T7Report.json`（`t7ExitCriteriaMet=true`）。调试图覆盖 SsrRaw/SsrWeight，并与消费纹理逐像素一致。
 - 有意差异与限制：仅 Approximation；radiance 不预乘（HDRP 预乘，URP 用 `lerp` 避免除以 weight）；颜色历史包含上一帧 SSR 形成有界反馈，intensity 线性只在 reset 后首个干净 SSR 帧验证；仅 Lit/ComplexLit base layer（coat 留 T9）；仅 Compatibility Execute 路径，XR 逐眼矩阵留 T13。
+
+### 11.9 T8 实施与证据记录（2026-11-14）
+
+- Compute：`ScreenSpaceReflections.compute` 扩展为 21 个 kernel：Trace/Reproject（`SSR_APPROX` 分支）、`ClearBuffer2D`、`DebugSsrParams`、9 个 Accumulate 与 9 个 Debug Accumulate；GGX VNDF 使用 core `SampleGGXVisibleNormal`，采样序列复用 IGN+R2。
+- Runtime：`ScreenSpaceLightingHistory` 增加 PBR original + 双累积历史、逐相机算法记忆与 reset；`SsrPass` 按 `usedAlgorithm` 选择输出，按 world/smooth/surface/target 选择真实 kernel，首帧/算法切换清空累积；`ScreenSpaceReflection` Volume 增加算法、accumulation/bias/speed 参数；调试模式增加 `SsrAccumulationSpeed` 与 `SsrPbrParams`。
+- 结果契约：累积非预乘 radiance + weight，材质端与 T7 完全一致；HDRP 累积预乘 radiance，属有意差异。
+- 退出证据：`T8Verification.json`（三路径 `passed=true`）、`UnityTests.log`（126 passed / 0 failed）、`T8Report.json`（`t8ExitCriteriaMet=true`）。9 组合 kernel 计数、动态场景 surface/target 与 speed 0↔1 差异、红/绿调试图、算法切换 reset、CB 回读全部记录在报告。
+- 已知限制：world speed 重建沿用 HDRP 公式，静态场景基线会饱和归一化速度，因此接受/拒绝行为测试使用屏幕空间 kernel；18 个 Accumulate kernel 在 Frame Debugger 中同名，kernel 选择改由逐组合计数器证明；仅 Compatibility Execute，XR 逐眼矩阵留到 T13。
 
 ## 12. 验证矩阵
 

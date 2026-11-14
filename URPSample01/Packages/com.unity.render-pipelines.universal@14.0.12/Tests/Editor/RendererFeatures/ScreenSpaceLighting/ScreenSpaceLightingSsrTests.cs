@@ -110,6 +110,8 @@ namespace UnityEditor.Rendering.Universal.Tests
                 "_SsrPyramidParams",
                 "_SsrColorPyramidScaleAndLimitPrev",
                 "_SsrCameraPositionWS",
+                "_SsrPbrParams",
+                "_SsrPbrFlags",
             };
 
             var fields = typeof(ScreenSpaceLightingSsrShaderVariables)
@@ -122,7 +124,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             foreach (var field in typeof(ScreenSpaceLightingSsrShaderVariables).GetFields(BindingFlags.Public | BindingFlags.Instance))
                 Assert.AreEqual(typeof(Vector4), field.FieldType, $"{field.Name} does not map to a Vector4 constant buffer slot.");
 
-            Assert.AreEqual(6 * 16, System.Runtime.InteropServices.Marshal.SizeOf<ScreenSpaceLightingSsrShaderVariables>());
+            Assert.AreEqual(8 * 16, System.Runtime.InteropServices.Marshal.SizeOf<ScreenSpaceLightingSsrShaderVariables>());
         }
 
         [Test]

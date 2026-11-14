@@ -36,5 +36,7 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _SsrPyramidParams;                    // color pyramid max mip, depth pyramid max mip, unused, unused
         public Vector4 _SsrColorPyramidScaleAndLimitPrev;    // previous color pyramid uv scale xy, uv limit zw
         public Vector4 _SsrCameraPositionWS;                 // current camera world space position
+        public Vector4 _SsrPbrParams;                        // accumulation amount, sample bias, speed rejection, speed scaler squared
+        public Vector4 _SsrPbrFlags;                         // frame index, valid accumulation history, unused, unused
     }
 }

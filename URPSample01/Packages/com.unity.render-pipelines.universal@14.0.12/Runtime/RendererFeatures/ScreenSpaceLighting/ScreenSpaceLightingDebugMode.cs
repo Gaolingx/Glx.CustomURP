@@ -32,5 +32,9 @@ namespace UnityEngine.Rendering.Universal
         SsrRaw = 11,
         /// <summary>Blend weight of the opaque SSR result. Black means the material keeps the reflection probe.</summary>
         SsrWeight = 12,
+        /// <summary>PBR accumulation with the speed rejection colorized (red/green or smooth hue).</summary>
+        SsrAccumulationSpeed = 13,
+        /// <summary>PBR constant buffer diagnostics: accumulation, bias, speed rejection and history validity.</summary>
+        SsrPbrParams = 14,
     }
 }
