@@ -560,8 +560,10 @@ public static class ScreenSpaceLightingT12Verification
         msaaTarget.Release();
         UnityEngine.Object.DestroyImmediate(msaaTarget);
 
-        // Unsupported material: SimpleLit keeps weight 0.
+        // Unsupported material: SimpleLit keeps the SSL weight at 0. GTAO is excluded from both
+        // captures because it is a standard URP AO consumer and legitimately darkens SimpleLit.
         var unsupportedRect = ProjectBounds(camera, rigParts.unsupported, 20);
+        SetEffects(context, ssgi: true, ssr: true, refraction: true, gtao: false);
         cameraData.resetHistory = true;
         RenderAndCapture(camera, imageTarget, WarmupFrames);
         var withEffects = ReadPixels(imageTarget);

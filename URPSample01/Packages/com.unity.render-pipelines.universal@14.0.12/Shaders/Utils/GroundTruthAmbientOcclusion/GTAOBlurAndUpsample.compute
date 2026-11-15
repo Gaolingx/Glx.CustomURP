@@ -1,6 +1,10 @@
-// GTAO blur and upsample kernels, ported from HDRP 14.0.12 GTAOBlurAndUpsample.compute
-// (originally based on MiniEngine's SmartBlur, MIT licensed).
-#pragma kernel BlurUpsample BLUR_AND_UPSAMPLE
+// GTAO bilateral upsample, ported from HDRP 14.0.12 GTAOBlurAndUpsample.compute.
+//
+// The HDRP original combines a group-shared smart blur with a GatherRed-based bilateral upsample.
+// The smart blur is omitted here because the spatial denoise produced by GTAOSpatialDenoise.compute
+// already filters the half resolution buffer, and the neighbour fetches use explicit integer loads:
+// the UV + GatherRed combination returns a degenerate screen-column pattern in the URP
+// compatibility compute path.
 #pragma kernel BilateralUpsampling UPSAMPLE_KERNEL=BilateralUpsampling UPSAMPLE_ONLY
 #pragma kernel BoxUpsampling UPSAMPLE_KERNEL=BoxUpsampling UPSAMPLE_ONLY BOX
 
@@ -11,129 +15,10 @@
 GTAO_TEXTURE2D_FLOAT(_GtaoPackedData);
 GTAO_RW_TEXTURE2D_FLOAT(_GtaoOcclusionTexture);
 
-groupshared float DepthCache[256];
-groupshared float AOCache1[256];
-groupshared float AOCache2[256];
-
 void StoreOcclusion(int2 pixel, float value)
 {
     if (all(pixel >= 0) && all(pixel < (int2)_GtaoScreenSize.xy))
         GTAO_STORE(_GtaoOcclusionTexture, pixel, value);
-}
-
-float SmartBlur(float a, float b, float c, float d, float e, bool Left, bool Middle, bool Right)
-{
-    b = Left | Middle ? b : c;
-    a = Left ? a : b;
-    d = Right | Middle ? d : c;
-    e = Right ? e : d;
-    return ((a + e) / 2.0 + b + c + d) / 4.0;
-}
-
-bool CompareDeltas(float d1, float d2, float l1, float l2)
-{
-    float temp = d1 * d2 + _GtaoStepSize;
-    return temp * temp > l1 * l2 * _GtaoBlurTolerance;
-}
-
-void PrefetchData(uint index, float2 uv)
-{
-    float4 UnpackedAOs, UnpackedDepths;
-    GTAOGatherAOData(_GtaoPackedData, uv, UnpackedAOs, UnpackedDepths);
-
-    AOCache1[index] = UnpackedAOs.w;
-    AOCache1[index + 1] = UnpackedAOs.z;
-    AOCache1[index + 16] = UnpackedAOs.x;
-    AOCache1[index + 17] = UnpackedAOs.y;
-
-    float4 ID = 1.0 / UnpackedDepths;
-    DepthCache[index] = ID.w;
-    DepthCache[index + 1] = ID.z;
-    DepthCache[index + 16] = ID.x;
-    DepthCache[index + 17] = ID.y;
-}
-
-void BlurHorizontally(uint leftMostIndex)
-{
-    float a0 = AOCache1[leftMostIndex];
-    float a1 = AOCache1[leftMostIndex + 1];
-    float a2 = AOCache1[leftMostIndex + 2];
-    float a3 = AOCache1[leftMostIndex + 3];
-    float a4 = AOCache1[leftMostIndex + 4];
-    float a5 = AOCache1[leftMostIndex + 5];
-    float a6 = AOCache1[leftMostIndex + 6];
-
-    float d0 = DepthCache[leftMostIndex];
-    float d1 = DepthCache[leftMostIndex + 1];
-    float d2 = DepthCache[leftMostIndex + 2];
-    float d3 = DepthCache[leftMostIndex + 3];
-    float d4 = DepthCache[leftMostIndex + 4];
-    float d5 = DepthCache[leftMostIndex + 5];
-    float d6 = DepthCache[leftMostIndex + 6];
-
-    float d01 = d1 - d0;
-    float d12 = d2 - d1;
-    float d23 = d3 - d2;
-    float d34 = d4 - d3;
-    float d45 = d5 - d4;
-    float d56 = d6 - d5;
-
-    float l01 = d01 * d01 + _GtaoStepSize;
-    float l12 = d12 * d12 + _GtaoStepSize;
-    float l23 = d23 * d23 + _GtaoStepSize;
-    float l34 = d34 * d34 + _GtaoStepSize;
-    float l45 = d45 * d45 + _GtaoStepSize;
-    float l56 = d56 * d56 + _GtaoStepSize;
-
-    bool c02 = CompareDeltas(d01, d12, l01, l12);
-    bool c13 = CompareDeltas(d12, d23, l12, l23);
-    bool c24 = CompareDeltas(d23, d34, l23, l34);
-    bool c35 = CompareDeltas(d34, d45, l34, l45);
-    bool c46 = CompareDeltas(d45, d56, l45, l56);
-
-    AOCache2[leftMostIndex] = SmartBlur(a0, a1, a2, a3, a4, c02, c13, c24);
-    AOCache2[leftMostIndex + 1] = SmartBlur(a1, a2, a3, a4, a5, c13, c24, c35);
-    AOCache2[leftMostIndex + 2] = SmartBlur(a2, a3, a4, a5, a6, c24, c35, c46);
-}
-
-void BlurVertically(uint topMostIndex)
-{
-    float a0 = AOCache2[topMostIndex];
-    float a1 = AOCache2[topMostIndex + 16];
-    float a2 = AOCache2[topMostIndex + 32];
-    float a3 = AOCache2[topMostIndex + 48];
-    float a4 = AOCache2[topMostIndex + 64];
-    float a5 = AOCache2[topMostIndex + 80];
-
-    float d0 = DepthCache[topMostIndex + 2];
-    float d1 = DepthCache[topMostIndex + 18];
-    float d2 = DepthCache[topMostIndex + 34];
-    float d3 = DepthCache[topMostIndex + 50];
-    float d4 = DepthCache[topMostIndex + 66];
-    float d5 = DepthCache[topMostIndex + 82];
-
-    float d01 = d1 - d0;
-    float d12 = d2 - d1;
-    float d23 = d3 - d2;
-    float d34 = d4 - d3;
-    float d45 = d5 - d4;
-
-    float l01 = d01 * d01 + _GtaoStepSize;
-    float l12 = d12 * d12 + _GtaoStepSize;
-    float l23 = d23 * d23 + _GtaoStepSize;
-    float l34 = d34 * d34 + _GtaoStepSize;
-    float l45 = d45 * d45 + _GtaoStepSize;
-
-    bool c02 = CompareDeltas(d01, d12, l01, l12);
-    bool c13 = CompareDeltas(d12, d23, l12, l23);
-    bool c24 = CompareDeltas(d23, d34, l23, l34);
-    bool c35 = CompareDeltas(d34, d45, l34, l45);
-
-    float aoResult1 = SmartBlur(a0, a1, a2, a3, a4, c02, c13, c24);
-    float aoResult2 = SmartBlur(a1, a2, a3, a4, a5, c13, c24, c35);
-
-    AOCache1[topMostIndex] = aoResult1;
-    AOCache1[topMostIndex + 16] = aoResult2;
 }
 
 // Four low resolution weights plus a noise filter that blends in when none of the four low
@@ -146,53 +31,37 @@ float BilateralUpsample(float HiDepth, float4 LowDepths, float4 LowAO)
     return WeightedSum / TotalWeight;
 }
 
-#if BLUR_AND_UPSAMPLE
-
-[numthreads(8, 8, 1)]
-void BlurUpsample(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
-{
-    GTAO_ASSIGN_VIEW_INDEX(DTid.z);
-
-    float2 UV = GTAOClampAndScaleUVForBilinear((int2(DTid.xy + GTid.xy - 2)) * _GtaoBufferSize.zw);
-    PrefetchData(GTid.x << 1 | GTid.y << 5, UV);
-    GroupMemoryBarrierWithGroupSync();
-
-    if (GI < 39)
-        BlurHorizontally((GI / 3) * 16 + (GI % 3) * 3);
-    GroupMemoryBarrierWithGroupSync();
-
-    if (GI < 45)
-        BlurVertically((GI / 9) * 32 + GI % 9);
-
-    GroupMemoryBarrierWithGroupSync();
-
-    uint Idx0 = GTid.x + GTid.y * 16;
-    float4 LoSSAOs = float4(AOCache1[Idx0 + 16], AOCache1[Idx0 + 17], AOCache1[Idx0 + 1], AOCache1[Idx0]);
-
-    float4 highDepth = GTAO_GATHER(_GtaoDepthPyramid, s_gtao_point_clamp_sampler, GTAOClampAndScaleUVForDepthGather(DTid.xy * 2.0));
-    float4 LowDepth = rcp(float4(DepthCache[Idx0 + 16], DepthCache[Idx0 + 17], DepthCache[Idx0 + 1], DepthCache[Idx0]));
-
-    int2 OutST = DTid.xy << 1;
-
-    StoreOcclusion(OutST + int2(0, -1), GTAOOutputFinalAO(BilateralUpsample(highDepth.z, LowDepth.zwxy, LoSSAOs.zwxy)));
-    StoreOcclusion(OutST, GTAOOutputFinalAO(BilateralUpsample(highDepth.y, LowDepth.yzwx, LoSSAOs.yzwx)));
-    StoreOcclusion(OutST + int2(-1, -1), GTAOOutputFinalAO(BilateralUpsample(highDepth.w, LowDepth.wxyz, LoSSAOs.wxyz)));
-    StoreOcclusion(OutST + int2(-1, 0), GTAOOutputFinalAO(BilateralUpsample(highDepth.x, LowDepth.xyzw, LoSSAOs.xyzw)));
-}
-
-#elif UPSAMPLE_ONLY
-
 [numthreads(8, 8, 1)]
 void UPSAMPLE_KERNEL(uint3 DTid : SV_DispatchThreadID)
 {
     GTAO_ASSIGN_VIEW_INDEX(DTid.z);
 
-    float2 UV0 = GTAOClampAndScaleUVForBilinear(DTid.xy * _GtaoBufferSize.zw);
+    int2 lowPixel = (int2)DTid.xy;
+    int2 lowLimit = max((int2)_GtaoBufferSize.xy - 1, int2(0, 0));
+    int2 lo = clamp(lowPixel - 1, int2(0, 0), lowLimit);
+    int2 hi = clamp(lowPixel, int2(0, 0), lowLimit);
+
+    float4 packed;
+    packed.w = GTAO_LOAD(_GtaoPackedData, lo);
+    packed.z = GTAO_LOAD(_GtaoPackedData, int2(hi.x, lo.y));
+    packed.x = GTAO_LOAD(_GtaoPackedData, int2(lo.x, hi.y));
+    packed.y = GTAO_LOAD(_GtaoPackedData, hi);
 
     float4 UnpackedAOs, UnpackedDepths;
-    GTAOGatherAOData(_GtaoPackedData, UV0, UnpackedAOs, UnpackedDepths);
+    GTAOUnpackGatheredData(packed, UnpackedAOs, UnpackedDepths);
 
-    int2 OutST = DTid.xy << 1;
+    // The high resolution depth uses the same 2x2 block geometry, one step per low resolution pixel.
+    int2 screenPixel = lowPixel * 2;
+    int2 screenLimit = max((int2)_GtaoScreenSize.xy - 1, int2(0, 0));
+    int2 depthLo = clamp(screenPixel - 1, int2(0, 0), screenLimit);
+    int2 depthHi = clamp(screenPixel, int2(0, 0), screenLimit);
+    float4 highDepth;
+    highDepth.w = GTAO_LOAD(_GtaoDepthPyramid, depthLo);
+    highDepth.z = GTAO_LOAD(_GtaoDepthPyramid, int2(depthHi.x, depthLo.y));
+    highDepth.x = GTAO_LOAD(_GtaoDepthPyramid, int2(depthLo.x, depthHi.y));
+    highDepth.y = GTAO_LOAD(_GtaoDepthPyramid, depthHi);
+
+    int2 OutST = lowPixel << 1;
 
 #ifdef BOX
     StoreOcclusion(OutST + int2(0, -1), GTAOOutputFinalAO(dot(0.25, UnpackedAOs)));
@@ -200,12 +69,9 @@ void UPSAMPLE_KERNEL(uint3 DTid : SV_DispatchThreadID)
     StoreOcclusion(OutST + int2(-1, -1), GTAOOutputFinalAO(dot(0.25, UnpackedAOs)));
     StoreOcclusion(OutST + int2(-1, 0), GTAOOutputFinalAO(dot(0.25, UnpackedAOs)));
 #else
-    float4 highDepth = GTAO_GATHER(_GtaoDepthPyramid, s_gtao_point_clamp_sampler, GTAOClampAndScaleUVForDepthGather(DTid.xy * 2.0));
     StoreOcclusion(OutST + int2(0, -1), GTAOOutputFinalAO(BilateralUpsample(highDepth.z, UnpackedDepths.zwxy, UnpackedAOs.zwxy)));
     StoreOcclusion(OutST, GTAOOutputFinalAO(BilateralUpsample(highDepth.y, UnpackedDepths.yzwx, UnpackedAOs.yzwx)));
     StoreOcclusion(OutST + int2(-1, -1), GTAOOutputFinalAO(BilateralUpsample(highDepth.w, UnpackedDepths.wxyz, UnpackedAOs.wxyz)));
     StoreOcclusion(OutST + int2(-1, 0), GTAOOutputFinalAO(BilateralUpsample(highDepth.x, UnpackedDepths.xyzw, UnpackedAOs.xyzw)));
 #endif
 }
-
-#endif

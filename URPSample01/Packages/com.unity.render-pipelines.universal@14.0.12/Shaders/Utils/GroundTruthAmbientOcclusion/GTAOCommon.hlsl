@@ -7,7 +7,9 @@
 // - the packed depth pyramid, normal texture and motion texture are bound by URP explicitly;
 // - the AO result is converted from HDRP's inverse AO (0 = unoccluded) to URP's visibility
 //   factor (1 = unoccluded, white neutral);
-// - all private resource names carry the _Gtao prefix.
+// - all private resource names carry the _Gtao prefix;
+// - neighbour fetches use Load instead of GatherRed: the sampler HDRP relies on is not bound in the
+//   URP compatibility compute path and GatherRed then returns a degenerate screen-column pattern.
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
@@ -50,7 +52,6 @@
     #define GTAO_RW_TEXTURE2D_FLOAT4(name) RWTexture2DArray<float4> name
     #define GTAO_LOAD(t, p) t.Load(int4((int2)(p), GTAO_SLICE, 0))
     #define GTAO_STORE(t, p, v) t[int3((int2)(p), GTAO_SLICE)] = (v)
-    #define GTAO_GATHER(t, s, uv) t.GatherRed(s, float3((uv), GTAO_SLICE))
 
     // Single-pass instanced XR renders both eyes in one pass. Each eye has its own view rotation,
     // so the world-to-view rows are supplied per view and selected with the dispatch slice.
@@ -70,15 +71,10 @@
     #define GTAO_RW_TEXTURE2D_FLOAT4(name) RWTexture2D<float4> name
     #define GTAO_LOAD(t, p) t.Load(int3((int2)(p), 0))
     #define GTAO_STORE(t, p, v) t[(int2)(p)] = (v)
-    #define GTAO_GATHER(t, s, uv) t.GatherRed(s, uv)
     #define GTAO_VIEW_ROW0 _GtaoViewRow0
     #define GTAO_VIEW_ROW1 _GtaoViewRow1
     #define GTAO_VIEW_ROW2 _GtaoViewRow2
 #endif
-
-// The compute samplers stay unbound. D3D uses the default point/clamp state, which is exactly what
-// the gather and history loads need (the filter is irrelevant for gather, clamp avoids wrap).
-SamplerState s_gtao_point_clamp_sampler;
 
 // Private packed depth pyramid of this feature. It never aliases the Screen Space Lighting pyramid.
 GTAO_TEXTURE2D_FLOAT(_GtaoDepthPyramid);
@@ -198,12 +194,6 @@ void GTAOUnpackGatheredData(float4 data, out float4 AOs, out float4 depths)
     GTAOUnpackData(data.y, AOs.y, depths.y);
     GTAOUnpackData(data.z, AOs.z, depths.z);
     GTAOUnpackData(data.w, AOs.w, depths.w);
-}
-
-void GTAOGatherAOData(GTAO_TEXTURE2D_FLOAT(dataSource), float2 UV, out float4 AOs, out float4 depths)
-{
-    float4 data = GTAO_GATHER(dataSource, s_gtao_point_clamp_sampler, UV);
-    GTAOUnpackGatheredData(data, AOs, depths);
 }
 
 // URP consumers expect a visibility factor: 1 is unoccluded (white neutral), 0 is fully occluded.

@@ -20,91 +20,39 @@ float BilateralWeight(float sampleDepth, float linearCentralDepth)
     return w;
 }
 
-float Blur(float2 centralPos, out float centralDepth, out float centralAO)
+// Bilateral spatial denoise over the 3x3 neighbourhood. The neighbour fetches use explicit integer
+// loads: the HDRP original derives them from a bilinearly clamped UV and GatherRed, and in the URP
+// compatibility compute path that combination returns a degenerate screen-column pattern.
+float Blur(uint2 centralPos, out float centralDepth, out float centralAO)
 {
-    float4 UnpackedAOs, UnpackedDepths;
+    int2 limit = max((int2)_GtaoBufferSize.xy - 1, int2(0, 0));
+    int2 central = clamp((int2)centralPos, int2(0, 0), limit);
 
-    float2 UV = GTAOClampAndScaleUVForBilinear((centralPos + float2(0.0, 0.0)) * _GtaoBufferSize.zw);
-    GTAOGatherAOData(_GtaoPackedData, UV, UnpackedAOs, UnpackedDepths);
-
-    centralDepth = UnpackedDepths.y;
+    float packedCentral = GTAO_LOAD(_GtaoPackedData, central);
+    GTAOUnpackData(packedCentral, centralAO, centralDepth);
     float linearCentralDepth = LinearEyeDepth(centralDepth, _GtaoZBufferParams);
-    centralAO = UnpackedAOs.y;
-    float total = UnpackedAOs.y;
-    float totalWeight = 1;
 
-    // Manual unrolling keeps the register pressure predictable on older compilers.
-    float weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
-    total += weight * UnpackedAOs.x;
-    totalWeight += weight;
+    float total = centralAO;
+    float totalWeight = 1.0;
 
-    weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
-    total += weight * UnpackedAOs.z;
-    totalWeight += weight;
+    [unroll]
+    for (int dy = -1; dy <= 1; dy++)
+    {
+        [unroll]
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            if (dx == 0 && dy == 0)
+                continue;
 
-    weight = BilateralWeight(UnpackedDepths.w, linearCentralDepth);
-    total += weight * UnpackedAOs.w;
-    totalWeight += weight;
+            float ao, depth;
+            GTAOUnpackData(GTAO_LOAD(_GtaoPackedData, clamp(central + int2(dx, dy), int2(0, 0), limit)), ao, depth);
+            float weight = BilateralWeight(depth, linearCentralDepth);
+            total += weight * ao;
+            totalWeight += weight;
+        }
+    }
 
-    UV = GTAOClampAndScaleUVForBilinear((centralPos + float2(2.0, 0.0)) * _GtaoBufferSize.zw);
-    GTAOGatherAOData(_GtaoPackedData, UV, UnpackedAOs, UnpackedDepths);
-
-    weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
-    total += weight * UnpackedAOs.x;
-    totalWeight += weight;
-
-    weight = BilateralWeight(UnpackedDepths.y, linearCentralDepth);
-    total += weight * UnpackedAOs.y;
-    totalWeight += weight;
-
-    weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
-    total += weight * UnpackedAOs.z;
-    totalWeight += weight;
-
-    weight = BilateralWeight(UnpackedDepths.w, linearCentralDepth);
-    total += weight * UnpackedAOs.w;
-    totalWeight += weight;
-
-    UV = GTAOClampAndScaleUVForBilinear((centralPos + float2(0.0, 2.0)) * _GtaoBufferSize.zw);
-    GTAOGatherAOData(_GtaoPackedData, UV, UnpackedAOs, UnpackedDepths);
-
-    weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
-    total += weight * UnpackedAOs.x;
-    totalWeight += weight;
-
-    weight = BilateralWeight(UnpackedDepths.y, linearCentralDepth);
-    total += weight * UnpackedAOs.y;
-    totalWeight += weight;
-
-    weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
-    total += weight * UnpackedAOs.z;
-    totalWeight += weight;
-
-    weight = BilateralWeight(UnpackedDepths.w, linearCentralDepth);
-    total += weight * UnpackedAOs.w;
-    totalWeight += weight;
-
-    UV = GTAOClampAndScaleUVForBilinear((centralPos + float2(2.0, 2.0)) * _GtaoBufferSize.zw);
-    GTAOGatherAOData(_GtaoPackedData, UV, UnpackedAOs, UnpackedDepths);
-
-    weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
-    total += weight * UnpackedAOs.x;
-    totalWeight += weight;
-
-    weight = BilateralWeight(UnpackedDepths.y, linearCentralDepth);
-    total += weight * UnpackedAOs.y;
-    totalWeight += weight;
-
-    weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
-    total += weight * UnpackedAOs.z;
-    totalWeight += weight;
-
-    weight = BilateralWeight(UnpackedDepths.w, linearCentralDepth);
-    total += weight * UnpackedAOs.w;
-    totalWeight += weight;
-
-    total /= totalWeight;
-    return total;
+    return total / totalWeight;
 }
 
 [numthreads(8, 8, 1)]

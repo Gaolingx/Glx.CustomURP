@@ -32,6 +32,21 @@
 - 支持矩阵、已知差异、性能/显存与归档清单已生成；T1 与 T14 临时 Player 目录已删除。
 - 四个模板/测试 pipeline 资产上被构建期 shader prefiltering 改写的字段已还原；`URP-HighFidelity-Renderer` 与 `URP-Balanced-Renderer` 中 T5 删除 SSAO 后残留的 SSAO Feature 已移除（这正是此前每次构建日志里 `missing RendererFeatures` 报错的来源）。
 
+## 后续缺陷修复（2026-11-15）：GTAO 竖向条带
+
+用户报告开启 GTAO 后地面出现满屏竖向黑色条带（与 quality 设置无关，仅 intensity=0 时消失）。
+逐阶段 dump 证明 GTAO 主 trace 输出正确，但空间双边降噪与上采样用 `GatherRed`+UV 取邻居时只保留
+了 X 坐标，导致 AO 沿 Y 被抹成竖条；URP 兼容路径的 compute 没有绑定该 sampler。
+
+修复：空间降噪与双边上采样改为整数像素 `Load`，去掉依赖 groupshared smart blur 的上采样前置模糊
+（空间降噪已平滑），并让非 temporal 半分辨率路径也走空间降噪、上采样重新绑定私有深度金字塔。
+`T12Verification` 的 `UnsupportedMaterial` 用例在两次捕获中都关闭 GTAO（SimpleLit 本来就应该接收
+GTAO，该用例只验证 SSL 权重为 0）。
+
+验证：EditMode 153/153、PlayMode 6/6、T12 组合矩阵 34/34/35 通过；GTAO 关闭的帧与归档图像逐像素
+一致，只有 GTAO 开启的用例按设计改变。证据见 `validation/GtaoBandingFix/Report.md`。
+未复跑：XR single-pass / Vulkan / DX12 立体玩家构建。
+
 ## T14 证据与复现
 
 - 结论：[T14Report.json](validation/T14/T14Report.json)（`t14ExitCriteriaMet=true`，九项 criteria 全为 true）
