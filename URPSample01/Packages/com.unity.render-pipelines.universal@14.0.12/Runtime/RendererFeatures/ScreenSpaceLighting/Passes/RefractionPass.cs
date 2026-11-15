@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            var depthTexture = ScreenSpaceLightingDepthPyramidPass.GetCameraDepthTexture(renderingData.cameraData.renderer);
+            var depthTexture = ScreenSpaceRenderUtils.GetCameraDepthTexture(renderingData.cameraData.renderer);
             if (depthTexture == null)
             {
                 DisableMaterialBinding(cmd);

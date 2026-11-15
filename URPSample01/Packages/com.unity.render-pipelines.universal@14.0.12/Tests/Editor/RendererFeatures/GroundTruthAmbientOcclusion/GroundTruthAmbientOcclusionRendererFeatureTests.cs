@@ -44,10 +44,13 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void PassesUseTheReservedDispatchEvents()
         {
-            Assert.AreEqual(203, (int)GroundTruthAmbientOcclusionDepthPyramidPass.k_RenderPassEvent);
+            Assert.AreEqual(203, (int)ScreenSpaceDepthPyramidPass.k_RenderPassEvent);
             Assert.AreEqual(204, (int)GroundTruthAmbientOcclusionPass.k_RenderPassEvent);
             Assert.AreEqual((int)RenderPassEvent.BeforeRenderingPostProcessing + 2, (int)GroundTruthAmbientOcclusionDebugPass.k_RenderPassEvent);
-            Assert.AreEqual(GroundTruthAmbientOcclusionDepthPyramidPass.k_RenderPassEvent, m_Feature.depthPyramidPass.renderPassEvent);
+
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+
+            Assert.AreEqual(ScreenSpaceDepthPyramidPass.k_RenderPassEvent, ScreenSpaceDepthPyramidSystem.sharedPass.renderPassEvent);
             Assert.AreEqual(GroundTruthAmbientOcclusionPass.k_RenderPassEvent, m_Feature.pass.renderPassEvent);
         }
 
@@ -59,10 +62,13 @@ namespace UnityEditor.Rendering.Universal.Tests
                                                        ScriptableRenderPassInput.Motion;
             Assert.AreEqual(expected, m_Feature.pass.input,
                 "GTAO must request normals, depth and the shared early motion vectors.");
+
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+
             Assert.AreEqual(
                 ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Motion,
-                m_Feature.depthPyramidPass.input,
-                "The depth pyramid only needs depth and the early motion schedule.");
+                ScreenSpaceDepthPyramidSystem.sharedPass.input,
+                "The shared depth pyramid only needs depth and the early motion schedule.");
         }
 
         [Test]
@@ -70,9 +76,19 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
 
-            Assert.Contains(m_Feature.depthPyramidPass, m_Renderer.queuedPasses);
+            Assert.Contains(ScreenSpaceDepthPyramidSystem.sharedPass, m_Renderer.queuedPasses);
             Assert.Contains(m_Feature.pass, m_Renderer.queuedPasses);
             Assert.AreEqual(1, m_Feature.historyStore.entryCount);
+        }
+
+        [Test]
+        public void SameCameraFrameEnqueuesTheSharedPyramidOnce()
+        {
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+
+            int pyramidEnqueues = m_Renderer.queuedPasses.FindAll(pass => pass == ScreenSpaceDepthPyramidSystem.sharedPass).Count;
+            Assert.AreEqual(1, pyramidEnqueues, "The depth pyramid must be built once per camera and frame.");
         }
 
         [Test]
@@ -124,13 +140,11 @@ namespace UnityEditor.Rendering.Universal.Tests
         public void CreateRebuildsPassesAndHistoryStore()
         {
             var previousPass = m_Feature.pass;
-            var previousPyramidPass = m_Feature.depthPyramidPass;
             var previousStore = m_Feature.historyStore;
 
             m_Feature.Create();
 
             Assert.AreNotSame(previousPass, m_Feature.pass);
-            Assert.AreNotSame(previousPyramidPass, m_Feature.depthPyramidPass);
             Assert.AreNotSame(previousStore, m_Feature.historyStore);
             Assert.AreEqual(GroundTruthAmbientOcclusionPass.k_RenderPassEvent, m_Feature.pass.renderPassEvent);
         }

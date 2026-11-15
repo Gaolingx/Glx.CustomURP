@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.Universal
                     m_History.colorPyramidMipCount);
 
                 var previousDepth = m_History.GetPreviousDepth(m_History.writeSlot);
-                var depthTexture = ScreenSpaceLightingDepthPyramidPass.GetCameraDepthTexture(renderingData.cameraData.renderer);
+                var depthTexture = ScreenSpaceRenderUtils.GetCameraDepthTexture(renderingData.cameraData.renderer);
                 if (previousDepth != null && depthTexture != null)
                 {
                     ScreenSpaceLightingRenderUtils.CopyDepthToPrevious(

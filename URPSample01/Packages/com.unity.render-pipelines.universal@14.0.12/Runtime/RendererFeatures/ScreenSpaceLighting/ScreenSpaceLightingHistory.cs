@@ -30,10 +30,13 @@ namespace UnityEngine.Rendering.Universal
         internal TextureDimension dimension { get; private set; }
         internal GraphicsFormat colorFormat { get; private set; }
 
-        internal PackedMipChainInfo depthPyramidInfo => m_DepthPyramidInfo;
-        internal RTHandle depthPyramid { get; private set; }
-        internal ComputeBuffer depthPyramidOffsets { get; private set; }
-        internal int depthPyramidMipCount => m_DepthPyramidInfo.mipLevelCount;
+        // The packed depth mip chain is shared with Ground Truth Ambient Occlusion. This history only
+        // keeps the current frame's view so its consumers keep one binding path.
+        internal ScreenSpaceDepthPyramid depthPyramidSource { get; set; }
+        internal PackedMipChainInfo depthPyramidInfo => depthPyramidSource != null ? depthPyramidSource.info : default;
+        internal RTHandle depthPyramid => depthPyramidSource?.texture;
+        internal ComputeBuffer depthPyramidOffsets => depthPyramidSource?.offsets;
+        internal int depthPyramidMipCount => depthPyramidSource?.mipCount ?? 0;
 
         internal RTHandle currentColorPyramid { get; private set; }
         internal int colorPyramidMipCount { get; private set; }
@@ -516,7 +519,6 @@ namespace UnityEngine.Rendering.Universal
         int m_SsrPbrSlices;
         TextureDimension m_SsrPbrDimension;
 
-        PackedMipChainInfo m_DepthPyramidInfo;
         // Previous frame view projection per XR eye. URP's motion vector history stores a single
         // matrix that alternates eyes in multipass, so a per-eye entry is required for the SSGI
         // history validation and the SSR motion reconstruction to compare like with like.
@@ -626,7 +628,7 @@ namespace UnityEngine.Rendering.Universal
             viewportHeight = Mathf.Max(1, viewportHeight);
             viewCount = Mathf.Max(1, viewCount);
 
-            if (depthPyramid != null &&
+            if (currentColorPyramid != null &&
                 m_AllocatedWidth == viewportWidth &&
                 m_AllocatedHeight == viewportHeight &&
                 m_AllocatedSlices == viewCount &&
@@ -645,24 +647,6 @@ namespace UnityEngine.Rendering.Universal
             slices = viewCount;
             dimension = resourceDimension;
             colorFormat = resourceColorFormat;
-
-            m_DepthPyramidInfo.ComputePackedMipChainInfo(new Vector2Int(viewportWidth, viewportHeight));
-            depthPyramid = RTHandles.Alloc(
-                m_DepthPyramidInfo.textureSize.x,
-                m_DepthPyramidInfo.textureSize.y,
-                TextureWrapMode.Clamp,
-                TextureWrapMode.Clamp,
-                slices: slices,
-                colorFormat: ScreenSpaceCapability.k_DepthPyramidFormat,
-                filterMode: FilterMode.Point,
-                dimension: dimension,
-                enableRandomWrite: true,
-                useMipMap: false,
-                autoGenerateMips: false,
-                name: "SslDepthPyramid");
-
-            depthPyramidOffsets = new ComputeBuffer(PackedMipChainInfo.k_MaxMipLevelCount, sizeof(int) * 2);
-            m_DepthPyramidInfo.GetOffsetBufferData(depthPyramidOffsets);
 
             colorPyramidMipCount = ComputeColorPyramidMipCount(viewportWidth, viewportHeight);
             currentColorPyramid = AllocColorPyramid(viewportWidth, viewportHeight, colorFormat, dimension, slices, "SslCurrentColorPyramid");
@@ -875,14 +859,7 @@ namespace UnityEngine.Rendering.Universal
 
         void ReleaseResources()
         {
-            RTHandles.Release(depthPyramid);
-            depthPyramid = null;
-
-            if (depthPyramidOffsets != null)
-            {
-                depthPyramidOffsets.Release();
-                depthPyramidOffsets = null;
-            }
+            depthPyramidSource = null;
 
             RTHandles.Release(currentColorPyramid);
             currentColorPyramid = null;
@@ -900,7 +877,6 @@ namespace UnityEngine.Rendering.Universal
             RTHandles.Release(m_TempBlur);
             m_TempBlur = null;
 
-            m_DepthPyramidInfo = default;
             colorPyramidMipCount = 0;
             m_AllocatedWidth = 0;
             m_AllocatedHeight = 0;

@@ -13,7 +13,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ScreenSpaceLightingSettings m_Settings = new ScreenSpaceLightingSettings();
 
         ScreenSpaceLightingSetupPass m_SetupPass;
-        ScreenSpaceLightingDepthPyramidPass m_DepthPyramidPass;
         ScreenSpaceLightingSsgiPass m_SsgiPass;
         ScreenSpaceLightingSsrPass m_SsrPass;
         ScreenSpaceLightingTransparentDepthNormalsPass m_TransparentDepthNormalsPass;
@@ -29,7 +28,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal ScreenSpaceLightingSettings settings => m_Settings;
         internal ScreenSpaceLightingSetupPass setupPass => m_SetupPass;
-        internal ScreenSpaceLightingDepthPyramidPass depthPyramidPass => m_DepthPyramidPass;
         internal ScreenSpaceLightingSsgiPass ssgiPass => m_SsgiPass;
         internal ScreenSpaceLightingSsrPass ssrPass => m_SsrPass;
         internal ScreenSpaceLightingTransparentDepthNormalsPass transparentDepthNormalsPass => m_TransparentDepthNormalsPass;
@@ -70,7 +68,6 @@ namespace UnityEngine.Rendering.Universal
             m_HistoryStore = new CameraHistoryStore<ScreenSpaceLightingHistory>();
             m_CameraViews.Clear();
             m_SetupPass = new ScreenSpaceLightingSetupPass();
-            m_DepthPyramidPass = new ScreenSpaceLightingDepthPyramidPass();
             m_SsgiPass = new ScreenSpaceLightingSsgiPass();
             m_SsrPass = new ScreenSpaceLightingSsrPass();
             m_TransparentDepthNormalsPass = new ScreenSpaceLightingTransparentDepthNormalsPass();
@@ -80,6 +77,8 @@ namespace UnityEngine.Rendering.Universal
             m_CurrentColorPyramidPass = new ScreenSpaceLightingCurrentColorPyramidPass();
             m_ColorHistoryCapturePass = new ScreenSpaceLightingColorHistoryCapturePass();
             m_DebugPass = new ScreenSpaceLightingDebugPass();
+
+            ScreenSpaceDepthPyramidSystem.RegisterOwner(this);
         }
 
         /// <inheritdoc/>
@@ -132,7 +131,25 @@ namespace UnityEngine.Rendering.Universal
                 out _);
             history.BeginFrame();
 
-            m_DepthPyramidPass.Setup(history, m_Settings.resources);
+            // The frame's view projection is recorded here, before the shared depth pyramid and the
+            // consumers run, so the next frame's history validation sees this camera's matrices.
+            if (cameraData.xr.enabled)
+            {
+                for (int viewIndex = 0; viewIndex < viewCount; viewIndex++)
+                    history.RecordViewProj(viewIndex, ScreenSpaceLightingXr.GetViewProjection(cameraData, viewIndex));
+            }
+
+            var depthPyramid = ScreenSpaceDepthPyramidSystem.Acquire(
+                renderer,
+                in renderingData,
+                m_Settings.resources.depthPyramidCompute,
+                m_Settings.maxUnusedFrames,
+                m_Settings.maxCachedCameras);
+            if (depthPyramid == null)
+                return;
+
+            history.depthPyramidSource = depthPyramid;
+
             m_SsgiPass.Setup(history, m_Settings.resources);
             m_SsrPass.Setup(history, m_Settings.resources, m_Settings);
             m_TransparentDepthNormalsPass.Setup(history, m_Settings.resources);
@@ -145,7 +162,6 @@ namespace UnityEngine.Rendering.Universal
                 m_TransparentDepthNormalsPass, m_TransparentSsrPass);
 
             renderer.EnqueuePass(m_SetupPass);
-            renderer.EnqueuePass(m_DepthPyramidPass);
             renderer.EnqueuePass(m_SsgiPass);
             renderer.EnqueuePass(m_SsrPass);
             renderer.EnqueuePass(m_CleanupPass);
@@ -175,6 +191,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (disposing)
             {
+                ScreenSpaceDepthPyramidSystem.UnregisterOwner(this);
                 m_HistoryStore?.Dispose();
                 m_HistoryStore = null;
                 m_Settings?.resources?.DisposeMaterials();

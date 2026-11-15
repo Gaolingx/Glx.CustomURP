@@ -4,7 +4,8 @@ namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Adds ground truth ambient occlusion (GTAO) to the active renderer.
-    /// GTAO is independent from <c>ScreenSpaceLightingRendererFeature</c> and owns its own depth pyramid and history.
+    /// GTAO owns its AO history and packed buffers; the depth mip chain it traces against is shared
+    /// with <c>ScreenSpaceLightingRendererFeature</c> through <c>ScreenSpaceDepthPyramidSystem</c>.
     /// </summary>
     [DisallowMultipleRendererFeature("Ground Truth Ambient Occlusion")]
     [Tooltip("Ground truth ambient occlusion darkens creases and contact regions using a screen-space horizon search.")]
@@ -12,7 +13,6 @@ namespace UnityEngine.Rendering.Universal
     {
         [SerializeField] GroundTruthAmbientOcclusionSettings m_Settings = new GroundTruthAmbientOcclusionSettings();
 
-        GroundTruthAmbientOcclusionDepthPyramidPass m_DepthPyramidPass;
         GroundTruthAmbientOcclusionPass m_Pass;
         GroundTruthAmbientOcclusionDebugPass m_DebugPass;
         CameraHistoryStore<GroundTruthAmbientOcclusionHistory> m_HistoryStore;
@@ -20,7 +20,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal GroundTruthAmbientOcclusionSettings settings => m_Settings;
         internal GroundTruthAmbientOcclusionPass pass => m_Pass;
-        internal GroundTruthAmbientOcclusionDepthPyramidPass depthPyramidPass => m_DepthPyramidPass;
         internal GroundTruthAmbientOcclusionDebugPass debugPass => m_DebugPass;
         internal CameraHistoryStore<GroundTruthAmbientOcclusionHistory> historyStore => m_HistoryStore;
         internal bool loggedMissingResources => m_LoggedMissingResources;
@@ -35,9 +34,10 @@ namespace UnityEngine.Rendering.Universal
 
             m_HistoryStore?.Dispose();
             m_HistoryStore = new CameraHistoryStore<GroundTruthAmbientOcclusionHistory>();
-            m_DepthPyramidPass = new GroundTruthAmbientOcclusionDepthPyramidPass();
             m_Pass = new GroundTruthAmbientOcclusionPass();
             m_DebugPass = new GroundTruthAmbientOcclusionDebugPass();
+
+            ScreenSpaceDepthPyramidSystem.RegisterOwner(this);
         }
 
         /// <inheritdoc/>
@@ -83,11 +83,19 @@ namespace UnityEngine.Rendering.Universal
                 out _);
             history.BeginFrame();
 
-            m_DepthPyramidPass.Setup(history, m_Settings.resources, m_Settings.fullResolution);
+            var depthPyramid = ScreenSpaceDepthPyramidSystem.Acquire(
+                renderer,
+                in renderingData,
+                m_Settings.resources.depthPyramidCompute,
+                m_Settings.maxUnusedFrames,
+                m_Settings.maxCachedCameras);
+            if (depthPyramid == null)
+                return;
+
+            history.depthPyramidSource = depthPyramid;
             m_Pass.Setup(history, m_Settings, m_Settings.resources);
             m_DebugPass.Setup(history, m_Settings);
 
-            renderer.EnqueuePass(m_DepthPyramidPass);
             renderer.EnqueuePass(m_Pass);
 
             if (m_Settings.debugEnabled && m_Settings.resources.debugShader != null)
@@ -110,6 +118,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (disposing)
             {
+                ScreenSpaceDepthPyramidSystem.UnregisterOwner(this);
                 m_HistoryStore?.Dispose();
                 m_HistoryStore = null;
                 m_Settings?.resources?.DisposeMaterials();

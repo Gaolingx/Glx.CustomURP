@@ -213,7 +213,7 @@ public static class ScreenSpaceLightingT5Verification
         SetTarget(camera, imageTarget);
         cameraData.resetHistory = true;
 
-        var pyramidType = GetPluginType("GroundTruthAmbientOcclusionDepthPyramidPass");
+        var pyramidType = GetPluginType("ScreenSpaceDepthPyramidPass");
         var passType = GetPluginType("GroundTruthAmbientOcclusionPass");
         int pyramidExecutions = ReadStaticInt(pyramidType, "s_EditorExecuteCount");
         int pyramidCopies = ReadStaticInt(pyramidType, "s_EditorCopyDispatchCount");
@@ -668,8 +668,9 @@ public static class ScreenSpaceLightingT5Verification
         else if (!combinedAllocated)
             result.issues.Add("CombinedOrder: the GTAO resources were not allocated with SSL active.");
         if (result.sslGtaoCombinedPyramidBytes <= 0)
-            result.issues.Add("CombinedOrder: the GTAO private depth pyramid was not allocated.");
-        result.duplicateHiZBytes = 2L * result.sslGtaoCombinedPyramidBytes;
+            result.issues.Add("CombinedOrder: the shared depth pyramid was not allocated.");
+        // SSL and GTAO now consume one packed depth mip chain, so there is no duplicated Hi-Z.
+        result.duplicateHiZBytes = 0;
 
         if (reversedGtao == null)
             result.issues.Add("CombinedOrder: the reversed renderer has no GTAO feature.");

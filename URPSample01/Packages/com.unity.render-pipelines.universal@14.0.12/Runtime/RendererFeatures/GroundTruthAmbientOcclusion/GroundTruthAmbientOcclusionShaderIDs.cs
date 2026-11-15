@@ -47,9 +47,6 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int ScreenSpaceOcclusionTexture = Shader.PropertyToID("_ScreenSpaceOcclusionTexture");
         internal static readonly int AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
 
-        // Depth pyramid compute is shared with Screen Space Lighting, so its runtime keyword stays global.
-        internal static readonly string DepthPyramidXrKeyword = "SSL_XR_ARRAY";
-
         internal static readonly string XrArrayKeyword = "GTAO_XR_ARRAY";
         internal static readonly string OrthographicKeyword = "GTAO_ORTHO";
         internal static readonly string NormalsOctKeyword = "GTAO_NORMALS_OCT";

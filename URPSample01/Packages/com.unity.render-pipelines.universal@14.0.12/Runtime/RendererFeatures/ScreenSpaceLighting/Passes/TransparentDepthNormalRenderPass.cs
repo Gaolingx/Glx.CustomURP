@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
 
             ref var cameraData = ref renderingData.cameraData;
             var camera = cameraData.camera;
-            var depthSource = ScreenSpaceLightingDepthPyramidPass.GetCameraDepthTexture(cameraData.renderer);
+            var depthSource = ScreenSpaceRenderUtils.GetCameraDepthTexture(cameraData.renderer);
             if (depthSource == null)
                 return;
 

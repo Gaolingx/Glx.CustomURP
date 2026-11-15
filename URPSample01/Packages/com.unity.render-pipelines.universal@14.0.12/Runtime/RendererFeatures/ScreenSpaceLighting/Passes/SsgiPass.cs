@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.Universal
             int viewCount = ScreenSpaceLightingXr.GetViewCount(cameraData);
             TextureDimension dimension = ScreenSpaceLightingXr.GetResourceDimension(cameraData);
 
-            var depthTexture = ScreenSpaceLightingDepthPyramidPass.GetCameraDepthTexture(cameraData.renderer);
+            var depthTexture = ScreenSpaceRenderUtils.GetCameraDepthTexture(cameraData.renderer);
             var normalTexture = GetNormalTexture(cameraData.renderer);
             var motionTexture = GetMotionTexture(cameraData.renderer);
             if (depthTexture == null || normalTexture == null || motionTexture == null)

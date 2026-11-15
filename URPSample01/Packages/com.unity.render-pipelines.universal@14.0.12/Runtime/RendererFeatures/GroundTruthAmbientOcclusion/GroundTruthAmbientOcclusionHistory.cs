@@ -32,10 +32,13 @@ namespace UnityEngine.Rendering.Universal
         // across camera cuts, matching HDRP's camera frame counter behaviour.
         internal int effectFrameCount { get; private set; }
 
-        internal PackedMipChainInfo depthPyramidInfo => m_DepthPyramidInfo;
-        internal RTHandle depthPyramid { get; private set; }
-        internal ComputeBuffer depthPyramidOffsets { get; private set; }
-        internal int depthPyramidMipCount => m_DepthPyramidInfo.mipLevelCount;
+        // The packed depth mip chain is shared with Screen Space Lighting. This history only keeps
+        // the current frame's view so its consumers keep one binding path.
+        internal ScreenSpaceDepthPyramid depthPyramidSource { get; set; }
+        internal PackedMipChainInfo depthPyramidInfo => depthPyramidSource != null ? depthPyramidSource.info : default;
+        internal RTHandle depthPyramid => depthPyramidSource?.texture;
+        internal ComputeBuffer depthPyramidOffsets => depthPyramidSource?.offsets;
+        internal int depthPyramidMipCount => depthPyramidSource?.mipCount ?? 0;
 
         internal RTHandle packedData { get; private set; }
         internal RTHandle packedBlurred { get; private set; }
@@ -43,9 +46,8 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle occlusionTexture { get; private set; }
 
         internal bool resourcesAllocated =>
-            depthPyramid != null && packedData != null && m_HistoryTextures[0] != null && occlusionTexture != null;
+            packedData != null && m_HistoryTextures[0] != null && occlusionTexture != null;
 
-        PackedMipChainInfo m_DepthPyramidInfo;
         readonly RTHandle[] m_HistoryTextures = new RTHandle[k_HistoryBufferCount];
         int m_AllocatedWidth;
         int m_AllocatedHeight;
@@ -137,24 +139,6 @@ namespace UnityEngine.Rendering.Universal
             dimension = resourceDimension;
             fullResolution = useFullResolution;
 
-            m_DepthPyramidInfo.ComputePackedMipChainInfo(new Vector2Int(viewportWidth, viewportHeight));
-            depthPyramid = RTHandles.Alloc(
-                m_DepthPyramidInfo.textureSize.x,
-                m_DepthPyramidInfo.textureSize.y,
-                TextureWrapMode.Clamp,
-                TextureWrapMode.Clamp,
-                slices: slices,
-                colorFormat: ScreenSpaceCapability.k_DepthPyramidFormat,
-                filterMode: FilterMode.Point,
-                dimension: dimension,
-                enableRandomWrite: true,
-                useMipMap: false,
-                autoGenerateMips: false,
-                name: "GtaoDepthPyramid");
-
-            depthPyramidOffsets = new ComputeBuffer(PackedMipChainInfo.k_MaxMipLevelCount, sizeof(int) * 2);
-            m_DepthPyramidInfo.GetOffsetBufferData(depthPyramidOffsets);
-
             packedData = AllocPacked(aoWidth, aoHeight, "GtaoPackedData");
             packedBlurred = AllocPacked(aoWidth, aoHeight, "GtaoPackedBlurred");
             packedTemporalOutput = AllocPacked(aoWidth, aoHeight, "GtaoPackedTemporal");
@@ -227,14 +211,7 @@ namespace UnityEngine.Rendering.Universal
 
         void ReleaseResources()
         {
-            RTHandles.Release(depthPyramid);
-            depthPyramid = null;
-
-            if (depthPyramidOffsets != null)
-            {
-                depthPyramidOffsets.Release();
-                depthPyramidOffsets = null;
-            }
+            depthPyramidSource = null;
 
             RTHandles.Release(packedData);
             packedData = null;
@@ -251,7 +228,6 @@ namespace UnityEngine.Rendering.Universal
                 m_HistoryTextures[i] = null;
             }
 
-            m_DepthPyramidInfo = default;
             m_AllocatedWidth = 0;
             m_AllocatedHeight = 0;
             m_AllocatedAoWidth = 0;

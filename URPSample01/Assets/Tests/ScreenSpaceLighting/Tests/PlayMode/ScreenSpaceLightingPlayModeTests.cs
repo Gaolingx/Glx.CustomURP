@@ -345,7 +345,7 @@ namespace Unity.ScreenSpaceLighting.Tests.PlayMode
         {
             return new Counters
             {
-                depthPyramid = ReadStaticInt("ScreenSpaceLightingDepthPyramidPass", "s_EditorExecuteCount"),
+                depthPyramid = ReadStaticInt("ScreenSpaceDepthPyramidPass", "s_EditorExecuteCount"),
                 colorPyramid = ReadStaticInt("ScreenSpaceLightingCurrentColorPyramidPass", "s_EditorExecuteCount"),
                 ssgiTrace = ReadStaticInt("ScreenSpaceLightingSsgiPass", "s_EditorTraceDispatchCount"),
                 ssrTrace = ReadStaticInt("ScreenSpaceLightingSsrPass", "s_EditorTraceDispatchCount"),

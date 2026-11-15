@@ -1,15 +1,14 @@
-using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // Builds the private packed depth pyramid consumed by the GTAO horizon search. It is a distinct
-    // allocation from the Screen Space Lighting pyramid (T0 resource isolation) but reuses the same
-    // DepthPyramid.compute kernels.
-    internal sealed class GroundTruthAmbientOcclusionDepthPyramidPass : ScriptableRenderPass
+    // Builds the packed depth mip chain shared by every screen-space consumer of the camera view.
+    // The chain is produced once per camera and frame: ScreenSpaceDepthPyramidSystem enqueues this
+    // pass only for the first consumer, the later ones bind the same attachment.
+    internal sealed class ScreenSpaceDepthPyramidPass : ScriptableRenderPass
     {
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingPrePasses + 3);
-        internal const string k_ProfilingSamplerName = "GTAO Depth Pyramid";
+        internal const string k_ProfilingSamplerName = "Depth Pyramid";
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
         static readonly int s_CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
@@ -17,10 +16,10 @@ namespace UnityEngine.Rendering.Universal
         static readonly int s_DstOffset = Shader.PropertyToID("_SslDstOffset");
         static readonly int s_DstSize = Shader.PropertyToID("_SslDstSize");
         static readonly int s_DepthMipChain = Shader.PropertyToID("_SslDepthMipChain");
+        static readonly string s_XrArrayKeyword = "SSL_XR_ARRAY";
 
-        GroundTruthAmbientOcclusionHistory m_History;
-        GroundTruthAmbientOcclusionResources m_Resources;
-        bool m_FullResolution;
+        ScreenSpaceDepthPyramid m_Pyramid;
+        ComputeShader m_Compute;
         readonly int[] m_SrcOffsetAndLimit = new int[4];
         readonly int[] m_DstOffset = new int[4];
         readonly int[] m_DstSize = new int[2];
@@ -28,19 +27,21 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         internal static int s_EditorExecuteCount;
         internal static int s_EditorCopyDispatchCount;
+        internal static int s_EditorDownsampleDispatchCount;
 #endif
 
-        internal GroundTruthAmbientOcclusionDepthPyramidPass()
+        internal ScreenSpaceDepthPyramidPass()
         {
             renderPassEvent = k_RenderPassEvent;
+            // Motion is required by the SSGI/SSR reprojection and is also what forces URP to produce
+            // a depth texture before the GBuffer pass on the deferred path.
             ConfigureInput(ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Motion);
         }
 
-        internal void Setup(GroundTruthAmbientOcclusionHistory history, GroundTruthAmbientOcclusionResources resources, bool fullResolution)
+        internal void Setup(ScreenSpaceDepthPyramid pyramid, ComputeShader compute)
         {
-            m_History = history;
-            m_Resources = resources;
-            m_FullResolution = fullResolution;
+            m_Pyramid = pyramid;
+            m_Compute = compute;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -48,39 +49,32 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             s_EditorExecuteCount++;
 #endif
-            if (m_History == null || m_Resources == null || m_Resources.depthPyramidCompute == null)
+            if (m_Pyramid == null || m_Compute == null)
                 return;
 
-            ref var cameraData = ref renderingData.cameraData;
-            var descriptor = cameraData.cameraTargetDescriptor;
-            int viewCount = cameraData.xr.enabled ? Mathf.Max(1, cameraData.xr.viewCount) : 1;
-            TextureDimension dimension = viewCount > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
-
-            m_History.EnsureResources(
-                descriptor.width,
-                descriptor.height,
-                m_FullResolution,
-                viewCount,
-                dimension);
-
-            var depthTexture = GetCameraDepthTexture(cameraData.renderer);
-            var info = m_History.depthPyramidInfo;
-            var compute = m_Resources.depthPyramidCompute;
-            if (depthTexture == null || !info.IsValid() || m_History.depthPyramid == null)
+            m_Pyramid.EnsureResources();
+            if (!m_Pyramid.ready)
                 return;
 
-            var cmd = renderingData.commandBuffer;
-            bool useTextureArray = dimension == TextureDimension.Tex2DArray;
-            SetKeyword(compute, GroundTruthAmbientOcclusionShaderIDs.DepthPyramidXrKeyword, useTextureArray);
+            var depthTexture = ScreenSpaceRenderUtils.GetCameraDepthTexture(renderingData.cameraData.renderer);
+            if (depthTexture == null)
+                return;
+
+            var compute = m_Compute;
+            var info = m_Pyramid.info;
+            int viewCount = m_Pyramid.viewCount;
+            bool useTextureArray = m_Pyramid.dimension == TextureDimension.Tex2DArray;
+            SetKeyword(compute, s_XrArrayKeyword, useTextureArray);
 
             int copyKernel = compute.FindKernel("KDepthPyramidCopy");
             int downsampleKernel = compute.FindKernel("KDepthPyramidDownsample");
 
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
                 cmd.SetComputeTextureParam(compute, copyKernel, s_CameraDepthTexture, depthTexture);
-                cmd.SetComputeTextureParam(compute, copyKernel, s_DepthMipChain, m_History.depthPyramid);
-                cmd.SetComputeTextureParam(compute, downsampleKernel, s_DepthMipChain, m_History.depthPyramid);
+                cmd.SetComputeTextureParam(compute, copyKernel, s_DepthMipChain, m_Pyramid.texture);
+                cmd.SetComputeTextureParam(compute, downsampleKernel, s_DepthMipChain, m_Pyramid.texture);
 
                 var mip0Size = info.mipLevelSizes[0];
                 var mip0Offset = info.mipLevelOffsets[0];
@@ -105,18 +99,19 @@ namespace UnityEngine.Rendering.Universal
                         DivideRoundUp(dstSize.y, 8),
                         viewCount);
                 }
+#if UNITY_EDITOR
+                s_EditorDownsampleDispatchCount += info.mipLevelCount - 1;
+#endif
             }
         }
 
-        internal static RTHandle GetCameraDepthTexture(ScriptableRenderer renderer)
-        {
-            if (renderer is UniversalRenderer universalRenderer && universalRenderer.m_DepthTexture != null)
-                return universalRenderer.m_DepthTexture;
-
-            return renderer != null ? renderer.cameraDepthTargetHandle : null;
-        }
-
-        void SetOffsets(CommandBuffer cmd, ComputeShader compute, Vector2Int srcOffset, Vector2Int srcSize, Vector2Int dstOffset, Vector2Int dstSize)
+        void SetOffsets(
+            CommandBuffer cmd,
+            ComputeShader compute,
+            Vector2Int srcOffset,
+            Vector2Int srcSize,
+            Vector2Int dstOffset,
+            Vector2Int dstSize)
         {
             Vector2Int srcLimit = srcOffset + srcSize - Vector2Int.one;
             m_SrcOffsetAndLimit[0] = srcOffset.x;

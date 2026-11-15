@@ -786,8 +786,10 @@ public static class ScreenSpaceLightingT12Verification
 
     static object GetSslHistory(T12Context context)
     {
-        var depthPass = context.ssl.GetType().GetProperty("depthPyramidPass", InstanceFlags)?.GetValue(context.ssl);
-        return depthPass?.GetType().GetField("m_History", InstanceFlags)?.GetValue(depthPass);
+        // The depth pyramid is shared, so there is no per-feature pyramid pass to read the history
+        // from; every SSL consumer pass keeps the same per-camera history reference.
+        var ssgiPass = context.ssl.GetType().GetProperty("ssgiPass", InstanceFlags)?.GetValue(context.ssl);
+        return ssgiPass?.GetType().GetField("m_History", InstanceFlags)?.GetValue(ssgiPass);
     }
 
     static int ReadSslResetCount(T12Context context)
@@ -823,7 +825,7 @@ public static class ScreenSpaceLightingT12Verification
 
         // Per-frame pass counts: one transparent depth/normal prepass and the packed Hi-Z dispatches.
         var prepassType = FindPackageType("ScreenSpaceLightingTransparentDepthNormalsPass");
-        var depthPassType = FindPackageType("ScreenSpaceLightingDepthPyramidPass");
+        var depthPassType = FindPackageType("ScreenSpaceDepthPyramidPass");
         int prepassBefore = ReadEditorInt(prepassType, "s_EditorExecuteCount");
         int copyBefore = ReadEditorInt(depthPassType, "s_EditorCopyDispatchCount");
         int downsampleBefore = ReadEditorInt(depthPassType, "s_EditorDownsampleDispatchCount");

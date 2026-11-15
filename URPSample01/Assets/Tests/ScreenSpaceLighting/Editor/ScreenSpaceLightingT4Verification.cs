@@ -197,7 +197,7 @@ public static class ScreenSpaceLightingT4Verification
         GraphicsSettings.defaultRenderPipeline = t4Pipeline;
         QualitySettings.renderPipeline = t4Pipeline;
         SetTarget(camera, imageTarget);
-        var depthPassType = GetPluginType("ScreenSpaceLightingDepthPyramidPass");
+        var depthPassType = GetPluginType("ScreenSpaceDepthPyramidPass");
         var currentColorPassType = GetPluginType("ScreenSpaceLightingCurrentColorPyramidPass");
         var historyPassType = GetPluginType("ScreenSpaceLightingColorHistoryCapturePass");
 
@@ -469,7 +469,7 @@ public static class ScreenSpaceLightingT4Verification
         ssl.SetActive(false);
         try
         {
-            var depthPassType = GetPluginType("ScreenSpaceLightingDepthPyramidPass");
+            var depthPassType = GetPluginType("ScreenSpaceDepthPyramidPass");
             int before = ReadExecuteCount(depthPassType);
             var samples = RenderAndCapture(camera, imageTarget, 4);
             int executed = ReadExecuteCount(depthPassType) - before;
