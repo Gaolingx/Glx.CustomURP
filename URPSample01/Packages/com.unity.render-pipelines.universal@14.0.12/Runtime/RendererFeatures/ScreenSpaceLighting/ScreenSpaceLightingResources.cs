@@ -67,10 +67,11 @@ namespace UnityEngine.Rendering.Universal
             m_SsgiRankingTile = Resources.Load<Texture2D>("SsgiBlueNoise/RankingTile8SPP");
         }
 
-        // HDRP's ReflectionKernelMapping LUT scales the reflection filter radius by (NoV, roughness).
-        // It is resolved from the package Resources folder so a player build keeps it; until the asset
-        // is present the kernel receives a white texture, which collapses the radius scale to 1 and
-        // therefore to a fixed radius filter.
+        // HDRP's ReflectionKernelMapping LUT scales the reflection filter radius by (NoV, roughness). The
+        // asset is copied with HDRP's import settings (sRGB, mipmaps) because that is how HDRP samples
+        // it, so the radius scale matches. It is resolved from the package Resources folder so a
+        // player build keeps it; if the asset is stripped the kernel receives a white texture, which
+        // collapses the radius scale to 1 and therefore to a fixed radius filter.
         internal Texture2D ssrReflectionFilterMapping
         {
             get

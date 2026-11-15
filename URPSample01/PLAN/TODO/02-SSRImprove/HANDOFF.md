@@ -1,7 +1,7 @@
 # 02-SSRImprove 交接
 
 > 更新：2026-11-16
-> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约冻结、T1 `ReflectionDenoiser` 移植完成（2026-11-16）；T2/T3 未开始。**
+> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约冻结、T1 `ReflectionDenoiser` 移植、T2 mapping 资源完成（2026-11-16）；T3 进行中。**
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -85,7 +85,7 @@
 | `TemporalAccumulationFullRes` / `TemporalAccumulationHalfRes` + `CopyHistory` | ✅ `ReflectionDenoiser.compute` 已移植；T1 只调度全分辨率，半分辨率随 T3 接线 |
 | 时间累积按 depth/position 校验，历史 RGBA（rgb + sample count） | ✅ 时间累积已移植；历史为 `(radiance, weight)` + 独立 sample count，另加历史法线拒绝 |
 | `BilateralFilterH_FR` / `BilateralFilterV_FR`（半分辨率对应 `_HR`），可分离两遍 | ✅ FR 两遍已接；HR 变体已编译，T3 接线 |
-| `_ReflectionFilterMapping`（`ReflectionKernelMapping.png`，按 `(NoV, roughness)` 缩放半径） | 绑定白色 fallback（等效固定半径），T2 换成 PNG |
+| `_ReflectionFilterMapping`（`ReflectionKernelMapping.png`，按 `(NoV, roughness)` 缩放半径） | ✅ T2 已随包提供（HDRP 原 `.meta`），缺失时白纹理回退 |
 | `_DenoiserFilterRadius`（`maxKernelSize`） | ✅ Volume `denoiserRadius`（1–32，默认 8）；半分辨率取一半随 T3 |
 | `affectSmoothSurfaces`、`singleReflectionBounce`、`roughnessBasedDenoising` | ✅ 前两者是 Volume 参数；`roughnessBasedDenoising` 由 `singleReflectionBounce` 派生（同 HDRP） |
 | 历史 `.w` = sample count | 保持 `(radiance, weight)` + 独立 `R16_SFloat`（T0 决策） |
@@ -187,7 +187,7 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - PBR 稳定帧与旧实现不再逐像素一致：时间累积权重、空间双边、weight 不再参与时间混合。
 - `accumulationFactor` 与 `speed*` 成为死参数；T4 处理文档/弃用标注。
 - `SsrAccumulationSpeed` 调试视图退化为 `SsrRaw`；T8/T10 验证脚本仍读旧静态计数名，T5 需更新。
-- 白色 fallback 对 `roughness < ~0.88` 与 HDRP mapping 等价（LUT 在该区间为 1），只有接近 1 的 roughness 会拿到过大半径；默认 `minSmoothness = 0.9` 把信号限制在 `roughness <= 0.1`，因此 T1 的默认视觉不受影响。T2 复制 PNG 后这一区间也对齐。
+- 白色 fallback 让所有像素拿到满半径（8px）。真实 LUT 的 roughness 轴是「越光滑半径越小」：roughness 0 → 0，roughness ≥ 0.25 → 1。所以 T1 单独提交时，默认 `minSmoothness = 0.9` 下的光滑反射会被多余地空间模糊；T2 接入 PNG 后恢复 HDRP 行为（见下）。
 - 半分辨率尚未接线；`T14KnownDifferences.md` 尚未同步。
 
 ### T2：`ReflectionKernelMapping` 资源与 roughness 滤波（0.5–1 天）
@@ -196,6 +196,30 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - `ReflectionDenoiser.compute` 按 HDRP 读取 `float2 mappingUV = float2(dot(viewWS, normal), roughness)`，`FINAL_PASS` 用 `radiusScale.x`，中间 pass 用 `.y`。
 - `_DenoiserFilterRadius` 映射 Volume 的 `denoiserRadius`（若 Volume 没有该字段则新增 `ClampedIntParameter`，语义为最大滤波半径）。
 - 验收：粗糙度梯度场景下半径单调；无 mapping 资源时回退到固定半径。
+
+#### T2 结论（2026-11-16，已完成）
+
+**资源与加载**
+
+| 项 | 结果 |
+|---|---|
+| 资产 | `URP/Runtime/RendererFeatures/ScreenSpaceLighting/Resources/SsrDenoise/ReflectionKernelMapping.png`，连同 HDRP 原 `.meta`（GUID `82eec49626a00b047ba86244607816c8`）复制，沿用 blue-noise 的惯例 |
+| 导入设置 | sRGB + mipmap + DXT1/自动压缩，与 HDRP 完全相同；`T14KnownDifferences` 旧稿里“线性、无 mip”的描述有误，HDRP 本身就是 sRGB+mip，必须一致才能得到相同半径 |
+| 加载 | `ssrReflectionFilterMapping` 的 `Resources.Load("SsrDenoise/ReflectionKernelMapping")` 命中真实资源；缺失时仍回退白纹理（固定半径） |
+
+**半径验收**（`validation/T2/MappingCheck.txt`，GPU 回读 + sRGB 解码后的线性值）
+
+| roughness | mapping 半径系数 | `denoiserRadius = 8` 时的像素半径 |
+|---|---|---|
+| 0.000 | 0.000 | 0（不做空间滤波） |
+| 0.063 | 0.09–0.10 | ~0.8 |
+| 0.126 | 0.32–0.67（随 NoV 变化） | ~2.6–5.4 |
+| ≥ 0.252 | 1.000 | 8 |
+
+- 沿 roughness 轴单调不减（DXT1 量化容差 0.05 内）；NoV 只在过渡带（roughness 0.06–0.13）影响系数。
+- 结论：LUT 让“光滑反射几乎不滤波、粗糙反射用满半径”，与 T1 的白纹理 interim 相反；T2 修正了 T1 对光滑反射的过度模糊。
+- 单测 `ReflectionFilterMappingIsPackagedWithTheHdrpImportSettings` 锁定资源路径、尺寸、sRGB/mipmap 导入设置；EditMode **418 passed / 0 failed**。
+- 未做：粗糙度梯度实拍截图（T5 视觉验收）。
 
 ### T3：历史校验与半分辨率（1–2 天）
 
@@ -249,7 +273,8 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 ### 4.3 视觉/数值
 
 - [ ] 光滑金属球反射与 HDRP 参照对齐（同一场景、同一曝光）。
-- [ ] 粗糙度梯度下滤波半径单调，无 `ReflectionKernelMapping` 时回退不产生明显台阶。
+- [x] `ReflectionKernelMapping` 已随包提供，GPU 回读验证半径沿 roughness 单调不减（T2 证据）。
+- [ ] 粗糙度梯度实拍无明显台阶；资源缺失时白纹理回退不产生可见跳变。
 - [ ] 半分辨率开关无明显跳变；clear coat 的 base/coat 层次不双重计数。
 
 ### 4.4 证据清单（完成后必须存在）
@@ -260,6 +285,10 @@ PLAN/TODO/02-SSRImprove/validation/
 ├─ T1/UnityShaderCheck.log            # 批处理编译日志
 ├─ T1/UnityEditModeTests.xml          # EditMode 结果（417 passed）
 ├─ T1/UnityEditMode.log               # EditMode 日志
+├─ T2/MappingCheck.txt                # mapping 半径系数与单调性
+├─ T2/UnityMappingCheck.log           # mapping 回读日志
+├─ T2/UnityEditModeTests.xml          # EditMode 结果（418 passed）
+├─ T2/UnityEditMode.log               # EditMode 日志
 ├─ T5/T7Verification.json             # Approximation 三渲染器
 ├─ T5/T8Verification.json             # PBR 三渲染器
 ├─ T5/FrameDebuggerReport.json        # Pass 顺序
@@ -301,6 +330,7 @@ PLAN/TODO/02-SSRImprove/validation/
 
 - SSGI 降噪库：`URP/Shaders/Utils/Denoising/{DenoisingUtils.hlsl,BilateralFilter.hlsl,TemporalFilter.compute,DiffuseDenoiser.compute}`
 - SSR 降噪：`URP/Shaders/Utils/Denoising/ReflectionDenoiser.compute`
+- SSR 滤波半径 LUT：`URP/Runtime/RendererFeatures/ScreenSpaceLighting/Resources/SsrDenoise/ReflectionKernelMapping.png`
 - SSGI 调度：`URP/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsgiPass.cs`
 - SSR 调度：`URP/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs`
 - SSR shader：`URP/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute`

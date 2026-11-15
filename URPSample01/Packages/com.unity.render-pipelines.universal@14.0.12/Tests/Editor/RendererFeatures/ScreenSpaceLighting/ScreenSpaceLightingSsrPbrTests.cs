@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -50,6 +51,27 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.AreEqual(32, m_Settings.denoiserRadius.max);
             Assert.IsFalse(m_Settings.affectSmoothSurfaces.value);
             Assert.IsTrue(m_Settings.singleReflectionBounce.value);
+        }
+
+        [Test]
+        public void ReflectionFilterMappingIsPackagedWithTheHdrpImportSettings()
+        {
+            var resources = new ScreenSpaceLightingResources();
+            var mapping = resources.ssrReflectionFilterMapping;
+
+            Assert.IsNotNull(mapping);
+            Assert.IsFalse(ReferenceEquals(mapping, Texture2D.whiteTexture), "the packaged LUT must replace the white fallback");
+            Assert.AreEqual(128, mapping.width);
+            Assert.AreEqual(128, mapping.height);
+
+            var path = AssetDatabase.GetAssetPath(mapping);
+            Assert.IsFalse(string.IsNullOrEmpty(path), "the LUT must be resolved through a Resources folder");
+            Assert.IsTrue(path.EndsWith("SsrDenoise/ReflectionKernelMapping.png"), path);
+
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            Assert.IsNotNull(importer);
+            Assert.IsTrue(importer.sRGBTexture, "HDRP decodes the LUT through the sRGB sampler");
+            Assert.IsTrue(importer.mipmapEnabled, "HDRP samples the LUT with mipmaps enabled");
         }
 
         [Test]

@@ -1,0 +1,13 @@
+ASSET PATH Packages/com.unity.render-pipelines.universal/Runtime/RendererFeatures/ScreenSpaceLighting/Resources/SsrDenoise/ReflectionKernelMapping.png
+TEXTURE ReflectionKernelMapping 128x128 format=DXT1
+roughness=0.000  NoV=0.00:0.000  NoV=0.25:0.000  NoV=0.50:0.000  NoV=0.76:0.000  NoV=1.00:0.000
+roughness=0.063  NoV=0.00:0.086  NoV=0.25:0.086  NoV=0.50:0.102  NoV=0.76:0.102  NoV=1.00:0.008
+roughness=0.126  NoV=0.00:0.671  NoV=0.25:0.671  NoV=0.50:0.463  NoV=0.76:0.463  NoV=1.00:0.322
+roughness=0.252  NoV=0.00:1.000  NoV=0.25:1.000  NoV=0.50:1.000  NoV=0.76:1.000  NoV=1.00:1.000
+roughness=0.504  NoV=0.00:1.000  NoV=0.25:1.000  NoV=0.50:1.000  NoV=0.76:1.000  NoV=1.00:1.000
+roughness=0.756  NoV=0.00:1.000  NoV=0.25:1.000  NoV=0.50:1.000  NoV=0.76:1.000  NoV=1.00:1.000
+roughness=0.882  NoV=0.00:1.000  NoV=0.25:1.000  NoV=0.50:1.000  NoV=0.76:1.000  NoV=1.00:1.000
+roughness=0.945  NoV=0.00:1.000  NoV=0.25:1.000  NoV=0.50:1.000  NoV=0.76:1.000  NoV=1.00:1.000
+roughness=0.992  NoV=0.00:1.000  NoV=0.25:1.000  NoV=0.50:1.000  NoV=0.76:1.000  NoV=1.00:1.000
+SCALE roughness=0.063 0.102 radius=0.82px
+SCALE roughness=0.945 1.000 radius=8.00px
