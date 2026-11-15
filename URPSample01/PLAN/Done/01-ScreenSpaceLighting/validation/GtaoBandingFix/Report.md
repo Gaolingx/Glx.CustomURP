@@ -44,6 +44,38 @@ kernels, so the gather is undefined.
   both captures. It verifies that SimpleLit keeps the SSL weight at 0, and SimpleLit legitimately
   receives GTAO once the AO buffer is correct.
 
+## Investigation: why HDRP behaves differently
+
+The kernels are a line-by-line port of HDRP 14.0.12, so the first question is whether the divergence is
+a URP defect or a porting problem. A standalone compute probe (`GatherProbe.txt`) ran the same
+`GatherRed` on a texture whose value depends only on Y and reported whether the row ramp survives:
+
+| Variant | Row ramp preserved |
+|---|---|
+| `SamplerState s_gtao_point_clamp_sampler` (the port's renamed sampler) | yes |
+| `SamplerState s_point_clamp_sampler` (HDRP's original name) | yes |
+| built-in `sampler_PointClamp` | yes |
+| corner UV (`pixel * invSize`, the HDRP convention, no half texel) | yes |
+| source written by a compute dispatch, read by another dispatch in the same command buffer | yes |
+
+So `GatherRed`, the sampler naming and the UAV->SRV ordering are all fine in this project: it is not a
+URP compute bug and the T0 `_Gtao` rename of the sampler is not the cause. Two further probe runs on
+the real spatial kernel narrowed it down:
+
+- original UVs (`GTAOClampAndScaleUVForBilinear((pixel + offset) * _GtaoBufferSize.zw)`) with the
+  fetch replaced by `Load` at the same UV: **still banded**;
+- the identical fetch with the clamp (`min`) removed: **no banding**.
+
+That points at the UV/clamp composition inside the denoise kernels rather than at `GatherRed` itself.
+The fetch collapses the V coordinate for most of the image, so every output row ends up with the AO of
+a single input row, which is exactly the column pattern seen on screen. The fix removes that whole
+path (integer loads on the same 2x2 block), so the artifact cannot come back through it.
+
+Open point: the exact codegen-level reason the clamped UV degenerates (wrong uniform value, or a
+folding/min optimisation in the compiled kernel) is not proven. A RenderDoc capture of the failing
+spatial dispatch would show the bound uniform and the sampler/UV read; the behavioural evidence above
+is what the fix was validated against.
+
 ## Validation
 
 | Check | Result | Evidence |

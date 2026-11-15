@@ -1,0 +1,5 @@
+renamed: row0=0.0159 row63=1.0000 columnSamples=0.016 0.143 0.270 0.397 0.524 0.651 0.778 0.905
+hdrp-name: row0=0.0159 row63=1.0000 columnSamples=0.016 0.143 0.270 0.397 0.524 0.651 0.778 0.905
+builtin: row0=0.0159 row63=1.0000 columnSamples=0.016 0.143 0.270 0.397 0.524 0.651 0.778 0.905
+corner-uv: row0=0.0000 row63=1.0000 columnSamples=0.000 0.127 0.254 0.381 0.508 0.635 0.762 0.889
+uav-then-gather: row0=0.0159 row63=1.0000 columnSamples=0.016 0.143 0.270 0.397 0.524 0.651 0.778 0.905
