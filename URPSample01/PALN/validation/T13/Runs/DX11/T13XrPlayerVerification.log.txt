@@ -4,5 +4,5 @@ device=NVIDIA GeForce RTX 5060 Ti
 foveatedRenderingCaps=None
 xrAvailable=True
 arrayProbe=slice0=RGBA(1.000, 1.000, 1.000, 1.000) slice1=RGBA(1.000, 1.000, 1.000, 1.000)
-MultiPass: passed=True issues=0 eyes=1030682/1059458 changed=339876/322764 entries=2 slices=1 dim=Tex2D
-SinglePassInstanced: passed=True issues=0 eyes=924469/948197 changed=278199/264981 entries=1 slices=2 dim=Tex2DArray
+MultiPass: passed=True issues=0 eyes=1030682/1059458 changed=339876/322760 entries=2 slices=1 dim=Tex2D
+SinglePassInstanced: passed=True issues=0 eyes=924469/948198 changed=278201/264983 entries=1 slices=2 dim=Tex2DArray

@@ -1,5 +1,5 @@
 {
-    "utcTimestamp": "2026-11-15T06:31:52.8517406Z",
+    "utcTimestamp": "2026-11-15T06:52:30.4898889Z",
     "unityVersion": "2022.3.62f1",
     "graphicsDeviceType": "Direct3D11",
     "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
@@ -26,7 +26,7 @@
                 {
                     "name": "AllOn",
                     "leftHash": "2BAEAAB54757C9BCB2ED431729E1965E45528463DBE6AE093293FA051D6D8CD9",
-                    "rightHash": "08DDF0AD1C7919ACD72E8D15EA201884CAB09974A2B8C90190A34CA6A6DD2397",
+                    "rightHash": "6AB2EA73268B8EDFA244E42A1CCCA5D0B7B2A53618290F4F0AB05286833B1C93",
                     "leftMeanLuminance": 0.35834404826164248,
                     "rightMeanLuminance": 0.3599557876586914,
                     "leftNonFinite": 0,
@@ -44,7 +44,7 @@
                 {
                     "name": "SsgiOnly",
                     "leftHash": "5DE6B6628AA7C65CD15DA14C86F359FAFA100522F2BD9A62736AC5F0415D5464",
-                    "rightHash": "3CC63302F7AD1AE0D7B55EAD92474811E0A3F73788EE5D36265DC38A56723566",
+                    "rightHash": "C9B87818DC947779CC2FE768997612F8D3FCFED27F551BA085F7E861B048CDFD",
                     "leftMeanLuminance": 0.3586326241493225,
                     "rightMeanLuminance": 0.3602416515350342,
                     "leftNonFinite": 0,
@@ -91,7 +91,7 @@
             "normalsDimension": "Tex2D",
             "depthDimension": "Tex2D",
             "ssgiFinalAlphaMean": [
-                0.022888565436005594
+                0.022888462990522386
             ],
             "ssrWeightMean": [
                 0.0022628114093095066
@@ -120,9 +120,9 @@
             "referenceEyeDifference": 1030682,
             "effectEyeDifference": 1059458,
             "effectsChangedLeft": 339876,
-            "effectsChangedRight": 322764,
+            "effectsChangedRight": 322760,
             "ssgiChangedLeft": 232870,
-            "ssgiChangedRight": 193006,
+            "ssgiChangedRight": 193003,
             "ssrChangedLeft": 6753,
             "ssrChangedRight": 6820,
             "refractionChangedLeft": 6997,
@@ -151,8 +151,8 @@
                 },
                 {
                     "name": "AllOn",
-                    "leftHash": "CBB6D25575ACB57B419B0295B584B0B3FFF164757DAB56351F025C95BA775BE9",
-                    "rightHash": "66ABFBBA3AEE84996125767C781110CEE68D53103D49E53FF9900C545E6C458D",
+                    "leftHash": "D51E49EA49496493F90F7F27BDC296BECF7CF2A5A88453C3E125A74DBD882239",
+                    "rightHash": "353A7F919E74E9DEF01C54DAE3E3C4A1F389099F0F2ECBEDA61547923B078A84",
                     "leftMeanLuminance": 0.35897842049598696,
                     "rightMeanLuminance": 0.36058351397514346,
                     "leftNonFinite": 0,
@@ -169,8 +169,8 @@
                 },
                 {
                     "name": "SsgiOnly",
-                    "leftHash": "FE1A9CB4B2815FDE7A8B722FDF37B65AAC89C53B829B8572FA954D2ED90F6765",
-                    "rightHash": "0BFCCA5C7E0C138F249CE3A5B255D53CCFFD16EE365B53AD39FCDBA37335C5C3",
+                    "leftHash": "DD4EF780D7E71D5C3475A557C9426C89D649CE40AFC05C5F38145D57EE31660B",
+                    "rightHash": "D67A64B14AF65F349CE03B490301A3C28BDDD28B45FB1C91D68887C32B0F06C5",
                     "leftMeanLuminance": 0.3588593900203705,
                     "rightMeanLuminance": 0.36044439673423769,
                     "leftNonFinite": 0,
@@ -211,8 +211,8 @@
             "depthPyramidSliceCount": 2,
             "previousViewProjViews": 2,
             "previousColorPyramidSliceHashes": [
-                "5CFA42AA141FBC94D890C3D22A941560610DA4D6D9F0812C767EEF21B9B479DE",
-                "C71596749D787C89E6CA43AB817F79F3E1C9FDD43B518159C545DC11404B6351"
+                "64CF7B36A735E7B97C0B5F98EED1EC2E9C4B19F30B3B1C5274191F98FF8B801A",
+                "CF2C14B00AAA3816E246D5031A94DEF00F183AA79095291B6530A793AFF193D0"
             ],
             "ssgiProduced": true,
             "ssrProduced": true,
@@ -220,8 +220,8 @@
             "normalsDimension": "Tex2DArray",
             "depthDimension": "Tex2DArray",
             "ssgiFinalAlphaMean": [
-                0.01893329992890358,
-                0.01803332194685936
+                0.01893325336277485,
+                0.018033398315310479
             ],
             "ssrWeightMean": [
                 0.002247889991849661,
@@ -229,7 +229,7 @@
             ],
             "ssgiHitXMean": [
                 95.55081176757813,
-                95.5590591430664
+                95.55909729003906
             ],
             "ssrHitXMean": [
                 98.77886199951172,
@@ -237,7 +237,7 @@
             ],
             "gtaoMean": [],
             "colorPyramidMean": [
-                0.17965614795684815,
+                0.17965613305568696,
                 0.18157106637954713
             ],
             "monoViewProjSummary": "0.385,0.000,0.298",
@@ -252,11 +252,11 @@
             "ssrDispatchTextureArray": 1,
             "referenceRestored": true,
             "referenceEyeDifference": 924469,
-            "effectEyeDifference": 948197,
-            "effectsChangedLeft": 278199,
-            "effectsChangedRight": 264981,
-            "ssgiChangedLeft": 325435,
-            "ssgiChangedRight": 322041,
+            "effectEyeDifference": 948198,
+            "effectsChangedLeft": 278201,
+            "effectsChangedRight": 264983,
+            "ssgiChangedLeft": 325436,
+            "ssgiChangedRight": 322043,
             "ssrChangedLeft": 6779,
             "ssrChangedRight": 6844,
             "refractionChangedLeft": 7013,
