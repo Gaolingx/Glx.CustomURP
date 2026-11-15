@@ -1,7 +1,7 @@
 # 02-SSRImprove 交接
 
 > 更新：2026-11-16
-> 状态：**本轮只完成了 SSGI 对齐与降噪库迁移；SSR 降噪改造尚未开始。**
+> 状态：**SSGI 对齐与降噪库迁移完成；SSR 降噪 T0 契约已冻结，T1 实现进行中。**
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -103,6 +103,39 @@
 - 决定 Approximation 是否也走 TemporalFilter（HDRP 的 SSR 两者都过 temporal）；建议 Approximation 保持现状，只把 PBR 替换为 ReflectionDenoiser，避免同时改两条路径。
 - 决定 `singleReflectionBounce` / `affectSmoothSurfaces` 的默认值与映射（没有 RT 路径时语义要重新解释）。
 - 输出：契约表写入本文 + `ScreenSpaceLightingHistory` 注释，冻结后再改代码。
+
+#### T0 结论（2026-11-16，已冻结）
+
+| 决策项 | 结论 | 理由 |
+|---|---|---|
+| 历史布局 | RGBA16F 槽：`rgb` = 累积 radiance（非预乘），`a` = 最近一帧的 blend weight；sample count 独立 `R16_SFloat`，与历史同帧 ping-pong | 与 SSGI 的 `(radiance, weight)` + 独立计数一致；材质契约的 alpha 是 weight，不能与 sample count 共用 |
+| 累积输入 | `ssrPbrOriginal`（`rgb` radiance，`a` weight）；temporal 只混合 `rgb`，写出当前帧的 `a` | 保持材质端 `lerp(probe, radiance, weight)`；HDRP 同样写输入 alpha |
+| 空间滤波 | 可分离双边 H/V 只过滤 `rgb`，保留中心像素的 `a` | 同 HDRP；weight 是覆盖率，不随邻域 radiance 平均 |
+| 历史拒绝 | temporal kernel 内联（HDRP 反射 denoiser 没有独立 Validate）：当前/历史 far depth、重投影出屏、世界半径超限，另加 URP 扩展 `dot(当前N, 历史N) < 0.75` | SSR 有深度法线 prepass，跨轮廓重投影需要法线拒绝；0.75 取 HDRP 文件声明的 `REFLECTION_HISTORY_REJECTION_THRESHOLD` |
+| 粗糙度分支 | perceptual roughness `< 0.5` 走 TAA AABB clip（feedback 0.96/0.91）；`>= 0.5` 走 sample-count running average（0.93，上限 8） | 照搬 HDRP，不重新调参 |
+| Approximation | 保持单帧 + 3×3 洞填充，不接 temporal/双边 | 一次只改一条路径；Approximation 依赖单帧 color pyramid 语义 |
+| `singleReflectionBounce` | 默认 `true`；同时驱动 `_RoughnessBasedDenoising`（同 HDRP）。SSR 只有一次弹射，该开关只表示“允许按 roughness 缩放滤波半径” | HDRP 的默认值为 RT 多弹射设计，URP 需重新解释并写进 Tooltip |
+| `affectSmoothSurfaces` | 默认 `false`；`smoothness > 0.99` 且 `singleReflectionBounce` 时跳过 temporal | 同 HDRP 的 early-out 条件 |
+| `denoiserRadius` | 新增 `ClampedIntParameter`（1–32，默认 8）；半分辨率时取一半 | HDRP 14.0.12 默认值 |
+| `ReflectionKernelMapping` | T1 绑定白色 fallback（等效固定半径），T2 换成 PNG；`_RoughnessBasedDenoising` 的绑定方式不变 | 把资源与 kernel 移植解耦，T1 不依赖新资产 |
+| 半分辨率 | T1 只调度全分辨率 kernel；`HALF_RESOLUTION` 变体随 T3 接 dispatch | 与 T3 的资源布局一起验收 |
+| XR | `SSL_XR_ARRAY`；历史/计数为 texture array；temporal 用 `SSL_PREV_INV_VIEW_PROJ`，双缓冲区按 slice 读写 | 与 SSGI 的 history 路径一致 |
+| 曝光 | 不移植 exposure 代码；radiance 为 pre-exposure，绑定 1/1 | URP 该阶段没有曝光，与 SSGI 历史一致 |
+| 旧 Volume 参数 | `biasFactor` 继续用于 trace 的 Rothko bias；`accumulationFactor`、`speed*` 系列在 PBR 路径不再读取，T4 标记弃用 | 不做破坏性删除，已有 Volume 覆盖仍可序列化 |
+| 调试 | `SsrAccumulationSpeed` 保留枚举值但退化为 `SsrRaw`；`SsrPbrParams` 保留一个调试 kernel | 调试枚举是公开 API，序列化值不能重排 |
+
+**单帧调度（T1 目标）**
+
+```
+trace                → ssrHitPoint
+reproject            → ssrPbrOriginal        (radiance, weight)
+TemporalAccumulation → ssrDenoiseIntermediate0 + ssrPbrSampleCount[writeSlot]
+CopyHistory          → ssrPbrHistory[writeSlot] (累积 radiance, 当前 weight)
+BilateralFilterH_FR  → ssrDenoiseIntermediate1
+BilateralFilterV_FR  → ssrOutput             (材质消费)
+```
+
+历史读取槽在首帧/失效帧仍绑定一个已分配纹理，但 `_HistoryValidity = 0` 时 temporal 在采样前返回，因此不再需要 `ClearAccumulationHistory`。
 
 ### T1：移植 `ReflectionDenoiser.compute` 并替换 PBR 累积（2–3 天）
 
