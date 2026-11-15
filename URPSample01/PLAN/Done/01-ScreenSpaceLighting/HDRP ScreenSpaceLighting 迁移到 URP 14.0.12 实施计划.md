@@ -1,6 +1,6 @@
 # HDRP ScreenSpaceLighting 迁移到 URP 14.0.12 实施计划
 
-> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2–T12 均已退出（T12 与 T13 于 2026-11-15 退出）；2026-11-14 按用户要求重新打开 T0，移除 URP 内置 SSAO（像素着色器实现），GTAO 成为唯一 AO 生产者；T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PALN/HANDOFF.md`。GTAO、SSGI、Opaque SSR Approximation/PBR Accumulation、Transparent SSR 与 Refraction 均已实现，全组合矩阵已通过；T1 结论以 `PALN/validation/T1/T1Report.json` 为准，T2 结论以 `PALN/validation/T2/T2Verification.json` 和 `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PALN/validation/T3/T3Report.json` 为准，T4 结论以 `PALN/validation/T4/T4Report.json` 为准，T5 结论以 `PALN/validation/T5/T5Report.json` 为准，T7 结论以 `PALN/validation/T7/T7Report.json` 为准，T8 结论以 `PALN/validation/T8/T8Report.json` 为准，T9 结论以 `PALN/validation/T9/T9Report.json` 为准，T10 结论以 `PALN/validation/T10/T10Report.json` 为准，T11 结论以 `PALN/validation/T11/T11Report.json` 为准，T12 结论以 `PALN/validation/T12/T12Report.json` 为准，T13 结论以 `PALN/validation/T13/T13Report.json` 为准。
+> 状态：**T0 决策已冻结；T1 已按 R3 协议退出，并在 T2 改动后由 Run15/Run16 复验（2026-11-14，CPU p95 + 图像/显存/Pass 顺序可重复，GPU p95 为参考数据）；T2–T12 均已退出（T12 与 T13 于 2026-11-15 退出）；2026-11-14 按用户要求重新打开 T0，移除 URP 内置 SSAO（像素着色器实现），GTAO 成为唯一 AO 生产者；T14 未开始**。本文记录架构理由、范围与验收契约；后续执行入口只维护在 `PLAN/HANDOFF.md`。GTAO、SSGI、Opaque SSR Approximation/PBR Accumulation、Transparent SSR 与 Refraction 均已实现，全组合矩阵已通过；T1 结论以 `PLAN/validation/T1/T1Report.json` 为准，T2 结论以 `PLAN/validation/T2/T2Verification.json` 和 `PLAN/validation/T2/FrameDebugger/FrameDebuggerReport.json` 为准，T3 结论以 `PLAN/validation/T3/T3Report.json` 为准，T4 结论以 `PLAN/validation/T4/T4Report.json` 为准，T5 结论以 `PLAN/validation/T5/T5Report.json` 为准，T7 结论以 `PLAN/validation/T7/T7Report.json` 为准，T8 结论以 `PLAN/validation/T8/T8Report.json` 为准，T9 结论以 `PLAN/validation/T9/T9Report.json` 为准，T10 结论以 `PLAN/validation/T10/T10Report.json` 为准，T11 结论以 `PLAN/validation/T11/T11Report.json` 为准，T12 结论以 `PLAN/validation/T12/T12Report.json` 为准，T13 结论以 `PLAN/validation/T13/T13Report.json` 为准。
 >
 > 基线：Unity `2022.3.62f1`，URP/HDRP `14.0.12`。
 >
@@ -45,7 +45,7 @@
 
 ## 2. T0：架构边界与最终决策
 
-> **冻结基线（2026-11-14）**：第 1.2–1.3、2、5.2、6、7、9 节规定的交付边界、依赖方向、资源所有权、Pass 顺序和数据契约为 T1–T14 的实施基线。后续任务不得静默改回单一总 Feature、插件私有 Motion、UACD 插件历史、跨 Feature 全局 Hi-Z 或 Deferred GBuffer 后叠加；确需变更时必须重新打开 T0，记录原因、兼容性影响、测试影响和替代方案，并同步更新本文与 `PALN/HANDOFF.md` 后再实施。测试资产、性能数值和验证证据不属于架构冻结内容，可按实际结果补充。
+> **冻结基线（2026-11-14）**：第 1.2–1.3、2、5.2、6、7、9 节规定的交付边界、依赖方向、资源所有权、Pass 顺序和数据契约为 T1–T14 的实施基线。后续任务不得静默改回单一总 Feature、插件私有 Motion、UACD 插件历史、跨 Feature 全局 Hi-Z 或 Deferred GBuffer 后叠加；确需变更时必须重新打开 T0，记录原因、兼容性影响、测试影响和替代方案，并同步更新本文与 `PLAN/HANDOFF.md` 后再实施。测试资产、性能数值和验证证据不属于架构冻结内容，可按实际结果补充。
 
 ### 2.1 依赖方向与模块责任
 
@@ -486,19 +486,19 @@ URP/Editor/RendererFeatures/
 |---|---|---|---|
 | **T0** | P0 / 无 | 确立 Core/Plugin 边界、两个 Feature、Volume、历史/Motion/Hi-Z 所有权、冲突策略和文件清单 | **2026-11-14 已冻结**；无“GTAO 子模块”“Volume 直接加 Pass”“UACD 持插件历史”等旧决策；变更必须重新打开 T0 并同步两份文档 |
 | **T1** | P0 / T0 | 建立三 Renderer 测试资产、固定场景/相机/随机序列、原始截图、Frame Debugger 时序、GPU/显存基线；确定目标 API 和可量化性能预算 | **已退出（2026-11-14，R3）**：资产、构建、图像、显存、Frame Debugger 和设置恢复通过；Run13/Run14 在固定协议下三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 2.19%/2.28%/2.30%（≤10%）。T2 Core 改动后由 Run15/Run16 复验，CPU p95 波动 0.28%/0.01%/0.04%。GPU p95 因本机 DVFS 且 GeForce/WDDM 不执行 `nvidia-smi -lgc` 锁频，按 R3 仅作参考数据；10% 容差、场景与预算数值未变，Run1–Run16 及无效运行全部保留 |
-| **T2** | P0 / T1 | Core DepthNormals 编码、最早 Motion/Depth 调度、通用 keyword 清理与调度测试 | **已退出（2026-11-14）**：Lit/ComplexLit DepthNormals alpha 使用 `0.5+0.5*smoothness`、0 表示不支持；最早 Motion 消费者把共享 Motion 提前到 202，并同步提前 Depth/CopyDepth；Deferred 提前 Motion 时强制完整 DepthNormals prepass，GBuffer2 alpha 仍为原始 smoothness；无插件时三路径事件数据与 T1 基线逐事件一致（`eventDataHash` 相同）。202 前 Motion/Depth 有效（动态 98 px、静止 0）；TAA/Motion Blur 早/晚 Motion 输出逐字节一致；smoothness=0（406 px）与不支持 alpha=0（42 px）可区分，无 0–0.5 保留区像素。证据：`PALN/validation/T2/` |
-| **T3** | P0 / T1 | 两个空 Feature、资源序列化、Volume 组件、能力检测、history store、neutral 输出和 Editor UI | **已退出（2026-11-14）**：按 2.5 的真实 UI 路径配置成功并保留 13 张截图（`PALN/validation/T3/UI/`）；三路径 Volume 控制 Pass 入队、Feature 关闭不执行；空效果与 T1 基线逐像素一致；history 计数 1→2→1；无插件三路径 `eventDataHash` 与 T1 相同；EditMode 48 passed / 0 failed；`.meta` 完整。`T3Report.json` 的 `t3ExitCriteriaMet=true` |
-| **T4** | P0 / T2、T3 | SSL 私有 Hi-Z、颜色金字塔、previous color/depth、双缓冲、reset generation 和中间调试视图 | **已退出（2026-11-14）**：packed Hi-Z（12 mip，offset/UV scale 数值验证）、Gaussian 颜色金字塔（9 mip）、双缓冲 previous color/depth 和 7 个调试视图落地；三路径 debug-off 与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 均触发 reset，读写槽逐帧分离，双相机独立且销毁后回收，SSL-only Renderer 全部通过；Frame Debugger 顺序 203 → 400 → 501。证据：`PALN/validation/T4/`（`t4ExitCriteriaMet=true`，EditMode 85 passed） |
-| **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 式设置 | **已退出（2026-11-14）**：Main/Spatial/Temporal/CopyHistory/Blur+Upsample、私有 packed Hi-Z（12 mip）、双缓冲 AO 历史、raw/final/global AO 与深度金字塔调试视图落地；三路径 AO 可见、half/full 与 temporal/spatial 真实选择对应 kernel；`intensity=0` 与 Feature 关闭恢复基线逐字节一致；SSL+GTAO 两种 Feature 顺序图像一致；重复 Hi-Z 成本 11,059,200 字节已记录。**同日按用户要求移除 URP 内置 SSAO，GTAO 成为唯一 AO 生产者**；证据：`PALN/validation/T5/`（`t5ExitCriteriaMet=true`，EditMode 103 passed） |
-| **T6** | P0 / T4 | SSGI Trace/Reproject、Temporal/Diffuse Denoise、HF/LF、Bilateral Upsample、材质注入 | **已退出（2026-11-14）**：Trace/Reproject、history validation/accumulation、DiffuseDenoiser 必要支路、半分辨率 Bilateral Upsample 与 HF/LF 历史落地；Core `_SCREEN_SPACE_GI` 材质混合在 Forward/Forward+/Deferred 统一消费；三路径 `passed=true`，零权重像素与 baked GI 逐像素一致（最大差 1.19e-7），首帧/intensity=0 逐字节恢复基线，emission 亮度比 0.991，调试图与消费纹理一致（19/921,600 像素、最大差 0.0012），Frame Debugger 顺序 203→205→207→opaque。证据：`PALN/validation/T6/`（`t6ExitCriteriaMet=true`，EditMode 111 passed） |
-| **T7** | P0 / T4 | Opaque SSR Approximation、radiance+weight、roughness/edge fade 和 probe/sky fallback | **已退出（2026-11-14）**：Trace/Reproject Approximation、RGBA16F 非预乘 radiance + weight、roughness/edge fade、屏外/非有限/负值拒绝和 probe/sky 回退落地；Core `_SCREEN_SPACE_SSR` 在 `EnvironmentBRDF` 前统一混合；三路径 `passed=true`，miss 的 670,152 像素与 probe 基线逐像素一致（最大差 0）、intensity=0 与首帧逐字节恢复基线、金属粗糙度权重 0.444/0.350/0.198/0 且低于 minSmoothness 为 0、非金属光滑球 0.410、干净首帧 intensity 响应比 2.000（误差 0）、调试图 921,600 像素 0 差异、无 NaN/Inf/负值；Frame Debugger 顺序 Depth Pyramid → SSR → opaque。证据：`PALN/validation/T7/`（`t7ExitCriteriaMet=true`，EditMode 118 passed） |
-| **T8** | P1 / T7 | SSR PBR Accumulation、双历史、全部速度拒绝组合、算法切换 reset | **已退出（2026-11-14）**：GGX VNDF trace、3×3 cross reproject、双 RGBA16F 累积历史落地；9 个公开组合各自只命中独立 kernel（每组 3 次派发），surface/target 在动态场景差异 226,681 像素、speed 参数 0↔1 差异 232,951 像素，硬拒绝调试 100% 红、接受调试 100% 绿；算法切换 reset 2 次、相机 cut reset 2 次；PBR 的 miss 670,222 像素与 probe 基线一致、首帧/intensity=0 恢复基线、CB 回读 `(0.0263,0.5,0.5,1)`、无 NaN/Inf/负值。证据：`PALN/validation/T8/`（`t8ExitCriteriaMet=true`，EditMode 126 passed） |
-| **T9** | P1 / T6、T8 | Lit、ComplexLit、ShaderGraph Lit 完整覆盖；clear coat 独立数据；SimpleLit/Particles/Terrain 支持或明确回退 | **已退出（2026-11-14）**：Lit/ComplexLit/ShaderGraph Lit（Forward + GBuffer）均消费 `_SCREEN_SPACE_GI/_SCREEN_SPACE_SSR`；ComplexLit 的 DepthNormals 在 coat mask>0 时写 coat SSR smoothness（alpha 1.0），材质端 base/coat 使用独立 mask/roughness 与 hierarchy weight，base smoothness 0.3 的 coat 球 trace weight 仍为 1.0；SimpleLit/Particles/Terrain Lit 保持 alpha 0、weight 0；572,746 个零权重像素与 probe 图像逐像素一致、intensity=0 逐字节恢复；alpha test、LOD、lightmap + mixed lighting 回归通过。APV 因 URP 14.0.12 无 ProbeVolume 集成标为不支持。证据：`PALN/validation/T9/`（`t9ExitCriteriaMet=true`，EditMode 132 passed） |
-| **T10** | P1 / T7、T9 | Core 透明 depth/normal Pass，SSL 透明 prepass、独立 Transparent SSR Approx 和材质消费 | **已退出（2026-11-15）**：Core 新增 `UniversalTransparentDepthNormals` 共享实现并接入 Lit/ComplexLit；材质通过 `_TransparentSsrReceive`/`_TRANSPARENT_SSR_RECEIVE` 显式 opt-in，未 opt-in 片段在 prepass 中 `clip`。SSL 在 447 把 opaque depth 复制进私有 depth 后绘制透明 depth/normal，449 以 `_SCREEN_SPACE_TRANSPARENT_SSR` 和独立 hit point/output 执行 Approximation-only Trace/Reproject。三路径 `T10Verification.json` 全部 `passed=true`：intensity=0/关闭后逐字节恢复、opaque weight 与 camera depth diff=0、receiver 785 px/weight 1.0、opt-out 与 SimpleLit 0 px/weight 0、ComplexLit clear coat 透明 1,266 px/weight 1.0、透明 depth 0.006142 > opaque 0.003819（9,560 px 不同）、双层最近面胜出、PBR 下 transparent 4/4 dispatch 且 accumulation=0、移动透明体 ray origin 跟随且无 NaN。EditMode 142 passed / 0 failed。证据：`PALN/validation/T10/`（`t10ExitCriteriaMet=true`） |
-| **T11** | P1 / T4、T9 | 折射材质属性/GUI/ShaderGraph、当前帧 Color Pyramid、proxy raycast、深度拒绝、transmittance、edge fade | **已退出（2026-11-15）**：Lit/ComplexLit/ShaderGraph Lit 新增 `_RefractionModel`（None 默认）/`_Ior`/`_Thickness`/`_TransmittanceColor`/`_TransmittanceDistance` 与 `_REFRACTION_PLANE/SPHERE/THIN`；Volume 新增 `screenFadeDistance`/`intensity`。SSL 在 448 绑定 400 生成的当前帧 color pyramid、opaque depth 与最近 box-projected probe 的 AABB proxy；材质端移植 HDRP proxy raycast、深度拒绝、absorption、edge fade 与 (1-FGD) 透射，折射开启时 alpha 按权重强制为 1。三路径 `T11Verification.json` 全部 `passed=true`：旧材质/`ModelsNone`/`intensity=0`/关闭相位逐像素恢复（容差 1e-6）、legacy 透明 0 像素变化、box/complex/sphere/SG 分别改变 5,915/2,996/1,233/3,092 像素、SG 透明 prepass 改变 543 像素、红色吸收使红通道比降至 0.363、背景由橙变蓝时玻璃均值从 (1.502,0.867,0.319) 变为 (0.274,0.438,1.577)；透明面板开关时玻璃圆内 0 像素变化、color pyramid 0 像素变化（面板自身 5,931 像素），证明当前 pyramid 不含 pre-refraction transparents。EditMode 149 passed / 0 failed。证据：`PALN/validation/T11/`（`t11ExitCriteriaMet=true`） |
-| **T12** | P1 / T5、T6、T8–T11 | 全组合 Deferred/Forward 加固：ForwardOnly、decal、Depth Priming、Opaque Texture、TAA、Motion Blur、HDR/MSAA、camera stack | **已退出（2026-11-15）**：Forward/Forward+/Deferred 各 34 个组合用例（Deferred 35，含 `GL.wireframe` 触发的实际 Forward 回退）全部通过；GTAO/SSL 顺序不变（0 px）、Volume 缺失/override/mask/双 Volume、render scale/尺寸重置/camera cut/算法切换 reset、Depth Priming、Opaque Texture、TAA、Motion Blur、DBuffer/ScreenSpace Decal、MSAA、相机栈、Preview/Reflection 与 SimpleLit 回退均有结果。Frame Debugger 94/94/105 事件，`MotionVectors → SSL Depth Pyramid → GTAO Depth Pyramid → SSGI/SSR → opaque/GBuffer`，Pre-GBuffer 未触发 AfterGbuffer 回退；全局 keyword 清理通过；1280×720 base-level 私有资源 SSL 98,611,832 B、GTAO 9,216,120 B、packed Hi-Z 5,529,600 B（12 mip），每帧 1 次透明 prepass。Deferred 兼容路径忽略 MSAA、相机栈/PP/Opaque Texture 改变中间色彩精度均记录为 URP 侧限制。EditMode 153 passed / 0 failed。证据：`PALN/validation/T12/`（`t12ExitCriteriaMet=true`） |
-| **T13** | P1 / T12 | XR multipass/single-pass/foveation、render scale/动态分辨率、DX11/DX12/Vulkan/Metal 能力与性能 | **已退出（2026-11-15）**：SSL/GTAO compute 逐眼矩阵与 slice、每眼相机位置/上一帧逆 VP 与 history 分键落地；修复 `ScreenSpaceLightingCommon.hlsl` 的 XR 宏守卫（`SSGI_XR_ARRAY`→`SSL_XR_ARRAY`）后 single-pass compute 实际执行。Mock HMD 播放器 DX11/DX12/Vulkan 双模式全部 `passed=true`：两眼镜像差 924,469–1,060,399 px、关闭恢复参考、SSGI/SSR/折射/GTAO 两眼均可见、single-pass 1 entry×2 slices 且两 slice 上一帧颜色金字塔哈希不同、multipass 2 entries×1 slice 且两眼下级 prev 矩阵已记录。DX12/Vulkan `FoveationImage` 下全屏 raster/prepass 已加 foveation 守卫（DX11 caps=None）。URP 14.0.12 不驱动 `DynamicResolutionHandler`，`ScalableBufferManager` 不能缩放 RTHandle 相机目标（DX11 `IntermediateTargetsNotRescaled`、DX12/Vulkan readback 无效），按引擎限制记录为不支持；静态 render scale 由 T12 覆盖。Metal/mobile/OpenGLES/真实 HMD 标 NotTested。T12 回归 34/34/35、EditMode 153 passed / 0 failed。证据：`PALN/validation/T13/`（`t13ExitCriteriaMet=true`） |
-| **T14** | P0 / 所有本次宣称交付的 T | 最终 Edit/Play/图形/Player/stripping 回归，支持矩阵、已知差异、性能报告、产物归档和清理 | **已退出（2026-11-15）**：EditMode 153/153、PlayMode 6/6、T12 组合矩阵回放 34/34/35 且 103 张图像哈希与 T12 记录逐字节一致、Frame Debugger 94/94/105 事件顺序不变（`Motion(7/7/9) → SSL Depth Pyramid(9/9/10) → GTAO(20/20/21) → SSGI(36/36/37) → SSR(43/43/44) → opaque/GBuffer(45/45/46)`）。Release Player（`BuildOptions.None`）构建 0 errors、17 个必需 ComputeShader/Shader 均在包内；DX11/DX12/Vulkan 双 XR 模式播放器全部通过。`T1..T13` 证据未改动（T13 requiredFiles 哈希逐项一致）；支持矩阵/已知差异/性能显存/归档清单落地，T1 与 T14 临时 Player、`Assets/Settings` 的 SSAO 残留已清理。证据：`PALN/validation/T14/`（`t14ExitCriteriaMet=true`） |
+| **T2** | P0 / T1 | Core DepthNormals 编码、最早 Motion/Depth 调度、通用 keyword 清理与调度测试 | **已退出（2026-11-14）**：Lit/ComplexLit DepthNormals alpha 使用 `0.5+0.5*smoothness`、0 表示不支持；最早 Motion 消费者把共享 Motion 提前到 202，并同步提前 Depth/CopyDepth；Deferred 提前 Motion 时强制完整 DepthNormals prepass，GBuffer2 alpha 仍为原始 smoothness；无插件时三路径事件数据与 T1 基线逐事件一致（`eventDataHash` 相同）。202 前 Motion/Depth 有效（动态 98 px、静止 0）；TAA/Motion Blur 早/晚 Motion 输出逐字节一致；smoothness=0（406 px）与不支持 alpha=0（42 px）可区分，无 0–0.5 保留区像素。证据：`PLAN/validation/T2/` |
+| **T3** | P0 / T1 | 两个空 Feature、资源序列化、Volume 组件、能力检测、history store、neutral 输出和 Editor UI | **已退出（2026-11-14）**：按 2.5 的真实 UI 路径配置成功并保留 13 张截图（`PLAN/validation/T3/UI/`）；三路径 Volume 控制 Pass 入队、Feature 关闭不执行；空效果与 T1 基线逐像素一致；history 计数 1→2→1；无插件三路径 `eventDataHash` 与 T1 相同；EditMode 48 passed / 0 failed；`.meta` 完整。`T3Report.json` 的 `t3ExitCriteriaMet=true` |
+| **T4** | P0 / T2、T3 | SSL 私有 Hi-Z、颜色金字塔、previous color/depth、双缓冲、reset generation 和中间调试视图 | **已退出（2026-11-14）**：packed Hi-Z（12 mip，offset/UV scale 数值验证）、Gaussian 颜色金字塔（9 mip）、双缓冲 previous color/depth 和 7 个调试视图落地；三路径 debug-off 与 T1 基线逐字节一致，首帧/相机 cut/尺寸/render scale 均触发 reset，读写槽逐帧分离，双相机独立且销毁后回收，SSL-only Renderer 全部通过；Frame Debugger 顺序 203 → 400 → 501。证据：`PLAN/validation/T4/`（`t4ExitCriteriaMet=true`，EditMode 85 passed） |
+| **T5** | P0 / T2、T3 | 独立 GTAO 全 kernel、私有 Hi-Z、AO 历史、SSAO 式设置 | **已退出（2026-11-14）**：Main/Spatial/Temporal/CopyHistory/Blur+Upsample、私有 packed Hi-Z（12 mip）、双缓冲 AO 历史、raw/final/global AO 与深度金字塔调试视图落地；三路径 AO 可见、half/full 与 temporal/spatial 真实选择对应 kernel；`intensity=0` 与 Feature 关闭恢复基线逐字节一致；SSL+GTAO 两种 Feature 顺序图像一致；重复 Hi-Z 成本 11,059,200 字节已记录。**同日按用户要求移除 URP 内置 SSAO，GTAO 成为唯一 AO 生产者**；证据：`PLAN/validation/T5/`（`t5ExitCriteriaMet=true`，EditMode 103 passed） |
+| **T6** | P0 / T4 | SSGI Trace/Reproject、Temporal/Diffuse Denoise、HF/LF、Bilateral Upsample、材质注入 | **已退出（2026-11-14）**：Trace/Reproject、history validation/accumulation、DiffuseDenoiser 必要支路、半分辨率 Bilateral Upsample 与 HF/LF 历史落地；Core `_SCREEN_SPACE_GI` 材质混合在 Forward/Forward+/Deferred 统一消费；三路径 `passed=true`，零权重像素与 baked GI 逐像素一致（最大差 1.19e-7），首帧/intensity=0 逐字节恢复基线，emission 亮度比 0.991，调试图与消费纹理一致（19/921,600 像素、最大差 0.0012），Frame Debugger 顺序 203→205→207→opaque。证据：`PLAN/validation/T6/`（`t6ExitCriteriaMet=true`，EditMode 111 passed） |
+| **T7** | P0 / T4 | Opaque SSR Approximation、radiance+weight、roughness/edge fade 和 probe/sky fallback | **已退出（2026-11-14）**：Trace/Reproject Approximation、RGBA16F 非预乘 radiance + weight、roughness/edge fade、屏外/非有限/负值拒绝和 probe/sky 回退落地；Core `_SCREEN_SPACE_SSR` 在 `EnvironmentBRDF` 前统一混合；三路径 `passed=true`，miss 的 670,152 像素与 probe 基线逐像素一致（最大差 0）、intensity=0 与首帧逐字节恢复基线、金属粗糙度权重 0.444/0.350/0.198/0 且低于 minSmoothness 为 0、非金属光滑球 0.410、干净首帧 intensity 响应比 2.000（误差 0）、调试图 921,600 像素 0 差异、无 NaN/Inf/负值；Frame Debugger 顺序 Depth Pyramid → SSR → opaque。证据：`PLAN/validation/T7/`（`t7ExitCriteriaMet=true`，EditMode 118 passed） |
+| **T8** | P1 / T7 | SSR PBR Accumulation、双历史、全部速度拒绝组合、算法切换 reset | **已退出（2026-11-14）**：GGX VNDF trace、3×3 cross reproject、双 RGBA16F 累积历史落地；9 个公开组合各自只命中独立 kernel（每组 3 次派发），surface/target 在动态场景差异 226,681 像素、speed 参数 0↔1 差异 232,951 像素，硬拒绝调试 100% 红、接受调试 100% 绿；算法切换 reset 2 次、相机 cut reset 2 次；PBR 的 miss 670,222 像素与 probe 基线一致、首帧/intensity=0 恢复基线、CB 回读 `(0.0263,0.5,0.5,1)`、无 NaN/Inf/负值。证据：`PLAN/validation/T8/`（`t8ExitCriteriaMet=true`，EditMode 126 passed） |
+| **T9** | P1 / T6、T8 | Lit、ComplexLit、ShaderGraph Lit 完整覆盖；clear coat 独立数据；SimpleLit/Particles/Terrain 支持或明确回退 | **已退出（2026-11-14）**：Lit/ComplexLit/ShaderGraph Lit（Forward + GBuffer）均消费 `_SCREEN_SPACE_GI/_SCREEN_SPACE_SSR`；ComplexLit 的 DepthNormals 在 coat mask>0 时写 coat SSR smoothness（alpha 1.0），材质端 base/coat 使用独立 mask/roughness 与 hierarchy weight，base smoothness 0.3 的 coat 球 trace weight 仍为 1.0；SimpleLit/Particles/Terrain Lit 保持 alpha 0、weight 0；572,746 个零权重像素与 probe 图像逐像素一致、intensity=0 逐字节恢复；alpha test、LOD、lightmap + mixed lighting 回归通过。APV 因 URP 14.0.12 无 ProbeVolume 集成标为不支持。证据：`PLAN/validation/T9/`（`t9ExitCriteriaMet=true`，EditMode 132 passed） |
+| **T10** | P1 / T7、T9 | Core 透明 depth/normal Pass，SSL 透明 prepass、独立 Transparent SSR Approx 和材质消费 | **已退出（2026-11-15）**：Core 新增 `UniversalTransparentDepthNormals` 共享实现并接入 Lit/ComplexLit；材质通过 `_TransparentSsrReceive`/`_TRANSPARENT_SSR_RECEIVE` 显式 opt-in，未 opt-in 片段在 prepass 中 `clip`。SSL 在 447 把 opaque depth 复制进私有 depth 后绘制透明 depth/normal，449 以 `_SCREEN_SPACE_TRANSPARENT_SSR` 和独立 hit point/output 执行 Approximation-only Trace/Reproject。三路径 `T10Verification.json` 全部 `passed=true`：intensity=0/关闭后逐字节恢复、opaque weight 与 camera depth diff=0、receiver 785 px/weight 1.0、opt-out 与 SimpleLit 0 px/weight 0、ComplexLit clear coat 透明 1,266 px/weight 1.0、透明 depth 0.006142 > opaque 0.003819（9,560 px 不同）、双层最近面胜出、PBR 下 transparent 4/4 dispatch 且 accumulation=0、移动透明体 ray origin 跟随且无 NaN。EditMode 142 passed / 0 failed。证据：`PLAN/validation/T10/`（`t10ExitCriteriaMet=true`） |
+| **T11** | P1 / T4、T9 | 折射材质属性/GUI/ShaderGraph、当前帧 Color Pyramid、proxy raycast、深度拒绝、transmittance、edge fade | **已退出（2026-11-15）**：Lit/ComplexLit/ShaderGraph Lit 新增 `_RefractionModel`（None 默认）/`_Ior`/`_Thickness`/`_TransmittanceColor`/`_TransmittanceDistance` 与 `_REFRACTION_PLANE/SPHERE/THIN`；Volume 新增 `screenFadeDistance`/`intensity`。SSL 在 448 绑定 400 生成的当前帧 color pyramid、opaque depth 与最近 box-projected probe 的 AABB proxy；材质端移植 HDRP proxy raycast、深度拒绝、absorption、edge fade 与 (1-FGD) 透射，折射开启时 alpha 按权重强制为 1。三路径 `T11Verification.json` 全部 `passed=true`：旧材质/`ModelsNone`/`intensity=0`/关闭相位逐像素恢复（容差 1e-6）、legacy 透明 0 像素变化、box/complex/sphere/SG 分别改变 5,915/2,996/1,233/3,092 像素、SG 透明 prepass 改变 543 像素、红色吸收使红通道比降至 0.363、背景由橙变蓝时玻璃均值从 (1.502,0.867,0.319) 变为 (0.274,0.438,1.577)；透明面板开关时玻璃圆内 0 像素变化、color pyramid 0 像素变化（面板自身 5,931 像素），证明当前 pyramid 不含 pre-refraction transparents。EditMode 149 passed / 0 failed。证据：`PLAN/validation/T11/`（`t11ExitCriteriaMet=true`） |
+| **T12** | P1 / T5、T6、T8–T11 | 全组合 Deferred/Forward 加固：ForwardOnly、decal、Depth Priming、Opaque Texture、TAA、Motion Blur、HDR/MSAA、camera stack | **已退出（2026-11-15）**：Forward/Forward+/Deferred 各 34 个组合用例（Deferred 35，含 `GL.wireframe` 触发的实际 Forward 回退）全部通过；GTAO/SSL 顺序不变（0 px）、Volume 缺失/override/mask/双 Volume、render scale/尺寸重置/camera cut/算法切换 reset、Depth Priming、Opaque Texture、TAA、Motion Blur、DBuffer/ScreenSpace Decal、MSAA、相机栈、Preview/Reflection 与 SimpleLit 回退均有结果。Frame Debugger 94/94/105 事件，`MotionVectors → SSL Depth Pyramid → GTAO Depth Pyramid → SSGI/SSR → opaque/GBuffer`，Pre-GBuffer 未触发 AfterGbuffer 回退；全局 keyword 清理通过；1280×720 base-level 私有资源 SSL 98,611,832 B、GTAO 9,216,120 B、packed Hi-Z 5,529,600 B（12 mip），每帧 1 次透明 prepass。Deferred 兼容路径忽略 MSAA、相机栈/PP/Opaque Texture 改变中间色彩精度均记录为 URP 侧限制。EditMode 153 passed / 0 failed。证据：`PLAN/validation/T12/`（`t12ExitCriteriaMet=true`） |
+| **T13** | P1 / T12 | XR multipass/single-pass/foveation、render scale/动态分辨率、DX11/DX12/Vulkan/Metal 能力与性能 | **已退出（2026-11-15）**：SSL/GTAO compute 逐眼矩阵与 slice、每眼相机位置/上一帧逆 VP 与 history 分键落地；修复 `ScreenSpaceLightingCommon.hlsl` 的 XR 宏守卫（`SSGI_XR_ARRAY`→`SSL_XR_ARRAY`）后 single-pass compute 实际执行。Mock HMD 播放器 DX11/DX12/Vulkan 双模式全部 `passed=true`：两眼镜像差 924,469–1,060,399 px、关闭恢复参考、SSGI/SSR/折射/GTAO 两眼均可见、single-pass 1 entry×2 slices 且两 slice 上一帧颜色金字塔哈希不同、multipass 2 entries×1 slice 且两眼下级 prev 矩阵已记录。DX12/Vulkan `FoveationImage` 下全屏 raster/prepass 已加 foveation 守卫（DX11 caps=None）。URP 14.0.12 不驱动 `DynamicResolutionHandler`，`ScalableBufferManager` 不能缩放 RTHandle 相机目标（DX11 `IntermediateTargetsNotRescaled`、DX12/Vulkan readback 无效），按引擎限制记录为不支持；静态 render scale 由 T12 覆盖。Metal/mobile/OpenGLES/真实 HMD 标 NotTested。T12 回归 34/34/35、EditMode 153 passed / 0 failed。证据：`PLAN/validation/T13/`（`t13ExitCriteriaMet=true`） |
+| **T14** | P0 / 所有本次宣称交付的 T | 最终 Edit/Play/图形/Player/stripping 回归，支持矩阵、已知差异、性能报告、产物归档和清理 | **已退出（2026-11-15）**：EditMode 153/153、PlayMode 6/6、T12 组合矩阵回放 34/34/35 且 103 张图像哈希与 T12 记录逐字节一致、Frame Debugger 94/94/105 事件顺序不变（`Motion(7/7/9) → SSL Depth Pyramid(9/9/10) → GTAO(20/20/21) → SSGI(36/36/37) → SSR(43/43/44) → opaque/GBuffer(45/45/46)`）。Release Player（`BuildOptions.None`）构建 0 errors、17 个必需 ComputeShader/Shader 均在包内；DX11/DX12/Vulkan 双 XR 模式播放器全部通过。`T1..T13` 证据未改动（T13 requiredFiles 哈希逐项一致）；支持矩阵/已知差异/性能显存/归档清单落地，T1 与 T14 临时 Player、`Assets/Settings` 的 SSAO 残留已清理。证据：`PLAN/validation/T14/`（`t14ExitCriteriaMet=true`） |
 
 不允许把 T5/T6/T7 的缺陷留到 T12 才首次验证；T12 是交叉组合回归，不替代模块自己的退出条件。
 
@@ -541,9 +541,9 @@ T1 固定基线配置：
 
 - `ScreenSpaceLightingBaselineSetup.cs` 生成同一固定 Scene、三份无 RendererFeature 的 Renderer Data 和对应 Pipeline Asset；随机种子 `14012`，相机、几何、材质和灯光不随模块变化。
 - 主基线为 StandaloneWindows64 / DX11、1280×720、render scale 1、HDR、MSAA 关闭、后处理关闭；T1 使用 Development Player 获取帧时间和 graphics-driver 显存，T14 另做 Release 回归。
-- **GPU 计时协议 R3（2026-11-14）**：R2 的锁频方案在本机不可执行——`nvidia-smi -lgc 300/600/1800` 均返回 0，但 SM 时钟仍停留在 36–224 MHz，persistence mode 为 `[N/A]`，即 GeForce/WDDM 驱动不执行应用时钟锁（证据：`Diagnostics/clock-lock-verify.txt`）。NVML 576.80 以 50 ms 间隔采样的独立诊断（`PALN/validation/T1/Diagnostics/Dvfs-2026-11-14/`）进一步证明，固定场景每帧仅约 0.1 ms GPU 工作，未锁频时 SM 时钟在 91 s 内于 63–1515 MHz 间切换 180 次（P3/P5/P8），GPU p95 跟随 DVFS 而非渲染成本。因此 R3 将 720p T1 的 GPU p95 降级为逐轮记录、逐轮报告的参考数据，不再作为 T1 或模块的通过判定；T1 可重复性门槛保留 CPU p95 的 10% 对称容差，并要求两轮截图逐字节一致、graphics-driver 显存一致、Pass 顺序（Frame Debugger）不变。GPU 时间仍必须成功采集（缺失即协议无效），`RawFrameTimes.csv` 的 `UtcTicks` 列与 `GpuClocks.csv` 继续留存以便与 NVML 对齐。p95 统计量、10% 容差、场景、分辨率、帧率上限、采样帧数均不变，Run1–Run13 全部保留，包括所有失败与无效运行。模块级增量 GPU 预算数值不变，但必须用独立 GPU profiler（RenderDoc/Nsight）或可锁频环境验证，不得用该 720p harness 单独宣称达标。
-- 每路径预热 60 帧、采样 1800 帧，记录 CPU/GPU mean、median、p95、显存和同步 PNG；同一 Player 连续运行两次，不把缺失时间戳或截图的退出码 0 当作通过。最初 180 帧的 Run1–Run6 全部保留；六轮证据显示亚毫秒 p95 尾部波动无法稳定满足 10%，因此只增加样本量，10% 容差和性能预算不变。1800 帧的 Run7–Run8 仍有 p95 超差，完整保留；Run9–Run10 复用 `WaitForEndOfFrame` 并输出 `RawFrameTimes.csv` 后，CPU p95 全部进入容差，原始数据则显示无帧率上限的 GPU 尾部仍不稳定且大多不与 CPU 峰值重合。Run11–Run12 固定 60 FPS、vSync 关闭后，Forward 的 CPU/GPU p95 通过，但 Forward+ 与 Deferred 的 GPU p95 仍分别为 94.71% 和 51.58%，T1 未退出；p95 指标、10% 容差和性能预算不变，所有失败运行与 `RawFrameTimes.csv` 均保留。2026-11-14 已完成独立工具核实：NVML 证据见 `PALN/validation/T1/Diagnostics/Dvfs-2026-11-14/`，确认尾部来自 GPU 降频（DVFS）而非渲染负载；随后 R2 锁频被证明不被本机驱动执行，改用 R3 参考数据协议，Run11–Run12 作为失败证据保留，Run13 作为 R2 下的完整运行保留，Run14 与其组成 R3 的有效运行对。
-- 量化预算唯一来源为 `PALN/validation/T1/PerformanceBudget.json`，硬件与驱动为 `Environment.json`，构建、运行和 Frame Debugger 证据均保存在 `PALN/validation/T1/`。
+- **GPU 计时协议 R3（2026-11-14）**：R2 的锁频方案在本机不可执行——`nvidia-smi -lgc 300/600/1800` 均返回 0，但 SM 时钟仍停留在 36–224 MHz，persistence mode 为 `[N/A]`，即 GeForce/WDDM 驱动不执行应用时钟锁（证据：`Diagnostics/clock-lock-verify.txt`）。NVML 576.80 以 50 ms 间隔采样的独立诊断（`PLAN/validation/T1/Diagnostics/Dvfs-2026-11-14/`）进一步证明，固定场景每帧仅约 0.1 ms GPU 工作，未锁频时 SM 时钟在 91 s 内于 63–1515 MHz 间切换 180 次（P3/P5/P8），GPU p95 跟随 DVFS 而非渲染成本。因此 R3 将 720p T1 的 GPU p95 降级为逐轮记录、逐轮报告的参考数据，不再作为 T1 或模块的通过判定；T1 可重复性门槛保留 CPU p95 的 10% 对称容差，并要求两轮截图逐字节一致、graphics-driver 显存一致、Pass 顺序（Frame Debugger）不变。GPU 时间仍必须成功采集（缺失即协议无效），`RawFrameTimes.csv` 的 `UtcTicks` 列与 `GpuClocks.csv` 继续留存以便与 NVML 对齐。p95 统计量、10% 容差、场景、分辨率、帧率上限、采样帧数均不变，Run1–Run13 全部保留，包括所有失败与无效运行。模块级增量 GPU 预算数值不变，但必须用独立 GPU profiler（RenderDoc/Nsight）或可锁频环境验证，不得用该 720p harness 单独宣称达标。
+- 每路径预热 60 帧、采样 1800 帧，记录 CPU/GPU mean、median、p95、显存和同步 PNG；同一 Player 连续运行两次，不把缺失时间戳或截图的退出码 0 当作通过。最初 180 帧的 Run1–Run6 全部保留；六轮证据显示亚毫秒 p95 尾部波动无法稳定满足 10%，因此只增加样本量，10% 容差和性能预算不变。1800 帧的 Run7–Run8 仍有 p95 超差，完整保留；Run9–Run10 复用 `WaitForEndOfFrame` 并输出 `RawFrameTimes.csv` 后，CPU p95 全部进入容差，原始数据则显示无帧率上限的 GPU 尾部仍不稳定且大多不与 CPU 峰值重合。Run11–Run12 固定 60 FPS、vSync 关闭后，Forward 的 CPU/GPU p95 通过，但 Forward+ 与 Deferred 的 GPU p95 仍分别为 94.71% 和 51.58%，T1 未退出；p95 指标、10% 容差和性能预算不变，所有失败运行与 `RawFrameTimes.csv` 均保留。2026-11-14 已完成独立工具核实：NVML 证据见 `PLAN/validation/T1/Diagnostics/Dvfs-2026-11-14/`，确认尾部来自 GPU 降频（DVFS）而非渲染负载；随后 R2 锁频被证明不被本机驱动执行，改用 R3 参考数据协议，Run11–Run12 作为失败证据保留，Run13 作为 R2 下的完整运行保留，Run14 与其组成 R3 的有效运行对。
+- 量化预算唯一来源为 `PLAN/validation/T1/PerformanceBudget.json`，硬件与驱动为 `Environment.json`，构建、运行和 Frame Debugger 证据均保存在 `PLAN/validation/T1/`。
 - 生成器与采集器只操作独立测试资产和独立进程内 Pipeline；结束后核对原 `GraphicsSettings.asset`、`QualitySettings.asset`、`ProjectSettings.asset` 未变化。
 
 ### 11.2 分层测试要求
@@ -589,12 +589,12 @@ T1 固定基线配置：
 
 | 项目 | 结果 | 入口 |
 |---|---|---|
-| EditMode 调度测试 | 13 passed / 0 failed，设置恢复 | `PALN/validation/T2/UnityTests.log` |
-| 三路径输入有效性 | 动态 Motion 峰值 0.01128（98 px）、静止 0；深度/法线有效；alpha 0/0.5/高值分别为 42/406/35915，0–0.5 保留区 0 px，无洋红 | `PALN/validation/T2/T2Verification.json`、`T2ProbeDepth_*.png`、`T2ProbeRawNormal_*.png` |
+| EditMode 调度测试 | 13 passed / 0 failed，设置恢复 | `PLAN/validation/T2/UnityTests.log` |
+| 三路径输入有效性 | 动态 Motion 峰值 0.01128（98 px）、静止 0；深度/法线有效；alpha 0/0.5/高值分别为 42/406/35915，0–0.5 保留区 0 px，无洋红 | `PLAN/validation/T2/T2Verification.json`、`T2ProbeDepth_*.png`、`T2ProbeRawNormal_*.png` |
 | TAA/Motion Blur 回归 | 早/默认 Motion 输出哈希逐字节一致（三路径均 0 差异） | 同上 |
-| Pass 顺序（带探针） | Forward/Forward+ 11 事件，Deferred 22 事件：DepthNormalPrepass(150) → [Deferred: CopyDepth(201)] → MotionVectors(202) → 探针(203) → GBuffer(210)/Opaque(250) → 天空盒/最终 Blit | `PALN/validation/T2/FrameDebugger/FrameDebuggerReport.json` |
-| 无插件不变性 | 无探针调度 6/6/16 事件，与 T1 基线逐事件 `eventDataHash` 相同（仅 Renderer 资产名不同） | `PALN/validation/T2/FrameDebugger/WithoutProbe/`、`PALN/validation/T1/FrameDebugger/FrameDebuggerReport.json` |
-| T1 复验 | Run15/Run16 通过：三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 0.28% / 0.01% / 0.04% | `PALN/validation/T1/Reproducibility.json` |
+| Pass 顺序（带探针） | Forward/Forward+ 11 事件，Deferred 22 事件：DepthNormalPrepass(150) → [Deferred: CopyDepth(201)] → MotionVectors(202) → 探针(203) → GBuffer(210)/Opaque(250) → 天空盒/最终 Blit | `PLAN/validation/T2/FrameDebugger/FrameDebuggerReport.json` |
+| 无插件不变性 | 无探针调度 6/6/16 事件，与 T1 基线逐事件 `eventDataHash` 相同（仅 Renderer 资产名不同） | `PLAN/validation/T2/FrameDebugger/WithoutProbe/`、`PLAN/validation/T1/FrameDebugger/FrameDebuggerReport.json` |
+| T1 复验 | Run15/Run16 通过：三路径 PNG 逐字节一致、graphics-driver 显存一致、CPU p95 波动 0.28% / 0.01% / 0.04% | `PLAN/validation/T1/Reproducibility.json` |
 
 **已知限制**：T2 只验证 Core 输入与调度，不包含任何 GTAO/SSGI/SSR 算法、透明 prepass 或历史资源；探针 Feature、探针材质与 `SslT2*` Renderer/Pipeline 均为 `Assets/Tests/ScreenSpaceLighting` 下的测试资产，不属于 Core 或后续插件 API。
 
@@ -620,11 +620,11 @@ T1 固定基线配置：
 
 | 项目 | 结果 | 入口 |
 |---|---|---|
-| T4 结论 | `t4ExitCriteriaMet=true` | `PALN/validation/T4/T4Report.json` |
-| 三路径渲染/生命周期 | 三路径 `passed=true`；debug-off 与 T1 基线逐字节一致 | `PALN/validation/T4/T4Verification.json` |
-| Frame Debugger | Forward/Forward+ 67 事件，Deferred 78；SSL Depth Pyramid → Current Color Pyramid → CopyColor → Color History Capture → FinalBlit | `PALN/validation/T4/FrameDebugger/FrameDebuggerReport.json` |
-| EditMode | 85 passed / 0 failed | `PALN/validation/T4/UnityTests.log` |
-| 调试图与基线 | 33 张 PNG（含 mip/UV/尺寸变化/首帧 debug-off） | `PALN/validation/T4/T4_*.png` |
+| T4 结论 | `t4ExitCriteriaMet=true` | `PLAN/validation/T4/T4Report.json` |
+| 三路径渲染/生命周期 | 三路径 `passed=true`；debug-off 与 T1 基线逐字节一致 | `PLAN/validation/T4/T4Verification.json` |
+| Frame Debugger | Forward/Forward+ 67 事件，Deferred 78；SSL Depth Pyramid → Current Color Pyramid → CopyColor → Color History Capture → FinalBlit | `PLAN/validation/T4/FrameDebugger/FrameDebuggerReport.json` |
+| EditMode | 85 passed / 0 failed | `PLAN/validation/T4/UnityTests.log` |
+| 调试图与基线 | 33 张 PNG（含 mip/UV/尺寸变化/首帧 debug-off） | `PLAN/validation/T4/T4_*.png` |
 
 **已知差异**：多一次 400 颜色金字塔和 501 颜色/深度捕获；`CopyColor` 因 `ConfigureInput(Color)` 在 SSL 开启时额外执行；`resetHistoryFrames` 的上升/下降边沿可能连续失效两代；GTAO 独立 Hi-Z 成本仍按 T0 保留，T4 不合并。
 
@@ -644,11 +644,11 @@ T1 固定基线配置：
 
 | 项目 | 结果 | 入口 |
 |---|---|---|
-| T5 结论 | `t5ExitCriteriaMet=true` | `PALN/validation/T5/T5Report.json` |
-| 三路径渲染/生命周期 | 三路径 `passed=true`；临时相机条目回收、尺寸重分配、历史 reset 全部通过 | `PALN/validation/T5/T5Verification.json` |
-| Frame Debugger | Forward/Forward+ 82 事件，Deferred 93；GTAO Depth Pyramid → GTAO dispatch → opaque/GBuffer；Deferred 在 Deferred Shading 前 | `PALN/validation/T5/FrameDebugger/FrameDebuggerReport.json` |
-| EditMode | 103 passed / 0 failed | `PALN/validation/T5/UnityTests.log` |
-| 调试图与对比图 | 33 张 PNG（raw/final/global AO、深度金字塔、half/full、spatial-only、顺序组合、尺寸变化） | `PALN/validation/T5/T5_*.png` |
+| T5 结论 | `t5ExitCriteriaMet=true` | `PLAN/validation/T5/T5Report.json` |
+| 三路径渲染/生命周期 | 三路径 `passed=true`；临时相机条目回收、尺寸重分配、历史 reset 全部通过 | `PLAN/validation/T5/T5Verification.json` |
+| Frame Debugger | Forward/Forward+ 82 事件，Deferred 93；GTAO Depth Pyramid → GTAO dispatch → opaque/GBuffer；Deferred 在 Deferred Shading 前 | `PLAN/validation/T5/FrameDebugger/FrameDebuggerReport.json` |
+| EditMode | 103 passed / 0 failed | `PLAN/validation/T5/UnityTests.log` |
+| 调试图与对比图 | 33 张 PNG（raw/final/global AO、深度金字塔、half/full、spatial-only、顺序组合、尺寸变化） | `PLAN/validation/T5/T5_*.png` |
 | 重复 Hi-Z 成本 | `duplicateHiZBytes=11,059,200`（1280×720 私有 pyramid 两份） | `T5Verification.json` 的各 mode 字段 |
 
 **已知限制**：URP 内置 SSAO 已按用户要求在 T5 后移除，现有引用该 Feature 的 Renderer Data 会出现 Missing Script，需要手动删除后改用 GTAO；AO keyword 的构建期精简固定为保留 ON/OFF，插件级 strip 优化留到 T14；XR single-pass 复用单视图矩阵（T13）；仅 Compatibility 路径。
@@ -701,8 +701,8 @@ T1 固定基线配置：
 
 | 项目 | 结果 | 入口 |
 |---|---|---|
-| T9 结论 | `t9ExitCriteriaMet=true` | `PALN/validation/T9/T9Report.json` |
-| 三路径渲染/生命周期 | 三路径 `passed=true`；`CoatIntensity0` 逐字节恢复 probe 基线（三路径同一 SHA） | `PALN/validation/T9/T9Verification.json` |
+| T9 结论 | `t9ExitCriteriaMet=true` | `PLAN/validation/T9/T9Report.json` |
+| 三路径渲染/生命周期 | 三路径 `passed=true`；`CoatIntensity0` 逐字节恢复 probe 基线（三路径同一 SHA） | `PLAN/validation/T9/T9Verification.json` |
 | Clear coat 独立数据 | base smoothness 0.3 + coat mask 1 的球 trace weight 1.0（无 coat 编码时为 0）；coat smoothness 0.2↔1 改变 270,919 像素（Deferred 270,957），coat mask 1↔0 改变 271,300 像素（Deferred 271,339） | 同上 |
 | 深度法线编码 | coat 球 alpha 1.000、coat mask 0 球 0.654、SimpleLit/Particles/Terrain 0.000、SG Lit 0.748、SG Complex Lit 1.000 | 同上 |
 | 不支持材质 | SimpleLit/Particles/Terrain 的 SSR weight 全为 0；Terrain Lit 用其 shader + 平面隔离材质契约 | 同上 |
@@ -712,7 +712,7 @@ T1 固定基线配置：
 | ShaderGraph | SG Lit 的 SSR/SSGI 均改变图像，SSR weight 1.0；SG Complex Lit 在 intensity=0 时与基线逐字节一致 | 同上 |
 | Lightmap/Mixed | 1 张 lightmap、Subtractive；三路径 intensity=0 恢复 lightmap 基线、效果开启后图像改变、无 NaN/洋红 | 同上 |
 | 支持矩阵 | Lit/ComplexLit/ShaderGraph Lit 支持；SimpleLit/Particles/Terrain Lit 明确回退（weight 0）；APV 在 URP 14.0.12 无 ProbeVolume 集成，标为不支持 | `T9Report.json` |
-| EditMode | 132 passed / 0 failed（新增 `ScreenSpaceLightingMaterialTests` 6 项） | `PALN/validation/T9/UnityTests.log` |
+| EditMode | 132 passed / 0 failed（新增 `ScreenSpaceLightingMaterialTests` 6 项） | `PLAN/validation/T9/UnityTests.log` |
 
 **已知限制**
 
@@ -788,13 +788,13 @@ T1 固定基线配置：
 
 | 项目 | 结果 | 入口 |
 |---|---|---|
-| T13 结论 | `t13ExitCriteriaMet=true` | `PALN/validation/T13/T13Report.json` |
+| T13 结论 | `t13ExitCriteriaMet=true` | `PLAN/validation/T13/T13Report.json` |
 | XR 播放器（DX11/DX12/Vulkan） | 双模式 `passed=true`；参考恢复、两眼镜像、SSGI/SSR/折射/GTAO 两眼可见、无 NaN | `Player/Run{DX11,DX12,Vulkan}/T13XrPlayerVerification.json`、14 PNG/轮 |
 | 历史隔离 | single-pass 1 entry×2 slices、深度金字塔 2 slices、上一帧颜色金字塔两 slice 哈希不同；multipass 2 entries×1 slice、两个 prev 矩阵 | 同上各 mode 字段 |
 | 平台能力 | DX11/DX12/Vulkan compute+UAV 格式清单；DX12/Vulkan `FoveationImage`，DX11 `None` | `T13EditorVerification.{DX11,DX12,Vulkan}.json` |
 | 动态分辨率 | 记录为引擎限制：DX11 `IntermediateTargetsNotRescaled`、DX12/Vulkan `InvalidOutput`；静态 render scale 由 T12 覆盖 | 同上 `dynamicResolution` |
 | T12 回归 | Forward/Forward+/Deferred 34/34/35 用例通过 | `T12RegressionVerification.json`、`UnityT12Regression.Run1.log` |
-| EditMode | 153 passed / 0 failed | `PALN/validation/T13/UnityTests.log` |
+| EditMode | 153 passed / 0 failed | `PLAN/validation/T13/UnityTests.log` |
 
 **已知限制**：真实 HMD、Metal、mobile/OpenGLES 未测试；foveation 只验证守卫与立体正确性，未比较图像级 foveation 质量；动态分辨率在本 URP 版本不可用（记录为不支持）；Mock HMD 分辨率固定 1512×1680，与 T1 的 1280×720 预算不可直接比较，T13 不新增 GPU 预算结论。
 
@@ -802,7 +802,7 @@ T1 固定基线配置：
 
 **回归入口**
 
-- `PALN/validation/T14/Invoke-T14EditModeTests.ps1`与 `Invoke-T14PlayModeTests.ps1`：都通过 Unity CLI `-runTests -testPlatform {EditMode,PlayMode} -testResults <xml> -testFilter ...` 驱动。EditMode 沿用 `ScreenSpaceLightingTestRunner` 的 18 个测试类过滤；PlayMode 运行新增的 `Unity.ScreenSpaceLighting.Tests.PlayMode` 程序集。原因：`TestRunnerApi` + `-executeMethod` + `-quit` 在本机出现“下一次编辑器 tick 才启动运行、quit 先到”的空跑（T14 第一次尝试即如此，日志保留为 `UnityTests.Run1ExecuteMethodAborted.log`）。
+- `PLAN/validation/T14/Invoke-T14EditModeTests.ps1`与 `Invoke-T14PlayModeTests.ps1`：都通过 Unity CLI `-runTests -testPlatform {EditMode,PlayMode} -testResults <xml> -testFilter ...` 驱动。EditMode 沿用 `ScreenSpaceLightingTestRunner` 的 18 个测试类过滤；PlayMode 运行新增的 `Unity.ScreenSpaceLighting.Tests.PlayMode` 程序集。原因：`TestRunnerApi` + `-executeMethod` + `-quit` 在本机出现“下一次编辑器 tick 才启动运行、quit 先到”的空跑（T14 第一次尝试即如此，日志保留为 `UnityTests.Run1ExecuteMethodAborted.log`）。
 - `Invoke-T1Unity.ps1` 的 `-ExecuteMethod` 改为可选，供 `-runTests` 自行决定退出；既有调用方式不变。
 - `Invoke-T14GraphicsRegression.ps1`：复用 `ScreenSpaceLightingT12Verification.RunT12Verification`，通过新增的 `-ssl-t12-output <path>` 参数把报告与 PNG 写进 `T14/Graphics`，不覆盖 T12 证据。
 - `Invoke-T14FrameDebugger.ps1`：交互式编辑器采集；`T14/FrameDebugger/FrameDebuggerReport.json`。
@@ -819,7 +819,7 @@ T1 固定基线配置：
 
 | 项目 | 结果 | 入口 |
 |---|---|---|
-| T14 结论 | `t14ExitCriteriaMet=true`（九项 criteria 全 true） | `PALN/validation/T14/T14Report.json` |
+| T14 结论 | `t14ExitCriteriaMet=true`（九项 criteria 全 true） | `PLAN/validation/T14/T14Report.json` |
 | EditMode | 153 passed / 0 failed | `UnityEditModeTests.xml`、`UnityEditModeTests.Run2.log` |
 | PlayMode | 6 passed / 0 failed | `UnityPlayModeTests.xml`、`UnityPlayModeTests.Run5.log` |
 | 图形回归 | 34/34/35 用例通过；103 张图像哈希与 T12 记录完全一致 | `Graphics/T12Verification.json`、103 PNG |
@@ -828,7 +828,7 @@ T1 固定基线配置：
 | 播放器运行 | DX11/DX12/Vulkan × MultiPass/SinglePassInstanced 全部 `passed=true` | `Runs/{DX11,DX12,Vulkan}/T13XrPlayerVerification.json` |
 | 支持矩阵/已知差异/性能/归档 | 已生成 | `T14SupportMatrix.md`、`T14KnownDifferences.md`、`T14Performance.json`、`T14ArchiveManifest.json` |
 
-**已知限制与清理**：Vulkan release player 写完证据后不自行退出（T13 同样如此），由工具终止，不计退出码；插件级 build strip 未在 T14 引入（四条 `_SCREEN_SPACE_*` 变体在每次构建中保留，列入已知差异）；`Assets/Settings/URP-{HighFidelity,Balanced}-Renderer.asset` 中 T5 删除 SSAO 后残留的 SSAO Feature 已移除（此前构建日志中 `missing RendererFeatures` 报错的根因）；删除 `PALN/validation/T1/Player/` 与 `PALN/validation/T14/Player/`。
+**已知限制与清理**：Vulkan release player 写完证据后不自行退出（T13 同样如此），由工具终止，不计退出码；插件级 build strip 未在 T14 引入（四条 `_SCREEN_SPACE_*` 变体在每次构建中保留，列入已知差异）；`Assets/Settings/URP-{HighFidelity,Balanced}-Renderer.asset` 中 T5 删除 SSAO 后残留的 SSAO Feature 已移除（此前构建日志中 `missing RendererFeatures` 报错的根因）；删除 `PLAN/validation/T1/Player/` 与 `PLAN/validation/T14/Player/`。
 
 ## 12. 验证矩阵
 
@@ -855,7 +855,7 @@ T1 固定基线配置：
 
 - 所有 Core/Plugin 源码、序列化资源引用、ComputeShader、材质端 include、`.meta` 和必要的生成 `.cs.hlsl`。
 - 第 11 节测试源码、测试 Scene、三种 Renderer Data、Volume Profile、材质和 golden images。
-- `PALN/validation/` 下的最终证据：原始/最终基准图、配置与 Frame Debugger 截图、测试 XML、性能 CSV、显存表、支持矩阵和已知差异说明。
+- `PLAN/validation/` 下的最终证据：原始/最终基准图、配置与 Frame Debugger 截图、测试 XML、性能 CSV、显存表、支持矩阵和已知差异说明。
 - 对仍需追踪的问题保留最小复现场景和对应 RenderDoc capture；正常每次迭代的 capture 不全部归档。
 - 性能报告必须包含 Unity/API/GPU、场景 commit/版本、分辨率、设置、测试日期和相对基线增量，孤立毫秒数无效。
 
@@ -868,11 +868,11 @@ T1 固定基线配置：
 
 ### 13.3 临时文件清理边界
 
-- `Library/`、`Temp/`、`Logs/`、默认 TestResults、本地临时截图和中间 capture 可在最终证据复制到 `PALN/validation/` 后由开发者按项目流程清理。
-- `PALN/validation/T1/Player/` 仅是 T1 临时 Development Player；两次有效运行、图像检查和设置恢复核对完成后删除，保留生成/构建工具、BuildSummary、日志、PNG、CSV 与报告，不把 Player 本体作为长期证据。**T14 已于 2026-11-15 删除该目录**。
-- `PALN/validation/T14/Player/` 是 T14 release 回归的临时 Player（约 157 MB），归档后删除，由 `ScreenSpaceLightingT14PlayerSetup.BuildReleasePlayer` 重新生成；两处 Player 目录均已在 `.gitignore` 中忽略。
-- **不得为了清理而直接删除用户已有目录。**T14 先列出生成物清单，只删除本任务创建且已确认无留存价值的文件；用户原有场景、设置、PALN 聊天原稿和其他改动不动。
-- 原始聊天文件 `PALN/chat/HDRP 屏幕空间光照 迁移 到 URP 可行性.md` 作为调研历史保留，不用最终计划覆盖。
+- `Library/`、`Temp/`、`Logs/`、默认 TestResults、本地临时截图和中间 capture 可在最终证据复制到 `PLAN/validation/` 后由开发者按项目流程清理。
+- `PLAN/validation/T1/Player/` 仅是 T1 临时 Development Player；两次有效运行、图像检查和设置恢复核对完成后删除，保留生成/构建工具、BuildSummary、日志、PNG、CSV 与报告，不把 Player 本体作为长期证据。**T14 已于 2026-11-15 删除该目录**。
+- `PLAN/validation/T14/Player/` 是 T14 release 回归的临时 Player（约 157 MB），归档后删除，由 `ScreenSpaceLightingT14PlayerSetup.BuildReleasePlayer` 重新生成；两处 Player 目录均已在 `.gitignore` 中忽略。
+- **不得为了清理而直接删除用户已有目录。**T14 先列出生成物清单，只删除本任务创建且已确认无留存价值的文件；用户原有场景、设置、PLAN 聊天原稿和其他改动不动。
+- 原始聊天文件 `PLAN/chat/HDRP 屏幕空间光照 迁移 到 URP 可行性.md` 作为调研历史保留，不用最终计划覆盖。
 
 ## 14. 风险、冲突与一致性检查
 
@@ -911,7 +911,7 @@ T1 固定基线配置：
 
 若仅完成 P0 的 GTAO/SSGI/Opaque SSR，必须标为“部分迁移”，T10/T11 等保持未完成，不得使用上述全套完成表述。
 
-**T14 归档状态（2026-11-15）**：上述 1–8 项均由 `PALN/validation/T14/T14Report.json` 的九项 criteria 与既有 T0–T13 证据覆盖；可按“已迁移（非 DXR）并支持 Forward/Forward+/Deferred”交付。以下子集按证据分别声明：GTAO、SSGI、Opaque SSR（Approximation + PBR Accumulation）、Transparent SSR（Approximation-only）、Refraction、ComplexLit clear coat 全部通过；APV、硬件动态分辨率、Metal/mobile/OpenGLES/真实 HMD 明确不宣称支持；插件级 build strip 与 blue-noise 采样列为后续优化，不属本次宣称。已知差异清单见 `PALN/validation/T14/T14KnownDifferences.md`，支持矩阵见 `PALN/validation/T14/T14SupportMatrix.md`。
+**T14 归档状态（2026-11-15）**：上述 1–8 项均由 `PLAN/validation/T14/T14Report.json` 的九项 criteria 与既有 T0–T13 证据覆盖；可按“已迁移（非 DXR）并支持 Forward/Forward+/Deferred”交付。以下子集按证据分别声明：GTAO、SSGI、Opaque SSR（Approximation + PBR Accumulation）、Transparent SSR（Approximation-only）、Refraction、ComplexLit clear coat 全部通过；APV、硬件动态分辨率、Metal/mobile/OpenGLES/真实 HMD 明确不宣称支持；插件级 build strip 与 blue-noise 采样列为后续优化，不属本次宣称。已知差异清单见 `PLAN/validation/T14/T14KnownDifferences.md`，支持矩阵见 `PLAN/validation/T14/T14SupportMatrix.md`。
 
 ## 16. 主要源码证据索引
 

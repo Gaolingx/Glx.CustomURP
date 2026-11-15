@@ -50,17 +50,17 @@
 复现命令（先关闭其他 Unity 编辑器）：
 
 ```bash
-powershell.exe -NoProfile -File "PALN/validation/T14/Invoke-T14EditModeTests.ps1" -LogPath "PALN/validation/T14/UnityEditModeTests.Run2.log" -ResultsPath "PALN/validation/T14/UnityEditModeTests.xml"
-powershell.exe -NoProfile -File "PALN/validation/T14/Invoke-T14PlayModeTests.ps1" -LogPath "PALN/validation/T14/UnityPlayModeTests.Run5.log" -ResultsPath "PALN/validation/T14/UnityPlayModeTests.xml"
-powershell.exe -NoProfile -File "PALN/validation/T14/Invoke-T14GraphicsRegression.ps1" -LogPath "PALN/validation/T14/Graphics/UnityT14GraphicsRegression.log" -OutputRoot "PALN/validation/T14/Graphics"
-powershell.exe -NoProfile -File "PALN/validation/T14/Invoke-T14FrameDebugger.ps1" -LogPath "PALN/validation/T14/FrameDebugger/UnityT14FrameDebugger.Run2.log" -OutputRoot "PALN/validation/T14/FrameDebugger"
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT14PlayerSetup.BuildReleasePlayer -LogPath "PALN/validation/T14/UnityT14PlayerBuild.Run3.log" -ReportPath "PALN/validation/T14/UnityT14PlayerBuild.Run3SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -File "PLAN/validation/T14/Invoke-T14EditModeTests.ps1" -LogPath "PLAN/validation/T14/UnityEditModeTests.Run2.log" -ResultsPath "PLAN/validation/T14/UnityEditModeTests.xml"
+powershell.exe -NoProfile -File "PLAN/validation/T14/Invoke-T14PlayModeTests.ps1" -LogPath "PLAN/validation/T14/UnityPlayModeTests.Run5.log" -ResultsPath "PLAN/validation/T14/UnityPlayModeTests.xml"
+powershell.exe -NoProfile -File "PLAN/validation/T14/Invoke-T14GraphicsRegression.ps1" -LogPath "PLAN/validation/T14/Graphics/UnityT14GraphicsRegression.log" -OutputRoot "PLAN/validation/T14/Graphics"
+powershell.exe -NoProfile -File "PLAN/validation/T14/Invoke-T14FrameDebugger.ps1" -LogPath "PLAN/validation/T14/FrameDebugger/UnityT14FrameDebugger.Run2.log" -OutputRoot "PLAN/validation/T14/FrameDebugger"
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT14PlayerSetup.BuildReleasePlayer -LogPath "PLAN/validation/T14/UnityT14PlayerBuild.Run3.log" -ReportPath "PLAN/validation/T14/UnityT14PlayerBuild.Run3SettingsRestoration.json" -Quit
 
-"PALN/validation/T14/Player/SslT14Player.exe" -ssl-t13-out "<abs>/PALN/validation/T14/Runs/DX11"
-"PALN/validation/T14/Player/SslT14Player.exe" -force-d3d12 -ssl-t13-out "<abs>/PALN/validation/T14/Runs/DX12"
-"PALN/validation/T14/Player/SslT14Player.exe" -force-vulkan -ssl-t13-out "<abs>/PALN/validation/T14/Runs/Vulkan"
+"PLAN/validation/T14/Player/SslT14Player.exe" -ssl-t13-out "<abs>/PLAN/validation/T14/Runs/DX11"
+"PLAN/validation/T14/Player/SslT14Player.exe" -force-d3d12 -ssl-t13-out "<abs>/PLAN/validation/T14/Runs/DX12"
+"PLAN/validation/T14/Player/SslT14Player.exe" -force-vulkan -ssl-t13-out "<abs>/PLAN/validation/T14/Runs/Vulkan"
 
-python "PALN/validation/T14/Analyze-T14Evidence.py"
+python "PLAN/validation/T14/Analyze-T14Evidence.py"
 ```
 
 T14 事实与限制：
@@ -71,7 +71,7 @@ T14 事实与限制：
 - **Vulkan release player 不会自行退出**：报告、日志与 14 张 PNG 写完后进程仍存活，由工具终止，因此 Vulkan 的退出码不参与判定（DX11/DX12 退出码 0）；该现象在 T13 的 Vulkan 轮次同样存在。
 - **release 构建的 stripping 审计**：`ScreenSpaceLightingT14PlayerSetup` 额外生成 `ScreenSpaceLightingT14Stripping.unity`（引用 ComplexLit/SimpleLit/ShaderGraph 材质，并为其创建 `SslT9LitT14.mat`/`SslT9ComplexLitT14.mat`），否则这些变体不进包。插件自身没有 build-time strip 优化，四条 `_SCREEN_SPACE_*` 关键字变体在每次构建中保留，已在已知差异中记录；未在 T14 引入该优化，因为它改变发布行为且需要独立的正确性周期。
 - **检查基准未动**：T13Report 记录的 5 个必需文件哈希仍一致；`T1..T13` 证据目录在分析时无未提交改动（唯一例外是被 T14 扩展、但未改证据的 `Invoke-T1Unity.ps1`）。
-- **清理范围**：删除 `PALN/validation/T1/Player/` 与 `PALN/validation/T14/Player/`；`Assets/Settings` 下的 SSAO Feature 残留（T5 删除 SSAO 后遗留的 Missing Script）已移除；`Assets/XR` 与 Mock HMD 设置保留，供 XR 播放器复现。
+- **清理范围**：删除 `PLAN/validation/T1/Player/` 与 `PLAN/validation/T14/Player/`；`Assets/Settings` 下的 SSAO Feature 残留（T5 删除 SSAO 后遗留的 Missing Script）已移除；`Assets/XR` 与 Mock HMD 设置保留，供 XR 播放器复现。
 
 ## T13 证据与复现
 
@@ -85,16 +85,16 @@ T14 事实与限制：
 复现命令（先关闭其他 Unity 编辑器）：
 
 ```bash
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT13PlayerSetup.BuildPlayer -LogPath "PALN/validation/T13/Diagnostics/UnityT13PlayerBuild.Run26.log" -ReportPath "PALN/validation/T13/Diagnostics/UnityT13PlayerBuild.Run26SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT13PlayerSetup.BuildPlayer -LogPath "PLAN/validation/T13/Diagnostics/UnityT13PlayerBuild.Run26.log" -ReportPath "PLAN/validation/T13/Diagnostics/UnityT13PlayerBuild.Run26SettingsRestoration.json" -Quit
 
-"PALN/validation/T13/Player/SslT13XrPlayer.exe" -ssl-t13-out "<abs>/PALN/validation/T13/Runs/DX11"
-"PALN/validation/T13/Player/SslT13XrPlayer.exe" -force-d3d12 -ssl-t13-out "<abs>/PALN/validation/T13/Runs/DX12"
-"PALN/validation/T13/Player/SslT13XrPlayer.exe" -force-vulkan -ssl-t13-out "<abs>/PALN/validation/T13/Runs/Vulkan"
+"PLAN/validation/T13/Player/SslT13XrPlayer.exe" -ssl-t13-out "<abs>/PLAN/validation/T13/Runs/DX11"
+"PLAN/validation/T13/Player/SslT13XrPlayer.exe" -force-d3d12 -ssl-t13-out "<abs>/PLAN/validation/T13/Runs/DX12"
+"PLAN/validation/T13/Player/SslT13XrPlayer.exe" -force-vulkan -ssl-t13-out "<abs>/PLAN/validation/T13/Runs/Vulkan"
 
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT13Verification.RunEditorVerification -LogPath "PALN/validation/T13/UnityT13EditorVerification.DX11.log" -ReportPath "PALN/validation/T13/UnityT13EditorVerification.DX11SettingsRestoration.json" -AdditionalArguments "-force-d3d11" -Quit
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT13Verification.RunEditorVerification -LogPath "PLAN/validation/T13/UnityT13EditorVerification.DX11.log" -ReportPath "PLAN/validation/T13/UnityT13EditorVerification.DX11SettingsRestoration.json" -AdditionalArguments "-force-d3d11" -Quit
 # DX12 / Vulkan 同样命令，替换 -force-* 与日志名；随后 cp T13EditorVerification.json 到对应 API 文件名
 
-python "PALN/validation/T13/Analyze-T13Evidence.py"
+python "PLAN/validation/T13/Analyze-T13Evidence.py"
 ```
 
 T13 事实与限制：
@@ -121,19 +121,19 @@ T13 事实与限制：
 复现命令（先关闭其他 Unity 编辑器；Frame Debugger 必须使用交互式编辑器并保持窗口前台）：
 
 ```bash
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT12Verification.CreateT12Assets -LogPath "PALN/validation/T12/UnityT12Compile.Run3.log" -ReportPath "PALN/validation/T12/UnityT12Compile.Run3SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT12Verification.CreateT12Assets -LogPath "PLAN/validation/T12/UnityT12Compile.Run3.log" -ReportPath "PLAN/validation/T12/UnityT12Compile.Run3SettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT12Verification.RunT12Verification -LogPath "PALN/validation/T12/UnityT12Verification.Run8.log" -ReportPath "PALN/validation/T12/UnityT12Verification.Run8SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT12Verification.RunT12Verification -LogPath "PLAN/validation/T12/UnityT12Verification.Run8.log" -ReportPath "PLAN/validation/T12/UnityT12Verification.Run8SettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T12/UnityTests.log" -ReportPath "PALN/validation/T12/UnityTestsSettingsRestoration.json"
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PLAN/validation/T12/UnityTests.log" -ReportPath "PLAN/validation/T12/UnityTestsSettingsRestoration.json"
 
-python "PALN/validation/T12/Analyze-T12Evidence.py"
+python "PLAN/validation/T12/Analyze-T12Evidence.py"
 ```
 
 Frame Debugger 采集：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PALN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PALN/validation/T12/FrameDebugger/UnityT12FrameDebugger.Run2.log' -ReportPath 'PALN/validation/T12/FrameDebugger/UnityT12FrameDebugger.Run2SettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PALN/validation/T12/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT12DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PLAN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PLAN/validation/T12/FrameDebugger/UnityT12FrameDebugger.Run2.log' -ReportPath 'PLAN/validation/T12/FrameDebugger/UnityT12FrameDebugger.Run2SettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PLAN/validation/T12/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT12DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
 ```
 
 T12 事实与限制：
@@ -157,13 +157,13 @@ T12 事实与限制：
 复现命令（先关闭其他 Unity 编辑器；下次复验请递增 Run 名）：
 
 ```bash
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT11Verification.CreateT11Assets -LogPath "PALN/validation/T11/UnityT11Compile.Run5.log" -ReportPath "PALN/validation/T11/UnityT11Compile.Run5SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT11Verification.CreateT11Assets -LogPath "PLAN/validation/T11/UnityT11Compile.Run5.log" -ReportPath "PLAN/validation/T11/UnityT11Compile.Run5SettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT11Verification.RunT11Verification -LogPath "PALN/validation/T11/UnityT11Verification.Run8.log" -ReportPath "PALN/validation/T11/UnityT11Verification.Run8SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT11Verification.RunT11Verification -LogPath "PLAN/validation/T11/UnityT11Verification.Run8.log" -ReportPath "PLAN/validation/T11/UnityT11Verification.Run8SettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T11/UnityTests.log" -ReportPath "PALN/validation/T11/UnityTestsSettingsRestoration.json"
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PLAN/validation/T11/UnityTests.log" -ReportPath "PLAN/validation/T11/UnityTestsSettingsRestoration.json"
 
-python "PALN/validation/T11/Analyze-T11Evidence.py"
+python "PLAN/validation/T11/Analyze-T11Evidence.py"
 ```
 
 T11 事实与限制：
@@ -188,13 +188,13 @@ T11 事实与限制：
 复现命令（先关闭其他 Unity 编辑器）：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT9Verification.CreateT9Assets -LogPath "PALN/validation/T9/UnityT9Compile.log" -ReportPath "PALN/validation/T9/UnityT9CompileSettingsRestoration.json" -Quit
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT9Verification.CreateT9Assets -LogPath "PLAN/validation/T9/UnityT9Compile.log" -ReportPath "PLAN/validation/T9/UnityT9CompileSettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT9Verification.RunT9Verification -LogPath "PALN/validation/T9/UnityT9Verification.log" -ReportPath "PALN/validation/T9/UnityT9VerificationSettingsRestoration.json" -Quit
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT9Verification.RunT9Verification -LogPath "PLAN/validation/T9/UnityT9Verification.log" -ReportPath "PLAN/validation/T9/UnityT9VerificationSettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T9/UnityTests.log" -ReportPath "PALN/validation/T9/UnityTestsSettingsRestoration.json"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PLAN/validation/T9/UnityTests.log" -ReportPath "PLAN/validation/T9/UnityTestsSettingsRestoration.json"
 
-python "PALN/validation/T9/Analyze-T9Evidence.py"
+python "PLAN/validation/T9/Analyze-T9Evidence.py"
 ```
 
 T9 事实与限制：
@@ -217,13 +217,13 @@ T9 事实与限制：
 复现命令（先关闭其他 Unity 编辑器；当前证据为 Run3，下次复验请递增 Run 名）：
 
 ```bash
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT10Verification.CreateT10Assets -LogPath "PALN/validation/T10/UnityT10Compile.Run3.log" -ReportPath "PALN/validation/T10/UnityT10Compile.Run3SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT10Verification.CreateT10Assets -LogPath "PLAN/validation/T10/UnityT10Compile.Run3.log" -ReportPath "PLAN/validation/T10/UnityT10Compile.Run3SettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT10Verification.RunT10Verification -LogPath "PALN/validation/T10/UnityT10Verification.Run3.log" -ReportPath "PALN/validation/T10/UnityT10Verification.Run3SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT10Verification.RunT10Verification -LogPath "PLAN/validation/T10/UnityT10Verification.Run3.log" -ReportPath "PLAN/validation/T10/UnityT10Verification.Run3SettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T10/UnityTests.log" -ReportPath "PALN/validation/T10/UnityTestsSettingsRestoration.json"
+powershell.exe -NoProfile -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PLAN/validation/T10/UnityTests.log" -ReportPath "PLAN/validation/T10/UnityTestsSettingsRestoration.json"
 
-python "PALN/validation/T10/Analyze-T10Evidence.py"
+python "PLAN/validation/T10/Analyze-T10Evidence.py"
 ```
 
 T10 事实与限制：
@@ -251,13 +251,13 @@ T10 事实与限制：
 复现命令（先关闭其他 Unity 编辑器）：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT8Verification.CreateT8Assets -LogPath "PALN/validation/T8/UnityT8Compile.log" -ReportPath "PALN/validation/T8/UnityT8CompileSettingsRestoration.json" -Quit
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT8Verification.CreateT8Assets -LogPath "PLAN/validation/T8/UnityT8Compile.log" -ReportPath "PLAN/validation/T8/UnityT8CompileSettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT8Verification.RunT8Verification -LogPath "PALN/validation/T8/UnityT8Verification.Run6.log" -ReportPath "PALN/validation/T8/UnityT8Verification.Run6SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT8Verification.RunT8Verification -LogPath "PLAN/validation/T8/UnityT8Verification.Run6.log" -ReportPath "PLAN/validation/T8/UnityT8Verification.Run6SettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T8/UnityTests.log" -ReportPath "PALN/validation/T8/UnityTestsSettingsRestoration.json"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PLAN/validation/T8/UnityTests.log" -ReportPath "PLAN/validation/T8/UnityTestsSettingsRestoration.json"
 
-python "PALN/validation/T8/Analyze-T8Evidence.py"
+python "PLAN/validation/T8/Analyze-T8Evidence.py"
 ```
 
 T8 事实与限制：
@@ -280,19 +280,19 @@ T8 事实与限制：
 复现命令（先关闭其他 Unity 编辑器）：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT7Verification.CreateT7Assets -LogPath "PALN/validation/T7/UnityT7Compile.log" -ReportPath "PALN/validation/T7/UnityT7CompileSettingsRestoration.json" -Quit
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT7Verification.CreateT7Assets -LogPath "PLAN/validation/T7/UnityT7Compile.log" -ReportPath "PLAN/validation/T7/UnityT7CompileSettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT7Verification.RunT7Verification -LogPath "PALN/validation/T7/UnityT7Verification.Run6.log" -ReportPath "PALN/validation/T7/UnityT7Verification.Run6SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT7Verification.RunT7Verification -LogPath "PLAN/validation/T7/UnityT7Verification.Run6.log" -ReportPath "PLAN/validation/T7/UnityT7Verification.Run6SettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T7/UnityTests.log" -ReportPath "PALN/validation/T7/UnityTestsSettingsRestoration.json"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PLAN/validation/T7/UnityTests.log" -ReportPath "PLAN/validation/T7/UnityTestsSettingsRestoration.json"
 
-python "PALN/validation/T7/Analyze-T7Evidence.py"
+python "PLAN/validation/T7/Analyze-T7Evidence.py"
 ```
 
 Frame Debugger 采集（交互式编辑器，参数必须逐项传入）：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PALN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PALN/validation/T7/FrameDebugger/UnityT7FrameDebugger.log' -ReportPath 'PALN/validation/T7/FrameDebugger/UnityT7FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PALN/validation/T7/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT7ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT7ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT7DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PLAN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PLAN/validation/T7/FrameDebugger/UnityT7FrameDebugger.log' -ReportPath 'PLAN/validation/T7/FrameDebugger/UnityT7FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PLAN/validation/T7/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT7ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT7ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT7DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
 ```
 
 T7 事实与限制：
@@ -315,17 +315,17 @@ T7 事实与限制：
 复现命令（先关闭其他 Unity 编辑器）：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT6Verification.RunT6Verification -LogPath "PALN/validation/T6/UnityT6Verification.log" -ReportPath "PALN/validation/T6/UnityT6VerificationSettingsRestoration.json" -Quit
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT6Verification.RunT6Verification -LogPath "PLAN/validation/T6/UnityT6Verification.log" -ReportPath "PLAN/validation/T6/UnityT6VerificationSettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T6/UnityTests.log" -ReportPath "PALN/validation/T6/UnityTestsSettingsRestoration.json"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PLAN/validation/T6/UnityTests.log" -ReportPath "PLAN/validation/T6/UnityTestsSettingsRestoration.json"
 
-python "PALN/validation/T6/Analyze-T6Evidence.py"
+python "PLAN/validation/T6/Analyze-T6Evidence.py"
 ```
 
 Frame Debugger 采集（交互式编辑器，参数必须逐项传入）：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PALN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PALN/validation/T6/FrameDebugger/UnityT6FrameDebugger.log' -ReportPath 'PALN/validation/T6/FrameDebugger/UnityT6FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PALN/validation/T6/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT6ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT6ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT6DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PLAN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PLAN/validation/T6/FrameDebugger/UnityT6FrameDebugger.log' -ReportPath 'PLAN/validation/T6/FrameDebugger/UnityT6FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PLAN/validation/T6/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT6ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT6ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT6DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
 ```
 
 T6 事实与限制：
@@ -351,17 +351,17 @@ T6 事实与限制：
 复现命令（先关闭其他 Unity 编辑器）：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT4Verification.RunT4Verification -LogPath "PALN/validation/T4/UnityT4Verification.log" -ReportPath "PALN/validation/T4/UnityT4VerificationSettingsRestoration.json" -Quit
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT4Verification.RunT4Verification -LogPath "PLAN/validation/T4/UnityT4Verification.log" -ReportPath "PLAN/validation/T4/UnityT4VerificationSettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T4/UnityTests.log" -ReportPath "PALN/validation/T4/UnityTestsSettingsRestoration.json"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PLAN/validation/T4/UnityTests.log" -ReportPath "PLAN/validation/T4/UnityTestsSettingsRestoration.json"
 
-python "PALN/validation/T4/Analyze-T4Evidence.py"
+python "PLAN/validation/T4/Analyze-T4Evidence.py"
 ```
 
 Frame Debugger 采集（交互式编辑器；参数必须逐项传入，逗号合并会被 `GetArgument` 当成一个参数）：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PALN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PALN/validation/T4/FrameDebugger/UnityT4FrameDebugger.log' -ReportPath 'PALN/validation/T4/FrameDebugger/UnityT4FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PALN/validation/T4/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT4ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT4ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT4DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PLAN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PLAN/validation/T4/FrameDebugger/UnityT4FrameDebugger.log' -ReportPath 'PLAN/validation/T4/FrameDebugger/UnityT4FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PLAN/validation/T4/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT4ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT4ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT4DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
 ```
 
 T4 事实与限制：
@@ -383,17 +383,17 @@ T4 事实与限制：
 复现命令（先关闭其他 Unity 编辑器）：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT5Verification.RunT5Verification -LogPath "PALN/validation/T5/UnityT5Verification.log" -ReportPath "PALN/validation/T5/UnityT5VerificationSettingsRestoration.json" -Quit
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT5Verification.RunT5Verification -LogPath "PLAN/validation/T5/UnityT5Verification.log" -ReportPath "PLAN/validation/T5/UnityT5VerificationSettingsRestoration.json" -Quit
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PALN/validation/T5/UnityTests.log" -ReportPath "PALN/validation/T5/UnityTestsSettingsRestoration.json"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingTestRunner.RunEditModeTests -LogPath "PLAN/validation/T5/UnityTests.log" -ReportPath "PLAN/validation/T5/UnityTestsSettingsRestoration.json"
 
-python "PALN/validation/T5/Analyze-T5Evidence.py"
+python "PLAN/validation/T5/Analyze-T5Evidence.py"
 ```
 
 Frame Debugger 采集（交互式编辑器，参数必须逐项传入）：
 
 ```bash
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PALN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PALN/validation/T5/FrameDebugger/UnityT5FrameDebugger.log' -ReportPath 'PALN/validation/T5/FrameDebugger/UnityT5FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PALN/validation/T5/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT5ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT5ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT5DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'PLAN/validation/T1/Invoke-T1Unity.ps1' -ExecuteMethod ScreenSpaceLightingFrameDebuggerCapture.Capture -LogPath 'PLAN/validation/T5/FrameDebugger/UnityT5FrameDebugger.log' -ReportPath 'PLAN/validation/T5/FrameDebugger/UnityT5FrameDebuggerSettingsRestoration.json' -InteractiveEditor -AdditionalArguments @('--ssl-fd-output','PLAN/validation/T5/FrameDebugger','--ssl-fd-names','Forward,ForwardPlus,Deferred','--ssl-fd-pipelines','Assets/Tests/ScreenSpaceLighting/Renderers/SslT5ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT5ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT5DeferredPipeline.asset','--ssl-fd-scene','Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity')"
 ```
 
 T5 事实与限制：
@@ -419,13 +419,13 @@ T5 事实与限制：
 
 ```bash
 powershell.exe -NoProfile -ExecutionPolicy Bypass \
-  -File "PALN/validation/T1/Invoke-T1Unity.ps1" \
+  -File "PLAN/validation/T1/Invoke-T1Unity.ps1" \
   -ExecuteMethod ScreenSpaceLightingT3UiEvidence.RunEvidence \
-  -LogPath "PALN/validation/T3/UnityUiEvidence.Run.log" \
-  -ReportPath "PALN/validation/T3/UnityUiEvidenceSettingsRestoration.json" \
+  -LogPath "PLAN/validation/T3/UnityUiEvidence.Run.log" \
+  -ReportPath "PLAN/validation/T3/UnityUiEvidenceSettingsRestoration.json" \
   -InteractiveEditor
 
-python "PALN/validation/T3/Analyze-T3Evidence.py"
+python "PLAN/validation/T3/Analyze-T3Evidence.py"
 ```
 
 `ScreenSpaceLightingT3UiEvidence` 走真实编辑器入口（`ScriptableRendererDataEditor.AddComponent`、`VolumeComponentListEditor.AddComponent` 与对应 FilterWindow 下拉），截图用 `PrintWindow` 合成；Popup 窗口按原生窗口类合成在最上层。
@@ -450,10 +450,10 @@ python "PALN/validation/T3/Analyze-T3Evidence.py"
 
 ```bash
 powershell.exe -NoProfile -ExecutionPolicy Bypass \
-  -File "PALN/validation/T1/Invoke-T1Unity.ps1" \
+  -File "PLAN/validation/T1/Invoke-T1Unity.ps1" \
   -ExecuteMethod ScreenSpaceLightingBaselineSetup.BuildBaselinePlayer \
-  -LogPath "PALN/validation/T1/UnityBuild.Run17-Run18.log" \
-  -ReportPath "PALN/validation/T1/BuildSettingsRestoration.Run17-Run18.json" \
+  -LogPath "PLAN/validation/T1/UnityBuild.Run17-Run18.log" \
+  -ReportPath "PLAN/validation/T1/BuildSettingsRestoration.Run17-Run18.json" \
   -Quit
 ```
 
@@ -463,12 +463,12 @@ Player 重建后依次执行下列命令；两轮不得并发，Run 名必须递
 
 ```bash
 powershell.exe -NoProfile -ExecutionPolicy Bypass \
-  -File "PALN/validation/T1/Invoke-T1Run.ps1" -RunName Run17
+  -File "PLAN/validation/T1/Invoke-T1Run.ps1" -RunName Run17
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass \
-  -File "PALN/validation/T1/Invoke-T1Run.ps1" -RunName Run18
+  -File "PLAN/validation/T1/Invoke-T1Run.ps1" -RunName Run18
 
-python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
+python "PLAN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
 ```
 
 `Invoke-T1Run.ps1` 会记录 NVML 时钟采样到运行目录，仅作 GPU 参考数据，不参与判定。
@@ -482,7 +482,7 @@ python "PALN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
 - 三路径 PNG 一致、显存一致，所有 **CPU** p95 波动不超过 10%；GPU p95 仅记录和报告，不作为通过条件（理由见 `PerformanceBudget.json` 的 `gpuTimingPolicy`）。
 - `GoldenImages` 三张 1280×720 PNG 及 `.meta` 齐全。
 - `T1Report.json` 最终为 `t1ExitCriteriaMet=true`。
-- 证据核对完成后删除 `PALN/validation/T1/Player/`，保留工具、日志、运行目录和报告。
+- 证据核对完成后删除 `PLAN/validation/T1/Player/`，保留工具、日志、运行目录和报告。
 
 ## 证据入口
 
