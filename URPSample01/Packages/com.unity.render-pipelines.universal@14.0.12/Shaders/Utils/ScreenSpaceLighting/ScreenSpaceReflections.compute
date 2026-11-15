@@ -294,6 +294,83 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 // Reproject
 //--------------------------------------------------------------------------------------------------
 
+// Approximation hole filling. A single mirror tap leaves one pixel holes wherever the ray misses,
+// which reads as broken reflections on smooth floors. Fill a missed receiver pixel from the same 3x3
+// cross HDRP's PBR reprojection gathers, but only accept neighbours that
+// - belong to the same surface (world position within a few pixels and a similar normal), so a
+//   silhouette or a depth step never borrows radiance from the geometry behind it,
+// - are eligible for SSR themselves, so a rough pixel stays below the fade,
+// - produced their own valid hit.
+// The filled weight is the accepted coverage times the neighbours' fade, so a filled hole stays
+// partial and a region where every ray misses still keeps the reflection probe.
+bool SsrFillMissedPixel(uint2 positionSS, float centerDepth, float3 centerNormalWS, float centerRoughness,
+    out float3 radiance, out float opacity)
+{
+    radiance = 0.0;
+    opacity = 0.0;
+
+    float3 centerWS = SsrReconstructPositionWS((float2)positionSS, centerDepth);
+    float viewDistance = length(centerWS - SSL_SSR_CAMERA_POSITION_WS);
+    float positionTolerance = 0.01 * viewDistance;
+
+    float3 outputs = 0.0;
+    float weightSum = 0.0;
+    float opacitySum = 0.0;
+
+    for (int y = -SSR_BLOCK_SAMPLE_RADIUS; y <= SSR_BLOCK_SAMPLE_RADIUS; ++y)
+    {
+        for (int x = -SSR_BLOCK_SAMPLE_RADIUS; x <= SSR_BLOCK_SAMPLE_RADIUS; ++x)
+        {
+            if (abs(x) == abs(y) && abs(x) == 1)
+                continue;
+
+            int2 neighbor = int2(positionSS) + int2(x, y);
+            if (neighbor.x < 0 || neighbor.y < 0 ||
+                neighbor.x >= (int)_SsrScreenSize.x || neighbor.y >= (int)_SsrScreenSize.y)
+                continue;
+
+            uint2 neighborSS = (uint2)neighbor;
+            float2 neighborHit = SSGI_LOAD(_SsrHitPointTextureRW, neighborSS);
+            if (neighborHit.x > 1.0 || neighborHit.y < 0.0)
+                continue;
+
+            float3 neighborN;
+            float neighborRoughness;
+            if (!SsrDecodeMaterial(SSGI_LOAD(_SsrNormalTexture, neighborSS), neighborN, neighborRoughness))
+                continue;
+            if (neighborRoughness > _SsrRoughnessFadeEnd)
+                continue;
+            if (dot(neighborN, centerNormalWS) < 0.9)
+                continue;
+
+            float neighborDepth = SSGI_LOAD(_SsrDepthTexture, neighborSS);
+            if (SsgiIsBackgroundDepth(neighborDepth))
+                continue;
+
+            float3 neighborWS = SsrReconstructPositionWS((float2)neighborSS, neighborDepth);
+            if (length(neighborWS - centerWS) > positionTolerance)
+                continue;
+
+            float sampleOpacity;
+            float3 color = SsrSamplePreviousColor(neighborHit, neighborRoughness, sampleOpacity);
+            if (sampleOpacity <= 0.0)
+                continue;
+
+            outputs += color * sampleOpacity;
+            weightSum += sampleOpacity;
+            opacitySum += sampleOpacity;
+        }
+    }
+
+    if (weightSum <= 0.0)
+        return false;
+
+    radiance = outputs / weightSum;
+    // Four accepted neighbours mean the hole is fully surrounded by valid hits.
+    opacity = saturate(opacitySum * (1.0 / 4.0));
+    return true;
+}
+
 [numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
 void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -309,10 +386,29 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     bool materialValid = SsrDecodeMaterial(normalSample, normalWS, perceptualRoughness);
 
 #if defined(SSR_APPROX)
-    if (hitUv.x <= 1.0 && hitUv.y >= 0.0 && materialValid)
+    if (materialValid && perceptualRoughness <= _SsrRoughnessFadeEnd)
     {
-        float opacity;
-        float3 color = SsrSamplePreviousColor(hitUv, perceptualRoughness, opacity);
+        float opacity = 0.0;
+        float3 color = 0.0;
+        if (hitUv.x <= 1.0 && hitUv.y >= 0.0)
+            color = SsrSamplePreviousColor(hitUv, perceptualRoughness, opacity);
+
+        if (opacity <= 0.0)
+        {
+            float centerDepth = SSGI_LOAD(_SsrDepthTexture, positionSS);
+            if (!SsgiIsBackgroundDepth(centerDepth))
+            {
+                float3 filledRadiance;
+                float filledOpacity;
+                if (SsrFillMissedPixel(positionSS, centerDepth, normalWS, perceptualRoughness,
+                        filledRadiance, filledOpacity))
+                {
+                    color = filledRadiance;
+                    opacity = filledOpacity;
+                }
+            }
+        }
+
         if (opacity > 0.0)
             result = float4(color, saturate(opacity));
     }
