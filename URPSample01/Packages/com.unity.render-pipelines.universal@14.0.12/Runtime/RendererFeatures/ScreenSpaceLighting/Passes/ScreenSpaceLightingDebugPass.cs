@@ -167,9 +167,7 @@ namespace UnityEngine.Rendering.Universal
                     texture = source.rt;
                     return true;
                 }
-                // The PBR speed rejection no longer exists, so the deprecated mode shows SsrRaw.
                 case ScreenSpaceLightingDebugMode.SsrRaw:
-                case ScreenSpaceLightingDebugMode.SsrAccumulationSpeed:
                 {
                     if (m_SsrPass == null || !m_SsrPass.producedOutput || m_SsrPass.outputTexture == null || m_SsrPass.outputTexture.rt == null)
                         return false;

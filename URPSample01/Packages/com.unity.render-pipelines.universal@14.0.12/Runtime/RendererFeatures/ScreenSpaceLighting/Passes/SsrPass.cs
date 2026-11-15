@@ -300,8 +300,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // The reflection denoiser reuses the geometry helpers of the SSGI temporal filter, so it reads
-        // the same Screen Space Lighting constant set. The SSR trace remains full resolution until the
-        // half resolution denoiser lands, which makes the effect and screen sizes identical.
+        // the same Screen Space Lighting constant set. The effect resolution follows the trace size,
+        // which is half the screen for the half resolution PBR path.
         void PushDenoiserShaderVariables(
             CommandBuffer cmd,
             ref CameraData cameraData,

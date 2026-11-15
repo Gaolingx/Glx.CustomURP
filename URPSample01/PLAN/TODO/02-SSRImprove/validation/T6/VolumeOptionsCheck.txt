@@ -1,0 +1,37 @@
+﻿ScreenSpaceReflection VolumeParameter fields (15):
+  enabled
+  enabledTransparent
+  usedAlgorithm
+  fullResolution
+  minSmoothness
+  smoothnessFadeStart
+  depthBufferThickness
+  screenFadeDistance
+  rayMaxIterations
+  reflectSky
+  intensity
+  biasFactor
+  denoiserRadius
+  affectSmoothSurfaces
+  singleReflectionBounce
+removed fields still present: none
+ScreenSpaceLightingDebugMode values (17):
+  Off = 0
+  DepthPyramid = 1
+  CurrentColorPyramid = 2
+  PreviousColor = 3
+  PreviousDepth = 4
+  DepthPyramidUv = 5
+  CameraDepth = 6
+  SsgiRaw = 7
+  SsgiDenoised = 8
+  SsgiHistory = 9
+  SsgiWeight = 10
+  SsrRaw = 11
+  SsrWeight = 12
+  SsrPbrParams = 14
+  TransparentDepth = 15
+  SsrTransparentRaw = 16
+  SsrTransparentWeight = 17
+SsrAccumulationSpeed present: False
+EDITOR 2022.3.62f1

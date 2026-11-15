@@ -76,7 +76,7 @@
 - PBR 链路：trace → reproject（写 `ssrPbrOriginal`）→ `ReflectionDenoiser.compute` 的 `TemporalAccumulationFullRes/HalfRes` → `CopyHistory` → `BilateralFilterH/V_FR/HR`（写回 `ssrPbrOriginal`）。全分辨率直接把它交给材质；半分辨率再用 `BilateralUpSampleColor` 升到全分辨率 `ssrOutput`。
 - 历史：`ScreenSpaceLightingHistory` 的 `ssrPbrHitPoint`、`ssrPbrOriginal`、`ssrPbrHistory[2]`、`ssrPbrSampleCount[2]`、`ssrDenoiseIntermediate0/1`、`ssrPbrReadSlot/WriteSlot`、`ssrPbrHasValidHistory`、`SyncSsrPbrAlgorithm`；尺寸跟随 trace（半分辨率时为半屏）。
 - 输出契约：radiance（非预乘）+ weight，材质端 `lerp(probe, radiance, weight)`；Approximation 的单点空洞用邻近同表面像素 3×3 cross 填充。
-- Volume `ScreenSpaceReflection`：`usedAlgorithm`、`fullResolution`、`intensity`、`minSmoothness`、`smoothnessFadeStart`、`screenFadeDistance`、`depthBufferThickness`、`rayMaxIterations`、`reflectSky`、`biasFactor`、`denoiserRadius`、`affectSmoothSurfaces`、`singleReflectionBounce`；`accumulationFactor` 与 `speed*` 系列在 T4 标记 `[Obsolete]`，仍可反序列化但 PBR 路径不读取。
+- Volume `ScreenSpaceReflection`：`usedAlgorithm`、`fullResolution`、`intensity`、`minSmoothness`、`smoothnessFadeStart`、`screenFadeDistance`、`depthBufferThickness`、`rayMaxIterations`、`reflectSky`、`biasFactor`、`denoiserRadius`、`affectSmoothSurfaces`、`singleReflectionBounce`。旧 `accumulationFactor` 与 6 个 `speed*` 参数已在 T6 追加清理中从组件删除，不再出现在 Inspector。
 
 ### 2.2 与 HDRP `ReflectionDenoiser` 的差异
 
@@ -122,8 +122,8 @@
 | 半分辨率 | ✅ T3 已接线：PBR trace/reproject/denoise 半分辨率 + `BilateralUpSampleColor` 升采样；Approximation 保持全分辨率 | 洞填充是 3×3 全分辨率语义，两条路径同时改风险大 |
 | XR | `SSL_XR_ARRAY`；历史/计数为 texture array；temporal 用 `SSL_PREV_INV_VIEW_PROJ`，双缓冲区按 slice 读写 | 与 SSGI 的 history 路径一致 |
 | 曝光 | 不移植 exposure 代码；radiance 为 pre-exposure，绑定 1/1 | URP 该阶段没有曝光，与 SSGI 历史一致 |
-| 旧 Volume 参数 | `biasFactor` 继续用于 trace 的 Rothko bias；`accumulationFactor`、`speed*` 系列在 PBR 路径不再读取，T4 标记弃用 | 不做破坏性删除，已有 Volume 覆盖仍可序列化 |
-| 调试 | `SsrAccumulationSpeed` 保留枚举值但退化为 `SsrRaw`；`SsrPbrParams` 保留一个调试 kernel | 调试枚举是公开 API，序列化值不能重排 |
+| 旧 Volume 参数 | `biasFactor` 继续用于 trace 的 Rothko bias；`accumulationFactor`、`speed*` 系列在 PBR 路径不再读取（T4 标记弃用，T6 追加删除） | 历史决策为“不破坏删除”；T6 按用户要求改为删除 |
+| 调试 | `SsrAccumulationSpeed` 曾保留枚举值但退化为 `SsrRaw`（T6 追加删除）；`SsrPbrParams` 保留一个调试 kernel | 调试枚举是公开 API，序列化值不能重排；T6 按用户要求清理残留项 |
 
 **单帧调度（T1 目标）**
 
@@ -301,8 +301,8 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 
 **行为变化与遗留**
 
-- Volume Inspector 仍会显示这些字段（带 Deprecated Tooltip）；若需要隐藏，只能等破坏性删除或自定义 Volume 编辑器，本轮不做。
-- 旧 T8/T10 验证脚本若直接读取 `accumulationFactor` / `speed*`，会在编译时收到 CS0618 警告；T5 更新脚本时改用 denoiser 参数或 `#pragma warning disable 618`。
+- Volume Inspector 仍会显示这些字段（带 Deprecated Tooltip）；若需要隐藏，只能等破坏性删除或自定义 Volume 编辑器，本轮不做。**（T6 追加已删除这 7 个字段，Inspector 不再显示。）**
+- 旧 T8/T10 验证脚本若直接读取 `accumulationFactor` / `speed*`，会在编译时收到 CS0618 警告；T5 更新脚本时改用 denoiser 参数或 `#pragma warning disable 618`。**（T6 追加已删除字段与旧 T8 脚本，警告不再存在。）**
 
 ### T5：验证与证据（1 天）
 
@@ -415,6 +415,15 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - XR 下重跑新的 PBR 半分辨率降噪路径（T13 历史证据未覆盖本轮变化）。
 - 将 `PLAN/TODO/02-SSRImprove` 归档到 `PLAN/Done/`（会改变本文与证据链接路径，需单独确认）。
 
+#### T6 追加清理（2026-11-16，按用户要求删除残留选项）
+
+- `ScreenSpaceReflection` 删除 7 个旧参数：`accumulationFactor`、`speedRejectionParam`、`speedRejectionScalerFactor`、`speedSmoothReject`、`speedSurfaceOnly`、`speedTargetOnly`、`enableWorldSpeedRejection`。它们已从 Volume Inspector 消失；旧 Volume Profile 里这些键会在加载时被忽略（不再反序列化）。反射检查确认组件只剩 15 个 `VolumeParameter`（`VolumeOptionsCheck.txt`）。
+- `ScreenSpaceLightingDebugMode` 删除 `SsrAccumulationSpeed`（值 13）及 `ScreenSpaceLightingDebugPass` 中对应 case；`SsrPbrParams`（14）与 `DebugSsrParams` kernel 保留为有效诊断，14 以上的序列化值保持不变（13 成为空号）。
+- `ScreenSpaceLightingSsrPbrTests` 删除反射式弃用锁定测试，`VolumeExposesReflectionDenoiserControls` 补回默认算法与 `biasFactor` 断言。
+- 顺带修正 `SsrPass.PushDenoiserShaderVariables` 中“SSR trace 仍是全分辨率、等待半分辨率 denoiser”的过时注释（T3 已接线）。
+- 全仓已无这些标识符的代码/资产引用（`Assets` 与包内 grep 为空）。
+- 验证：EditMode **418 passed / 0 failed**（删除 1 个测试；`validation/T6/UnityEditModeTests.Cleanup.xml`）。
+
 ---
 
 ## 4. 收尾与验收标准
@@ -423,9 +432,9 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 
 - [x] `TemporalFilter`、`DiffuseDenoiser`、`ReflectionDenoiser`、`SSGI`、`SSR`、`BilateralUpsample`、`DepthPyramid`、ColorPyramid、Debug 强制重导入消息数为 0（T1/T4 证据）。
 - [x] `git status` 仅含预期文件；新文件 `.meta` 完整（T1 证据）。
-- [x] EditMode 全量通过（T4 后 419 passed）。
+- [x] EditMode 全量通过（T4 后 419 passed；T6 追加删除弃用测试后 418 passed）。
 - [x] `ScreenSpaceReflections.compute` 仅剩 trace/reproject/`DebugSsrParams`，无 accumulate kernel、`_SsrAccum*`、`ClearBuffer2D` 残留（T4 证据）。
-- [x] 旧 Volume 参数 `accumulationFactor` 与 `speed*` 已 `[Obsolete]` 且不再被 PBR 路径读取；`biasFactor` 仍驱动 trace（T4 证据）。
+- [x] 旧 Volume 参数 `accumulationFactor` 与 `speed*` 已删除，Inspector 不再显示；`biasFactor` 仍驱动 trace（T4 标记弃用，T6 追加删除）。
 - [x] `git log --follow` 确认移动的降噪文件保留历史；Lit / ComplexLit 强制重导入消息数 0（T5 证据）。
 
 ### 4.2 功能/回归
@@ -476,7 +485,11 @@ PLAN/TODO/02-SSRImprove/validation/
 ├─ T5/UnityEditMode.log               # EditMode 日志
 ├─ T6/PackagingCheck.txt              # Resources LUT 路径/次数/GUID 检查
 ├─ T6/UnityEditModeTests.xml          # 删除 T8 脚本后的 EditMode（419 passed）
-└─ T6/UnityEditMode.log               # EditMode 日志
+├─ T6/UnityEditMode.log               # EditMode 日志
+├─ T6/VolumeOptionsCheck.txt          # 删除旧参数后的 VolumeParameter / DebugMode 清单
+├─ T6/UnityVolumeOptionsCheck.log     # 反射检查日志
+├─ T6/UnityEditModeTests.Cleanup.xml  # 删除旧参数后的 EditMode（418 passed）
+└─ T6/UnityEditMode.Cleanup.log       # EditMode 日志
 ```
 
 ### 4.5 复现命令（关闭其他 Unity 编辑器后执行）
