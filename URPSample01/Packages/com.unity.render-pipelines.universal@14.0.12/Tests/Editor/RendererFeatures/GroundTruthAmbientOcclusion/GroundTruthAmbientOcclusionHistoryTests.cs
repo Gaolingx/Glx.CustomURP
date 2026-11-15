@@ -11,6 +11,15 @@ namespace UnityEditor.Rendering.Universal.Tests
     {
         GroundTruthAmbientOcclusionHistory m_History;
 
+        // Batch mode never creates a render pipeline, so the default RTHandle system is not
+        // initialized and every allocation returns without a camera-sized budget. URP does this in
+        // its pipeline constructor; the allocation tests need the same setup.
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            RTHandles.Initialize(1280, 720);
+        }
+
         [SetUp]
         public void SetUp()
         {
@@ -103,19 +112,21 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             m_History.EnsureResources(320, 180, false, 1, TextureDimension.Tex2D);
             int generation = m_History.resourceGeneration;
-            var depthPyramid = m_History.depthPyramid;
+            var packedData = m_History.packedData;
 
             m_History.EnsureResources(320, 180, false, 1, TextureDimension.Tex2D);
 
             Assert.AreEqual(generation, m_History.resourceGeneration);
-            Assert.AreSame(depthPyramid, m_History.depthPyramid);
+            Assert.AreSame(packedData, m_History.packedData);
 
+            // The depth mip chain belongs to the shared ScreenSpaceDepthPyramidSystem, so only the
+            // AO buffers reallocate when the viewport size changes.
             m_History.EnsureResources(640, 360, false, 1, TextureDimension.Tex2D);
 
             Assert.AreEqual(generation + 1, m_History.resourceGeneration);
-            Assert.AreNotSame(depthPyramid, m_History.depthPyramid);
-            Assert.AreEqual(m_History.depthPyramidInfo.textureSize.x, m_History.depthPyramid.rt.width);
-            Assert.AreEqual(m_History.depthPyramidInfo.textureSize.y, m_History.depthPyramid.rt.height);
+            Assert.AreNotSame(packedData, m_History.packedData);
+            Assert.AreEqual(m_History.aoWidth, m_History.packedData.rt.width);
+            Assert.AreEqual(m_History.aoHeight, m_History.packedData.rt.height);
         }
 
         [Test]
@@ -128,7 +139,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.AreEqual(91, m_History.aoHeight);
             Assert.AreEqual(2, m_History.slices);
             Assert.AreEqual(TextureDimension.Tex2DArray, m_History.dimension);
-            Assert.AreEqual(2, m_History.depthPyramid.rt.volumeDepth);
+            // The depth mip chain is shared with Screen Space Lighting and no longer owned here.
             Assert.AreEqual(2, m_History.packedData.rt.volumeDepth);
             Assert.AreEqual(2, m_History.occlusionTexture.rt.volumeDepth);
             Assert.AreEqual(2, m_History.historyTextureCount);

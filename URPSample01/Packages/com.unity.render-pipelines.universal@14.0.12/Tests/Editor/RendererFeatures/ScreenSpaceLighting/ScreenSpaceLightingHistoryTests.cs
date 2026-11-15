@@ -11,6 +11,15 @@ namespace UnityEditor.Rendering.Universal.Tests
     {
         ScreenSpaceLightingHistory m_History;
 
+        // Batch mode never creates a render pipeline, so the default RTHandle system is not
+        // initialized and every allocation returns without a camera-sized budget. URP does this in
+        // its pipeline constructor; the allocation tests need the same setup.
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            RTHandles.Initialize(1280, 720);
+        }
+
         [SetUp]
         public void SetUp()
         {
@@ -85,19 +94,21 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             m_History.EnsureResources(320, 180, 1, TextureDimension.Tex2D, ScreenSpaceLightingRenderUtils.k_ColorFormat);
             int generation = m_History.resourceGeneration;
-            var depthPyramid = m_History.depthPyramid;
+            var colorPyramid = m_History.currentColorPyramid;
 
             m_History.EnsureResources(320, 180, 1, TextureDimension.Tex2D, ScreenSpaceLightingRenderUtils.k_ColorFormat);
 
             Assert.AreEqual(generation, m_History.resourceGeneration);
-            Assert.AreSame(depthPyramid, m_History.depthPyramid);
+            Assert.AreSame(colorPyramid, m_History.currentColorPyramid);
 
+            // The depth mip chain belongs to the shared ScreenSpaceDepthPyramidSystem, so only the
+            // color history reallocates when the viewport size changes.
             m_History.EnsureResources(640, 360, 1, TextureDimension.Tex2D, ScreenSpaceLightingRenderUtils.k_ColorFormat);
 
             Assert.AreEqual(generation + 1, m_History.resourceGeneration);
-            Assert.AreNotSame(depthPyramid, m_History.depthPyramid);
-            Assert.AreEqual(m_History.depthPyramidInfo.textureSize.x, m_History.depthPyramid.rt.width);
-            Assert.AreEqual(m_History.depthPyramidInfo.textureSize.y, m_History.depthPyramid.rt.height);
+            Assert.AreNotSame(colorPyramid, m_History.currentColorPyramid);
+            Assert.AreEqual(640, m_History.currentColorPyramid.rt.width);
+            Assert.AreEqual(360, m_History.currentColorPyramid.rt.height);
         }
 
         [Test]
@@ -105,15 +116,17 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             m_History.EnsureResources(320, 180, 2, TextureDimension.Tex2DArray, ScreenSpaceLightingRenderUtils.k_ColorFormat);
 
-            Assert.IsTrue(m_History.resourcesAllocated);
+            // The depth mip chain is owned by ScreenSpaceDepthPyramidSystem, so this fixture only
+            // checks the resources the history allocates itself.
+            Assert.IsNotNull(m_History.currentColorPyramid);
+            Assert.IsNotNull(m_History.GetHistoryColorPyramid(0));
+            Assert.IsNotNull(m_History.GetPreviousDepth(0));
             Assert.AreEqual(2, m_History.slices);
             Assert.AreEqual(TextureDimension.Tex2DArray, m_History.dimension);
-            Assert.AreEqual(2, m_History.depthPyramid.rt.volumeDepth);
             Assert.AreEqual(2, m_History.currentColorPyramid.rt.volumeDepth);
             Assert.AreEqual(2, m_History.historyColorPyramidCount);
             Assert.AreEqual(2, m_History.previousDepthCount);
             Assert.AreEqual(ScreenSpaceLightingHistory.ComputeColorPyramidMipCount(320, 180), m_History.colorPyramidMipCount);
-            Assert.AreEqual(m_History.depthPyramidInfo.mipLevelCount, m_History.depthPyramidMipCount);
         }
 
         [Test]

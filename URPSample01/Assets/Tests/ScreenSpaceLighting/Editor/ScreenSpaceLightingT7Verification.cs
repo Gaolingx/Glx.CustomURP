@@ -349,7 +349,7 @@ public static class ScreenSpaceLightingT7Verification
             result.issues.Add("SsrFullRes: no pixel fell back to the reflection probe; the weight is not used.");
 
         CheckMissKeepsProbe(reference, samples, outputPixels, result);
-        CheckMaterialProbes(camera, reflectionRig, reference, outputPixels, result);
+        CheckMaterialProbes(camera, reflectionRig, reference, outputPixels, ssr, result);
         CaptureDebugViews(camera, imageTarget, feature, outputPixels, result, outputDirectory, modeName);
         CheckIntensityZero(camera, imageTarget, reference, ssr, result);
         CheckIntensityLinearity(camera, imageTarget, reference, ssr, feature, result);
@@ -396,8 +396,20 @@ public static class ScreenSpaceLightingT7Verification
             result.issues.Add($"MissKeepsProbe: {different} zero weight pixels differ from the probe image (max delta {maxDelta}).");
     }
 
-    static void CheckMaterialProbes(Camera camera, GameObject rig, Color[] reference, Color[] weights, T7ModeResult result)
+    static void CheckMaterialProbes(Camera camera, GameObject rig, Color[] reference, Color[] weights,
+        ScreenSpaceReflection settings, T7ModeResult result)
     {
+        // The trace only covers rays that stay on screen, so the fraction of a sphere that receives a
+        // reflection depends on where the sphere sits, not on its smoothness. The roughness fade is
+        // therefore asserted on the per-pixel weight (maximum over the probe rect) and against the
+        // fade the shader receives, which is the invariant HDRP defines.
+        float minSmoothness = settings.minSmoothness.value;
+        float roughnessFadeEnd = 1f - minSmoothness;
+        float roughnessFadeStart = 1f - settings.smoothnessFadeStart.value;
+        float roughnessFadeLength = roughnessFadeEnd - roughnessFadeStart;
+        float fadeRcpLength = roughnessFadeLength != 0f ? 1f / roughnessFadeLength : 0f;
+        float fadeEndTimesRcpLength = roughnessFadeLength != 0f ? roughnessFadeEnd * fadeRcpLength : 1f;
+
         if (rig == null || reference == null || weights == null || reference.Length != weights.Length)
             return;
 
@@ -425,6 +437,7 @@ public static class ScreenSpaceLightingT7Verification
 
             double weightSum = 0.0;
             double referenceSum = 0.0;
+            float maxWeight = 0f;
             int counted = 0;
             for (int y = y0; y < y1; y++)
             {
@@ -432,6 +445,7 @@ public static class ScreenSpaceLightingT7Verification
                 {
                     int index = y * ImageWidth + x;
                     weightSum += weights[index].a;
+                    maxWeight = Mathf.Max(maxWeight, weights[index].a);
                     referenceSum += Luminance(reference[index]);
                     counted++;
                 }
@@ -447,6 +461,8 @@ public static class ScreenSpaceLightingT7Verification
                 metallic = item.metal,
                 pixels = counted,
                 meanWeight = (float)(weightSum / counted),
+                maxWeight = maxWeight,
+                expectedFade = Smoothstep01(Mathf.Clamp01(fadeEndTimesRcpLength - (1f - item.smoothness) * fadeRcpLength)),
                 meanReferenceLuminance = (float)(referenceSum / counted)
             };
             result.materialProbes.Add(probe);
@@ -457,20 +473,27 @@ public static class ScreenSpaceLightingT7Verification
         {
             for (int i = 1; i < metal.Count; i++)
             {
-                if (metal[i].smoothness >= 0.5f && metal[i].meanWeight > metal[i - 1].meanWeight + 1e-4f)
+                if (metal[i].smoothness >= minSmoothness - 1e-4f && metal[i].maxWeight > metal[i - 1].maxWeight + 1e-4f)
                 {
                     result.issues.Add(
                         $"RoughnessFade: {metal[i].name} (smoothness {metal[i].smoothness:F2}) has weight " +
-                        $"{metal[i].meanWeight:F4} above {metal[i - 1].name} ({metal[i - 1].meanWeight:F4}).");
+                        $"{metal[i].maxWeight:F4} above {metal[i - 1].name} ({metal[i - 1].maxWeight:F4}).");
                 }
             }
         }
 
-        var rough = metal.Where(p => p.smoothness < 0.5f).ToList();
+        foreach (var probe in metal.Where(p => p.smoothness >= minSmoothness - 1e-4f))
+        {
+            // A covered pixel carries exactly the fade, so no pixel may exceed it.
+            if (probe.maxWeight > probe.expectedFade + 0.02f)
+                result.issues.Add($"RoughnessFade: {probe.name} has weight {probe.maxWeight:F4} above the roughness fade {probe.expectedFade:F4}.");
+        }
+
+        var rough = metal.Where(p => p.smoothness < minSmoothness).ToList();
         foreach (var probe in rough)
         {
-            if (probe.meanWeight > 1e-4f)
-                result.issues.Add($"RoughnessFade: {probe.name} is below minSmoothness but has weight {probe.meanWeight:F4}.");
+            if (probe.maxWeight > 1e-4f)
+                result.issues.Add($"RoughnessFade: {probe.name} is below minSmoothness but has weight {probe.maxWeight:F4}.");
         }
 
         var dielectric = result.materialProbes.FirstOrDefault(p => !p.metallic && p.smoothness >= 0.9f);
@@ -482,8 +505,8 @@ public static class ScreenSpaceLightingT7Verification
         var smoothMetal = metal.FirstOrDefault(p => p.smoothness >= 0.9f);
         if (smoothMetal == null)
             result.issues.Add("Metal: the smooth metal probe sphere was not measured.");
-        else if (smoothMetal.meanWeight <= 1e-4f)
-            result.issues.Add("Metal: the smooth metal sphere received no screen-space reflection.");
+        else if (smoothMetal.maxWeight < 0.9f)
+            result.issues.Add($"Metal: the smooth metal sphere weight {smoothMetal.maxWeight:F4} does not reach the full fade.");
     }
 
     static bool TryGetScreenRect(Camera camera, Renderer renderer, out int x0, out int y0, out int x1, out int y1)
@@ -1211,6 +1234,11 @@ public static class ScreenSpaceLightingT7Verification
         }
     }
 
+    static float Smoothstep01(float value)
+    {
+        return value * value * (3f - 2f * value);
+    }
+
     static float Luminance(Color color)
     {
         return 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
@@ -1315,6 +1343,11 @@ public static class ScreenSpaceLightingT7Verification
         public bool metallic;
         public int pixels;
         public float meanWeight;
+        // A covered pixel's weight is exactly the roughness fade. The mean over a sphere also
+        // depends on how much of its reflection leaves the screen, which only varies with the
+        // sphere's position, so the fade checks read the maximum instead.
+        public float maxWeight;
+        public float expectedFade;
         public float meanReferenceLuminance;
     }
 

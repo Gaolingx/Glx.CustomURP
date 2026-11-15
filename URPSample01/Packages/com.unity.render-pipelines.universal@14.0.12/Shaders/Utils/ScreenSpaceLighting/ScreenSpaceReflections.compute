@@ -102,6 +102,15 @@ SSGI_RW_TEXTURE2D_FLOAT4(_SsrAccumTextureRW);
     #define SSR_APPROX_OUTPUT _SsrReprojectTextureRW
 #endif
 
+// The shared SsgiReconstructPositionWS reads _SsgiScreenSize, which only exists in the SSGI constant
+// buffer. Both compute shaders include the same header, so the SSR kernels must scale with their own
+// upload instead of reading an SSGI field this shader never receives (it would be zero).
+float3 SsrReconstructPositionWS(float2 positionSS, float deviceDepth)
+{
+    float2 uv = (positionSS + 0.5) * _SsrScreenSize.zw;
+    return ComputeWorldSpacePosition(uv, deviceDepth, SSL_INV_VIEW_PROJ);
+}
+
 float3 SsrDecodeNormalSS(float4 normalBuffer)
 {
 #if defined(SSR_NORMALS_OCT)
@@ -229,7 +238,7 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     if (!SsgiIsBackgroundDepth(deviceDepth) && materialValid)
     {
-        float3 positionWS = SsgiReconstructPositionWS((float2)positionSS, deviceDepth);
+        float3 positionWS = SsrReconstructPositionWS((float2)positionSS, deviceDepth);
         float3 camPosWS = SSL_SSR_CAMERA_POSITION_WS;
         float3 viewWS = normalize(camPosWS - positionWS);
 
@@ -344,11 +353,11 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
                     if (SsgiIsBackgroundDepth(neighborDepth))
                         continue;
 
-                    float3 neighborWS = SsgiReconstructPositionWS((float2)neighborSS, neighborDepth);
+                    float3 neighborWS = SsrReconstructPositionWS((float2)neighborSS, neighborDepth);
                     uint2 hitPixel = (uint2)(saturate(neighborHit) * _SsrScreenSize.xy);
                     hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
                     float hitDepth = SSGI_LOAD(_SsrDepthTexture, hitPixel);
-                    float3 hitWS = SsgiReconstructPositionWS((float2)hitPixel, hitDepth);
+                    float3 hitWS = SsrReconstructPositionWS((float2)hitPixel, hitDepth);
 
                     float3 V = normalize(SSL_SSR_CAMERA_POSITION_WS - neighborWS);
                     float3 L = normalize(hitWS - neighborWS);
@@ -434,8 +443,9 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 hitPositionNDC = SSGI_LOAD(_SsrHitPointTextureRW, positionSS);
 
-    float2 hitSS = (hitPositionNDC - (0.5 * _SsrColorPyramidScaleAndLimitPrev.zw)) / _SsrColorPyramidScaleAndLimitPrev.zw;
-    uint2 hitPixel = (uint2)(saturate(hitSS) * _SsrScreenSize.xy);
+    // The hit point is already texel-center NDC, so the pixel is just NDC * size. Scaling by the
+    // color pyramid limit (1 on an unscaled history) first squashed every hit into the lower half.
+    uint2 hitPixel = (uint2)(saturate(hitPositionNDC) * _SsrScreenSize.xy);
     hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
 
     float2 motionHit = SSGI_LOAD(_SsrMotionTexture, hitPixel);
