@@ -41,7 +41,7 @@
 复现命令（先关闭其他 Unity 编辑器）：
 
 ```bash
-powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT13PlayerSetup.BuildPlayer -LogPath "PALN/validation/T13/Diagnostics/UnityT13PlayerBuild.Run24.log" -ReportPath "PALN/validation/T13/Diagnostics/UnityT13PlayerBuild.Run24SettingsRestoration.json" -Quit
+powershell.exe -NoProfile -File "PALN/validation/T1/Invoke-T1Unity.ps1" -ExecuteMethod ScreenSpaceLightingT13PlayerSetup.BuildPlayer -LogPath "PALN/validation/T13/Diagnostics/UnityT13PlayerBuild.Run26.log" -ReportPath "PALN/validation/T13/Diagnostics/UnityT13PlayerBuild.Run26SettingsRestoration.json" -Quit
 
 "PALN/validation/T13/Player/SslT13XrPlayer.exe" -ssl-t13-out "<abs>/PALN/validation/T13/Runs/DX11"
 "PALN/validation/T13/Player/SslT13XrPlayer.exe" -force-d3d12 -ssl-t13-out "<abs>/PALN/validation/T13/Runs/DX12"
