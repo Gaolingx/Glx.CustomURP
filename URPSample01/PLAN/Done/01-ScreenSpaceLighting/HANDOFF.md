@@ -71,6 +71,26 @@ Frame Debugger 的 SSR Vectors 列表中没有 `_SsgiScreenSize` 可直接印证
 验证：T7 三路径 3/3（上限 1.0000/0.8301/0.3289/0 vs fade 1.0000/0.8438/0.3164/0）、T8 三路径 3/3、
 EditMode 154 passed / 0 failed。未复跑 T10/T12/T13。证据见 `validation/SsrRayOriginFix/Report.md`。
 
+## 后续改进（2026-11-16）：SSR 空洞填充与拖动残影分析
+
+**空洞填充**：用户报告光滑地面上的反射出现单像素空洞。Approximation 复投影此前是单次采样，未命中即
+weight 0；现在未命中的像素会用 HDRP PBR 复投影的同一 3×3 cross 邻域填充，但只接受“同一表面”（世界
+位置差 < 1% 视距、法线 dot ≥ 0.9）、自身可参与 SSR（roughness ≤ fade end）且有有效命中的邻居；填充
+权重 = 接受邻居的 opacity / 4，因此四邻全命中才完全覆盖、全 miss 区域仍回落到 probe。有效像素的锐利
+反射不受影响，T7 的权重最大值与解析 fade 仍逐项一致（1.0000/0.8301/0.3289/0），rough metal 仍为 0。
+T7 rig 上新增覆盖 2,920 像素、无丢失像素；三个金属球 mean weight 上升约 16%。T7/T8 三路径 3/3 通过。
+证据见 `validation/SsrHoleFilling/Report.md`。
+
+**拖动残影**：逐帧（跨 editor tick 推进 `Time.frameCount`）的隔离测试证明 motion vector 有效（3°/帧
+偏航 → 平均前向位移 0.037 UV），SSR 没有自己的历史，停止拖动后**第一帧**就与收敛图逐像素一致（0 像素
+差异）；剩下的只有“上一帧颜色金字塔”的 1 帧滞后，HDRP 的 `ColorBufferMipChain` 也是同一结构，因此
+属结构性而非移植缺陷。放大因素来自颜色金字塔反馈（捕获的图像已包含上一帧 SSR 结果，weight≈1 的镜面
+会形成反射链），相机移动会打断这条链。唯一会残留衰减的是 SSGI（0.93 累积；纯旋转时历史位置校验仍
+判为有效，数帧内回收），HDRP 的校验规则相同，端口按计划省略了历史法线比较与 object-motion stencil
+拒绝。可选缓解：切到 PBR 累积（HDRP 的 artifact 管理路径，速度拒绝会在移动时丢弃历史），或为
+Approximation 增加按 motion 的 mip bias / 权重衰减（非 HDRP 行为，需要产品决策）。证据见
+`validation/SsrGhostAnalysis/Report.md`。
+
 ## T14 证据与复现
 
 - 结论：[T14Report.json](validation/T14/T14Report.json)（`t14ExitCriteriaMet=true`，九项 criteria 全为 true）

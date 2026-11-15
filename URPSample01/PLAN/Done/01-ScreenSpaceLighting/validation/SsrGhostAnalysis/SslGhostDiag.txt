@@ -1,0 +1,10 @@
+SsrOnly_motion: meanAbs=(0.03683,0.00625) max=0.0615
+SsrOnly: lastMoving-vs-converged mean=0.00556 max=27.4856 pixels>0.02=81273
+SsrOnly: firstAfterStop-vs-converged mean=0.00000 max=0.0118 pixels>0.02=0
+SsgiOnly_motion: meanAbs=(0.03683,0.00625) max=0.0615
+SsgiOnly: lastMoving-vs-converged mean=0.00030 max=0.4919 pixels>0.02=3971
+SsgiOnly: firstAfterStop-vs-converged mean=0.00002 max=0.0856 pixels>0.02=387
+Both_motion: meanAbs=(0.03683,0.00625) max=0.0615
+Both: lastMoving-vs-converged mean=0.00588 max=27.4856 pixels>0.02=85287
+Both: firstAfterStop-vs-converged mean=0.00003 max=0.0826 pixels>0.02=408
+completed=True
