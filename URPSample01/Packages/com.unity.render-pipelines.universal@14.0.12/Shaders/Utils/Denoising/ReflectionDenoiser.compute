@@ -15,6 +15,10 @@
 // - there is no exposure stage in the URP color chain at this point, so the HDRP
 //   GetCurrent/InverseCurrentExposureMultiplier pair is not ported and the radiance stays
 //   pre-exposure, exactly like the SSGI history;
+// - the history color, sample count and intermediates follow the effect resolution (full or half the
+//   screen), while the previous depth and normals always come from the full resolution history
+//   capture. The URP history is never dynamically scaled, so the reprojection can use normalized UVs
+//   directly instead of HDRP's history size/scale texel conversion;
 // - the geometry helpers are shared with SSGI and read the Screen Space Lighting constant set, which
 //   the SSR pass pushes for these kernels.
 #pragma kernel TemporalAccumulationFullRes TEMPORAL_ACCUMULATION=TemporalAccumulationFullRes
@@ -66,13 +70,10 @@ int _SingleReflectionBounce;
 float _RaytracingReflectionMinSmoothness;
 
 // HDRP names mapped onto the Screen Space Lighting constant set. The effect resolution is the trace
-// resolution (half the screen in the half resolution variants); the URP history is never dynamically
-// scaled, so the history size/scale collapses to the full screen.
+// resolution (half the screen in the half resolution variants).
 #define _HistoryValidity _SsgiRayMarchingParams2.z
 #define _PixelSpreadAngleTangent _SsgiDenoiserParams.x
 #define _CurrentEffectResolution float4(_SsgiTraceSize.xy, _SsgiTraceSize.zw)
-#define _HistoryBufferSize _SsgiScreenSize.zw
-#define _HistorySizeAndScale float4(_SsgiScreenSize.xy, _SsgiScreenSize.zw)
 
 // Maps an effect resolution pixel to the full resolution pixel that owns its depth and normal.
 uint2 ReflectionGetGeometryCoord(uint2 effectCoord)
@@ -151,17 +152,13 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float2 currentUV = SsgiGetPixelUv(geometryCoords, _SsgiScreenSize.zw);
     float2 historyUVUnscaled = currentUV - velocity;
 
-#ifdef HALF_RESOLUTION
-    // HDRP's half resolution reprojection. T3 wires these kernels and fixes the history resolution
-    // contract; T1 dispatches only the full resolution variants.
-    float2 historyTapCoord = (historyUVUnscaled * _HistorySizeAndScale.xy + 0.5) * 0.5;
-    float2 historyUV = historyTapCoord / _HistorySizeAndScale.xy * _HistorySizeAndScale.zw;
-    float2 historyDepthUV = ((float2)(mainCoord * 2.0 + 0.5) - velocity * _CurrentEffectResolution.xy * 2.0) * _HistoryBufferSize;
-#else
-    float2 historyTapCoord = historyUVUnscaled * _HistorySizeAndScale.xy;
-    float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
-    float2 historyDepthUV = historyUV;
-#endif
+    // The history color and sample count follow the effect resolution, which may be half the screen.
+    // Normalized UVs are resolution independent, so the same UV samples either layout; only the
+    // bounds test uses effect texels. The previous depth and normals always come from the full
+    // resolution history capture.
+    float2 historyUV = historyUVUnscaled;
+    float2 historyTapCoord = historyUVUnscaled * _CurrentEffectResolution.xy;
+    float2 historyDepthUV = historyUVUnscaled;
 
     // If the pixel was outside of the screen during the previous frame, invalidate the history.
     bool canBeReprojected = true;

@@ -1,7 +1,7 @@
 # 02-SSRImprove 交接
 
 > 更新：2026-11-16
-> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约冻结、T1 `ReflectionDenoiser` 移植、T2 mapping 资源完成（2026-11-16）；T3 进行中。**
+> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约、T1 `ReflectionDenoiser` 移植、T2 mapping 资源、T3 半分辨率完成（2026-11-16）；T4 未开始。**
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -73,18 +73,18 @@
 
 - `URP/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs`：事件 `AfterRenderingPrePasses + 6`（206），`usedAlgorithm = Approximation | PBRAccumulation`。
 - `URP/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute`：只剩 `ScreenSpaceReflectionsTracing`、`ScreenSpaceReflectionsReprojection`、`DebugSsrParams`；18 个 accumulate kernel、`ClearBuffer2D` 和 `SSR_ACCUMULATE` 代码块已在 T1 删除。
-- PBR 链路：trace → reproject（写 `ssrPbrOriginal`）→ `ReflectionDenoiser.compute` 的 `TemporalAccumulationFullRes` → `CopyHistory` → `BilateralFilterH_FR` → `BilateralFilterV_FR`（写 `ssrOutput`，材质消费）。
-- 历史：`ScreenSpaceLightingHistory` 的 `ssrPbrOriginal`、`ssrPbrHistory[2]`、`ssrPbrSampleCount[2]`、`ssrDenoiseIntermediate0/1`、`ssrPbrReadSlot/WriteSlot`、`ssrPbrHasValidHistory`、`SyncSsrPbrAlgorithm`。
+- PBR 链路：trace → reproject（写 `ssrPbrOriginal`）→ `ReflectionDenoiser.compute` 的 `TemporalAccumulationFullRes/HalfRes` → `CopyHistory` → `BilateralFilterH/V_FR/HR`（写回 `ssrPbrOriginal`）。全分辨率直接把它交给材质；半分辨率再用 `BilateralUpSampleColor` 升到全分辨率 `ssrOutput`。
+- 历史：`ScreenSpaceLightingHistory` 的 `ssrPbrHitPoint`、`ssrPbrOriginal`、`ssrPbrHistory[2]`、`ssrPbrSampleCount[2]`、`ssrDenoiseIntermediate0/1`、`ssrPbrReadSlot/WriteSlot`、`ssrPbrHasValidHistory`、`SyncSsrPbrAlgorithm`；尺寸跟随 trace（半分辨率时为半屏）。
 - 输出契约：radiance（非预乘）+ weight，材质端 `lerp(probe, radiance, weight)`；Approximation 的单点空洞用邻近同表面像素 3×3 cross 填充。
-- Volume `ScreenSpaceReflection`：`usedAlgorithm`、`intensity`、`minSmoothness`、`smoothnessFadeStart`、`screenFadeDistance`、`depthBufferThickness`、`rayMaxIterations`、`reflectSky`、`biasFactor`、`denoiserRadius`、`affectSmoothSurfaces`、`singleReflectionBounce`；`accumulationFactor` 与 `speed*` 系列仍存在但 PBR 路径不再读取（T4 标记弃用）。
+- Volume `ScreenSpaceReflection`：`usedAlgorithm`、`fullResolution`、`intensity`、`minSmoothness`、`smoothnessFadeStart`、`screenFadeDistance`、`depthBufferThickness`、`rayMaxIterations`、`reflectSky`、`biasFactor`、`denoiserRadius`、`affectSmoothSurfaces`、`singleReflectionBounce`；`accumulationFactor` 与 `speed*` 系列仍存在但 PBR 路径不再读取（T4 标记弃用）。
 
 ### 2.2 与 HDRP `ReflectionDenoiser` 的差异
 
 | HDRP 14.0.12 | 当前 URP（T1 后） |
 |---|---|
-| `TemporalAccumulationFullRes` / `TemporalAccumulationHalfRes` + `CopyHistory` | ✅ `ReflectionDenoiser.compute` 已移植；T1 只调度全分辨率，半分辨率随 T3 接线 |
+| `TemporalAccumulationFullRes` / `TemporalAccumulationHalfRes` + `CopyHistory` | ✅ 已移植；T3 起两种分辨率都调度 |
 | 时间累积按 depth/position 校验，历史 RGBA（rgb + sample count） | ✅ 时间累积已移植；历史为 `(radiance, weight)` + 独立 sample count，另加历史法线拒绝 |
-| `BilateralFilterH_FR` / `BilateralFilterV_FR`（半分辨率对应 `_HR`），可分离两遍 | ✅ FR 两遍已接；HR 变体已编译，T3 接线 |
+| `BilateralFilterH_FR` / `BilateralFilterV_FR`（半分辨率对应 `_HR`），可分离两遍 | ✅ FR/HR 都已在 T3 接线 |
 | `_ReflectionFilterMapping`（`ReflectionKernelMapping.png`，按 `(NoV, roughness)` 缩放半径） | ✅ T2 已随包提供（HDRP 原 `.meta`），缺失时白纹理回退 |
 | `_DenoiserFilterRadius`（`maxKernelSize`） | ✅ Volume `denoiserRadius`（1–32，默认 8）；半分辨率取一半随 T3 |
 | `affectSmoothSurfaces`、`singleReflectionBounce`、`roughnessBasedDenoising` | ✅ 前两者是 Volume 参数；`roughnessBasedDenoising` 由 `singleReflectionBounce` 派生（同 HDRP） |
@@ -109,7 +109,7 @@
 
 | 决策项 | 结论 | 理由 |
 |---|---|---|
-| 历史布局 | RGBA16F 槽：`rgb` = 累积 radiance（非预乘），`a` = 最近一帧的 blend weight；sample count 独立 `R16_SFloat`，与历史同帧 ping-pong | 与 SSGI 的 `(radiance, weight)` + 独立计数一致；材质契约的 alpha 是 weight，不能与 sample count 共用 |
+| 历史布局 | RGBA16F 槽：`rgb` = 累积 radiance（非预乘），`a` = 最近一帧的 blend weight；sample count 独立 `R16_SFloat`，与历史同帧 ping-pong。T3 起历史跟随效果分辨率（全分辨率或半屏），上一帧 depth/normal 仍为全分辨率 | 与 SSGI 的 `(radiance, weight)` + 独立计数一致；材质契约的 alpha 是 weight，不能与 sample count 共用 |
 | 累积输入 | `ssrPbrOriginal`（`rgb` radiance，`a` weight）；temporal 只混合 `rgb`，写出当前帧的 `a` | 保持材质端 `lerp(probe, radiance, weight)`；HDRP 同样写输入 alpha |
 | 空间滤波 | 可分离双边 H/V 只过滤 `rgb`，保留中心像素的 `a` | 同 HDRP；weight 是覆盖率，不随邻域 radiance 平均 |
 | 历史拒绝 | temporal kernel 内联（HDRP 反射 denoiser 没有独立 Validate）：当前/历史 far depth、重投影出屏、世界半径超限，另加 URP 扩展 `dot(当前N, 历史N) < 0.75` | SSR 有深度法线 prepass，跨轮廓重投影需要法线拒绝；0.75 取 HDRP 文件声明的 `REFLECTION_HISTORY_REJECTION_THRESHOLD` |
@@ -119,7 +119,7 @@
 | `affectSmoothSurfaces` | 默认 `false`；`smoothness > 0.99` 且 `singleReflectionBounce` 时跳过 temporal | 同 HDRP 的 early-out 条件 |
 | `denoiserRadius` | 新增 `ClampedIntParameter`（1–32，默认 8）；半分辨率时取一半 | HDRP 14.0.12 默认值 |
 | `ReflectionKernelMapping` | T1 绑定白色 fallback（等效固定半径），T2 换成 PNG；`_RoughnessBasedDenoising` 的绑定方式不变 | 把资源与 kernel 移植解耦，T1 不依赖新资产 |
-| 半分辨率 | T1 只调度全分辨率 kernel；`HALF_RESOLUTION` 变体随 T3 接 dispatch | 与 T3 的资源布局一起验收 |
+| 半分辨率 | ✅ T3 已接线：PBR trace/reproject/denoise 半分辨率 + `BilateralUpSampleColor` 升采样；Approximation 保持全分辨率 | 洞填充是 3×3 全分辨率语义，两条路径同时改风险大 |
 | XR | `SSL_XR_ARRAY`；历史/计数为 texture array；temporal 用 `SSL_PREV_INV_VIEW_PROJ`，双缓冲区按 slice 读写 | 与 SSGI 的 history 路径一致 |
 | 曝光 | 不移植 exposure 代码；radiance 为 pre-exposure，绑定 1/1 | URP 该阶段没有曝光，与 SSGI 历史一致 |
 | 旧 Volume 参数 | `biasFactor` 继续用于 trace 的 Rothko bias；`accumulationFactor`、`speed*` 系列在 PBR 路径不再读取，T4 标记弃用 | 不做破坏性删除，已有 Volume 覆盖仍可序列化 |
@@ -188,7 +188,7 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - `accumulationFactor` 与 `speed*` 成为死参数；T4 处理文档/弃用标注。
 - `SsrAccumulationSpeed` 调试视图退化为 `SsrRaw`；T8/T10 验证脚本仍读旧静态计数名，T5 需更新。
 - 白色 fallback 让所有像素拿到满半径（8px）。真实 LUT 的 roughness 轴是「越光滑半径越小」：roughness 0 → 0，roughness ≥ 0.25 → 1。所以 T1 单独提交时，默认 `minSmoothness = 0.9` 下的光滑反射会被多余地空间模糊；T2 接入 PNG 后恢复 HDRP 行为（见下）。
-- 半分辨率尚未接线；`T14KnownDifferences.md` 尚未同步。
+- `T14KnownDifferences.md` 尚未同步；T4 清理死参数。
 
 ### T2：`ReflectionKernelMapping` 资源与 roughness 滤波（0.5–1 天）
 
@@ -227,6 +227,41 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - 半分辨率：`TemporalAccumulationHalfRes` + `BilateralFilterH/V_HR`；输出经现有 `BilateralUpSampleColor` 或 HDRP 的 half-res 路径回到全分辨率（二选一，需在 T0 定）。
 - XR：`SSL_XR_ARRAY` 宏沿用；history 读写按 slice。
 - 验收：半分辨率和全分辨率开关下无跳变；XR 单眼/双眼历史不串。
+
+#### T3 结论（2026-11-16，已完成）
+
+**决策**
+
+| 项 | 结论 |
+|---|---|
+| 生效范围 | 半分辨率只作用于 PBR；Approximation 保持全分辨率（洞填充是 3×3 全分辨率语义） |
+| 升采样 | 复用现有 `BilateralUpsample.compute` 的 `BilateralUpSampleColor`（深度加权 2×2），不新增 kernel |
+| 历史分辨率 | 历史、sample count、中间 buffer 跟随效果分辨率；上一帧 depth/normal 仍是全分辨率（颜色历史捕获的产物） |
+| 拒绝 | 沿用 T1 的内联校验，几何坐标映射回全分辨率后再做 depth/position/normal 检查；没有独立 `ValidateHistory` pass |
+| XR | trace/denoise/history 在 trace 尺寸上按 slice；upsample 写全分辨率 array |
+
+**实现**
+
+- Volume 新增 `fullResolution`（默认 `true`，Tooltip 说明仅 PBR 生效）。
+- `ScreenSpaceReflections.compute` 新增 `SSR_HALF_RES` 与 `SsrGetFullResCoord`：trace/reproject 的深度、法线、motion、几何重建和 Hi-Z marching 全部走全分辨率坐标，hit 写 NDC（与分辨率无关），输出/hitpoint 走 trace 坐标。
+- `ScreenSpaceLightingSsrShaderVariables` 新增 `_SsrTraceSize`（布局 8→9 个 Vector4，生成 include 与布局测试同步）。
+- `ScreenSpaceLightingHistory.EnsureSsrPbrResources` 增加屏幕 + trace 尺寸参数；新增独立 `ssrPbrHitPoint`，PBR 历史/计数/中间 buffer 全部按 trace 分配；尺寸变化触发重分配 + 历史重置。
+- `SsrPass`：trace/reproject/denoise 用 trace groups，upsample 用 screen groups；temporal kernel 在 `FullRes/HalfRes` 间选择，双边在 `FR/HR` 间选择；`_DenoiserFilterRadius` 半分辨率取 `denoiserRadius / 2`；pixel spread 用 trace 尺寸。
+- V 双边统一写回 `ssrPbrOriginal`（trace 尺寸）：全分辨率直接作为材质输入，半分辨率经 `BilateralUpSampleColor` 写入 `ssrOutput`。
+- `ReflectionDenoiser` 的重投影改为归一化 UV + effect texel 边界检查，删除 HDRP 的 `_HistorySizeAndScale`/`_HistoryBufferSize` 换算（URP 历史不做动态缩放）；上一帧 depth/normal 用全分辨率 UV 采样。
+
+**验证证据**（`validation/T3/`）
+
+- `SslShaderCheck.txt`：SSR / ReflectionDenoiser / BilateralUpsample 三个 compute 强制重导入，12 个 kernel 全部存在。
+- `UnityShaderCheck.log`：批处理退出码 0，无 `Shader error` / `error CS`。
+- `UnityEditModeTests.xml`：**419 passed / 0 failed / 0 skipped**（T2 基线 418 + 半分辨率资源测试）。
+- 未做：半/全分辨率切换实拍、XR 播放器、动态相机历史失效（T5）。
+
+**已知限制**
+
+- 切换 `fullResolution` 会重分配 PBR 资源并重置历史，首帧相当于算法切换，属预期。
+- 半分辨率下 `SsrSamplePreviousColor` 仍按全分辨率 motion/color pyramid 取样，这是刻意的：历史源本来就是全分辨率。
+- 半分辨率 trace 的 GPU 开销下降，但 upsample 与全分辨率 depth 采样是新增开销；T5 记录 Frame Debugger 事件。
 
 ### T4：Volume 参数与清理（1 天）
 
@@ -269,6 +304,7 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - [ ] Forward / Forward+ / Deferred 三路径都可见；Deferred 仍走 DepthNormals prepass（decal 前数据，已知差异）。
 - [ ] `intensity=0` 与关闭效果逐字节恢复基线；miss 像素与 probe 基线逐像素一致。
 - [ ] 静态相机 32 帧后收敛；动态相机/物体无拖影；无 NaN/Inf/负值。
+- [ ] 半分辨率开关无跳变；切换后 PBR 资源重分配且历史重置（T5 实拍 + reset 计数）。
 
 ### 4.3 视觉/数值
 
@@ -289,6 +325,10 @@ PLAN/TODO/02-SSRImprove/validation/
 ├─ T2/UnityMappingCheck.log           # mapping 回读日志
 ├─ T2/UnityEditModeTests.xml          # EditMode 结果（418 passed）
 ├─ T2/UnityEditMode.log               # EditMode 日志
+├─ T3/SslShaderCheck.txt              # SSR/denoiser/upsample kernel 检查
+├─ T3/UnityShaderCheck.log            # 批处理编译日志
+├─ T3/UnityEditModeTests.xml          # EditMode 结果（419 passed）
+├─ T3/UnityEditMode.log               # EditMode 日志
 ├─ T5/T7Verification.json             # Approximation 三渲染器
 ├─ T5/T8Verification.json             # PBR 三渲染器
 ├─ T5/FrameDebuggerReport.json        # Pass 顺序

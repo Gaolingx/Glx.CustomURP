@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.Universal
     internal struct ScreenSpaceLightingSsrShaderVariables
     {
         public Vector4 _SsrScreenSize;                       // full camera size xy, reciprocal zw
+        public Vector4 _SsrTraceSize;                        // trace size xy, reciprocal zw (half the screen in the half resolution path)
         public Vector4 _SsrRayMarchingParams;                // step limit, thickness scale, thickness bias, reflects sky
         public Vector4 _SsrRoughnessFadeParams;              // roughness fade rcp length, fade end times rcp length, fade end, edge fade rcp length
         public Vector4 _SsrPyramidParams;                    // color pyramid max mip, depth pyramid max mip, unused, unused

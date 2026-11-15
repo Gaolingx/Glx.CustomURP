@@ -138,6 +138,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Constant buffer members.
         internal static readonly int SsrScreenSize = Shader.PropertyToID("_SsrScreenSize");
+        internal static readonly int SsrTraceSize = Shader.PropertyToID("_SsrTraceSize");
         internal static readonly int SsrRayMarchingParams = Shader.PropertyToID("_SsrRayMarchingParams");
         internal static readonly int SsrRoughnessFadeParams = Shader.PropertyToID("_SsrRoughnessFadeParams");
         internal static readonly int SsrPyramidParams = Shader.PropertyToID("_SsrPyramidParams");
@@ -153,6 +154,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static readonly string SsrNormalsOctKeyword = "SSR_NORMALS_OCT";
         internal static readonly string SsrApproxKeyword = "SSR_APPROX";
+        internal static readonly string SsrHalfResKeyword = "SSR_HALF_RES";
 
         // ---------------------------------------------------------------------------------------
         // Transparent Screen Space Reflections

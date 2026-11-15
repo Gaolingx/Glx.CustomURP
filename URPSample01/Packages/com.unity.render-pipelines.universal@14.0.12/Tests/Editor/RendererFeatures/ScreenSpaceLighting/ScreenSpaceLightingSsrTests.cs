@@ -105,6 +105,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             var expectedFields = new[]
             {
                 "_SsrScreenSize",
+                "_SsrTraceSize",
                 "_SsrRayMarchingParams",
                 "_SsrRoughnessFadeParams",
                 "_SsrPyramidParams",
@@ -124,7 +125,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             foreach (var field in typeof(ScreenSpaceLightingSsrShaderVariables).GetFields(BindingFlags.Public | BindingFlags.Instance))
                 Assert.AreEqual(typeof(Vector4), field.FieldType, $"{field.Name} does not map to a Vector4 constant buffer slot.");
 
-            Assert.AreEqual(8 * 16, System.Runtime.InteropServices.Marshal.SizeOf<ScreenSpaceLightingSsrShaderVariables>());
+            Assert.AreEqual(9 * 16, System.Runtime.InteropServices.Marshal.SizeOf<ScreenSpaceLightingSsrShaderVariables>());
         }
 
         [Test]

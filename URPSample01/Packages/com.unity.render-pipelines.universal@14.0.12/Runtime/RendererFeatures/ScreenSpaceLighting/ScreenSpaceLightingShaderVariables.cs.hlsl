@@ -25,6 +25,7 @@ CBUFFER_END
 // PackingRules = Exact
 CBUFFER_START(ScreenSpaceLightingSsrShaderVariables)
     float4 _SsrScreenSize;
+    float4 _SsrTraceSize;
     float4 _SsrRayMarchingParams;
     float4 _SsrRoughnessFadeParams;
     float4 _SsrPyramidParams;

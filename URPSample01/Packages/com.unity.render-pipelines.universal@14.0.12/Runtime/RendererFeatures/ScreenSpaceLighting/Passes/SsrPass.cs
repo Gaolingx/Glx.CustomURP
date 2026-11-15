@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_EditorCopyHistoryDispatchCount;
         internal static int s_EditorBilateralH_DispatchCount;
         internal static int s_EditorBilateralV_DispatchCount;
+        internal static int s_EditorUpsampleDispatchCount;
         internal static string s_EditorLastDenoiseKernel = string.Empty;
         // (denoiser radius, roughness based denoising, min smoothness, history validity).
         internal static Vector4 s_EditorLastDenoiseParams;
@@ -70,6 +71,7 @@ namespace UnityEngine.Rendering.Universal
             s_EditorCopyHistoryDispatchCount = 0;
             s_EditorBilateralH_DispatchCount = 0;
             s_EditorBilateralV_DispatchCount = 0;
+            s_EditorUpsampleDispatchCount = 0;
             s_EditorLastDenoiseKernel = string.Empty;
             s_EditorLastDenoiseParams = Vector4.zero;
         }
@@ -141,13 +143,19 @@ namespace UnityEngine.Rendering.Universal
             m_UsingPbrAccumulation = pbr;
             m_History.SyncSsrPbrAlgorithm(settings.usedAlgorithm.value);
 
+            // Approximation keeps its full resolution hole filling; only the PBR denoiser can run at
+            // half resolution and upsample.
+            bool halfResolution = pbr && !settings.fullResolution.value;
+            int traceWidth = halfResolution ? Mathf.Max(1, screenWidth >> 1) : screenWidth;
+            int traceHeight = halfResolution ? Mathf.Max(1, screenHeight >> 1) : screenHeight;
+
             m_History.EnsureSsrResources(screenWidth, screenHeight, viewCount, dimension);
             if (!m_History.ssrResourcesAllocated)
                 return;
 
             if (pbr)
             {
-                m_History.EnsureSsrPbrResources(screenWidth, screenHeight, viewCount, dimension);
+                m_History.EnsureSsrPbrResources(screenWidth, screenHeight, traceWidth, traceHeight, viewCount, dimension);
                 if (!m_History.ssrPbrResourcesAllocated)
                     return;
 
@@ -165,13 +173,18 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
                 Dispatch(cmd, ref cameraData, settings, depthTexture, normalTexture, motionTexture,
-                    screenWidth, screenHeight, viewCount, useTextureArray, octNormals, pbr, debugParams);
+                    screenWidth, screenHeight, traceWidth, traceHeight, viewCount, useTextureArray, octNormals,
+                    pbr, halfResolution, debugParams);
             }
 
             if (pbr && !debugParams)
                 m_History.SwapSsrPbrBuffers();
 
-            m_OutputTexture = m_History.ssrOutput;
+            // Full resolution PBR writes the filtered result into its trace sized original texture;
+            // the half resolution path upsamples into the full resolution output instead.
+            m_OutputTexture = pbr && !halfResolution && !debugParams
+                ? m_History.ssrPbrOriginal
+                : m_History.ssrOutput;
             m_History.MarkSsrOutputProduced();
             m_ProducedOutput = true;
         }
@@ -185,10 +198,13 @@ namespace UnityEngine.Rendering.Universal
             RTHandle motionTexture,
             int screenWidth,
             int screenHeight,
+            int traceWidth,
+            int traceHeight,
             int viewCount,
             bool useTextureArray,
             bool octNormals,
             bool pbr,
+            bool halfResolution,
             bool debugParams)
         {
             var compute = m_Resources.ssrCompute;
@@ -196,6 +212,7 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, !pbr);
+            SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, halfResolution);
             SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
 
@@ -212,11 +229,13 @@ namespace UnityEngine.Rendering.Universal
                     m_XrCameraPositionScratch);
             }
 
-            int groupsX = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenWidth, k_TileSize);
-            int groupsY = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenHeight, k_TileSize);
+            int traceGroupsX = ScreenSpaceLightingRenderUtils.DivideRoundUp(traceWidth, k_TileSize);
+            int traceGroupsY = ScreenSpaceLightingRenderUtils.DivideRoundUp(traceHeight, k_TileSize);
+            int screenGroupsX = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenWidth, k_TileSize);
+            int screenGroupsY = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenHeight, k_TileSize);
 
             bool pbrHistoryValid = pbr && m_History.ssrPbrHasValidHistory;
-            var cb = CreateShaderVariables(ref cameraData, settings, screenWidth, screenHeight, pbrHistoryValid);
+            var cb = CreateShaderVariables(ref cameraData, settings, screenWidth, screenHeight, traceWidth, traceHeight, pbrHistoryValid);
             PushShaderVariables(cmd, compute, cb);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -229,8 +248,11 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramid, m_History.depthPyramid);
             cmd.SetComputeBufferParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramidMipLevelOffsets, m_History.depthPyramidOffsets);
-            cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW, m_History.ssrHitPoint);
-            cmd.DispatchCompute(compute, traceKernel, groupsX, groupsY, viewCount);
+            // PBR owns a trace sized hit point so the half resolution path never reads or writes outside its
+            // buffers; Approximation keeps the full resolution one.
+            cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,
+                pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint);
+            cmd.DispatchCompute(compute, traceKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_TraceDispatchCount++;
 #endif
@@ -239,7 +261,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             var reprojectKernel = compute.FindKernel("ScreenSpaceReflectionsReprojection");
-            cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW, m_History.ssrHitPoint);
+            cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,
+                pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint);
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrMotionTexture, motionTexture);
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrColorPyramid, m_History.readColorPyramid);
@@ -248,7 +271,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrReprojectTextureRW, m_History.ssrPbrOriginal);
             else
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW, m_History.ssrOutput);
-            cmd.DispatchCompute(compute, reprojectKernel, groupsX, groupsY, viewCount);
+            cmd.DispatchCompute(compute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_ReprojectDispatchCount++;
 #endif
@@ -260,15 +283,23 @@ namespace UnityEngine.Rendering.Universal
             {
                 int debugKernel = compute.FindKernel("DebugSsrParams");
                 cmd.SetComputeTextureParam(compute, debugKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW, m_History.ssrOutput);
-                cmd.DispatchCompute(compute, debugKernel, groupsX, groupsY, viewCount);
+                cmd.DispatchCompute(compute, debugKernel, screenGroupsX, screenGroupsY, viewCount);
                 return;
             }
 
             if (pbr)
             {
-                PushDenoiserShaderVariables(cmd, ref cameraData, denoiser, screenWidth, screenHeight, pbrHistoryValid);
+                PushDenoiserShaderVariables(cmd, ref cameraData, denoiser, screenWidth, screenHeight, traceWidth, traceHeight, pbrHistoryValid);
                 DispatchReflectionDenoise(cmd, denoiser, settings, depthTexture, normalTexture, motionTexture,
-                    cameraData.camera.fieldOfView, screenWidth, screenHeight, groupsX, groupsY, viewCount, pbrHistoryValid);
+                    cameraData.camera.fieldOfView, traceWidth, traceHeight, traceGroupsX, traceGroupsY, viewCount,
+                    pbrHistoryValid, halfResolution);
+
+                if (halfResolution)
+                {
+                    DispatchUpsample(cmd, depthTexture, m_History.ssrPbrOriginal, m_History.ssrOutput,
+                        screenWidth, screenHeight, traceWidth, traceHeight, screenGroupsX, screenGroupsY,
+                        viewCount, useTextureArray);
+                }
             }
         }
 
@@ -281,6 +312,8 @@ namespace UnityEngine.Rendering.Universal
             ComputeShader denoiser,
             int screenWidth,
             int screenHeight,
+            int traceWidth,
+            int traceHeight,
             bool historyValid)
         {
             float near = Mathf.Max(1e-5f, cameraData.camera.nearClipPlane);
@@ -297,8 +330,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var screenSize = new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight);
+            var traceSize = new Vector4(traceWidth, traceHeight, 1f / traceWidth, 1f / traceHeight);
             cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiScreenSize, screenSize);
-            cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiTraceSize, screenSize);
+            cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiTraceSize, traceSize);
             cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiZBufferParams,
                 ScreenSpaceLightingRenderUtils.ComputeZBufferParams(near, far));
             cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiCameraPositionWS, cameraPosition);
@@ -315,12 +349,13 @@ namespace UnityEngine.Rendering.Universal
             RTHandle normalTexture,
             RTHandle motionTexture,
             float fieldOfView,
-            int screenWidth,
-            int screenHeight,
+            int effectWidth,
+            int effectHeight,
             int groupsX,
             int groupsY,
             int viewCount,
-            bool historyValid)
+            bool historyValid,
+            bool halfResolution)
         {
             // A cleared (never written) slot is bound while the history is invalid; the temporal
             // kernel returns before sampling it because _HistoryValidity is zero.
@@ -328,18 +363,21 @@ namespace UnityEngine.Rendering.Universal
             int writeSlot = m_History.ssrPbrWriteSlot;
 
             cmd.SetComputeFloatParam(denoiser, ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent,
-                ScreenSpaceLightingRenderUtils.ComputePixelSpreadTangent(fieldOfView, screenWidth, screenHeight));
+                ScreenSpaceLightingRenderUtils.ComputePixelSpreadTangent(fieldOfView, effectWidth, effectHeight));
             cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.AffectSmoothSurfaces,
                 settings.affectSmoothSurfaces.value ? 1 : 0);
             cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.SingleReflectionBounce,
                 settings.singleReflectionBounce.value ? 1 : 0);
             cmd.SetComputeFloatParam(denoiser, ScreenSpaceLightingShaderIDs.RoughnessBasedDenoising,
                 settings.singleReflectionBounce.value ? 1f : 0f);
-            cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.DenoiserFilterRadius, settings.denoiserRadius.value);
+            // HDRP halves the kernel size for the half resolution denoiser.
+            int denoiserRadius = halfResolution ? settings.denoiserRadius.value / 2 : settings.denoiserRadius.value;
+            cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.DenoiserFilterRadius, denoiserRadius);
             cmd.SetComputeFloatParam(denoiser, ScreenSpaceLightingShaderIDs.RaytracingReflectionMinSmoothness,
                 settings.minSmoothness.value);
 
-            var temporalKernel = denoiser.FindKernel("TemporalAccumulationFullRes");
+            string temporalKernelName = halfResolution ? "TemporalAccumulationHalfRes" : "TemporalAccumulationFullRes";
+            var temporalKernel = denoiser.FindKernel(temporalKernelName);
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, m_History.ssrPbrOriginal);
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseNormalTexture, normalTexture);
@@ -353,9 +391,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.DispatchCompute(denoiser, temporalKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR
             s_EditorTemporalDispatchCount++;
-            s_EditorLastDenoiseKernel = "TemporalAccumulationFullRes";
+            s_EditorLastDenoiseKernel = temporalKernelName;
             s_EditorLastDenoiseParams = new Vector4(
-                settings.denoiserRadius.value,
+                denoiserRadius,
                 settings.singleReflectionBounce.value ? 1f : 0f,
                 settings.minSmoothness.value,
                 historyValid ? 1f : 0f);
@@ -373,7 +411,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             var mapping = m_Resources.ssrReflectionFilterMapping;
-            var filterHKernel = denoiser.FindKernel("BilateralFilterH_FR");
+            string filterHKernelName = halfResolution ? "BilateralFilterH_HR" : "BilateralFilterH_FR";
+            var filterHKernel = denoiser.FindKernel(filterHKernelName);
             cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, m_History.ssrDenoiseIntermediate0);
             cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
             cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.DenoiseNormalTexture, normalTexture);
@@ -382,19 +421,60 @@ namespace UnityEngine.Rendering.Universal
             cmd.DispatchCompute(denoiser, filterHKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR
             s_EditorBilateralH_DispatchCount++;
-            s_EditorLastDenoiseKernel = "BilateralFilterH_FR";
+            s_EditorLastDenoiseKernel = filterHKernelName;
 #endif
 
-            var filterVKernel = denoiser.FindKernel("BilateralFilterV_FR");
+            string filterVKernelName = halfResolution ? "BilateralFilterV_HR" : "BilateralFilterV_FR";
+            var filterVKernel = denoiser.FindKernel(filterVKernelName);
             cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, m_History.ssrDenoiseIntermediate1);
             cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
             cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseNormalTexture, normalTexture);
-            cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrOutput);
+            // The original texture is free after the temporal pass consumed it; HDRP also writes the
+            // filtered result back into the noisy input. The half resolution path upsamples it.
+            cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrPbrOriginal);
             cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.ReflectionFilterMapping, mapping);
             cmd.DispatchCompute(denoiser, filterVKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR
             s_EditorBilateralV_DispatchCount++;
-            s_EditorLastDenoiseKernel = "BilateralFilterV_FR";
+            s_EditorLastDenoiseKernel = filterVKernelName;
+#endif
+        }
+
+        // Half resolution PBR result -> full resolution material-facing output. Reuses the SSGI bilateral
+// upsample, which is depth weighted so a half resolution texel never borrows radiance across a
+// silhouette. The alpha (blend weight) is filtered with the same weights.
+        void DispatchUpsample(
+            CommandBuffer cmd,
+            RTHandle depthTexture,
+            RTHandle lowResolution,
+            RTHandle output,
+            int screenWidth,
+            int screenHeight,
+            int traceWidth,
+            int traceHeight,
+            int groupsX,
+            int groupsY,
+            int viewCount,
+            bool useTextureArray)
+        {
+            var upsample = m_Resources.bilateralUpsampleCompute;
+            SetKeyword(upsample, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
+
+            var screenSize = new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight);
+            var traceSize = new Vector4(traceWidth, traceHeight, 1f / traceWidth, 1f / traceHeight);
+            float lowResPercentage = traceWidth / (float)screenWidth;
+            cmd.SetComputeVectorParam(upsample, ScreenSpaceLightingShaderIDs.SsgiScreenSize, screenSize);
+            cmd.SetComputeVectorParam(upsample, ScreenSpaceLightingShaderIDs.SsgiTraceSize, traceSize);
+            cmd.SetComputeVectorParam(upsample, ScreenSpaceLightingShaderIDs.SsgiTemporalParams,
+                new Vector4(lowResPercentage, 1f / lowResPercentage, 0f, 0f));
+
+            var kernel = upsample.FindKernel("BilateralUpSampleColor");
+            cmd.SetComputeTextureParam(upsample, kernel, ScreenSpaceLightingShaderIDs.SsgiDepthTexture, depthTexture);
+            cmd.SetComputeTextureParam(upsample, kernel, ScreenSpaceLightingShaderIDs.SsgiLowResolutionTexture, lowResolution);
+            cmd.SetComputeTextureParam(upsample, kernel, ScreenSpaceLightingShaderIDs.SsgiUpsampledTextureRW, output);
+            cmd.DispatchCompute(upsample, kernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR
+            s_EditorUpsampleDispatchCount++;
 #endif
         }
 
@@ -403,6 +483,8 @@ namespace UnityEngine.Rendering.Universal
             ScreenSpaceReflection settings,
             int screenWidth,
             int screenHeight,
+            int traceWidth,
+            int traceHeight,
             bool historyValid)
         {
             float near = Mathf.Max(1e-5f, cameraData.camera.nearClipPlane);
@@ -420,6 +502,7 @@ namespace UnityEngine.Rendering.Universal
 
             var cb = default(ScreenSpaceLightingSsrShaderVariables);
             cb._SsrScreenSize = new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight);
+            cb._SsrTraceSize = new Vector4(traceWidth, traceHeight, 1f / traceWidth, 1f / traceHeight);
             cb._SsrRayMarchingParams = new Vector4(
                 Mathf.Max(1, settings.rayMaxIterations.value),
                 thicknessScale,
@@ -450,6 +533,7 @@ namespace UnityEngine.Rendering.Universal
         static void PushShaderVariables(CommandBuffer cmd, ComputeShader compute, in ScreenSpaceLightingSsrShaderVariables cb)
         {
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrScreenSize, cb._SsrScreenSize);
+            cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrTraceSize, cb._SsrTraceSize);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrRayMarchingParams, cb._SsrRayMarchingParams);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrRoughnessFadeParams, cb._SsrRoughnessFadeParams);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrPyramidParams, cb._SsrPyramidParams);

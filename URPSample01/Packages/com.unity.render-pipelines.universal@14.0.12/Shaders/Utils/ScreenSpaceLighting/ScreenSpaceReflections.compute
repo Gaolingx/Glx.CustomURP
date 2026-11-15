@@ -21,6 +21,7 @@
 #pragma kernel DebugSsrParams
 
 #pragma multi_compile _ SSR_APPROX
+#pragma multi_compile _ SSR_HALF_RES
 #pragma multi_compile _ SSR_NORMALS_OCT
 #pragma multi_compile _ SSL_XR_ARRAY
 
@@ -85,6 +86,19 @@ float3 SsrReconstructPositionWS(float2 positionSS, float deviceDepth)
 {
     float2 uv = (positionSS + 0.5) * _SsrScreenSize.zw;
     return ComputeWorldSpacePosition(uv, deviceDepth, SSL_INV_VIEW_PROJ);
+}
+
+// Maps a trace resolution pixel to the full resolution pixel that owns its depth, normal and motion.
+// The PBR half resolution path traces and reprojects at half the screen size; Approximation always
+// runs at full resolution.
+uint2 SsrGetFullResCoord(uint2 traceCoord)
+{
+#if defined(SSR_HALF_RES)
+    uint2 fullRes = (uint2)floor(((float2)traceCoord + 0.5) * (_SsrScreenSize.xy / _SsrTraceSize.xy));
+    return min(fullRes, (uint2)_SsrScreenSize.xy - 1u);
+#else
+    return traceCoord;
+#endif
 }
 
 float3 SsrDecodeNormalSS(float4 normalBuffer)
@@ -203,18 +217,19 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    uint2 positionSS = dispatchThreadId.xy;
+    uint2 traceCoord = dispatchThreadId.xy;
+    uint2 inputCoord = SsrGetFullResCoord(traceCoord);
     float2 hitUv = float2(SSR_MISS_SENTINEL, 0.0);
 
-    float deviceDepth = SSGI_LOAD(_SsrDepthTexture, positionSS);
-    float4 normalSample = SSGI_LOAD(_SsrNormalTexture, positionSS);
+    float deviceDepth = SSGI_LOAD(_SsrDepthTexture, inputCoord);
+    float4 normalSample = SSGI_LOAD(_SsrNormalTexture, inputCoord);
     float3 normalWS;
     float perceptualRoughness;
     bool materialValid = SsrDecodeMaterial(normalSample, normalWS, perceptualRoughness);
 
     if (!SsgiIsBackgroundDepth(deviceDepth) && materialValid)
     {
-        float3 positionWS = SsrReconstructPositionWS((float2)positionSS, deviceDepth);
+        float3 positionWS = SsrReconstructPositionWS((float2)inputCoord, deviceDepth);
         float3 camPosWS = SSL_SSR_CAMERA_POSITION_WS;
         float3 viewWS = normalize(camPosWS - positionWS);
 
@@ -233,8 +248,8 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 #else
         float roughness = clamp(PerceptualRoughnessToRoughness(perceptualRoughness), MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
         float2 Xi = float2(
-            SsgiGetSequenceSample(positionSS, _SsrFrameIndex, 0),
-            SsgiGetSequenceSample(positionSS, _SsrFrameIndex, 1));
+            SsgiGetSequenceSample(traceCoord, _SsrFrameIndex, 0),
+            SsgiGetSequenceSample(traceCoord, _SsrFrameIndex, 1));
         // Rothko bias: with a high bias the samples concentrate on the mirror direction.
         Xi.x = lerp(Xi.x, 0.0, _SsrPBRBias);
 
@@ -248,7 +263,7 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
         bool hit = SslRayMarch(
             positionWS,
             reflectDir,
-            (float2)positionSS,
+            (float2)inputCoord,
             deviceDepth,
             killRay,
             _SsrIterLimit,
@@ -263,7 +278,7 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
             hitUv = floor(rayPos.xy) * _SsrScreenSize.zw + 0.5 * _SsrScreenSize.zw;
     }
 
-    SSGI_STORE(_SsrHitPointTextureRW, positionSS, hitUv);
+    SSGI_STORE(_SsrHitPointTextureRW, traceCoord, hitUv);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -352,11 +367,12 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 {
     SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    uint2 positionSS = dispatchThreadId.xy;
+    uint2 traceCoord = dispatchThreadId.xy;
+    uint2 inputCoord = SsrGetFullResCoord(traceCoord);
     float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
-    float2 hitUv = SSGI_LOAD(_SsrHitPointTextureRW, positionSS);
-    float4 normalSample = SSGI_LOAD(_SsrNormalTexture, positionSS);
+    float2 hitUv = SSGI_LOAD(_SsrHitPointTextureRW, traceCoord);
+    float4 normalSample = SSGI_LOAD(_SsrNormalTexture, inputCoord);
     float3 normalWS;
     float perceptualRoughness;
     bool materialValid = SsrDecodeMaterial(normalSample, normalWS, perceptualRoughness);
@@ -371,12 +387,12 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 
         if (opacity <= 0.0)
         {
-            float centerDepth = SSGI_LOAD(_SsrDepthTexture, positionSS);
+            float centerDepth = SSGI_LOAD(_SsrDepthTexture, inputCoord);
             if (!SsgiIsBackgroundDepth(centerDepth))
             {
                 float3 filledRadiance;
                 float filledOpacity;
-                if (SsrFillMissedPixel(positionSS, centerDepth, normalWS, perceptualRoughness,
+                if (SsrFillMissedPixel(inputCoord, centerDepth, normalWS, perceptualRoughness,
                         filledRadiance, filledOpacity))
                 {
                     color = filledRadiance;
@@ -406,9 +422,9 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
                     if (abs(x) == abs(y) && abs(x) == 1)
                         continue;
 
-                    int2 neighbor = int2(positionSS) + int2(x, y);
+                    int2 neighbor = int2(traceCoord) + int2(x, y);
                     if (neighbor.x < 0 || neighbor.y < 0 ||
-                        neighbor.x >= (int)_SsrScreenSize.x || neighbor.y >= (int)_SsrScreenSize.y)
+                        neighbor.x >= (int)_SsrTraceSize.x || neighbor.y >= (int)_SsrTraceSize.y)
                         continue;
 
                     uint2 neighborSS = (uint2)neighbor;
@@ -416,16 +432,17 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
                     if (neighborHit.x > 1.0)
                         continue;
 
+                    uint2 neighborGeo = SsrGetFullResCoord(neighborSS);
                     float3 neighborN;
                     float neighborRoughness;
-                    if (!SsrDecodeMaterial(SSGI_LOAD(_SsrNormalTexture, neighborSS), neighborN, neighborRoughness))
+                    if (!SsrDecodeMaterial(SSGI_LOAD(_SsrNormalTexture, neighborGeo), neighborN, neighborRoughness))
                         continue;
 
-                    float neighborDepth = SSGI_LOAD(_SsrDepthTexture, neighborSS);
+                    float neighborDepth = SSGI_LOAD(_SsrDepthTexture, neighborGeo);
                     if (SsgiIsBackgroundDepth(neighborDepth))
                         continue;
 
-                    float3 neighborWS = SsrReconstructPositionWS((float2)neighborSS, neighborDepth);
+                    float3 neighborWS = SsrReconstructPositionWS((float2)neighborGeo, neighborDepth);
                     uint2 hitPixel = (uint2)(saturate(neighborHit) * _SsrScreenSize.xy);
                     hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
                     float hitDepth = SSGI_LOAD(_SsrDepthTexture, hitPixel);
@@ -459,7 +476,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     }
 #endif
 
-    SSGI_STORE(SSR_APPROX_OUTPUT, positionSS, result);
+    SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, result);
 }
 
 //--------------------------------------------------------------------------------------------------

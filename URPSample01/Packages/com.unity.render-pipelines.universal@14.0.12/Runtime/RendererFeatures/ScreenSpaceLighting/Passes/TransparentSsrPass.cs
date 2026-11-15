@@ -227,6 +227,8 @@ namespace UnityEngine.Rendering.Universal
 
             var cb = default(ScreenSpaceLightingSsrShaderVariables);
             cb._SsrScreenSize = new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight);
+            // Transparent SSR always traces at full resolution.
+            cb._SsrTraceSize = cb._SsrScreenSize;
             // HDRP disables sky reflection for transparents: a sky hit has no depth and would appear
             // heavily distorted. The sky still comes from the reflection probe on the material.
             cb._SsrRayMarchingParams = new Vector4(
@@ -256,6 +258,7 @@ namespace UnityEngine.Rendering.Universal
         static void PushShaderVariables(CommandBuffer cmd, ComputeShader compute, in ScreenSpaceLightingSsrShaderVariables cb)
         {
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrScreenSize, cb._SsrScreenSize);
+            cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrTraceSize, cb._SsrTraceSize);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrRayMarchingParams, cb._SsrRayMarchingParams);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrRoughnessFadeParams, cb._SsrRoughnessFadeParams);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrPyramidParams, cb._SsrPyramidParams);

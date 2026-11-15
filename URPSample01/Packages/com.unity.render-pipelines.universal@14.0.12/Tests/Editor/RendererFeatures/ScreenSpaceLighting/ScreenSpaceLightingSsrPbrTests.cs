@@ -46,6 +46,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void VolumeExposesReflectionDenoiserControls()
         {
+            Assert.IsTrue(m_Settings.fullResolution.value);
             Assert.AreEqual(8, m_Settings.denoiserRadius.value);
             Assert.AreEqual(1, m_Settings.denoiserRadius.min);
             Assert.AreEqual(32, m_Settings.denoiserRadius.max);
@@ -78,7 +79,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         public void PbrResourcesCarryTheDenoiseIntermediatesAndSampleCounts()
         {
             Assert.IsFalse(m_History.ssrPbrResourcesAllocated);
-            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
+            m_History.EnsureSsrPbrResources(320, 180, 320, 180, 1, TextureDimension.Tex2D);
 
             Assert.IsTrue(m_History.ssrPbrResourcesAllocated);
             Assert.IsNotNull(m_History.ssrPbrOriginal);
@@ -90,7 +91,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void EachHistorySlotOwnsItsSampleCountSlot()
         {
-            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
+            m_History.EnsureSsrPbrResources(320, 180, 320, 180, 1, TextureDimension.Tex2D);
 
             Assert.IsNotNull(m_History.GetSsrPbrSampleCount(0));
             Assert.IsNotNull(m_History.GetSsrPbrSampleCount(1));
@@ -103,7 +104,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void PbrSampleCountsSurviveAHistorySwap()
         {
-            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
+            m_History.EnsureSsrPbrResources(320, 180, 320, 180, 1, TextureDimension.Tex2D);
             var slotZero = m_History.GetSsrPbrSampleCount(0);
             var slotOne = m_History.GetSsrPbrSampleCount(1);
 
@@ -118,7 +119,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void AlgorithmSwitchResetsTheAccumulationHistory()
         {
-            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
+            m_History.EnsureSsrPbrResources(320, 180, 320, 180, 1, TextureDimension.Tex2D);
             int baselineResets = m_History.ssrPbrResetCount;
             m_History.SyncSsrPbrAlgorithm(ScreenSpaceReflectionAlgorithm.PBRAccumulation);
             Assert.AreEqual(baselineResets, m_History.ssrPbrResetCount, "the first selection initializes without a reset");
@@ -144,7 +145,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void PbrSlotsAlternateAndNeverOverlapInTheSameFrame()
         {
-            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
+            m_History.EnsureSsrPbrResources(320, 180, 320, 180, 1, TextureDimension.Tex2D);
             for (int frame = 0; frame < 6; frame++)
             {
                 m_History.BeginSsrPbrFrame();
@@ -158,21 +159,39 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void PbrResourcesFollowTheCameraResolution()
         {
-            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
+            m_History.EnsureSsrPbrResources(320, 180, 320, 180, 1, TextureDimension.Tex2D);
             Assert.IsTrue(m_History.ssrPbrResourcesAllocated);
             int generation = m_History.ssrPbrResourceGeneration;
 
-            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
+            m_History.EnsureSsrPbrResources(320, 180, 320, 180, 1, TextureDimension.Tex2D);
             Assert.AreEqual(generation, m_History.ssrPbrResourceGeneration);
 
-            m_History.EnsureSsrPbrResources(640, 360, 1, TextureDimension.Tex2D);
+            m_History.EnsureSsrPbrResources(640, 360, 640, 360, 1, TextureDimension.Tex2D);
             Assert.AreEqual(generation + 1, m_History.ssrPbrResourceGeneration);
+        }
+
+        [Test]
+        public void HalfResolutionPbrResourcesFollowTheTraceSize()
+        {
+            m_History.EnsureSsrPbrResources(320, 180, 160, 90, 1, TextureDimension.Tex2D);
+            Assert.IsTrue(m_History.ssrPbrResourcesAllocated);
+            Assert.IsNotNull(m_History.ssrPbrHitPoint);
+            Assert.AreEqual(160, m_History.ssrPbrWidth);
+            Assert.AreEqual(90, m_History.ssrPbrHeight);
+            int generation = m_History.ssrPbrResourceGeneration;
+
+            m_History.EnsureSsrPbrResources(320, 180, 160, 90, 1, TextureDimension.Tex2D);
+            Assert.AreEqual(generation, m_History.ssrPbrResourceGeneration, "an unchanged trace size must not reallocate");
+
+            m_History.EnsureSsrPbrResources(320, 180, 320, 180, 1, TextureDimension.Tex2D);
+            Assert.AreEqual(generation + 1, m_History.ssrPbrResourceGeneration, "switching the trace size reallocates");
+            Assert.AreEqual(320, m_History.ssrPbrWidth);
         }
 
         [Test]
         public void CameraResetInvalidatesThePbrAccumulation()
         {
-            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
+            m_History.EnsureSsrPbrResources(320, 180, 320, 180, 1, TextureDimension.Tex2D);
             m_History.BeginSsrPbrFrame();
             m_History.SwapSsrPbrBuffers();
             Assert.IsTrue(m_History.ssrPbrHasValidHistory);

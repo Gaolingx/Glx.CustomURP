@@ -411,15 +411,19 @@ namespace UnityEngine.Rendering.Universal
         int m_TransparentSlices;
         TextureDimension m_TransparentDimension;
 
-        // PBR accumulation owns two full resolution RGBA16F histories plus the current reproject
-        // output. They are only allocated while the PBR algorithm is selected.
+        // PBR accumulation owns two RGBA16F histories plus the current reproject output, the hit point and
+        // the denoise intermediates. They are only allocated while the PBR algorithm is selected and
+        // follow the trace resolution: full resolution, or half the screen when the volume asks for
+        // the half resolution denoiser.
         //
-        // Frozen contract (PLAN/TODO/02-SSRImprove, T0): a history slot stores the accumulated
+        // Frozen contract (PLAN/TODO/02-SSRImprove, T0/T3): a history slot stores the accumulated
         // un-premultiplied radiance in rgb and the latest frame's blend weight in a, because the
         // material consumes alpha as the lerp weight. The temporal sample count therefore lives in a
         // separate single channel texture per slot; it must never share history.a. The two denoise
         // intermediates hold the temporal output (which is also copied into the history slot) and the
-        // horizontal bilateral result.
+        // horizontal bilateral result. The previous depth and normals used for validation stay full
+        // resolution because they come from the color history capture.
+        internal RTHandle ssrPbrHitPoint { get; private set; }
         internal RTHandle ssrPbrOriginal { get; private set; }
         internal RTHandle ssrDenoiseIntermediate0 { get; private set; }
         internal RTHandle ssrDenoiseIntermediate1 { get; private set; }
@@ -434,7 +438,7 @@ namespace UnityEngine.Rendering.Universal
         internal ScreenSpaceReflectionAlgorithm ssrPbrAlgorithm { get; private set; }
         internal bool ssrPbrAlgorithmInitialized { get; private set; }
         internal bool ssrPbrResourcesAllocated =>
-            ssrPbrOriginal != null && ssrDenoiseIntermediate0 != null &&
+            ssrPbrHitPoint != null && ssrPbrOriginal != null && ssrDenoiseIntermediate0 != null &&
             ssrDenoiseIntermediate1 != null && m_SsrPbrHistory[0] != null;
 
         internal RTHandle GetSsrPbrHistory(int slot)
@@ -447,15 +451,25 @@ namespace UnityEngine.Rendering.Universal
             return slot >= 0 && slot < k_HistoryBufferCount ? m_SsrPbrSampleCount[slot] : null;
         }
 
-        internal void EnsureSsrPbrResources(int width, int height, int viewCount, TextureDimension resourceDimension)
+        internal void EnsureSsrPbrResources(
+            int screenWidth,
+            int screenHeight,
+            int traceWidth,
+            int traceHeight,
+            int viewCount,
+            TextureDimension resourceDimension)
         {
-            width = Mathf.Max(1, width);
-            height = Mathf.Max(1, height);
+            screenWidth = Mathf.Max(1, screenWidth);
+            screenHeight = Mathf.Max(1, screenHeight);
+            traceWidth = Mathf.Max(1, traceWidth);
+            traceHeight = Mathf.Max(1, traceHeight);
             viewCount = Mathf.Max(1, viewCount);
 
             if (ssrPbrResourcesAllocated &&
-                m_SsrPbrWidth == width &&
-                m_SsrPbrHeight == height &&
+                m_SsrPbrScreenWidth == screenWidth &&
+                m_SsrPbrScreenHeight == screenHeight &&
+                m_SsrPbrWidth == traceWidth &&
+                m_SsrPbrHeight == traceHeight &&
                 m_SsrPbrSlices == viewCount &&
                 m_SsrPbrDimension == resourceDimension)
             {
@@ -464,24 +478,42 @@ namespace UnityEngine.Rendering.Universal
 
             ReleaseSsrPbrResources();
 
-            m_SsrPbrWidth = width;
-            m_SsrPbrHeight = height;
+            m_SsrPbrScreenWidth = screenWidth;
+            m_SsrPbrScreenHeight = screenHeight;
+            m_SsrPbrWidth = traceWidth;
+            m_SsrPbrHeight = traceHeight;
             m_SsrPbrSlices = viewCount;
             m_SsrPbrDimension = resourceDimension;
-            ssrPbrWidth = width;
-            ssrPbrHeight = height;
+            ssrPbrWidth = traceWidth;
+            ssrPbrHeight = traceHeight;
 
-            ssrPbrOriginal = AllocSsrPbrTexture(width, height, resourceDimension, viewCount, "SslSsrPbrOriginal");
-            ssrDenoiseIntermediate0 = AllocSsrPbrTexture(width, height, resourceDimension, viewCount, "SslSsrDenoiseIntermediate0");
-            ssrDenoiseIntermediate1 = AllocSsrPbrTexture(width, height, resourceDimension, viewCount, "SslSsrDenoiseIntermediate1");
+            ssrPbrHitPoint = AllocSsrHitPoint(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsrPbrHitPoint");
+            ssrPbrOriginal = AllocSsrPbrTexture(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsrPbrOriginal");
+            ssrDenoiseIntermediate0 = AllocSsrPbrTexture(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsrDenoiseIntermediate0");
+            ssrDenoiseIntermediate1 = AllocSsrPbrTexture(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsrDenoiseIntermediate1");
             for (int i = 0; i < k_HistoryBufferCount; i++)
             {
-                m_SsrPbrHistory[i] = AllocSsrPbrTexture(width, height, resourceDimension, viewCount, "SslSsrPbrHistory" + i);
-                m_SsrPbrSampleCount[i] = AllocSsrSampleCount(width, height, resourceDimension, viewCount, "SslSsrPbrSampleCount" + i);
+                m_SsrPbrHistory[i] = AllocSsrPbrTexture(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsrPbrHistory" + i);
+                m_SsrPbrSampleCount[i] = AllocSsrSampleCount(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsrPbrSampleCount" + i);
             }
 
             ssrPbrResourceGeneration++;
             ResetSsrPbrHistory();
+        }
+
+        static RTHandle AllocSsrHitPoint(int width, int height, TextureDimension dimension, int slices, string name)
+        {
+            return RTHandles.Alloc(
+                width, height,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: slices,
+                colorFormat: GraphicsFormat.R16G16_SFloat,
+                filterMode: FilterMode.Point,
+                dimension: dimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: name);
         }
 
         static RTHandle AllocSsrPbrTexture(int width, int height, TextureDimension dimension, int slices, string name)
@@ -555,6 +587,8 @@ namespace UnityEngine.Rendering.Universal
 
         readonly RTHandle[] m_SsrPbrHistory = new RTHandle[k_HistoryBufferCount];
         readonly RTHandle[] m_SsrPbrSampleCount = new RTHandle[k_HistoryBufferCount];
+        int m_SsrPbrScreenWidth;
+        int m_SsrPbrScreenHeight;
         int m_SsrPbrWidth;
         int m_SsrPbrHeight;
         int m_SsrPbrSlices;
@@ -889,6 +923,8 @@ namespace UnityEngine.Rendering.Universal
 
         void ReleaseSsrPbrResources()
         {
+            RTHandles.Release(ssrPbrHitPoint);
+            ssrPbrHitPoint = null;
             RTHandles.Release(ssrPbrOriginal);
             ssrPbrOriginal = null;
             RTHandles.Release(ssrDenoiseIntermediate0);
@@ -903,6 +939,8 @@ namespace UnityEngine.Rendering.Universal
                 m_SsrPbrSampleCount[i] = null;
             }
 
+            m_SsrPbrScreenWidth = 0;
+            m_SsrPbrScreenHeight = 0;
             m_SsrPbrWidth = 0;
             m_SsrPbrHeight = 0;
             m_SsrPbrSlices = 0;
