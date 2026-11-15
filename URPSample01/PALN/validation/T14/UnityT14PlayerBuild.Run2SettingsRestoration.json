@@ -1,0 +1,42 @@
+{
+    "startedUtc":  "2026-11-15T09:05:41.9914819Z",
+    "finishedUtc":  "2026-11-15T09:17:09.0275301Z",
+    "executeMethod":  "ScreenSpaceLightingT14PlayerSetup.BuildReleasePlayer",
+    "unityExitCode":  1,
+    "invocationError":  null,
+    "allSettingsRestored":  false,
+    "files":  [
+                  {
+                      "file":  "ProjectSettings/GraphicsSettings.asset",
+                      "beforeSha256":  "1965d795622315852c0e3dced3f15db7b16b805958387add74fe54f10d684e71",
+                      "afterUnitySha256":  "89077326f1edd9b2595e9c79f3c7e30ea250ee1abc32d00d9006e2fb995781fe",
+                      "restoredSha256":  "89077326f1edd9b2595e9c79f3c7e30ea250ee1abc32d00d9006e2fb995781fe",
+                      "restored":  false,
+                      "error":  "System.Management.Automation.MethodInvocationException: 使用“2”个参数调用“WriteAllBytes”时发生异常:“请求的操作无法在使用用户映射区域打开的文件上执行。\r\n” ---\u003e System.IO.IOException: 请求的操作无法在使用用户映射区域打开的文件上执行。\r\n\r\n   在 System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)\r\n   在 System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)\r\n   在 System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)\r\n   在 System.IO.File.InternalWriteAllBytes(String path, Byte[] bytes, Boolean checkHost)\r\n   在 CallSite.Target(Closure , CallSite , Type , Object , Object )\r\n   --- 内部异常堆栈跟踪的结尾 ---\r\n   在 System.Management.Automation.ExceptionHandlingOps.CheckActionPreference(FunctionContext funcContext, Exception exception)\r\n   在 System.Management.Automation.Interpreter.ActionCallInstruction`2.Run(InterpretedFrame frame)\r\n   在 System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)\r\n   在 System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)"
+                  },
+                  {
+                      "file":  "ProjectSettings/QualitySettings.asset",
+                      "beforeSha256":  "f7698a6c2c236296dc0f4ff054c925bf44a80a57c09b2ad2b643105e8a389249",
+                      "afterUnitySha256":  "0772c5fc9aea0f7f549f3c462dc07ea7c03568fdc0837b9f4e470601e12b85c1",
+                      "restoredSha256":  "f7698a6c2c236296dc0f4ff054c925bf44a80a57c09b2ad2b643105e8a389249",
+                      "restored":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "ProjectSettings/ProjectSettings.asset",
+                      "beforeSha256":  "ecba8e50b77feb0ceb8ec4dee2fc85faa0512fb2058a6c5568e88451b42b0a93",
+                      "afterUnitySha256":  "19197f9f2577b5d92c33daa2d171e3bf8adf9fb726b888cce330729e35373ddf",
+                      "restoredSha256":  "ecba8e50b77feb0ceb8ec4dee2fc85faa0512fb2058a6c5568e88451b42b0a93",
+                      "restored":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "ProjectSettings/EditorSettings.asset",
+                      "beforeSha256":  "2f29d5142f8e94397fecb22a5c70514cc4022d2fbe7ffec743167d25701fc1ff",
+                      "afterUnitySha256":  "2f29d5142f8e94397fecb22a5c70514cc4022d2fbe7ffec743167d25701fc1ff",
+                      "restoredSha256":  "2f29d5142f8e94397fecb22a5c70514cc4022d2fbe7ffec743167d25701fc1ff",
+                      "restored":  true,
+                      "error":  null
+                  }
+              ]
+}

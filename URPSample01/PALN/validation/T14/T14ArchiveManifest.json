@@ -1,0 +1,912 @@
+{
+  "utcTimestamp": "2026-11-15T10:15:25.751888+00:00",
+  "root": "PALN/validation/T14",
+  "fileCount": 180,
+  "totalBytes": 63860230,
+  "excludedArtifacts": [
+    "PALN/validation/T14/Player/ (temporary release player, rebuilt by Build T14 Release Player)",
+    "PALN/validation/T14/*.Run*.log retention follows the T1-T13 convention: every run is kept"
+  ],
+  "files": [
+    {
+      "path": "PALN/validation/T14/Analyze-T14Evidence.py",
+      "bytes": 26388,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Invoke-T14EditModeTests.ps1",
+      "bytes": 2356,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Invoke-T14FrameDebugger.ps1",
+      "bytes": 1318,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Invoke-T14GraphicsRegression.ps1",
+      "bytes": 944,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Invoke-T14PlayModeTests.ps1",
+      "bytes": 865,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/T14ArchiveManifest.json",
+      "bytes": 0,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/T14KnownDifferences.md",
+      "bytes": 2381,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/T14Performance.json",
+      "bytes": 3451,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/T14PlayerBuildSummary.json",
+      "bytes": 5943,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/T14Report.json",
+      "bytes": 49575,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/T14SupportMatrix.md",
+      "bytes": 1531,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityEditModeTests.Run1IsolationFailure.log",
+      "bytes": 131361,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityEditModeTests.Run1IsolationFailureSettingsRestoration.json",
+      "bytes": 2365,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityEditModeTests.Run2.log",
+      "bytes": 132667,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityEditModeTests.Run2SettingsRestoration.json",
+      "bytes": 2365,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityEditModeTests.xml",
+      "bytes": 100105,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run1.log",
+      "bytes": 71811,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run1SettingsRestoration.json",
+      "bytes": 2411,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run2.log",
+      "bytes": 86402,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run2SettingsRestoration.json",
+      "bytes": 2411,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run3.log",
+      "bytes": 149541,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run3.xml",
+      "bytes": 15881,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run3SettingsRestoration.json",
+      "bytes": 2365,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run4.log",
+      "bytes": 151282,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run4.xml",
+      "bytes": 12515,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run4SettingsRestoration.json",
+      "bytes": 2365,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run5.log",
+      "bytes": 158703,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run5.xml",
+      "bytes": 12513,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.Run5SettingsRestoration.json",
+      "bytes": 2365,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityPlayModeTests.xml",
+      "bytes": 12513,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityT14FrameDebugger.Run1AbortedSettingsRestoration.json",
+      "bytes": 2412,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityT14FrameDebugger.Run2SettingsRestoration.json",
+      "bytes": 2412,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityT14GraphicsRegressionSettingsRestoration.json",
+      "bytes": 2418,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityT14PlayerBuild.Run1SettingsRestoration.json",
+      "bytes": 2417,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityT14PlayerBuild.Run2SettingsRestoration.json",
+      "bytes": 3976,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityT14PlayerBuild.Run3.log",
+      "bytes": 28203882,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityT14PlayerBuild.Run3SettingsRestoration.json",
+      "bytes": 2417,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityTests.Run1ExecuteMethodAborted.log",
+      "bytes": 79823,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/UnityTests.Run1ExecuteMethodAbortedSettingsRestoration.json",
+      "bytes": 2411,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/FrameDebugger/Deferred.json",
+      "bytes": 16359,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/FrameDebugger/Forward.json",
+      "bytes": 14488,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/FrameDebugger/ForwardPlus.json",
+      "bytes": 14868,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/FrameDebugger/FrameDebuggerReport.json",
+      "bytes": 48599,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/FrameDebugger/UnityT14FrameDebugger.Run1Aborted.log",
+      "bytes": 199098,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/FrameDebugger/UnityT14FrameDebugger.Run2.log",
+      "bytes": 264647,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12Verification.json",
+      "bytes": 58816,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_AlgorithmSwitch.png",
+      "bytes": 164986,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_AllOffAgain.png",
+      "bytes": 144392,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_AllOn.png",
+      "bytes": 337926,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_CameraCut.png",
+      "bytes": 164479,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_CameraVolumeMask.png",
+      "bytes": 144392,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_DecalDBuffer.png",
+      "bytes": 339747,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_DecalScreenSpace.png",
+      "bytes": 337301,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_DeferredFallbackForward.png",
+      "bytes": 18795,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_DepthPrimingForced.png",
+      "bytes": 337926,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_GtaoAndSsl.png",
+      "bytes": 337921,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_GtaoFirst.png",
+      "bytes": 337926,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_GtaoOnly.png",
+      "bytes": 161372,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_MSAA4x.png",
+      "bytes": 337926,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_MotionBlur.png",
+      "bytes": 356147,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_NoVolumeComponents.png",
+      "bytes": 144392,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_OpaqueTexture.png",
+      "bytes": 144392,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_OverrideStateOff.png",
+      "bytes": 144392,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_PostProcessingOn.png",
+      "bytes": 334705,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_Reference.png",
+      "bytes": 144392,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_RefractionOnly.png",
+      "bytes": 144062,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_RenderScale75.png",
+      "bytes": 362778,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_RuntimeToggleOff.png",
+      "bytes": 144392,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_SameFrameDoubleRender.png",
+      "bytes": 337827,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_SsgiOnly.png",
+      "bytes": 295679,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_SsgiSsr.png",
+      "bytes": 299606,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_SsrOnly.png",
+      "bytes": 165641,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_TargetResize.png",
+      "bytes": 117377,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_TemporalAA.png",
+      "bytes": 335345,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Deferred_TwoVolumes.png",
+      "bytes": 154947,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_AlgorithmSwitch.png",
+      "bytes": 163720,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_AllOffAgain.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_AllOn.png",
+      "bytes": 320459,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_CameraCut.png",
+      "bytes": 155106,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_CameraVolumeMask.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_DecalDBuffer.png",
+      "bytes": 321824,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_DecalScreenSpace.png",
+      "bytes": 316760,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_DepthPrimingForced.png",
+      "bytes": 320459,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_GtaoAndSsl.png",
+      "bytes": 322115,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_GtaoFirst.png",
+      "bytes": 320459,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_GtaoOnly.png",
+      "bytes": 154728,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_MSAA4x.png",
+      "bytes": 331074,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_MotionBlur.png",
+      "bytes": 337909,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_NoVolumeComponents.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_OpaqueTexture.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_OverrideStateOff.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_PostProcessingOn.png",
+      "bytes": 318632,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_Reference.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_RefractionOnly.png",
+      "bytes": 146567,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_RenderScale75.png",
+      "bytes": 346483,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_RuntimeToggleOff.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_SameFrameDoubleRender.png",
+      "bytes": 320782,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_SsgiOnly.png",
+      "bytes": 283321,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_SsgiSsr.png",
+      "bytes": 297103,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_SsrOnly.png",
+      "bytes": 164417,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_TargetResize.png",
+      "bytes": 112623,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_TemporalAA.png",
+      "bytes": 319656,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_ForwardPlus_TwoVolumes.png",
+      "bytes": 155864,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_AlgorithmSwitch.png",
+      "bytes": 163720,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_AllOffAgain.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_AllOn.png",
+      "bytes": 320459,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_CameraCut.png",
+      "bytes": 155106,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_CameraVolumeMask.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_DecalDBuffer.png",
+      "bytes": 321824,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_DecalScreenSpace.png",
+      "bytes": 316816,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_DepthPrimingForced.png",
+      "bytes": 320459,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_GtaoAndSsl.png",
+      "bytes": 322115,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_GtaoFirst.png",
+      "bytes": 320459,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_GtaoOnly.png",
+      "bytes": 154728,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_MSAA4x.png",
+      "bytes": 331074,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_MotionBlur.png",
+      "bytes": 337909,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_NoVolumeComponents.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_OpaqueTexture.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_OverrideStateOff.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_PostProcessingOn.png",
+      "bytes": 318632,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_Reference.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_RefractionOnly.png",
+      "bytes": 146567,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_RenderScale75.png",
+      "bytes": 346483,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_RuntimeToggleOff.png",
+      "bytes": 146711,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_SameFrameDoubleRender.png",
+      "bytes": 320782,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_SsgiOnly.png",
+      "bytes": 283321,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_SsgiSsr.png",
+      "bytes": 297103,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_SsrOnly.png",
+      "bytes": 164417,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_TargetResize.png",
+      "bytes": 112623,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_TemporalAA.png",
+      "bytes": 319656,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/T12_Forward_TwoVolumes.png",
+      "bytes": 155864,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Graphics/UnityT14GraphicsRegression.log",
+      "bytes": 166029,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/AllOffAgain_Left.png",
+      "bytes": 201056,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/AllOffAgain_Right.png",
+      "bytes": 204668,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/AllOn_Left.png",
+      "bytes": 655482,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/AllOn_Right.png",
+      "bytes": 648786,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/GtaoOnly_Left.png",
+      "bytes": 209030,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/GtaoOnly_Right.png",
+      "bytes": 211408,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/Reference_Left.png",
+      "bytes": 201056,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/Reference_Right.png",
+      "bytes": 204668,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/RefractionOnly_Left.png",
+      "bytes": 200352,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/RefractionOnly_Right.png",
+      "bytes": 204090,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/SsgiOnly_Left.png",
+      "bytes": 655131,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/SsgiOnly_Right.png",
+      "bytes": 653029,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/SsrOnly_Left.png",
+      "bytes": 201475,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/SsrOnly_Right.png",
+      "bytes": 204996,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/T13XrPlayerVerification.json",
+      "bytes": 11803,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX11/T13XrPlayerVerification.log.txt",
+      "bytes": 455,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/AllOffAgain_Left.png",
+      "bytes": 201056,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/AllOffAgain_Right.png",
+      "bytes": 204668,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/AllOn_Left.png",
+      "bytes": 655465,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/AllOn_Right.png",
+      "bytes": 648795,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/GtaoOnly_Left.png",
+      "bytes": 209132,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/GtaoOnly_Right.png",
+      "bytes": 211408,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/Reference_Left.png",
+      "bytes": 201056,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/Reference_Right.png",
+      "bytes": 204668,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/RefractionOnly_Left.png",
+      "bytes": 200352,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/RefractionOnly_Right.png",
+      "bytes": 204090,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/SsgiOnly_Left.png",
+      "bytes": 655190,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/SsgiOnly_Right.png",
+      "bytes": 653194,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/SsrOnly_Left.png",
+      "bytes": 201475,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/SsrOnly_Right.png",
+      "bytes": 204996,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/T13XrPlayerVerification.json",
+      "bytes": 11833,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/DX12/T13XrPlayerVerification.log.txt",
+      "bytes": 465,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/AllOffAgain_Left.png",
+      "bytes": 201110,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/AllOffAgain_Right.png",
+      "bytes": 204576,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/AllOn_Left.png",
+      "bytes": 654894,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/AllOn_Right.png",
+      "bytes": 648532,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/GtaoOnly_Left.png",
+      "bytes": 209068,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/GtaoOnly_Right.png",
+      "bytes": 211249,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/Reference_Left.png",
+      "bytes": 201110,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/Reference_Right.png",
+      "bytes": 204576,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/RefractionOnly_Left.png",
+      "bytes": 200384,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/RefractionOnly_Right.png",
+      "bytes": 203996,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/SsgiOnly_Left.png",
+      "bytes": 520298,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/SsgiOnly_Right.png",
+      "bytes": 509348,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/SsrOnly_Left.png",
+      "bytes": 201538,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/SsrOnly_Right.png",
+      "bytes": 204882,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/T13XrPlayerVerification.json",
+      "bytes": 11820,
+      "excluded": false
+    },
+    {
+      "path": "PALN/validation/T14/Runs/Vulkan/T13XrPlayerVerification.log.txt",
+      "bytes": 461,
+      "excluded": false
+    }
+  ]
+}

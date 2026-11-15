@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="6" result="Failed(Child)" total="6" passed="3" failed="3" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:48Z" duration="3.0013109">
+  <test-suite type="TestSuite" id="1000" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="29" result="Failed" site="Child" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:48Z" duration="3.001311" total="6" passed="3" failed="3" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1045" name="Unity.ScreenSpaceLighting.Tests.PlayMode.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.ScreenSpaceLighting.Tests.PlayMode.dll" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:48Z" duration="2.986066" total="6" passed="3" failed="3" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="94244" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1046" name="Unity" fullname="Unity" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:48Z" duration="2.983302" total="6" passed="3" failed="3" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1047" name="ScreenSpaceLighting" fullname="Unity.ScreenSpaceLighting" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:48Z" duration="2.981964" total="6" passed="3" failed="3" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1048" name="Tests" fullname="Unity.ScreenSpaceLighting.Tests" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:48Z" duration="2.980421" total="6" passed="3" failed="3" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="1049" name="PlayMode" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:48Z" duration="2.979174" total="6" passed="3" failed="3" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1036" name="ScreenSpaceLightingPlayModeTests" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:48Z" duration="2.977455" total="6" passed="3" failed="3" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-suite type="ParameterizedMethod" id="1040" name="AllEffectsDispatchAndRestoreReference" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:47Z" duration="1.934280" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <test-case id="1037" name="AllEffectsDispatchAndRestoreReference(&quot;Forward&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference(&quot;Forward&quot;)" methodname="AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="1946772756" result="Passed" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:45Z" duration="0.888096" asserts="0">
+                    <properties />
+                    <output><![CDATA[Shader warning in 'GTAO': implicit truncation of vector type at kernel GTAOMain at E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(88) (on d3d11)
+Shader warning in 'GTAO': integer divides may be much slower, try using uints if possible. at kernel GTAOMain at E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(122) (on d3d11)
+Shader warning in 'GTAO': use of potentially uninitialized variable (GTAOGetDepthSample) at kernel GTAOMain at E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(122) (on d3d11)
+Shader warning in 'GTAOSpatialDenoise': implicit truncation of vector type at kernel SpatialDenoise at E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(88) (on d3d11)
+Shader warning in 'GTAOCopyHistory': implicit truncation of vector type at kernel GTAODenoise_CopyHistory at E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(88) (on d3d11)
+Shader warning in 'GTAOTemporalDenoise': implicit truncation of vector type at kernel TemporalDenoise at E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(88) (on d3d11)
+Shader warning in 'GTAOBlurAndUpsample': implicit truncation of vector type at kernel BilateralUpsampling at E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(88) (on d3d11)
+Shader warning in 'ScreenSpaceGlobalIllumination': 'Load': implicit truncation of vector type at kernel TraceGlobalIllumination at ScreenSpaceGlobalIllumination.compute(99) (on d3d11)
+Shader warning in 'ScreenSpaceGlobalIllumination': value cannot be NaN, isnan() may not be necessary.  /Gis may force isnan() to be performed at kernel ReprojectGlobalIllumination at E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl(146) (on d3d11)
+Shader warning in 'ScreenSpaceGlobalIllumination': 'Load': implicit truncation of vector type at kernel ReprojectGlobalIllumination at ScreenSpaceGlobalIllumination.compute(99) (on d3d11)
+Shader warning in 'ScreenSpaceGlobalIllumination': 'Load': implicit truncation of vector type at kernel TraceGlobalIllumination at ScreenSpaceGlobalIllumination.compute(99) (on d3d11)
+Shader warning in 'TemporalFilter': 'Load': implicit truncation of vector type at kernel ValidateHistory at TemporalFilter.compute(138) (on d3d11)
+CommandBuffer: temporary render texture  not found while executing  (SetComputeTextureParam)
+Shader warning in 'TemporalFilter': 'Load': implicit truncation of vector type at kernel TemporalAccumulation at TemporalFilter.compute(138) (on d3d11)
+Shader warning in 'TemporalFilter': 'Load': implicit truncation of vector type at kernel ValidateHistory at TemporalFilter.compute(138) (on d3d11)
+Shader warning in 'ScreenSpaceReflections': 'Load': implicit truncation of vector type at kernel ScreenSpaceReflectionsTracing at ScreenSpaceReflections.compute(303) (on d3d11)
+Shader warning in 'ScreenSpaceReflections': value cannot be NaN, isnan() may not be necessary.  /Gis may force isnan() to be performed at kernel ScreenSpaceReflectionsReprojection at ScreenSpaceReflections.compute(209) (on d3d11)
+Shader warning in 'ScreenSpaceReflections': 'Load': implicit truncation of vector type at kernel ScreenSpaceReflectionsReprojection at ScreenSpaceReflections.compute(303) (on d3d11)
+Shader warning in 'ScreenSpaceReflections': 'Load': implicit truncation of vector type at kernel ScreenSpaceReflectionsTracing at ScreenSpaceReflections.compute(303) (on d3d11)
+]]></output>
+                  </test-case>
+                  <test-case id="1038" name="AllEffectsDispatchAndRestoreReference(&quot;ForwardPlus&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference(&quot;ForwardPlus&quot;)" methodname="AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="82783398" result="Passed" start-time="2026-11-15 08:59:45Z" end-time="2026-11-15 08:59:46Z" duration="0.408034" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1039" name="AllEffectsDispatchAndRestoreReference(&quot;Deferred&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference(&quot;Deferred&quot;)" methodname="AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="2045258622" result="Passed" start-time="2026-11-15 08:59:46Z" end-time="2026-11-15 08:59:47Z" duration="0.618724" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1044" name="RuntimeControlsAndCameraLifetime" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" testcasecount="3" result="Failed" site="Child" start-time="2026-11-15 08:59:47Z" end-time="2026-11-15 08:59:48Z" duration="1.038922" total="3" passed="0" failed="3" inconclusive="0" skipped="0" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[One or more child tests had errors]]></message>
+                  </failure>
+                  <test-case id="1041" name="RuntimeControlsAndCameraLifetime(&quot;Forward&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime(&quot;Forward&quot;)" methodname="RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="889520789" result="Failed" start-time="2026-11-15 08:59:47Z" end-time="2026-11-15 08:59:47Z" duration="0.359031" asserts="0">
+                    <properties />
+                    <failure>
+                      <message><![CDATA[  Forward: a second camera did not get its own SSL history entry.
+  Expected: 2
+  But was:  1
+]]></message>
+                      <stack-trace><![CDATA[at Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests+<RuntimeControlsAndCameraLifetime>d__25.MoveNext () [0x00350] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\ScreenSpaceLighting\Tests\PlayMode\ScreenSpaceLightingPlayModeTests.cs:170
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@1.1.33\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:46
+]]></stack-trace>
+                    </failure>
+                  </test-case>
+                  <test-case id="1042" name="RuntimeControlsAndCameraLifetime(&quot;ForwardPlus&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime(&quot;ForwardPlus&quot;)" methodname="RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="437477599" result="Failed" start-time="2026-11-15 08:59:47Z" end-time="2026-11-15 08:59:47Z" duration="0.309159" asserts="0">
+                    <properties />
+                    <failure>
+                      <message><![CDATA[  ForwardPlus: a second camera did not get its own SSL history entry.
+  Expected: 2
+  But was:  1
+]]></message>
+                      <stack-trace><![CDATA[at Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests+<RuntimeControlsAndCameraLifetime>d__25.MoveNext () [0x00350] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\ScreenSpaceLighting\Tests\PlayMode\ScreenSpaceLightingPlayModeTests.cs:170
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@1.1.33\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:46
+]]></stack-trace>
+                    </failure>
+                  </test-case>
+                  <test-case id="1043" name="RuntimeControlsAndCameraLifetime(&quot;Deferred&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime(&quot;Deferred&quot;)" methodname="RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="427610212" result="Failed" start-time="2026-11-15 08:59:47Z" end-time="2026-11-15 08:59:48Z" duration="0.365732" asserts="0">
+                    <properties />
+                    <failure>
+                      <message><![CDATA[  Deferred: a second camera did not get its own SSL history entry.
+  Expected: 2
+  But was:  1
+]]></message>
+                      <stack-trace><![CDATA[at Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests+<RuntimeControlsAndCameraLifetime>d__25.MoveNext () [0x00350] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\ScreenSpaceLighting\Tests\PlayMode\ScreenSpaceLightingPlayModeTests.cs:170
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@1.1.33\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:46
+]]></stack-trace>
+                    </failure>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

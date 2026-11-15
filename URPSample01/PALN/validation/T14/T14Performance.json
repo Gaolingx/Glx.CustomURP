@@ -1,0 +1,96 @@
+{
+  "utcTimestamp": "2026-11-15T10:15:25.730678+00:00",
+  "protocol": {
+    "platform": "StandaloneWindows64",
+    "buildConfiguration": "Development for T1 graphics memory counters; T14 also requires Release regression",
+    "graphicsApi": "Direct3D11",
+    "resolution": "1280x720",
+    "renderScale": 1.0,
+    "hdr": true,
+    "msaa": 1,
+    "postProcessing": false,
+    "randomSeed": 14012,
+    "warmupFrames": 60,
+    "sampleFrames": 1800,
+    "targetFrameRate": 60
+  },
+  "budget": {
+    "incrementalGpuMsP95Max": {
+      "coreDepthNormalsAndEarlyMotion": 0.8,
+      "gtaoDepthPyramid": 0.35,
+      "sslDepthPyramid": 0.35,
+      "colorPyramidAndHistoryCapture": 0.6,
+      "gtaoHalfResolution": 1.5,
+      "gtaoFullResolution": 2.5,
+      "ssgiHalfResolution": 2.5,
+      "ssgiFullResolution": 4.0,
+      "opaqueSsrApproximation": 2.0,
+      "opaqueSsrPbrAdditional": 1.5,
+      "transparentPrepassAndSsrApproximation": 2.5,
+      "refractionAdditional": 1.0,
+      "gtaoSsgiOpaqueSsrPbrCombined": 7.0
+    },
+    "additionalGraphicsMemoryMiBMax": {
+      "singleCamera720pAllEffects": 192,
+      "singleCamera720pPersistentHistory": 96
+    },
+    "gpuTimingPolicy": "GPU p95 from the 720p T1 Player is reference data, not a T1 or module pass/fail gate, because DVFS on this machine dominates it. Never report a module as within its incremental GPU budget from this harness alone."
+  },
+  "baselineRuns": [
+    {
+      "mode": "SslForwardPipeline",
+      "cpuP95Ms": 16.7,
+      "cpuSymmetricVariationPercent": 0.031142573095203675,
+      "gpuP95Ms": 2.9932,
+      "gpuPolicy": "reference-only",
+      "graphicsDriverBytes": 42626757
+    },
+    {
+      "mode": "SslForwardPlusPipeline",
+      "cpuP95Ms": 16.6939,
+      "cpuSymmetricVariationPercent": 0.017370106047494345,
+      "gpuP95Ms": 2.5426,
+      "gpuPolicy": "reference-only",
+      "graphicsDriverBytes": 42708681
+    },
+    {
+      "mode": "SslDeferredPipeline",
+      "cpuP95Ms": 16.6922,
+      "cpuSymmetricVariationPercent": 0.028152900197967026,
+      "gpuP95Ms": 2.58,
+      "gpuPolicy": "reference-only",
+      "graphicsDriverBytes": 57373383
+    }
+  ],
+  "privateResources1280x720": [
+    {
+      "renderer": "Forward",
+      "sslPrivateBytes": 98611832,
+      "gtaoPrivateBytes": 9216120,
+      "sslPackedHiZBytes": 5529600,
+      "sslDepthPyramidMips": 12,
+      "sslColorPyramidMips": 9
+    },
+    {
+      "renderer": "ForwardPlus",
+      "sslPrivateBytes": 98611832,
+      "gtaoPrivateBytes": 9216120,
+      "sslPackedHiZBytes": 5529600,
+      "sslDepthPyramidMips": 12,
+      "sslColorPyramidMips": 9
+    },
+    {
+      "renderer": "Deferred",
+      "sslPrivateBytes": 98611832,
+      "gtaoPrivateBytes": 9216120,
+      "sslPackedHiZBytes": 5529600,
+      "sslDepthPyramidMips": 12,
+      "sslColorPyramidMips": 9
+    }
+  ],
+  "notes": [
+    "GPU p95 from the 720p T1 harness is reference data because DVFS dominates it; module GPU budgets require an independent GPU profiler or a clock-locked environment and are not claimed from this harness.",
+    "Private resource bytes are base-level RTHandle and ComputeBuffer sizes measured during the T14 graphics replay; the color pyramid mip chain is not multiplied by 4/3 and the packed Hi-Z number is the atlas size.",
+    "The release player was built in this run; the player executable itself is not archived as evidence."
+  ]
+}

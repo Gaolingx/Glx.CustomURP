@@ -1,0 +1,132 @@
+{
+    "utcTimestamp": "2026-11-15T09:20:57.1350538Z",
+    "unityVersion": "2022.3.62f1",
+    "result": "Succeeded",
+    "totalErrors": 0,
+    "totalWarnings": 131686,
+    "totalSizeBytes": 163703618,
+    "totalTimeSeconds": 135.6397376,
+    "executablePath": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T14\\Player\\SslT14Player.exe",
+    "buildOptions": "None (release: no Development, no IncludeTestAssemblies)",
+    "graphicsApis": [
+        "Direct3D11",
+        "Direct3D12",
+        "Vulkan"
+    ],
+    "managedStrippingLevel": "Disabled",
+    "stripEngineCode": true,
+    "packedAssetCount": 2093,
+    "requiredResources": [
+        {
+            "suffix": "/ScreenSpaceCommon/DepthPyramid.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceCommon/DepthPyramid.compute"
+        },
+        {
+            "suffix": "/ScreenSpaceLighting/ColorPyramid.shader",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ColorPyramid.shader"
+        },
+        {
+            "suffix": "/ScreenSpaceLighting/ScreenSpaceLightingDebug.shader",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingDebug.shader"
+        },
+        {
+            "suffix": "/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute"
+        },
+        {
+            "suffix": "/ScreenSpaceLighting/TemporalFilter.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/TemporalFilter.compute"
+        },
+        {
+            "suffix": "/ScreenSpaceLighting/DiffuseDenoiser.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/DiffuseDenoiser.compute"
+        },
+        {
+            "suffix": "/ScreenSpaceCommon/BilateralUpsample.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceCommon/BilateralUpsample.compute"
+        },
+        {
+            "suffix": "/ScreenSpaceLighting/ScreenSpaceReflections.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"
+        },
+        {
+            "suffix": "/GroundTruthAmbientOcclusion/GTAO.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/GroundTruthAmbientOcclusion/GTAO.compute"
+        },
+        {
+            "suffix": "/GroundTruthAmbientOcclusion/GTAOSpatialDenoise.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOSpatialDenoise.compute"
+        },
+        {
+            "suffix": "/GroundTruthAmbientOcclusion/GTAOTemporalDenoise.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOTemporalDenoise.compute"
+        },
+        {
+            "suffix": "/GroundTruthAmbientOcclusion/GTAOCopyHistory.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCopyHistory.compute"
+        },
+        {
+            "suffix": "/GroundTruthAmbientOcclusion/GTAOBlurAndUpsample.compute",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOBlurAndUpsample.compute"
+        },
+        {
+            "suffix": "/GroundTruthAmbientOcclusion/GTAODebug.shader",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/GroundTruthAmbientOcclusion/GTAODebug.shader"
+        },
+        {
+            "suffix": "/Shaders/Utils/CopyDepth.shader",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/CopyDepth.shader"
+        },
+        {
+            "suffix": "/Shaders/Lit.shader",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+        },
+        {
+            "suffix": "/Shaders/ComplexLit.shader",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/ComplexLit.shader"
+        },
+        {
+            "suffix": "/Shaders/SimpleLit.shader",
+            "present": true,
+            "packedPath": "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLit.shader"
+        },
+        {
+            "suffix": "/Shaders/SslT9Lit.shadergraph",
+            "present": true,
+            "packedPath": "Assets/Tests/ScreenSpaceLighting/Shaders/SslT9Lit.shadergraph"
+        },
+        {
+            "suffix": "/Shaders/SslT9ComplexLit.shadergraph",
+            "present": true,
+            "packedPath": "Assets/Tests/ScreenSpaceLighting/Shaders/SslT9ComplexLit.shadergraph"
+        },
+        {
+            "suffix": "/Shaders/SslT11Lit.shadergraph",
+            "present": true,
+            "packedPath": "Assets/Tests/ScreenSpaceLighting/Shaders/SslT11Lit.shadergraph"
+        },
+        {
+            "suffix": "/Shaders/T13XrArrayProbe.compute",
+            "present": true,
+            "packedPath": "Assets/Tests/ScreenSpaceLighting/Shaders/T13XrArrayProbe.compute"
+        }
+    ],
+    "allRequiredResourcesPacked": true
+}
