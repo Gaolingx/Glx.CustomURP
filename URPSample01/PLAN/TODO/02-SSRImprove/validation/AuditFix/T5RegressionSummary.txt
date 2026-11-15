@@ -1,0 +1,8 @@
+SSR T5 regression after the SSGI audit fixes (history UV scale, jitter pass, LF output, velocity binding).
+baseline: committed validation/T5/T5Verification.json (run before the fixes)
+rerun: T5Verification.regression.json
+completed=True passed=True
+modes=Forward:True, ForwardPlus:True, Deferred:True
+metric diffs vs baseline (ignoring timestamp/device): 2
+  /modes[1]/states[6]/differingPixels: 379184 -> 379180
+  /modes[2]/states[6]/differingPixels: 293236 -> 293223

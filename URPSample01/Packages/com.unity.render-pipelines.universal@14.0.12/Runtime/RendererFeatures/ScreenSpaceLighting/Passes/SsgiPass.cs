@@ -369,6 +369,10 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountTexture, m_History.GetSsgiSampleCountHF(m_History.ssgiReadSlot));
                 cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.AccumulationOutputTextureRW, m_History.ssgiAccumulation);
                 cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountRW, m_History.GetSsgiSampleCountHF(m_History.ssgiWriteSlot));
+                // SSGI has no intersection velocity buffer. Bind a black texture like HDRP's SSGI
+                // caller: the occluder rejection path stays off, but the shader property must still
+                // be bound or the dispatch is rejected.
+                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.VelocityBuffer, TextureXR.GetBlackTexture());
                 BindTemporalFilterScalars(cmd, temporalCompute);
                 DispatchCompute(cmd, temporalCompute, accumulateKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR
@@ -401,8 +405,12 @@ namespace UnityEngine.Rendering.Universal
 
                 DispatchPointDistribution(cmd, denoiserCompute);
                 RTHandle denoiseOutput = halfResolutionDenoise ? m_History.ssgiDenoiseIntermediate : m_History.ssgiDenoisedHF;
+                // HDRP rotates the first-pass point distribution only while the second pass is enabled
+                // (jitterFilter = secondDenoiserPassSS) and leaves the second pass on the first 16
+                // samples. The 64 point distribution holds four 16-sample groups, so the period stays
+                // at four.
                 DispatchDiffuseDenoise(cmd, denoiserCompute, depthTexture, normalTexture, signal, denoiseOutput, traceWidth, traceHeight, viewCount,
-                    settings.denoiserRadius.value, -1, halfResolutionDenoise);
+                    settings.denoiserRadius.value, secondPass ? frameIndex % 4 : -1, halfResolutionDenoise);
                 if (halfResolutionDenoise)
                     DispatchDiffuseGather(cmd, denoiserCompute, depthTexture, denoiseOutput, m_History.ssgiDenoisedHF, traceWidth, traceHeight, viewCount);
                 signal = m_History.ssgiDenoisedHF;
@@ -420,6 +428,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountTexture, m_History.GetSsgiSampleCountLF(m_History.ssgiReadSlot));
                     cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.AccumulationOutputTextureRW, m_History.ssgiAccumulation);
                     cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountRW, m_History.GetSsgiSampleCountLF(m_History.ssgiWriteSlot));
+                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.VelocityBuffer, TextureXR.GetBlackTexture());
                     BindTemporalFilterScalars(cmd, temporalCompute);
                     DispatchCompute(cmd, temporalCompute, accumulateKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR
@@ -428,12 +437,15 @@ namespace UnityEngine.Rendering.Universal
 
                     DispatchCopyHistory(cmd, temporalCompute, m_History.ssgiAccumulation, m_History.GetSsgiHistoryLF(m_History.ssgiWriteSlot), traceWidth, traceHeight, viewCount);
 
-                    // HDRP jitter period is frameIndex % 4: the 64 point distribution is four
-                    // 16-sample groups, so a larger period would read past the buffer.
-                    DispatchDiffuseDenoise(cmd, denoiserCompute, depthTexture, normalTexture, m_History.ssgiAccumulation, denoiseOutput, traceWidth, traceHeight, viewCount,
-                        settings.denoiserRadius.value * 0.5f, frameIndex % 4, halfResolutionDenoise);
+                    // HDRP keeps the second pass on the first 16 samples (jitterFilter = false) because the first
+                    // pass already rotated the distribution this frame. The low frequency result owns its
+                    // own output; writing it back into the HF buffer left the material-facing LF texture
+                    // uninitialized.
+                    RTHandle secondDenoiseOutput = halfResolutionDenoise ? m_History.ssgiDenoiseIntermediate : m_History.ssgiDenoisedLF;
+                    DispatchDiffuseDenoise(cmd, denoiserCompute, depthTexture, normalTexture, m_History.ssgiAccumulation, secondDenoiseOutput, traceWidth, traceHeight, viewCount,
+                        settings.denoiserRadius.value * 0.5f, -1, halfResolutionDenoise);
                     if (halfResolutionDenoise)
-                        DispatchDiffuseGather(cmd, denoiserCompute, depthTexture, denoiseOutput, m_History.ssgiDenoisedLF, traceWidth, traceHeight, viewCount);
+                        DispatchDiffuseGather(cmd, denoiserCompute, depthTexture, secondDenoiseOutput, m_History.ssgiDenoisedLF, traceWidth, traceHeight, viewCount);
                     signal = m_History.ssgiDenoisedLF;
                 }
             }

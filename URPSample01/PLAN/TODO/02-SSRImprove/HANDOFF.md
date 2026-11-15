@@ -1,7 +1,7 @@
 # 02-SSRImprove 交接
 
 > 更新：2026-11-16
-> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约、T1–T5 实现与验证、T6 文档与清理全部完成（2026-11-16）。**
+> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0–T6 全部完成；2026-11-16 审核修复了 4 个 SSGI 回归（历史 UV、jitter pass、LF 输出、velocity 绑定），SSGI 收敛与 T5 回归均通过。**
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -424,6 +424,27 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - 全仓已无这些标识符的代码/资产引用（`Assets` 与包内 grep 为空）。
 - 验证：EditMode **418 passed / 0 failed**（删除 1 个测试；`validation/T6/UnityEditModeTests.Cleanup.xml`）。
 
+#### 审核修复与 SSGI 回归（2026-11-16）
+
+对 SSGI/SSR 与 HDRP 目标的逐项审核发现 4 个 SSGI 回归（均在本轮引入，编译与 EditMode 都发现不了）。已全部修复并补上收敛检查：
+
+| 编号 | 问题 | 来源 | 影响 | 修复 |
+|---|---|---|---|---|
+| A | `TemporalFilter` 的 `_HistorySizeAndScale.zw` 被映射成 `1/screenSize` | `08e8d08` | history UV 被缩到左上角 1 texel，ValidateHistory 几乎总拒绝历史，时间累积事实失效 | 改为 `float4(_SsgiScreenSize.xy, 1.0, 1.0)`（历史采样是归一化 UV） |
+| B | 灰度降噪 jitter 放错 pass | `08e8d08` | HDRP 第一遍旋转 16 点分布、第二遍固定；URP 相反 | 第一遍 `secondPass ? frameIndex % 4 : -1`，第二遍 `-1` |
+| C | 二次降噪写回 HF，`ssgiDenoisedLF` 从未写入 | `72e176f` | 默认二次降噪开时，材质消费的 SSGI 纹理未初始化（全 0），SSGI 实际不可见 | 第二遍输出独立为 `ssgiDenoisedLF`（半分辨率时经 intermediate + Gather） |
+| D | `_VelocityBuffer` 未绑定 | `08e8d08` | Unity 报 `Property (_VelocityBuffer) at kernel index (1) is not set`，temporal dispatch 被拒绝，累积输出全 0 | 两个 accumulation dispatch 绑定 `TextureXR.GetBlackTexture()`（同 HDRP 的 blackTextureXR），新增 ShaderID |
+
+**收敛验证**（`validation/AuditFix/SsgiTemporalCheck.json`，新增 `ScreenSpaceLightingSsgiTemporalCheck`，Forward / Forward+ / Deferred）
+
+- temporal off：accumulation dispatch 增量 **0**；temporal on：30 帧预热后 sample count 上限 **8**，饱和像素 **75,705**，历史缓冲非零像素 **35,790**，SSGI 覆盖 3.4%。
+- 三渲染器全部 `passed=true`；`_VelocityBuffer` 警告 0 条，无 shader/编译错误。
+- 证据图：`SsgiTemporal_{Forward,ForwardPlus,Deferred}_{On,Off}.png`。
+
+**T5 回归**（`validation/AuditFix/T5Verification.regression.json` + `T5RegressionSummary.txt`）
+
+- 三渲染器全部 `passed=true`，`completed=true`；与修复前基线逐字段对比仅 2 个信息性计数变化：`PbrMovingRig.differingPixels` 379,184→379,180 与 293,236→293,223（运动序列与 `Time.frameCount` 相关），所有断言项一致。
+
 ---
 
 ## 4. 收尾与验收标准
@@ -489,7 +510,12 @@ PLAN/TODO/02-SSRImprove/validation/
 ├─ T6/VolumeOptionsCheck.txt          # 删除旧参数后的 VolumeParameter / DebugMode 清单
 ├─ T6/UnityVolumeOptionsCheck.log     # 反射检查日志
 ├─ T6/UnityEditModeTests.Cleanup.xml  # 删除旧参数后的 EditMode（418 passed）
-└─ T6/UnityEditMode.Cleanup.log       # EditMode 日志
+├─ T6/UnityEditMode.Cleanup.log       # EditMode 日志
+├─ AuditFix/SsgiTemporalCheck.json    # SSGI 时间累积收敛（三渲染器）
+├─ AuditFix/SsgiTemporal_<Mode>_On.png / _Off.png
+├─ AuditFix/UnitySsgiTemporalCheck.log
+├─ AuditFix/T5Verification.regression.json  # 修复后的 T5 实拍结果
+└─ AuditFix/T5RegressionSummary.txt   # 与修复前基线的逐字段对比
 ```
 
 ### 4.5 复现命令（关闭其他 Unity 编辑器后执行）
@@ -553,6 +579,7 @@ PLAN/TODO/02-SSRImprove/validation/
 - SSR shader：`URP/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute`
 - 历史/资源：`URP/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingHistory.cs`、`ScreenSpaceLightingResources.cs`、`ScreenSpaceLightingShaderIDs.cs`
 - SSR T5 验证：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingSsrT5Verification.cs`
+- SSGI 收敛检查：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingSsgiTemporalCheck.cs`
 - Frame Debugger 采集：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingFrameDebuggerCapture.cs`（`--ssl-fd-ssr-pbr`）
 - T5 证据：`PLAN/TODO/02-SSRImprove/validation/T5/`（JSON、24 张 PNG、FrameDebugger 目录）
 - 已知差异文档：`PLAN/Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md`（T6 已同步 SSR 条目）

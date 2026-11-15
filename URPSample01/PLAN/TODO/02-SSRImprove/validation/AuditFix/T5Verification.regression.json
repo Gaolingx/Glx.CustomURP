@@ -1,0 +1,638 @@
+{
+    "utcTimestamp": "2026-11-15T21:39:15.2897549Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "Forward",
+            "passed": true,
+            "issues": [],
+            "approxExecutions": 32,
+            "approxTraceDispatches": 30,
+            "approxReprojectDispatches": 30,
+            "approxTemporalDispatches": 0,
+            "approxUpsampleDispatches": 0,
+            "pbrExecutions": 32,
+            "pbrTraceDispatches": 30,
+            "pbrReprojectDispatches": 30,
+            "pbrTemporalDispatches": 30,
+            "pbrCopyHistoryDispatches": 30,
+            "pbrBilateralHDispatches": 30,
+            "pbrBilateralVDispatches": 30,
+            "pbrUpsampleDispatches": 0,
+            "pbrLastDenoiseKernel": "BilateralFilterV_FR",
+            "pbrDenoiseParams": {
+                "x": 8.0,
+                "y": 1.0,
+                "z": 0.5,
+                "w": 1.0
+            },
+            "halfTraceDispatches": 30,
+            "halfReprojectDispatches": 30,
+            "halfTemporalDispatches": 30,
+            "halfCopyHistoryDispatches": 30,
+            "halfBilateralHDispatches": 30,
+            "halfBilateralVDispatches": 30,
+            "halfUpsampleDispatches": 30,
+            "halfLastDenoiseKernel": "BilateralFilterV_HR",
+            "halfDenoiseParams": {
+                "x": 4.0,
+                "y": 1.0,
+                "z": 0.5,
+                "w": 1.0
+            },
+            "fullVsHalfDifferingPixels": 20226,
+            "fullVsHalfMaxDelta": 43.710479736328128,
+            "fullVsHalfToneMappedMaxDelta": 0.8962898254394531,
+            "fullVsHalfToneMappedPixelsOver": 312,
+            "fullVsHalfPixelFraction": 0.021946614608168603,
+            "fullVsHalfToneMappedPixelFraction": 0.00033854166395030916,
+            "zeroIntensityDifferingPixels": 0,
+            "firstFrameDifferingPixels": 0,
+            "movingNonFinitePixels": 0,
+            "settleVsResetDifferingPixels": 7,
+            "settleVsResetMaxDelta": 0.13374876976013184,
+            "settleVsResetToneMappedMaxDelta": 0.04030889272689819,
+            "settleVsResetPixelFraction": 0.000007595486295031151,
+            "algorithmSwitchResets": 2,
+            "cameraCutResets": 2,
+            "approxWeight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 91857,
+                "partialPixels": 7786,
+                "missPixels": 821957,
+                "meanWeight": 0.10415290296077728,
+                "coveredFraction": 0.09967122226953507,
+                "partialFraction": 0.008448350243270398,
+                "missFraction": 0.891880452632904
+            },
+            "pbrWeight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 91821,
+                "partialPixels": 4218,
+                "missPixels": 825561,
+                "meanWeight": 0.10282237827777863,
+                "coveredFraction": 0.09963215887546539,
+                "partialFraction": 0.004576822742819786,
+                "missFraction": 0.8957909941673279
+            },
+            "halfWeight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 88153,
+                "partialPixels": 15434,
+                "missPixels": 818013,
+                "meanWeight": 0.10266588628292084,
+                "coveredFraction": 0.09565212577581406,
+                "partialFraction": 0.016746962442994119,
+                "missFraction": 0.8876008987426758
+            },
+            "approxMiss": {
+                "compared": 821949,
+                "different": 0,
+                "maxChannelDelta": 0.0
+            },
+            "pbrFullMiss": {
+                "compared": 825556,
+                "different": 0,
+                "maxChannelDelta": 0.0
+            },
+            "pbrHalfMiss": {
+                "compared": 817856,
+                "different": 0,
+                "maxChannelDelta": 0.0
+            },
+            "states": [
+                {
+                    "state": "Reference",
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "Approximation",
+                    "differsFromReference": true,
+                    "differingPixels": 99629,
+                    "maxChannelDelta": 148.79737854003907,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.47153088450431826
+                },
+                {
+                    "state": "PbrFullResolution",
+                    "differsFromReference": true,
+                    "differingPixels": 96044,
+                    "maxChannelDelta": 66.94115447998047,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4716232419013977
+                },
+                {
+                    "state": "PbrHalfResolution",
+                    "differsFromReference": true,
+                    "differingPixels": 103430,
+                    "maxChannelDelta": 25.980072021484376,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4712735116481781
+                },
+                {
+                    "state": "PbrZeroIntensityRestoresBaseline",
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "PbrFirstFrameAfterReset",
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "PbrMovingRig",
+                    "differsFromReference": true,
+                    "differingPixels": 379180,
+                    "maxChannelDelta": 975.02490234375,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.47863438725471499
+                },
+                {
+                    "state": "PbrSettledAfterMotion",
+                    "differsFromReference": true,
+                    "differingPixels": 75612,
+                    "maxChannelDelta": 0.13374876976013184,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.471623033285141
+                },
+                {
+                    "state": "CameraCut",
+                    "differsFromReference": true,
+                    "differingPixels": 654546,
+                    "maxChannelDelta": 1070.368896484375,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.418183296918869
+                }
+            ],
+            "historyChecks": [
+                {
+                    "label": "AfterPbrWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 4,
+                    "ssrPbrWidth": 1280,
+                    "ssrPbrHeight": 720,
+                    "ssrPbrReadSlot": 1,
+                    "ssrPbrWriteSlot": 0,
+                    "ssrPbrResourceGeneration": 1,
+                    "ssrPbrResetCount": 6,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                },
+                {
+                    "label": "AfterHalfResolutionWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 6,
+                    "ssrPbrWidth": 640,
+                    "ssrPbrHeight": 360,
+                    "ssrPbrReadSlot": 1,
+                    "ssrPbrWriteSlot": 0,
+                    "ssrPbrResourceGeneration": 2,
+                    "ssrPbrResetCount": 9,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                }
+            ]
+        },
+        {
+            "name": "ForwardPlus",
+            "passed": true,
+            "issues": [],
+            "approxExecutions": 32,
+            "approxTraceDispatches": 30,
+            "approxReprojectDispatches": 30,
+            "approxTemporalDispatches": 0,
+            "approxUpsampleDispatches": 0,
+            "pbrExecutions": 32,
+            "pbrTraceDispatches": 30,
+            "pbrReprojectDispatches": 30,
+            "pbrTemporalDispatches": 30,
+            "pbrCopyHistoryDispatches": 30,
+            "pbrBilateralHDispatches": 30,
+            "pbrBilateralVDispatches": 30,
+            "pbrUpsampleDispatches": 0,
+            "pbrLastDenoiseKernel": "BilateralFilterV_FR",
+            "pbrDenoiseParams": {
+                "x": 8.0,
+                "y": 1.0,
+                "z": 0.5,
+                "w": 1.0
+            },
+            "halfTraceDispatches": 30,
+            "halfReprojectDispatches": 30,
+            "halfTemporalDispatches": 30,
+            "halfCopyHistoryDispatches": 30,
+            "halfBilateralHDispatches": 30,
+            "halfBilateralVDispatches": 30,
+            "halfUpsampleDispatches": 30,
+            "halfLastDenoiseKernel": "BilateralFilterV_HR",
+            "halfDenoiseParams": {
+                "x": 4.0,
+                "y": 1.0,
+                "z": 0.5,
+                "w": 1.0
+            },
+            "fullVsHalfDifferingPixels": 20226,
+            "fullVsHalfMaxDelta": 43.710479736328128,
+            "fullVsHalfToneMappedMaxDelta": 0.8962898254394531,
+            "fullVsHalfToneMappedPixelsOver": 312,
+            "fullVsHalfPixelFraction": 0.021946614608168603,
+            "fullVsHalfToneMappedPixelFraction": 0.00033854166395030916,
+            "zeroIntensityDifferingPixels": 0,
+            "firstFrameDifferingPixels": 0,
+            "movingNonFinitePixels": 0,
+            "settleVsResetDifferingPixels": 7,
+            "settleVsResetMaxDelta": 0.13374876976013184,
+            "settleVsResetToneMappedMaxDelta": 0.04030889272689819,
+            "settleVsResetPixelFraction": 0.000007595486295031151,
+            "algorithmSwitchResets": 2,
+            "cameraCutResets": 2,
+            "approxWeight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 91857,
+                "partialPixels": 7786,
+                "missPixels": 821957,
+                "meanWeight": 0.10415290296077728,
+                "coveredFraction": 0.09967122226953507,
+                "partialFraction": 0.008448350243270398,
+                "missFraction": 0.891880452632904
+            },
+            "pbrWeight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 91821,
+                "partialPixels": 4218,
+                "missPixels": 825561,
+                "meanWeight": 0.10282237827777863,
+                "coveredFraction": 0.09963215887546539,
+                "partialFraction": 0.004576822742819786,
+                "missFraction": 0.8957909941673279
+            },
+            "halfWeight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 88153,
+                "partialPixels": 15434,
+                "missPixels": 818013,
+                "meanWeight": 0.10266588628292084,
+                "coveredFraction": 0.09565212577581406,
+                "partialFraction": 0.016746962442994119,
+                "missFraction": 0.8876008987426758
+            },
+            "approxMiss": {
+                "compared": 821949,
+                "different": 0,
+                "maxChannelDelta": 0.0
+            },
+            "pbrFullMiss": {
+                "compared": 825556,
+                "different": 0,
+                "maxChannelDelta": 0.0
+            },
+            "pbrHalfMiss": {
+                "compared": 817856,
+                "different": 0,
+                "maxChannelDelta": 0.0
+            },
+            "states": [
+                {
+                    "state": "Reference",
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "Approximation",
+                    "differsFromReference": true,
+                    "differingPixels": 99629,
+                    "maxChannelDelta": 148.79737854003907,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.47153088450431826
+                },
+                {
+                    "state": "PbrFullResolution",
+                    "differsFromReference": true,
+                    "differingPixels": 96044,
+                    "maxChannelDelta": 66.94115447998047,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4716232419013977
+                },
+                {
+                    "state": "PbrHalfResolution",
+                    "differsFromReference": true,
+                    "differingPixels": 103430,
+                    "maxChannelDelta": 25.980072021484376,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4712735116481781
+                },
+                {
+                    "state": "PbrZeroIntensityRestoresBaseline",
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "PbrFirstFrameAfterReset",
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.46949508786201479
+                },
+                {
+                    "state": "PbrMovingRig",
+                    "differsFromReference": true,
+                    "differingPixels": 379180,
+                    "maxChannelDelta": 975.02490234375,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.47863438725471499
+                },
+                {
+                    "state": "PbrSettledAfterMotion",
+                    "differsFromReference": true,
+                    "differingPixels": 75612,
+                    "maxChannelDelta": 0.13374876976013184,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.471623033285141
+                },
+                {
+                    "state": "CameraCut",
+                    "differsFromReference": true,
+                    "differingPixels": 654546,
+                    "maxChannelDelta": 1070.368896484375,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.418183296918869
+                }
+            ],
+            "historyChecks": [
+                {
+                    "label": "AfterPbrWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 4,
+                    "ssrPbrWidth": 1280,
+                    "ssrPbrHeight": 720,
+                    "ssrPbrReadSlot": 1,
+                    "ssrPbrWriteSlot": 0,
+                    "ssrPbrResourceGeneration": 1,
+                    "ssrPbrResetCount": 6,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                },
+                {
+                    "label": "AfterHalfResolutionWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 6,
+                    "ssrPbrWidth": 640,
+                    "ssrPbrHeight": 360,
+                    "ssrPbrReadSlot": 1,
+                    "ssrPbrWriteSlot": 0,
+                    "ssrPbrResourceGeneration": 2,
+                    "ssrPbrResetCount": 9,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                }
+            ]
+        },
+        {
+            "name": "Deferred",
+            "passed": true,
+            "issues": [],
+            "approxExecutions": 32,
+            "approxTraceDispatches": 30,
+            "approxReprojectDispatches": 30,
+            "approxTemporalDispatches": 0,
+            "approxUpsampleDispatches": 0,
+            "pbrExecutions": 32,
+            "pbrTraceDispatches": 30,
+            "pbrReprojectDispatches": 30,
+            "pbrTemporalDispatches": 30,
+            "pbrCopyHistoryDispatches": 30,
+            "pbrBilateralHDispatches": 30,
+            "pbrBilateralVDispatches": 30,
+            "pbrUpsampleDispatches": 0,
+            "pbrLastDenoiseKernel": "BilateralFilterV_FR",
+            "pbrDenoiseParams": {
+                "x": 8.0,
+                "y": 1.0,
+                "z": 0.5,
+                "w": 1.0
+            },
+            "halfTraceDispatches": 30,
+            "halfReprojectDispatches": 30,
+            "halfTemporalDispatches": 30,
+            "halfCopyHistoryDispatches": 30,
+            "halfBilateralHDispatches": 30,
+            "halfBilateralVDispatches": 30,
+            "halfUpsampleDispatches": 30,
+            "halfLastDenoiseKernel": "BilateralFilterV_HR",
+            "halfDenoiseParams": {
+                "x": 4.0,
+                "y": 1.0,
+                "z": 0.5,
+                "w": 1.0
+            },
+            "fullVsHalfDifferingPixels": 20170,
+            "fullVsHalfMaxDelta": 43.89980697631836,
+            "fullVsHalfToneMappedMaxDelta": 0.9004734754562378,
+            "fullVsHalfToneMappedPixelsOver": 317,
+            "fullVsHalfPixelFraction": 0.02188585139811039,
+            "fullVsHalfToneMappedPixelFraction": 0.0003439670254010707,
+            "zeroIntensityDifferingPixels": 0,
+            "firstFrameDifferingPixels": 0,
+            "movingNonFinitePixels": 0,
+            "settleVsResetDifferingPixels": 7,
+            "settleVsResetMaxDelta": 0.13084125518798829,
+            "settleVsResetToneMappedMaxDelta": 0.04029110074043274,
+            "settleVsResetPixelFraction": 0.000007595486295031151,
+            "algorithmSwitchResets": 2,
+            "cameraCutResets": 2,
+            "approxWeight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 91857,
+                "partialPixels": 7786,
+                "missPixels": 821957,
+                "meanWeight": 0.10415290296077728,
+                "coveredFraction": 0.09967122226953507,
+                "partialFraction": 0.008448350243270398,
+                "missFraction": 0.891880452632904
+            },
+            "pbrWeight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 91821,
+                "partialPixels": 4218,
+                "missPixels": 825561,
+                "meanWeight": 0.10282237827777863,
+                "coveredFraction": 0.09963215887546539,
+                "partialFraction": 0.004576822742819786,
+                "missFraction": 0.8957909941673279
+            },
+            "halfWeight": {
+                "pixelCount": 921600,
+                "nonFinitePixels": 0,
+                "negativePixels": 0,
+                "coveredPixels": 88153,
+                "partialPixels": 15434,
+                "missPixels": 818013,
+                "meanWeight": 0.10266588628292084,
+                "coveredFraction": 0.09565212577581406,
+                "partialFraction": 0.016746962442994119,
+                "missFraction": 0.8876008987426758
+            },
+            "approxMiss": {
+                "compared": 821949,
+                "different": 0,
+                "maxChannelDelta": 0.0
+            },
+            "pbrFullMiss": {
+                "compared": 825556,
+                "different": 0,
+                "maxChannelDelta": 0.0
+            },
+            "pbrHalfMiss": {
+                "compared": 817856,
+                "different": 0,
+                "maxChannelDelta": 0.0
+            },
+            "states": [
+                {
+                    "state": "Reference",
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4692102074623108
+                },
+                {
+                    "state": "Approximation",
+                    "differsFromReference": true,
+                    "differingPixels": 99629,
+                    "maxChannelDelta": 139.85853576660157,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.47115933895111086
+                },
+                {
+                    "state": "PbrFullResolution",
+                    "differsFromReference": true,
+                    "differingPixels": 96044,
+                    "maxChannelDelta": 67.59440612792969,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.471310555934906
+                },
+                {
+                    "state": "PbrHalfResolution",
+                    "differsFromReference": true,
+                    "differingPixels": 103441,
+                    "maxChannelDelta": 26.444000244140626,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.471004456281662
+                },
+                {
+                    "state": "PbrZeroIntensityRestoresBaseline",
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4692102074623108
+                },
+                {
+                    "state": "PbrFirstFrameAfterReset",
+                    "differsFromReference": false,
+                    "differingPixels": 0,
+                    "maxChannelDelta": 0.0,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4692102074623108
+                },
+                {
+                    "state": "PbrMovingRig",
+                    "differsFromReference": true,
+                    "differingPixels": 293223,
+                    "maxChannelDelta": 1631.701171875,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4786773920059204
+                },
+                {
+                    "state": "PbrSettledAfterMotion",
+                    "differsFromReference": true,
+                    "differingPixels": 73065,
+                    "maxChannelDelta": 0.13084125518798829,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4713103473186493
+                },
+                {
+                    "state": "CameraCut",
+                    "differsFromReference": true,
+                    "differingPixels": 626492,
+                    "maxChannelDelta": 1064.19921875,
+                    "nonFinitePixels": 0,
+                    "meanLuminance": 0.4182768166065216
+                }
+            ],
+            "historyChecks": [
+                {
+                    "label": "AfterPbrWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 4,
+                    "ssrPbrWidth": 1280,
+                    "ssrPbrHeight": 720,
+                    "ssrPbrReadSlot": 1,
+                    "ssrPbrWriteSlot": 0,
+                    "ssrPbrResourceGeneration": 1,
+                    "ssrPbrResetCount": 6,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                },
+                {
+                    "label": "AfterHalfResolutionWarmup",
+                    "width": 1280,
+                    "height": 720,
+                    "resetCount": 6,
+                    "ssrPbrWidth": 640,
+                    "ssrPbrHeight": 360,
+                    "ssrPbrReadSlot": 1,
+                    "ssrPbrWriteSlot": 0,
+                    "ssrPbrResourceGeneration": 2,
+                    "ssrPbrResetCount": 9,
+                    "ssrPbrHasValidHistory": true,
+                    "ssrPbrResourcesAllocated": true
+                }
+            ]
+        }
+    ]
+}

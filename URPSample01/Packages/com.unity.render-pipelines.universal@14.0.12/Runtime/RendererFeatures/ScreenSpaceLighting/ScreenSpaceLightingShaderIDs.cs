@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int DenoiseDepthTexture = Shader.PropertyToID("_DepthTexture");
         internal static readonly int DenoiseNormalTexture = Shader.PropertyToID("_NormalBufferTexture");
         internal static readonly int DenoiseMotionTexture = Shader.PropertyToID("_CameraMotionVectorsTexture");
+        internal static readonly int VelocityBuffer = Shader.PropertyToID("_VelocityBuffer");
         internal static readonly int HistoryDepthTexture = Shader.PropertyToID("_HistoryDepthTexture");
         internal static readonly int HistoryNormalTexture = Shader.PropertyToID("_HistoryNormalTexture");
         internal static readonly int HistoryBuffer = Shader.PropertyToID("_HistoryBuffer");

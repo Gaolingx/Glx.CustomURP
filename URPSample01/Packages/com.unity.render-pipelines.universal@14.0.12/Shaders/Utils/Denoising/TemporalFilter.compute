@@ -54,8 +54,10 @@ SSGI_RW_TEXTURE2D_FLOAT(_HistorySampleCountRW);
 #define _HistoryValidity _SsgiRayMarchingParams2.z
 #define _PixelSpreadAngleTangent _SsgiDenoiserParams.x
 #define _DenoiserResolutionMultiplierVals float4(_SsgiTemporalParams.x, _SsgiTemporalParams.y, 1.0, 1.0)
-// URP history is never dynamically scaled, so HDRP's history size/scale collapses to the screen.
-#define _HistorySizeAndScale float4(_SsgiScreenSize.xy, _SsgiScreenSize.zw)
+// URP history is never dynamically scaled, so HDRP's history size/scale collapses to the screen
+// size in xy and a unit UV scale in zw. Sampling is normalized, so zw must stay 1 even when the
+// history follows a half resolution trace.
+#define _HistorySizeAndScale float4(_SsgiScreenSize.xy, 1.0, 1.0)
 
 // Loose globals bound by the pass (HDRP binds the first three as ints and the exposure pair through
 // GetPrevious/CurrentExposureMultiplier; URP has no exposure stage at this point and binds 1/1).
