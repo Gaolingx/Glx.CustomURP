@@ -30,7 +30,6 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingSettings m_Settings;
         RTHandle m_OutputTexture;
         bool m_ProducedOutput;
-        bool m_UsingPbrAccumulation;
         bool m_LoggedMissingResources;
         readonly ScreenSpaceLightingXrViewConstants[] m_XrViews = new ScreenSpaceLightingXrViewConstants[ScreenSpaceLightingXr.k_MaxViews];
         readonly Matrix4x4[] m_XrViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
@@ -79,7 +78,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool producedOutput => m_ProducedOutput;
         internal RTHandle outputTexture => m_ProducedOutput ? m_OutputTexture : null;
-        internal bool usingPbrAccumulation => m_UsingPbrAccumulation;
 
         internal ScreenSpaceLightingSsrPass()
         {
@@ -101,7 +99,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
             m_ProducedOutput = false;
             m_OutputTexture = null;
-            m_UsingPbrAccumulation = false;
 
             if (m_History == null || m_Resources == null)
                 return;
@@ -140,7 +137,6 @@ namespace UnityEngine.Rendering.Universal
             int screenWidth = Mathf.Max(1, descriptor.width);
             int screenHeight = Mathf.Max(1, descriptor.height);
             bool pbr = settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
-            m_UsingPbrAccumulation = pbr;
             m_History.SyncSsrPbrAlgorithm(settings.usedAlgorithm.value);
 
             // Approximation keeps its full resolution hole filling; only the PBR denoiser can run at

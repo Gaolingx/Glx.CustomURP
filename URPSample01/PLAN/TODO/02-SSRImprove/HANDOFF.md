@@ -1,7 +1,7 @@
 # 02-SSRImprove 交接
 
 > 更新：2026-11-16
-> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约、T1 `ReflectionDenoiser` 移植、T2 mapping 资源、T3 半分辨率完成（2026-11-16）；T4 未开始。**
+> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约、T1 `ReflectionDenoiser` 移植、T2 mapping 资源、T3 半分辨率、T4 参数弃用与清理完成（2026-11-16）；T5 未开始。**
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -76,7 +76,7 @@
 - PBR 链路：trace → reproject（写 `ssrPbrOriginal`）→ `ReflectionDenoiser.compute` 的 `TemporalAccumulationFullRes/HalfRes` → `CopyHistory` → `BilateralFilterH/V_FR/HR`（写回 `ssrPbrOriginal`）。全分辨率直接把它交给材质；半分辨率再用 `BilateralUpSampleColor` 升到全分辨率 `ssrOutput`。
 - 历史：`ScreenSpaceLightingHistory` 的 `ssrPbrHitPoint`、`ssrPbrOriginal`、`ssrPbrHistory[2]`、`ssrPbrSampleCount[2]`、`ssrDenoiseIntermediate0/1`、`ssrPbrReadSlot/WriteSlot`、`ssrPbrHasValidHistory`、`SyncSsrPbrAlgorithm`；尺寸跟随 trace（半分辨率时为半屏）。
 - 输出契约：radiance（非预乘）+ weight，材质端 `lerp(probe, radiance, weight)`；Approximation 的单点空洞用邻近同表面像素 3×3 cross 填充。
-- Volume `ScreenSpaceReflection`：`usedAlgorithm`、`fullResolution`、`intensity`、`minSmoothness`、`smoothnessFadeStart`、`screenFadeDistance`、`depthBufferThickness`、`rayMaxIterations`、`reflectSky`、`biasFactor`、`denoiserRadius`、`affectSmoothSurfaces`、`singleReflectionBounce`；`accumulationFactor` 与 `speed*` 系列仍存在但 PBR 路径不再读取（T4 标记弃用）。
+- Volume `ScreenSpaceReflection`：`usedAlgorithm`、`fullResolution`、`intensity`、`minSmoothness`、`smoothnessFadeStart`、`screenFadeDistance`、`depthBufferThickness`、`rayMaxIterations`、`reflectSky`、`biasFactor`、`denoiserRadius`、`affectSmoothSurfaces`、`singleReflectionBounce`；`accumulationFactor` 与 `speed*` 系列在 T4 标记 `[Obsolete]`，仍可反序列化但 PBR 路径不读取。
 
 ### 2.2 与 HDRP `ReflectionDenoiser` 的差异
 
@@ -270,6 +270,40 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - 删除 `ScreenSpaceReflections.compute` 中不再使用的 18 个 kernel、`ClearBuffer2D` 相关代码与 `_SsrAccum*` ID；`DebugSsrParams` 若仍要保留则保留一个 kernel。
 - 验收：`ScreenSpaceReflections.compute` 只剩 trace/reproject（+调试图）；C# 无死引用；EditMode 全绿。
 
+#### T4 结论（2026-11-16，已完成）
+
+**参数弃用**
+
+| 参数 | 处理 | 说明 |
+|---|---|---|
+| `accumulationFactor` | `[Obsolete]`，字段保留 | 时间混合改由 denoiser 的 sample count 决定；旧 Volume 覆盖仍可反序列化 |
+| `speedRejectionParam` / `speedRejectionScalerFactor` | `[Obsolete]`，字段保留 | 速度拒绝已由逐像素 history 校验取代 |
+| `speedSmoothReject` / `speedSurfaceOnly` / `speedTargetOnly` / `enableWorldSpeedRejection` | `[Obsolete]`，字段保留 | 同属旧速度拒绝，均无效果 |
+| `biasFactor` | 保持启用 | 仍用于 trace 的 GGX 可见法线 bias |
+| `SsrAccumulationSpeed` 调试枚举 | 保留值 13 | `ScreenSpaceLightingDebugPass` 合并到 `SsrRaw` 分支，不再要求 PBR |
+
+- 弃用字段带 `[Obsolete]`、`<summary>` 与 Tooltip 说明“保留仅为序列化兼容、无效果”；不做破坏性删除，避免旧 Volume Profile 丢覆盖。
+- `denoiserRadius` / `affectSmoothSurfaces` / `singleReflectionBounce` 已在 T1 接入，`fullResolution` 在 T3 接入；`roughnessBasedDenoising` 不单独暴露，由 `singleReflectionBounce` 派生（同 HDRP）。
+
+**清理**
+
+- `ScreenSpaceReflections.compute` 在 T1 后已只剩 `ScreenSpaceReflectionsTracing`、`ScreenSpaceReflectionsReprojection`、`DebugSsrParams` 三个 kernel；T4 复核确认无 `_SsrAccum*`、`ClearBuffer2D`、accumulate kernel 残留。
+- 删除 `ScreenSpaceLightingShaderIDs.DstSize`（与 `ScreenSpaceDepthPyramidPass` 内部 ID 重复且无人使用）。
+- 删除 `SsrPass` 的死属性 `usingPbrAccumulation` 与字段 `m_UsingPbrAccumulation`（T4 前仅调试图读过）。
+- 测试：原 `VolumeExposesPbrAccumulationControls` 改为 `VolumeExposesPbrControlsAndDeprecatesTheUnusedAccumulationAndSpeedOnes`，用反射锁定 7 个弃用字段仍存在、仍是 `VolumeParameter`、都带 `[Obsolete]`，并确认 `biasFactor` 未弃用、默认算法仍为 Approximation。
+
+**验证证据**（`validation/T4/`）
+
+- `SslShaderCheck.txt`：SSR / ReflectionDenoiser / BilateralUpsample 强制重导入消息数为 0；SSR compute 只有 3 个 kernel；`_SsrAccum` / `ClearBuffer2D` / accumulate kernel 在 shader 与 Runtime 源码中均为 False；7 个弃用字段 `present=True obsolete=True`，`biasFactor obsolete=False`。
+- `UnityShaderCheck.log`：批处理退出码 0。
+- `UnityEditModeTests.xml`：**419 passed / 0 failed / 0 skipped**（T3 基线 419，替换 1 个测试）。
+- 未做：T5 的实拍、Frame Debugger、XR 播放器验证。
+
+**行为变化与遗留**
+
+- Volume Inspector 仍会显示这些字段（带 Deprecated Tooltip）；若需要隐藏，只能等破坏性删除或自定义 Volume 编辑器，本轮不做。
+- 旧 T8/T10 验证脚本若直接读取 `accumulationFactor` / `speed*`，会在编译时收到 CS0618 警告；T5 更新脚本时改用 denoiser 参数或 `#pragma warning disable 618`。
+
 ### T5：验证与证据（1 天）
 
 - 重跑 T7（Approximation）与 T8（PBR）三渲染器用例；更新断言：
@@ -292,9 +326,11 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 
 ### 4.1 静态/编译
 
-- [x] `TemporalFilter`、`DiffuseDenoiser`、`ReflectionDenoiser`、`SSGI`、`SSR`、`BilateralUpsample`、`DepthPyramid`、ColorPyramid、Debug 强制重导入消息数为 0（T1 证据）。
+- [x] `TemporalFilter`、`DiffuseDenoiser`、`ReflectionDenoiser`、`SSGI`、`SSR`、`BilateralUpsample`、`DepthPyramid`、ColorPyramid、Debug 强制重导入消息数为 0（T1/T4 证据）。
 - [x] `git status` 仅含预期文件；新文件 `.meta` 完整（T1 证据）。
-- [x] EditMode 全量通过（T1 后 417 passed）。
+- [x] EditMode 全量通过（T4 后 419 passed）。
+- [x] `ScreenSpaceReflections.compute` 仅剩 trace/reproject/`DebugSsrParams`，无 accumulate kernel、`_SsrAccum*`、`ClearBuffer2D` 残留（T4 证据）。
+- [x] 旧 Volume 参数 `accumulationFactor` 与 `speed*` 已 `[Obsolete]` 且不再被 PBR 路径读取；`biasFactor` 仍驱动 trace（T4 证据）。
 - [ ] `git log --follow` 确认无移动文件丢 GUID；T5 补 Lit/ComplexLit 重导入。
 
 ### 4.2 功能/回归
@@ -329,6 +365,10 @@ PLAN/TODO/02-SSRImprove/validation/
 ├─ T3/UnityShaderCheck.log            # 批处理编译日志
 ├─ T3/UnityEditModeTests.xml          # EditMode 结果（419 passed）
 ├─ T3/UnityEditMode.log               # EditMode 日志
+├─ T4/SslShaderCheck.txt              # kernel 清单、死引用、弃用字段检查
+├─ T4/UnityShaderCheck.log            # 批处理编译日志
+├─ T4/UnityEditModeTests.xml          # EditMode 结果（419 passed）
+├─ T4/UnityEditMode.log               # EditMode 日志
 ├─ T5/T7Verification.json             # Approximation 三渲染器
 ├─ T5/T8Verification.json             # PBR 三渲染器
 ├─ T5/FrameDebuggerReport.json        # Pass 顺序
@@ -361,7 +401,7 @@ PLAN/TODO/02-SSRImprove/validation/
 2. **历史布局**：若坚持 weight-in-alpha，反射的 sample count 必须像 SSGI 一样单独存；不要复用 `history.w`，否则会和权重冲突。
 3. **半分辨率 + XR**：两套宏组合的 variant 数量增加，构建时间与包体要观察。
 4. **旧的 T7/T8 证据**：本轮 SSGI 默认 `rayMiss` 已改变，SSR 改造也会改变 PBR 稳定帧；重跑时以“同版本、同场景、同曝光”的新基线为准，不直接对比旧 PNG。
-5. **`ReflectionKernelMapping.png`** 是 HDRP 资产，复制后在 URP 内需保持线性、无压缩、无 mip（沿用 HDRP `.meta` 的导入设置）。
+5. **`ReflectionKernelMapping.png`** 是 HDRP 资产，复制后必须沿用 HDRP `.meta` 的导入设置（sRGB + mipmap + DXT1），否则 roughness 半径曲线会偏移（T2 已锁定）。
 6. **构建保留**：新增 `Resources` 资源会进入所有构建；若需 strip，另立任务，不在本轮顺手做。
 
 ---

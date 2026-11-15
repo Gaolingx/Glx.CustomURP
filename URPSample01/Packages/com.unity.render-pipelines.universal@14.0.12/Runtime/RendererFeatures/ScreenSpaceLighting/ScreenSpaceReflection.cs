@@ -114,9 +114,12 @@ namespace UnityEngine.Rendering.Universal
         public ClampedFloatParameter intensity = new ClampedFloatParameter(1.0f, 0.0f, 4.0f);
 
         /// <summary>
-        /// Controls how much of the previous accumulation is kept. Only used by the PBR algorithm.
+        /// Deprecated: the PBR algorithm accumulates through the reflection denoiser, which derives
+        /// the blend factor from the sample count. The field is kept so existing Volume overrides
+        /// still deserialize; it has no effect.
         /// </summary>
-        [Tooltip("Amount of temporal accumulation. Higher values keep more history. PBR algorithm only.")]
+        [Obsolete("The reflection denoiser derives temporal accumulation from the sample count. accumulationFactor has no effect and is kept for serialization compatibility.")]
+        [Tooltip("Deprecated. The reflection denoiser chooses the temporal blend from the sample count; this value has no effect.")]
         public ClampedFloatParameter accumulationFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
 
         /// <summary>
@@ -147,39 +150,53 @@ namespace UnityEngine.Rendering.Universal
         public BoolParameter singleReflectionBounce = new BoolParameter(true);
 
         /// <summary>
-        /// Fraction of the speed range used to reject the accumulation history.
+        /// Deprecated: the reflection denoiser validates the history per pixel instead of rejecting
+        /// it from a screen/world speed range. The field is kept so existing Volume overrides still
+        /// deserialize; it has no effect.
         /// </summary>
-        [Tooltip("Fraction of the speed range that rejects the accumulation history.")]
+        [Obsolete("The reflection denoiser validates history per pixel. speedRejectionParam has no effect and is kept for serialization compatibility.")]
+        [Tooltip("Deprecated. The reflection denoiser validates history per pixel; this value has no effect.")]
         public ClampedFloatParameter speedRejectionParam = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
-        /// Upper bound of the world/screen speed used by the rejection.
+        /// Deprecated: the reflection denoiser validates the history per pixel instead of rejecting
+        /// it from a screen/world speed range. The field is kept so existing Volume overrides still
+        /// deserialize; it has no effect.
         /// </summary>
-        [Tooltip("Upper speed range used by the rejection. Increase it when objects move faster.")]
+        [Obsolete("The reflection denoiser validates history per pixel. speedRejectionScalerFactor has no effect and is kept for serialization compatibility.")]
+        [Tooltip("Deprecated. The reflection denoiser validates history per pixel; this value has no effect.")]
         public ClampedFloatParameter speedRejectionScalerFactor = new ClampedFloatParameter(0.2f, 0.001f, 1f);
 
         /// <summary>
-        /// Blends the rejection smoothly instead of using a hard threshold.
+        /// Deprecated: the reflection denoiser has no smooth speed rejection. The field is kept so
+        /// existing Volume overrides still deserialize; it has no effect.
         /// </summary>
-        [Tooltip("Rejects the history smoothly instead of using a hard threshold.")]
+        [Obsolete("The reflection denoiser has no speed rejection. speedSmoothReject has no effect and is kept for serialization compatibility.")]
+        [Tooltip("Deprecated. The reflection denoiser has no speed rejection; this value has no effect.")]
         public BoolParameter speedSmoothReject = new BoolParameter(false);
 
         /// <summary>
-        /// Uses the motion of the reflecting surface for the speed rejection.
+        /// Deprecated: the reflection denoiser has no surface motion rejection. The field is kept so
+        /// existing Volume overrides still deserialize; it has no effect.
         /// </summary>
-        [Tooltip("Uses the motion of the reflecting surface for the speed rejection.")]
+        [Obsolete("The reflection denoiser has no speed rejection. speedSurfaceOnly has no effect and is kept for serialization compatibility.")]
+        [Tooltip("Deprecated. The reflection denoiser has no speed rejection; this value has no effect.")]
         public BoolParameter speedSurfaceOnly = new BoolParameter(true);
 
         /// <summary>
-        /// Uses the motion of the reflected hit surface for the speed rejection.
+        /// Deprecated: the reflection denoiser has no hit motion rejection. The field is kept so
+        /// existing Volume overrides still deserialize; it has no effect.
         /// </summary>
-        [Tooltip("Uses the motion of the reflected hit surface for the speed rejection.")]
+        [Obsolete("The reflection denoiser has no speed rejection. speedTargetOnly has no effect and is kept for serialization compatibility.")]
+        [Tooltip("Deprecated. The reflection denoiser has no speed rejection; this value has no effect.")]
         public BoolParameter speedTargetOnly = new BoolParameter(true);
 
         /// <summary>
-        /// Reconstructs the motion in world space instead of using the screen-space length.
+        /// Deprecated: the reflection denoiser has no world speed rejection. The field is kept so
+        /// existing Volume overrides still deserialize; it has no effect.
         /// </summary>
-        [Tooltip("Uses world-space motion for the rejection instead of screen-space motion.")]
+        [Obsolete("The reflection denoiser has no speed rejection. enableWorldSpeedRejection has no effect and is kept for serialization compatibility.")]
+        [Tooltip("Deprecated. The reflection denoiser has no speed rejection; this value has no effect.")]
         public BoolParameter enableWorldSpeedRejection = new BoolParameter(false);
     }
 }

@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -30,17 +33,37 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void VolumeExposesPbrAccumulationControls()
+        public void VolumeExposesPbrControlsAndDeprecatesTheUnusedAccumulationAndSpeedOnes()
         {
             Assert.AreEqual(ScreenSpaceReflectionAlgorithm.Approximation, m_Settings.usedAlgorithm.value);
-            Assert.AreEqual(0.75f, m_Settings.accumulationFactor.value, 1e-5f);
+
+            // The reflection denoiser replaced both the accumulation rate and the speed rejection.
+            // The parameters stay on the component so existing Volume overrides still deserialize,
+            // but they are obsolete and no longer read by the PBR path.
+            var fields = typeof(ScreenSpaceReflection)
+                .GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .ToDictionary(field => field.Name);
+
+            string[] deprecated =
+            {
+                "accumulationFactor",
+                "speedRejectionParam",
+                "speedRejectionScalerFactor",
+                "speedSmoothReject",
+                "speedSurfaceOnly",
+                "speedTargetOnly",
+                "enableWorldSpeedRejection",
+            };
+
+            foreach (var name in deprecated)
+            {
+                Assert.IsTrue(fields.TryGetValue(name, out var field), $"{name} must stay serialized");
+                Assert.IsTrue(typeof(VolumeParameter).IsAssignableFrom(field.FieldType), $"{name} must remain a VolumeParameter");
+                Assert.IsNotNull(field.GetCustomAttribute<ObsoleteAttribute>(), $"{name} must be marked obsolete");
+            }
+
+            Assert.IsNull(fields["biasFactor"].GetCustomAttribute<ObsoleteAttribute>(), "biasFactor still drives the trace");
             Assert.AreEqual(0.5f, m_Settings.biasFactor.value, 1e-5f);
-            Assert.AreEqual(0.5f, m_Settings.speedRejectionParam.value, 1e-5f);
-            Assert.AreEqual(0.2f, m_Settings.speedRejectionScalerFactor.value, 1e-5f);
-            Assert.IsFalse(m_Settings.speedSmoothReject.value);
-            Assert.IsTrue(m_Settings.speedSurfaceOnly.value);
-            Assert.IsTrue(m_Settings.speedTargetOnly.value);
-            Assert.IsFalse(m_Settings.enableWorldSpeedRejection.value);
         }
 
         [Test]

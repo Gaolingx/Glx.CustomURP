@@ -7,7 +7,6 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int DepthMipChain = Shader.PropertyToID("_SslDepthMipChain");
         internal static readonly int SrcOffsetAndLimit = Shader.PropertyToID("_SslSrcOffsetAndLimit");
         internal static readonly int DstOffset = Shader.PropertyToID("_SslDstOffset");
-        internal static readonly int DstSize = Shader.PropertyToID("_SslDstSize");
 
         internal static readonly int Source = Shader.PropertyToID("_SslSource");
         internal static readonly int SrcScaleBias = Shader.PropertyToID("_SslSrcScaleBias");

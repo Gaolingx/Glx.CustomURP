@@ -167,7 +167,9 @@ namespace UnityEngine.Rendering.Universal
                     texture = source.rt;
                     return true;
                 }
+                // The PBR speed rejection no longer exists, so the deprecated mode shows SsrRaw.
                 case ScreenSpaceLightingDebugMode.SsrRaw:
+                case ScreenSpaceLightingDebugMode.SsrAccumulationSpeed:
                 {
                     if (m_SsrPass == null || !m_SsrPass.producedOutput || m_SsrPass.outputTexture == null || m_SsrPass.outputTexture.rt == null)
                         return false;
@@ -180,15 +182,6 @@ namespace UnityEngine.Rendering.Universal
                     if (m_SsrPass == null || !m_SsrPass.producedOutput || m_SsrPass.outputTexture == null || m_SsrPass.outputTexture.rt == null)
                         return false;
                     outputMode = 3;
-                    texture = m_SsrPass.outputTexture.rt;
-                    return true;
-                }
-                case ScreenSpaceLightingDebugMode.SsrAccumulationSpeed:
-                {
-                    if (m_SsrPass == null || !m_SsrPass.producedOutput || !m_SsrPass.usingPbrAccumulation ||
-                        m_SsrPass.outputTexture == null || m_SsrPass.outputTexture.rt == null)
-                        return false;
-                    outputMode = 1;
                     texture = m_SsrPass.outputTexture.rt;
                     return true;
                 }
