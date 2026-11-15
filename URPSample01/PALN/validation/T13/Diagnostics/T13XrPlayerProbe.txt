@@ -1,0 +1,15 @@
+started
+graphicsDeviceType=Direct3D11
+batchmode=False
+device=NVIDIA GeForce RTX 5060 Ti
+foveatedRenderingCaps=None
+---- MultiPass started=True 
+display=True passes=2 eyeDesc=1512x1680 dim=Tex2D depth=1 slices=2
+pass[0] params=1 desc=1512x1680 dim=Tex2D depth=1
+  eye=1512x1680 dim=Tex2D depth=1 fmt=R8G8B8A8_UNorm
+pass[1] params=1 desc=1512x1680 dim=Tex2D depth=1
+  eye=1512x1680 dim=Tex2D depth=1 fmt=R8G8B8A8_UNorm
+---- SinglePassInstanced started=True 
+display=True passes=1 eyeDesc=1512x1680 dim=Tex2DArray depth=2 slices=2
+pass[0] params=2 desc=1512x1680 dim=Tex2DArray depth=2
+  eye=1512x1680 dim=Tex2DArray depth=2 fmt=R8G8B8A8_SRGB

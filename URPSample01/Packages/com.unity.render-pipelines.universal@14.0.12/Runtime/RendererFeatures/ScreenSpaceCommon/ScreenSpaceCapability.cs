@@ -7,7 +7,9 @@ namespace UnityEngine.Rendering.Universal
         Supported,
         ComputeShadersUnsupported,
         DepthPyramidFormatUnsupported,
+        RequiredFormatUnsupported,
         CameraUnsupported,
+        XrLayoutUnsupported,
     }
 
     internal readonly struct ScreenSpaceCapabilityResult
@@ -56,6 +58,16 @@ namespace UnityEngine.Rendering.Universal
         static bool s_PlatformEvaluated;
         static ScreenSpaceCapabilityResult s_PlatformResult;
 
+        // Every private resource is written by a compute kernel, so each format needs UAV/load-store
+        // support. Formats with a runtime fallback (AO visibility, validation mask) are not listed.
+        internal static readonly GraphicsFormat[] k_RequiredStoreFormats =
+        {
+            GraphicsFormat.R32_SFloat,
+            GraphicsFormat.R16G16_SFloat,
+            GraphicsFormat.R16G16B16A16_SFloat,
+            GraphicsFormat.R16_SFloat,
+        };
+
         internal static ScreenSpaceCapabilityResult EvaluatePlatform()
         {
             if (!s_PlatformEvaluated)
@@ -81,6 +93,17 @@ namespace UnityEngine.Rendering.Universal
                 return ScreenSpaceCapabilityResult.Unsupported(
                     ScreenSpaceCapabilityStatus.DepthPyramidFormatUnsupported,
                     $"Screen-space lighting requires load/store support for {k_DepthPyramidFormat}.");
+            }
+
+            for (int i = 0; i < k_RequiredStoreFormats.Length; i++)
+            {
+                var format = k_RequiredStoreFormats[i];
+                if (!SystemInfo.IsFormatSupported(format, FormatUsage.LoadStore))
+                {
+                    return ScreenSpaceCapabilityResult.Unsupported(
+                        ScreenSpaceCapabilityStatus.RequiredFormatUnsupported,
+                        $"Screen-space lighting requires load/store support for {format}.");
+                }
             }
 
             return ScreenSpaceCapabilityResult.Supported();
@@ -114,6 +137,24 @@ namespace UnityEngine.Rendering.Universal
                 return ScreenSpaceCapabilityResult.Unsupported(
                     ScreenSpaceCapabilityStatus.CameraUnsupported,
                     "The camera target has no renderable size.");
+            }
+
+            if (cameraData.xr.enabled)
+            {
+                int viewCount = cameraData.xr.viewCount;
+                if (viewCount <= 0 || viewCount > ScreenSpaceLightingXr.k_MaxViews)
+                {
+                    return ScreenSpaceCapabilityResult.Unsupported(
+                        ScreenSpaceCapabilityStatus.XrLayoutUnsupported,
+                        $"Screen-space lighting supports one or two XR views, the camera reports {viewCount}.");
+                }
+
+                if (cameraData.xr.singlePassEnabled && cameraData.cameraTargetDescriptor.dimension != TextureDimension.Tex2DArray)
+                {
+                    return ScreenSpaceCapabilityResult.Unsupported(
+                        ScreenSpaceCapabilityStatus.XrLayoutUnsupported,
+                        "Single-pass instanced XR must provide a texture array camera target.");
+                }
             }
 
             return ScreenSpaceCapabilityResult.Supported();

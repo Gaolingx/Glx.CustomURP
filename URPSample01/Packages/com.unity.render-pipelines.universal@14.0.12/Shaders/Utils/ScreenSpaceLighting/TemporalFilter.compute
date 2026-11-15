@@ -84,7 +84,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float3 normalWS = SsgiDecodeNormalSS(SSGI_LOAD(_SsgiNormalTexture, coord));
     float3 positionWS = SsgiReconstructPositionWS((float2)coord, depth);
-    float3 historyPositionWS = ComputeWorldSpacePosition(historyUv, historyDepth, _SsgiPrevInvViewProj);
+    float3 historyPositionWS = ComputeWorldSpacePosition(historyUv, historyDepth, SSL_PREV_INV_VIEW_PROJ);
 
     float maxRadius = SsgiComputeMaxReprojectionWorldRadius(positionWS, normalWS, _SsgiPixelSpreadAngleTangent);
     if (length(historyPositionWS - positionWS) > maxRadius)

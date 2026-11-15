@@ -48,8 +48,17 @@ namespace UnityEngine.Rendering.Universal
 
             ref var cameraData = ref renderingData.cameraData;
             var descriptor = cameraData.cameraTargetDescriptor;
-            int viewCount = cameraData.xr.enabled ? Mathf.Max(1, cameraData.xr.viewCount) : 1;
-            TextureDimension dimension = viewCount > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
+            int viewCount = ScreenSpaceLightingXr.GetViewCount(cameraData);
+            TextureDimension dimension = ScreenSpaceLightingXr.GetResourceDimension(cameraData);
+
+            // The first Screen Space Lighting pass records the per-eye view projection. The next
+            // frame's SSGI history validation and SSR motion reconstruction read it from the same
+            // history entry, so the eyes never cross-contaminate their previous matrices.
+            if (cameraData.xr.enabled)
+            {
+                for (int viewIndex = 0; viewIndex < viewCount; viewIndex++)
+                    m_History.RecordViewProj(viewIndex, ScreenSpaceLightingXr.GetViewProjection(cameraData, viewIndex));
+            }
 
             m_History.EnsureResources(
                 descriptor.width,

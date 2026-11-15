@@ -39,6 +39,9 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int ViewRow0 = Shader.PropertyToID("_GtaoViewRow0");
         internal static readonly int ViewRow1 = Shader.PropertyToID("_GtaoViewRow1");
         internal static readonly int ViewRow2 = Shader.PropertyToID("_GtaoViewRow2");
+        internal static readonly int XrViewRow0 = Shader.PropertyToID("_GtaoXrViewRow0");
+        internal static readonly int XrViewRow1 = Shader.PropertyToID("_GtaoXrViewRow1");
+        internal static readonly int XrViewRow2 = Shader.PropertyToID("_GtaoXrViewRow2");
 
         // Final material-facing AO input shared with the built-in URP AO contract.
         internal static readonly int ScreenSpaceOcclusionTexture = Shader.PropertyToID("_ScreenSpaceOcclusionTexture");

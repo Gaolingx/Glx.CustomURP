@@ -41,7 +41,7 @@ bool SslRayMarch(
     float3 rayOrigin = float3(positionSS + 0.5, deviceDepth);
 
     float3 reflPosWS = positionWS + sampleDir;
-    float3 reflPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(reflPosWS, unity_MatrixVP);
+    float3 reflPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(reflPosWS, SSL_VIEW_PROJ);
     float3 reflPosSS = float3(reflPosNDC.xy * screenSize.xy, reflPosNDC.z);
     float3 rayDir = reflPosSS - rayOrigin;
     float3 rcpRayDir = rcp(rayDir);

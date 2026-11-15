@@ -230,13 +230,13 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (!SsgiIsBackgroundDepth(deviceDepth) && materialValid)
     {
         float3 positionWS = SsgiReconstructPositionWS((float2)positionSS, deviceDepth);
-        float3 camPosWS = _SsrCameraPositionWS.xyz;
+        float3 camPosWS = SSL_SSR_CAMERA_POSITION_WS;
         float3 viewWS = normalize(camPosWS - positionWS);
 
         // Normal bias with a distance dependent magnitude, matching HDRP. The shading normal is the
         // only normal available here, which is a known limitation of screen-space tracing.
         positionWS = camPosWS + (positionWS - camPosWS) * (1.0 - 0.001 * rcp(max(dot(normalWS, viewWS), FLT_EPS)));
-        deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, unity_MatrixVP).z;
+        deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, SSL_VIEW_PROJ).z;
 
         bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
         killRay = killRay || (dot(normalWS, viewWS) <= 0.0);
@@ -350,7 +350,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
                     float hitDepth = SSGI_LOAD(_SsrDepthTexture, hitPixel);
                     float3 hitWS = SsgiReconstructPositionWS((float2)hitPixel, hitDepth);
 
-                    float3 V = normalize(_SsrCameraPositionWS.xyz - neighborWS);
+                    float3 V = normalize(SSL_SSR_CAMERA_POSITION_WS - neighborWS);
                     float3 L = normalize(hitWS - neighborWS);
                     float roughness = clamp(PerceptualRoughnessToRoughness(neighborRoughness), MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
                     float weight = SsrGetSampleWeight(dot(neighborN, V), dot(neighborN, L), roughness);
@@ -446,13 +446,13 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
     #if USE_SPEED_SURFACE
         float deviceDepthSrc = SSGI_LOAD(_SsrDepthTexture, positionSS);
         float4 srcMotion = float4(motionCenter.xy, deviceDepthSrc, 0.0);
-        float4 worldSrcMotion = mul(unity_MatrixInvVP, srcMotion);
+        float4 worldSrcMotion = mul(SSL_INV_VIEW_PROJ, srcMotion);
         worldSrcMotion /= worldSrcMotion.w;
     #endif
     #if USE_SPEED_TARGET
         float deviceDepthDst = SSGI_LOAD(_SsrDepthTexture, hitPixel);
         float4 dstMotion = float4(motionHit.xy, deviceDepthDst, 0.0);
-        float4 worldDstMotion = mul(unity_MatrixInvVP, dstMotion);
+        float4 worldDstMotion = mul(SSL_INV_VIEW_PROJ, dstMotion);
         worldDstMotion /= worldDstMotion.w;
     #endif
 

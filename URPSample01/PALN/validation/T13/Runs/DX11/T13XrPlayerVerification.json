@@ -1,0 +1,269 @@
+{
+    "utcTimestamp": "2026-11-15T06:31:52.8517406Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceType": "Direct3D11",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "foveatedRenderingCaps": "None",
+    "modes": [
+        {
+            "mode": "MultiPass",
+            "graphicsDeviceType": "Direct3D11",
+            "foveatedRenderingCaps": "None",
+            "started": true,
+            "startMessage": "",
+            "passed": true,
+            "issues": [],
+            "cases": [
+                {
+                    "name": "Reference",
+                    "leftHash": "7512D39FE9DC55FBF8000D74D9454504F54D9A77D15E947BAD54B621C2AED144",
+                    "rightHash": "3EC208EC9EC8BA30EDBAB911B6D7C22CE73E7858BCB70AD16E118A4D159134C5",
+                    "leftMeanLuminance": 0.3588523268699646,
+                    "rightMeanLuminance": 0.36042487621307375,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "AllOn",
+                    "leftHash": "2BAEAAB54757C9BCB2ED431729E1965E45528463DBE6AE093293FA051D6D8CD9",
+                    "rightHash": "08DDF0AD1C7919ACD72E8D15EA201884CAB09974A2B8C90190A34CA6A6DD2397",
+                    "leftMeanLuminance": 0.35834404826164248,
+                    "rightMeanLuminance": 0.3599557876586914,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "AllOffAgain",
+                    "leftHash": "7512D39FE9DC55FBF8000D74D9454504F54D9A77D15E947BAD54B621C2AED144",
+                    "rightHash": "3EC208EC9EC8BA30EDBAB911B6D7C22CE73E7858BCB70AD16E118A4D159134C5",
+                    "leftMeanLuminance": 0.3588523268699646,
+                    "rightMeanLuminance": 0.36042487621307375,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "SsgiOnly",
+                    "leftHash": "5DE6B6628AA7C65CD15DA14C86F359FAFA100522F2BD9A62736AC5F0415D5464",
+                    "rightHash": "3CC63302F7AD1AE0D7B55EAD92474811E0A3F73788EE5D36265DC38A56723566",
+                    "leftMeanLuminance": 0.3586326241493225,
+                    "rightMeanLuminance": 0.3602416515350342,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "SsrOnly",
+                    "leftHash": "D47C7E24532DDFE4D80C5AB922466CA4355E19F117C20D828282F094D103724D",
+                    "rightHash": "5AEEF6F40DC01B141A26A23BB8B4A27564AD20E981E4B1FB6587BFE75744942C",
+                    "leftMeanLuminance": 0.35884910821914675,
+                    "rightMeanLuminance": 0.360422819852829,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "RefractionOnly",
+                    "leftHash": "DF56E21CFB48342E647233AADB97DA4A408A7ABEDE8DC9477FA662CEEFD45F83",
+                    "rightHash": "A3879A3BD21CCCA2180CCE0F504ADA19B9650EF658DC4BF94AE32BB8E6A9DCA7",
+                    "leftMeanLuminance": 0.3590027689933777,
+                    "rightMeanLuminance": 0.3605726659297943,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "GtaoOnly",
+                    "leftHash": "2A317E256D5FD63F3D0E5BA39CC85BE1D7E4C7E69C59B8FC7344ABEEDFA29E62",
+                    "rightHash": "42CCDA08EC11F81D63A1A4E3BDD844C20166C406E085CCFA88598FD84BB3C8D7",
+                    "leftMeanLuminance": 0.35872140526771548,
+                    "rightMeanLuminance": 0.36031150817871096,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                }
+            ],
+            "historyEntries": 2,
+            "historySlices": 1,
+            "historyDimension": "Tex2D",
+            "resetCount": 1,
+            "depthPyramidSliceCount": 1,
+            "previousViewProjViews": 2,
+            "previousColorPyramidSliceHashes": [],
+            "ssgiProduced": true,
+            "ssrProduced": true,
+            "transparentSsrProduced": true,
+            "normalsDimension": "Tex2D",
+            "depthDimension": "Tex2D",
+            "ssgiFinalAlphaMean": [
+                0.022888565436005594
+            ],
+            "ssrWeightMean": [
+                0.0022628114093095066
+            ],
+            "ssgiHitXMean": [
+                95.95047760009766
+            ],
+            "ssrHitXMean": [
+                98.77886199951172
+            ],
+            "gtaoMean": [],
+            "colorPyramidMean": [
+                0.17949222028255464
+            ],
+            "monoViewProjSummary": "0.382,0.000,0.298",
+            "monoCameraPosition": "(0.000, 1.600, -6.000)",
+            "ssgiTraceDispatches": 22,
+            "ssgiReprojectDispatches": 22,
+            "ssgiDispatchViewCount": 1,
+            "ssgiDispatchTextureArray": 0,
+            "ssrTraceDispatches": 22,
+            "ssrReprojectDispatches": 22,
+            "ssrDispatchViewCount": 1,
+            "ssrDispatchTextureArray": 0,
+            "referenceRestored": true,
+            "referenceEyeDifference": 1030682,
+            "effectEyeDifference": 1059458,
+            "effectsChangedLeft": 339876,
+            "effectsChangedRight": 322764,
+            "ssgiChangedLeft": 232870,
+            "ssgiChangedRight": 193006,
+            "ssrChangedLeft": 6753,
+            "ssrChangedRight": 6820,
+            "refractionChangedLeft": 6997,
+            "refractionChangedRight": 6908,
+            "gtaoChangedLeft": 81913,
+            "gtaoChangedRight": 78002,
+            "nonFinitePixels": 0
+        },
+        {
+            "mode": "SinglePassInstanced",
+            "graphicsDeviceType": "Direct3D11",
+            "foveatedRenderingCaps": "None",
+            "started": true,
+            "startMessage": "",
+            "passed": true,
+            "issues": [],
+            "cases": [
+                {
+                    "name": "Reference",
+                    "leftHash": "A27311ECBBB9C6EDEFD8D54B16DBB92FB7D1606F0B4F060F0184D1B73303027E",
+                    "rightHash": "FC882B509954D4A12454B0BFEDAF3B8BC47DC022AFD0F918520C869162035C04",
+                    "leftMeanLuminance": 0.3592717945575714,
+                    "rightMeanLuminance": 0.36084359884262087,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "AllOn",
+                    "leftHash": "CBB6D25575ACB57B419B0295B584B0B3FFF164757DAB56351F025C95BA775BE9",
+                    "rightHash": "66ABFBBA3AEE84996125767C781110CEE68D53103D49E53FF9900C545E6C458D",
+                    "leftMeanLuminance": 0.35897842049598696,
+                    "rightMeanLuminance": 0.36058351397514346,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "AllOffAgain",
+                    "leftHash": "A27311ECBBB9C6EDEFD8D54B16DBB92FB7D1606F0B4F060F0184D1B73303027E",
+                    "rightHash": "FC882B509954D4A12454B0BFEDAF3B8BC47DC022AFD0F918520C869162035C04",
+                    "leftMeanLuminance": 0.3592717945575714,
+                    "rightMeanLuminance": 0.36084359884262087,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "SsgiOnly",
+                    "leftHash": "FE1A9CB4B2815FDE7A8B722FDF37B65AAC89C53B829B8572FA954D2ED90F6765",
+                    "rightHash": "0BFCCA5C7E0C138F249CE3A5B255D53CCFFD16EE365B53AD39FCDBA37335C5C3",
+                    "leftMeanLuminance": 0.3588593900203705,
+                    "rightMeanLuminance": 0.36044439673423769,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "SsrOnly",
+                    "leftHash": "75E615334F03FAC3A1BABE48142CB9D70A9D2ED91C85CF166AD86EEC5F0670CA",
+                    "rightHash": "BED2628A56E11685227826699337BA71A932F62442E3E707F8A04BB26305C127",
+                    "leftMeanLuminance": 0.35926833748817446,
+                    "rightMeanLuminance": 0.3608413636684418,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "RefractionOnly",
+                    "leftHash": "FF3CA6E5FC8F24FAF60CEE55EFBE0407D916B1AE7F2B043B6B04AFB3ADEC5487",
+                    "rightHash": "C06DAA146593A4AE58543958D9C7BE951D1F5F1B4B849766A0EBAE280D983ABB",
+                    "leftMeanLuminance": 0.35942262411117556,
+                    "rightMeanLuminance": 0.3609917461872101,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                },
+                {
+                    "name": "GtaoOnly",
+                    "leftHash": "A43E2932CAB557C54C376DE4FA840CB8BEF20A006BCB207C953DFFC2DCB1F349",
+                    "rightHash": "3FADC15BD16D1F812A996C01D9D7878DEE174D4E88302748AB330A04897C366F",
+                    "leftMeanLuminance": 0.35923540592193606,
+                    "rightMeanLuminance": 0.36081552505493166,
+                    "leftNonFinite": 0,
+                    "rightNonFinite": 0
+                }
+            ],
+            "historyEntries": 1,
+            "historySlices": 2,
+            "historyDimension": "Tex2DArray",
+            "resetCount": 1,
+            "depthPyramidSliceCount": 2,
+            "previousViewProjViews": 2,
+            "previousColorPyramidSliceHashes": [
+                "5CFA42AA141FBC94D890C3D22A941560610DA4D6D9F0812C767EEF21B9B479DE",
+                "C71596749D787C89E6CA43AB817F79F3E1C9FDD43B518159C545DC11404B6351"
+            ],
+            "ssgiProduced": true,
+            "ssrProduced": true,
+            "transparentSsrProduced": true,
+            "normalsDimension": "Tex2DArray",
+            "depthDimension": "Tex2DArray",
+            "ssgiFinalAlphaMean": [
+                0.01893329992890358,
+                0.01803332194685936
+            ],
+            "ssrWeightMean": [
+                0.002247889991849661,
+                0.0022628114093095066
+            ],
+            "ssgiHitXMean": [
+                95.55081176757813,
+                95.5590591430664
+            ],
+            "ssrHitXMean": [
+                98.77886199951172,
+                98.77725982666016
+            ],
+            "gtaoMean": [],
+            "colorPyramidMean": [
+                0.17965614795684815,
+                0.18157106637954713
+            ],
+            "monoViewProjSummary": "0.385,0.000,0.298",
+            "monoCameraPosition": "(0.000, 1.600, -6.000)",
+            "ssgiTraceDispatches": 59,
+            "ssgiReprojectDispatches": 59,
+            "ssgiDispatchViewCount": 2,
+            "ssgiDispatchTextureArray": 1,
+            "ssrTraceDispatches": 59,
+            "ssrReprojectDispatches": 59,
+            "ssrDispatchViewCount": 2,
+            "ssrDispatchTextureArray": 1,
+            "referenceRestored": true,
+            "referenceEyeDifference": 924469,
+            "effectEyeDifference": 948197,
+            "effectsChangedLeft": 278199,
+            "effectsChangedRight": 264981,
+            "ssgiChangedLeft": 325435,
+            "ssgiChangedRight": 322041,
+            "ssrChangedLeft": 6779,
+            "ssrChangedRight": 6844,
+            "refractionChangedLeft": 7013,
+            "refractionChangedRight": 6910,
+            "gtaoChangedLeft": 46324,
+            "gtaoChangedRight": 38904,
+            "nonFinitePixels": 0
+        }
+    ]
+}

@@ -49,6 +49,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             var cmd = renderingData.commandBuffer;
+            // The Gaussian chain is a screen-space pass: foveated shading would write the private
+            // history at a lower rate, so it is disabled for this draw only.
+            bool foveationDisabled = ScreenSpaceLightingXr.DisableFoveatedRendering(cmd, renderingData.cameraData);
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
                 ScreenSpaceLightingRenderUtils.RenderColorGaussianPyramid(
@@ -63,17 +66,18 @@ namespace UnityEngine.Rendering.Universal
                     m_History.height,
                     m_History.colorPyramidMipCount);
             }
+
+            ScreenSpaceLightingXr.RestoreFoveatedRendering(cmd, foveationDisabled);
         }
 
         void EnsureHistoryResources(ref CameraData cameraData)
         {
             var descriptor = cameraData.cameraTargetDescriptor;
-            int viewCount = cameraData.xr.enabled ? Mathf.Max(1, cameraData.xr.viewCount) : 1;
             m_History.EnsureResources(
                 descriptor.width,
                 descriptor.height,
-                viewCount,
-                viewCount > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
+                ScreenSpaceLightingXr.GetViewCount(cameraData),
+                ScreenSpaceLightingXr.GetResourceDimension(cameraData),
                 ScreenSpaceLightingRenderUtils.k_ColorFormat);
         }
     }
@@ -119,12 +123,11 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            int viewCount = renderingData.cameraData.xr.enabled ? Mathf.Max(1, renderingData.cameraData.xr.viewCount) : 1;
             m_History.EnsureResources(
                 descriptor.width,
                 descriptor.height,
-                viewCount,
-                viewCount > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
+                ScreenSpaceLightingXr.GetViewCount(renderingData.cameraData),
+                ScreenSpaceLightingXr.GetResourceDimension(renderingData.cameraData),
                 ScreenSpaceLightingRenderUtils.k_ColorFormat);
 
             var material = m_Resources.colorPyramidMaterial;
@@ -134,6 +137,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             var cmd = renderingData.commandBuffer;
+            bool foveationDisabled = ScreenSpaceLightingXr.DisableFoveatedRendering(cmd, renderingData.cameraData);
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
                 ScreenSpaceLightingRenderUtils.RenderColorGaussianPyramid(
@@ -167,6 +171,8 @@ namespace UnityEngine.Rendering.Universal
 
                 m_History.SwapBuffers();
             }
+
+            ScreenSpaceLightingXr.RestoreFoveatedRendering(cmd, foveationDisabled);
         }
     }
 }

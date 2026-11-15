@@ -21,6 +21,14 @@ namespace UnityEngine.Rendering.Universal
 
         internal static readonly string XrArrayKeyword = "SSL_XR_ARRAY";
 
+        // Per-view matrices and eye centres. Only bound for single-pass instanced XR, where the
+        // kernels pick the view with the dispatch slice.
+        internal static readonly int SslXrViewProj = Shader.PropertyToID("_SslXrViewProj");
+        internal static readonly int SslXrInvViewProj = Shader.PropertyToID("_SslXrInvViewProj");
+        internal static readonly int SslXrPrevViewProj = Shader.PropertyToID("_SslXrPrevViewProj");
+        internal static readonly int SslXrPrevInvViewProj = Shader.PropertyToID("_SslXrPrevInvViewProj");
+        internal static readonly int SslXrCameraPositionWS = Shader.PropertyToID("_SslXrCameraPositionWS");
+
         // ---------------------------------------------------------------------------------------
         // Screen Space Global Illumination
         // ---------------------------------------------------------------------------------------

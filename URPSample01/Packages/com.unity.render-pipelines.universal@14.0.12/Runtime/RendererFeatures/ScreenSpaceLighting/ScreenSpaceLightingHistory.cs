@@ -517,6 +517,11 @@ namespace UnityEngine.Rendering.Universal
         TextureDimension m_SsrPbrDimension;
 
         PackedMipChainInfo m_DepthPyramidInfo;
+        // Previous frame view projection per XR eye. URP's motion vector history stores a single
+        // matrix that alternates eyes in multipass, so a per-eye entry is required for the SSGI
+        // history validation and the SSR motion reconstruction to compare like with like.
+        readonly Matrix4x4[] m_PreviousViewProj = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly bool[] m_HasPreviousViewProj = new bool[ScreenSpaceLightingXr.k_MaxViews];
         readonly RTHandle[] m_HistoryColorPyramids = new RTHandle[k_HistoryBufferCount];
         readonly RTHandle[] m_PreviousDepths = new RTHandle[k_HistoryBufferCount];
         RTHandle m_TempDownsample;
@@ -564,6 +569,27 @@ namespace UnityEngine.Rendering.Universal
             ssrTransparentOutputProduced = true;
         }
 
+        internal bool TryGetPreviousViewProj(int viewIndex, out Matrix4x4 viewProj)
+        {
+            viewProj = Matrix4x4.identity;
+            if (viewIndex < 0 || viewIndex >= m_PreviousViewProj.Length || !m_HasPreviousViewProj[viewIndex])
+                return false;
+
+            viewProj = m_PreviousViewProj[viewIndex];
+            return true;
+        }
+
+        // Recorded by the first Screen Space Lighting pass of the frame so the next frame (or the
+        // other eye in multipass, which owns a different entry) sees this camera's matrices.
+        internal void RecordViewProj(int viewIndex, Matrix4x4 viewProj)
+        {
+            if (viewIndex < 0 || viewIndex >= m_PreviousViewProj.Length)
+                return;
+
+            m_PreviousViewProj[viewIndex] = viewProj;
+            m_HasPreviousViewProj[viewIndex] = true;
+        }
+
         public void Reset(int width, int height, int frameIndex)
         {
             this.width = width;
@@ -581,6 +607,8 @@ namespace UnityEngine.Rendering.Universal
             ssrTransparentOutputProduced = false;
             ResetSsgiHistory();
             ResetSsrPbrHistory();
+            for (int i = 0; i < m_HasPreviousViewProj.Length; i++)
+                m_HasPreviousViewProj[i] = false;
         }
 
         // Called by the history capture pass after it recorded the current color and depth.
@@ -662,6 +690,15 @@ namespace UnityEngine.Rendering.Universal
             m_TempBlur = AllocTempColor(tempWidth, tempHeight, colorFormat, dimension, slices, "SslColorPyramidBlur");
 
             resourceGeneration++;
+
+            // The release invalidated this frame's read handles. Treat the frame as history-less so
+            // no pass binds a released texture; the next captured frame becomes valid again.
+            hasValidHistory = false;
+            readSlot = -1;
+            writeSlot = bufferIndex ^ 1;
+            readColorPyramid = null;
+            readPreviousDepth = null;
+            ssrOutputProduced = false;
         }
 
         internal RTHandle tempDownsample => m_TempDownsample;
@@ -732,6 +769,8 @@ namespace UnityEngine.Rendering.Universal
             writeSlot = 0;
             readColorPyramid = null;
             readPreviousDepth = null;
+            for (int i = 0; i < m_HasPreviousViewProj.Length; i++)
+                m_HasPreviousViewProj[i] = false;
         }
 
         void ReleaseSsgiResources()

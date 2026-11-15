@@ -81,8 +81,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             var descriptor = cameraData.cameraTargetDescriptor;
-            int viewCount = cameraData.xr.enabled ? Mathf.Max(1, cameraData.xr.viewCount) : 1;
-            TextureDimension dimension = viewCount > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
+            int viewCount = ScreenSpaceLightingXr.GetViewCount(cameraData);
+            TextureDimension dimension = ScreenSpaceLightingXr.GetResourceDimension(cameraData);
             int width = Mathf.Max(1, descriptor.width);
             int height = Mathf.Max(1, descriptor.height);
 
@@ -91,6 +91,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             var cmd = renderingData.commandBuffer;
+            // The prepass feeds full-resolution screen-space tracing, so a reduced raster shading
+            // rate would lower the normal quality for every reflected pixel.
+            bool foveationDisabled = ScreenSpaceLightingXr.DisableFoveatedRendering(cmd, cameraData);
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
                 // 1) Seed the private depth with the opaque camera depth. The fullscreen CopyDepth
@@ -127,6 +130,8 @@ namespace UnityEngine.Rendering.Universal
                 var filteringSettings = new FilteringSettings(RenderQueueRange.transparent, ResolveLayerMask(cameraData.renderer, camera));
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
             }
+
+            ScreenSpaceLightingXr.RestoreFoveatedRendering(cmd, foveationDisabled);
 
             m_ProducedOutput = true;
             m_ProducedFrameSerial = m_History.frameSerial;

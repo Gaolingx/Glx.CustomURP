@@ -14,8 +14,8 @@
 
 float SsgiComputeMaxReprojectionWorldRadius(float3 positionWS, float3 normalWS, float pixelSpreadAngleTangent, float maxDistance, float pixelTolerance)
 {
-    const float3 viewWS = normalize(_SsgiCameraPositionWS.xyz - positionWS);
-    float parallelPixelFootPrint = pixelSpreadAngleTangent * length(positionWS - _SsgiCameraPositionWS.xyz);
+    const float3 viewWS = normalize(SSL_SSGI_CAMERA_POSITION_WS - positionWS);
+    float parallelPixelFootPrint = pixelSpreadAngleTangent * length(positionWS - SSL_SSGI_CAMERA_POSITION_WS);
     float realPixelFootPrint = parallelPixelFootPrint / max(abs(dot(normalWS, viewWS)), SSGI_PROJECTION_EPSILON);
     return max(maxDistance, realPixelFootPrint * pixelTolerance);
 }

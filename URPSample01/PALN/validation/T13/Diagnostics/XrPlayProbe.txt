@@ -1,0 +1,3 @@
+display=display='Mock HMD Display' running=True textureLayout=0
+renderPassCount=0
+eyeDesc=256x256 dim=Tex2D depth=1

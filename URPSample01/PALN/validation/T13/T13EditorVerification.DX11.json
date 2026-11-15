@@ -1,0 +1,93 @@
+{
+    "utcTimestamp": "2026-11-15T06:37:53.2872167Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceType": "Direct3D11",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDriverType": "Direct3D 11.0 [level 11.1]",
+    "supportsComputeShaders": true,
+    "foveatedRenderingCaps": "None",
+    "maxComputeBufferInputsCompute": 32,
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "issues": [],
+    "formats": [
+        {
+            "name": "R32_SFloat",
+            "loadStore": true
+        },
+        {
+            "name": "R16G16_SFloat",
+            "loadStore": true
+        },
+        {
+            "name": "R16G16B16A16_SFloat",
+            "loadStore": true
+        },
+        {
+            "name": "R16_SFloat",
+            "loadStore": true
+        },
+        {
+            "name": "R8_UNorm",
+            "loadStore": true
+        },
+        {
+            "name": "R8_UInt",
+            "loadStore": true
+        },
+        {
+            "name": "R32_UInt",
+            "loadStore": true
+        }
+    ],
+    "fullScaleWidthScaleFactor": 1.0,
+    "halfScaleWidthScaleFactor": 1.0,
+    "halfScaleHeightScaleFactor": 1.0,
+    "dynamicResolutionChangedWidth": false,
+    "dynamicResolutionOutputChanged": true,
+    "dynamicResolutionIntermediateScaled": false,
+    "rtHandleScaleX": 1.0,
+    "rtHandleScaleY": 1.0,
+    "dynamicResolutionSupported": false,
+    "dynamicResolutionResult": "IntermediateTargetsNotRescaled",
+    "dynamicResolutionResetCount": 0,
+    "fullScaleChanges": 141918,
+    "halfScaleChanges": 67846,
+    "restoredChanges": 27327,
+    "fullScaleNonFinite": 0,
+    "halfScaleNonFinite": 0,
+    "fullScaleRenderWidth": 1280,
+    "halfScaleRenderWidth": 1280,
+    "restoredRenderWidth": 1280,
+    "captureSummaries": [
+        {
+            "name": "Reference",
+            "width": 1280,
+            "height": 720,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.25750038027763369
+        },
+        {
+            "name": "FullScale",
+            "width": 1280,
+            "height": 720,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.2573843002319336
+        },
+        {
+            "name": "HalfScaleDynamicResolution",
+            "width": 1280,
+            "height": 720,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.257386177778244
+        },
+        {
+            "name": "Restored",
+            "width": 1280,
+            "height": 720,
+            "nonFinitePixels": 0,
+            "meanLuminance": 0.2573850452899933
+        }
+    ]
+}

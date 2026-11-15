@@ -51,6 +51,15 @@
     #define GTAO_LOAD(t, p) t.Load(int4((int2)(p), GTAO_SLICE, 0))
     #define GTAO_STORE(t, p, v) t[int3((int2)(p), GTAO_SLICE)] = (v)
     #define GTAO_GATHER(t, s, uv) t.GatherRed(s, float3((uv), GTAO_SLICE))
+
+    // Single-pass instanced XR renders both eyes in one pass. Each eye has its own view rotation,
+    // so the world-to-view rows are supplied per view and selected with the dispatch slice.
+    float4 _GtaoXrViewRow0[2];
+    float4 _GtaoXrViewRow1[2];
+    float4 _GtaoXrViewRow2[2];
+    #define GTAO_VIEW_ROW0 (_GtaoXrViewRow0[GTAO_SLICE])
+    #define GTAO_VIEW_ROW1 (_GtaoXrViewRow1[GTAO_SLICE])
+    #define GTAO_VIEW_ROW2 (_GtaoXrViewRow2[GTAO_SLICE])
 #else
     #define GTAO_ASSIGN_VIEW_INDEX(idx)
     #define GTAO_SLICE 0
@@ -62,6 +71,9 @@
     #define GTAO_LOAD(t, p) t.Load(int3((int2)(p), 0))
     #define GTAO_STORE(t, p, v) t[(int2)(p)] = (v)
     #define GTAO_GATHER(t, s, uv) t.GatherRed(s, uv)
+    #define GTAO_VIEW_ROW0 _GtaoViewRow0
+    #define GTAO_VIEW_ROW1 _GtaoViewRow1
+    #define GTAO_VIEW_ROW2 _GtaoViewRow2
 #endif
 
 // The compute samplers stay unbound. D3D uses the default point/clamp state, which is exactly what
@@ -127,9 +139,9 @@ float3 GTAOGetPositionVS(float2 positionSS, float rawDepth)
 float3 GTAOTransformWorldToView(float3 v)
 {
     return float3(
-        dot(_GtaoViewRow0.xyz, v),
-        dot(_GtaoViewRow1.xyz, v),
-        dot(_GtaoViewRow2.xyz, v));
+        dot(GTAO_VIEW_ROW0.xyz, v),
+        dot(GTAO_VIEW_ROW1.xyz, v),
+        dot(GTAO_VIEW_ROW2.xyz, v));
 }
 
 float3 GTAOGetNormalVS(float4 normalBufferData)

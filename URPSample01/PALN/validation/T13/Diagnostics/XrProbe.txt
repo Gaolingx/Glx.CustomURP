@@ -1,0 +1,17 @@
+mockHmdAvailable=True
+graphicsDeviceType=Direct3D11
+supportsComputeShaders=True
+foveatedRenderingCaps=None
+TextureXR.slices=1
+started=True message=
+environment=display='Mock HMD Display' running=True textureLayout=0
+---- mode=MultiPass
+xrSystemDisplayActive=True
+display.textureLayout=Texture2DArray renderPassCount=0 isDeviceActive=True XRSettings.enabled=True
+stereoRenderingMode=MultiPass eyeTextureDesc=256x256 dim=Tex2D depth=1 slicesAfterRender=2
+eyeTexture=null
+---- mode=SinglePassInstanced
+xrSystemDisplayActive=True
+display.textureLayout=Texture2DArray renderPassCount=0 isDeviceActive=True XRSettings.enabled=True
+stereoRenderingMode=MultiPass eyeTextureDesc=256x256 dim=Tex2D depth=1 slicesAfterRender=2
+eyeTexture=null

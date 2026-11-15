@@ -42,7 +42,7 @@ void GeneratePointDistribution(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 float SsgiComputeMaxDenoisingRadius(float3 positionWS)
 {
-    float distanceToPoint = length(positionWS - _SsgiCameraPositionWS.xyz);
+    float distanceToPoint = length(positionWS - SSL_SSGI_CAMERA_POSITION_WS);
     return distanceToPoint * _SsgiFilterRadius / lerp(5.0, 50.0, saturate(distanceToPoint / 500.0));
 }
 
@@ -88,7 +88,7 @@ void BilateralFilterColor(uint3 dispatchThreadId : SV_DispatchThreadID)
         float2 newSample = _SsgiPointDistributionRW[sampleIndex + sampleOffset] * denoisingRadius;
 
         float3 wsPos = center.position + localToWorld[0] * newSample.x + localToWorld[1] * newSample.y;
-        float4 hClip = mul(unity_MatrixVP, float4(wsPos, 1.0));
+        float4 hClip = mul(SSL_VIEW_PROJ, float4(wsPos, 1.0));
         hClip.xyz /= hClip.w;
 
         if (hClip.x > 1.0 || hClip.x < -1.0 || hClip.y > 1.0 || hClip.y < -1.0)

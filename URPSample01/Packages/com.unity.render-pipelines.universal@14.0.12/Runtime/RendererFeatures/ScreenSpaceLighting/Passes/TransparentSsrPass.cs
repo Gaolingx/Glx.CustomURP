@@ -29,6 +29,12 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_OutputTexture;
         bool m_ProducedOutput;
         bool m_LoggedMissingResources;
+        readonly ScreenSpaceLightingXrViewConstants[] m_XrViews = new ScreenSpaceLightingXrViewConstants[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrInvViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrPrevViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrPrevInvViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Vector4[] m_XrCameraPositionScratch = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
 
 #if UNITY_EDITOR
         internal static int s_EditorExecuteCount;
@@ -106,8 +112,10 @@ namespace UnityEngine.Rendering.Universal
 
             ref var cameraData = ref renderingData.cameraData;
             var descriptor = cameraData.cameraTargetDescriptor;
-            int viewCount = cameraData.xr.enabled ? Mathf.Max(1, cameraData.xr.viewCount) : 1;
-            bool useTextureArray = viewCount > 1;
+            int viewCount = ScreenSpaceLightingXr.GetViewCount(cameraData);
+            bool useTextureArray = ScreenSpaceLightingXr.IsTextureArray(cameraData);
+            if (cameraData.xr.enabled)
+                ScreenSpaceLightingXr.FillViewConstants(cameraData, viewCount, m_XrViews, m_History);
             int screenWidth = Mathf.Max(1, descriptor.width);
             int screenHeight = Mathf.Max(1, descriptor.height);
 
@@ -126,6 +134,19 @@ namespace UnityEngine.Rendering.Universal
                 // deferred octahedral GBuffer layout.
                 SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, false);
                 SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, true);
+
+                if (useTextureArray)
+                {
+                    ScreenSpaceLightingXr.BindComputeViewConstants(
+                        cmd,
+                        m_XrViews,
+                        viewCount,
+                        m_XrViewProjScratch,
+                        m_XrInvViewProjScratch,
+                        m_XrPrevViewProjScratch,
+                        m_XrPrevInvViewProjScratch,
+                        m_XrCameraPositionScratch);
+                }
 
                 int groupsX = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenWidth, k_TileSize);
                 int groupsY = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenHeight, k_TileSize);
@@ -224,7 +245,9 @@ namespace UnityEngine.Rendering.Universal
                 0f,
                 0f);
             cb._SsrColorPyramidScaleAndLimitPrev = new Vector4(1f, 1f, 1f, 1f);
-            cb._SsrCameraPositionWS = cameraData.camera.transform.position;
+            cb._SsrCameraPositionWS = cameraData.xr.enabled
+                ? m_XrViews[0].cameraPositionWS
+                : cameraData.camera.transform.position;
             cb._SsrPbrParams = Vector4.zero;
             cb._SsrPbrFlags = Vector4.zero;
             return cb;

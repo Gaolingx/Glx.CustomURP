@@ -1,0 +1,17 @@
+// T13 diagnostic: proves whether a compute shader keyword variant selected at runtime reaches the
+// GPU in a player build. The array branch writes (1,2,3,4); the fallback branch writes (9,9,9,9).
+#pragma kernel Write
+#pragma multi_compile _ T13_XR_ARRAY
+
+RWTexture2D<float4> _T13ProbeDst2D;
+RWTexture2DArray<float4> _T13ProbeDstArray;
+
+[numthreads(8, 8, 1)]
+void Write(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+#if defined(T13_XR_ARRAY)
+    _T13ProbeDstArray[int3(dispatchThreadId.xy, dispatchThreadId.z)] = float4(1.0, 2.0, 3.0, 4.0);
+#else
+    _T13ProbeDst2D[dispatchThreadId.xy] = float4(9.0, 9.0, 9.0, 9.0);
+#endif
+}

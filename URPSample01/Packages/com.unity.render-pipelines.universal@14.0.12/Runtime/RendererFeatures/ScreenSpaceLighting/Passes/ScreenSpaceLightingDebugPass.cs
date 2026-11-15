@@ -70,12 +70,15 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var cmd = renderingData.commandBuffer;
+            bool foveationDisabled = ScreenSpaceLightingXr.DisableFoveatedRendering(cmd, renderingData.cameraData);
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
                 CoreUtils.SetRenderTarget(cmd, colorTarget, ClearFlag.None, 0, CubemapFace.Unknown, -1);
                 cmd.SetViewport(new Rect(0f, 0f, m_History.width, m_History.height));
                 cmd.DrawProcedural(Matrix4x4.identity, material, materialPass, MeshTopology.Triangles, 3, 1, m_PropertyBlock);
             }
+
+            ScreenSpaceLightingXr.RestoreFoveatedRendering(cmd, foveationDisabled);
         }
 
         bool TryGetDebugSource(out Texture texture, out Vector4 uvScaleOffset, out float mipLevel, out int outputMode)

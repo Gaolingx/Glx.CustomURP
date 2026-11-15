@@ -33,6 +33,21 @@ namespace UnityEngine.Rendering.Universal
         bool m_ProducedOutput;
         bool m_UsingPbrAccumulation;
         bool m_LoggedMissingResources;
+        readonly ScreenSpaceLightingXrViewConstants[] m_XrViews = new ScreenSpaceLightingXrViewConstants[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrInvViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrPrevViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrPrevInvViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Vector4[] m_XrCameraPositionScratch = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // Verification counters: XR dispatch evidence needs the dispatch count and the view/slice
+        // mode at runtime, which the editor-only counters cannot provide in a player.
+        internal static int s_TraceDispatchCount;
+        internal static int s_ReprojectDispatchCount;
+        internal static int s_LastDispatchViewCount;
+        internal static int s_LastDispatchTextureArray;
+#endif
 
 #if UNITY_EDITOR
         internal static int s_EditorExecuteCount;
@@ -117,8 +132,8 @@ namespace UnityEngine.Rendering.Universal
 
             ref var cameraData = ref renderingData.cameraData;
             var descriptor = cameraData.cameraTargetDescriptor;
-            int viewCount = cameraData.xr.enabled ? Mathf.Max(1, cameraData.xr.viewCount) : 1;
-            TextureDimension dimension = viewCount > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
+            int viewCount = ScreenSpaceLightingXr.GetViewCount(cameraData);
+            TextureDimension dimension = ScreenSpaceLightingXr.GetResourceDimension(cameraData);
 
             var depthTexture = ScreenSpaceLightingDepthPyramidPass.GetCameraDepthTexture(cameraData.renderer);
             var normalTexture = ScreenSpaceLightingRenderUtils.GetNormalTexture(cameraData.renderer);
@@ -149,6 +164,8 @@ namespace UnityEngine.Rendering.Universal
             bool octNormals = ScreenSpaceLightingSsgiPass.UseOctEncodedNormals(cameraData.renderer);
             bool debugParams = pbr && m_Settings != null && m_Settings.debugEnabled &&
                                m_Settings.debugMode == ScreenSpaceLightingDebugMode.SsrPbrParams;
+            if (cameraData.xr.enabled)
+                ScreenSpaceLightingXr.FillViewConstants(cameraData, viewCount, m_XrViews, m_History);
 
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
@@ -191,6 +208,19 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, !pbr);
 
+            if (useTextureArray)
+            {
+                ScreenSpaceLightingXr.BindComputeViewConstants(
+                    cmd,
+                    m_XrViews,
+                    viewCount,
+                    m_XrViewProjScratch,
+                    m_XrInvViewProjScratch,
+                    m_XrPrevViewProjScratch,
+                    m_XrPrevInvViewProjScratch,
+                    m_XrCameraPositionScratch);
+            }
+
             int groupsX = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenWidth, k_TileSize);
             int groupsY = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenHeight, k_TileSize);
 
@@ -201,6 +231,11 @@ namespace UnityEngine.Rendering.Universal
             if (pbr && !pbrHistoryValid)
                 ClearAccumulationHistory(cmd, compute, groupsX, groupsY, viewCount);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchViewCount = viewCount;
+            s_LastDispatchTextureArray = useTextureArray ? 1 : 0;
+#endif
+
             var traceKernel = compute.FindKernel("ScreenSpaceReflectionsTracing");
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depthTexture);
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
@@ -208,6 +243,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeBufferParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramidMipLevelOffsets, m_History.depthPyramidOffsets);
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW, m_History.ssrHitPoint);
             cmd.DispatchCompute(compute, traceKernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_TraceDispatchCount++;
+#endif
 #if UNITY_EDITOR
             s_EditorTraceDispatchCount++;
 #endif
@@ -223,6 +261,9 @@ namespace UnityEngine.Rendering.Universal
             else
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW, m_History.ssrOutput);
             cmd.DispatchCompute(compute, reprojectKernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_ReprojectDispatchCount++;
+#endif
 #if UNITY_EDITOR
             s_EditorReprojectDispatchCount++;
 #endif
@@ -359,7 +400,10 @@ namespace UnityEngine.Rendering.Universal
             // No render scale or dynamic resolution offset is applied to the SSL history in this
             // version, so the previous frame pyramid uses the full 0..1 range.
             cb._SsrColorPyramidScaleAndLimitPrev = new Vector4(1f, 1f, 1f, 1f);
-            cb._SsrCameraPositionWS = cameraData.camera.transform.position;
+            // Multipass uses the rendered eye centre; single-pass kernels read the per-view globals.
+            cb._SsrCameraPositionWS = cameraData.xr.enabled
+                ? m_XrViews[0].cameraPositionWS
+                : cameraData.camera.transform.position;
             cb._SsrPbrParams = new Vector4(
                 pbr ? accumulationAmount : 0f,
                 settings.biasFactor.value,

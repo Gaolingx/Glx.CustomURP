@@ -20,7 +20,7 @@
 
 // The trace passes are dispatched at full or half resolution. Every other kernel derives the scale
 // from _SsgiTemporalParams.x and _SsgiTraceSize.
-#if defined(SSGI_XR_ARRAY)
+#if defined(SSL_XR_ARRAY)
     static uint g_SsgiViewIndex;
     #define SSGI_ASSIGN_VIEW_INDEX(idx) g_SsgiViewIndex = (idx)
     #define SSGI_SLICE g_SsgiViewIndex
@@ -64,6 +64,31 @@
 float4x4 unity_MatrixVP;
 float4x4 unity_MatrixInvVP;
 
+// Single-pass instanced XR renders both eyes in one pass, but URP only publishes the first eye
+// through the legacy unity_MatrixVP globals. The pipeline pushes one matrix set per view and the
+// kernels pick the current one with the dispatch slice, mirroring HDRP's
+// _XRInvViewProjMatrix[unity_StereoEyeIndex]. Multipass keeps one eye per pass and stays on the
+// legacy globals.
+#if defined(SSL_XR_ARRAY)
+float4x4 _SslXrViewProj[2];
+float4x4 _SslXrInvViewProj[2];
+float4x4 _SslXrPrevViewProj[2];
+float4x4 _SslXrPrevInvViewProj[2];
+float4 _SslXrCameraPositionWS[2];
+
+#define SSL_VIEW_PROJ (_SslXrViewProj[SSGI_SLICE])
+#define SSL_INV_VIEW_PROJ (_SslXrInvViewProj[SSGI_SLICE])
+#define SSL_PREV_INV_VIEW_PROJ (_SslXrPrevInvViewProj[SSGI_SLICE])
+#define SSL_SSGI_CAMERA_POSITION_WS (_SslXrCameraPositionWS[SSGI_SLICE].xyz)
+#define SSL_SSR_CAMERA_POSITION_WS (_SslXrCameraPositionWS[SSGI_SLICE].xyz)
+#else
+#define SSL_VIEW_PROJ unity_MatrixVP
+#define SSL_INV_VIEW_PROJ unity_MatrixInvVP
+#define SSL_PREV_INV_VIEW_PROJ _SsgiPrevInvViewProj
+#define SSL_SSGI_CAMERA_POSITION_WS (_SsgiCameraPositionWS.xyz)
+#define SSL_SSR_CAMERA_POSITION_WS (_SsrCameraPositionWS.xyz)
+#endif
+
 // The sampler names follow Unity's inline sampler conventions; the same convention is already used
 // by the GTAO computes in this package.
 SamplerState s_ssgi_point_clamp_sampler;
@@ -101,7 +126,7 @@ float3 SsgiDecodeNormalSS(float4 normalBuffer)
 float3 SsgiReconstructPositionWS(float2 positionSS, float deviceDepth)
 {
     float2 uv = (positionSS + 0.5) * _SsgiScreenSize.zw;
-    return ComputeWorldSpacePosition(uv, deviceDepth, unity_MatrixInvVP);
+    return ComputeWorldSpacePosition(uv, deviceDepth, SSL_INV_VIEW_PROJ);
 }
 
 // Maps a trace-resolution pixel to the full resolution pixel it represents. Mirrors HDRP's

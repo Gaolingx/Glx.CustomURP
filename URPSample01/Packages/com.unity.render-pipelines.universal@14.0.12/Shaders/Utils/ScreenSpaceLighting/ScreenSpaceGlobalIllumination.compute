@@ -57,13 +57,13 @@ void TraceGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
         SsgiGetSequenceSample(traceCoord, _SsgiFrameIndex, 1));
     float3 sampleDir = SampleHemisphereCosine(newSample.x, newSample.y, normalWS);
 
-    float3 camPosWS = _SsgiCameraPositionWS.xyz;
+    float3 camPosWS = SSL_SSGI_CAMERA_POSITION_WS;
     float3 positionWS = SsgiReconstructPositionWS((float2)inputCoord, deviceDepth);
     float3 viewWS = normalize(camPosWS - positionWS);
 
     // Normal bias with a distance dependent magnitude, matching HDRP.
     positionWS = camPosWS + (positionWS - camPosWS) * (1.0 - 0.001 / max(dot(normalWS, viewWS), FLT_EPS));
-    deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, unity_MatrixVP).z;
+    deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, SSL_VIEW_PROJ).z;
 
     float3 rayPos;
     bool hit = SsgiRayMarch(positionWS, sampleDir, normalWS, (float2)inputCoord, deviceDepth, false, rayPos);

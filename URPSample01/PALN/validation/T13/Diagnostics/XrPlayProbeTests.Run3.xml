@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-15 05:11:39Z" end-time="2026-11-15 05:11:39Z" duration="0.0777873">
+  <test-suite type="TestSuite" id="1000" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="24" result="Failed" site="Child" start-time="2026-11-15 05:11:39Z" end-time="2026-11-15 05:11:39Z" duration="0.077787" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1038" name="Unity.ScreenSpaceLighting.Tests.PlayMode.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.ScreenSpaceLighting.Tests.PlayMode.dll" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-11-15 05:11:39Z" end-time="2026-11-15 05:11:39Z" duration="0.068427" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1364" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestFixture" id="1036" name="ScreenSpaceLightingT13PlayModeTests" fullname="ScreenSpaceLightingT13PlayModeTests" classname="ScreenSpaceLightingT13PlayModeTests" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-11-15 05:11:39Z" end-time="2026-11-15 05:11:39Z" duration="0.066335" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-case id="1037" name="XrDisplayCreatesRenderPasses" fullname="ScreenSpaceLightingT13PlayModeTests.XrDisplayCreatesRenderPasses" methodname="XrDisplayCreatesRenderPasses" classname="ScreenSpaceLightingT13PlayModeTests" runstate="Runnable" seed="1388823320" result="Failed" start-time="2026-11-15 05:11:39Z" end-time="2026-11-15 05:11:39Z" duration="0.050828" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+          <failure>
+            <message><![CDATA[  Mock HMD produced no XR render passes in play mode.
+  Expected: greater than 0
+  But was:  0
+]]></message>
+            <stack-trace><![CDATA[at ScreenSpaceLightingT13PlayModeTests+<XrDisplayCreatesRenderPasses>d__1.MoveNext () [0x002b9] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\ScreenSpaceLighting\PlayMode\ScreenSpaceLightingT13PlayModeTests.cs:47
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@1.1.33\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:46
+]]></stack-trace>
+          </failure>
+          <output><![CDATA[display=display='Mock HMD Display' running=True textureLayout=0
+renderPassCount=0
+eyeDesc=256x256 dim=Tex2D depth=1
+
+]]></output>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

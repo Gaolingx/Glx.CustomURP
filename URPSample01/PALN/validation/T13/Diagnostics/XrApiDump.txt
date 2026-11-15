@@ -1,0 +1,34 @@
+Boolean get_singlePassRenderingDisabled()
+Void set_singlePassRenderingDisabled(Boolean)
+Single get_scaleOfAllRenderTargets()
+Void set_scaleOfAllRenderTargets(Single)
+Single get_foveatedRenderingLevel()
+Void set_foveatedRenderingLevel(Single)
+FoveatedRenderingFlags get_foveatedRenderingFlags()
+Void set_foveatedRenderingFlags(FoveatedRenderingFlags)
+TextureLayout get_supportedTextureLayouts()
+Boolean get_disableLegacyRenderer()
+Void set_disableLegacyRenderer(Boolean)
+Int32 GetRenderPassCount()
+Void GetRenderPass(Int32, XRRenderPass ByRef)
+Boolean Internal_TryGetRenderPass(Int32, XRRenderPass ByRef)
+UnityEngine.RenderTexture GetRenderTexture(UInt32)
+UnityEngine.RenderTexture GetRenderTextureForRenderPass(Int32)
+UnityEngine.RenderTexture GetSharedDepthTextureForRenderPass(Int32)
+XRSettings props:
+Boolean enabled
+UnityEngine.XR.GameViewRenderMode gameViewRenderMode
+Boolean isDeviceActive
+Boolean showDeviceView
+Single eyeTextureResolutionScale
+Int32 eyeTextureWidth
+Int32 eyeTextureHeight
+UnityEngine.RenderTextureDescriptor eyeTextureDesc
+UnityEngine.Rendering.TextureDimension deviceEyeTextureDimension
+Single renderViewportScale
+Single renderViewportScaleInternal
+Single occlusionMaskScale
+Boolean useOcclusionMesh
+System.String loadedDeviceName
+System.String[] supportedDevices
+StereoRenderingMode stereoRenderingMode

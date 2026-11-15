@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingColorHistoryCapturePass m_ColorHistoryCapturePass;
         ScreenSpaceLightingDebugPass m_DebugPass;
         CameraHistoryStore<ScreenSpaceLightingHistory> m_HistoryStore;
+        readonly System.Collections.Generic.Dictionary<int, int> m_CameraViews = new System.Collections.Generic.Dictionary<int, int>();
         bool m_LoggedMissingResources;
 
         internal ScreenSpaceLightingSettings settings => m_Settings;
@@ -67,6 +68,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_HistoryStore?.Dispose();
             m_HistoryStore = new CameraHistoryStore<ScreenSpaceLightingHistory>();
+            m_CameraViews.Clear();
             m_SetupPass = new ScreenSpaceLightingSetupPass();
             m_DepthPyramidPass = new ScreenSpaceLightingDepthPyramidPass();
             m_SsgiPass = new ScreenSpaceLightingSsgiPass();
@@ -110,6 +112,15 @@ namespace UnityEngine.Rendering.Universal
             m_LoggedMissingResources = false;
 
             int xrEye = cameraData.xr.enabled ? cameraData.xr.multipassId : 0;
+            int viewCount = ScreenSpaceLightingXr.GetViewCount(cameraData);
+            // A stereo layout change (multipass <-> single-pass) invalidates every camera's history
+            // layout: entries are keyed per eye, so the previous key set no longer describes this
+            // frame. Dropping the store is rare and keeps stale eye entries from lingering.
+            int cameraId = cameraData.camera.GetInstanceID();
+            if (m_CameraViews.TryGetValue(cameraId, out int previousViewCount) && previousViewCount != viewCount)
+                m_HistoryStore.Clear();
+            m_CameraViews[cameraId] = viewCount;
+
             var descriptor = cameraData.cameraTargetDescriptor;
             var history = m_HistoryStore.GetOrCreate(
                 cameraData.camera,

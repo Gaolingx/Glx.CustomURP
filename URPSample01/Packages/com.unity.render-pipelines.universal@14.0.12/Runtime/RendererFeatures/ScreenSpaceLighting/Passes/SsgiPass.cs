@@ -30,6 +30,23 @@ namespace UnityEngine.Rendering.Universal
         int m_PointDistributionGeneration = -1;
         bool m_LoggedMissingResources;
         ScreenSpaceLightingSsgiShaderVariables m_ShaderVariables;
+        // XR per-view matrices and eye centres. The arrays stay unbound unless XR single-pass needs
+        // them, so the mono path is byte-for-byte unchanged.
+        readonly ScreenSpaceLightingXrViewConstants[] m_XrViews = new ScreenSpaceLightingXrViewConstants[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrInvViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrPrevViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Matrix4x4[] m_XrPrevInvViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Vector4[] m_XrCameraPositionScratch = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // Verification counters: XR dispatch evidence needs the dispatch count and the view/slice
+        // mode at runtime, which the editor-only counters cannot provide in a player.
+        internal static int s_TraceDispatchCount;
+        internal static int s_ReprojectDispatchCount;
+        internal static int s_LastDispatchViewCount;
+        internal static int s_LastDispatchTextureArray;
+#endif
 
 #if UNITY_EDITOR
         internal static int s_EditorExecuteCount;
@@ -96,8 +113,8 @@ namespace UnityEngine.Rendering.Universal
 
             ref var cameraData = ref renderingData.cameraData;
             var descriptor = cameraData.cameraTargetDescriptor;
-            int viewCount = cameraData.xr.enabled ? Mathf.Max(1, cameraData.xr.viewCount) : 1;
-            TextureDimension dimension = viewCount > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
+            int viewCount = ScreenSpaceLightingXr.GetViewCount(cameraData);
+            TextureDimension dimension = ScreenSpaceLightingXr.GetResourceDimension(cameraData);
 
             var depthTexture = ScreenSpaceLightingDepthPyramidPass.GetCameraDepthTexture(cameraData.renderer);
             var normalTexture = GetNormalTexture(cameraData.renderer);
@@ -129,6 +146,9 @@ namespace UnityEngine.Rendering.Universal
             bool secondPass = denoise && settings.secondDenoiserPass.value && temporal;
             bool halfResolutionDenoise = settings.halfResolutionDenoiser.value;
             bool octNormals = UseOctEncodedNormals(cameraData.renderer);
+            bool useTextureArray = dimension == TextureDimension.Tex2DArray;
+            if (cameraData.xr.enabled)
+                ScreenSpaceLightingXr.FillViewConstants(cameraData, viewCount, m_XrViews, m_History);
 
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
@@ -145,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
                     traceWidth,
                     traceHeight,
                     viewCount,
-                    dimension == TextureDimension.Tex2DArray,
+                    useTextureArray,
                     temporal,
                     denoise,
                     secondPass,
@@ -200,6 +220,11 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(upsampleCompute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
 
+            if (useTextureArray)
+            {
+                BindXrViewConstants(cmd, viewCount);
+            }
+
             float lowResPercentage = traceWidth / (float)screenWidth;
             float invLowResPercentage = 1.0f / lowResPercentage;
             float thickness = Mathf.Max(0.0f, settings.depthBufferThickness.value);
@@ -211,6 +236,11 @@ namespace UnityEngine.Rendering.Universal
             float historyValidity = m_History.ssgiHasValidHistory ? 1.0f : 0.0f;
 
             // Trace + reproject.
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchViewCount = viewCount;
+            s_LastDispatchTextureArray = useTextureArray ? 1 : 0;
+#endif
+
             var traceKernel = ssgiCompute.FindKernel("TraceGlobalIllumination");
             var reprojectKernel = ssgiCompute.FindKernel("ReprojectGlobalIllumination");
             PrepareShaderVariables(
@@ -235,6 +265,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeBufferParam(ssgiCompute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramidMipLevelOffsets, m_History.depthPyramidOffsets);
             cmd.SetComputeTextureParam(ssgiCompute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiHitPointTextureRW, m_History.ssgiHitPoint);
             DispatchCompute(cmd, ssgiCompute, traceKernel, traceGroupsX, traceGroupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_TraceDispatchCount++;
+#endif
 #if UNITY_EDITOR
             s_EditorTraceDispatchCount++;
 #endif
@@ -247,6 +280,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(ssgiCompute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsgiHitPointTextureRW, m_History.ssgiHitPoint);
             cmd.SetComputeTextureParam(ssgiCompute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsgiProjectionTextureRW, m_History.ssgiProjection);
             DispatchCompute(cmd, ssgiCompute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_ReprojectDispatchCount++;
+#endif
 #if UNITY_EDITOR
             s_EditorReprojectDispatchCount++;
 #endif
@@ -450,6 +486,19 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        void BindXrViewConstants(CommandBuffer cmd, int viewCount)
+        {
+            ScreenSpaceLightingXr.BindComputeViewConstants(
+                cmd,
+                m_XrViews,
+                viewCount,
+                m_XrViewProjScratch,
+                m_XrInvViewProjScratch,
+                m_XrPrevViewProjScratch,
+                m_XrPrevInvViewProjScratch,
+                m_XrCameraPositionScratch);
+        }
+
         void PrepareShaderVariables(
             ref CameraData cameraData,
             int screenWidth,
@@ -467,6 +516,17 @@ namespace UnityEngine.Rendering.Universal
         {
             var previousViewProj = GetPreviousViewProjection(cameraData);
             var previousInvViewProj = previousViewProj.inverse;
+            var cameraPosition = cameraData.camera.transform.position;
+            if (cameraData.xr.enabled)
+            {
+                // Multipass renders one eye per pass, so the eye centre and the per-eye previous
+                // matrix from the history entry are used instead of the mono camera values. The
+                // single-pass kernels read the per-view globals and ignore these fields.
+                cameraPosition = m_XrViews[0].cameraPositionWS;
+                previousInvViewProj = m_XrViews[0].hasPreviousViewProj
+                    ? m_XrViews[0].prevInvViewProj
+                    : Matrix4x4.Inverse(m_XrViews[0].viewProj);
+            }
 
             m_ShaderVariables = default;
             m_ShaderVariables._SsgiScreenSize = new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight);
@@ -481,7 +541,7 @@ namespace UnityEngine.Rendering.Universal
             m_ShaderVariables._SsgiColorPyramidScaleAndLimitPrev = new Vector4(1f, 1f, 1f, 1f);
             m_ShaderVariables._SsgiTemporalParams = new Vector4(lowResPercentage, 1.0f / lowResPercentage, 0.2f, 0.0f);
             m_ShaderVariables._SsgiDenoiserParams = new Vector4(pixelSpreadTangent, -1.0f, 0.0f, 0.0f);
-            m_ShaderVariables._SsgiCameraPositionWS = cameraData.camera.transform.position;
+            m_ShaderVariables._SsgiCameraPositionWS = cameraPosition;
             m_ShaderVariables._SsgiPrevInvViewProj = previousInvViewProj;
         }
 

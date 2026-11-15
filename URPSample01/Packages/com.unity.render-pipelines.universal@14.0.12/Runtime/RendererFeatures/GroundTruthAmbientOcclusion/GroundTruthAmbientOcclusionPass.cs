@@ -16,6 +16,9 @@ namespace UnityEngine.Rendering.Universal
         GroundTruthAmbientOcclusionSettings m_Settings;
         GroundTruthAmbientOcclusionResources m_Resources;
         bool m_Orthographic;
+        readonly Vector4[] m_XrViewRow0 = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Vector4[] m_XrViewRow1 = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
+        readonly Vector4[] m_XrViewRow2 = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
 
 #if UNITY_EDITOR
         internal static int s_EditorExecuteCount;
@@ -75,11 +78,14 @@ namespace UnityEngine.Rendering.Universal
             ComputeShaderVariables(ref cameraData, out var cb);
             bool temporal = m_Settings.temporalAccumulation && motionTexture != null;
             bool octNormals = UseOctEncodedNormals(cameraData.renderer);
+            bool useTextureArray = dimension == TextureDimension.Tex2DArray;
+            if (useTextureArray)
+                FillXrViewRows(ref cameraData, viewCount);
 
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
-                Dispatch(cmd, cb, temporal, octNormals, motionTexture, normalTexture, viewCount, dimension == TextureDimension.Tex2DArray);
+                Dispatch(cmd, cb, temporal, octNormals, motionTexture, normalTexture, viewCount, useTextureArray);
             }
 
             m_History.AdvanceEffectFrame();
@@ -125,6 +131,12 @@ namespace UnityEngine.Rendering.Universal
 
             int gtaoKernel = gtao.FindKernel("GTAOMain");
             PushShaderVariables(cmd, gtao, cb);
+            if (useTextureArray)
+            {
+                cmd.SetComputeVectorArrayParam(gtao, GroundTruthAmbientOcclusionShaderIDs.XrViewRow0, m_XrViewRow0);
+                cmd.SetComputeVectorArrayParam(gtao, GroundTruthAmbientOcclusionShaderIDs.XrViewRow1, m_XrViewRow1);
+                cmd.SetComputeVectorArrayParam(gtao, GroundTruthAmbientOcclusionShaderIDs.XrViewRow2, m_XrViewRow2);
+            }
             cmd.SetComputeTextureParam(gtao, gtaoKernel, GroundTruthAmbientOcclusionShaderIDs.NormalTexture, normalTexture);
             cmd.SetComputeTextureParam(gtao, gtaoKernel, GroundTruthAmbientOcclusionShaderIDs.DepthPyramid, m_History.depthPyramid);
             cmd.SetComputeTextureParam(gtao, gtaoKernel, GroundTruthAmbientOcclusionShaderIDs.PackedData, m_History.packedData);
@@ -318,6 +330,20 @@ namespace UnityEngine.Rendering.Universal
                 return false;
 
             return universalRenderer.renderingModeActual == RenderingMode.Deferred && universalRenderer.accurateGbufferNormals;
+        }
+
+        void FillXrViewRows(ref CameraData cameraData, int viewCount)
+        {
+            int count = Mathf.Clamp(viewCount, 1, ScreenSpaceLightingXr.k_MaxViews);
+            for (int viewIndex = 0; viewIndex < count; viewIndex++)
+            {
+                // Same convention as camera.worldToCameraMatrix: the rotation rows include Unity's
+                // Z handedness flip, which keeps the view-space horizon search consistent.
+                var worldToView = Matrix4x4.Scale(new Vector3(1f, 1f, -1f)) * cameraData.GetViewMatrix(viewIndex);
+                m_XrViewRow0[viewIndex] = worldToView.GetRow(0);
+                m_XrViewRow1[viewIndex] = worldToView.GetRow(1);
+                m_XrViewRow2[viewIndex] = worldToView.GetRow(2);
+            }
         }
 
         static Vector4 ComputeZBufferParams(float nearPlane, float farPlane)
