@@ -3,6 +3,37 @@ using System;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
+    /// Order in which the fallbacks are used when a screen space global illumination ray misses.
+    /// Mirrors HDRP's RayMarchingFallbackHierarchy (same flag values).
+    /// </summary>
+    public enum RayMarchingFallbackHierarchy
+    {
+        /// <summary>Falls back on reflection probes (if any), then on the sky.</summary>
+        [InspectorName("Reflection Probes and Sky")]
+        ReflectionProbesAndSky = 0x03,
+        /// <summary>Falls back on reflection probes (if any).</summary>
+        [InspectorName("Reflection Probes")]
+        ReflectionProbes = 0x02,
+        /// <summary>Falls back on the sky.</summary>
+        [InspectorName("Sky")]
+        Sky = 0x01,
+        /// <summary>Returns black (the material keeps its baked GI).</summary>
+        [InspectorName("None")]
+        None = 0x00,
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="RayMarchingFallbackHierarchy"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class RayMarchingFallbackHierarchyParameter : VolumeParameter<RayMarchingFallbackHierarchy>
+    {
+        /// <summary>Creates a new parameter.</summary>
+        public RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
+    /// <summary>
     /// A volume component that controls screen-space global illumination.
     /// The effect also requires a <c>ScreenSpaceLightingRendererFeature</c> on the active renderer.
     /// </summary>
@@ -14,6 +45,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [Tooltip("Enables screen-space global illumination for this volume.")]
         public BoolParameter enabled = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
+
+        /// <summary>
+        /// Controls the fallback hierarchy used to light a pixel whose ray missed.
+        /// </summary>
+        [Tooltip("Controls the fallback hierarchy for indirect diffuse when a ray misses. Reflection Probes and Sky replaces the baked GI with the probe / sky ambient, like HDRP; None keeps the baked GI.")]
+        public RayMarchingFallbackHierarchyParameter rayMiss = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
 
         /// <summary>
         /// Evaluates the effect at full camera resolution instead of half resolution plus a bilateral upsample.

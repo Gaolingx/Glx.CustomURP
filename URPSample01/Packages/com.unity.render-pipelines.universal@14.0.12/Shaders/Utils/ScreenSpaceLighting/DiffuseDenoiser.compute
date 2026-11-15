@@ -1,12 +1,14 @@
 // Screen Space Global Illumination diffuse denoiser.
 // Ported from HDRP 14.0.12 Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute.
-// The gather variant used by ray traced GI is not needed for the screen-space path; the bilateral
-// filter carries both the radiance and the validity weight, so the alpha channel is filtered with
-// the same weights.
+// The bilateral filter carries both the radiance and the validity weight, so the alpha channel is
+// filtered with the same weights. GatherColor reproduces HDRP's half resolution denoiser
+// recombination (HDRP only uses that kernel for the half resolution denoiser mode).
 #pragma kernel GeneratePointDistribution
 #pragma kernel BilateralFilterColor
+#pragma kernel GatherColor
 
 #pragma multi_compile _ SSGI_NORMALS_OCT
+#pragma multi_compile _ SSGI_BLUE_NOISE
 #pragma multi_compile _ SSL_XR_ARRAY
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
@@ -101,7 +103,11 @@ void BilateralFilterColor(uint3 dispatchThreadId : SV_DispatchThreadID)
         lowResTapCoord = min(lowResTapCoord, (uint2)_SsgiTraceSize.xy - 1u);
 
         const SsgiBilateralData tapData = SsgiTapBilateralData(_SsgiDepthTexture, _SsgiNormalTexture, tapCoord);
-        if (SsgiIsBackgroundDepth(SSGI_LOAD(_SsgiDepthTexture, tapCoord)) || dot(tapData.normal, tapData.normal) < 0.5)
+        // HDRP rejects taps that do not lie on the surface of the projected sample point. hClip.w is
+        // still the linear eye depth of the sample after the xyz divide.
+        if (SsgiIsBackgroundDepth(SSGI_LOAD(_SsgiDepthTexture, tapCoord)) ||
+            dot(tapData.normal, tapData.normal) < 0.5 ||
+            abs(tapData.zNF - hClip.w) > SSGI_TAP_DEPTH_TOLERANCE)
             continue;
 
         float r = length(newSample);
@@ -118,4 +124,68 @@ void BilateralFilterColor(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     SSGI_STORE(_SsgiDenoiseOutputTextureRW, currentCoord, colorSum / wSum);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Half resolution denoiser recombination (HDRP GatherFilter).
+// The bilateral filter above runs with 4 taps per pixel when the half resolution denoiser is on.
+// This kernel then recombines the 2x2 trace-resolution block that covers a full resolution pixel,
+// with the same depth weighted 2x2 blend HDRP uses, so the filter still sees 16 taps in total.
+// ---------------------------------------------------------------------------------------------
+
+#define SSGI_GATHER_REGION_SIZE SSGI_DIFFUSE_DENOISER_TILE_SIZE
+#define SSGI_GATHER_REGION_SIZE_2 (SSGI_GATHER_REGION_SIZE * SSGI_GATHER_REGION_SIZE)
+
+groupshared float4 gs_SsgiGatherLighting[SSGI_GATHER_REGION_SIZE_2];
+groupshared float gs_SsgiGatherDepth[SSGI_GATHER_REGION_SIZE_2];
+
+void SsgiFillGatherDataLDS(uint groupIndex, uint2 pixelCoord)
+{
+    uint2 sampleCoord = min(pixelCoord, (uint2)_SsgiTraceSize.xy - 1u);
+    gs_SsgiGatherLighting[groupIndex] = SSGI_LOAD(_SsgiDenoiseInputTexture, sampleCoord);
+
+    uint2 fullResCoord = min((uint2)((float2)sampleCoord * _SsgiInvResolutionMultiplier), (uint2)_SsgiScreenSize.xy - 1u);
+    gs_SsgiGatherDepth[groupIndex] = SSGI_LOAD(_SsgiDepthTexture, fullResCoord);
+}
+
+uint SsgiOffsetToLDSAddress(uint2 groupThreadId, int2 offset)
+{
+    uint2 tapAddress = (uint2)((int2)(groupThreadId) + offset);
+    return clamp(tapAddress.x + tapAddress.y * SSGI_GATHER_REGION_SIZE, 0, SSGI_GATHER_REGION_SIZE_2 - 1);
+}
+
+[numthreads(SSGI_DIFFUSE_DENOISER_TILE_SIZE, SSGI_DIFFUSE_DENOISER_TILE_SIZE, 1)]
+void GatherColor(uint3 centerCoord : SV_DispatchThreadID, int groupIndex : SV_GroupIndex,
+    uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(centerCoord.z);
+
+    // Every thread of the group must reach the barrier, so the bounds test happens afterwards.
+    SsgiFillGatherDataLDS(groupIndex, centerCoord.xy);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (any(centerCoord.xy >= (uint2)_SsgiTraceSize.xy))
+        return;
+
+    int outputIdx = SsgiOffsetToLDSAddress(groupThreadId, int2(0, 0));
+    float targetDepth = gs_SsgiGatherDepth[outputIdx];
+
+    // The 2x2 block that this trace-resolution pixel belongs to.
+    uint2 corner = centerCoord.xy - uint2(centerCoord.x & 1, centerCoord.y & 1);
+    uint2 cornerGroupThread = corner - groupId * SSGI_DIFFUSE_DENOISER_TILE_SIZE;
+
+    int ldsIdx0 = SsgiOffsetToLDSAddress(cornerGroupThread, int2(0, 0));
+    int ldsIdx1 = SsgiOffsetToLDSAddress(cornerGroupThread, int2(1, 0));
+    int ldsIdx2 = SsgiOffsetToLDSAddress(cornerGroupThread, int2(0, 1));
+    int ldsIdx3 = SsgiOffsetToLDSAddress(cornerGroupThread, int2(1, 1));
+
+    float4 lowDepths = float4(
+        gs_SsgiGatherDepth[ldsIdx0], gs_SsgiGatherDepth[ldsIdx1],
+        gs_SsgiGatherDepth[ldsIdx2], gs_SsgiGatherDepth[ldsIdx3]);
+
+    float4 result = SsgiBilinearUpSampleUniform(targetDepth, lowDepths,
+        gs_SsgiGatherLighting[ldsIdx0], gs_SsgiGatherLighting[ldsIdx1],
+        gs_SsgiGatherLighting[ldsIdx2], gs_SsgiGatherLighting[ldsIdx3]);
+
+    SSGI_STORE(_SsgiDenoiseOutputTextureRW, centerCoord.xy, result);
 }

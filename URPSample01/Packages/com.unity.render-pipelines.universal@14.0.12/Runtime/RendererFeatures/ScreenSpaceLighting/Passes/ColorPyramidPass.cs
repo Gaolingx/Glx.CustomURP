@@ -169,6 +169,22 @@ namespace UnityEngine.Rendering.Universal
                         m_DstOffset);
                 }
 
+                // Previous normals feed the temporal filter's normal consistency rejection.
+                var previousNormals = m_History.GetPreviousNormal(m_History.writeSlot);
+                var normalTexture = ScreenSpaceLightingRenderUtils.GetNormalTexture(renderingData.cameraData.renderer);
+                if (previousNormals != null && normalTexture != null)
+                {
+                    ScreenSpaceLightingRenderUtils.CopyNormalsToPrevious(
+                        cmd,
+                        m_Resources.ssgiTemporalFilterCompute,
+                        normalTexture,
+                        previousNormals,
+                        m_History.width,
+                        m_History.height,
+                        m_History.slices,
+                        m_History.dimension == TextureDimension.Tex2DArray);
+                }
+
                 m_History.SwapBuffers();
             }
 

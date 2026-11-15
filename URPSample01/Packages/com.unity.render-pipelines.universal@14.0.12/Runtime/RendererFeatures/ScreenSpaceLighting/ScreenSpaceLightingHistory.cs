@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.Universal
         internal int colorPyramidMipCount { get; private set; }
         internal RTHandle readColorPyramid { get; private set; }
         internal RTHandle readPreviousDepth { get; private set; }
+        internal RTHandle readPreviousNormals { get; private set; }
 
         // ---------------------------------------------------------------------------------------
         // Screen Space Global Illumination
@@ -62,6 +63,7 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle ssgiAccumulation { get; private set; }
         internal RTHandle ssgiDenoisedHF { get; private set; }
         internal RTHandle ssgiDenoisedLF { get; private set; }
+        internal RTHandle ssgiDenoiseIntermediate { get; private set; }
         internal RTHandle ssgiFinal { get; private set; }
         internal ComputeBuffer ssgiPointDistribution { get; private set; }
 
@@ -181,6 +183,8 @@ namespace UnityEngine.Rendering.Universal
                 m_SsgiSampleCountHF[i] = AllocSsgiSampleCount(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiSampleCountHF" + i);
                 m_SsgiSampleCountLF[i] = AllocSsgiSampleCount(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiSampleCountLF" + i);
             }
+
+            ssgiDenoiseIntermediate = AllocSsgiColor(traceWidth, traceHeight, resourceDimension, viewCount, "SslSsgiDenoiseIntermediate");
 
             ssgiPointDistribution = new ComputeBuffer(64, sizeof(float) * 2);
 
@@ -526,6 +530,7 @@ namespace UnityEngine.Rendering.Universal
         readonly bool[] m_HasPreviousViewProj = new bool[ScreenSpaceLightingXr.k_MaxViews];
         readonly RTHandle[] m_HistoryColorPyramids = new RTHandle[k_HistoryBufferCount];
         readonly RTHandle[] m_PreviousDepths = new RTHandle[k_HistoryBufferCount];
+        readonly RTHandle[] m_PreviousNormals = new RTHandle[k_HistoryBufferCount];
         RTHandle m_TempDownsample;
         RTHandle m_TempBlur;
         int m_AllocatedWidth;
@@ -543,6 +548,11 @@ namespace UnityEngine.Rendering.Universal
             return slot >= 0 && slot < k_HistoryBufferCount ? m_PreviousDepths[slot] : null;
         }
 
+        internal RTHandle GetPreviousNormal(int slot)
+        {
+            return slot >= 0 && slot < k_HistoryBufferCount ? m_PreviousNormals[slot] : null;
+        }
+
         internal int historyColorPyramidCount => m_HistoryColorPyramids.Length;
         internal int previousDepthCount => m_PreviousDepths.Length;
         internal bool resourcesAllocated => depthPyramid != null && currentColorPyramid != null;
@@ -554,6 +564,7 @@ namespace UnityEngine.Rendering.Universal
             writeSlot = bufferIndex ^ 1;
             readColorPyramid = readSlot >= 0 ? m_HistoryColorPyramids[readSlot] : null;
             readPreviousDepth = readSlot >= 0 ? m_PreviousDepths[readSlot] : null;
+            readPreviousNormals = readSlot >= 0 ? m_PreviousNormals[readSlot] : null;
             ssrOutputProduced = false;
             ssrTransparentOutputProduced = false;
         }
@@ -605,6 +616,7 @@ namespace UnityEngine.Rendering.Universal
             writeSlot = bufferIndex ^ 1;
             readColorPyramid = null;
             readPreviousDepth = null;
+            readPreviousNormals = null;
             ssrOutputProduced = false;
             ssrTransparentOutputProduced = false;
             ResetSsgiHistory();
@@ -666,6 +678,23 @@ namespace UnityEngine.Rendering.Universal
                     useMipMap: false,
                     autoGenerateMips: false,
                     name: "SslPreviousDepth" + i);
+
+                // Raw copy of the camera normals, encoding preserved (signed forward normals or the
+                // octahedron encoded deferred normals), so the temporal filter decodes with the same
+                // keyword the trace uses.
+                m_PreviousNormals[i] = RTHandles.Alloc(
+                    viewportWidth,
+                    viewportHeight,
+                    TextureWrapMode.Clamp,
+                    TextureWrapMode.Clamp,
+                    slices: slices,
+                    colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                    filterMode: FilterMode.Point,
+                    dimension: dimension,
+                    enableRandomWrite: true,
+                    useMipMap: false,
+                    autoGenerateMips: false,
+                    name: "SslPreviousNormal" + i);
             }
 
             int tempWidth = Mathf.Max(1, viewportWidth >> 1);
@@ -682,6 +711,7 @@ namespace UnityEngine.Rendering.Universal
             writeSlot = bufferIndex ^ 1;
             readColorPyramid = null;
             readPreviousDepth = null;
+            readPreviousNormals = null;
             ssrOutputProduced = false;
         }
 
@@ -753,6 +783,7 @@ namespace UnityEngine.Rendering.Universal
             writeSlot = 0;
             readColorPyramid = null;
             readPreviousDepth = null;
+            readPreviousNormals = null;
             for (int i = 0; i < m_HasPreviousViewProj.Length; i++)
                 m_HasPreviousViewProj[i] = false;
         }
@@ -771,6 +802,8 @@ namespace UnityEngine.Rendering.Universal
             ssgiDenoisedHF = null;
             RTHandles.Release(ssgiDenoisedLF);
             ssgiDenoisedLF = null;
+            RTHandles.Release(ssgiDenoiseIntermediate);
+            ssgiDenoiseIntermediate = null;
             RTHandles.Release(ssgiFinal);
             ssgiFinal = null;
 
@@ -870,6 +903,8 @@ namespace UnityEngine.Rendering.Universal
                 m_HistoryColorPyramids[i] = null;
                 RTHandles.Release(m_PreviousDepths[i]);
                 m_PreviousDepths[i] = null;
+                RTHandles.Release(m_PreviousNormals[i]);
+                m_PreviousNormals[i] = null;
             }
 
             RTHandles.Release(m_TempDownsample);

@@ -27,6 +27,42 @@ namespace UnityEngine.Rendering.Universal
         [NonSerialized] Material m_ColorPyramidMaterial;
         [NonSerialized] Material m_DebugMaterial;
         [NonSerialized] Material m_TransparentDepthCopyMaterial;
+        [NonSerialized] bool m_SsgiBlueNoiseResolved;
+        [NonSerialized] Texture2D m_SsgiOwenScrambledTexture;
+        [NonSerialized] Texture2D m_SsgiScramblingTile;
+        [NonSerialized] Texture2D m_SsgiRankingTile;
+
+        // The three LUTs of HDRP's blue-noise distributed Owen scrambled Sobol sequence (BND). They live
+        // in a Resources folder of the package so every player build has them without having to
+        // re-serialize the renderer asset; the kernels fall back to IGN + R2 when they are missing.
+        internal Texture2D ssgiOwenScrambledTexture
+        {
+            get { ResolveSsgiBlueNoise(); return m_SsgiOwenScrambledTexture; }
+        }
+
+        internal Texture2D ssgiScramblingTile
+        {
+            get { ResolveSsgiBlueNoise(); return m_SsgiScramblingTile; }
+        }
+
+        internal Texture2D ssgiRankingTile
+        {
+            get { ResolveSsgiBlueNoise(); return m_SsgiRankingTile; }
+        }
+
+        internal bool hasSsgiBlueNoise =>
+            ssgiOwenScrambledTexture != null && ssgiScramblingTile != null && ssgiRankingTile != null;
+
+        void ResolveSsgiBlueNoise()
+        {
+            if (m_SsgiBlueNoiseResolved)
+                return;
+
+            m_SsgiBlueNoiseResolved = true;
+            m_SsgiOwenScrambledTexture = Resources.Load<Texture2D>("SsgiBlueNoise/OwenScrambledNoise256");
+            m_SsgiScramblingTile = Resources.Load<Texture2D>("SsgiBlueNoise/ScramblingTile8SPP");
+            m_SsgiRankingTile = Resources.Load<Texture2D>("SsgiBlueNoise/RankingTile8SPP");
+        }
 
         // The depth pyramid and color pyramid are the T4 contract; SSGI resources are optional so a
         // renderer that only uses the color history keeps working.

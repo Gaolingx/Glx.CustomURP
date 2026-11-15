@@ -39,6 +39,10 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsgiMotionTexture = Shader.PropertyToID("_SsgiMotionTexture");
         internal static readonly int SsgiColorPyramid = Shader.PropertyToID("_SsgiColorPyramid");
         internal static readonly int SsgiPreviousDepthTexture = Shader.PropertyToID("_SsgiPreviousDepthTexture");
+        internal static readonly int SsgiPreviousNormalTexture = Shader.PropertyToID("_SsgiPreviousNormalTexture");
+        internal static readonly int SsgiSourceNormalTexture = Shader.PropertyToID("_SsgiSourceNormalTexture");
+        internal static readonly int SsgiOutputHistoryNormalTextureRW = Shader.PropertyToID("_SsgiOutputHistoryNormalTextureRW");
+        internal static readonly int SsgiHistoryCopySize = Shader.PropertyToID("_SsgiHistoryCopySize");
         internal static readonly int SsgiDepthPyramid = Shader.PropertyToID("_SsgiDepthPyramid");
         internal static readonly int SsgiDepthPyramidMipLevelOffsets = Shader.PropertyToID("_SsgiDepthPyramidMipLevelOffsets");
 
@@ -64,6 +68,15 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsgiLowResolutionTexture = Shader.PropertyToID("_SsgiLowResolutionTexture");
         internal static readonly int SsgiUpsampledTextureRW = Shader.PropertyToID("_SsgiUpsampledTextureRW");
 
+        // Miss fallback and blue-noise sequence resources (globals, not constant buffer members).
+        internal static readonly int SsgiFallbackParams = Shader.PropertyToID("_SsgiFallbackParams");
+        internal static readonly int SsgiAmbientProbeSH = Shader.PropertyToID("_SsgiAmbientProbeSH");
+        internal static readonly int SsgiReflectionProbeCubemap = Shader.PropertyToID("_SsgiReflectionProbeCubemap");
+        internal static readonly int SsgiReflectionProbeHDRDecode = Shader.PropertyToID("_SsgiReflectionProbeHDRDecode");
+        internal static readonly int SsgiOwenScrambledTexture = Shader.PropertyToID("_SsgiOwenScrambledTexture");
+        internal static readonly int SsgiScramblingTileXSPP = Shader.PropertyToID("_SsgiScramblingTileXSPP");
+        internal static readonly int SsgiRankingTileXSPP = Shader.PropertyToID("_SsgiRankingTileXSPP");
+
         // Constant buffer members.
         internal static readonly int SsgiScreenSize = Shader.PropertyToID("_SsgiScreenSize");
         internal static readonly int SsgiTraceSize = Shader.PropertyToID("_SsgiTraceSize");
@@ -83,6 +96,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static readonly string SsgiHalfResKeyword = "SSGI_HALF_RES";
         internal static readonly string SsgiNormalsOctKeyword = "SSGI_NORMALS_OCT";
+        internal static readonly string SsgiBlueNoiseKeyword = "SSGI_BLUE_NOISE";
 
         // ---------------------------------------------------------------------------------------
         // Opaque Screen Space Reflections (Approximation)

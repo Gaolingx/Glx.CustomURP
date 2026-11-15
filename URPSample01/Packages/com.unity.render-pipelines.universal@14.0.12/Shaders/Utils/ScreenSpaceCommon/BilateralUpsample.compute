@@ -4,7 +4,9 @@
 // depth weighted fetch: a full resolution pixel only reads the low resolution texels it overlaps,
 // and the depth term rejects texels that belong to a different surface. The signal is RGBA, where
 // alpha carries the SSGI validity weight, so it is filtered with the same weights.
+// BoxUpSampleColor is the depth-unaware variant selected by the volume's bilateral upsample switch.
 #pragma kernel BilateralUpSampleColor
+#pragma kernel BoxUpSampleColor
 
 #pragma multi_compile _ SSL_XR_ARRAY
 
@@ -61,4 +63,31 @@ void BilateralUpSampleColor(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float4 result = weightSum > 0.0 ? weightedSum / weightSum : float4(0.0, 0.0, 0.0, 0.0);
     SSGI_STORE(_SsgiUpsampledTextureRW, coord, result);
+}
+
+// Depth-unaware 2x2 box upsample. Selected when the volume disables the bilateral filter.
+[numthreads(SSGI_UPSAMPLE_TILE_SIZE, SSGI_UPSAMPLE_TILE_SIZE, 1)]
+void BoxUpSampleColor(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 coord = dispatchThreadId.xy;
+    if (any(coord >= (uint2)_SsgiScreenSize.xy))
+        return;
+
+    float2 lowResPixel = (float2)coord * _SsgiResolutionMultiplier;
+    int2 base = (int2)floor(lowResPixel - 0.5);
+    int2 maxLow = (int2)_SsgiTraceSize.xy - 1;
+
+    float4 sum = 0.0;
+    [unroll] for (int y = 0; y < 2; y++)
+    {
+        [unroll] for (int x = 0; x < 2; x++)
+        {
+            int2 lowCoord = clamp(base + int2(x, y), int2(0, 0), maxLow);
+            sum += SSGI_LOAD(_SsgiLowResolutionTexture, lowCoord);
+        }
+    }
+
+    SSGI_STORE(_SsgiUpsampledTextureRW, coord, sum * 0.25);
 }

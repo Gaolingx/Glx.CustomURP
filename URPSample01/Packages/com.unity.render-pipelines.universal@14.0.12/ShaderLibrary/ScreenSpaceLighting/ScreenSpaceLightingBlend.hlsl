@@ -4,20 +4,25 @@
 // Material-side mixing of the Screen Space Lighting plugin output. Core owns the blend contract; the
 // plugin only provides a valid texture and a weight.
 //
-// SSGI replaces the baked diffuse term only where the ray produced a valid hit. A miss (weight 0)
-// keeps bakedGI, which is what keeps lightmaps, SH and APV on their original path and prevents a
-// miss from darkening the image. The radiance is already one-bounce incoming light, so it is blended
-// before EnvironmentBRDF, exactly like bakedGI; emission is never part of this term.
+// SSGI replaces the baked diffuse term with the blend weight. A hit carries the radiance of the hit
+// point; a miss carries the fallback the volume selected (reflection probes / sky ambient, weight 1,
+// exactly like HDRP replacing bakeDiffuseLighting) or weight 0 for rayMiss = None, which keeps the
+// baked GI. The radiance is already one-bounce incoming light, so it is blended before
+// EnvironmentBRDF, exactly like bakedGI; emission is never part of this term. intensity multiplies the
+// radiance (not the weight, so values above 1 brighten the bounce) and zero is an exact no-op.
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingInput.hlsl"
 
 half3 ScreenSpaceLightingApplyIndirectDiffuse(half3 bakedGI, float2 normalizedScreenSpaceUV)
 {
 #if defined(_SCREEN_SPACE_GI)
+    half intensity = max(_ScreenSpaceGiParams.x, 0.0h);
+    if (intensity <= 0.0h)
+        return bakedGI;
+
     half4 ssgi = SAMPLE_TEXTURE2D_X(_ScreenSpaceGiTexture, sampler_LinearClamp, UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV));
-    half weight = saturate(ssgi.a * _ScreenSpaceGiParams.x);
-    half3 radiance = max(ssgi.rgb, half3(0.0, 0.0, 0.0));
-    return lerp(bakedGI, radiance, weight);
+    half3 radiance = max(ssgi.rgb, half3(0.0, 0.0, 0.0)) * intensity;
+    return lerp(bakedGI, radiance, saturate(ssgi.a));
 #else
     return bakedGI;
 #endif

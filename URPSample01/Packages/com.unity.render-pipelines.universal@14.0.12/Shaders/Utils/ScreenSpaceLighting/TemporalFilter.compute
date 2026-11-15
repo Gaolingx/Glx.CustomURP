@@ -5,10 +5,11 @@
 //   single channel texture, because the SSGI signal is radiance plus an explicit weight;
 // - receiver/occluder motion rejection is not implemented (URP has no object-motion stencil bit on
 //   every renderer path); the plan records this as a known limitation;
-// - the previous normal buffer is not part of the Screen Space Lighting history, so history normals
-//   are not compared. Position and previous-depth rejection remain.
+// - the previous normal buffer is captured into this feature's private history so the normal
+//   consistency test HDRP performs on the history is reproduced.
 #pragma kernel ValidateHistory
 #pragma kernel TemporalAccumulation
+#pragma kernel CopyHistoryNormals
 
 #pragma multi_compile _ SSGI_NORMALS_OCT
 #pragma multi_compile _ SSL_XR_ARRAY
@@ -22,13 +23,15 @@
 #define SSGI_HISTORYREJECTION_REPROJECTION 0x2
 #define SSGI_HISTORYREJECTION_PREVIOUS_DEPTH 0x4
 #define SSGI_HISTORYREJECTION_POSITION 0x8
+#define SSGI_HISTORYREJECTION_NORMAL 0x10
 #define SSGI_HISTORYREJECTION_MOTION 0x20
-#define SSGI_HISTORYREJECTION_COMBINED 0x2F
+#define SSGI_HISTORYREJECTION_COMBINED 0x3F
 
 SSGI_TEXTURE2D_FLOAT(_SsgiDepthTexture);
 SSGI_TEXTURE2D_FLOAT4(_SsgiNormalTexture);
 SSGI_TEXTURE2D_FLOAT2(_SsgiMotionTexture);
 SSGI_TEXTURE2D_FLOAT(_SsgiPreviousDepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_SsgiPreviousNormalTexture);
 SSGI_TEXTURE2D_FLOAT4(_SsgiDenoiseInputTexture);
 SSGI_TEXTURE2D_FLOAT4(_SsgiHistoryColorTexture);
 SSGI_TEXTURE2D_FLOAT(_SsgiHistorySampleCountTexture);
@@ -68,7 +71,8 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (historyUv.x < 0.0 || historyUv.x >= 1.0 || historyUv.y < 0.0 || historyUv.y >= 1.0)
     {
         flags = SSGI_HISTORYREJECTION_REPROJECTION | SSGI_HISTORYREJECTION_PREVIOUS_DEPTH |
-                SSGI_HISTORYREJECTION_POSITION | SSGI_HISTORYREJECTION_MOTION;
+                SSGI_HISTORYREJECTION_POSITION | SSGI_HISTORYREJECTION_NORMAL |
+                SSGI_HISTORYREJECTION_MOTION;
         SSGI_STORE(_SsgiValidationTextureRW, coord, flags);
         return;
     }
@@ -77,7 +81,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (SsgiIsBackgroundDepth(historyDepth))
     {
         flags = SSGI_HISTORYREJECTION_PREVIOUS_DEPTH | SSGI_HISTORYREJECTION_POSITION |
-                SSGI_HISTORYREJECTION_MOTION;
+                SSGI_HISTORYREJECTION_NORMAL | SSGI_HISTORYREJECTION_MOTION;
         SSGI_STORE(_SsgiValidationTextureRW, coord, flags);
         return;
     }
@@ -90,7 +94,31 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (length(historyPositionWS - positionWS) > maxRadius)
         flags |= SSGI_HISTORYREJECTION_POSITION;
 
+    // Reject the history when the surface orientation changed too much (HDRP MAX_NORMAL_DIFFERENCE).
+    float3 historyNormalWS = SsgiDecodeNormalSS(
+        SSGI_SAMPLE_LOD(_SsgiPreviousNormalTexture, s_ssgi_point_clamp_sampler, historyUv, 0));
+    if (dot(normalWS, historyNormalWS) < SSGI_MAX_NORMAL_DIFFERENCE)
+        flags |= SSGI_HISTORYREJECTION_NORMAL;
+
     SSGI_STORE(_SsgiValidationTextureRW, coord, flags);
+}
+
+// Copies the current camera normals into the next history slot. The history capture pass runs after
+// the SSGI dispatch, so the slot that this frame traced is never overwritten.
+SSGI_TEXTURE2D_FLOAT4(_SsgiSourceNormalTexture);
+SSGI_RW_TEXTURE2D_FLOAT4(_SsgiOutputHistoryNormalTextureRW);
+int4 _SsgiHistoryCopySize; // xy: width/height of the copy, zw: reserved
+
+[numthreads(SSGI_TEMPORAL_TILE_SIZE, SSGI_TEMPORAL_TILE_SIZE, 1)]
+void CopyHistoryNormals(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 coord = dispatchThreadId.xy;
+    if (any(coord >= (uint2)_SsgiHistoryCopySize.xy))
+        return;
+
+    SSGI_STORE(_SsgiOutputHistoryNormalTextureRW, coord, SSGI_LOAD(_SsgiSourceNormalTexture, coord));
 }
 
 [numthreads(SSGI_TEMPORAL_TILE_SIZE, SSGI_TEMPORAL_TILE_SIZE, 1)]

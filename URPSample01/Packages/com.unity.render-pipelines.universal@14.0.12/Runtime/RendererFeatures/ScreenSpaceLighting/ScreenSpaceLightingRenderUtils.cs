@@ -141,5 +141,34 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeIntParams(compute, ScreenSpaceLightingShaderIDs.DstOffset, dstOffset);
             cmd.DispatchCompute(compute, kernel, DivideRoundUp(width, 8), DivideRoundUp(height, 8), viewCount);
         }
+
+        // Captures the current camera normals into the next history slot, encoding untouched. The
+        // temporal filter decodes it with the same keyword the trace uses (signed or octahedron).
+        internal static void CopyNormalsToPrevious(
+            CommandBuffer cmd,
+            ComputeShader compute,
+            RTHandle normalTexture,
+            RTHandle destination,
+            int width,
+            int height,
+            int viewCount,
+            bool useTextureArray)
+        {
+            if (compute == null || normalTexture == null || destination == null)
+                return;
+
+            if (useTextureArray)
+                compute.EnableKeyword(ScreenSpaceLightingShaderIDs.XrArrayKeyword);
+            else
+                compute.DisableKeyword(ScreenSpaceLightingShaderIDs.XrArrayKeyword);
+
+            int kernel = compute.FindKernel("CopyHistoryNormals");
+            int[] copySize = { Mathf.Max(0, width), Mathf.Max(0, height), 0, 0 };
+
+            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsgiSourceNormalTexture, normalTexture);
+            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsgiOutputHistoryNormalTextureRW, destination);
+            cmd.SetComputeIntParams(compute, ScreenSpaceLightingShaderIDs.SsgiHistoryCopySize, copySize);
+            cmd.DispatchCompute(compute, kernel, DivideRoundUp(width, 8), DivideRoundUp(height, 8), viewCount);
+        }
     }
 }
