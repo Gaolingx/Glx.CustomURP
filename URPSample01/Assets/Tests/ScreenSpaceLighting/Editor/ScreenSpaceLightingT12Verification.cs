@@ -55,11 +55,25 @@ public static class ScreenSpaceLightingT12Verification
         AssetDatabase.Refresh();
     }
 
+    // The T14 release regression replays this matrix. It must not overwrite the T12 evidence, so the
+    // output directory can be redirected with -ssl-t12-output <relative-or-absolute-path>.
+    static string ResolveOutputRoot()
+    {
+        var arguments = Environment.GetCommandLineArgs();
+        for (int i = 0; i < arguments.Length - 1; i++)
+        {
+            if (arguments[i] == "-ssl-t12-output")
+                return arguments[i + 1];
+        }
+
+        return OutputRoot;
+    }
+
     [MenuItem("Tests/Screen Space Lighting/Run T12 Verification")]
     public static void RunT12Verification()
     {
         var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-        var outputDirectory = Path.Combine(projectRoot, OutputRoot);
+        var outputDirectory = Path.Combine(projectRoot, ResolveOutputRoot());
         Directory.CreateDirectory(outputDirectory);
         var report = new T12Report
         {

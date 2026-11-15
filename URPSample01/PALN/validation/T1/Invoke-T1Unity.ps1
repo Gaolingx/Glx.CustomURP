@@ -1,5 +1,4 @@
 param(
-    [Parameter(Mandatory = $true)]
     [string]$ExecuteMethod,
     [Parameter(Mandatory = $true)]
     [string]$LogPath,
@@ -59,9 +58,13 @@ try {
     }
     $unityArguments += @(
         "-projectPath", ('"{0}"' -f $projectRoot),
-        "-executeMethod", $ExecuteMethod,
         "-logFile", ('"{0}"' -f $LogPath)
     )
+    # ExecuteMethod is optional so CLI-driven test runs (-runTests) can own the exit path; a
+    # PlayMode run that relies on -quit terminates before entering play mode.
+    if (-not [string]::IsNullOrWhiteSpace($ExecuteMethod)) {
+        $unityArguments += @("-executeMethod", $ExecuteMethod)
+    }
     if ($Quit) {
         $unityArguments += "-quit"
     }

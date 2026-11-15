@@ -6,10 +6,22 @@ public static class ScreenSpaceLightingTestRunner
 {
     internal const double TimeoutSeconds = 1800.0;
 
+    // T14 release regression: the PlayMode suite drives the real player loop for all three renderers.
+    public static void RunPlayModeTests()
+    {
+        var api = ScriptableObject.CreateInstance<TestRunnerApi>();
+        api.RegisterCallbacks(new Callbacks("PlayMode"));
+        api.Execute(new ExecutionSettings(new Filter
+        {
+            testMode = TestMode.PlayMode,
+            assemblyNames = new[] { "Unity.ScreenSpaceLighting.Tests.PlayMode" },
+        }));
+    }
+
     public static void RunEditModeTests()
     {
         var api = ScriptableObject.CreateInstance<TestRunnerApi>();
-        api.RegisterCallbacks(new Callbacks());
+        api.RegisterCallbacks(new Callbacks("EditMode"));
         api.Execute(new ExecutionSettings(new Filter
         {
             testMode = TestMode.EditMode,
@@ -42,6 +54,12 @@ public static class ScreenSpaceLightingTestRunner
     {
         double m_Started;
         bool m_Finished;
+        readonly string m_Mode;
+
+        public Callbacks(string mode)
+        {
+            m_Mode = mode;
+        }
 
         public void RunStarted(ITestAdaptor testsToRun)
         {
@@ -53,7 +71,7 @@ public static class ScreenSpaceLightingTestRunner
         {
             m_Finished = true;
             EditorApplication.update -= Watchdog;
-            Debug.Log($"EditMode tests finished: status={result.TestStatus} passed={result.PassCount} failed={result.FailCount} skipped={result.SkipCount}");
+            Debug.Log($"{m_Mode} tests finished: status={result.TestStatus} passed={result.PassCount} failed={result.FailCount} skipped={result.SkipCount}");
             EditorApplication.Exit(result.TestStatus == TestStatus.Passed ? 0 : 1);
         }
 
@@ -71,7 +89,7 @@ public static class ScreenSpaceLightingTestRunner
         {
             if (m_Finished || EditorApplication.timeSinceStartup - m_Started < TimeoutSeconds)
                 return;
-            Debug.LogError("EditMode test run timed out.");
+            Debug.LogError($"{m_Mode} test run timed out.");
             EditorApplication.update -= Watchdog;
             EditorApplication.Exit(4);
         }
