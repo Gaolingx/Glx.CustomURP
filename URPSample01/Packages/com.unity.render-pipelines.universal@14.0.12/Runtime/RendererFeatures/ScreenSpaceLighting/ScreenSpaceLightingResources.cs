@@ -165,14 +165,14 @@ namespace UnityEngine.Rendering.Universal
             {
                 resources.ssgiTemporalFilterCompute = FindPackageAsset<ComputeShader>(
                     "TemporalFilter t:ComputeShader",
-                    "/ScreenSpaceLighting/TemporalFilter.compute");
+                    "/Denoising/TemporalFilter.compute");
             }
 
             if (resources.ssgiDiffuseDenoiserCompute == null)
             {
                 resources.ssgiDiffuseDenoiserCompute = FindPackageAsset<ComputeShader>(
                     "DiffuseDenoiser t:ComputeShader",
-                    "/ScreenSpaceLighting/DiffuseDenoiser.compute");
+                    "/Denoising/DiffuseDenoiser.compute");
             }
 
             if (resources.bilateralUpsampleCompute == null)

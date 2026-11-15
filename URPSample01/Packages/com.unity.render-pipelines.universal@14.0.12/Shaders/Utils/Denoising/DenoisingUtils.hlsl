@@ -1,8 +1,8 @@
-#ifndef UNIVERSAL_SCREEN_SPACE_LIGHTING_DENOISING_INCLUDED
-#define UNIVERSAL_SCREEN_SPACE_LIGHTING_DENOISING_INCLUDED
+#ifndef UNIVERSAL_DENOISING_UTILS_INCLUDED
+#define UNIVERSAL_DENOISING_UTILS_INCLUDED
 
-// Denoising helpers ported from HDRP 14.0.12
-// Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DenoisingUtils.hlsl and BilateralFilter.hlsl.
+// Denoising helpers shared by the Screen Space Lighting temporal filter and diffuse denoiser.
+// Ported from HDRP 14.0.12 Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DenoisingUtils.hlsl.
 // The HDRP stencil "unlit" test is not available on every URP path, so background pixels are
 // rejected with the far-plane depth value and a zero normal instead.
 
@@ -15,6 +15,8 @@
 #define SSGI_MAX_NORMAL_DIFFERENCE 0.65
 // HDRP denoiser tap rejection: the tap must lie on the same surface as the projected sample point.
 #define SSGI_TAP_DEPTH_TOLERANCE 0.1
+// HDRP MINIMAL_MOTION_DISTANCE for the occluder motion rejection.
+#define SSGI_MINIMAL_MOTION_DISTANCE 0.0001
 
 float SsgiComputeMaxReprojectionWorldRadius(float3 positionWS, float3 normalWS, float pixelSpreadAngleTangent, float maxDistance, float pixelTolerance)
 {
@@ -53,46 +55,6 @@ float4 SsgiBilinearUpSampleUniform(float hiDepth, float4 lowDepths, float4 low0,
     result.rgb = (weightedSum.rgb + noiseFilterStrength) / (totalWeight + noiseFilterStrength);
     result.a = weightedSum.a / totalWeight;
     return result;
-}
-
-struct SsgiBilateralData
-{
-    float3 position;
-    float z01;
-    float zNF;
-    float3 normal;
-};
-
-SsgiBilateralData SsgiTapBilateralData(
-    SSGI_TEXTURE_TYPE_FLOAT depthTexture,
-    SSGI_TEXTURE_TYPE_FLOAT4 normalTexture,
-    uint2 coordSS)
-{
-    SsgiBilateralData key;
-    float deviceDepth = SSGI_LOAD(depthTexture, coordSS);
-    key.z01 = Linear01Depth(deviceDepth, _SsgiZBufferParams);
-    key.zNF = LinearEyeDepth(deviceDepth, _SsgiZBufferParams);
-    key.position = SsgiReconstructPositionWS((float2)coordSS, deviceDepth);
-    key.normal = SsgiDecodeNormalSS(SSGI_LOAD(normalTexture, coordSS));
-    return key;
-}
-
-float SsgiComputeBilateralWeight(SsgiBilateralData center, SsgiBilateralData tap)
-{
-    float depthWeight = max(0.0, 1.0 - abs(tap.z01 - center.z01));
-
-    float normalCloseness = max(0.0, dot(tap.normal, center.normal));
-    normalCloseness *= normalCloseness;
-    normalCloseness *= normalCloseness;
-    float normalWeight = max(0.0, 1.0 - (1.0 - normalCloseness));
-
-    float3 dq = center.position - tap.position;
-    float distance2 = dot(dq, dq);
-    float planeError = max(abs(dot(dq, tap.normal)), abs(dot(dq, center.normal)));
-    float planeWeight = (distance2 < 0.0001) ? 1.0
-        : pow(max(0.0, 1.0 - 2.0 * planeError / sqrt(distance2)), 2.0);
-
-    return depthWeight * normalWeight * planeWeight;
 }
 
 #endif

@@ -1,0 +1,232 @@
+// Temporal filter shared by the Screen Space Lighting effects.
+// Ported from HDRP 14.0.12 Runtime/RenderPipeline/Raytracing/Shaders/Denoising/TemporalFilter.compute.
+//
+// URP extensions kept on purpose:
+// - the signal carries the validity weight in alpha, so the history stores (radiance, weight) and
+//   the accumulated sample count lives in a separate single channel texture (HDRP stores the sample
+//   count in history.w and always treats the signal as fully valid);
+// - the incoming motion vector is already in UV space, so it is used without HDRP's
+//   DecodeMotionVector step;
+// - the object motion stencil bit does not exist on every URP path, so this file never performs the
+//   HDRP stencil rejection. Receiver/occluder motion rejection and the exposure control code paths
+//   are present and are driven by the caller (URP currently binds them off).
+#pragma kernel ValidateHistory
+#pragma kernel TemporalAccumulationColor
+#pragma kernel CopyHistory
+#pragma kernel CopyHistoryNormals
+
+#pragma multi_compile _ SSGI_NORMALS_OCT
+#pragma multi_compile _ SSL_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Denoising/DenoisingUtils.hlsl"
+
+#define SSGI_TEMPORAL_TILE_SIZE 8
+
+// HDRP HistoryRejectionFlags.
+#define SSGI_HISTORYREJECTION_DEPTH 0x1
+#define SSGI_HISTORYREJECTION_REPROJECTION 0x2
+#define SSGI_HISTORYREJECTION_PREVIOUS_DEPTH 0x4
+#define SSGI_HISTORYREJECTION_POSITION 0x8
+#define SSGI_HISTORYREJECTION_NORMAL 0x10
+#define SSGI_HISTORYREJECTION_MOTION 0x20
+#define SSGI_HISTORYREJECTION_COMBINED 0x3F
+#define SSGI_HISTORYREJECTION_COMBINED_NO_MOTION 0x1F
+
+// HDRP named inputs.
+SSGI_TEXTURE2D_FLOAT(_DepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_NormalBufferTexture);
+SSGI_TEXTURE2D_FLOAT2(_CameraMotionVectorsTexture);
+SSGI_TEXTURE2D_FLOAT(_HistoryDepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_HistoryNormalTexture);
+SSGI_TEXTURE2D_FLOAT2(_VelocityBuffer);
+SSGI_TEXTURE2D_FLOAT4(_DenoiseInputTexture);
+SSGI_TEXTURE2D_FLOAT4(_HistoryBuffer);
+SSGI_TEXTURE2D_FLOAT(_HistorySampleCount);
+SSGI_TEXTURE2D_UINT(_ValidationBuffer);
+SSGI_RW_TEXTURE2D_UINT(_ValidationBufferRW);
+SSGI_RW_TEXTURE2D_FLOAT4(_AccumulationOutputTextureRW);
+SSGI_RW_TEXTURE2D_FLOAT4(_DenoiseOutputTextureRW);
+SSGI_RW_TEXTURE2D_FLOAT(_HistorySampleCountRW);
+
+// HDRP names mapped onto the Screen Space Lighting constant set, so the pass reads like the source.
+// _DenoiserResolutionMultiplierVals is (resolutionMultiplier, 1/resolutionMultiplier,
+// historyResolutionMultiplier, 1/historyResolutionMultiplier); URP's history is full resolution.
+#define _HistoryValidity _SsgiRayMarchingParams2.z
+#define _PixelSpreadAngleTangent _SsgiDenoiserParams.x
+#define _DenoiserResolutionMultiplierVals float4(_SsgiTemporalParams.x, _SsgiTemporalParams.y, 1.0, 1.0)
+// URP history is never dynamically scaled, so HDRP's history size/scale collapses to the screen.
+#define _HistorySizeAndScale float4(_SsgiScreenSize.xy, _SsgiScreenSize.zw)
+
+// Loose globals bound by the pass (HDRP binds the first three as ints and the exposure pair through
+// GetPrevious/CurrentExposureMultiplier; URP has no exposure stage at this point and binds 1/1).
+int _ReceiverMotionRejection;
+int _OccluderMotionRejection;
+int _EnableExposureControl;
+float _PreviousExposureMultiplier;
+float _CurrentExposureMultiplier;
+
+[numthreads(SSGI_TEMPORAL_TILE_SIZE, SSGI_TEMPORAL_TILE_SIZE, 1)]
+void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 centerCoord = dispatchThreadId.xy;
+    if (any(centerCoord >= (uint2)_SsgiScreenSize.xy))
+        return;
+
+    uint flags = 0;
+    float depth = SSGI_LOAD(_DepthTexture, centerCoord);
+
+    if (SsgiIsBackgroundDepth(depth) || _HistoryValidity == 0.0)
+    {
+        flags = SSGI_HISTORYREJECTION_COMBINED;
+        SSGI_STORE(_ValidationBufferRW, centerCoord, flags);
+        return;
+    }
+
+    // The URP motion vector texture already stores a UV space delta.
+    float2 velocity = SSGI_LOAD(_CameraMotionVectorsTexture, centerCoord).xy;
+    float2 historyUVUnscaled = SsgiGetPixelUv(centerCoord, _SsgiScreenSize.zw) - velocity;
+    float2 historyTapCoord = historyUVUnscaled * _HistorySizeAndScale.xy;
+    float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
+
+    if (any(historyTapCoord >= _HistorySizeAndScale.xy) || any(historyTapCoord < 0.0))
+    {
+        flags = SSGI_HISTORYREJECTION_REPROJECTION | SSGI_HISTORYREJECTION_PREVIOUS_DEPTH |
+                SSGI_HISTORYREJECTION_POSITION | SSGI_HISTORYREJECTION_NORMAL |
+                SSGI_HISTORYREJECTION_MOTION;
+        SSGI_STORE(_ValidationBufferRW, centerCoord, flags);
+        return;
+    }
+
+    float historyDepth = SSGI_SAMPLE_LOD(_HistoryDepthTexture, s_ssgi_linear_clamp_sampler, historyUV, 0);
+    if (SsgiIsBackgroundDepth(historyDepth))
+    {
+        flags = SSGI_HISTORYREJECTION_PREVIOUS_DEPTH | SSGI_HISTORYREJECTION_POSITION |
+                SSGI_HISTORYREJECTION_NORMAL | SSGI_HISTORYREJECTION_MOTION;
+        SSGI_STORE(_ValidationBufferRW, centerCoord, flags);
+        return;
+    }
+
+    float3 normalWS = SsgiDecodeNormalSS(SSGI_LOAD(_NormalBufferTexture, centerCoord));
+    float3 positionWS = SsgiReconstructPositionWS((float2)centerCoord, depth);
+    float3 historyPositionWS = ComputeWorldSpacePosition(historyUV, historyDepth, SSL_PREV_INV_VIEW_PROJ);
+
+    float maxRadius = SsgiComputeMaxReprojectionWorldRadius(positionWS, normalWS, _PixelSpreadAngleTangent);
+    if (length(historyPositionWS - positionWS) > maxRadius)
+        flags |= SSGI_HISTORYREJECTION_POSITION;
+
+    // Reject the history when the surface orientation changed too much (HDRP MAX_NORMAL_DIFFERENCE).
+    float3 historyNormalWS = SsgiDecodeNormalSS(
+        SSGI_SAMPLE_LOD(_HistoryNormalTexture, s_ssgi_point_clamp_sampler, historyUV, 0));
+    if (dot(normalWS, historyNormalWS) < SSGI_MAX_NORMAL_DIFFERENCE)
+        flags |= SSGI_HISTORYREJECTION_NORMAL;
+
+    // HDRP also tests the object motion stencil bit here; URP has no common stencil bit.
+    SSGI_STORE(_ValidationBufferRW, centerCoord, flags);
+}
+
+[numthreads(SSGI_TEMPORAL_TILE_SIZE, SSGI_TEMPORAL_TILE_SIZE, 1)]
+void TemporalAccumulationColor(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 currentCoord = dispatchThreadId.xy;
+    if (any(currentCoord >= (uint2)_SsgiTraceSize.xy))
+        return;
+
+    float4 resMultipliers = _DenoiserResolutionMultiplierVals;
+    uint2 sourceCoord = (uint2)((float2)currentCoord * resMultipliers.yy);
+    sourceCoord = min(sourceCoord, (uint2)_SsgiScreenSize.xy - 1u);
+
+    // Background pixels carry no signal and no history.
+    float depth = SSGI_LOAD(_DepthTexture, sourceCoord);
+    if (SsgiIsBackgroundDepth(depth))
+    {
+        SSGI_STORE(_AccumulationOutputTextureRW, currentCoord, float4(0.0, 0.0, 0.0, 0.0));
+        SSGI_STORE(_HistorySampleCountRW, currentCoord, 0.0);
+        return;
+    }
+
+    float4 current = SSGI_LOAD(_DenoiseInputTexture, currentCoord);
+    float2 velocity = SSGI_LOAD(_CameraMotionVectorsTexture, sourceCoord).xy;
+    float2 historyUVUnscaled =
+        ((float2)currentCoord + 0.5) / (_SsgiScreenSize.xy * resMultipliers.xx) - velocity;
+    float2 historyUV = historyUVUnscaled * resMultipliers.zz * _HistorySizeAndScale.zw;
+
+    float4 history = SSGI_SAMPLE_LOD(_HistoryBuffer, s_ssgi_linear_clamp_sampler, historyUV, 0);
+    history = max(history, 0.0);
+    float sampleCount = SSGI_SAMPLE_LOD(_HistorySampleCount, s_ssgi_point_clamp_sampler, historyUV, 0);
+
+    if (_EnableExposureControl == 1)
+    {
+        float expRatio = (_PreviousExposureMultiplier * _CurrentExposureMultiplier) != 0.0
+            ? _CurrentExposureMultiplier / _PreviousExposureMultiplier : 100.0;
+        bool validExposureChange = max(expRatio, 1.0 / expRatio) < 2.0;
+        if (validExposureChange)
+            history.rgb = history.rgb * (1.0 / max(_PreviousExposureMultiplier, 1e-6)) * _CurrentExposureMultiplier;
+        else
+            sampleCount = 0.0;
+    }
+
+    // Occluder (intersection) motion rejection (HDRP reads the intersection velocity buffer).
+    float movingIntersection = 0.0;
+    if (_OccluderMotionRejection != 0)
+        movingIntersection = SSGI_LOAD(_VelocityBuffer, currentCoord).r > SSGI_MINIMAL_MOTION_DISTANCE ? 1.0 : 0.0;
+
+    // Receiver motion rejection masks out the motion flag; otherwise every rejection invalidates.
+    uint validation = SSGI_LOAD(_ValidationBuffer, sourceCoord);
+    if (_ReceiverMotionRejection == 0)
+        validation = validation & ~(uint)SSGI_HISTORYREJECTION_MOTION;
+
+    bool historyInvalid = validation != 0 || _HistoryValidity < 1.0;
+
+    float accumulationFactor = 0.0;
+    if (historyInvalid || sampleCount == 0.0 || movingIntersection > 0.0)
+    {
+        accumulationFactor = 0.0;
+        history = 0.0;
+        sampleCount = movingIntersection > 0.0 ? 0.0 : 1.0;
+    }
+    else
+    {
+        accumulationFactor = sampleCount >= 8.0 ? 0.93 : (sampleCount / (sampleCount + 1.0));
+        sampleCount = min(sampleCount + 1.0, 8.0);
+    }
+
+    float4 accumulated = current * (1.0 - accumulationFactor) + history * accumulationFactor;
+
+    SSGI_STORE(_AccumulationOutputTextureRW, currentCoord, accumulated);
+    SSGI_STORE(_HistorySampleCountRW, currentCoord, sampleCount);
+}
+
+// Copies the freshly accumulated signal into the history slot (HDRP CopyHistory).
+[numthreads(SSGI_TEMPORAL_TILE_SIZE, SSGI_TEMPORAL_TILE_SIZE, 1)]
+void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 coord = dispatchThreadId.xy;
+    if (any(coord >= (uint2)_SsgiTraceSize.xy))
+        return;
+
+    SSGI_STORE(_DenoiseOutputTextureRW, coord, SSGI_LOAD(_DenoiseInputTexture, coord));
+}
+
+// URP extension: captures the current camera normals into the next history slot. The history capture
+// pass runs after the SSGI dispatch, so the slot this frame traced is never overwritten.
+SSGI_TEXTURE2D_FLOAT4(_SsgiSourceNormalTexture);
+SSGI_RW_TEXTURE2D_FLOAT4(_SsgiOutputHistoryNormalTextureRW);
+int4 _SsgiHistoryCopySize; // xy: width/height of the copy, zw: reserved
+
+[numthreads(SSGI_TEMPORAL_TILE_SIZE, SSGI_TEMPORAL_TILE_SIZE, 1)]
+void CopyHistoryNormals(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 coord = dispatchThreadId.xy;
+    if (any(coord >= (uint2)_SsgiHistoryCopySize.xy))
+        return;
+
+    SSGI_STORE(_SsgiOutputHistoryNormalTextureRW, coord, SSGI_LOAD(_SsgiSourceNormalTexture, coord));
+}

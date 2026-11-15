@@ -39,10 +39,6 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsgiMotionTexture = Shader.PropertyToID("_SsgiMotionTexture");
         internal static readonly int SsgiColorPyramid = Shader.PropertyToID("_SsgiColorPyramid");
         internal static readonly int SsgiPreviousDepthTexture = Shader.PropertyToID("_SsgiPreviousDepthTexture");
-        internal static readonly int SsgiPreviousNormalTexture = Shader.PropertyToID("_SsgiPreviousNormalTexture");
-        internal static readonly int SsgiSourceNormalTexture = Shader.PropertyToID("_SsgiSourceNormalTexture");
-        internal static readonly int SsgiOutputHistoryNormalTextureRW = Shader.PropertyToID("_SsgiOutputHistoryNormalTextureRW");
-        internal static readonly int SsgiHistoryCopySize = Shader.PropertyToID("_SsgiHistoryCopySize");
         internal static readonly int SsgiDepthPyramid = Shader.PropertyToID("_SsgiDepthPyramid");
         internal static readonly int SsgiDepthPyramidMipLevelOffsets = Shader.PropertyToID("_SsgiDepthPyramidMipLevelOffsets");
 
@@ -50,19 +46,38 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsgiHitPointTextureRW = Shader.PropertyToID("_SsgiHitPointTextureRW");
         internal static readonly int SsgiProjectionTextureRW = Shader.PropertyToID("_SsgiProjectionTextureRW");
 
-        // Temporal filter.
-        internal static readonly int SsgiValidationTextureRW = Shader.PropertyToID("_SsgiValidationTextureRW");
-        internal static readonly int SsgiValidationTexture = Shader.PropertyToID("_SsgiValidationTexture");
-        internal static readonly int SsgiDenoiseInputTexture = Shader.PropertyToID("_SsgiDenoiseInputTexture");
-        internal static readonly int SsgiHistoryColorTexture = Shader.PropertyToID("_SsgiHistoryColorTexture");
-        internal static readonly int SsgiHistorySampleCountTexture = Shader.PropertyToID("_SsgiHistorySampleCountTexture");
-        internal static readonly int SsgiAccumulationTextureRW = Shader.PropertyToID("_SsgiAccumulationTextureRW");
-        internal static readonly int SsgiOutputHistoryTextureRW = Shader.PropertyToID("_SsgiOutputHistoryTextureRW");
-        internal static readonly int SsgiOutputSampleCountTextureRW = Shader.PropertyToID("_SsgiOutputSampleCountTextureRW");
+        // Denoising pass inputs (HDRP TemporalFilter / DiffuseDenoiser parameter names).
+        internal static readonly int DenoiseInputTexture = Shader.PropertyToID("_DenoiseInputTexture");
+        internal static readonly int DenoiseOutputTextureRW = Shader.PropertyToID("_DenoiseOutputTextureRW");
+        internal static readonly int DenoiseDepthTexture = Shader.PropertyToID("_DepthTexture");
+        internal static readonly int DenoiseNormalTexture = Shader.PropertyToID("_NormalBufferTexture");
+        internal static readonly int DenoiseMotionTexture = Shader.PropertyToID("_CameraMotionVectorsTexture");
+        internal static readonly int HistoryDepthTexture = Shader.PropertyToID("_HistoryDepthTexture");
+        internal static readonly int HistoryNormalTexture = Shader.PropertyToID("_HistoryNormalTexture");
+        internal static readonly int HistoryBuffer = Shader.PropertyToID("_HistoryBuffer");
+        internal static readonly int HistorySampleCountTexture = Shader.PropertyToID("_HistorySampleCount");
+        internal static readonly int HistorySampleCountRW = Shader.PropertyToID("_HistorySampleCountRW");
+        internal static readonly int ValidationBuffer = Shader.PropertyToID("_ValidationBuffer");
+        internal static readonly int ValidationBufferRW = Shader.PropertyToID("_ValidationBufferRW");
+        internal static readonly int AccumulationOutputTextureRW = Shader.PropertyToID("_AccumulationOutputTextureRW");
+        internal static readonly int PointDistribution = Shader.PropertyToID("_PointDistribution");
+        internal static readonly int PointDistributionRW = Shader.PropertyToID("_PointDistributionRW");
 
-        // Diffuse denoiser.
-        internal static readonly int SsgiDenoiseOutputTextureRW = Shader.PropertyToID("_SsgiDenoiseOutputTextureRW");
-        internal static readonly int SsgiPointDistributionRW = Shader.PropertyToID("_SsgiPointDistributionRW");
+        // Denoising pass scalars (bound per stage like HDRP).
+        internal static readonly int DenoiserFilterRadius = Shader.PropertyToID("_DenoiserFilterRadius");
+        internal static readonly int JitterFramePeriod = Shader.PropertyToID("_JitterFramePeriod");
+        internal static readonly int HalfResolutionFilter = Shader.PropertyToID("_HalfResolutionFilter");
+        internal static readonly int PixelSpreadAngleTangent = Shader.PropertyToID("_PixelSpreadAngleTangent");
+        internal static readonly int ReceiverMotionRejection = Shader.PropertyToID("_ReceiverMotionRejection");
+        internal static readonly int OccluderMotionRejection = Shader.PropertyToID("_OccluderMotionRejection");
+        internal static readonly int EnableExposureControl = Shader.PropertyToID("_EnableExposureControl");
+        internal static readonly int PreviousExposureMultiplier = Shader.PropertyToID("_PreviousExposureMultiplier");
+        internal static readonly int CurrentExposureMultiplier = Shader.PropertyToID("_CurrentExposureMultiplier");
+
+        // URP extension: captures the camera normals into the temporal history.
+        internal static readonly int SsgiSourceNormalTexture = Shader.PropertyToID("_SsgiSourceNormalTexture");
+        internal static readonly int SsgiOutputHistoryNormalTextureRW = Shader.PropertyToID("_SsgiOutputHistoryNormalTextureRW");
+        internal static readonly int SsgiHistoryCopySize = Shader.PropertyToID("_SsgiHistoryCopySize");
 
         // Upsample.
         internal static readonly int SsgiLowResolutionTexture = Shader.PropertyToID("_SsgiLowResolutionTexture");

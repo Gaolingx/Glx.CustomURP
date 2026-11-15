@@ -1,8 +1,12 @@
-// Screen Space Global Illumination diffuse denoiser.
+// Diffuse denoiser shared by the Screen Space Lighting effects.
 // Ported from HDRP 14.0.12 Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute.
-// The bilateral filter carries both the radiance and the validity weight, so the alpha channel is
-// filtered with the same weights. GatherColor reproduces HDRP's half resolution denoiser
-// recombination (HDRP only uses that kernel for the half resolution denoiser mode).
+//
+// URP extensions kept on purpose:
+// - the signal is RGBA and alpha carries the validity weight, so the filter and the gather preserve
+//   alpha instead of HDRP writing 1.0 (HDRP's signal is always validated by construction);
+// - background / unsupported pixels are rejected with the far-plane depth and a zero normal because
+//   the HDRP stencil "unlit" bit is not available on every URP path;
+// - the point distribution uses the same blue-noise LUTs as HDRP when they are available.
 #pragma kernel GeneratePointDistribution
 #pragma kernel BilateralFilterColor
 #pragma kernel GatherColor
@@ -14,30 +18,33 @@
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/Sampling.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/Denoising.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Denoising/DenoisingUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Denoising/BilateralFilter.hlsl"
 
 #define SSGI_DIFFUSE_DENOISER_TILE_SIZE 8
 #define SSGI_POINT_DISTRIBUTION_COUNT 64
 #define SSGI_PIXEL_RADIUS_TOLERANCE_THRESHOLD 2
 
-SSGI_TEXTURE2D_FLOAT(_SsgiDepthTexture);
-SSGI_TEXTURE2D_FLOAT4(_SsgiNormalTexture);
-SSGI_TEXTURE2D_FLOAT4(_SsgiDenoiseInputTexture);
-SSGI_RW_TEXTURE2D_FLOAT4(_SsgiDenoiseOutputTextureRW);
-RWStructuredBuffer<float2> _SsgiPointDistributionRW;
+// HDRP named inputs.
+SSGI_TEXTURE2D_FLOAT(_DepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_NormalBufferTexture);
+SSGI_TEXTURE2D_FLOAT4(_DenoiseInputTexture);
+SSGI_RW_TEXTURE2D_FLOAT4(_DenoiseOutputTextureRW);
+RWStructuredBuffer<float2> _PointDistributionRW;
+StructuredBuffer<float2> _PointDistribution;
 
-#define _SsgiFilterRadius _SsgiTemporalParams.z
-#define _SsgiJitterFramePeriod (int)_SsgiDenoiserParams.y
-#define _SsgiHalfResolutionFilter (int)_SsgiDenoiserParams.z
-#define _SsgiResolutionMultiplier _SsgiTemporalParams.x
-#define _SsgiInvResolutionMultiplier _SsgiTemporalParams.y
-#define _SsgiPixelSpreadAngleTangent _SsgiDenoiserParams.x
+// HDRP names mapped onto the Screen Space Lighting constant set.
+#define _DenoiserResolutionMultiplierVals float4(_SsgiTemporalParams.x, _SsgiTemporalParams.y, 0.0, 0.0)
+float _DenoiserFilterRadius;
+float _PixelSpreadAngleTangent;
+int _JitterFramePeriod;
+int _HalfResolutionFilter;
 
 [numthreads(SSGI_POINT_DISTRIBUTION_COUNT, 1, 1)]
 void GeneratePointDistribution(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     uint index = dispatchThreadId.x;
-    _SsgiPointDistributionRW[index] = SampleDiskCubic(
+    _PointDistributionRW[index] = SampleDiskCubic(
         SsgiGetPointSequenceSample(index, 0),
         SsgiGetPointSequenceSample(index, 1));
 }
@@ -45,7 +52,7 @@ void GeneratePointDistribution(uint3 dispatchThreadId : SV_DispatchThreadID)
 float SsgiComputeMaxDenoisingRadius(float3 positionWS)
 {
     float distanceToPoint = length(positionWS - SSL_SSGI_CAMERA_POSITION_WS);
-    return distanceToPoint * _SsgiFilterRadius / lerp(5.0, 50.0, saturate(distanceToPoint / 500.0));
+    return distanceToPoint * _DenoiserFilterRadius / lerp(5.0, 50.0, saturate(distanceToPoint / 500.0));
 }
 
 [numthreads(SSGI_DIFFUSE_DENOISER_TILE_SIZE, SSGI_DIFFUSE_DENOISER_TILE_SIZE, 1)]
@@ -57,12 +64,13 @@ void BilateralFilterColor(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (any(currentCoord >= (uint2)_SsgiTraceSize.xy))
         return;
 
-    uint2 sourceCoord = min((uint2)(currentCoord * _SsgiInvResolutionMultiplier), (uint2)_SsgiScreenSize.xy - 1u);
-    const SsgiBilateralData center = SsgiTapBilateralData(_SsgiDepthTexture, _SsgiNormalTexture, sourceCoord);
+    float4 resMultipliers = _DenoiserResolutionMultiplierVals;
+    uint2 sourceCoord = min((uint2)((float2)currentCoord * resMultipliers.yy), (uint2)_SsgiScreenSize.xy - 1u);
+    const SsgiBilateralData center = SsgiTapBilateralData(_DepthTexture, _NormalBufferTexture, sourceCoord);
 
-    if (SsgiIsBackgroundDepth(SSGI_LOAD(_SsgiDepthTexture, sourceCoord)) || dot(center.normal, center.normal) < 0.5)
+    if (SsgiIsBackgroundDepth(SSGI_LOAD(_DepthTexture, sourceCoord)) || dot(center.normal, center.normal) < 0.5)
     {
-        SSGI_STORE(_SsgiDenoiseOutputTextureRW, currentCoord, float4(0.0, 0.0, 0.0, 0.0));
+        SSGI_STORE(_DenoiseOutputTextureRW, currentCoord, float4(0.0, 0.0, 0.0, 0.0));
         return;
     }
 
@@ -74,20 +82,20 @@ void BilateralFilterColor(uint3 dispatchThreadId : SV_DispatchThreadID)
     float denoisingRadius = SsgiComputeMaxReprojectionWorldRadius(
         center.position,
         center.normal,
-        _SsgiPixelSpreadAngleTangent,
+        _PixelSpreadAngleTangent,
         SsgiComputeMaxDenoisingRadius(center.position),
         SSGI_PIXEL_RADIUS_TOLERANCE_THRESHOLD);
     float sigma = 0.9 * denoisingRadius;
 
     int localIndex = (currentCoord.x & 1) + (currentCoord.y & 1) * 2;
-    const int numSamples = _SsgiHalfResolutionFilter ? 4 : 16;
-    int sampleOffset = _SsgiHalfResolutionFilter != 0 ? localIndex * numSamples : 0;
-    if (_SsgiJitterFramePeriod != -1)
-        sampleOffset += _SsgiJitterFramePeriod * 16;
+    const int numSamples = _HalfResolutionFilter ? 4 : 16;
+    int sampleOffset = _HalfResolutionFilter != 0 ? localIndex * numSamples : 0;
+    if (_JitterFramePeriod != -1)
+        sampleOffset += _JitterFramePeriod * 16;
 
     for (uint sampleIndex = 0; sampleIndex < (uint)numSamples; ++sampleIndex)
     {
-        float2 newSample = _SsgiPointDistributionRW[sampleIndex + sampleOffset] * denoisingRadius;
+        float2 newSample = _PointDistribution[sampleIndex + sampleOffset] * denoisingRadius;
 
         float3 wsPos = center.position + localToWorld[0] * newSample.x + localToWorld[1] * newSample.y;
         float4 hClip = mul(SSL_VIEW_PROJ, float4(wsPos, 1.0));
@@ -99,13 +107,13 @@ void BilateralFilterColor(uint3 dispatchThreadId : SV_DispatchThreadID)
         float2 nDC = hClip.xy * 0.5 + 0.5;
         uint2 tapCoord = (uint2)(nDC * _SsgiScreenSize.xy);
         tapCoord = min(tapCoord, (uint2)_SsgiScreenSize.xy - 1u);
-        uint2 lowResTapCoord = (uint2)(tapCoord * _SsgiResolutionMultiplier);
+        uint2 lowResTapCoord = (uint2)(tapCoord * resMultipliers.xx);
         lowResTapCoord = min(lowResTapCoord, (uint2)_SsgiTraceSize.xy - 1u);
 
-        const SsgiBilateralData tapData = SsgiTapBilateralData(_SsgiDepthTexture, _SsgiNormalTexture, tapCoord);
+        const SsgiBilateralData tapData = SsgiTapBilateralData(_DepthTexture, _NormalBufferTexture, tapCoord);
         // HDRP rejects taps that do not lie on the surface of the projected sample point. hClip.w is
         // still the linear eye depth of the sample after the xyz divide.
-        if (SsgiIsBackgroundDepth(SSGI_LOAD(_SsgiDepthTexture, tapCoord)) ||
+        if (SsgiIsBackgroundDepth(SSGI_LOAD(_DepthTexture, tapCoord)) ||
             dot(tapData.normal, tapData.normal) < 0.5 ||
             abs(tapData.zNF - hClip.w) > SSGI_TAP_DEPTH_TOLERANCE)
             continue;
@@ -113,17 +121,17 @@ void BilateralFilterColor(uint3 dispatchThreadId : SV_DispatchThreadID)
         float r = length(newSample);
         float w = r > 0.001 ? SsgiGaussian(r, sigma) * SsgiComputeBilateralWeight(center, tapData) : 1.0;
 
-        colorSum += SSGI_LOAD(_SsgiDenoiseInputTexture, lowResTapCoord) * w;
+        colorSum += SSGI_LOAD(_DenoiseInputTexture, lowResTapCoord) * w;
         wSum += w;
     }
 
     if (wSum == 0.0)
     {
-        colorSum = SSGI_LOAD(_SsgiDenoiseInputTexture, currentCoord);
+        colorSum = SSGI_LOAD(_DenoiseInputTexture, currentCoord);
         wSum = 1.0;
     }
 
-    SSGI_STORE(_SsgiDenoiseOutputTextureRW, currentCoord, colorSum / wSum);
+    SSGI_STORE(_DenoiseOutputTextureRW, currentCoord, colorSum / wSum);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -142,10 +150,10 @@ groupshared float gs_SsgiGatherDepth[SSGI_GATHER_REGION_SIZE_2];
 void SsgiFillGatherDataLDS(uint groupIndex, uint2 pixelCoord)
 {
     uint2 sampleCoord = min(pixelCoord, (uint2)_SsgiTraceSize.xy - 1u);
-    gs_SsgiGatherLighting[groupIndex] = SSGI_LOAD(_SsgiDenoiseInputTexture, sampleCoord);
+    gs_SsgiGatherLighting[groupIndex] = SSGI_LOAD(_DenoiseInputTexture, sampleCoord);
 
-    uint2 fullResCoord = min((uint2)((float2)sampleCoord * _SsgiInvResolutionMultiplier), (uint2)_SsgiScreenSize.xy - 1u);
-    gs_SsgiGatherDepth[groupIndex] = SSGI_LOAD(_SsgiDepthTexture, fullResCoord);
+    uint2 fullResCoord = min((uint2)((float2)sampleCoord * _DenoiserResolutionMultiplierVals.y), (uint2)_SsgiScreenSize.xy - 1u);
+    gs_SsgiGatherDepth[groupIndex] = SSGI_LOAD(_DepthTexture, fullResCoord);
 }
 
 uint SsgiOffsetToLDSAddress(uint2 groupThreadId, int2 offset)
@@ -187,5 +195,5 @@ void GatherColor(uint3 centerCoord : SV_DispatchThreadID, int groupIndex : SV_Gr
         gs_SsgiGatherLighting[ldsIdx0], gs_SsgiGatherLighting[ldsIdx1],
         gs_SsgiGatherLighting[ldsIdx2], gs_SsgiGatherLighting[ldsIdx3]);
 
-    SSGI_STORE(_SsgiDenoiseOutputTextureRW, centerCoord.xy, result);
+    SSGI_STORE(_DenoiseOutputTextureRW, centerCoord.xy, result);
 }

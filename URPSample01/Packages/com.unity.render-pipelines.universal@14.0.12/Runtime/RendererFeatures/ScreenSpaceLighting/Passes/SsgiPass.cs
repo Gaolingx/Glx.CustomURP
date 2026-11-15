@@ -331,12 +331,13 @@ namespace UnityEngine.Rendering.Universal
                 PushShaderVariables(cmd, temporalCompute, m_ShaderVariables);
 
                 var validateKernel = temporalCompute.FindKernel("ValidateHistory");
-                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.SsgiDepthTexture, depthTexture);
-                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.SsgiNormalTexture, normalTexture);
-                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.SsgiMotionTexture, motionTexture);
-                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.SsgiPreviousDepthTexture, m_History.readPreviousDepth);
-                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.SsgiPreviousNormalTexture, m_History.readPreviousNormals);
-                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.SsgiValidationTextureRW, m_History.ssgiValidation);
+                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
+                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.DenoiseNormalTexture, normalTexture);
+                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.DenoiseMotionTexture, motionTexture);
+                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.HistoryDepthTexture, m_History.readPreviousDepth);
+                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.HistoryNormalTexture, m_History.readPreviousNormals);
+                cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.ValidationBufferRW, m_History.ssgiValidation);
+                cmd.SetComputeFloatParam(temporalCompute, ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent, m_ShaderVariables._SsgiDenoiserParams.x);
                 DispatchCompute(cmd, temporalCompute, validateKernel, screenGroupsX, screenGroupsY, viewCount);
 #if UNITY_EDITOR
                 s_EditorValidationDispatchCount++;
@@ -359,20 +360,23 @@ namespace UnityEngine.Rendering.Universal
                     ComputePixelSpreadTangent(cameraData.camera.fieldOfView, traceWidth, traceHeight));
                 PushShaderVariables(cmd, temporalCompute, m_ShaderVariables);
 
-                var accumulateKernel = temporalCompute.FindKernel("TemporalAccumulation");
-                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiDepthTexture, depthTexture);
-                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiMotionTexture, motionTexture);
-                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiValidationTextureRW, m_History.ssgiValidation);
-                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiDenoiseInputTexture, signal);
-                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiHistoryColorTexture, m_History.GetSsgiHistoryHF(m_History.ssgiReadSlot));
-                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiHistorySampleCountTexture, m_History.GetSsgiSampleCountHF(m_History.ssgiReadSlot));
-                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiAccumulationTextureRW, m_History.ssgiAccumulation);
-                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiOutputHistoryTextureRW, m_History.GetSsgiHistoryHF(m_History.ssgiWriteSlot));
-                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiOutputSampleCountTextureRW, m_History.GetSsgiSampleCountHF(m_History.ssgiWriteSlot));
+                var accumulateKernel = temporalCompute.FindKernel("TemporalAccumulationColor");
+                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
+                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.DenoiseMotionTexture, motionTexture);
+                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.ValidationBuffer, m_History.ssgiValidation);
+                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, signal);
+                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistoryBuffer, m_History.GetSsgiHistoryHF(m_History.ssgiReadSlot));
+                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountTexture, m_History.GetSsgiSampleCountHF(m_History.ssgiReadSlot));
+                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.AccumulationOutputTextureRW, m_History.ssgiAccumulation);
+                cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountRW, m_History.GetSsgiSampleCountHF(m_History.ssgiWriteSlot));
+                BindTemporalFilterScalars(cmd, temporalCompute);
                 DispatchCompute(cmd, temporalCompute, accumulateKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR
                 s_EditorAccumulationDispatchCount++;
 #endif
+
+                // HDRP CopyHistory: the accumulated signal becomes next frame's history.
+                DispatchCopyHistory(cmd, temporalCompute, m_History.ssgiAccumulation, m_History.GetSsgiHistoryHF(m_History.ssgiWriteSlot), traceWidth, traceHeight, viewCount);
 
                 signal = m_History.ssgiAccumulation;
             }
@@ -393,15 +397,12 @@ namespace UnityEngine.Rendering.Universal
                     thicknessBias,
                     lowResPercentage,
                     ComputePixelSpreadTangent(cameraData.camera.fieldOfView, traceWidth, traceHeight));
-                m_ShaderVariables._SsgiTemporalParams.z = settings.denoiserRadius.value;
-                m_ShaderVariables._SsgiTemporalParams.w = secondPass ? 1.0f : 0.0f;
-                m_ShaderVariables._SsgiDenoiserParams.y = -1.0f;
-                m_ShaderVariables._SsgiDenoiserParams.z = halfResolutionDenoise ? 1.0f : 0.0f;
                 PushShaderVariables(cmd, denoiserCompute, m_ShaderVariables);
 
                 DispatchPointDistribution(cmd, denoiserCompute);
                 RTHandle denoiseOutput = halfResolutionDenoise ? m_History.ssgiDenoiseIntermediate : m_History.ssgiDenoisedHF;
-                DispatchDiffuseDenoise(cmd, denoiserCompute, depthTexture, normalTexture, signal, denoiseOutput, traceWidth, traceHeight, viewCount);
+                DispatchDiffuseDenoise(cmd, denoiserCompute, depthTexture, normalTexture, signal, denoiseOutput, traceWidth, traceHeight, viewCount,
+                    settings.denoiserRadius.value, -1, halfResolutionDenoise);
                 if (halfResolutionDenoise)
                     DispatchDiffuseGather(cmd, denoiserCompute, depthTexture, denoiseOutput, m_History.ssgiDenoisedHF, traceWidth, traceHeight, viewCount);
                 signal = m_History.ssgiDenoisedHF;
@@ -410,30 +411,27 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Second (low frequency) temporal and spatial pass. It accumulates the first pass
                     // result and runs a smaller radius filter, matching the HDRP two pass schedule.
-                    var accumulateKernel = temporalCompute.FindKernel("TemporalAccumulation");
-                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiDepthTexture, depthTexture);
-                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiMotionTexture, motionTexture);
-                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiValidationTextureRW, m_History.ssgiValidation);
-                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiDenoiseInputTexture, signal);
-                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiHistoryColorTexture, m_History.GetSsgiHistoryLF(m_History.ssgiReadSlot));
-                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiHistorySampleCountTexture, m_History.GetSsgiSampleCountLF(m_History.ssgiReadSlot));
-                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiAccumulationTextureRW, m_History.ssgiAccumulation);
-                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiOutputHistoryTextureRW, m_History.GetSsgiHistoryLF(m_History.ssgiWriteSlot));
-                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.SsgiOutputSampleCountTextureRW, m_History.GetSsgiSampleCountLF(m_History.ssgiWriteSlot));
+                    var accumulateKernel = temporalCompute.FindKernel("TemporalAccumulationColor");
+                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
+                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.DenoiseMotionTexture, motionTexture);
+                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.ValidationBuffer, m_History.ssgiValidation);
+                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, signal);
+                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistoryBuffer, m_History.GetSsgiHistoryLF(m_History.ssgiReadSlot));
+                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountTexture, m_History.GetSsgiSampleCountLF(m_History.ssgiReadSlot));
+                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.AccumulationOutputTextureRW, m_History.ssgiAccumulation);
+                    cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountRW, m_History.GetSsgiSampleCountLF(m_History.ssgiWriteSlot));
+                    BindTemporalFilterScalars(cmd, temporalCompute);
                     DispatchCompute(cmd, temporalCompute, accumulateKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR
                     s_EditorAccumulationDispatchCount++;
 #endif
 
-                    m_ShaderVariables._SsgiTemporalParams.z = settings.denoiserRadius.value * 0.5f;
-                    m_ShaderVariables._SsgiTemporalParams.w = 0.0f;
+                    DispatchCopyHistory(cmd, temporalCompute, m_History.ssgiAccumulation, m_History.GetSsgiHistoryLF(m_History.ssgiWriteSlot), traceWidth, traceHeight, viewCount);
+
                     // HDRP jitter period is frameIndex % 4: the 64 point distribution is four
                     // 16-sample groups, so a larger period would read past the buffer.
-                    m_ShaderVariables._SsgiDenoiserParams.y = frameIndex % 4;
-                    m_ShaderVariables._SsgiDenoiserParams.z = halfResolutionDenoise ? 1.0f : 0.0f;
-                    PushShaderVariables(cmd, denoiserCompute, m_ShaderVariables);
-
-                    DispatchDiffuseDenoise(cmd, denoiserCompute, depthTexture, normalTexture, m_History.ssgiAccumulation, denoiseOutput, traceWidth, traceHeight, viewCount);
+                    DispatchDiffuseDenoise(cmd, denoiserCompute, depthTexture, normalTexture, m_History.ssgiAccumulation, denoiseOutput, traceWidth, traceHeight, viewCount,
+                        settings.denoiserRadius.value * 0.5f, frameIndex % 4, halfResolutionDenoise);
                     if (halfResolutionDenoise)
                         DispatchDiffuseGather(cmd, denoiserCompute, depthTexture, denoiseOutput, m_History.ssgiDenoisedLF, traceWidth, traceHeight, viewCount);
                     signal = m_History.ssgiDenoisedLF;
@@ -485,13 +483,21 @@ namespace UnityEngine.Rendering.Universal
             RTHandle output,
             int traceWidth,
             int traceHeight,
-            int viewCount)
+            int viewCount,
+            float filterRadius,
+            int jitterFramePeriod,
+            bool halfResolutionFilter)
         {
             var kernel = denoiserCompute.FindKernel("BilateralFilterColor");
-            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.SsgiDepthTexture, depthTexture);
-            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.SsgiNormalTexture, normalTexture);
-            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.SsgiDenoiseInputTexture, input);
-            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.SsgiDenoiseOutputTextureRW, output);
+            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
+            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseNormalTexture, normalTexture);
+            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, input);
+            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, output);
+            cmd.SetComputeBufferParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.PointDistribution, m_History.ssgiPointDistribution);
+            cmd.SetComputeFloatParam(denoiserCompute, ScreenSpaceLightingShaderIDs.DenoiserFilterRadius, filterRadius);
+            cmd.SetComputeFloatParam(denoiserCompute, ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent, m_ShaderVariables._SsgiDenoiserParams.x);
+            cmd.SetComputeIntParam(denoiserCompute, ScreenSpaceLightingShaderIDs.JitterFramePeriod, jitterFramePeriod);
+            cmd.SetComputeIntParam(denoiserCompute, ScreenSpaceLightingShaderIDs.HalfResolutionFilter, halfResolutionFilter ? 1 : 0);
             DispatchCompute(cmd, denoiserCompute, kernel, DivideRoundUp(traceWidth, k_TileSize), DivideRoundUp(traceHeight, k_TileSize), viewCount);
 #if UNITY_EDITOR
             s_EditorDiffuseDispatchCount++;
@@ -510,27 +516,57 @@ namespace UnityEngine.Rendering.Universal
             int viewCount)
         {
             var kernel = denoiserCompute.FindKernel("GatherColor");
-            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.SsgiDepthTexture, depthTexture);
-            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.SsgiDenoiseInputTexture, input);
-            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.SsgiDenoiseOutputTextureRW, output);
+            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
+            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, input);
+            cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, output);
             DispatchCompute(cmd, denoiserCompute, kernel, DivideRoundUp(traceWidth, k_TileSize), DivideRoundUp(traceHeight, k_TileSize), viewCount);
 #if UNITY_EDITOR
             s_EditorGatherDispatchCount++;
 #endif
         }
 
+        // HDRP's temporal filter constants that are small per-pass scalars rather than part of the
+        // exactly packed SSGI constant buffer.
+        void BindTemporalFilterScalars(CommandBuffer cmd, ComputeShader temporalCompute)
+        {
+            cmd.SetComputeFloatParam(temporalCompute, ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent, m_ShaderVariables._SsgiDenoiserParams.x);
+            // SSGI has no intersection velocity buffer and URP has no exposure stage at this point,
+            // so the HDRP rejection / exposure paths stay disabled, exactly like HDRP's SSGI caller
+            // (which also passes false for both rejections).
+            cmd.SetComputeIntParam(temporalCompute, ScreenSpaceLightingShaderIDs.ReceiverMotionRejection, 0);
+            cmd.SetComputeIntParam(temporalCompute, ScreenSpaceLightingShaderIDs.OccluderMotionRejection, 0);
+            cmd.SetComputeIntParam(temporalCompute, ScreenSpaceLightingShaderIDs.EnableExposureControl, 0);
+            cmd.SetComputeFloatParam(temporalCompute, ScreenSpaceLightingShaderIDs.PreviousExposureMultiplier, 1.0f);
+            cmd.SetComputeFloatParam(temporalCompute, ScreenSpaceLightingShaderIDs.CurrentExposureMultiplier, 1.0f);
+        }
+
+        void DispatchCopyHistory(
+            CommandBuffer cmd,
+            ComputeShader temporalCompute,
+            RTHandle input,
+            RTHandle history,
+            int traceWidth,
+            int traceHeight,
+            int viewCount)
+        {
+            var kernel = temporalCompute.FindKernel("CopyHistory");
+            cmd.SetComputeTextureParam(temporalCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, input);
+            cmd.SetComputeTextureParam(temporalCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, history);
+            DispatchCompute(cmd, temporalCompute, kernel, DivideRoundUp(traceWidth, k_TileSize), DivideRoundUp(traceHeight, k_TileSize), viewCount);
+        }
+
         void DispatchPointDistribution(CommandBuffer cmd, ComputeShader denoiserCompute)
         {
             bool generate = m_PointDistributionGeneration != m_History.ssgiResourceGeneration;
             var filterKernel = denoiserCompute.FindKernel("BilateralFilterColor");
-            cmd.SetComputeBufferParam(denoiserCompute, filterKernel, ScreenSpaceLightingShaderIDs.SsgiPointDistributionRW, m_History.ssgiPointDistribution);
+            cmd.SetComputeBufferParam(denoiserCompute, filterKernel, ScreenSpaceLightingShaderIDs.PointDistribution, m_History.ssgiPointDistribution);
 
             if (!generate)
                 return;
 
             m_PointDistributionGeneration = m_History.ssgiResourceGeneration;
             var kernel = denoiserCompute.FindKernel("GeneratePointDistribution");
-            cmd.SetComputeBufferParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.SsgiPointDistributionRW, m_History.ssgiPointDistribution);
+            cmd.SetComputeBufferParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.PointDistributionRW, m_History.ssgiPointDistribution);
             BindSsgiBlueNoise(cmd, denoiserCompute, kernel, kernel);
             DispatchCompute(cmd, denoiserCompute, kernel, k_PointDistributionCount, 1, 1);
 #if UNITY_EDITOR
