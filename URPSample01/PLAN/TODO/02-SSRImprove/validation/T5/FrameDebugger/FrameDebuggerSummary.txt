@@ -1,0 +1,29 @@
+SSR T5 Frame Debugger summary
+utc=2026-11-15T20:01:35.4713501Z unity=2022.3.62f1 device=NVIDIA GeForce RTX 5060 Ti (Direct3D11)
+scene=Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity
+volume: ScreenSpaceReflection forced to PBRAccumulation, fullResolution=1, minSmoothness=0.5, denoiserRadius=8 (in-memory clone; asset untouched)
+pipelines: SslT8{Forward,ForwardPlus,Deferred}
+
+Forward: events=88
+  SSL depth pyramid indices: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+  SSGI indices: [19, 20, 21, 22, 23, 24, 25] (count 7)
+  SSR indices: [26, 27, 28, 29, 30, 31] (count 6 = trace + reproject + TemporalAccumulation + CopyHistory + BilateralFilterH + BilateralFilterV)
+  opaque/GBuffer indices: [32]
+  order depth<ssgi<ssr<opaque: True
+  SSR denoiser dispatch count == 6: True
+ForwardPlus: events=88
+  SSL depth pyramid indices: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+  SSGI indices: [19, 20, 21, 22, 23, 24, 25] (count 7)
+  SSR indices: [26, 27, 28, 29, 30, 31] (count 6 = trace + reproject + TemporalAccumulation + CopyHistory + BilateralFilterH + BilateralFilterV)
+  opaque/GBuffer indices: [32]
+  order depth<ssgi<ssr<opaque: True
+  SSR denoiser dispatch count == 6: True
+Deferred: events=99
+  SSL depth pyramid indices: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+  SSGI indices: [20, 21, 22, 23, 24, 25, 26] (count 7)
+  SSR indices: [27, 28, 29, 30, 31, 32] (count 6 = trace + reproject + TemporalAccumulation + CopyHistory + BilateralFilterH + BilateralFilterV)
+  opaque/GBuffer indices: [33, 36, 37, 38, 39, 40, 41, 42]
+  order depth<ssgi<ssr<opaque: True
+  SSR denoiser dispatch count == 6: True
+
+RESULT: PASS

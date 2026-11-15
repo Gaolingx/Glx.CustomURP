@@ -1,7 +1,7 @@
 # 02-SSRImprove 交接
 
 > 更新：2026-11-16
-> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约、T1 `ReflectionDenoiser` 移植、T2 mapping 资源、T3 半分辨率、T4 参数弃用与清理完成（2026-11-16）；T5 未开始。**
+> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约、T1 `ReflectionDenoiser` 移植、T2 mapping 资源、T3 半分辨率、T4 参数弃用与清理、T5 三渲染器实拍与 Frame Debugger 完成（2026-11-16）；T6 未开始。**
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -314,6 +314,62 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - 数值检查：无 NaN/Inf/负值；intensity=0 与首帧恢复基线。
 - 证据保存到 `PLAN/TODO/02-SSRImprove/validation/T5/`，完成后随目录归档。
 
+#### T5 结论（2026-11-16，已完成）
+
+**工具**
+
+| 项 | 内容 |
+|---|---|
+| 新增脚本 | `Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingSsrT5Verification.cs`：三渲染器 Reference / Approximation / PBR 全分辨率 / PBR 半分辨率实拍 + 数值断言；复用 T8 的 `SslT8{Mode}Renderer/Pipeline` 与 T3 验证场景，并在运行时用 `ScreenSpaceLightingResourceLocator.AssignDefaults` 补齐旧序列化资源里缺失的 `ssrReflectionDenoiserCompute`（不改写资产） |
+| 反射机位 | 镜面地板 + 自发光背板 + 4 个 smoothness 0.95/0.80/0.65/0.40 的金属球 + 非金属光滑球，覆盖 LUT 半径梯度 |
+| Frame Debugger | `ScreenSpaceLightingFrameDebuggerCapture` 新增 `--ssl-fd-ssr-pbr`（运行时克隆 Volume Profile 并切到 PBR，不写资产）与 SSL 资源补全 |
+
+**三渲染器数值结果**（1280×720，32 帧预热；`validation/T5/T5Verification.json`）
+
+| 检查 | Forward | ForwardPlus | Deferred |
+|---|---|---|---|
+| Reference / Approximation / PBR 全 / PBR 半 是否产出 | ✅ | ✅ | ✅ |
+| miss 像素与 probe 基线（PBR 全分辨率） | 825,556 像素，0 差异，max 0 | 同 | 同 |
+| miss 像素与 probe 基线（Approximation） | 0 差异 | 0 差异 | 0 差异 |
+| `intensity=0` 恢复基线 | 0 像素差异 | 0 | 0 |
+| 历史 reset 后首帧恢复基线 | 0 像素差异 | 0 | 0 |
+| NaN / Inf / 负 radiance | 0 | 0 | 0 |
+| PBR 全分辨率 dispatch（trace/reproject/temporal/copy/H/V） | 30/30/30/30/30/30 | 同 | 同 |
+| 全分辨率 kernel / 半径 | `BilateralFilterV_FR` / 8 | 同 | 同 |
+| 半分辨率 kernel / 半径 / upsample | `BilateralFilterV_HR` / 4 / 30 | 同 | 同 |
+| 半分辨率历史尺寸 | 640×360（generation 2） | 同 | 同 |
+| 算法切换 / 相机 cut reset | 2 / 2 | 2 / 2 | 2 / 2 |
+| 全 vs 半 tone-mapped 可见差异（>0.2） | 312 px（0.034%） | 312 px | 317 px（0.034%） |
+| 运动停止 48 帧后 vs reset 基线 | 7 px >0.02，max tone 0.040 | 同 | 同 |
+
+- 全/半分辨率原始最大差 43.7（HDR 高光），但 tone-mapped 超过 0.2 的仅 0.034% 像素；两张 PNG 目视一致。
+- “PBR 稳定帧与旧实现对比”无法执行：旧累积路径已在 T1 删除。改为 Approximation vs PBR、全 vs 半分辨率与 reset 基线对比，差异集中在反射区域。
+- 动态用例：运动 12 帧无 NaN/Inf；停止后不再 reset、收敛 48 帧的结果与 reset 基线仅 7 个像素超过 0.02（0.0008%），无拖影。
+- Lit / ComplexLit 强制重导入消息数 0（`LitReimportCheck.txt`）。
+
+**Frame Debugger**（`validation/T5/FrameDebugger/FrameDebuggerSummary.txt`）
+
+| 渲染器 | 事件数 | 顺序（索引） |
+|---|---|---|
+| Forward / Forward+ | 88 | MotionVectors(5) → SSL Depth Pyramid(7–18) → SSGI(19–25) → SSR(26–31) → DrawOpaque(32) |
+| Deferred | 99 | MotionVectors(9) → Depth Pyramid(8–19) → SSGI(20–26) → SSR(27–32) → Render GBuffer(33) → Deferred Shading(36–43) |
+
+- PBR 模式下 SSR 事件为 **6**（trace、reproject、TemporalAccumulation、CopyHistory、BilateralFilterH、BilateralFilterV），Approximation 时只有 2。三个渲染器一致。
+- T5 计划文字里的 `205/206/210/250` 是 HDRP 事件编号；URP 的 Frame Debugger 不暴露数字 ID，这里记录名称与索引，顺序关系 `Depth Pyramid → SSGI → SSR → GBuffer/opaque` 与计划一致。
+
+**证据**（`validation/T5/`）
+
+- `T5Verification.json`：三渲染器全部 `passed=true`、`completed=true`。
+- 24 张 PNG：`T5_{Forward,ForwardPlus,Deferred}_{Reference,Approximation,PbrFullRes,PbrHalfRes,PbrIntensityZero,PbrMoving,PbrSettled,CameraCut}.png`。
+- `FrameDebugger/FrameDebuggerReport.json` + 每渲染器 JSON + `FrameDebuggerSummary.txt`（RESULT: PASS）。
+- `LitReimportCheck.txt`、`UnitySsrT5Verification.log`、`UnityLitReimportCheck.log`、`UnityEditModeTests.xml`（419 passed）。
+- 未做：XR 播放器（T13 已历史覆盖，但新的 PBR 降噪半分辨率路径没有在 XR 下重跑）、HDRP 同场景参照图。
+
+**运行注意**
+
+- Frame Debugger 采集需要 GUI 编辑器（不带 `-batchmode`），且会进入 Play Mode；若上一次进程残留会占项目锁，新实例会以 0 直接退出且不写产物，重跑前确认 `tasklist | grep Unity.exe` 为空。
+- 旧 `ScreenSpaceLightingT8Verification` 仍引用已删除的 speed rejection kernel 与 `accumulationFactor`，其断言不再成立；T5 脚本取代它做 PBR 验证，T6 可考虑删除或降级为历史脚本。
+
 ### T6：收尾（0.5 天）
 
 - 更新 `T14KnownDifferences.md`：SSR 降噪替换、mapping 资源、URP 无 stencil/曝光差异。
@@ -331,23 +387,23 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - [x] EditMode 全量通过（T4 后 419 passed）。
 - [x] `ScreenSpaceReflections.compute` 仅剩 trace/reproject/`DebugSsrParams`，无 accumulate kernel、`_SsrAccum*`、`ClearBuffer2D` 残留（T4 证据）。
 - [x] 旧 Volume 参数 `accumulationFactor` 与 `speed*` 已 `[Obsolete]` 且不再被 PBR 路径读取；`biasFactor` 仍驱动 trace（T4 证据）。
-- [ ] `git log --follow` 确认无移动文件丢 GUID；T5 补 Lit/ComplexLit 重导入。
+- [x] `git log --follow` 确认移动的降噪文件保留历史；Lit / ComplexLit 强制重导入消息数 0（T5 证据）。
 
 ### 4.2 功能/回归
 
-- [ ] Approximation 与 PBR 两种算法可切换，切算法重置历史（reset 计数递增）。
-- [ ] 相机 cut / 分辨率变化 / 渲染缩放触发历史重置。
-- [ ] Forward / Forward+ / Deferred 三路径都可见；Deferred 仍走 DepthNormals prepass（decal 前数据，已知差异）。
-- [ ] `intensity=0` 与关闭效果逐字节恢复基线；miss 像素与 probe 基线逐像素一致。
-- [ ] 静态相机 32 帧后收敛；动态相机/物体无拖影；无 NaN/Inf/负值。
-- [ ] 半分辨率开关无跳变；切换后 PBR 资源重分配且历史重置（T5 实拍 + reset 计数）。
+- [x] Approximation 与 PBR 两种算法可切换，切算法重置历史（T5：两次切换 reset=2，三渲染器一致）。
+- [x] 相机 cut / 分辨率变化 / 渲染缩放触发历史重置（T5：camera cut reset=2；分辨率/缩放由 T3 资源键与重置单测覆盖）。
+- [x] Forward / Forward+ / Deferred 三路径都可见；Deferred 仍走 DepthNormals prepass（decal 前数据，已知差异；T5 实拍与 Frame Debugger）。
+- [x] `intensity=0` 与关闭效果逐字节恢复基线；miss 像素与 probe 基线逐像素一致（T5：0 差异，miss 825,556 像素 max 0）。
+- [x] 静态相机 32 帧后收敛；动态相机/物体无拖影；无 NaN/Inf/负值（T5：运动后 48 帧收敛到 reset 基线，仅 7 像素 >0.02）。
+- [x] 半分辨率开关无跳变；切换后 PBR 资源重分配且历史重置（T5：tone-mapped 可见差异 0.034%，history 640×360、generation 2、reset 计数递增）。
 
 ### 4.3 视觉/数值
 
-- [ ] 光滑金属球反射与 HDRP 参照对齐（同一场景、同一曝光）。
+- [ ] 光滑金属球反射与 HDRP 参照对齐（同一场景、同一曝光）。本轮无 HDRP 同场景截图，保留为 T6 可选项。
 - [x] `ReflectionKernelMapping` 已随包提供，GPU 回读验证半径沿 roughness 单调不减（T2 证据）。
-- [ ] 粗糙度梯度实拍无明显台阶；资源缺失时白纹理回退不产生可见跳变。
-- [ ] 半分辨率开关无明显跳变；clear coat 的 base/coat 层次不双重计数。
+- [x] 粗糙度梯度实拍无明显台阶；资源缺失时白纹理回退不产生可见跳变（T5：0.95/0.80/0.65/0.40 四档金属球实拍；回退路径由 T2 单测锁定）。
+- [x] 半分辨率开关无明显跳变（T5：目视一致，0.034% 像素 tone-mapped 差 >0.2）；clear coat 的 base/coat 层次不双重计数仍由 T9 历史证据覆盖，本轮未重跑。
 
 ### 4.4 证据清单（完成后必须存在）
 
@@ -369,10 +425,16 @@ PLAN/TODO/02-SSRImprove/validation/
 ├─ T4/UnityShaderCheck.log            # 批处理编译日志
 ├─ T4/UnityEditModeTests.xml          # EditMode 结果（419 passed）
 ├─ T4/UnityEditMode.log               # EditMode 日志
-├─ T5/T7Verification.json             # Approximation 三渲染器
-├─ T5/T8Verification.json             # PBR 三渲染器
-├─ T5/FrameDebuggerReport.json        # Pass 顺序
-└─ T5/*.png                           # Reference/Approximation/PBR/动态用例
+├─ T5/T5Verification.json             # 三渲染器 reference/Approximation/PBR 全/半 + 数值断言
+├─ T5/T5_<Mode>_<State>.png           # 24 张实拍（Reference/Approximation/PbrFullRes/PbrHalfRes/PbrIntensityZero/PbrMoving/PbrSettled/CameraCut）
+├─ T5/FrameDebugger/FrameDebuggerReport.json      # 三渲染器事件列表
+├─ T5/FrameDebugger/FrameDebuggerSummary.txt      # 顺序与 SSR=6 dispatch 断言
+├─ T5/FrameDebugger/{Forward,ForwardPlus,Deferred}.json
+├─ T5/LitReimportCheck.txt            # Lit/ComplexLit 强制重导入
+├─ T5/UnitySsrT5Verification.log      # 实拍日志
+├─ T5/UnityLitReimportCheck.log       # 重导入日志
+├─ T5/UnityEditModeTests.xml          # EditMode 结果（419 passed）
+└─ T5/UnityEditMode.log               # EditMode 日志
 ```
 
 ### 4.5 复现命令（关闭其他 Unity 编辑器后执行）
@@ -389,6 +451,23 @@ PLAN/TODO/02-SSRImprove/validation/
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" -runTests -testPlatform EditMode \
   -testResults "<abs>/validation/T1/UnityEditModeTests.xml" \
   -logFile "<abs>/validation/T1/UnityEditMode.log"
+
+# T5 三渲染器实拍（GUI 或 batchmode 均可；退出由脚本 EditorApplication.Exit 控制）
+"D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \
+  -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
+  -executeMethod ScreenSpaceLightingSsrT5Verification.RunSsrT5Verification -quit \
+  -logFile "<abs>/validation/T5/UnitySsrT5Verification.log"
+
+# T5 Frame Debugger（必须 GUI，不带 -batchmode；确保没有残留 Unity 进程）
+"D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" \
+  -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
+  -executeMethod ScreenSpaceLightingFrameDebuggerCapture.Capture \
+  -logFile "<abs>/validation/T5/FrameDebugger/UnitySsrT5FrameDebugger.log" \
+  --ssl-fd-output "PLAN/TODO/02-SSRImprove/validation/T5/FrameDebugger" \
+  --ssl-fd-names "Forward,ForwardPlus,Deferred" \
+  --ssl-fd-pipelines "Assets/Tests/ScreenSpaceLighting/Renderers/SslT8ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT8ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT8DeferredPipeline.asset" \
+  --ssl-fd-scene "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity" \
+  --ssl-fd-ssr-pbr 1
 ```
 
 > Unity 批处理会重写 `ProjectSettings/{Graphics,Quality,Project}Settings.asset`，跑完必须按既有惯例 `git checkout --` 还原。
@@ -400,9 +479,12 @@ PLAN/TODO/02-SSRImprove/validation/
 1. **没有 RT 路径**：HDRP 的 `singleReflectionBounce`、`affectSmoothSurfaces`、`roughnessBasedDenoising` 默认值是为 RT 设计的，URP 只有屏幕空间，需在 T0 重新定义语义并在 Tooltip 说明。
 2. **历史布局**：若坚持 weight-in-alpha，反射的 sample count 必须像 SSGI 一样单独存；不要复用 `history.w`，否则会和权重冲突。
 3. **半分辨率 + XR**：两套宏组合的 variant 数量增加，构建时间与包体要观察。
-4. **旧的 T7/T8 证据**：本轮 SSGI 默认 `rayMiss` 已改变，SSR 改造也会改变 PBR 稳定帧；重跑时以“同版本、同场景、同曝光”的新基线为准，不直接对比旧 PNG。
+4. **旧的 T7/T8 证据与脚本**：本轮 SSGI 默认 `rayMiss` 已改变，SSR 改造也改变了 PBR 稳定帧；`ScreenSpaceLightingT8Verification`（旧 PBR 累积 + speed rejection）已失效，T5 由 `ScreenSpaceLightingSsrT5Verification` 取代。旧 PNG 只作历史参考，不直接对比。
 5. **`ReflectionKernelMapping.png`** 是 HDRP 资产，复制后必须沿用 HDRP `.meta` 的导入设置（sRGB + mipmap + DXT1），否则 roughness 半径曲线会偏移（T2 已锁定）。
 6. **构建保留**：新增 `Resources` 资源会进入所有构建；若需 strip，另立任务，不在本轮顺手做。
+7. **验证资产陈旧**：T2–T12 的 `SslT*Renderer.asset` 序列化时还没有 `ssrReflectionDenoiserCompute`；T5 与 Frame Debugger 均在内存里调用 `AssignDefaults` 补齐，未改写资产。若要在编辑器里手动检查 PBR，需先选中 Feature 让 Inspector 重新赋值或运行一次 T5 脚本。
+8. **Frame Debugger 运行约束**：需要 GUI 编辑器并进入 Play Mode；残留 Unity 进程会占项目锁使新实例直接退出（exit 0、无产物）。采集前确认无 Unity 进程。
+9. **半分辨率 HDR 高光**：全/半分辨率在极亮、细小的反射上可差 40+（线性），属于分辨率损失而非上采样错误；验收用 tone-mapped 可见面积（<0.5% 像素差 >0.2）判断。
 
 ---
 
@@ -415,5 +497,8 @@ PLAN/TODO/02-SSRImprove/validation/
 - SSR 调度：`URP/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs`
 - SSR shader：`URP/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute`
 - 历史/资源：`URP/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingHistory.cs`、`ScreenSpaceLightingResources.cs`、`ScreenSpaceLightingShaderIDs.cs`
+- SSR T5 验证：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingSsrT5Verification.cs`
+- Frame Debugger 采集：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingFrameDebuggerCapture.cs`（`--ssl-fd-ssr-pbr`）
+- T5 证据：`PLAN/TODO/02-SSRImprove/validation/T5/`（JSON、24 张 PNG、FrameDebugger 目录）
 - HDRP 参照：`HDRP/Runtime/RenderPipeline/Raytracing/{HDReflectionDenoiser.cs,Shaders/Denoising/ReflectionDenoiser.compute}`、`HDTemporalFilter.cs`、`HDDiffuseDenoiser.cs`
 - HDRP mapping 资源：`HDRP/Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png`

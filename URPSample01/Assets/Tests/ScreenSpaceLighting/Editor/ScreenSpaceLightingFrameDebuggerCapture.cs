@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -19,6 +20,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
         "Assets/Tests/ScreenSpaceLighting/Renderers/SslDeferredPipeline.asset"
     };
     static readonly BindingFlags StaticFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+    static readonly BindingFlags InstanceFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
     const int ProbeWidth = 320;
     const int ProbeHeight = 180;
 
@@ -41,6 +43,9 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
     static int exitCode;
     static int timeoutFrames;
     static string lastDiagnostics;
+    static bool ssrPbrRequested;
+    static bool volumeOverridden;
+    static VolumeProfile clonedProfile;
 
     [MenuItem("Tests/Screen Space Lighting/Capture Frame Debugger")]
     public static void Capture()
@@ -57,6 +62,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
         var namesArgument = GetArgument("--ssl-fd-names");
         var pipelinesArgument = GetArgument("--ssl-fd-pipelines");
         var sceneArgument = GetArgument("--ssl-fd-scene") ?? ScreenSpaceLightingBaselineSetup.ScenePath;
+        ssrPbrRequested = GetArgument("--ssl-fd-ssr-pbr") != null;
         if (namesArgument != null)
             modeNames = namesArgument.Split(',');
         if (pipelinesArgument != null)
@@ -96,6 +102,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
         EditorSettings.enterPlayModeOptionsEnabled = true;
         EditorSettings.enterPlayModeOptions = previousEnterPlayModeOptions | EnterPlayModeOptions.DisableDomainReload;
         EditorApplication.update += Update;
+        Debug.Log($"[SslFd] capture start output={outputRoot} modes={string.Join(",", modeNames)} pbr={ssrPbrRequested}");
         EditorApplication.EnterPlaymode();
     }
 
@@ -111,6 +118,9 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
             }
             if (!EditorApplication.isPlaying)
                 return;
+            ApplySsrPbrVolume();
+            if (waitFrames == 30)
+                Debug.Log("[SslFd] play mode detected, waiting for frames");
             if (timeoutFrames-- <= 0)
                 throw new TimeoutException("Timed out while waiting for Frame Debugger events. " + lastDiagnostics);
             if (waitFrames-- > 0)
@@ -125,6 +135,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
                 var receivingRemote = (bool)utilityType.GetProperty("receivingRemoteFrameEventData", StaticFlags).GetValue(null);
                 var remoteGuid = (int)utilityType.GetMethod("GetRemotePlayerGUID", StaticFlags).Invoke(null, null);
                 lastDiagnostics = $"count={count}, locallySupported={locallySupported}, receivingRemote={receivingRemote}, remoteGuid={remoteGuid}, paused={EditorApplication.isPaused}, playing={EditorApplication.isPlaying}";
+                Debug.Log("[SslFd] no events yet: " + lastDiagnostics);
                 waitFrames = 10;
                 return;
             }
@@ -142,6 +153,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
                 mode.eventNames.Add((string)getName.Invoke(null, new object[] { i }));
             report.modes.Add(mode);
             File.WriteAllText(Path.Combine(outputRoot, modeNames[modeIndex] + ".json"), JsonUtility.ToJson(mode, true));
+            Debug.Log($"[SslFd] captured {mode.name} events={mode.eventCount}");
 
             modeIndex++;
             if (modeIndex < modeNames.Length)
@@ -170,6 +182,32 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
             finishing = true;
             EditorApplication.isPlaying = false;
         }
+    }
+
+    static void ApplySsrPbrVolume()
+    {
+        if (!ssrPbrRequested || volumeOverridden)
+            return;
+        var volumeObject = GameObject.Find("Baseline Volume");
+        var volume = volumeObject != null ? volumeObject.GetComponent<Volume>() : null;
+        if (volume == null || volume.sharedProfile == null)
+            return;
+
+        clonedProfile = UnityEngine.Object.Instantiate(volume.sharedProfile);
+        clonedProfile.name = volume.sharedProfile.name + " (SSR T5 Frame Debugger)";
+        var ssr = clonedProfile.components.OfType<ScreenSpaceReflection>().FirstOrDefault();
+        if (ssr != null)
+        {
+            ssr.enabled.Override(true);
+            ssr.usedAlgorithm.Override(ScreenSpaceReflectionAlgorithm.PBRAccumulation);
+            ssr.fullResolution.Override(true);
+            ssr.minSmoothness.Override(0.5f);
+            ssr.smoothnessFadeStart.Override(0.9f);
+            ssr.denoiserRadius.Override(8);
+        }
+
+        volume.sharedProfile = clonedProfile;
+        volumeOverridden = true;
     }
 
     static void OpenFrameDebugger()
@@ -214,6 +252,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
         var rendererData = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(rendererPath);
         if (rendererData == null)
             return;
+        EnsureSslFeatureResources(rendererData);
         foreach (var rendererFeature in rendererData.rendererFeatures)
         {
             if (rendererFeature is ScreenSpaceLightingPassProbeFeature probe)
@@ -223,6 +262,24 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
             }
         }
         ScreenSpaceLightingPassProbeFeature.probeTarget = probeTarget;
+    }
+
+    static void EnsureSslFeatureResources(UniversalRendererData rendererData)
+    {
+        var locator = typeof(UniversalRendererData).Assembly.GetType("UnityEngine.Rendering.Universal.ScreenSpaceLightingResourceLocator");
+        var assignDefaults = locator?.GetMethod("AssignDefaults", StaticFlags);
+        if (assignDefaults == null)
+            return;
+
+        // Verification renderers were serialized before the denoiser compute existed; fill the
+        // package defaults in memory so the PBR SSR passes can enqueue without rewriting the asset.
+        foreach (var feature in rendererData.rendererFeatures.OfType<ScreenSpaceLightingRendererFeature>())
+        {
+            var settings = feature.GetType().GetProperty("settings", InstanceFlags)?.GetValue(feature);
+            var resources = settings?.GetType().GetField("resources", InstanceFlags)?.GetValue(settings);
+            if (resources != null)
+                assignDefaults.Invoke(null, new[] { resources });
+        }
     }
 
     static void EnsureProbeResources()
@@ -258,6 +315,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
         try
         {
             SetFrameDebuggerEnabled(false);
+            DisposeClonedProfile();
             GraphicsSettings.defaultRenderPipeline = previousGraphicsPipeline;
             QualitySettings.renderPipeline = previousQualityPipeline;
             EditorSettings.enterPlayModeOptionsEnabled = previousEnterPlayModeOptionsEnabled;
@@ -278,6 +336,15 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
             exitCode = 3;
         }
         EditorApplication.Exit(exitCode);
+    }
+
+    static void DisposeClonedProfile()
+    {
+        if (clonedProfile != null)
+        {
+            UnityEngine.Object.DestroyImmediate(clonedProfile);
+            clonedProfile = null;
+        }
     }
 
     [Serializable]

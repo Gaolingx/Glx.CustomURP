@@ -1,0 +1,24 @@
+﻿IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/2D/Sprite-Lit-Default.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/2D/Sprite-Unlit-Default.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/2D/VFXSpriteLit.shadergraph messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/2D/VFXSpriteUnlit.shadergraph messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/BakedLit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/ComplexLit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Nature/SpeedTree8_PBRLit.shadergraph messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/SimpleLit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainDetailLit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitAdd.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitBase.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitBasemapGen.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Unlit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/Blit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/BlitHDROverlay.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/CoreBlit.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/CoreBlitColorAndDepth.shader messages=0
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/ComplexLit.shader messages=0
+EDITOR 2022.3.62f1
