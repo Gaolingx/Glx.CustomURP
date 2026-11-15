@@ -1,11 +1,20 @@
 # T14 known differences and limitations
 
+> Updated 2026-11-16 after the SSR reflection denoiser port (02-SSRImprove T1–T5). Items below are
+> deliberate URP adaptations or environment limits, not open bugs.
+
 - URP has no per-material proxy volume: refraction uses the nearest box-projected reflection probe AABB, found through CullingResults.visibleReflectionProbes with a scene lookup fallback.
 - Refraction samples the current opaque+sky color pyramid; HDRP's pre-refraction transparent ordering is not migrated, so transparents drawn after the opaque pass do not appear in refraction.
 - SSGI runs its diffuse denoiser and consumes the denoised output; HDRP's raw SSGI return path is not reproduced (intentional, recorded since T6).
-- The sample sequence uses IGN + R2 instead of HDRP blue-noise textures, so SSGI keeps a faint stipple at 1 spp after 32 warmup frames.
+- SSGI samples HDRP's three blue-noise LUTs, packaged under `Resources/SsgiBlueNoise`; if they are stripped the kernels fall back to IGN + R2 and can keep a faint stipple at 1 spp.
 - Deferred consumes DepthNormals prepass material data, i.e. decal-deformed normals/decal color are not visible to SSGI/SSR tracing.
 - Transparent SSR is Approximation-only and reprojects with hit-pixel and camera motion; URP 14 does not write transparent object motion, so moving transparent reflections can lag.
+- SSR PBR uses the ported HDRP `ReflectionDenoiser` (TemporalAccumulationFullRes/HalfRes, CopyHistory, separable BilateralFilterH/V_FR/HR) instead of the former eighteen accumulation kernels. URP keeps `(radiance, weight)` in the history colour and the sample count in a separate `R16_SFloat` buffer rather than HDRP's `history.w`; reprojection is validated inline (far depth, off-screen, world radius) plus the screen-space extension `dot(N, historyN) < 0.75`.
+- SSR has no object-motion stencil rejection and no exposure control: URP lacks the stencil bit, and the SSL stage runs before post exposure, so the reflection signal is pre-exposure and the exposure multipliers stay at 1.
+- `ReflectionKernelMapping.png` is shipped with HDRP's `.meta` (sRGB, mipmaps, DXT1) and sampled by `(NoV, roughness)`: smooth reflections get almost no spatial radius and rough ones reach the full `denoiserRadius`. If the asset is stripped the kernel receives a white texture and falls back to a fixed full radius.
+- Half resolution applies to PBR only (`fullResolution` off): trace, reprojection and denoising run at half the screen size, the history and sample counts follow that trace size, and the result is bilaterally upsampled with the SSGI `BilateralUpSampleColor`. Approximation keeps full-resolution 3×3 hole filling. Toggling reallocates PBR resources and resets the history.
+- `singleReflectionBounce`, `affectSmoothSurfaces` and `denoiserRadius` are re-interpreted without a ray-tracing path: a single bounce only enables roughness-based radius scaling, `affectSmoothSurfaces` controls the >0.99 smoothness early-out, and `denoiserRadius` is the maximum kernel radius (halved at half resolution).
+- `accumulationFactor` and `speedRejectionParam` / `speedRejectionScalerFactor` / `speedSmoothReject` / `speedSurfaceOnly` / `speedTargetOnly` / `enableWorldSpeedRejection` remain serialized for existing Volume overrides but are `[Obsolete]` and have no effect; `biasFactor` still biases the trace. The `SsrAccumulationSpeed` debug view now shows `SsrRaw`.
 - GTAO and Screen Space Lighting own separate packed Hi-Z buffers; the duplicate depth-pyramid memory is accepted instead of a cross-feature broker.
 - URP's Deferred compatibility path ignores MSAA, so the Deferred renderer does not promise MSAA support for these effects.
 - URP 14.0.12 does not drive DynamicResolutionHandler: hardware dynamic resolution cannot rescale the RTHandle camera targets, so it is recorded as unsupported (static render scale is supported).

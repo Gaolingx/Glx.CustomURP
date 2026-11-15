@@ -182,7 +182,7 @@ public static class ScreenSpaceLightingSsrT5Verification
         var pipeline = LoadPipeline(modeName);
         var renderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(string.Format(RendererPathFormat, modeName));
         if (renderer == null)
-            throw new FileNotFoundException("Missing SSR T5 renderer asset. Create the T8 assets first.");
+            throw new FileNotFoundException("Missing SSR T5 renderer fixture. Expected the committed SslT8 renderer assets.", string.Format(RendererPathFormat, modeName));
         var feature = renderer.rendererFeatures.OfType<ScreenSpaceLightingRendererFeature>().FirstOrDefault();
         if (feature == null)
             throw new InvalidOperationException("The SSR T5 renderer is missing the Screen Space Lighting feature.");

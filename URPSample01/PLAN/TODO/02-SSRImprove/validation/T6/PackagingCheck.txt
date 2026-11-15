@@ -1,0 +1,35 @@
+SSL Resources packaging check (2026-11-15T20:10:40Z)
+Project: E:/GitHub/Glx.CustomURP/URPSample01
+
+== OwenScrambledNoise256.png
+   occurrences:
+     ./URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Resources/SsgiBlueNoise/OwenScrambledNoise256.png
+   count=1 meta=guid: 2a205358e67aa9e4a94a128ac9362f4e
+   under a Resources folder: yes (always included in builds)
+
+== ScramblingTile8SPP.png
+   occurrences:
+     ./URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Resources/SsgiBlueNoise/ScramblingTile8SPP.png
+   count=1 meta=guid: 152f8b933250a7b448fc2d4d301b9944
+   under a Resources folder: yes (always included in builds)
+
+== RankingTile8SPP.png
+   occurrences:
+     ./URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Resources/SsgiBlueNoise/RankingTile8SPP.png
+   count=1 meta=guid: af4bd638a4b3eb14781e6441adcdfbb9
+   under a Resources folder: yes (always included in builds)
+
+== ReflectionKernelMapping.png
+   occurrences:
+     ./URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Resources/SsrDenoise/ReflectionKernelMapping.png
+   count=1 meta=guid: 82eec49626a00b047ba86244607816c8
+   under a Resources folder: yes (always included in builds)
+
+== duplicate GUID scan for the four metas
+   OwenScrambledNoise256.png guid=2a205358e67aa9e4a94a128ac9362f4e meta-files-with-guid=1
+   ScramblingTile8SPP.png guid=152f8b933250a7b448fc2d4d301b9944 meta-files-with-guid=1
+   RankingTile8SPP.png guid=af4bd638a4b3eb14781e6441adcdfbb9 meta-files-with-guid=1
+   ReflectionKernelMapping.png guid=82eec49626a00b047ba86244607816c8 meta-files-with-guid=1
+
+== temporary script scan (Assets)
+   none

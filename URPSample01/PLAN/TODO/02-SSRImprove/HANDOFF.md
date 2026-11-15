@@ -1,7 +1,7 @@
 # 02-SSRImprove 交接
 
 > 更新：2026-11-16
-> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约、T1 `ReflectionDenoiser` 移植、T2 mapping 资源、T3 半分辨率、T4 参数弃用与清理、T5 三渲染器实拍与 Frame Debugger 完成（2026-11-16）；T6 未开始。**
+> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约、T1–T5 实现与验证、T6 文档与清理全部完成（2026-11-16）。**
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -63,7 +63,7 @@
 - `rayMiss` 默认 `ReflectionProbesAndSky`：SSGI 开启后未命中像素以 weight 1 写入探针/天空，**像 HDRP 一样替换 baked GI（含 lightmap）**；设 `None` 恢复旧行为。
 - 显存：上一帧 normal ×2 + 降噪中间 buffer，1280×720 约 +19 MB。
 - 旧 T6/T9 验证脚本里“miss 与 baked GI 逐像素一致”的断言已不符合新默认，重跑前需明确用例（`rayMiss=None` 或更新期望）。
-- `T14KnownDifferences.md` 尚未同步本轮差异。
+- `T14KnownDifferences.md` 已在 T6 同步本轮差异。
 
 ---
 
@@ -188,7 +188,7 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - `accumulationFactor` 与 `speed*` 成为死参数；T4 处理文档/弃用标注。
 - `SsrAccumulationSpeed` 调试视图退化为 `SsrRaw`；T8/T10 验证脚本仍读旧静态计数名，T5 需更新。
 - 白色 fallback 让所有像素拿到满半径（8px）。真实 LUT 的 roughness 轴是「越光滑半径越小」：roughness 0 → 0，roughness ≥ 0.25 → 1。所以 T1 单独提交时，默认 `minSmoothness = 0.9` 下的光滑反射会被多余地空间模糊；T2 接入 PNG 后恢复 HDRP 行为（见下）。
-- `T14KnownDifferences.md` 尚未同步；T4 清理死参数。
+- `T14KnownDifferences.md` 已在 T6 同步；T4 清理死参数。
 
 ### T2：`ReflectionKernelMapping` 资源与 roughness 滤波（0.5–1 天）
 
@@ -368,13 +368,52 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 **运行注意**
 
 - Frame Debugger 采集需要 GUI 编辑器（不带 `-batchmode`），且会进入 Play Mode；若上一次进程残留会占项目锁，新实例会以 0 直接退出且不写产物，重跑前确认 `tasklist | grep Unity.exe` 为空。
-- 旧 `ScreenSpaceLightingT8Verification` 仍引用已删除的 speed rejection kernel 与 `accumulationFactor`，其断言不再成立；T5 脚本取代它做 PBR 验证，T6 可考虑删除或降级为历史脚本。
+- 旧 `ScreenSpaceLightingT8Verification` 已被 T6 删除；PBR 验证统一由 T5 脚本承担。`SslT8*` renderer/pipeline 资产保留为 T5/Frame Debugger 的固定夹具。
 
 ### T6：收尾（0.5 天）
 
 - 更新 `T14KnownDifferences.md`：SSR 降噪替换、mapping 资源、URP 无 stencil/曝光差异。
 - 更新本文“已完成”与 `PLAN/HANDOFF`（如果恢复根级 HANDOFF）。
 - 清理临时脚本/临时资源；确认 `Resources` 下的 LUT 与 mapping 进入构建且不重复。
+
+#### T6 结论（2026-11-16，已完成）
+
+**T14KnownDifferences 同步**
+
+`PLAN/Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md` 更新：
+
+- 修正过时的 SSGI blue-noise 条目：三张 HDRP LUT 已随包提供，仅在资源被 strip 时回退 IGN + R2。
+- 新增 SSR 差异：`ReflectionDenoiser` 替换 18 个累积 kernel、`(radiance, weight)` + 独立 sample count、内联重投影校验 + `dot(N, historyN) < 0.75`、无 object-motion stencil 拒绝、无曝光控制。
+- 新增 `ReflectionKernelMapping` 条目（HDRP 导入设置、`(NoV, roughness)` 半径、白纹理回退）。
+- 新增半分辨率条目（仅 PBR、trace 尺寸历史、`BilateralUpSampleColor` 升采样、切换重分配并 reset）。
+- 新增参数语义条目（`singleReflectionBounce` / `affectSmoothSurfaces` / `denoiserRadius` 无 RT 时的解释）与弃用条目（`accumulationFactor`、`speed*`、`SsrAccumulationSpeed`）。
+
+**清理**
+
+- 删除 `Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT8Verification.cs` 及 `.meta`：它引用已删除的 9 个 speed rejection kernel、`accumulationFactor` 与旧累积计数器，断言已不成立；PBR 验证由 T5 脚本取代。
+- 保留 `SslT8{Forward,ForwardPlus,Deferred}{Renderer,Pipeline}.asset` 作为 T5 验证与 Frame Debugger 的固定夹具（脚本与文档已把“T8 资产”改称 fixture）。
+- 临时脚本扫描：`Assets` 下无 `SslTemp*` 残留。
+
+**Resources 打包检查**（`validation/T6/PackagingCheck.txt`）
+
+| 资产 | 路径 | 次数 | GUID |
+|---|---|---|---|
+| `ReflectionKernelMapping.png` | `Runtime/.../Resources/SsrDenoise/` | 1 | `82eec49626a00b047ba86244607816c8`（与 HDRP 相同） |
+| `OwenScrambledNoise256.png` | `Runtime/.../Resources/SsgiBlueNoise/` | 1 | `2a205358e67aa9e4a94a128ac9362f4e` |
+| `ScramblingTile8SPP.png` | 同上 | 1 | `152f8b933250a7b448fc2d4d301b9944` |
+| `RankingTile8SPP.png` | 同上 | 1 | `af4bd638a4b3eb14781e6441adcdfbb9` |
+
+- 四者都在 `Resources` 文件夹（无 strip 时进入所有构建），全仓各只有一份，GUID 无重复。
+
+**验证**
+
+- 删除 T8 脚本后 EditMode **419 passed / 0 failed / 0 skipped**，无编译错误（`validation/T6/UnityEditModeTests.xml`）。
+
+**遗留（可选，不阻塞归档）**
+
+- HDRP 同场景/同曝光参照图（4.3 第一项）。
+- XR 下重跑新的 PBR 半分辨率降噪路径（T13 历史证据未覆盖本轮变化）。
+- 将 `PLAN/TODO/02-SSRImprove` 归档到 `PLAN/Done/`（会改变本文与证据链接路径，需单独确认）。
 
 ---
 
@@ -434,7 +473,10 @@ PLAN/TODO/02-SSRImprove/validation/
 ├─ T5/UnitySsrT5Verification.log      # 实拍日志
 ├─ T5/UnityLitReimportCheck.log       # 重导入日志
 ├─ T5/UnityEditModeTests.xml          # EditMode 结果（419 passed）
-└─ T5/UnityEditMode.log               # EditMode 日志
+├─ T5/UnityEditMode.log               # EditMode 日志
+├─ T6/PackagingCheck.txt              # Resources LUT 路径/次数/GUID 检查
+├─ T6/UnityEditModeTests.xml          # 删除 T8 脚本后的 EditMode（419 passed）
+└─ T6/UnityEditMode.log               # EditMode 日志
 ```
 
 ### 4.5 复现命令（关闭其他 Unity 编辑器后执行）
@@ -479,7 +521,7 @@ PLAN/TODO/02-SSRImprove/validation/
 1. **没有 RT 路径**：HDRP 的 `singleReflectionBounce`、`affectSmoothSurfaces`、`roughnessBasedDenoising` 默认值是为 RT 设计的，URP 只有屏幕空间，需在 T0 重新定义语义并在 Tooltip 说明。
 2. **历史布局**：若坚持 weight-in-alpha，反射的 sample count 必须像 SSGI 一样单独存；不要复用 `history.w`，否则会和权重冲突。
 3. **半分辨率 + XR**：两套宏组合的 variant 数量增加，构建时间与包体要观察。
-4. **旧的 T7/T8 证据与脚本**：本轮 SSGI 默认 `rayMiss` 已改变，SSR 改造也改变了 PBR 稳定帧；`ScreenSpaceLightingT8Verification`（旧 PBR 累积 + speed rejection）已失效，T5 由 `ScreenSpaceLightingSsrT5Verification` 取代。旧 PNG 只作历史参考，不直接对比。
+4. **旧的 T7/T8 证据与脚本**：本轮 SSGI 默认 `rayMiss` 已改变，SSR 改造也改变了 PBR 稳定帧；`ScreenSpaceLightingT8Verification`（旧 PBR 累积 + speed rejection）已于 T6 删除，T5 由 `ScreenSpaceLightingSsrT5Verification` 取代。旧 PNG 只作历史参考，不直接对比。
 5. **`ReflectionKernelMapping.png`** 是 HDRP 资产，复制后必须沿用 HDRP `.meta` 的导入设置（sRGB + mipmap + DXT1），否则 roughness 半径曲线会偏移（T2 已锁定）。
 6. **构建保留**：新增 `Resources` 资源会进入所有构建；若需 strip，另立任务，不在本轮顺手做。
 7. **验证资产陈旧**：T2–T12 的 `SslT*Renderer.asset` 序列化时还没有 `ssrReflectionDenoiserCompute`；T5 与 Frame Debugger 均在内存里调用 `AssignDefaults` 补齐，未改写资产。若要在编辑器里手动检查 PBR，需先选中 Feature 让 Inspector 重新赋值或运行一次 T5 脚本。
@@ -500,5 +542,6 @@ PLAN/TODO/02-SSRImprove/validation/
 - SSR T5 验证：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingSsrT5Verification.cs`
 - Frame Debugger 采集：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingFrameDebuggerCapture.cs`（`--ssl-fd-ssr-pbr`）
 - T5 证据：`PLAN/TODO/02-SSRImprove/validation/T5/`（JSON、24 张 PNG、FrameDebugger 目录）
+- 已知差异文档：`PLAN/Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md`（T6 已同步 SSR 条目）
 - HDRP 参照：`HDRP/Runtime/RenderPipeline/Raytracing/{HDReflectionDenoiser.cs,Shaders/Denoising/ReflectionDenoiser.compute}`、`HDTemporalFilter.cs`、`HDDiffuseDenoiser.cs`
 - HDRP mapping 资源：`HDRP/Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png`
