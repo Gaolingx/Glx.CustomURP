@@ -1,6 +1,6 @@
 # ScreenSpaceLighting 交接
 
-> 更新：2026-11-15（T14 退出）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
+> 更新：2026-11-15（T14 退出；同日补 SSR 反射修复与 GTAO 条带修复）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
 
 ## 当前位置
 
@@ -46,6 +46,30 @@ GTAO，该用例只验证 SSL 权重为 0）。
 验证：EditMode 153/153、PlayMode 6/6、T12 组合矩阵 34/34/35 通过；GTAO 关闭的帧与归档图像逐像素
 一致，只有 GTAO 开启的用例按设计改变。证据见 `validation/GtaoBandingFix/Report.md`。
 未复跑：XR single-pass / Vulkan / DX12 立体玩家构建。
+
+## 后续缺陷修复（2026-11-15）：SSR 反射不可见
+
+用户报告开启 SSR 后看不到正确反射：地面没有反射，Frame Debugger 里 hit point 有命中但 SSR 输出接近全黑。
+batchmode 复现（T3 场景 + 临时镜面地面）证实：修复前镜面地面的 `_SsrOutputTextureRW` alpha=1 而
+rgb≈全黑，SSR 开/关的最终图均值只差 4e-4；上一帧颜色金字塔内容正常（天空均值 0.61/0.83/0.97），
+排除深度金字塔与颜色金字塔。
+
+根因：SSR trace/reproject 复用了共享的 `SsgiReconstructPositionWS()`，该 helper 读 `_SsgiScreenSize`
+（SSGI 常量缓冲字段），而 `ScreenSpaceReflections.compute` 只收到 `_Ssr*` 参数，该字段恒为 0 →
+`uv = (positionSS + 0.5) * 0`，每个像素都用屏幕左下角的世界坐标求视线与反射方向，命中错误几何且辐射近黑。
+Frame Debugger 的 SSR Vectors 列表中没有 `_SsgiScreenSize` 可直接印证。HDRP 在 SSR shader 内用自身的
+`_ScreenSize` 重建世界坐标，因此不存在该问题。
+
+修复：`ScreenSpaceReflections.compute` 新增 `SsrReconstructPositionWS()`（按 `_SsrScreenSize` 缩放、
+`SSL_INV_VIEW_PROJ`），trace 与 PBR reproject 的 3 处调用切换；同时修正 PBR 累积 kernel 把 hit NDC
+先除以颜色金字塔 limit（无缩放时=1）再转像素的问题，速度拒绝的 motion/depth 取样点此前落在错误像素。
+
+验收测试同步：T7 的 roughness fade 证据改用“像素权重上限 vs 解析 fade”（修正 trace 后球体的屏内命中
+比例随位置变化，mean 不再单调）；SSL/GTAO history 测试去掉提交 `770777a` 已移走的 depth pyramid 归属
+断言，并在批处理下初始化 `RTHandles`。
+
+验证：T7 三路径 3/3（上限 1.0000/0.8301/0.3289/0 vs fade 1.0000/0.8438/0.3164/0）、T8 三路径 3/3、
+EditMode 154 passed / 0 failed。未复跑 T10/T12/T13。证据见 `validation/SsrRayOriginFix/Report.md`。
 
 ## T14 证据与复现
 
@@ -529,6 +553,8 @@ python "PLAN/validation/T1/Analyze-T1Evidence.py" --runs Run17 Run18
 - T3 渲染/生命周期：[T3Verification.json](validation/T3/T3Verification.json)
 - T3 真实 UI 路径：[T3UiEvidence.json](validation/T3/UI/T3UiEvidence.json)
 - T3 无插件回归：`validation/T3/FrameDebuggerNoPlugin/`
+- GTAO 条带修复：[Report.md](validation/GtaoBandingFix/Report.md)
+- SSR 反射修复：[Report.md](validation/SsrRayOriginFix/Report.md)、[T7VerificationAfterFix.json](validation/SsrRayOriginFix/T7VerificationAfterFix.json)、[T8VerificationAfterFix.json](validation/SsrRayOriginFix/T8VerificationAfterFix.json)
 - DVFS 诊断：[Diagnostics/Dvfs-2026-11-14/README.md](validation/T1/Diagnostics/Dvfs-2026-11-14/README.md)
 - T1 Frame Debugger：[FrameDebuggerReport.json](validation/T1/FrameDebugger/FrameDebuggerReport.json)
 - 构建设置恢复：[BuildSettingsRestoration.json](validation/T1/BuildSettingsRestoration.json)
