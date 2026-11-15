@@ -1,6 +1,6 @@
 {
-    "startedUtc":  "2026-11-15T06:46:25.1588072Z",
-    "finishedUtc":  "2026-11-15T06:47:33.0222768Z",
+    "startedUtc":  "2026-11-15T06:48:28.5775813Z",
+    "finishedUtc":  "2026-11-15T06:49:39.3528171Z",
     "executeMethod":  "ScreenSpaceLightingTestRunner.RunEditModeTests",
     "unityExitCode":  0,
     "invocationError":  null,

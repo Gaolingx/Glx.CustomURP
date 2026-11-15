@@ -1,9 +1,9 @@
 {
     "result": "Succeeded",
     "totalErrors": 1,
-    "totalWarnings": 125862,
-    "totalSizeBytes": 139489601,
-    "totalTimeSeconds": 204.6417026,
+    "totalWarnings": 131206,
+    "totalSizeBytes": 139489584,
+    "totalTimeSeconds": 14.6521902,
     "executablePath": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PALN/validation/T13\\Player\\SslT13XrPlayer.exe",
     "graphicsDeviceType": "Direct3D11",
     "unityVersion": "2022.3.62f1"
