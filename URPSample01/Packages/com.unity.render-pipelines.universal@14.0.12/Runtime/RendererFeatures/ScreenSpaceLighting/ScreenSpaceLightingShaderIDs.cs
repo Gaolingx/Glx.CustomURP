@@ -57,6 +57,8 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int HistoryBuffer = Shader.PropertyToID("_HistoryBuffer");
         internal static readonly int HistorySampleCountTexture = Shader.PropertyToID("_HistorySampleCount");
         internal static readonly int HistorySampleCountRW = Shader.PropertyToID("_HistorySampleCountRW");
+        internal static readonly int DenoiseSampleCountRW = Shader.PropertyToID("_SampleCountTextureRW");
+        internal static readonly int ReflectionFilterMapping = Shader.PropertyToID("_ReflectionFilterMapping");
         internal static readonly int ValidationBuffer = Shader.PropertyToID("_ValidationBuffer");
         internal static readonly int ValidationBufferRW = Shader.PropertyToID("_ValidationBufferRW");
         internal static readonly int AccumulationOutputTextureRW = Shader.PropertyToID("_AccumulationOutputTextureRW");
@@ -73,6 +75,10 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int EnableExposureControl = Shader.PropertyToID("_EnableExposureControl");
         internal static readonly int PreviousExposureMultiplier = Shader.PropertyToID("_PreviousExposureMultiplier");
         internal static readonly int CurrentExposureMultiplier = Shader.PropertyToID("_CurrentExposureMultiplier");
+        internal static readonly int AffectSmoothSurfaces = Shader.PropertyToID("_AffectSmoothSurfaces");
+        internal static readonly int SingleReflectionBounce = Shader.PropertyToID("_SingleReflectionBounce");
+        internal static readonly int RoughnessBasedDenoising = Shader.PropertyToID("_RoughnessBasedDenoising");
+        internal static readonly int RaytracingReflectionMinSmoothness = Shader.PropertyToID("_RaytracingReflectionMinSmoothness");
 
         // URP extension: captures the camera normals into the temporal history.
         internal static readonly int SsgiSourceNormalTexture = Shader.PropertyToID("_SsgiSourceNormalTexture");
@@ -127,11 +133,8 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsrHitPointTextureRW = Shader.PropertyToID("_SsrHitPointTextureRW");
         internal static readonly int SsrOutputTextureRW = Shader.PropertyToID("_SsrOutputTextureRW");
 
-        // PBR accumulation.
+        // PBR reproject output, consumed by the reflection denoiser.
         internal static readonly int SsrReprojectTextureRW = Shader.PropertyToID("_SsrReprojectTextureRW");
-        internal static readonly int SsrOriginalTexture = Shader.PropertyToID("_SsrOriginalTexture");
-        internal static readonly int SsrAccumPrevTexture = Shader.PropertyToID("_SsrAccumPrevTexture");
-        internal static readonly int SsrAccumTextureRW = Shader.PropertyToID("_SsrAccumTextureRW");
 
         // Constant buffer members.
         internal static readonly int SsrScreenSize = Shader.PropertyToID("_SsrScreenSize");

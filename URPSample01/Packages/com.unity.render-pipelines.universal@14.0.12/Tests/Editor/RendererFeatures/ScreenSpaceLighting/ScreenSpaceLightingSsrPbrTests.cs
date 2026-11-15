@@ -43,93 +43,54 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void EveryPublicCombinationMapsToItsOwnKernel()
+        public void VolumeExposesReflectionDenoiserControls()
         {
-            m_Settings.speedSurfaceOnly.Override(true);
-            m_Settings.speedTargetOnly.Override(true);
-
-            m_Settings.enableWorldSpeedRejection.Override(false);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, false));
-
-            m_Settings.speedSurfaceOnly.Override(true);
-            m_Settings.speedTargetOnly.Override(false);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, false));
-
-            m_Settings.speedSurfaceOnly.Override(false);
-            m_Settings.speedTargetOnly.Override(true);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, false));
-
-            m_Settings.enableWorldSpeedRejection.Override(true);
-            m_Settings.speedSmoothReject.Override(false);
-
-            m_Settings.speedSurfaceOnly.Override(true);
-            m_Settings.speedTargetOnly.Override(true);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, false));
-
-            m_Settings.speedSurfaceOnly.Override(true);
-            m_Settings.speedTargetOnly.Override(false);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, false));
-
-            m_Settings.speedSurfaceOnly.Override(false);
-            m_Settings.speedTargetOnly.Override(true);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, false));
-
-            m_Settings.speedSmoothReject.Override(true);
-
-            m_Settings.speedSurfaceOnly.Override(true);
-            m_Settings.speedTargetOnly.Override(true);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, false));
-
-            m_Settings.speedSurfaceOnly.Override(true);
-            m_Settings.speedTargetOnly.Override(false);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, false));
-
-            m_Settings.speedSurfaceOnly.Override(false);
-            m_Settings.speedTargetOnly.Override(true);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, false));
+            Assert.AreEqual(8, m_Settings.denoiserRadius.value);
+            Assert.AreEqual(1, m_Settings.denoiserRadius.min);
+            Assert.AreEqual(32, m_Settings.denoiserRadius.max);
+            Assert.IsFalse(m_Settings.affectSmoothSurfaces.value);
+            Assert.IsTrue(m_Settings.singleReflectionBounce.value);
         }
 
         [Test]
-        public void DebugSpeedUsesTheDebugKernelVariants()
+        public void PbrResourcesCarryTheDenoiseIntermediatesAndSampleCounts()
         {
-            m_Settings.enableWorldSpeedRejection.Override(true);
-            m_Settings.speedSmoothReject.Override(false);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, true));
+            Assert.IsFalse(m_History.ssrPbrResourcesAllocated);
+            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
 
-            m_Settings.speedSmoothReject.Override(true);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, true));
+            Assert.IsTrue(m_History.ssrPbrResourcesAllocated);
+            Assert.IsNotNull(m_History.ssrPbrOriginal);
+            Assert.IsNotNull(m_History.ssrDenoiseIntermediate0);
+            Assert.IsNotNull(m_History.ssrDenoiseIntermediate1);
+            Assert.AreNotSame(m_History.ssrDenoiseIntermediate0, m_History.ssrDenoiseIntermediate1);
         }
 
         [Test]
-        public void DisablingBothMotionSourcesFallsBackToBoth()
+        public void EachHistorySlotOwnsItsSampleCountSlot()
         {
-            m_Settings.speedSurfaceOnly.Override(false);
-            m_Settings.speedTargetOnly.Override(false);
-            Assert.AreEqual(
-                "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth",
-                ScreenSpaceLightingSsrPass.GetAccumulationKernelName(m_Settings, false));
+            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
+
+            Assert.IsNotNull(m_History.GetSsrPbrSampleCount(0));
+            Assert.IsNotNull(m_History.GetSsrPbrSampleCount(1));
+            Assert.AreNotSame(m_History.GetSsrPbrSampleCount(0), m_History.GetSsrPbrSampleCount(1));
+            Assert.AreNotSame(m_History.GetSsrPbrHistory(0), m_History.GetSsrPbrHistory(1));
+            Assert.IsNull(m_History.GetSsrPbrSampleCount(-1));
+            Assert.IsNull(m_History.GetSsrPbrSampleCount(ScreenSpaceLightingHistory.k_HistoryBufferCount));
+        }
+
+        [Test]
+        public void PbrSampleCountsSurviveAHistorySwap()
+        {
+            m_History.EnsureSsrPbrResources(320, 180, 1, TextureDimension.Tex2D);
+            var slotZero = m_History.GetSsrPbrSampleCount(0);
+            var slotOne = m_History.GetSsrPbrSampleCount(1);
+
+            m_History.BeginSsrPbrFrame();
+            Assert.AreEqual(slotOne, m_History.GetSsrPbrSampleCount(m_History.ssrPbrWriteSlot));
+            m_History.SwapSsrPbrBuffers();
+            m_History.BeginSsrPbrFrame();
+            Assert.AreEqual(slotZero, m_History.GetSsrPbrSampleCount(m_History.ssrPbrWriteSlot));
+            Assert.AreEqual(slotOne, m_History.GetSsrPbrSampleCount(m_History.ssrPbrReadSlot));
         }
 
         [Test]

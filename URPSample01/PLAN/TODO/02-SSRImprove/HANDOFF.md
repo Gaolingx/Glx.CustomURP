@@ -1,7 +1,7 @@
 # 02-SSRImprove 交接
 
 > 更新：2026-11-16
-> 状态：**SSGI 对齐与降噪库迁移完成；SSR 降噪 T0 契约已冻结，T1 实现进行中。**
+> 状态：**SSGI 对齐与降噪库迁移完成；SSR T0 契约冻结、T1 `ReflectionDenoiser` 移植完成（2026-11-16）；T2/T3 未开始。**
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -72,24 +72,25 @@
 ### 2.1 当前实现
 
 - `URP/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs`：事件 `AfterRenderingPrePasses + 6`（206），`usedAlgorithm = Approximation | PBRAccumulation`。
-- `URP/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute`：`ScreenSpaceReflectionsTracing`、`ScreenSpaceReflectionsReprojection`、`ClearBuffer2D`、`DebugSsrParams`，以及 **18 个 `ScreenSpaceReflectionsAccumulate*` kernel**（NoWorld/Hard/Smooth × Both/Source/Target × Debug）。
-- 历史：`ScreenSpaceLightingHistory` 的 `ssrPbrOriginal`、`ssrPbrHistory[2]`、`ssrPbrReadSlot/WriteSlot`、`ssrPbrHasValidHistory`、`SyncSsrPbrAlgorithm`。
+- `URP/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute`：只剩 `ScreenSpaceReflectionsTracing`、`ScreenSpaceReflectionsReprojection`、`DebugSsrParams`；18 个 accumulate kernel、`ClearBuffer2D` 和 `SSR_ACCUMULATE` 代码块已在 T1 删除。
+- PBR 链路：trace → reproject（写 `ssrPbrOriginal`）→ `ReflectionDenoiser.compute` 的 `TemporalAccumulationFullRes` → `CopyHistory` → `BilateralFilterH_FR` → `BilateralFilterV_FR`（写 `ssrOutput`，材质消费）。
+- 历史：`ScreenSpaceLightingHistory` 的 `ssrPbrOriginal`、`ssrPbrHistory[2]`、`ssrPbrSampleCount[2]`、`ssrDenoiseIntermediate0/1`、`ssrPbrReadSlot/WriteSlot`、`ssrPbrHasValidHistory`、`SyncSsrPbrAlgorithm`。
 - 输出契约：radiance（非预乘）+ weight，材质端 `lerp(probe, radiance, weight)`；Approximation 的单点空洞用邻近同表面像素 3×3 cross 填充。
-- Volume `ScreenSpaceReflection`：`usedAlgorithm`、`intensity`、`minSmoothness`、`smoothnessFadeStart`、`screenFadeDistance`、`depthBufferThickness`、`rayMaxIterations`、`reflectSky`、`accumulationFactor`、`biasFactor`、`enableWorldSpeedRejection`、`speedSmoothReject`、`speedRejectionParam`、`speedRejectionScalerFactor`、`speedSurfaceOnly`、`speedTargetOnly`。
+- Volume `ScreenSpaceReflection`：`usedAlgorithm`、`intensity`、`minSmoothness`、`smoothnessFadeStart`、`screenFadeDistance`、`depthBufferThickness`、`rayMaxIterations`、`reflectSky`、`biasFactor`、`denoiserRadius`、`affectSmoothSurfaces`、`singleReflectionBounce`；`accumulationFactor` 与 `speed*` 系列仍存在但 PBR 路径不再读取（T4 标记弃用）。
 
 ### 2.2 与 HDRP `ReflectionDenoiser` 的差异
 
-| HDRP 14.0.12 | 当前 URP |
+| HDRP 14.0.12 | 当前 URP（T1 后） |
 |---|---|
-| `TemporalAccumulationFullRes` / `TemporalAccumulationHalfRes` + `CopyHistory` | 18 个内联 accumulate kernel，无 CopyHistory |
-| 时间累积按 depth/position 校验，历史 RGBA（rgb + sample count） | 自研速度拒绝（18 kernel），历史双缓冲；信号 alpha 为 weight |
-| `BilateralFilterH_FR` / `BilateralFilterV_FR`（半分辨率对应 `_HR`），可分离两遍 | 无空间双边滤波，只靠 `accumulationFactor` |
-| `_ReflectionFilterMapping`（`ReflectionKernelMapping.png`，按 `(NoV, roughness)` 缩放半径） | 无 roughness 相关滤波半径 |
-| `_DenoiserFilterRadius`（`maxKernelSize`） | `accumulationFactor` + `biasFactor` 自研语义 |
-| `affectSmoothSurfaces`、`singleReflectionBounce`、`roughnessBasedDenoising` | 无 |
-| 历史 `.w` = sample count | `ssrPbrHistory` RGBA 存 radiance+weight（sample count 未单独存） |
-| 曝光控制（`GetCurrent/InversePreviousExposureMultiplier`） | URP 无该阶段曝光，绑定 1/1 |
-| Clear coat 单独通道 | base/coat 共用一次 trace，材质端按 hierarchy weight 混合 |
+| `TemporalAccumulationFullRes` / `TemporalAccumulationHalfRes` + `CopyHistory` | ✅ `ReflectionDenoiser.compute` 已移植；T1 只调度全分辨率，半分辨率随 T3 接线 |
+| 时间累积按 depth/position 校验，历史 RGBA（rgb + sample count） | ✅ 时间累积已移植；历史为 `(radiance, weight)` + 独立 sample count，另加历史法线拒绝 |
+| `BilateralFilterH_FR` / `BilateralFilterV_FR`（半分辨率对应 `_HR`），可分离两遍 | ✅ FR 两遍已接；HR 变体已编译，T3 接线 |
+| `_ReflectionFilterMapping`（`ReflectionKernelMapping.png`，按 `(NoV, roughness)` 缩放半径） | 绑定白色 fallback（等效固定半径），T2 换成 PNG |
+| `_DenoiserFilterRadius`（`maxKernelSize`） | ✅ Volume `denoiserRadius`（1–32，默认 8）；半分辨率取一半随 T3 |
+| `affectSmoothSurfaces`、`singleReflectionBounce`、`roughnessBasedDenoising` | ✅ 前两者是 Volume 参数；`roughnessBasedDenoising` 由 `singleReflectionBounce` 派生（同 HDRP） |
+| 历史 `.w` = sample count | 保持 `(radiance, weight)` + 独立 `R16_SFloat`（T0 决策） |
+| 曝光控制（`GetCurrent/InversePreviousExposureMultiplier`） | 不移植；URP 该阶段无曝光，radiance 为 pre-exposure |
+| Clear coat 单独通道 | base/coat 共用一次 trace，材质端按 hierarchy weight 混合（不变） |
 
 ---
 
@@ -148,6 +149,47 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 - 资源：`ssrPbrHistory` 双缓冲保留；新增 `ssrDenoiseIntermediate0/1`（复用 `ssgiDenoiseIntermediate` 模式）。
 - 验收：PBR 三渲染器图像与旧实现的稳定帧差异可解释；速度拒绝用例改为历史失效/重投影用例。
 
+#### T1 结论（2026-11-16，已完成）
+
+**新增/修改**
+
+| 文件 | 内容 |
+|---|---|
+| `URP/Shaders/Utils/Denoising/ReflectionDenoiser.compute` | 7 个 kernel（`TemporalAccumulationFullRes/HalfRes`、`CopyHistory`、`BilateralFilterH/V_FR/HR`）；HDRP 的 AABB clip、sample-count running average、roughness 半径缩放、min smoothness tap 拒绝全部保留 |
+| `BilateralFilter.hlsl` | `SsgiBilateralData` 增加 `roughness`，由深度法线 alpha 按 SSR trace 相同约定解码；SSGI 不使用该字段 |
+| `ScreenSpaceLightingHistory` | PBR 资源增加 `ssrDenoiseIntermediate0/1` 与每槽 `R16_SFloat` sample count；释放路径同步；T0 契约写进注释 |
+| `ScreenSpaceLightingResources` | 新增 `ssrReflectionDenoiserCompute` 与 `ssrReflectionFilterMapping`（`Resources.Load("SsrDenoise/ReflectionKernelMapping")`，缺失时白纹理） |
+| `SsrPass` | PBR 分支改为 temporal → CopyHistory → bilateral H/V；删除 18 kernel 调度、`ClearAccumulationHistory`、速度拒绝系数；新增 denoiser 常量上传（复用 SSGI 常量集）与编辑器证据计数 |
+| `ScreenSpaceReflections.compute` | 删除 `ClearBuffer2D`、18 个 accumulate kernel、`SSR_ACCUMULATE` 代码块与 `_SsrAccum*` 绑定 |
+| `ScreenSpaceReflection` | 新增 `denoiserRadius`、`affectSmoothSurfaces`、`singleReflectionBounce` |
+| `ScreenSpaceLightingRenderUtils` | `GetPreviousViewProjection` / `ComputeZBufferParams` / `ComputePixelSpreadTangent` 从 SsgiPass 提升为共享工具 |
+| `ScreenSpaceLightingDebugMode` | `SsrAccumulationSpeed` 保留枚举值，文档标注为等价 `SsrRaw` |
+| `ScreenSpaceLightingSsrPbrTests` | 删除 kernel 名映射测试，新增 denoiser 参数默认值、中间 buffer、sample count 槽位与 swap 测试 |
+
+**实现细节**
+
+- 时间累积的 reproject 校验：`_HistoryValidity`、当前/历史 far depth、出屏、世界半径（0.1 / 4px 容差），加 URP 扩展 `dot(N, historyN) < 0.75`。
+- 历史读槽在失效帧绑定 `writeSlot ^ 1`，但 `_HistoryValidity = 0` 时 kernel 在采样前返回，所以不再需要清屏。
+- `roughness < 0.5` 走 TAA AABB clip（0.96 / 0.91 feedback）；`>= 0.5` 走 sample count（0.93，上限 8），与 HDRP 逐行一致。
+- 双边滤波只混合 rgb，中心 alpha 原样写出；`_RaytracingReflectionMinSmoothness` 绑定 Volume `minSmoothness`。
+- 曝光、stencil、object-motion 拒绝按 T0 决策不移植；XR 走 `SSL_XR_ARRAY`，历史/中间 buffer 按 slice 读写。
+
+**验证证据**（`validation/T1/`）
+
+- `SslShaderCheck.txt`：9 个 shader/compute 强制重导入，7 个新 kernel 全部存在，`ClearBuffer2D` 与 3 个代表性 accumulate kernel 确认已删除，0 条 `ShaderUtil` 消息。
+- `UnityShaderCheck.log`：批处理退出码 0，无 `Shader error` / `error CS` / `warning CS`。
+- `UnityEditModeTests.xml`：**417 passed / 0 failed / 0 skipped**（基线 416，新增 4 删除 3）。
+- `UnityEditMode.log`：同批次测试日志。
+- 未做：实际渲染对比、Frame Debugger、XR 播放器、T7/T8/T10 重跑（T5 范围）。
+
+**行为变化与遗留**
+
+- PBR 稳定帧与旧实现不再逐像素一致：时间累积权重、空间双边、weight 不再参与时间混合。
+- `accumulationFactor` 与 `speed*` 成为死参数；T4 处理文档/弃用标注。
+- `SsrAccumulationSpeed` 调试视图退化为 `SsrRaw`；T8/T10 验证脚本仍读旧静态计数名，T5 需更新。
+- 白色 fallback 对 `roughness < ~0.88` 与 HDRP mapping 等价（LUT 在该区间为 1），只有接近 1 的 roughness 会拿到过大半径；默认 `minSmoothness = 0.9` 把信号限制在 `roughness <= 0.1`，因此 T1 的默认视觉不受影响。T2 复制 PNG 后这一区间也对齐。
+- 半分辨率尚未接线；`T14KnownDifferences.md` 尚未同步。
+
 ### T2：`ReflectionKernelMapping` 资源与 roughness 滤波（0.5–1 天）
 
 - 将 `HDRP/Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png`（guid `82eec496...`）连同 `.meta` 复制到 `URP/Runtime/RendererFeatures/ScreenSpaceLighting/Resources/SsrDenoise/`，沿用 blue-noise 的 `Resources.Load` 模式，不新增序列化字段。
@@ -191,9 +233,10 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 
 ### 4.1 静态/编译
 
-- [ ] `TemporalFilter`、`DiffuseDenoiser`、`ReflectionDenoiser`、`SSGI`、`SSR`、`BilateralUpsample`、`DepthPyramid`、Lit/ComplexLit/ColorPyramid 强制重导入消息数为 0。
-- [ ] `git status` 仅含预期文件；新文件 `.meta` 完整；移动文件 GUID 不变（`git log --follow` + 资源引用不丢）。
-- [ ] EditMode 全量通过（当前基线 416 passed）。
+- [x] `TemporalFilter`、`DiffuseDenoiser`、`ReflectionDenoiser`、`SSGI`、`SSR`、`BilateralUpsample`、`DepthPyramid`、ColorPyramid、Debug 强制重导入消息数为 0（T1 证据）。
+- [x] `git status` 仅含预期文件；新文件 `.meta` 完整（T1 证据）。
+- [x] EditMode 全量通过（T1 后 417 passed）。
+- [ ] `git log --follow` 确认无移动文件丢 GUID；T5 补 Lit/ComplexLit 重导入。
 
 ### 4.2 功能/回归
 
@@ -213,8 +256,10 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 
 ```
 PLAN/TODO/02-SSRImprove/validation/
-├─ T1/T1ShaderMessages.json           # 强制重导入消息
-├─ T1/UnityEditModeTests.xml          # EditMode 结果
+├─ T1/SslShaderCheck.txt              # 强制重导入 + kernel 存在/删除检查
+├─ T1/UnityShaderCheck.log            # 批处理编译日志
+├─ T1/UnityEditModeTests.xml          # EditMode 结果（417 passed）
+├─ T1/UnityEditMode.log               # EditMode 日志
 ├─ T5/T7Verification.json             # Approximation 三渲染器
 ├─ T5/T8Verification.json             # PBR 三渲染器
 ├─ T5/FrameDebuggerReport.json        # Pass 顺序
@@ -255,6 +300,7 @@ PLAN/TODO/02-SSRImprove/validation/
 ## 6. 关键文件索引
 
 - SSGI 降噪库：`URP/Shaders/Utils/Denoising/{DenoisingUtils.hlsl,BilateralFilter.hlsl,TemporalFilter.compute,DiffuseDenoiser.compute}`
+- SSR 降噪：`URP/Shaders/Utils/Denoising/ReflectionDenoiser.compute`
 - SSGI 调度：`URP/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsgiPass.cs`
 - SSR 调度：`URP/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs`
 - SSR shader：`URP/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute`

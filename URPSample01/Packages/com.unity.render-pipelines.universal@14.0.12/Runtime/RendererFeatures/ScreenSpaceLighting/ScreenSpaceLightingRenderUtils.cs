@@ -15,6 +15,44 @@ namespace UnityEngine.Rendering.Universal
             return (value + divisor - 1) / divisor;
         }
 
+        // Previous frame view projection from the motion vector history. The temporal filters use it
+        // to reconstruct the world position a reprojected pixel had last frame.
+        internal static Matrix4x4 GetPreviousViewProjection(in CameraData cameraData)
+        {
+            var camera = cameraData.camera;
+            if (camera != null &&
+                camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData) &&
+                additionalCameraData.motionVectorsPersistentData != null)
+            {
+                return additionalCameraData.motionVectorsPersistentData.previousViewProjection;
+            }
+
+            return cameraData.GetGPUProjectionMatrix(cameraData.IsCameraProjectionMatrixFlipped()) * cameraData.GetViewMatrix();
+        }
+
+        // Eye space spread of one pixel along the narrower axis, used by the denoiser tap radius.
+        internal static float ComputePixelSpreadTangent(float fieldOfView, int width, int height)
+        {
+            return Mathf.Tan(fieldOfView * Mathf.Deg2Rad * 0.5f) * 2.0f / Mathf.Max(1, Mathf.Min(width, height));
+        }
+
+        // Unity's linear depth parameters for the current platform's depth convention.
+        internal static Vector4 ComputeZBufferParams(float nearPlane, float farPlane)
+        {
+            nearPlane = Mathf.Max(1e-5f, nearPlane);
+            farPlane = Mathf.Max(nearPlane + 1e-4f, farPlane);
+
+            if (SystemInfo.usesReversedZBuffer)
+            {
+                float x = -1f + farPlane / nearPlane;
+                return new Vector4(x, 1f, x / farPlane, 1f / farPlane);
+            }
+
+            float xn = 1f - farPlane / nearPlane;
+            float yn = farPlane / nearPlane;
+            return new Vector4(xn, yn, xn / farPlane, 1f / nearPlane);
+        }
+
         internal static RTHandle GetNormalTexture(ScriptableRenderer renderer)
         {
             if (renderer is UniversalRenderer universalRenderer)

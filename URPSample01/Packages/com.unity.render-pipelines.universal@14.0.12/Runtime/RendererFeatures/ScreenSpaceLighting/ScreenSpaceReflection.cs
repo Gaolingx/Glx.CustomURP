@@ -118,6 +118,27 @@ namespace UnityEngine.Rendering.Universal
         public ClampedFloatParameter biasFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
+        /// Radius in pixels of the reflection denoiser bilateral filter. The half resolution path
+        /// uses half of this value.
+        /// </summary>
+        [Tooltip("Radius in pixels of the reflection denoiser. Halved at half resolution. PBR algorithm only.")]
+        public ClampedIntParameter denoiserRadius = new ClampedIntParameter(8, 1, 32);
+
+        /// <summary>
+        /// Lets the denoiser modify perfectly smooth surfaces. When disabled, surfaces above 0.99
+        /// smoothness bypass the temporal accumulation.
+        /// </summary>
+        [Tooltip("Lets the reflection denoiser affect perfectly smooth surfaces. PBR algorithm only.")]
+        public BoolParameter affectSmoothSurfaces = new BoolParameter(false);
+
+        /// <summary>
+        /// SSR traces a single reflection bounce by construction. The flag enables the roughness
+        /// based denoiser radius scaling that HDRP couples to a single bounce.
+        /// </summary>
+        [Tooltip("Single reflection bounce. SSR traces one bounce; this enables the roughness based denoiser radius. PBR algorithm only.")]
+        public BoolParameter singleReflectionBounce = new BoolParameter(true);
+
+        /// <summary>
         /// Fraction of the speed range used to reject the accumulation history.
         /// </summary>
         [Tooltip("Fraction of the speed range that rejects the accumulation history.")]

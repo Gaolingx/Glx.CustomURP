@@ -413,7 +413,16 @@ namespace UnityEngine.Rendering.Universal
 
         // PBR accumulation owns two full resolution RGBA16F histories plus the current reproject
         // output. They are only allocated while the PBR algorithm is selected.
+        //
+        // Frozen contract (PLAN/TODO/02-SSRImprove, T0): a history slot stores the accumulated
+        // un-premultiplied radiance in rgb and the latest frame's blend weight in a, because the
+        // material consumes alpha as the lerp weight. The temporal sample count therefore lives in a
+        // separate single channel texture per slot; it must never share history.a. The two denoise
+        // intermediates hold the temporal output (which is also copied into the history slot) and the
+        // horizontal bilateral result.
         internal RTHandle ssrPbrOriginal { get; private set; }
+        internal RTHandle ssrDenoiseIntermediate0 { get; private set; }
+        internal RTHandle ssrDenoiseIntermediate1 { get; private set; }
         internal int ssrPbrWidth { get; private set; }
         internal int ssrPbrHeight { get; private set; }
         internal int ssrPbrReadSlot { get; private set; }
@@ -424,11 +433,18 @@ namespace UnityEngine.Rendering.Universal
         internal int ssrPbrResetCount { get; private set; }
         internal ScreenSpaceReflectionAlgorithm ssrPbrAlgorithm { get; private set; }
         internal bool ssrPbrAlgorithmInitialized { get; private set; }
-        internal bool ssrPbrResourcesAllocated => ssrPbrOriginal != null && m_SsrPbrHistory[0] != null;
+        internal bool ssrPbrResourcesAllocated =>
+            ssrPbrOriginal != null && ssrDenoiseIntermediate0 != null &&
+            ssrDenoiseIntermediate1 != null && m_SsrPbrHistory[0] != null;
 
         internal RTHandle GetSsrPbrHistory(int slot)
         {
             return slot >= 0 && slot < k_HistoryBufferCount ? m_SsrPbrHistory[slot] : null;
+        }
+
+        internal RTHandle GetSsrPbrSampleCount(int slot)
+        {
+            return slot >= 0 && slot < k_HistoryBufferCount ? m_SsrPbrSampleCount[slot] : null;
         }
 
         internal void EnsureSsrPbrResources(int width, int height, int viewCount, TextureDimension resourceDimension)
@@ -456,8 +472,13 @@ namespace UnityEngine.Rendering.Universal
             ssrPbrHeight = height;
 
             ssrPbrOriginal = AllocSsrPbrTexture(width, height, resourceDimension, viewCount, "SslSsrPbrOriginal");
+            ssrDenoiseIntermediate0 = AllocSsrPbrTexture(width, height, resourceDimension, viewCount, "SslSsrDenoiseIntermediate0");
+            ssrDenoiseIntermediate1 = AllocSsrPbrTexture(width, height, resourceDimension, viewCount, "SslSsrDenoiseIntermediate1");
             for (int i = 0; i < k_HistoryBufferCount; i++)
+            {
                 m_SsrPbrHistory[i] = AllocSsrPbrTexture(width, height, resourceDimension, viewCount, "SslSsrPbrHistory" + i);
+                m_SsrPbrSampleCount[i] = AllocSsrSampleCount(width, height, resourceDimension, viewCount, "SslSsrPbrSampleCount" + i);
+            }
 
             ssrPbrResourceGeneration++;
             ResetSsrPbrHistory();
@@ -470,6 +491,21 @@ namespace UnityEngine.Rendering.Universal
                 TextureWrapMode.Clamp, TextureWrapMode.Clamp,
                 slices: slices,
                 colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                filterMode: FilterMode.Point,
+                dimension: dimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: name);
+        }
+
+        static RTHandle AllocSsrSampleCount(int width, int height, TextureDimension dimension, int slices, string name)
+        {
+            return RTHandles.Alloc(
+                width, height,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: slices,
+                colorFormat: GraphicsFormat.R16_SFloat,
                 filterMode: FilterMode.Point,
                 dimension: dimension,
                 enableRandomWrite: true,
@@ -518,6 +554,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         readonly RTHandle[] m_SsrPbrHistory = new RTHandle[k_HistoryBufferCount];
+        readonly RTHandle[] m_SsrPbrSampleCount = new RTHandle[k_HistoryBufferCount];
         int m_SsrPbrWidth;
         int m_SsrPbrHeight;
         int m_SsrPbrSlices;
@@ -854,10 +891,16 @@ namespace UnityEngine.Rendering.Universal
         {
             RTHandles.Release(ssrPbrOriginal);
             ssrPbrOriginal = null;
+            RTHandles.Release(ssrDenoiseIntermediate0);
+            ssrDenoiseIntermediate0 = null;
+            RTHandles.Release(ssrDenoiseIntermediate1);
+            ssrDenoiseIntermediate1 = null;
             for (int i = 0; i < k_HistoryBufferCount; i++)
             {
                 RTHandles.Release(m_SsrPbrHistory[i]);
                 m_SsrPbrHistory[i] = null;
+                RTHandles.Release(m_SsrPbrSampleCount[i]);
+                m_SsrPbrSampleCount[i] = null;
             }
 
             m_SsrPbrWidth = 0;

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -10,10 +9,10 @@ namespace UnityEngine.Rendering.Universal
     // writes radiance + weight straight to the material-facing texture.
     //
     // PBR Accumulation: Trace samples the GGX visible normal distribution, Reproject gathers the
-    // reflected surface and writes the un-accumulated signal, then one of nine accumulate kernels
-    // (world speed on/off, hard/smooth threshold, surface/hit/both) blends it with the previous
-    // accumulation. The material-facing contract is identical to T7: un-premultiplied radiance with
-    // the blend weight in alpha, so a miss keeps the reflection probe.
+    // reflected surface and writes the un-accumulated signal, then the reflection denoiser
+    // temporally accumulates it against the history and runs a separable bilateral filter. The
+    // material-facing contract is un-premultiplied radiance with the blend weight in alpha, so a miss
+    // keeps the reflection probe.
     //
     // Runs after the SSGI dispatch (205) and before the material binding pass (207), so Deferred
     // GBuffer (210) and Forward opaque geometry (250) consume the same texture.
@@ -53,15 +52,13 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_EditorExecuteCount;
         internal static int s_EditorTraceDispatchCount;
         internal static int s_EditorReprojectDispatchCount;
-        internal static int s_EditorAccumulationDispatchCount;
-        internal static int s_EditorClearDispatchCount;
-        internal static int s_EditorAccumulationKernelCount;
-        internal static string s_EditorLastAccumulateKernel = string.Empty;
-        internal static readonly Dictionary<string, int> s_EditorAccumulateKernelCounts = new Dictionary<string, int>();
-        internal static Vector4 s_EditorLastPbrParams;
-        internal static Vector4 s_EditorLastPbrFlags;
-        internal static float s_EditorLastSpeedRejection;
-        internal static float s_EditorLastAccumulationAmount;
+        internal static int s_EditorTemporalDispatchCount;
+        internal static int s_EditorCopyHistoryDispatchCount;
+        internal static int s_EditorBilateralH_DispatchCount;
+        internal static int s_EditorBilateralV_DispatchCount;
+        internal static string s_EditorLastDenoiseKernel = string.Empty;
+        // (denoiser radius, roughness based denoising, min smoothness, history validity).
+        internal static Vector4 s_EditorLastDenoiseParams;
 
         // Verification hook: resets the dispatch evidence between configuration sweeps.
         internal static void ResetEditorEvidenceCounters()
@@ -69,15 +66,12 @@ namespace UnityEngine.Rendering.Universal
             s_EditorExecuteCount = 0;
             s_EditorTraceDispatchCount = 0;
             s_EditorReprojectDispatchCount = 0;
-            s_EditorAccumulationDispatchCount = 0;
-            s_EditorClearDispatchCount = 0;
-            s_EditorAccumulationKernelCount = 0;
-            s_EditorLastAccumulateKernel = string.Empty;
-            s_EditorAccumulateKernelCounts.Clear();
-            s_EditorLastPbrParams = Vector4.zero;
-            s_EditorLastPbrFlags = Vector4.zero;
-            s_EditorLastSpeedRejection = 0f;
-            s_EditorLastAccumulationAmount = 0f;
+            s_EditorTemporalDispatchCount = 0;
+            s_EditorCopyHistoryDispatchCount = 0;
+            s_EditorBilateralH_DispatchCount = 0;
+            s_EditorBilateralV_DispatchCount = 0;
+            s_EditorLastDenoiseKernel = string.Empty;
+            s_EditorLastDenoiseParams = Vector4.zero;
         }
 #endif
 
@@ -175,15 +169,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (pbr && !debugParams)
-            {
                 m_History.SwapSsrPbrBuffers();
-                m_OutputTexture = m_History.GetSsrPbrHistory(m_History.ssrPbrBufferIndex);
-            }
-            else
-            {
-                m_OutputTexture = m_History.ssrOutput;
-            }
 
+            m_OutputTexture = m_History.ssrOutput;
             m_History.MarkSsrOutputProduced();
             m_ProducedOutput = true;
         }
@@ -204,9 +192,12 @@ namespace UnityEngine.Rendering.Universal
             bool debugParams)
         {
             var compute = m_Resources.ssrCompute;
+            var denoiser = m_Resources.ssrReflectionDenoiserCompute;
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, !pbr);
+            SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
+            SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
 
             if (useTextureArray)
             {
@@ -225,11 +216,8 @@ namespace UnityEngine.Rendering.Universal
             int groupsY = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenHeight, k_TileSize);
 
             bool pbrHistoryValid = pbr && m_History.ssrPbrHasValidHistory;
-            var cb = CreateShaderVariables(ref cameraData, settings, screenWidth, screenHeight, pbr, pbrHistoryValid);
+            var cb = CreateShaderVariables(ref cameraData, settings, screenWidth, screenHeight, pbrHistoryValid);
             PushShaderVariables(cmd, compute, cb);
-
-            if (pbr && !pbrHistoryValid)
-                ClearAccumulationHistory(cmd, compute, groupsX, groupsY, viewCount);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchViewCount = viewCount;
@@ -277,78 +265,137 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (pbr)
-                DispatchAccumulation(cmd, compute, settings, depthTexture, normalTexture, motionTexture, groupsX, groupsY, viewCount, pbrHistoryValid);
+            {
+                PushDenoiserShaderVariables(cmd, ref cameraData, denoiser, screenWidth, screenHeight, pbrHistoryValid);
+                DispatchReflectionDenoise(cmd, denoiser, settings, depthTexture, normalTexture, motionTexture,
+                    cameraData.camera.fieldOfView, screenWidth, screenHeight, groupsX, groupsY, viewCount, pbrHistoryValid);
+            }
         }
 
-        void DispatchAccumulation(
+        // The reflection denoiser reuses the geometry helpers of the SSGI temporal filter, so it reads
+        // the same Screen Space Lighting constant set. The SSR trace remains full resolution until the
+        // half resolution denoiser lands, which makes the effect and screen sizes identical.
+        void PushDenoiserShaderVariables(
             CommandBuffer cmd,
-            ComputeShader compute,
+            ref CameraData cameraData,
+            ComputeShader denoiser,
+            int screenWidth,
+            int screenHeight,
+            bool historyValid)
+        {
+            float near = Mathf.Max(1e-5f, cameraData.camera.nearClipPlane);
+            float far = Mathf.Max(near + 1e-4f, cameraData.camera.farClipPlane);
+            var cameraPosition = cameraData.camera.transform.position;
+            var previousInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
+            if (cameraData.xr.enabled)
+            {
+                // Multipass renders one eye per pass; single-pass kernels read the per-view globals.
+                cameraPosition = m_XrViews[0].cameraPositionWS;
+                previousInvViewProj = m_XrViews[0].hasPreviousViewProj
+                    ? m_XrViews[0].prevInvViewProj
+                    : Matrix4x4.Inverse(m_XrViews[0].viewProj);
+            }
+
+            var screenSize = new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight);
+            cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiScreenSize, screenSize);
+            cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiTraceSize, screenSize);
+            cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiZBufferParams,
+                ScreenSpaceLightingRenderUtils.ComputeZBufferParams(near, far));
+            cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiCameraPositionWS, cameraPosition);
+            cmd.SetComputeMatrixParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiPrevInvViewProj, previousInvViewProj);
+            cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiRayMarchingParams2,
+                new Vector4(1f, 0f, historyValid ? 1f : 0f, 0f));
+        }
+
+        void DispatchReflectionDenoise(
+            CommandBuffer cmd,
+            ComputeShader denoiser,
             ScreenSpaceReflection settings,
             RTHandle depthTexture,
             RTHandle normalTexture,
             RTHandle motionTexture,
+            float fieldOfView,
+            int screenWidth,
+            int screenHeight,
             int groupsX,
             int groupsY,
             int viewCount,
             bool historyValid)
         {
-            bool debugSpeed = m_Settings != null &&
-                              m_Settings.debugEnabled &&
-                              m_Settings.debugMode == ScreenSpaceLightingDebugMode.SsrAccumulationSpeed;
-            string kernelName = GetAccumulationKernelName(settings, debugSpeed);
-            int kernel = compute.FindKernel(kernelName);
+            // A cleared (never written) slot is bound while the history is invalid; the temporal
+            // kernel returns before sampling it because _HistoryValidity is zero.
+            int readSlot = historyValid ? m_History.ssrPbrReadSlot : (m_History.ssrPbrWriteSlot ^ 1);
+            int writeSlot = m_History.ssrPbrWriteSlot;
 
-            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW, m_History.ssrHitPoint);
-            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
-            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depthTexture);
-            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsrMotionTexture, motionTexture);
-            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsrOriginalTexture, m_History.ssrPbrOriginal);
-            // A cleared slot is bound on the first frame so the kernel never reads uninitialized data.
-            int previousSlot = historyValid ? m_History.ssrPbrReadSlot : (m_History.ssrPbrWriteSlot ^ 1);
-            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsrAccumPrevTexture, m_History.GetSsrPbrHistory(previousSlot));
-            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsrAccumTextureRW, m_History.GetSsrPbrHistory(m_History.ssrPbrWriteSlot));
-            cmd.DispatchCompute(compute, kernel, groupsX, groupsY, viewCount);
+            cmd.SetComputeFloatParam(denoiser, ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent,
+                ScreenSpaceLightingRenderUtils.ComputePixelSpreadTangent(fieldOfView, screenWidth, screenHeight));
+            cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.AffectSmoothSurfaces,
+                settings.affectSmoothSurfaces.value ? 1 : 0);
+            cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.SingleReflectionBounce,
+                settings.singleReflectionBounce.value ? 1 : 0);
+            cmd.SetComputeFloatParam(denoiser, ScreenSpaceLightingShaderIDs.RoughnessBasedDenoising,
+                settings.singleReflectionBounce.value ? 1f : 0f);
+            cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.DenoiserFilterRadius, settings.denoiserRadius.value);
+            cmd.SetComputeFloatParam(denoiser, ScreenSpaceLightingShaderIDs.RaytracingReflectionMinSmoothness,
+                settings.minSmoothness.value);
+
+            var temporalKernel = denoiser.FindKernel("TemporalAccumulationFullRes");
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, m_History.ssrPbrOriginal);
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseNormalTexture, normalTexture);
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseMotionTexture, motionTexture);
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistoryDepthTexture, m_History.readPreviousDepth);
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistoryNormalTexture, m_History.readPreviousNormals);
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistoryBuffer, m_History.GetSsrPbrHistory(readSlot));
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountTexture, m_History.GetSsrPbrSampleCount(readSlot));
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrDenoiseIntermediate0);
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseSampleCountRW, m_History.GetSsrPbrSampleCount(writeSlot));
+            cmd.DispatchCompute(denoiser, temporalKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR
-            s_EditorAccumulationDispatchCount++;
-            s_EditorAccumulationKernelCount++;
-            s_EditorLastAccumulateKernel = kernelName;
-            s_EditorAccumulateKernelCounts.TryGetValue(kernelName, out int count);
-            s_EditorAccumulateKernelCounts[kernelName] = count + 1;
+            s_EditorTemporalDispatchCount++;
+            s_EditorLastDenoiseKernel = "TemporalAccumulationFullRes";
+            s_EditorLastDenoiseParams = new Vector4(
+                settings.denoiserRadius.value,
+                settings.singleReflectionBounce.value ? 1f : 0f,
+                settings.minSmoothness.value,
+                historyValid ? 1f : 0f);
 #endif
-        }
 
-        void ClearAccumulationHistory(CommandBuffer cmd, ComputeShader compute, int groupsX, int groupsY, int viewCount)
-        {
-            int kernel = compute.FindKernel("ClearBuffer2D");
-            for (int slot = 0; slot < ScreenSpaceLightingHistory.k_HistoryBufferCount; slot++)
-            {
-                var target = m_History.GetSsrPbrHistory(slot);
-                if (target == null)
-                    continue;
-                cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsrAccumTextureRW, target);
-                cmd.DispatchCompute(compute, kernel, groupsX, groupsY, viewCount);
+            // The accumulated signal becomes next frame's history. The sample count already lives in
+            // the write slot, written by the temporal dispatch.
+            var copyKernel = denoiser.FindKernel("CopyHistory");
+            cmd.SetComputeTextureParam(denoiser, copyKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, m_History.ssrDenoiseIntermediate0);
+            cmd.SetComputeTextureParam(denoiser, copyKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.GetSsrPbrHistory(writeSlot));
+            cmd.DispatchCompute(denoiser, copyKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR
-                s_EditorClearDispatchCount++;
+            s_EditorCopyHistoryDispatchCount++;
+            s_EditorLastDenoiseKernel = "CopyHistory";
 #endif
-            }
-        }
 
-        // Public settings map to a real kernel. When both motion sources are disabled the kernel
-        // falls back to both, matching the HDRP #error case with a defined behavior instead of
-        // silently reusing a different combination.
-        internal static string GetAccumulationKernelName(ScreenSpaceReflection settings, bool debugSpeed)
-        {
-            bool surface = settings.speedSurfaceOnly.value;
-            bool target = settings.speedTargetOnly.value;
-            string motion = surface && target ? "Both" : (surface ? "SourceOnly" : (target ? "TargetOnly" : "Both"));
-            string suffix = debugSpeed ? "Debug" : string.Empty;
+            var mapping = m_Resources.ssrReflectionFilterMapping;
+            var filterHKernel = denoiser.FindKernel("BilateralFilterH_FR");
+            cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, m_History.ssrDenoiseIntermediate0);
+            cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
+            cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.DenoiseNormalTexture, normalTexture);
+            cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrDenoiseIntermediate1);
+            cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.ReflectionFilterMapping, mapping);
+            cmd.DispatchCompute(denoiser, filterHKernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR
+            s_EditorBilateralH_DispatchCount++;
+            s_EditorLastDenoiseKernel = "BilateralFilterH_FR";
+#endif
 
-            if (!settings.enableWorldSpeedRejection.value)
-                return "ScreenSpaceReflectionsAccumulateNoWorldSpeedRejection" + motion + suffix;
-            if (settings.speedSmoothReject.value)
-                return "ScreenSpaceReflectionsAccumulateSmoothSpeedRejection" + motion + suffix;
-
-            return "ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejection" + motion + suffix;
+            var filterVKernel = denoiser.FindKernel("BilateralFilterV_FR");
+            cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, m_History.ssrDenoiseIntermediate1);
+            cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
+            cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseNormalTexture, normalTexture);
+            cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrOutput);
+            cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.ReflectionFilterMapping, mapping);
+            cmd.DispatchCompute(denoiser, filterVKernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR
+            s_EditorBilateralV_DispatchCount++;
+            s_EditorLastDenoiseKernel = "BilateralFilterV_FR";
+#endif
         }
 
         ScreenSpaceLightingSsrShaderVariables CreateShaderVariables(
@@ -356,7 +403,6 @@ namespace UnityEngine.Rendering.Universal
             ScreenSpaceReflection settings,
             int screenWidth,
             int screenHeight,
-            bool pbr,
             bool historyValid)
         {
             float near = Mathf.Max(1e-5f, cameraData.camera.nearClipPlane);
@@ -371,14 +417,6 @@ namespace UnityEngine.Rendering.Universal
             float fadeRcpLength = roughnessFadeLength != 0f ? 1f / roughnessFadeLength : 0f;
             float fadeEndTimesRcpLength = roughnessFadeLength != 0f ? roughnessFadeEnd * fadeRcpLength : 1f;
             float edgeFadeRcpLength = Mathf.Min(1f / Mathf.Max(1e-4f, settings.screenFadeDistance.value), float.MaxValue);
-
-            float accumulationAmount = historyValid
-                ? Mathf.Pow(2f, Mathf.Lerp(0f, -7f, settings.accumulationFactor.value))
-                : 1f;
-            float speedRejection = settings.enableWorldSpeedRejection.value && !settings.speedSmoothReject.value
-                ? 1f - settings.speedRejectionParam.value
-                : settings.speedRejectionParam.value;
-            float speedScalerSquared = Mathf.Pow(settings.speedRejectionScalerFactor.value * 0.1f, 2f);
 
             var cb = default(ScreenSpaceLightingSsrShaderVariables);
             cb._SsrScreenSize = new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight);
@@ -404,18 +442,8 @@ namespace UnityEngine.Rendering.Universal
             cb._SsrCameraPositionWS = cameraData.xr.enabled
                 ? m_XrViews[0].cameraPositionWS
                 : cameraData.camera.transform.position;
-            cb._SsrPbrParams = new Vector4(
-                pbr ? accumulationAmount : 0f,
-                settings.biasFactor.value,
-                pbr ? speedRejection : 0f,
-                pbr ? speedScalerSquared : 0f);
+            cb._SsrPbrParams = new Vector4(0f, settings.biasFactor.value, 0f, 0f);
             cb._SsrPbrFlags = new Vector4(Time.frameCount % 64, historyValid ? 1f : 0f, 0f, 0f);
-#if UNITY_EDITOR
-            s_EditorLastPbrParams = cb._SsrPbrParams;
-            s_EditorLastPbrFlags = cb._SsrPbrFlags;
-            s_EditorLastSpeedRejection = speedRejection;
-            s_EditorLastAccumulationAmount = accumulationAmount;
-#endif
             return cb;
         }
 

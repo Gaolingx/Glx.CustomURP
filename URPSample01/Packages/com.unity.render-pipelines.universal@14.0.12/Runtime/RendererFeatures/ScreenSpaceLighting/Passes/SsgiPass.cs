@@ -265,7 +265,7 @@ namespace UnityEngine.Rendering.Universal
                 thicknessScale,
                 thicknessBias,
                 lowResPercentage,
-                ComputePixelSpreadTangent(cameraData.camera.fieldOfView, traceWidth, traceHeight));
+                ScreenSpaceLightingRenderUtils.ComputePixelSpreadTangent(cameraData.camera.fieldOfView, traceWidth, traceHeight));
             PushShaderVariables(cmd, ssgiCompute, m_ShaderVariables);
 
             cmd.SetComputeTextureParam(ssgiCompute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthTexture, depthTexture);
@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.Universal
                     thicknessScale,
                     thicknessBias,
                     lowResPercentage,
-                    ComputePixelSpreadTangent(cameraData.camera.fieldOfView, screenWidth, screenHeight));
+                    ScreenSpaceLightingRenderUtils.ComputePixelSpreadTangent(cameraData.camera.fieldOfView, screenWidth, screenHeight));
                 PushShaderVariables(cmd, temporalCompute, m_ShaderVariables);
 
                 var validateKernel = temporalCompute.FindKernel("ValidateHistory");
@@ -357,7 +357,7 @@ namespace UnityEngine.Rendering.Universal
                     thicknessScale,
                     thicknessBias,
                     lowResPercentage,
-                    ComputePixelSpreadTangent(cameraData.camera.fieldOfView, traceWidth, traceHeight));
+                    ScreenSpaceLightingRenderUtils.ComputePixelSpreadTangent(cameraData.camera.fieldOfView, traceWidth, traceHeight));
                 PushShaderVariables(cmd, temporalCompute, m_ShaderVariables);
 
                 var accumulateKernel = temporalCompute.FindKernel("TemporalAccumulationColor");
@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.Universal
                     thicknessScale,
                     thicknessBias,
                     lowResPercentage,
-                    ComputePixelSpreadTangent(cameraData.camera.fieldOfView, traceWidth, traceHeight));
+                    ScreenSpaceLightingRenderUtils.ComputePixelSpreadTangent(cameraData.camera.fieldOfView, traceWidth, traceHeight));
                 PushShaderVariables(cmd, denoiserCompute, m_ShaderVariables);
 
                 DispatchPointDistribution(cmd, denoiserCompute);
@@ -453,7 +453,7 @@ namespace UnityEngine.Rendering.Universal
                     thicknessScale,
                     thicknessBias,
                     lowResPercentage,
-                    ComputePixelSpreadTangent(cameraData.camera.fieldOfView, traceWidth, traceHeight));
+                    ScreenSpaceLightingRenderUtils.ComputePixelSpreadTangent(cameraData.camera.fieldOfView, traceWidth, traceHeight));
                 PushShaderVariables(cmd, upsampleCompute, m_ShaderVariables);
 
                 var upsampleKernel = upsampleCompute.FindKernel(
@@ -625,7 +625,7 @@ namespace UnityEngine.Rendering.Universal
             float lowResPercentage,
             float pixelSpreadTangent)
         {
-            var previousViewProj = GetPreviousViewProjection(cameraData);
+            var previousViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData);
             var previousInvViewProj = previousViewProj.inverse;
             var cameraPosition = cameraData.camera.transform.position;
             if (cameraData.xr.enabled)
@@ -648,30 +648,12 @@ namespace UnityEngine.Rendering.Universal
                 thicknessBias,
                 1.0f);
             m_ShaderVariables._SsgiRayMarchingParams2 = new Vector4(invLowResPercentage, frameIndex, historyValidity, 0.0f);
-            m_ShaderVariables._SsgiZBufferParams = ComputeZBufferParams(cameraData.camera.nearClipPlane, cameraData.camera.farClipPlane);
+            m_ShaderVariables._SsgiZBufferParams = ScreenSpaceLightingRenderUtils.ComputeZBufferParams(cameraData.camera.nearClipPlane, cameraData.camera.farClipPlane);
             m_ShaderVariables._SsgiColorPyramidScaleAndLimitPrev = new Vector4(1f, 1f, 1f, 1f);
             m_ShaderVariables._SsgiTemporalParams = new Vector4(lowResPercentage, 1.0f / lowResPercentage, 0.2f, 0.0f);
             m_ShaderVariables._SsgiDenoiserParams = new Vector4(pixelSpreadTangent, -1.0f, 0.0f, 0.0f);
             m_ShaderVariables._SsgiCameraPositionWS = cameraPosition;
             m_ShaderVariables._SsgiPrevInvViewProj = previousInvViewProj;
-        }
-
-        static Matrix4x4 GetPreviousViewProjection(in CameraData cameraData)
-        {
-            var camera = cameraData.camera;
-            if (camera != null &&
-                camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData) &&
-                additionalCameraData.motionVectorsPersistentData != null)
-            {
-                return additionalCameraData.motionVectorsPersistentData.previousViewProjection;
-            }
-
-            return cameraData.GetGPUProjectionMatrix(cameraData.IsCameraProjectionMatrixFlipped()) * cameraData.GetViewMatrix();
-        }
-
-        static float ComputePixelSpreadTangent(float fieldOfView, int width, int height)
-        {
-            return Mathf.Tan(fieldOfView * Mathf.Deg2Rad * 0.5f) * 2.0f / Mathf.Max(1, Mathf.Min(width, height));
         }
 
         static readonly Vector4[] s_AmbientProbeSH = new Vector4[7];
@@ -690,22 +672,6 @@ namespace UnityEngine.Rendering.Universal
             s_AmbientProbeSH[5] = new Vector4(probe[2, 4], probe[2, 5], probe[2, 6], probe[2, 7]);
             s_AmbientProbeSH[6] = new Vector4(probe[0, 8], probe[1, 8], probe[2, 8], 0f);
             return s_AmbientProbeSH;
-        }
-
-        static Vector4 ComputeZBufferParams(float nearPlane, float farPlane)
-        {
-            nearPlane = Mathf.Max(1e-5f, nearPlane);
-            farPlane = Mathf.Max(nearPlane + 1e-4f, farPlane);
-
-            if (SystemInfo.usesReversedZBuffer)
-            {
-                float x = -1f + farPlane / nearPlane;
-                return new Vector4(x, 1f, x / farPlane, 1f / farPlane);
-            }
-
-            float xn = 1f - farPlane / nearPlane;
-            float yn = farPlane / nearPlane;
-            return new Vector4(xn, yn, xn / farPlane, 1f / nearPlane);
         }
 
         static int ComputeSettingsStamp(ScreenSpaceGlobalIllumination settings, int traceWidth, int traceHeight, int resourceGeneration)

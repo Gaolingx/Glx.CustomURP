@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal ComputeShader ssgiDiffuseDenoiserCompute;
         [SerializeField] internal ComputeShader bilateralUpsampleCompute;
         [SerializeField] internal ComputeShader ssrCompute;
+        [SerializeField] internal ComputeShader ssrReflectionDenoiserCompute;
 
         // Seeds the private transparent depth target from the opaque camera depth. The URP
         // CopyDepth shader is reused so the _OUTPUT_DEPTH (SV_Depth) path is identical.
@@ -31,6 +32,8 @@ namespace UnityEngine.Rendering.Universal
         [NonSerialized] Texture2D m_SsgiOwenScrambledTexture;
         [NonSerialized] Texture2D m_SsgiScramblingTile;
         [NonSerialized] Texture2D m_SsgiRankingTile;
+        [NonSerialized] bool m_SsrFilterMappingResolved;
+        [NonSerialized] Texture2D m_SsrReflectionFilterMapping;
 
         // The three LUTs of HDRP's blue-noise distributed Owen scrambled Sobol sequence (BND). They live
         // in a Resources folder of the package so every player build has them without having to
@@ -64,6 +67,24 @@ namespace UnityEngine.Rendering.Universal
             m_SsgiRankingTile = Resources.Load<Texture2D>("SsgiBlueNoise/RankingTile8SPP");
         }
 
+        // HDRP's ReflectionKernelMapping LUT scales the reflection filter radius by (NoV, roughness).
+        // It is resolved from the package Resources folder so a player build keeps it; until the asset
+        // is present the kernel receives a white texture, which collapses the radius scale to 1 and
+        // therefore to a fixed radius filter.
+        internal Texture2D ssrReflectionFilterMapping
+        {
+            get
+            {
+                if (!m_SsrFilterMappingResolved)
+                {
+                    m_SsrFilterMappingResolved = true;
+                    m_SsrReflectionFilterMapping = Resources.Load<Texture2D>("SsrDenoise/ReflectionKernelMapping");
+                }
+
+                return m_SsrReflectionFilterMapping != null ? m_SsrReflectionFilterMapping : Texture2D.whiteTexture;
+            }
+        }
+
         // The depth pyramid and color pyramid are the T4 contract; SSGI resources are optional so a
         // renderer that only uses the color history keeps working.
         internal bool hasRuntimeResources => depthPyramidCompute != null && colorPyramidShader != null;
@@ -74,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
             ssgiDiffuseDenoiserCompute != null &&
             bilateralUpsampleCompute != null;
 
-        internal bool hasSsrResources => ssrCompute != null;
+        internal bool hasSsrResources => ssrCompute != null && ssrReflectionDenoiserCompute != null;
 
         // Transparent SSR additionally needs the depth copy shader to seed the private depth target.
         internal bool hasTransparentSsrResources => ssrCompute != null && transparentDepthCopyShader != null;
@@ -187,6 +208,13 @@ namespace UnityEngine.Rendering.Universal
                 resources.ssrCompute = FindPackageAsset<ComputeShader>(
                     "ScreenSpaceReflections t:ComputeShader",
                     "/ScreenSpaceLighting/ScreenSpaceReflections.compute");
+            }
+
+            if (resources.ssrReflectionDenoiserCompute == null)
+            {
+                resources.ssrReflectionDenoiserCompute = FindPackageAsset<ComputeShader>(
+                    "ReflectionDenoiser t:ComputeShader",
+                    "/Denoising/ReflectionDenoiser.compute");
             }
 
             if (resources.transparentDepthCopyShader == null)

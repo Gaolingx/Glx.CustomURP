@@ -32,9 +32,13 @@ namespace UnityEngine.Rendering.Universal
         SsrRaw = 11,
         /// <summary>Blend weight of the opaque SSR result. Black means the material keeps the reflection probe.</summary>
         SsrWeight = 12,
-        /// <summary>PBR accumulation with the speed rejection colorized (red/green or smooth hue).</summary>
+        /// <summary>
+        /// Deprecated: the PBR speed rejection was replaced by the reflection denoiser history
+        /// validation. The value is kept so serialized selections keep loading; it now shows the same
+        /// result as <see cref="SsrRaw"/>.
+        /// </summary>
         SsrAccumulationSpeed = 13,
-        /// <summary>PBR constant buffer diagnostics: accumulation, bias, speed rejection and history validity.</summary>
+        /// <summary>PBR diagnostics: GGX sample bias and accumulation history validity.</summary>
         SsrPbrParams = 14,
         /// <summary>Private transparent depth written by the transparent prepass, initialized from opaque depth.</summary>
         TransparentDepth = 15,

@@ -1,0 +1,30 @@
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/Denoising/ReflectionDenoiser.compute
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/Denoising/TemporalFilter.compute
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/Denoising/DiffuseDenoiser.compute
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceCommon/BilateralUpsample.compute
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceCommon/DepthPyramid.compute
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ColorPyramid.shader
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingDebug.shader
+KERNEL OK TemporalAccumulationFullRes
+KERNEL OK TemporalAccumulationHalfRes
+KERNEL OK CopyHistory
+KERNEL OK BilateralFilterH_FR
+KERNEL OK BilateralFilterV_FR
+KERNEL OK BilateralFilterH_HR
+KERNEL OK BilateralFilterV_HR
+KERNEL OK ScreenSpaceReflectionsTracing
+KERNEL OK ScreenSpaceReflectionsReprojection
+KERNEL OK DebugSsrParams
+KERNEL REMOVED ClearBuffer2D
+KERNEL REMOVED ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth
+KERNEL REMOVED ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth
+KERNEL REMOVED ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth
+KERNEL OK ValidateHistory
+KERNEL OK TemporalAccumulationColor
+KERNEL OK CopyHistory
+KERNEL OK CopyHistoryNormals
+KERNEL OK GeneratePointDistribution
+KERNEL OK BilateralFilterColor
+KERNEL OK GatherColor

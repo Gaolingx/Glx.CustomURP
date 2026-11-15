@@ -1,5 +1,9 @@
-// Opaque Screen Space Reflections: Approximation and PBR Accumulation.
+// Opaque Screen Space Reflections: trace and reproject for both algorithms.
 // Ported from HDRP 14.0.12 Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceReflections.compute.
+//
+// The PBR signal written by the reprojection is consumed by the reflection denoiser
+// (Shaders/Utils/Denoising/ReflectionDenoiser.compute), which owns the temporal accumulation and the
+// bilateral filter. This file only traces, reprojects and exposes the parameter debug view.
 //
 // Differences from HDRP:
 // - URP has no SSR stencil bit. The depth-normals alpha carries the material smoothness, so
@@ -14,28 +18,7 @@
 //   lambda terms with world-space vectors as if they were in the local frame.
 #pragma kernel ScreenSpaceReflectionsTracing                  SSR_TRACE
 #pragma kernel ScreenSpaceReflectionsReprojection             SSR_REPROJECT
-#pragma kernel ClearBuffer2D
 #pragma kernel DebugSsrParams
-
-#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth                    SSR_ACCUMULATE USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth
-#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly              SSR_ACCUMULATE USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly
-#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly              SSR_ACCUMULATE USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth              SSR_ACCUMULATE WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly        SSR_ACCUMULATE WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly        SSR_ACCUMULATE WORLD_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth                     SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly               SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly               SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly
-
-#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBothDebug               SSR_ACCUMULATE REJECT_DEBUG_COLOR USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBothDebug
-#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnlyDebug         SSR_ACCUMULATE REJECT_DEBUG_COLOR USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnlyDebug
-#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnlyDebug         SSR_ACCUMULATE REJECT_DEBUG_COLOR USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnlyDebug
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug         SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug   SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug   SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug                SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug          SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug          SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug
 
 #pragma multi_compile _ SSR_APPROX
 #pragma multi_compile _ SSR_NORMALS_OCT
@@ -69,11 +52,8 @@ SSGI_RW_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
 // Approximation output: rgb = radiance, a = blend weight.
 SSGI_RW_TEXTURE2D_FLOAT4(_SsrOutputTextureRW);
 
-// PBR accumulation.
+// PBR reprojection output, consumed by the reflection denoiser.
 SSGI_RW_TEXTURE2D_FLOAT4(_SsrReprojectTextureRW);
-SSGI_TEXTURE2D_FLOAT4(_SsrOriginalTexture);
-SSGI_TEXTURE2D_FLOAT4(_SsrAccumPrevTexture);
-SSGI_RW_TEXTURE2D_FLOAT4(_SsrAccumTextureRW);
 
 #define _SsrIterLimit (int)_SsrRayMarchingParams.x
 #define _SsrThicknessScale _SsrRayMarchingParams.y
@@ -87,15 +67,11 @@ SSGI_RW_TEXTURE2D_FLOAT4(_SsrAccumTextureRW);
 
 #define _SsrColorPyramidMaxMip _SsrPyramidParams.x
 
-#define _SsrAccumulationAmount _SsrPbrParams.x
 #define _SsrPBRBias _SsrPbrParams.y
-#define _SsrPBRSpeedRejection _SsrPbrParams.z
-#define _SsrPRBSpeedRejectionScalerFactor _SsrPbrParams.w
 #define _SsrFrameIndex (int)_SsrPbrFlags.x
-#define _SsrPbrHistoryValid (_SsrPbrFlags.y != 0)
 
 // The Approximation reproject writes the material-facing texture directly; the PBR path writes the
-// un-accumulated signal consumed by the accumulate kernels.
+// un-accumulated signal consumed by the reflection denoiser.
 #if defined(SSR_APPROX)
     #define SSR_APPROX_OUTPUT _SsrOutputTextureRW
 #else
@@ -487,20 +463,6 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 }
 
 //--------------------------------------------------------------------------------------------------
-// Clear
-//--------------------------------------------------------------------------------------------------
-
-[numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
-void ClearBuffer2D(uint3 dispatchThreadId : SV_DispatchThreadID)
-{
-    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    if (dispatchThreadId.x >= (uint)_SsrScreenSize.x || dispatchThreadId.y >= (uint)_SsrScreenSize.y)
-        return;
-
-    SSGI_STORE(_SsrAccumTextureRW, dispatchThreadId.xy, float4(0.0, 0.0, 0.0, 0.0));
-}
-
-//--------------------------------------------------------------------------------------------------
 // Parameter debug view (diagnostic, never feeds the material path)
 //--------------------------------------------------------------------------------------------------
 
@@ -513,107 +475,3 @@ void DebugSsrParams(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     SSGI_STORE(_SsrOutputTextureRW, dispatchThreadId.xy, float4(_SsrPbrParams.xyz, _SsrPbrFlags.y));
 }
-
-//--------------------------------------------------------------------------------------------------
-// PBR accumulation
-//--------------------------------------------------------------------------------------------------
-
-#if defined(SSR_ACCUMULATE)
-
-#define __CHROMINANCE
-
-float3 SsrColorize(float3 current, float3 color)
-{
-    float3 tinted = color * current;
-    return tinted / max(tinted.r, max(tinted.g, tinted.b));
-}
-
-[numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
-void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
-{
-    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    uint2 positionSS = dispatchThreadId.xy;
-    float4 original = SSGI_LOAD(_SsrOriginalTexture, positionSS);
-    float4 previous = SSGI_LOAD(_SsrAccumPrevTexture, positionSS);
-
-    float2 hitPositionNDC = SSGI_LOAD(_SsrHitPointTextureRW, positionSS);
-
-    // The hit point is already texel-center NDC, so the pixel is just NDC * size. Scaling by the
-    // color pyramid limit (1 on an unscaled history) first squashed every hit into the lower half.
-    uint2 hitPixel = (uint2)(saturate(hitPositionNDC) * _SsrScreenSize.xy);
-    hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
-
-    float2 motionHit = SSGI_LOAD(_SsrMotionTexture, hitPixel);
-    float2 motionCenter = SSGI_LOAD(_SsrMotionTexture, positionSS);
-
-    float coefficient;
-#if defined(WORLD_SPEED_REJECTION)
-    #if USE_SPEED_SURFACE
-        float deviceDepthSrc = SSGI_LOAD(_SsrDepthTexture, positionSS);
-        float4 srcMotion = float4(motionCenter.xy, deviceDepthSrc, 0.0);
-        float4 worldSrcMotion = mul(SSL_INV_VIEW_PROJ, srcMotion);
-        worldSrcMotion /= worldSrcMotion.w;
-    #endif
-    #if USE_SPEED_TARGET
-        float deviceDepthDst = SSGI_LOAD(_SsrDepthTexture, hitPixel);
-        float4 dstMotion = float4(motionHit.xy, deviceDepthDst, 0.0);
-        float4 worldDstMotion = mul(SSL_INV_VIEW_PROJ, dstMotion);
-        worldDstMotion /= worldDstMotion.w;
-    #endif
-
-    #if USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 0
-        float speedDiff = length(worldSrcMotion.xyz);
-    #elif USE_SPEED_SURFACE == 0 && USE_SPEED_TARGET == 1
-        float speedDiff = length(worldDstMotion.xyz);
-    #else
-        float speedDiff = length(worldSrcMotion.xyz + worldDstMotion.xyz);
-    #endif
-
-    float speedValue = saturate(speedDiff / max(_SsrPRBSpeedRejectionScalerFactor, 1e-6));
-
-    #ifdef SSR_SMOOTH_SPEED_REJECTION
-        coefficient = lerp(_SsrAccumulationAmount, 1.0, saturate(speedValue * _SsrPBRSpeedRejection));
-    #else
-        coefficient = speedValue >= _SsrPBRSpeedRejection ? 1.0 : _SsrAccumulationAmount;
-    #endif
-#else
-    #if USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 0
-        float speedUsedLocally = length(motionCenter);
-    #elif USE_SPEED_SURFACE == 0 && USE_SPEED_TARGET == 1
-        float speedUsedLocally = length(motionHit);
-    #else
-        float speedUsedLocally = length(motionCenter) + length(motionHit);
-    #endif
-
-    float speedValue = saturate(speedUsedLocally * (128.0 / (0.5 * 0.2)) * _SsrPBRSpeedRejection);
-    coefficient = lerp(_SsrAccumulationAmount, 1.0, speedValue);
-#endif
-
-    if (!_SsrPbrHistoryValid)
-        coefficient = 1.0;
-
-    float4 result = lerp(previous, original, coefficient);
-
-#ifdef REJECT_DEBUG_COLOR
-    #if defined(WORLD_SPEED_REJECTION)
-        #ifdef SSR_SMOOTH_SPEED_REJECTION
-            result.rgb = SsrColorize(result.rgb, HsvToRgb(lerp(float3(0.3333333, 1.0, 1.0), float3(0.0, 1.0, 1.0), saturate(speedValue * _SsrPBRSpeedRejection))));
-        #else
-            if (speedValue >= _SsrPBRSpeedRejection)
-                result.rgb = SsrColorize(result.rgb, float3(1.0, 0.0, 0.0));
-            else
-                result.rgb = SsrColorize(result.rgb, float3(0.0, 1.0, 0.0));
-        #endif
-    #else
-        result.rgb = SsrColorize(result.rgb, HsvToRgb(lerp(float3(0.3333333, 1.0, 1.0), float3(0.0, 1.0, 1.0), saturate(speedValue))));
-    #endif
-#endif
-
-    bool finite = !any(isnan(result.rgb)) && !any(isinf(result.rgb)) && !isnan(result.a) && !isinf(result.a);
-    result = finite ? result : float4(0.0, 0.0, 0.0, 0.0);
-
-    SSGI_STORE(_SsrAccumTextureRW, positionSS, result);
-}
-
-#endif

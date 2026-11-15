@@ -1,0 +1,337 @@
+// Reflection denoiser for the opaque PBR screen space reflections.
+// Ported from HDRP 14.0.12 Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReflectionDenoiser.compute.
+//
+// URP adaptations (contract frozen in PLAN/TODO/02-SSRImprove, T0):
+// - the history stores (radiance, weight): rgb is the accumulated un-premultiplied radiance and a is
+//   the current frame blend weight, because the material consumes alpha as lerp weight. The temporal
+//   accumulation sample count therefore lives in a separate single channel texture instead of
+//   history.w;
+// - the signal is un-premultiplied radiance, so the temporal and bilateral passes blend rgb only and
+//   copy the current alpha through (HDRP accumulates premultiplied radiance plus a sample count);
+// - motion vectors are already UV space deltas, so they are used without HDRP's DecodeMotionVector;
+// - HDRP's ray traced reflections need no normal/surface-history test, while the screen space trace
+//   does: the history pass captures the previous depth and normals and this file rejects a history
+//   sample whose normal changed by more than REFLECTION_HISTORY_REJECTION_THRESHOLD;
+// - there is no exposure stage in the URP color chain at this point, so the HDRP
+//   GetCurrent/InverseCurrentExposureMultiplier pair is not ported and the radiance stays
+//   pre-exposure, exactly like the SSGI history;
+// - the geometry helpers are shared with SSGI and read the Screen Space Lighting constant set, which
+//   the SSR pass pushes for these kernels.
+#pragma kernel TemporalAccumulationFullRes TEMPORAL_ACCUMULATION=TemporalAccumulationFullRes
+#pragma kernel TemporalAccumulationHalfRes TEMPORAL_ACCUMULATION=TemporalAccumulationHalfRes HALF_RESOLUTION
+#pragma kernel CopyHistory
+#pragma kernel BilateralFilterH_FR     BILATERAL_FILTER=BilateralFilterH_FR
+#pragma kernel BilateralFilterV_FR     BILATERAL_FILTER=BilateralFilterV_FR     FINAL_PASS
+#pragma kernel BilateralFilterH_HR     BILATERAL_FILTER=BilateralFilterH_HR     HALF_RESOLUTION
+#pragma kernel BilateralFilterV_HR     BILATERAL_FILTER=BilateralFilterV_HR     FINAL_PASS HALF_RESOLUTION
+
+#pragma multi_compile _ SSGI_NORMALS_OCT
+#pragma multi_compile _ SSL_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Denoising/DenoisingUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Denoising/BilateralFilter.hlsl"
+
+#define REFLECTION_FILTER_TILE_SIZE 8
+
+// Threshold at which we decide to reject the reflection history.
+#define REFLECTION_HISTORY_REJECTION_THRESHOLD 0.75
+// Threshold at which we go from sample count accumulation to AABB clipping.
+#define ROUGHNESS_ACCUMULATION_THRESHOLD 0.5
+
+#define BILATERAL_FILTER_SIGMA 0.9
+
+// HDRP TemporalAntialiasing.hlsl: HALF_MAX minus one.
+#define REFLECTION_CLAMP_MAX 65472.0
+
+// Inputs.
+SSGI_TEXTURE2D_FLOAT(_DepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_NormalBufferTexture);
+SSGI_TEXTURE2D_FLOAT2(_CameraMotionVectorsTexture);
+SSGI_TEXTURE2D_FLOAT(_HistoryDepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_HistoryNormalTexture);
+SSGI_TEXTURE2D_FLOAT4(_HistoryBuffer);
+SSGI_TEXTURE2D_FLOAT(_HistorySampleCount);
+SSGI_TEXTURE2D_FLOAT4(_DenoiseInputTexture);
+
+// Outputs.
+SSGI_RW_TEXTURE2D_FLOAT4(_DenoiseOutputTextureRW);
+SSGI_RW_TEXTURE2D_FLOAT(_SampleCountTextureRW);
+
+TEXTURE2D(_ReflectionFilterMapping);
+int _DenoiserFilterRadius;
+float _RoughnessBasedDenoising;
+int _AffectSmoothSurfaces;
+int _SingleReflectionBounce;
+float _RaytracingReflectionMinSmoothness;
+
+// HDRP names mapped onto the Screen Space Lighting constant set. The effect resolution is the trace
+// resolution (half the screen in the half resolution variants); the URP history is never dynamically
+// scaled, so the history size/scale collapses to the full screen.
+#define _HistoryValidity _SsgiRayMarchingParams2.z
+#define _PixelSpreadAngleTangent _SsgiDenoiserParams.x
+#define _CurrentEffectResolution float4(_SsgiTraceSize.xy, _SsgiTraceSize.zw)
+#define _HistoryBufferSize _SsgiScreenSize.zw
+#define _HistorySizeAndScale float4(_SsgiScreenSize.xy, _SsgiScreenSize.zw)
+
+// Maps an effect resolution pixel to the full resolution pixel that owns its depth and normal.
+uint2 ReflectionGetGeometryCoord(uint2 effectCoord)
+{
+#ifdef HALF_RESOLUTION
+    uint2 fullRes = (uint2)floor(((float2)effectCoord + 0.5) * (_SsgiScreenSize.xy / _SsgiTraceSize.xy));
+    return min(fullRes, (uint2)_SsgiScreenSize.xy - 1u);
+#else
+    return effectCoord;
+#endif
+}
+
+// The depth-normals prepass stores 0.5 + 0.5 * smoothness in alpha, the same encoding the SSR trace
+// decodes. Background pixels (alpha 0) decode to roughness 1.
+float ReflectionPerceptualRoughness(float4 normalSample)
+{
+    return 1.0 - saturate(normalSample.a * 2.0 - 1.0);
+}
+
+// HDRP TemporalAntialiasing.hlsl DirectClipToAABB (Playdead TAA): clip toward the AABB centre.
+float3 ReflectionClipToAABB(float3 history, float3 minimum, float3 maximum)
+{
+    float3 center = 0.5 * (maximum + minimum);
+    float3 extents = 0.5 * (maximum - minimum);
+
+    float3 offset = history - center;
+    float3 v_unit = offset / extents;
+    float3 absUnit = abs(v_unit);
+    float maxUnit = Max3(absUnit.x, absUnit.y, absUnit.z);
+
+    if (maxUnit > 1.0)
+        return center + (offset / maxUnit);
+
+    return history;
+}
+
+[numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
+void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 mainCoord = groupId * REFLECTION_FILTER_TILE_SIZE + groupThreadId;
+    if (any(mainCoord >= (uint2)_SsgiTraceSize.xy))
+        return;
+
+    uint2 geometryCoords = ReflectionGetGeometryCoord(mainCoord);
+    float depth = SSGI_LOAD(_DepthTexture, geometryCoords);
+    float4 currentSample = SSGI_LOAD(_DenoiseInputTexture, mainCoord);
+
+    // No history (first frame, camera cut, resolution change) or no surface: pass the noisy value
+    // through and restart the sample count. The history slot is not sampled in this case.
+    if (_HistoryValidity == 0.0 || SsgiIsBackgroundDepth(depth))
+    {
+        SSGI_STORE(_DenoiseOutputTextureRW, mainCoord, currentSample);
+        SSGI_STORE(_SampleCountTextureRW, mainCoord, 0.0);
+        return;
+    }
+
+    float4 normalSample = SSGI_LOAD(_NormalBufferTexture, geometryCoords);
+    float3 normalWS = SsgiDecodeNormalSS(normalSample);
+    float perceptualRoughness = ReflectionPerceptualRoughness(normalSample);
+
+    // Perfectly smooth surfaces are not temporally accumulated unless the volume opts in, mirroring
+    // HDRP's single bounce early-out.
+    if (_AffectSmoothSurfaces == 0 && _SingleReflectionBounce == 1 && (1.0 - perceptualRoughness) > 0.99)
+    {
+        SSGI_STORE(_DenoiseOutputTextureRW, mainCoord, currentSample);
+        SSGI_STORE(_SampleCountTextureRW, mainCoord, 1.0);
+        return;
+    }
+
+    float3 positionWS = SsgiReconstructPositionWS((float2)geometryCoords, depth);
+    float2 velocity = SSGI_LOAD(_CameraMotionVectorsTexture, geometryCoords).xy;
+
+    // The URP motion vector texture already stores a UV space delta.
+    float2 currentUV = SsgiGetPixelUv(geometryCoords, _SsgiScreenSize.zw);
+    float2 historyUVUnscaled = currentUV - velocity;
+
+#ifdef HALF_RESOLUTION
+    // HDRP's half resolution reprojection. T3 wires these kernels and fixes the history resolution
+    // contract; T1 dispatches only the full resolution variants.
+    float2 historyTapCoord = (historyUVUnscaled * _HistorySizeAndScale.xy + 0.5) * 0.5;
+    float2 historyUV = historyTapCoord / _HistorySizeAndScale.xy * _HistorySizeAndScale.zw;
+    float2 historyDepthUV = ((float2)(mainCoord * 2.0 + 0.5) - velocity * _CurrentEffectResolution.xy * 2.0) * _HistoryBufferSize;
+#else
+    float2 historyTapCoord = historyUVUnscaled * _HistorySizeAndScale.xy;
+    float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
+    float2 historyDepthUV = historyUV;
+#endif
+
+    // If the pixel was outside of the screen during the previous frame, invalidate the history.
+    bool canBeReprojected = true;
+    if (historyTapCoord.x >= _CurrentEffectResolution.x || historyTapCoord.x < 0
+        || historyTapCoord.y >= _CurrentEffectResolution.y || historyTapCoord.y < 0)
+        canBeReprojected = false;
+
+    // A background point in the previous frame cannot hold a reflection.
+    float historyDepth = SSGI_SAMPLE_LOD(_HistoryDepthTexture, s_ssgi_linear_clamp_sampler, historyDepthUV, 0);
+    if (SsgiIsBackgroundDepth(historyDepth))
+        canBeReprojected = false;
+
+    // Is the reprojected point too far from the current position?
+    float3 historyPositionWS = ComputeWorldSpacePosition(historyUVUnscaled, historyDepth, SSL_PREV_INV_VIEW_PROJ);
+    float maxRadius = SsgiComputeMaxReprojectionWorldRadius(positionWS, normalWS, _PixelSpreadAngleTangent);
+    if (length(historyPositionWS - positionWS) > maxRadius)
+        canBeReprojected = false;
+
+    // Screen space extension: reject a history sample whose surface orientation changed. The history
+    // pass captures the previous normals with the same encoding as the current prepass.
+    float3 historyNormalWS = SsgiDecodeNormalSS(
+        SSGI_SAMPLE_LOD(_HistoryNormalTexture, s_ssgi_point_clamp_sampler, historyUV, 0));
+    if (dot(normalWS, historyNormalWS) < REFLECTION_HISTORY_REJECTION_THRESHOLD)
+        canBeReprojected = false;
+
+    float4 historyRaw = SSGI_SAMPLE_LOD(_HistoryBuffer, s_ssgi_linear_clamp_sampler, historyUV, 0);
+    float3 history = max(historyRaw.rgb, 0.0);
+    float sampleCount = SSGI_SAMPLE_LOD(_HistorySampleCount, s_ssgi_point_clamp_sampler, historyUV, 0);
+
+    float3 currentColor = max(currentSample.rgb, 0.0);
+    float3 result;
+
+    if (perceptualRoughness > ROUGHNESS_ACCUMULATION_THRESHOLD)
+    {
+        // Rough surfaces: running average whose weight saturates at eight samples.
+        if (canBeReprojected && sampleCount != 0.0)
+        {
+            float accumulationFactor = sampleCount >= 8.0 ? 0.93 : (sampleCount / (sampleCount + 1.0));
+            result = (currentColor * (1.0 - accumulationFactor) + history * accumulationFactor);
+            sampleCount = max(sampleCount + 1.0, 8.0);
+        }
+        else
+        {
+            result = currentColor;
+            sampleCount = 1.0;
+        }
+    }
+    else
+    {
+        // Smooth surfaces: neighbourhood AABB clipping with a luminance driven feedback weight.
+        int2 clampMax = int2(_SsgiTraceSize.xy) - 1;
+        int2 mainCoordI = int2(mainCoord);
+        float3 topLeft = SSGI_LOAD(_DenoiseInputTexture, clamp(mainCoordI - int2(1, 1), int2(0, 0), clampMax)).rgb;
+        float3 bottomRight = SSGI_LOAD(_DenoiseInputTexture, clamp(mainCoordI + int2(1, 1), int2(0, 0), clampMax)).rgb;
+
+        float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * currentColor;
+
+        float3 color = clamp(currentColor, 0.0, REFLECTION_CLAMP_MAX);
+
+        float3 average = FastTonemap((corners + color) / 7.0);
+
+        topLeft = FastTonemap(topLeft);
+        bottomRight = FastTonemap(bottomRight);
+        color = FastTonemap(color);
+
+        float colorLuma = Luminance(color);
+        float averageLuma = Luminance(average);
+        float velocityLength = length(velocity);
+        float nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
+
+        float3 minimum = min(bottomRight, topLeft) - nudge;
+        float3 maximum = max(topLeft, bottomRight) + nudge;
+
+        history = FastTonemap(history);
+
+        // Clip history samples.
+        history = ReflectionClipToAABB(history, minimum, maximum);
+
+        // Blend color and history. Feedback weight from unbiased luminance diff (Timothy Lottes).
+        float historyLuma = Luminance(history);
+        float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
+        float weight = 1.0 - diff;
+        const float feedbackMin = 0.96;
+        const float feedbackMax = 0.91;
+        float feedback = lerp(feedbackMin, feedbackMax, weight * weight);
+
+        color = FastTonemapInvert(lerp(color, history, feedback));
+        result = canBeReprojected ? clamp(color, 0.0, REFLECTION_CLAMP_MAX) : currentColor;
+        sampleCount = 0.0;
+    }
+
+    SSGI_STORE(_DenoiseOutputTextureRW, mainCoord, float4(result, currentSample.a));
+    SSGI_STORE(_SampleCountTextureRW, mainCoord, sampleCount);
+}
+
+// Copies the freshly accumulated signal into the history slot. The sample count was written straight
+// into the ping-pong slot by the temporal dispatch, so only the color and weight need copying.
+[numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
+void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 coord = dispatchThreadId.xy;
+    if (any(coord >= (uint2)_SsgiTraceSize.xy))
+        return;
+
+    SSGI_STORE(_DenoiseOutputTextureRW, coord, SSGI_LOAD(_DenoiseInputTexture, coord));
+}
+
+// Separated bilateral filter (two passes, each with 2 * radius taps).
+[numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
+void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 centerCoord = groupId * REFLECTION_FILTER_TILE_SIZE + groupThreadId;
+    if (any(centerCoord >= (uint2)_SsgiTraceSize.xy))
+        return;
+
+    // Based on which pass of the filter we are doing, adjust the sampling direction.
+#if FINAL_PASS
+    const uint2 passIncr = uint2(1, 0);
+#else
+    const uint2 passIncr = uint2(0, 1);
+#endif
+
+    uint2 geometryCoords = ReflectionGetGeometryCoord(centerCoord);
+    const SsgiBilateralData center = SsgiTapBilateralData(_DepthTexture, _NormalBufferTexture, geometryCoords);
+
+    // Compute the effective radius we should be using for the filtering.
+    const float3 viewWS = normalize(SSL_SSGI_CAMERA_POSITION_WS - center.position);
+    float2 mappingUV = float2(dot(viewWS, center.normal), center.roughness);
+    float2 radiusScale = lerp(1.0, SAMPLE_TEXTURE2D_LOD(_ReflectionFilterMapping, s_ssgi_linear_clamp_sampler, mappingUV, 0.0).xy, _RoughnessBasedDenoising);
+#if FINAL_PASS
+    const float radius = _DenoiserFilterRadius * radiusScale.x;
+#else
+    const float radius = _DenoiserFilterRadius * radiusScale.y;
+#endif
+    const float sigma = radius * BILATERAL_FILTER_SIGMA;
+    const int effectiveRadius = min(sigma * 2.0, radius);
+
+    // Store the intermediate result.
+    float3 finalColor = SSGI_LOAD(_DenoiseInputTexture, centerCoord).rgb;
+
+    // If this pixel does not have reflections anyway, just skip it.
+    if (_RaytracingReflectionMinSmoothness <= (1.0 - center.roughness))
+    {
+        float3 colorSum = 0.0;
+        float wSum = 0.0;
+
+        int2 tapCoord = (int2)centerCoord - effectiveRadius * (int2)passIncr;
+        for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += (int2)passIncr)
+        {
+            // Make sure the pixel coord we are trying to use is in the screen (not out of bounds).
+            if (tapCoord.x >= (int)_CurrentEffectResolution.x || tapCoord.x < 0
+                || tapCoord.y >= (int)_CurrentEffectResolution.y || tapCoord.y < 0)
+                continue;
+
+            uint2 tapGeometryCoords = ReflectionGetGeometryCoord((uint2)tapCoord);
+            const SsgiBilateralData tapData = SsgiTapBilateralData(_DepthTexture, _NormalBufferTexture, tapGeometryCoords);
+            float w = r ? SsgiGaussian(r, sigma) * SsgiComputeBilateralWeight(center, tapData) : 1.0;
+            w = _RaytracingReflectionMinSmoothness > (1.0 - tapData.roughness) ? 0.0 : w;
+            colorSum += SSGI_LOAD(_DenoiseInputTexture, (uint2)tapCoord).rgb * w;
+            wSum += w;
+        }
+
+        // Normalize the result.
+        if (wSum > 0.0)
+            finalColor = colorSum / wSum;
+    }
+
+    SSGI_STORE(_DenoiseOutputTextureRW, centerCoord, float4(finalColor, SSGI_LOAD(_DenoiseInputTexture, centerCoord).a));
+}
