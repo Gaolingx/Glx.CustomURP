@@ -235,6 +235,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         result.cameraRotation = m_Camera.transform.rotation.eulerAngles;
         ReadEffectState(rendererData, result);
         ReadSsgiDispatchStats(testCase, rendererName, result);
+        ReadSsrDenoiserStats(testCase, result);
         LogStep(result.id + ": warmup done, effect state G=" + result.gtaoIntensity +
             " S=" + result.ssgiActive + " R=" + result.ssrActive + " T=" + result.refractionActive);
 
@@ -613,9 +614,65 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         result.ssgiDispatch = report;
     }
 
-    static void CheckCount(SslValidationCaseResult result, string label, int actual, int expected)
+    // P3-1: ReflectionDenoiser.compute maps _PixelSpreadAngleTangent to _SsgiDenoiserParams.x, so the
+    // SSR pass must upload that vector itself. Verify the value it computed for its own trace size and
+    // fail if SSGI is enabled, which would make the proof ambiguous.
+    void ReadSsrDenoiserStats(SslValidationCase testCase, SslValidationCaseResult result)
     {
-        if (actual != expected)
+        var ssr = testCase.volume?.ssr;
+        if (ssr == null || !ssr.enabled || ssr.usedAlgorithm != 1)
+            return;
+
+        var passType = typeof(UniversalRendererData).Assembly.GetType(
+            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
+        var tangentField = passType?.GetField(
+            "s_LastPixelSpreadAngleTangent",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        if (tangentField == null)
+        {
+            result.issues.Add("The SSR denoiser spread angle stat is unavailable; build with development mode.");
+            return;
+        }
+
+        var stats = new SslSsrDenoiserStats
+        {
+            pixelSpreadAngleTangent = Convert.ToSingle(tangentField.GetValue(null)),
+            frameIndex = ReadStaticInt(passType, "s_LastPixelSpreadFrame"),
+            traceWidth = ReadStaticInt(passType, "s_LastPixelSpreadTraceWidth"),
+            traceHeight = ReadStaticInt(passType, "s_LastPixelSpreadTraceHeight"),
+            expectedTraceWidth = ssr.fullResolution ? Screen.width : Mathf.Max(1, Screen.width >> 1),
+            expectedTraceHeight = ssr.fullResolution ? Screen.height : Mathf.Max(1, Screen.height >> 1),
+            ssgiActive = result.ssgiActive,
+        };
+        float minTrace = Mathf.Max(1, Mathf.Min(stats.traceWidth, stats.traceHeight));
+        stats.expectedPixelSpreadAngleTangent =
+            2f * Mathf.Tan(m_Camera.fieldOfView * Mathf.Deg2Rad * 0.5f) / minTrace;
+        stats.passed = Mathf.Abs(stats.pixelSpreadAngleTangent - stats.expectedPixelSpreadAngleTangent) <= 1e-6f;
+
+        if (!stats.passed)
+            result.issues.Add(
+                $"SSR pixel spread tangent {stats.pixelSpreadAngleTangent:R} != expected {stats.expectedPixelSpreadAngleTangent:R}.");
+        if (stats.pixelSpreadAngleTangent <= 0f)
+            result.issues.Add("SSR pixel spread tangent is zero.");
+        if (stats.traceWidth != stats.expectedTraceWidth || stats.traceHeight != stats.expectedTraceHeight)
+            result.issues.Add(
+                $"SSR denoiser trace size {stats.traceWidth}x{stats.traceHeight} != expected {stats.expectedTraceWidth}x{stats.expectedTraceHeight}.");
+        if (stats.ssgiActive)
+            result.issues.Add("The SSR spread angle case ran with SSGI enabled; the upload cannot be attributed to SSR.");
+        if (stats.frameIndex < 0 || Time.frameCount - stats.frameIndex > 3)
+            result.issues.Add($"SSR spread angle stat is stale: frame {stats.frameIndex}, current {Time.frameCount}.");
+
+        result.ssrDenoiser = stats;
+    }
+
+    static int ReadStaticInt(Type type, string fieldName)
+    {
+        var field = type?.GetField(fieldName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        return field != null ? Convert.ToInt32(field.GetValue(null)) : -1;
+    }
+
+    static void CheckCount(SslValidationCaseResult result, string label, int actual, int expected)
+    {        if (actual != expected)
             result.issues.Add($"SSGI {label} dispatches {actual} != expected {expected}.");
     }
 
@@ -1220,8 +1277,23 @@ public sealed class SslValidationCaseResult
     public int bindingProbeMismatches;
     public List<string> bindingProbeFailures;
     public SslSsgiDispatchStats ssgiDispatch;
+    public SslSsrDenoiserStats ssrDenoiser;
     public bool passed;
     public List<string> issues;
+}
+
+[Serializable]
+public sealed class SslSsrDenoiserStats
+{
+    public float pixelSpreadAngleTangent;
+    public float expectedPixelSpreadAngleTangent;
+    public int frameIndex;
+    public int traceWidth;
+    public int traceHeight;
+    public int expectedTraceWidth;
+    public int expectedTraceHeight;
+    public bool ssgiActive;
+    public bool passed;
 }
 
 [Serializable]

@@ -26,6 +26,11 @@ float4 _SslRefractionProbeMax[8];
 float4 _SslRefractionProbeParams[8];
 int _SslRefractionProbeCount;
 
+// Test-only alias for the reflection denoiser's pixel spread angle. The production denoiser reads
+// the shared _SsgiDenoiserParams.x, but SSGI may be disabled, so the SSR pass's own value is
+// reported under a separate name instead of overloading the SSGI row.
+float4 _SsrDenoiserPixelSpread;
+
 RWTexture2D<float4> _SslBindingProbeOutput;
 uint _SslBindingProbeIndex;
 uint _SslBindingProbeRow;
@@ -72,6 +77,7 @@ void BindingProbe(uint3 id : SV_DispatchThreadID)
     else if (index == 32u)  value = _SslRefractionProbeMin[0];
     else if (index == 33u)  value = _SslRefractionProbeMax[0];
     else if (index == 34u)  value = _SslRefractionProbeParams[0];
+    else if (index == 35u)  value = _SsrDenoiserPixelSpread;
 
     _SslBindingProbeOutput[uint2(0u, _SslBindingProbeRow)] = value;
 }

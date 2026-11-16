@@ -16,7 +16,7 @@ using Object = UnityEngine.Object;
 // own constant bindings are covered by the RenderDoc census and pixel output instead.
 public sealed class ScreenSpaceLightingBindingProbeFeature : ScriptableRendererFeature
 {
-    public const int FieldCount = 35;
+    public const int FieldCount = 36;
 
     public static readonly string[] FieldNames =
     {
@@ -55,6 +55,7 @@ public sealed class ScreenSpaceLightingBindingProbeFeature : ScriptableRendererF
         "_SslRefractionProbeMin[0]",
         "_SslRefractionProbeMax[0]",
         "_SslRefractionProbeParams[0]",
+        "_SsrDenoiserPixelSpread",
     };
 
     static readonly string[] k_SsgiFields =
@@ -300,6 +301,7 @@ public sealed class ScreenSpaceLightingBindingProbeFeature : ScriptableRendererF
         const int offset = 8;
         for (var i = 0; i < k_SsrFields.Length; i++)
             SetField(offset + i, Vector4.zero, false);
+        SetField(FieldCount - 1, Vector4.zero, false);
 
         if (!active || settings == null || lightingFeature == null)
             return;
@@ -349,6 +351,17 @@ public sealed class ScreenSpaceLightingBindingProbeFeature : ScriptableRendererF
             var field = cb.GetType().GetField(k_SsrFields[i], k_InstanceFlags);
             if (field != null)
                 SetField(offset + i, (Vector4)field.GetValue(cb), true);
+        }
+
+        // The reflection denoiser reads the shared _SsgiDenoiserParams.x. Report the SSR pass's own
+        // value under a separate probe name so an SSGI-disabled camera still shows it.
+        var tangentField = pass.GetType().GetField(
+            "s_LastPixelSpreadAngleTangent",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        if (tangentField != null)
+        {
+            float tangent = Convert.ToSingle(tangentField.GetValue(null));
+            SetField(FieldCount - 1, new Vector4(tangent, -1f, 0f, 0f), pbr);
         }
     }
 
