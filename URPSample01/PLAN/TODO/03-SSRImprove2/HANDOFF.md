@@ -1,7 +1,7 @@
 # 03-SSRImprove2 交接
 
 > 更新：2026-11-16
-> 状态：**T1–T3 已实现；T4 部分完成（导入/编译、EditMode、SSR T5、SSGI temporal 全通过；带探针的专项验证待补）。**
+> 状态：**T1–T3 已实现并验证；T4 完成（Frame Debugger 因非交互会话无法采集，见 §3.1）；T5 文档已更新。**
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`，当前 HEAD `c02f851`（02 收尾 + SSGI temporal 修复）。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -43,7 +43,7 @@
 - T1：SSR 接入 BND blue noise，新增 1SPP LUT；帧索引直传 `Time.frameCount`。
 - T2：新增 `SslComputeSourceCoordinates`，SSR trace/reproject 与 ReflectionDenoiser 同源取 `2c`。
 - T3：新增 compute 安全头 `ReflectionProbeFallback.hlsl`（Forward+ atlas + zbin/tile cluster + box 权重 + LOD 0），SSGI 回退在 Forward+ 走 atlas，其余渲染路径保持默认 cubemap。
-- 未做：带真实探针的 `SsgiFallbackCheck` 专项验证（T4 剩余项）；Frame Debugger 采集。
+- T4：新增 `ScreenSpaceLightingSsgiFallbackCheck`，验证探针颜色、四种 `rayMiss` 与三渲染器；Frame Debugger 在本会话无法采集（非交互环境）。
 
 ---
 
@@ -103,12 +103,14 @@
 | `EditModeTests.xml` | 418/418 passed |
 | `UnitySsrT5Verification.log` + `T5/` | Forward / Forward+ / Deferred 全 pass；半分辨率 `fullVsHalfToneMappedPixelFraction` 0.000315（改前 0.00034） |
 | `UnitySsgiTemporalCheck.log` + `SsgiTemporal/` | 三渲染器 pass；`coveredFraction` 0.034438 与 AuditFix 基线一致 |
-| 待补 | 带真实反射探针的 `SsgiFallbackCheck`（验证 atlas 颜色随探针变化、四种 `rayMiss` 差异） |
+| `UnitySsgiFallbackCheck.log` + `SsgiFallback/` | 三渲染器 pass；Forward+ 探针可见数 1，`ReflectionProbes` 均值 (0.15, 2.74, 0.15)，`ProbesAndSky` 补天空，绿→品红 delta 6.15 |
+| `FrameDebugger/FrameDebuggerReport.json` + `FrameDebuggerError.txt` | 环境受限：batch `locallySupported=False`；GUI play mode 在本非交互会话不推进，未采集到事件（需交互式编辑器重跑） |
 
 **实现落点**：
 - T1：`ScreenSpaceReflections.compute` pragma；`SsrPass.BindSsrBlueNoise`；`ScreenSpaceLightingResources.ssrScramblingTile/ssrRankingTile/hasSsrBlueNoise`；`Resources/SsgiBlueNoise/{Scrambling,Ranking}Tile1SPP.png`。
 - T2：`ScreenSpaceLightingCommon.hlsl:SslComputeSourceCoordinates`；`SsrGetFullResCoord` 与 `ReflectionGetGeometryCoord` 调用它。
 - T3：`Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl`；`SSL_PROBE_ATLAS` 关键字（`SsgiPass` 仅在 Forward+ 启用）；SSGI reproject 回退分支；`_SsgiProbeAtlasParams`（透视标志）。
+- T4：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingSsgiFallbackCheck.cs`（临时场景副本序列化探针，保证进入 Unity 的探针 culling）。
 
 ---
 
@@ -214,7 +216,14 @@
 - T5 三渲染器回归 + SSGI temporal 收敛检查通过；Frame Debugger 顺序不变。
 - EditMode 418 passed；无新增公开 Volume 参数。
 
-#### 5.2.6 风险
+#### 5.2.6 验证实现说明（本轮实测）
+
+- 运行时 `AddComponent<ReflectionProbe>()` 在编辑器下**不会进入** `CullingResults.visibleReflectionProbes`（实测 `urp_ReflProbes_Count = 0`），因此 `SsgiFallbackCheck` 先创建探针、保存临时场景副本并重新打开；探针成为场景对象后 atlas 才可见（`visible=1`）。
+- Forward+ 实测：探针盒覆盖约 80% 的 miss 像素（`ReflectionProbes` coverage 0.306 vs `Sky` 0.383），其余像素在 `ProbesAndSky` 中由 ambient SH 补齐。
+- 探针颜色验证：绿探针下 SSGI 均值为 (0.15, 2.74, 0.15)；切换品红后 `greenVsMagentaDelta = 6.15`，证明 atlas 跟随探针内容而非常量。
+- Frame Debugger：batchmode 报告 `locallySupported=False`；GUI 在本非交互会话中 play mode 不推进，需在交互式编辑器重跑同一 `ScreenSpaceLightingFrameDebuggerCapture.Capture` 命令。
+
+#### 5.2.7 风险
 - 变体：`SSL_PROBE_ATLAS` × XR × NormalsOct × HalfRes 组合增加，需统计构建时间/包体。
 - `MAX_REFLECTION_PROBES` 与 GLES3 布局必须与 URP 完全一致，否则 cbuffer 错位；建议只支持桌面（D3D11/Vulkan/Metal）并在移动端保留默认 cubemap。
 - atlas 满时探针会被丢弃（URP 自身行为），回退颜色可能突变；需在文档标注。

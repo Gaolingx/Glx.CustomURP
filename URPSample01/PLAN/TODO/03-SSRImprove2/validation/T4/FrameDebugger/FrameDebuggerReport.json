@@ -1,0 +1,10 @@
+{
+    "utcTimestamp": "2026-11-16T06:19:42.8713329Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "scene": "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity",
+    "completed": false,
+    "error": "System.TimeoutException: Timed out while waiting for Frame Debugger events. count=0, locallySupported=False, receivingRemote=True, remoteGuid=-1, paused=True, playing=True\r\n  at ScreenSpaceLightingFrameDebuggerCapture.Update () [0x0004c] in E:\\GitHub\\Glx.CustomURP\\URPSample01\\Assets\\Tests\\ScreenSpaceLighting\\Editor\\ScreenSpaceLightingFrameDebuggerCapture.cs:128 ",
+    "modes": []
+}

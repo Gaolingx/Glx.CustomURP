@@ -1,0 +1,2 @@
+System.TimeoutException: Timed out while waiting for Frame Debugger events. count=0, locallySupported=False, receivingRemote=True, remoteGuid=-1, paused=True, playing=True
+  at ScreenSpaceLightingFrameDebuggerCapture.Update () [0x0004c] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\ScreenSpaceLighting\Editor\ScreenSpaceLightingFrameDebuggerCapture.cs:128 

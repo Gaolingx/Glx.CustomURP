@@ -1,0 +1,239 @@
+{
+    "utcTimestamp": "2026-11-16T05:57:18.1750355Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "Forward",
+            "passed": true,
+            "issues": [],
+            "misses": [
+                {
+                    "missMode": 0,
+                    "missName": "None",
+                    "coveredPixels": 1811,
+                    "coveredFraction": 0.03144097328186035,
+                    "meanWeight": 0.03144097328186035,
+                    "premultipliedMean": 0.004344525281339884,
+                    "meanR": 0.13263756036758424,
+                    "meanG": 0.10562390834093094,
+                    "meanB": 0.17627963423728944,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "missMode": 1,
+                    "missName": "Sky",
+                    "coveredPixels": 22048,
+                    "coveredFraction": 0.38277778029441836,
+                    "meanWeight": 0.38277778029441836,
+                    "premultipliedMean": 0.09565035998821259,
+                    "meanR": 0.15077662467956544,
+                    "meanG": 0.22397451102733613,
+                    "meanB": 0.3749033510684967,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "missMode": 2,
+                    "missName": "ReflectionProbes",
+                    "coveredPixels": 22048,
+                    "coveredFraction": 0.38277778029441836,
+                    "meanWeight": 0.38277778029441836,
+                    "premultipliedMean": 0.35718095302581789,
+                    "meanR": 0.9329055547714233,
+                    "meanG": 0.929671049118042,
+                    "meanB": 0.9368095993995667,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "missMode": 3,
+                    "missName": "ReflectionProbesAndSky",
+                    "coveredPixels": 22048,
+                    "coveredFraction": 0.38277778029441836,
+                    "meanWeight": 0.38277778029441836,
+                    "premultipliedMean": 0.35718095302581789,
+                    "meanR": 0.9329055547714233,
+                    "meanG": 0.929671049118042,
+                    "meanB": 0.9368095993995667,
+                    "nonFinitePixels": 0
+                }
+            ],
+            "noneCoveredFraction": 0.03144097328186035,
+            "skyCoveredFraction": 0.38277778029441836,
+            "probesCoveredFraction": 0.38277778029441836,
+            "probesAndSkyCoveredFraction": 0.38277778029441836,
+            "noneVsSkyDelta": 0.09130583703517914,
+            "noneVsProbesDelta": 0.3528364300727844,
+            "skyVsProbesDelta": 0.2615305781364441,
+            "skyVsBothDelta": 0.2615305781364441,
+            "probesVsBothDelta": 0.0,
+            "probeGreenTint": 0.0,
+            "magentaMeanR": 0.0,
+            "magentaMeanG": 0.0,
+            "magentaMeanB": 0.0,
+            "greenVsMagentaDelta": 0.0,
+            "probesMean": {
+                "x": 0.9329055547714233,
+                "y": 0.929671049118042,
+                "z": 0.9368095993995667
+            },
+            "probeTextureAssigned": true,
+            "visibleProbeCount": 1
+        },
+        {
+            "name": "ForwardPlus",
+            "passed": true,
+            "issues": [],
+            "misses": [
+                {
+                    "missMode": 0,
+                    "missName": "None",
+                    "coveredPixels": 1811,
+                    "coveredFraction": 0.03144097328186035,
+                    "meanWeight": 0.03144097328186035,
+                    "premultipliedMean": 0.0075762695632874969,
+                    "meanR": 0.1471768170595169,
+                    "meanG": 0.3856270909309387,
+                    "meanB": 0.19010022282600404,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "missMode": 1,
+                    "missName": "Sky",
+                    "coveredPixels": 22048,
+                    "coveredFraction": 0.38277778029441836,
+                    "meanWeight": 0.38277778029441836,
+                    "premultipliedMean": 0.0988822877407074,
+                    "meanR": 0.15197163820266725,
+                    "meanG": 0.24697251617908479,
+                    "meanB": 0.37604039907455447,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "missMode": 2,
+                    "missName": "ReflectionProbes",
+                    "coveredPixels": 17648,
+                    "coveredFraction": 0.30638888478279116,
+                    "meanWeight": 0.306284636259079,
+                    "premultipliedMean": 0.31059983372688296,
+                    "meanR": 0.1482151746749878,
+                    "meanG": 2.7425105571746828,
+                    "meanB": 0.15085332095623017,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "missMode": 3,
+                    "missName": "ReflectionProbesAndSky",
+                    "coveredPixels": 22048,
+                    "coveredFraction": 0.38277778029441836,
+                    "meanWeight": 0.38277778029441836,
+                    "premultipliedMean": 0.3304990231990814,
+                    "meanR": 0.1489810198545456,
+                    "meanG": 2.2420144081115724,
+                    "meanB": 0.19927270710468293,
+                    "nonFinitePixels": 0
+                }
+            ],
+            "noneCoveredFraction": 0.03144097328186035,
+            "skyCoveredFraction": 0.38277778029441836,
+            "probesCoveredFraction": 0.30638888478279116,
+            "probesAndSkyCoveredFraction": 0.38277778029441836,
+            "noneVsSkyDelta": 0.09130601584911347,
+            "noneVsProbesDelta": 0.3030235767364502,
+            "skyVsProbesDelta": 0.21171754598617555,
+            "skyVsBothDelta": 0.23161673545837403,
+            "probesVsBothDelta": 0.019899189472198488,
+            "probeGreenTint": 2.5916571617126467,
+            "magentaMeanR": 2.7484991550445558,
+            "magentaMeanG": 0.1450926959514618,
+            "magentaMeanB": 1.1011583805084229,
+            "greenVsMagentaDelta": 6.148006916046143,
+            "probesMean": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "probeTextureAssigned": true,
+            "visibleProbeCount": 1
+        },
+        {
+            "name": "Deferred",
+            "passed": true,
+            "issues": [],
+            "misses": [
+                {
+                    "missMode": 0,
+                    "missName": "None",
+                    "coveredPixels": 1811,
+                    "coveredFraction": 0.03144097328186035,
+                    "meanWeight": 0.03144097328186035,
+                    "premultipliedMean": 0.004413177724927664,
+                    "meanR": 0.13490483164787293,
+                    "meanG": 0.10755570977926254,
+                    "meanB": 0.17863118648529054,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "missMode": 1,
+                    "missName": "Sky",
+                    "coveredPixels": 22048,
+                    "coveredFraction": 0.38277778029441836,
+                    "meanWeight": 0.38277778029441836,
+                    "premultipliedMean": 0.09571889042854309,
+                    "meanR": 0.15096239745616914,
+                    "meanG": 0.22413232922554017,
+                    "meanB": 0.3750968873500824,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "missMode": 2,
+                    "missName": "ReflectionProbes",
+                    "coveredPixels": 22048,
+                    "coveredFraction": 0.38277778029441836,
+                    "meanWeight": 0.38277778029441836,
+                    "premultipliedMean": 0.35724952816963198,
+                    "meanR": 0.933091402053833,
+                    "meanG": 0.9298292398452759,
+                    "meanB": 0.9370031356811523,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "missMode": 3,
+                    "missName": "ReflectionProbesAndSky",
+                    "coveredPixels": 22048,
+                    "coveredFraction": 0.38277778029441836,
+                    "meanWeight": 0.38277778029441836,
+                    "premultipliedMean": 0.35724952816963198,
+                    "meanR": 0.933091402053833,
+                    "meanG": 0.9298292398452759,
+                    "meanB": 0.9370031356811523,
+                    "nonFinitePixels": 0
+                }
+            ],
+            "noneCoveredFraction": 0.03144097328186035,
+            "skyCoveredFraction": 0.38277778029441836,
+            "probesCoveredFraction": 0.38277778029441836,
+            "probesAndSkyCoveredFraction": 0.38277778029441836,
+            "noneVsSkyDelta": 0.09130571037530899,
+            "noneVsProbesDelta": 0.35283634066581728,
+            "skyVsProbesDelta": 0.26153063774108889,
+            "skyVsBothDelta": 0.26153063774108889,
+            "probesVsBothDelta": 0.0,
+            "probeGreenTint": 0.0,
+            "magentaMeanR": 0.0,
+            "magentaMeanG": 0.0,
+            "magentaMeanB": 0.0,
+            "greenVsMagentaDelta": 0.0,
+            "probesMean": {
+                "x": 0.933091402053833,
+                "y": 0.9298292398452759,
+                "z": 0.9370031356811523
+            },
+            "probeTextureAssigned": true,
+            "visibleProbeCount": 1
+        }
+    ]
+}
