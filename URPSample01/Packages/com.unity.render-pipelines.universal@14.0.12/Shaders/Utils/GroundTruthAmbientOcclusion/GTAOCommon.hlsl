@@ -85,7 +85,7 @@ float GTAOLoadDepth(int2 pixel)
 
 float GTAOGetDepthForCentral(float2 positionSS)
 {
-#ifdef GTAO_FULL_RES
+#ifdef FULL_RES
     return GTAOLoadDepth((int2)positionSS);
 #else
     return GTAOLoadDepth((int2)(_GtaoFirstDepthMipOffset + positionSS));
@@ -94,7 +94,7 @@ float GTAOGetDepthForCentral(float2 positionSS)
 
 float GTAOGetDepthSample(float2 positionSS, bool lowerRes)
 {
-#ifdef GTAO_FULL_RES
+#ifdef FULL_RES
     // HALF_RES_DEPTH_WHEN_FULL_RES: full resolution AO reads the half resolution pyramid level.
     return GTAOLoadDepth((int2)(_GtaoFirstDepthMipOffset + (int2)positionSS / 2));
 #else

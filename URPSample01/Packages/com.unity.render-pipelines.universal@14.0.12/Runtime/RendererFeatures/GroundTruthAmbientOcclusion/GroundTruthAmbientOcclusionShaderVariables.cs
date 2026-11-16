@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public Vector4 _GtaoBufferSize;             // running AO size xy, reciprocal zw
         public Vector4 _GtaoScreenSize;             // full camera size xy, reciprocal zw
-        public Vector4 _GtaoParams0;                // baseResMip, fovCorrection, radius, stepCount
+        public Vector4 _GtaoParams0;                // x unused, fovCorrection, radius, stepCount
         public Vector4 _GtaoParams1;                // intensity, 1/radius^2, temporalOffsetIdx, temporalRotationIdx
         public Vector4 _GtaoParams2;                // historySize.xy, 1/(stepCount+1), maximumRadiusInPixels
         public Vector4 _GtaoParams3;                // blurTolerance, upsampleTolerance, noiseFilterStrength, stepSize

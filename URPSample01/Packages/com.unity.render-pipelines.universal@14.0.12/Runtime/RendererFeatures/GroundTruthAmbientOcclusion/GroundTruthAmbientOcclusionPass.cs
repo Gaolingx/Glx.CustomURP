@@ -327,7 +327,8 @@ namespace UnityEngine.Rendering.Universal
             cb._GtaoBufferSize = new Vector4(aoWidth, aoHeight, 1f / aoWidth, 1f / aoHeight);
             cb._GtaoScreenSize = new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight);
             cb._GtaoParams0 = new Vector4(
-                fullResolution ? 0f : 1f,
+                // Full resolution is a compile-time FULL_RES keyword, so no resolution lane is uploaded.
+                0f,
                 aoHeight * invHalfTanFOV * 0.25f,
                 radius,
                 stepCount);
