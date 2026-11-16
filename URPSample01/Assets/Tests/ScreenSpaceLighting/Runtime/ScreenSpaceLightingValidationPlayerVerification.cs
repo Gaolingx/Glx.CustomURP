@@ -234,6 +234,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         result.cameraPosition = m_Camera.transform.position;
         result.cameraRotation = m_Camera.transform.rotation.eulerAngles;
         ReadEffectState(rendererData, result);
+        ReadSsgiDispatchStats(testCase, rendererName, result);
         LogStep(result.id + ": warmup done, effect state G=" + result.gtaoIntensity +
             " S=" + result.ssgiActive + " R=" + result.ssrActive + " T=" + result.refractionActive);
 
@@ -440,6 +441,220 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         var settings = gtaoFeature?.GetType().GetProperty("settings", InstanceFlags)?.GetValue(gtaoFeature);
         var intensity = settings?.GetType().GetField("intensity", InstanceFlags)?.GetValue(settings);
         result.gtaoIntensity = intensity != null ? Convert.ToSingle(intensity) : 0f;
+    }
+
+    // P2-1: compare the SSGI dispatch chain the pass actually submitted last frame against the
+    // manifest configuration. Group sizes and keywords are only visible on the CPU; the RenderDoc
+    // census covers the GPU side (dispatch order, bound history/LUT/atlas textures).
+    void ReadSsgiDispatchStats(SslValidationCase testCase, string rendererName, SslValidationCaseResult result)
+    {
+        var ssgi = testCase.volume?.ssgi;
+        if (ssgi == null || !ssgi.enabled)
+            return;
+
+        var passType = typeof(UniversalRendererData).Assembly.GetType(
+            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsgiPass");
+        var statsField = passType?.GetField("s_LastDispatchStats", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var stats = statsField?.GetValue(null);
+        if (stats == null)
+        {
+            result.issues.Add("SSGI dispatch stats are unavailable; build the player with development mode.");
+            return;
+        }
+
+        var report = new SslSsgiDispatchStats
+        {
+            frameIndex = ReadStatInt(stats, "frameIndex"),
+            screenWidth = ReadStatInt(stats, "screenWidth"),
+            screenHeight = ReadStatInt(stats, "screenHeight"),
+            traceWidth = ReadStatInt(stats, "traceWidth"),
+            traceHeight = ReadStatInt(stats, "traceHeight"),
+            temporal = ReadStatBool(stats, "temporal"),
+            denoise = ReadStatBool(stats, "denoise"),
+            secondDenoiserPass = ReadStatBool(stats, "secondDenoiserPass"),
+            halfResolutionDenoiser = ReadStatBool(stats, "halfResolutionDenoiser"),
+            historyReadSlot = ReadStatInt(stats, "historyReadSlot"),
+            historyWriteSlot = ReadStatInt(stats, "historyWriteSlot"),
+            historyValid = ReadStatBool(stats, "historyValid"),
+            traceDispatches = ReadStatInt(stats, "traceDispatches"),
+            reprojectDispatches = ReadStatInt(stats, "reprojectDispatches"),
+            validateDispatches = ReadStatInt(stats, "validateDispatches"),
+            accumulationDispatches = ReadStatInt(stats, "accumulationDispatches"),
+            copyHistoryDispatches = ReadStatInt(stats, "copyHistoryDispatches"),
+            diffuseDenoiseDispatches = ReadStatInt(stats, "diffuseDenoiseDispatches"),
+            gatherDispatches = ReadStatInt(stats, "gatherDispatches"),
+            upsampleDispatches = ReadStatInt(stats, "upsampleDispatches"),
+            pointDistributionDispatches = ReadStatInt(stats, "pointDistributionDispatches"),
+            traceGroupsX = ReadStatInt(stats, "traceGroupsX"),
+            traceGroupsY = ReadStatInt(stats, "traceGroupsY"),
+            validateGroupsX = ReadStatInt(stats, "validateGroupsX"),
+            validateGroupsY = ReadStatInt(stats, "validateGroupsY"),
+            accumulationGroupsX = ReadStatInt(stats, "accumulationGroupsX"),
+            accumulationGroupsY = ReadStatInt(stats, "accumulationGroupsY"),
+            copyHistoryGroupsX = ReadStatInt(stats, "copyHistoryGroupsX"),
+            copyHistoryGroupsY = ReadStatInt(stats, "copyHistoryGroupsY"),
+            diffuseDenoiseGroupsX = ReadStatInt(stats, "diffuseDenoiseGroupsX"),
+            diffuseDenoiseGroupsY = ReadStatInt(stats, "diffuseDenoiseGroupsY"),
+            gatherGroupsX = ReadStatInt(stats, "gatherGroupsX"),
+            gatherGroupsY = ReadStatInt(stats, "gatherGroupsY"),
+            upsampleGroupsX = ReadStatInt(stats, "upsampleGroupsX"),
+            upsampleGroupsY = ReadStatInt(stats, "upsampleGroupsY"),
+            pointDistributionGroupsX = ReadStatInt(stats, "pointDistributionGroupsX"),
+            pointDistributionGroupsY = ReadStatInt(stats, "pointDistributionGroupsY"),
+            groupsZ = ReadStatInt(stats, "groupsZ"),
+            halfResKeyword = ReadStatBool(stats, "halfResKeyword"),
+            blueNoiseKeyword = ReadStatBool(stats, "blueNoiseKeyword"),
+            probeAtlasKeyword = ReadStatBool(stats, "probeAtlasKeyword"),
+            probeListKeyword = ReadStatBool(stats, "probeListKeyword"),
+            normalsOctKeyword = ReadStatBool(stats, "normalsOctKeyword"),
+            xrArrayKeyword = ReadStatBool(stats, "xrArrayKeyword"),
+            historyReadSlots = ReadStatIntArray(stats, "historyReadSlots"),
+            historyWriteSlots = ReadStatIntArray(stats, "historyWriteSlots"),
+        };
+
+        if (report.frameIndex < 0 || Time.frameCount - report.frameIndex > 3)
+            result.issues.Add($"SSGI dispatch stats are stale: frame {report.frameIndex}, current {Time.frameCount}.");
+
+        int screenWidth = Mathf.Max(1, report.screenWidth);
+        int screenHeight = Mathf.Max(1, report.screenHeight);
+        bool fullResolution = ssgi.fullResolution;
+        int traceWidth = fullResolution ? screenWidth : Mathf.Max(1, screenWidth >> 1);
+        int traceHeight = fullResolution ? screenHeight : Mathf.Max(1, screenHeight >> 1);
+        bool temporal = ssgi.temporalAccumulation;
+        bool denoise = ssgi.denoise;
+        bool secondPass = denoise && ssgi.secondDenoiserPass && temporal;
+        bool halfResolutionDenoise = ssgi.halfResolutionDenoiser;
+        int traceGroupsX = (traceWidth + 7) / 8;
+        int traceGroupsY = (traceHeight + 7) / 8;
+        int screenGroupsX = (screenWidth + 7) / 8;
+        int screenGroupsY = (screenHeight + 7) / 8;
+
+        report.expectedTraceWidth = traceWidth;
+        report.expectedTraceHeight = traceHeight;
+        report.expectedTraceDispatches = 1;
+        report.expectedReprojectDispatches = 1;
+        report.expectedValidateDispatches = temporal ? 1 : 0;
+        report.expectedAccumulationDispatches = temporal ? (secondPass ? 2 : 1) : 0;
+        report.expectedCopyHistoryDispatches = report.expectedAccumulationDispatches;
+        report.expectedDiffuseDenoiseDispatches = denoise ? (secondPass ? 2 : 1) : 0;
+        report.expectedGatherDispatches = denoise && halfResolutionDenoise ? (secondPass ? 2 : 1) : 0;
+        report.expectedUpsampleDispatches = fullResolution ? 0 : 1;
+        report.expectedTraceGroupsX = traceGroupsX;
+        report.expectedTraceGroupsY = traceGroupsY;
+        report.expectedScreenGroupsX = screenGroupsX;
+        report.expectedScreenGroupsY = screenGroupsY;
+
+        CheckCount(result, "trace", report.traceDispatches, report.expectedTraceDispatches);
+        CheckCount(result, "reproject", report.reprojectDispatches, report.expectedReprojectDispatches);
+        CheckCount(result, "validate", report.validateDispatches, report.expectedValidateDispatches);
+        CheckCount(result, "accumulation", report.accumulationDispatches, report.expectedAccumulationDispatches);
+        CheckCount(result, "copyHistory", report.copyHistoryDispatches, report.expectedCopyHistoryDispatches);
+        CheckCount(result, "diffuseDenoise", report.diffuseDenoiseDispatches, report.expectedDiffuseDenoiseDispatches);
+        CheckCount(result, "gather", report.gatherDispatches, report.expectedGatherDispatches);
+        CheckCount(result, "upsample", report.upsampleDispatches, report.expectedUpsampleDispatches);
+
+        CheckGroups(result, "trace", report.traceGroupsX, report.traceGroupsY, traceGroupsX, traceGroupsY);
+        if (report.accumulationDispatches > 0)
+            CheckGroups(result, "accumulation", report.accumulationGroupsX, report.accumulationGroupsY, traceGroupsX, traceGroupsY);
+        if (report.copyHistoryDispatches > 0)
+            CheckGroups(result, "copyHistory", report.copyHistoryGroupsX, report.copyHistoryGroupsY, traceGroupsX, traceGroupsY);
+        if (report.diffuseDenoiseDispatches > 0)
+            CheckGroups(result, "diffuseDenoise", report.diffuseDenoiseGroupsX, report.diffuseDenoiseGroupsY, traceGroupsX, traceGroupsY);
+        if (report.validateDispatches > 0)
+            CheckGroups(result, "validate", report.validateGroupsX, report.validateGroupsY, screenGroupsX, screenGroupsY);
+        if (report.upsampleDispatches > 0)
+            CheckGroups(result, "upsample", report.upsampleGroupsX, report.upsampleGroupsY, screenGroupsX, screenGroupsY);
+        if (report.gatherDispatches > 0)
+            CheckGroups(result, "gather", report.gatherGroupsX, report.gatherGroupsY, traceGroupsX, traceGroupsY);
+
+        if (report.traceWidth != traceWidth || report.traceHeight != traceHeight)
+            result.issues.Add($"SSGI trace size {report.traceWidth}x{report.traceHeight} != expected {traceWidth}x{traceHeight}.");
+        if (report.halfResKeyword == fullResolution)
+            result.issues.Add("SSGI_HALF_RES keyword does not match the configured resolution.");
+        if (!report.blueNoiseKeyword)
+            result.issues.Add("SSGI_BLUE_NOISE is off; the blue-noise LUTs are not used.");
+
+        bool forwardPlus = string.Equals(rendererName, "ForwardPlus", StringComparison.OrdinalIgnoreCase);
+        bool probeList = !forwardPlus && testCase.feature != null && testCase.feature.publishProbeAtlas;
+        if (report.probeAtlasKeyword != forwardPlus)
+            result.issues.Add("SSL_PROBE_ATLAS does not match the Forward+ renderer.");
+        if (report.probeListKeyword != probeList)
+            result.issues.Add("SSL_PROBE_LIST does not match the probe atlas setting.");
+
+        if (temporal && report.historyValid)
+        {
+            var last = LastHistorySlots(report.historyReadSlots, report.historyWriteSlots, 4);
+            bool alternates = last.Count > 0 && last[last.Count - 1].x == report.historyReadSlot;
+            for (int i = 0; i < last.Count; i++)
+            {
+                var slot = last[i];
+                if (slot.x < 0 || (slot.x ^ slot.y) != 1)
+                {
+                    result.issues.Add($"SSGI history slots are not a ping-pong pair: read={slot.x} write={slot.y}.");
+                    alternates = false;
+                    break;
+                }
+
+                if (i > 0 && slot.x != last[i - 1].y)
+                {
+                    alternates = false;
+                    break;
+                }
+            }
+
+            if (!alternates && result.issues.Count == 0)
+                result.issues.Add("SSGI history slots do not alternate between frames.");
+        }
+
+        report.totalDispatches =
+            report.traceDispatches + report.reprojectDispatches + report.validateDispatches +
+            report.accumulationDispatches + report.copyHistoryDispatches + report.diffuseDenoiseDispatches +
+            report.gatherDispatches + report.upsampleDispatches + report.pointDistributionDispatches;
+        result.ssgiDispatch = report;
+    }
+
+    static void CheckCount(SslValidationCaseResult result, string label, int actual, int expected)
+    {
+        if (actual != expected)
+            result.issues.Add($"SSGI {label} dispatches {actual} != expected {expected}.");
+    }
+
+    static void CheckGroups(SslValidationCaseResult result, string label, int x, int y, int expectedX, int expectedY)
+    {
+        if (x != expectedX || y != expectedY)
+            result.issues.Add($"SSGI {label} groups {x}x{y} != expected {expectedX}x{expectedY}.");
+    }
+
+    static readonly List<Vector2Int> s_HistoryScratch = new List<Vector2Int>(8);
+
+    static List<Vector2Int> LastHistorySlots(int[] readSlots, int[] writeSlots, int count)
+    {
+        s_HistoryScratch.Clear();
+        if (readSlots == null || writeSlots == null)
+            return s_HistoryScratch;
+
+        int start = Mathf.Max(0, readSlots.Length - count);
+        for (int i = start; i < readSlots.Length; i++)
+            s_HistoryScratch.Add(new Vector2Int(readSlots[i], writeSlots[i]));
+        return s_HistoryScratch;
+    }
+
+    static int ReadStatInt(object target, string name)
+    {
+        var field = target.GetType().GetField(name, InstanceFlags);
+        return field != null ? Convert.ToInt32(field.GetValue(target)) : -1;
+    }
+
+    static bool ReadStatBool(object target, string name)
+    {
+        var field = target.GetType().GetField(name, InstanceFlags);
+        return field != null && Convert.ToBoolean(field.GetValue(target));
+    }
+
+    static int[] ReadStatIntArray(object target, string name)
+    {
+        var field = target.GetType().GetField(name, InstanceFlags);
+        return field?.GetValue(target) as int[];
     }
 
     IEnumerator ReadBindingProbe(ScreenSpaceLightingBindingProbeFeature feature, string caseId, SslValidationCaseResult result)
@@ -1004,8 +1219,79 @@ public sealed class SslValidationCaseResult
     public int bindingProbeComparisons;
     public int bindingProbeMismatches;
     public List<string> bindingProbeFailures;
+    public SslSsgiDispatchStats ssgiDispatch;
     public bool passed;
     public List<string> issues;
+}
+
+[Serializable]
+public sealed class SslSsgiDispatchStats
+{
+    public int frameIndex;
+    public int screenWidth;
+    public int screenHeight;
+    public int traceWidth;
+    public int traceHeight;
+    public bool temporal;
+    public bool denoise;
+    public bool secondDenoiserPass;
+    public bool halfResolutionDenoiser;
+    public int historyReadSlot;
+    public int historyWriteSlot;
+    public bool historyValid;
+    public int[] historyReadSlots;
+    public int[] historyWriteSlots;
+
+    public int traceDispatches;
+    public int reprojectDispatches;
+    public int validateDispatches;
+    public int accumulationDispatches;
+    public int copyHistoryDispatches;
+    public int diffuseDenoiseDispatches;
+    public int gatherDispatches;
+    public int upsampleDispatches;
+    public int pointDistributionDispatches;
+    public int totalDispatches;
+
+    public int expectedTraceWidth;
+    public int expectedTraceHeight;
+    public int expectedTraceDispatches;
+    public int expectedReprojectDispatches;
+    public int expectedValidateDispatches;
+    public int expectedAccumulationDispatches;
+    public int expectedCopyHistoryDispatches;
+    public int expectedDiffuseDenoiseDispatches;
+    public int expectedGatherDispatches;
+    public int expectedUpsampleDispatches;
+
+    public int traceGroupsX;
+    public int traceGroupsY;
+    public int validateGroupsX;
+    public int validateGroupsY;
+    public int accumulationGroupsX;
+    public int accumulationGroupsY;
+    public int copyHistoryGroupsX;
+    public int copyHistoryGroupsY;
+    public int diffuseDenoiseGroupsX;
+    public int diffuseDenoiseGroupsY;
+    public int gatherGroupsX;
+    public int gatherGroupsY;
+    public int upsampleGroupsX;
+    public int upsampleGroupsY;
+    public int pointDistributionGroupsX;
+    public int pointDistributionGroupsY;
+    public int groupsZ;
+    public int expectedTraceGroupsX;
+    public int expectedTraceGroupsY;
+    public int expectedScreenGroupsX;
+    public int expectedScreenGroupsY;
+
+    public bool halfResKeyword;
+    public bool blueNoiseKeyword;
+    public bool probeAtlasKeyword;
+    public bool probeListKeyword;
+    public bool normalsOctKeyword;
+    public bool xrArrayKeyword;
 }
 
 [Serializable]

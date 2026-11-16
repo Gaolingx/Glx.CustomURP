@@ -46,6 +46,113 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_ReprojectDispatchCount;
         internal static int s_LastDispatchViewCount;
         internal static int s_LastDispatchTextureArray;
+
+        // Last frame's dispatch chain in the order it was submitted. The validation player reads it
+        // through reflection to compare counts, group sizes, keyword state and history slot parity
+        // against the manifest configuration; the whole snapshot is compiled out of release players.
+        internal sealed class SsgiDispatchStats
+        {
+            public int frameIndex = -1;
+            public int screenWidth;
+            public int screenHeight;
+            public int traceWidth;
+            public int traceHeight;
+            public bool temporal;
+            public bool denoise;
+            public bool secondDenoiserPass;
+            public bool halfResolutionDenoiser;
+            public bool orthographic;
+            public int historyReadSlot = -1;
+            public int historyWriteSlot = -1;
+            public bool historyValid;
+
+            public int traceDispatches;
+            public int reprojectDispatches;
+            public int validateDispatches;
+            public int accumulationDispatches;
+            public int copyHistoryDispatches;
+            public int diffuseDenoiseDispatches;
+            public int gatherDispatches;
+            public int upsampleDispatches;
+            public int pointDistributionDispatches;
+
+            public int traceGroupsX;
+            public int traceGroupsY;
+            public int validateGroupsX;
+            public int validateGroupsY;
+            public int accumulationGroupsX;
+            public int accumulationGroupsY;
+            public int copyHistoryGroupsX;
+            public int copyHistoryGroupsY;
+            public int diffuseDenoiseGroupsX;
+            public int diffuseDenoiseGroupsY;
+            public int gatherGroupsX;
+            public int gatherGroupsY;
+            public int upsampleGroupsX;
+            public int upsampleGroupsY;
+            public int pointDistributionGroupsX;
+            public int pointDistributionGroupsY;
+            public int groupsZ;
+
+            public bool halfResKeyword;
+            public bool blueNoiseKeyword;
+            public bool probeAtlasKeyword;
+            public bool probeListKeyword;
+            public bool normalsOctKeyword;
+            public bool xrArrayKeyword;
+
+            // Oldest first. Eight frames are enough to show the history ping-pong in one report.
+            public readonly int[] historyReadSlots = new int[8];
+            public readonly int[] historyWriteSlots = new int[8];
+
+            public void BeginFrame(int frame)
+            {
+                frameIndex = frame;
+                traceDispatches = 0;
+                reprojectDispatches = 0;
+                validateDispatches = 0;
+                accumulationDispatches = 0;
+                copyHistoryDispatches = 0;
+                diffuseDenoiseDispatches = 0;
+                gatherDispatches = 0;
+                upsampleDispatches = 0;
+                pointDistributionDispatches = 0;
+                traceGroupsX = 0;
+                traceGroupsY = 0;
+                validateGroupsX = 0;
+                validateGroupsY = 0;
+                accumulationGroupsX = 0;
+                accumulationGroupsY = 0;
+                copyHistoryGroupsX = 0;
+                copyHistoryGroupsY = 0;
+                diffuseDenoiseGroupsX = 0;
+                diffuseDenoiseGroupsY = 0;
+                gatherGroupsX = 0;
+                gatherGroupsY = 0;
+                upsampleGroupsX = 0;
+                upsampleGroupsY = 0;
+                pointDistributionGroupsX = 0;
+                pointDistributionGroupsY = 0;
+                groupsZ = 0;
+            }
+
+            public void RecordHistory(int readSlot, int writeSlot, bool valid)
+            {
+                historyReadSlot = readSlot;
+                historyWriteSlot = writeSlot;
+                historyValid = valid;
+                for (int i = 0; i < historyReadSlots.Length - 1; i++)
+                {
+                    historyReadSlots[i] = historyReadSlots[i + 1];
+                    historyWriteSlots[i] = historyWriteSlots[i + 1];
+                }
+
+                historyReadSlots[historyReadSlots.Length - 1] = readSlot;
+                historyWriteSlots[historyWriteSlots.Length - 1] = writeSlot;
+            }
+        }
+
+        internal static readonly SsgiDispatchStats s_LastDispatchStats = new SsgiDispatchStats();
 #endif
 
 #if UNITY_EDITOR
@@ -212,6 +319,22 @@ namespace UnityEngine.Rendering.Universal
             int screenGroupsX = DivideRoundUp(screenWidth, k_TileSize);
             int screenGroupsY = DivideRoundUp(screenHeight, k_TileSize);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var stats = s_LastDispatchStats;
+            stats.BeginFrame(Time.frameCount);
+            stats.screenWidth = screenWidth;
+            stats.screenHeight = screenHeight;
+            stats.traceWidth = traceWidth;
+            stats.traceHeight = traceHeight;
+            stats.temporal = temporal;
+            stats.denoise = denoise;
+            stats.secondDenoiserPass = secondPass;
+            stats.halfResolutionDenoiser = halfResolutionDenoise;
+            stats.orthographic = cameraData.camera.orthographic;
+            stats.groupsZ = viewCount;
+            stats.RecordHistory(m_History.ssgiReadSlot, m_History.ssgiWriteSlot, m_History.ssgiHasValidHistory);
+#endif
+
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiHalfResKeyword, halfRes);
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
             SetKeyword(temporalCompute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
@@ -236,6 +359,15 @@ namespace UnityEngine.Rendering.Universal
                 probeListRenderer.publishSslProbeAtlas;
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SslProbeAtlasKeyword, forwardPlus);
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SslProbeListKeyword, probeList);
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            stats.halfResKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiHalfResKeyword);
+            stats.blueNoiseKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword);
+            stats.probeAtlasKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SslProbeAtlasKeyword);
+            stats.probeListKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SslProbeListKeyword);
+            stats.normalsOctKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword);
+            stats.xrArrayKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.XrArrayKeyword);
+#endif
 
             if (useTextureArray)
             {
@@ -286,6 +418,9 @@ namespace UnityEngine.Rendering.Universal
             DispatchCompute(cmd, ssgiCompute, traceKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_TraceDispatchCount++;
+            stats.traceDispatches++;
+            stats.traceGroupsX = traceGroupsX;
+            stats.traceGroupsY = traceGroupsY;
 #endif
 #if UNITY_EDITOR
             s_EditorTraceDispatchCount++;
@@ -316,6 +451,7 @@ namespace UnityEngine.Rendering.Universal
             DispatchCompute(cmd, ssgiCompute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_ReprojectDispatchCount++;
+            stats.reprojectDispatches++;
 #endif
 #if UNITY_EDITOR
             s_EditorReprojectDispatchCount++;
@@ -352,6 +488,11 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.ValidationBufferRW, m_History.ssgiValidation);
                 cmd.SetComputeFloatParam(temporalCompute, ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent, m_ShaderVariables._SsgiDenoiserParams.x);
                 DispatchCompute(cmd, temporalCompute, validateKernel, screenGroupsX, screenGroupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                stats.validateDispatches++;
+                stats.validateGroupsX = screenGroupsX;
+                stats.validateGroupsY = screenGroupsY;
+#endif
 #if UNITY_EDITOR
                 s_EditorValidationDispatchCount++;
 #endif
@@ -388,12 +529,22 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.VelocityBuffer, TextureXR.GetBlackTexture());
                 BindTemporalFilterScalars(cmd, temporalCompute);
                 DispatchCompute(cmd, temporalCompute, accumulateKernel, traceGroupsX, traceGroupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                stats.accumulationDispatches++;
+                stats.accumulationGroupsX = traceGroupsX;
+                stats.accumulationGroupsY = traceGroupsY;
+#endif
 #if UNITY_EDITOR
                 s_EditorAccumulationDispatchCount++;
 #endif
 
                 // HDRP CopyHistory: the accumulated signal becomes next frame's history.
                 DispatchCopyHistory(cmd, temporalCompute, m_History.ssgiAccumulation, m_History.GetSsgiHistoryHF(m_History.ssgiWriteSlot), traceWidth, traceHeight, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                stats.copyHistoryDispatches++;
+                stats.copyHistoryGroupsX = DivideRoundUp(traceWidth, k_TileSize);
+                stats.copyHistoryGroupsY = DivideRoundUp(traceHeight, k_TileSize);
+#endif
 
                 signal = m_History.ssgiAccumulation;
             }
@@ -424,8 +575,20 @@ namespace UnityEngine.Rendering.Universal
                 // at four.
                 DispatchDiffuseDenoise(cmd, denoiserCompute, depthTexture, normalTexture, signal, denoiseOutput, traceWidth, traceHeight, viewCount,
                     settings.denoiserRadius.value, secondPass ? frameIndex % 4 : -1, halfResolutionDenoise);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                stats.diffuseDenoiseDispatches++;
+                stats.diffuseDenoiseGroupsX = DivideRoundUp(traceWidth, k_TileSize);
+                stats.diffuseDenoiseGroupsY = DivideRoundUp(traceHeight, k_TileSize);
+#endif
                 if (halfResolutionDenoise)
+                {
                     DispatchDiffuseGather(cmd, denoiserCompute, depthTexture, denoiseOutput, m_History.ssgiDenoisedHF, traceWidth, traceHeight, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    stats.gatherDispatches++;
+                    stats.gatherGroupsX = DivideRoundUp(traceWidth, k_TileSize);
+                    stats.gatherGroupsY = DivideRoundUp(traceHeight, k_TileSize);
+#endif
+                }
                 signal = m_History.ssgiDenoisedHF;
 
                 if (secondPass)
@@ -444,11 +607,21 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.VelocityBuffer, TextureXR.GetBlackTexture());
                     BindTemporalFilterScalars(cmd, temporalCompute);
                     DispatchCompute(cmd, temporalCompute, accumulateKernel, traceGroupsX, traceGroupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    stats.accumulationDispatches++;
+                    stats.accumulationGroupsX = traceGroupsX;
+                    stats.accumulationGroupsY = traceGroupsY;
+#endif
 #if UNITY_EDITOR
                     s_EditorAccumulationDispatchCount++;
 #endif
 
                     DispatchCopyHistory(cmd, temporalCompute, m_History.ssgiAccumulation, m_History.GetSsgiHistoryLF(m_History.ssgiWriteSlot), traceWidth, traceHeight, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    stats.copyHistoryDispatches++;
+                    stats.copyHistoryGroupsX = DivideRoundUp(traceWidth, k_TileSize);
+                    stats.copyHistoryGroupsY = DivideRoundUp(traceHeight, k_TileSize);
+#endif
 
                     // HDRP keeps the second pass on the first 16 samples (jitterFilter = false) because the first
                     // pass already rotated the distribution this frame. The low frequency result owns its
@@ -457,8 +630,20 @@ namespace UnityEngine.Rendering.Universal
                     RTHandle secondDenoiseOutput = halfResolutionDenoise ? m_History.ssgiDenoiseIntermediate : m_History.ssgiDenoisedLF;
                     DispatchDiffuseDenoise(cmd, denoiserCompute, depthTexture, normalTexture, m_History.ssgiAccumulation, secondDenoiseOutput, traceWidth, traceHeight, viewCount,
                         settings.denoiserRadius.value * 0.5f, -1, halfResolutionDenoise);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    stats.diffuseDenoiseDispatches++;
+                    stats.diffuseDenoiseGroupsX = DivideRoundUp(traceWidth, k_TileSize);
+                    stats.diffuseDenoiseGroupsY = DivideRoundUp(traceHeight, k_TileSize);
+#endif
                     if (halfResolutionDenoise)
+                    {
                         DispatchDiffuseGather(cmd, denoiserCompute, depthTexture, secondDenoiseOutput, m_History.ssgiDenoisedLF, traceWidth, traceHeight, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                        stats.gatherDispatches++;
+                        stats.gatherGroupsX = DivideRoundUp(traceWidth, k_TileSize);
+                        stats.gatherGroupsY = DivideRoundUp(traceHeight, k_TileSize);
+#endif
+                    }
                     signal = m_History.ssgiDenoisedLF;
                 }
             }
@@ -487,6 +672,11 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(upsampleCompute, upsampleKernel, ScreenSpaceLightingShaderIDs.SsgiLowResolutionTexture, signal);
                 cmd.SetComputeTextureParam(upsampleCompute, upsampleKernel, ScreenSpaceLightingShaderIDs.SsgiUpsampledTextureRW, m_History.ssgiFinal);
                 DispatchCompute(cmd, upsampleCompute, upsampleKernel, screenGroupsX, screenGroupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                stats.upsampleDispatches++;
+                stats.upsampleGroupsX = screenGroupsX;
+                stats.upsampleGroupsY = screenGroupsY;
+#endif
 #if UNITY_EDITOR
                 s_EditorUpsampleDispatchCount++;
 #endif
@@ -594,6 +784,11 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeBufferParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.PointDistributionRW, m_History.ssgiPointDistribution);
             BindSsgiBlueNoise(cmd, denoiserCompute, kernel, kernel);
             DispatchCompute(cmd, denoiserCompute, kernel, k_PointDistributionCount, 1, 1);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.pointDistributionDispatches++;
+            s_LastDispatchStats.pointDistributionGroupsX = k_PointDistributionCount;
+            s_LastDispatchStats.pointDistributionGroupsY = 1;
+#endif
 #if UNITY_EDITOR
             s_EditorPointDistributionDispatchCount++;
 #endif
