@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.Universal
 
         public RenderTexture atlasRT => m_AtlasTexture0;
 
+        internal bool isCreated => m_Cache != null;
+
         public static ReflectionProbeManager Create()
         {
             var instance = new ReflectionProbeManager();

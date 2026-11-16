@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="8" result="Passed" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.2706696">
+  <test-suite type="TestSuite" id="1483" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="426" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.270670" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1954" name="Unity.RenderPipelines.Universal.Editor.Tests.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll" runstate="Runnable" testcasecount="426" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.243652" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="54476" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1956" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.236596" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1957" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.232992" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1958" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.229510" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1959" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.216433" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1797" name="ScreenSpaceLightingProbeAtlasTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.184986" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1803" name="CleanupReleasesTheManagerAndCanRunTwice" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests.CleanupReleasesTheManagerAndCanRunTwice" methodname="CleanupReleasesTheManagerAndCanRunTwice" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests" runstate="Runnable" seed="167289563" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.023719" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1802" name="ForwardPlusAlwaysCreatesTheManagerAndIgnoresTheToggle" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests.ForwardPlusAlwaysCreatesTheManagerAndIgnoresTheToggle" methodname="ForwardPlusAlwaysCreatesTheManagerAndIgnoresTheToggle" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests" runstate="Runnable" seed="1856616416" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.006624" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1804" name="ForwardPlusCleanupCanRunTwice" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests.ForwardPlusCleanupCanRunTwice" methodname="ForwardPlusCleanupCanRunTwice" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests" runstate="Runnable" seed="1764982266" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.017758" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1800" name="NonForwardPlusCreatesManagerWhenTheToggleIsPublished" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests.NonForwardPlusCreatesManagerWhenTheToggleIsPublished" methodname="NonForwardPlusCreatesManagerWhenTheToggleIsPublished" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests" runstate="Runnable" seed="965480166" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.005446" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1799" name="NonForwardPlusDoesNotCreateManagerWithoutTheToggle" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests.NonForwardPlusDoesNotCreateManagerWithoutTheToggle" methodname="NonForwardPlusDoesNotCreateManagerWithoutTheToggle" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests" runstate="Runnable" seed="1474786250" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.000363" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1798" name="ProbeAtlasIsOptInByDefault" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests.ProbeAtlasIsOptInByDefault" methodname="ProbeAtlasIsOptInByDefault" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests" runstate="Runnable" seed="365475942" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.000246" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1805" name="RendererFeatureLookupFindsTheScreenSpaceLightingFeature" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests.RendererFeatureLookupFindsTheScreenSpaceLightingFeature" methodname="RendererFeatureLookupFindsTheScreenSpaceLightingFeature" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests" runstate="Runnable" seed="1063872058" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.108394" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1801" name="RuntimeToggleUpdatesThePublishedFlag" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests.RuntimeToggleUpdatesThePublishedFlag" methodname="RuntimeToggleUpdatesThePublishedFlag" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingProbeAtlasTests" runstate="Runnable" seed="1876592020" result="Passed" start-time="2026-11-16 09:59:33Z" end-time="2026-11-16 09:59:33Z" duration="0.000380" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

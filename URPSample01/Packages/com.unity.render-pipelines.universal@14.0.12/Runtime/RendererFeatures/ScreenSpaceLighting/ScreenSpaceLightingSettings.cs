@@ -17,6 +17,10 @@ namespace UnityEngine.Rendering.Universal
         internal int maxUnusedFrames = 120;
 
         [SerializeField]
+        [Tooltip("Publishes the reflection probe atlas in Forward and Deferred so the SSGI miss fallback can sample local reflection probes. Ignored in Forward+, which always publishes the atlas.")]
+        internal bool publishProbeAtlas = false;
+
+        [SerializeField]
         [Tooltip("Intermediate resource view. Off leaves the final image unchanged.")]
         internal ScreenSpaceLightingDebugMode debugMode = ScreenSpaceLightingDebugMode.Off;
 

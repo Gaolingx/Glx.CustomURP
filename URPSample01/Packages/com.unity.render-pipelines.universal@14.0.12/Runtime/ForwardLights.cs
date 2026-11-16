@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_UseStructuredBuffer;
 
         bool m_UseForwardPlus;
+        bool m_PublishProbeAtlas;
         int m_DirectionalLightCount;
         int m_ActualTileWidth;
         int2 m_TileResolution;
@@ -72,6 +73,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             public LightCookieManager lightCookieManager;
             public bool forwardPlus;
+            // Publishes the probe atlas outside Forward+ so the SSGI miss fallback can iterate the
+            // visible probe list. Cluster buffers and keywords stay Forward+ only.
+            public bool publishProbeAtlas;
 
             static internal InitParams Create()
             {
@@ -87,6 +91,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     p.lightCookieManager = new LightCookieManager(ref settings);
                     p.forwardPlus = false;
+                    p.publishProbeAtlas = false;
                 }
                 return p;
             }
@@ -101,6 +106,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
             m_UseForwardPlus = initParams.forwardPlus;
+            m_PublishProbeAtlas = initParams.publishProbeAtlas;
 
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
@@ -132,10 +138,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             if (m_UseForwardPlus)
-            {
                 CreateForwardPlusBuffers();
+
+            if (m_UseForwardPlus || m_PublishProbeAtlas)
                 m_ReflectionProbeManager = ReflectionProbeManager.Create();
-            }
 
             m_LightCookieManager = initParams.lightCookieManager;
         }
@@ -151,6 +157,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         internal ReflectionProbeManager reflectionProbeManager => m_ReflectionProbeManager;
+
+        internal bool publishProbeAtlas => m_PublishProbeAtlas;
+
+        // Toggled from the renderer feature every frame. Forward+ always publishes the atlas and
+        // ignores the requested state.
+        internal void SetProbeAtlasEnabled(bool enabled)
+        {
+            if (m_UseForwardPlus)
+                return;
+
+            m_PublishProbeAtlas = enabled;
+        }
 
         static int AlignByteCount(int count, int align) => align * ((count + align - 1) / align);
 
@@ -391,6 +409,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector("_FPParams1", math.float4(renderingData.cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile));
                     cmd.SetGlobalVector("_FPParams2", math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0));
                 }
+                else if (m_PublishProbeAtlas)
+                {
+                    // The feature toggle can be enabled after the renderer was created; allocate
+                    // lazily instead of requiring a renderer rebuild.
+                    if (!m_ReflectionProbeManager.isCreated)
+                        m_ReflectionProbeManager = ReflectionProbeManager.Create();
+
+                    m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData);
+                }
 
                 SetupShaderLightConstants(cmd, ref renderingData);
 
@@ -440,14 +467,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_UseForwardPlus)
             {
                 m_CullingHandle.Complete();
-                m_ZBins.Dispose();
-                m_TileMasks.Dispose();
-                m_ZBinsBuffer.Dispose();
+                if (m_ZBins.IsCreated)
+                    m_ZBins.Dispose();
+                m_ZBins = default;
+                if (m_TileMasks.IsCreated)
+                    m_TileMasks.Dispose();
+                m_TileMasks = default;
+                m_ZBinsBuffer?.Dispose();
                 m_ZBinsBuffer = null;
-                m_TileMasksBuffer.Dispose();
+                m_TileMasksBuffer?.Dispose();
                 m_TileMasksBuffer = null;
-                m_ReflectionProbeManager.Dispose();
             }
+
+            // The manager is shared by Forward+ and the non-clustered atlas path; release it
+            // whenever it was created.
+            if (m_ReflectionProbeManager.isCreated)
+                m_ReflectionProbeManager.Dispose();
+
             m_LightCookieManager?.Dispose();
             m_LightCookieManager = null;
         }
