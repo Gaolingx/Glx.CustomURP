@@ -356,9 +356,6 @@ namespace UnityEngine.Rendering.Universal
             cb._GtaoZBufferParams = ComputeZBufferParams(camera.nearClipPlane, camera.farClipPlane);
             float halfHeight = camera.orthographicSize;
             cb._GtaoOrthoHalfSize = new Vector4(halfHeight * camera.aspect, halfHeight, 0f, 0f);
-            cb._GtaoDepthPyramidUvScale = info.IsValid() && info.textureSize.x > 0 && info.textureSize.y > 0
-                ? new Vector4(screenWidth / (float)info.textureSize.x, screenHeight / (float)info.textureSize.y, 0f, 0f)
-                : new Vector4(1f, 1f, 0f, 0f);
             var worldToView = camera.worldToCameraMatrix;
             cb._GtaoViewRow0 = worldToView.GetRow(0);
             cb._GtaoViewRow1 = worldToView.GetRow(1);
@@ -437,7 +434,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.DepthToViewParams, cb._GtaoDepthToViewParams);
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.ZBufferParams, cb._GtaoZBufferParams);
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.OrthoHalfSize, cb._GtaoOrthoHalfSize);
-            cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.DepthPyramidUvScale, cb._GtaoDepthPyramidUvScale);
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.ViewRow0, cb._GtaoViewRow0);
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.ViewRow1, cb._GtaoViewRow1);
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.ViewRow2, cb._GtaoViewRow2);

@@ -3,10 +3,10 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // Constant buffer shared by the GTAO kernels. The layout mirrors HDRP's
-    // ShaderVariablesAmbientOcclusion and is consumed by GroundTruthAmbientOcclusionCommon.hlsl.
-    // The companion .cs.hlsl is produced by the render pipeline shader include generator and its
-    // C#/HLSL layout is validated by the GTAO EditMode tests.
+    // Constant buffer shared by the GTAO kernels. The parameter packing follows HDRP's
+    // ShaderVariablesAmbientOcclusion with URP-specific bindings appended; the companion .cs.hlsl is
+    // produced by the render pipeline shader include generator and the layout is pinned by the GTAO
+    // EditMode tests.
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     internal struct GroundTruthAmbientOcclusionShaderVariables
     {
@@ -21,7 +21,6 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _GtaoDepthToViewParams;      // perspective screen position to view position
         public Vector4 _GtaoZBufferParams;          // Unity linear depth parameters
         public Vector4 _GtaoOrthoHalfSize;          // orthographic camera half extents
-        public Vector4 _GtaoDepthPyramidUvScale;    // mip0 size over packed atlas size
         public Vector4 _GtaoViewRow0;               // world to view matrix rows (rotation part only)
         public Vector4 _GtaoViewRow1;
         public Vector4 _GtaoViewRow2;

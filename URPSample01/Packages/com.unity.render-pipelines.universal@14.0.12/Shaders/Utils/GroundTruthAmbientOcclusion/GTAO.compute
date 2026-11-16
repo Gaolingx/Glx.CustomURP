@@ -141,7 +141,16 @@ void GTAOMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
     float3 V = normalize(-positionVS);
+#ifdef GTAO_ORTHO
+    // Orthographic projection has no perspective divide: a world-space radius always covers the same
+    // number of AO pixels regardless of depth.
+    float fovCorrectedradiusSS = clamp(
+        _GtaoRadiusInWorld * _GtaoBufferSize.y / (2.0 * _GtaoOrthoHalfSize.y),
+        (float)_GtaoStepCount,
+        (float)_GtaoMaxRadiusInPixels);
+#else
     float fovCorrectedradiusSS = clamp(_GtaoRadiusInWorld * _GtaoFOVCorrection * rcp(positionVS.z), (float)_GtaoStepCount, (float)_GtaoMaxRadiusInPixels);
+#endif
     float step = max(1, fovCorrectedradiusSS * _GtaoInvStepCountPlusOne);
 
     // Unrolled for Metal, which crashes on the non-uniform loop in some versions.

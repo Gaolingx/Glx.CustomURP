@@ -26,7 +26,6 @@ namespace UnityEditor.Rendering.Universal.Tests
             "_GtaoDepthToViewParams",
             "_GtaoZBufferParams",
             "_GtaoOrthoHalfSize",
-            "_GtaoDepthPyramidUvScale",
             "_GtaoViewRow0",
             "_GtaoViewRow1",
             "_GtaoViewRow2",
@@ -44,10 +43,10 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void StructSizeIsFifteenVectors()
+        public void StructSizeIsFourteenVectors()
         {
-            // Fifteen float4 blocks = 240 bytes, all sixteen byte aligned.
-            Assert.AreEqual(15 * 16, System.Runtime.InteropServices.Marshal.SizeOf<GroundTruthAmbientOcclusionShaderVariables>());
+            // Fourteen float4 blocks = 224 bytes, all sixteen byte aligned.
+            Assert.AreEqual(14 * 16, System.Runtime.InteropServices.Marshal.SizeOf<GroundTruthAmbientOcclusionShaderVariables>());
         }
 
         [Test]

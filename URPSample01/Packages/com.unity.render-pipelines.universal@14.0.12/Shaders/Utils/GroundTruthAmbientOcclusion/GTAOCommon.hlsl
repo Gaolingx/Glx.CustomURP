@@ -16,7 +16,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Runtime/RendererFeatures/GroundTruthAmbientOcclusion/GroundTruthAmbientOcclusionShaderVariables.cs.hlsl"
 
-#define _GtaoBaseResMip (int)_GtaoParams0.x
 #define _GtaoFOVCorrection _GtaoParams0.y
 #define _GtaoRadiusInWorld _GtaoParams0.z
 #define _GtaoStepCount (uint)_GtaoParams0.w
@@ -78,21 +77,6 @@
 
 // Private packed depth pyramid of this feature. It never aliases the Screen Space Lighting pyramid.
 GTAO_TEXTURE2D_FLOAT(_GtaoDepthPyramid);
-
-float GTAOClampAndScaleUVForBilinear(float2 uv)
-{
-    return min(uv, 1.0 - 0.5 * _GtaoBufferSize.zw);
-}
-
-// Maps a full resolution pixel position to the mip0 region of the packed depth atlas and keeps the
-// gather footprint inside that region so it can never read a neighbouring packed mip.
-float2 GTAOClampAndScaleUVForDepthGather(float2 pixelPosition)
-{
-    float2 atlasInvSize = _GtaoScreenSize.zw * _GtaoDepthPyramidUvScale.xy;
-    float2 uv = pixelPosition * atlasInvSize;
-    float2 maxUV = _GtaoDepthPyramidUvScale.xy - 0.5 * atlasInvSize;
-    return min(uv, maxUV);
-}
 
 float GTAOLoadDepth(int2 pixel)
 {
