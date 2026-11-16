@@ -31,6 +31,16 @@
 
 opacity 拟合明细见 [P0-2/fitting.csv](P0-2/fitting.csv)，模式代理指标见 [P0-3/metrics.csv](P0-3/metrics.csv) 与 [P0-1/metrics.csv](P0-1/metrics.csv)。
 
+## 复核修复验证（A1/A2，2026-11-16）
+
+针对 A1（specular 桶被 mask 误伤）与 A2（颜色金字塔 mip 上限少一级）的修复，重新运行了相关 EditMode 套件与 T11 三模式验证：
+
+- EditMode：完整套件 433/433 通过，0 failed；包含 `ScreenSpaceLightingRefractionImproveTests` / `ScreenSpaceLightingRefractionTests` / `ScreenSpaceLightingMaterialTests` / `ScreenSpaceLightingHistoryTests`，以及新增 `ColorPyramidMipCountMatchesHdrpLodCount`。
+- T11：Forward / Forward+ / Deferred 均 `completed=True passed=True issues=0`；证据 [T11Hotfix/T11Verification.json](T11Hotfix/T11Verification.json)。
+- opacity 0/0.3/1：三模式单调；归一化 0.3 点误差 2.04%（修复前 2.33%），R² 0.99975；opacity=1 与关闭效果 0 像素差（最大通道差 4.58e-5）。
+- opacity=0 的玻璃内部亮度由 0.1628 升至 0.1780（specular 桶恢复），opacity=1 亮度不变；legacy 透明基线仍 0 像素变化。
+- mip 修复在当前低粗糙度 T11 材质上没有像素变化，需用粗糙玻璃另行回归（P2 阶段）。
+
 ## 用例覆盖
 
 ### P0-1 屏幕路径与 fallback

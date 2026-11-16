@@ -266,13 +266,15 @@ void LitPassFragment(
     half3 diffuseColor;
     half3 specularColor;
     UniversalFragmentPBRSplit(inputData, surfaceData, diffuseColor, specularColor);
-    // The transmitted background is already fogged inside the color pyramid; fog only the surface
-    // lighting once, then blend it with the unfogged transmission.
+    // HDRP masks only the diffuse/emission bucket into the transmitted background; the specular
+    // bucket (direct highlights, SSR/probe reflections) stays outside the mask. The pyramid is
+    // already fogged, so fog the surface once and blend only its diffuse bucket toward transmission.
     half3 surfaceColor = MixFog(diffuseColor + specularColor, inputData.fogCoord);
+    half3 foggedDiffuse = MixFog(diffuseColor, inputData.fogCoord);
 
     half transmittanceMask = refraction.valid ? saturate(1.0h - surfaceData.alpha) : 0.0h;
     half4 color;
-    color.rgb = lerp(surfaceColor, transmitted, transmittanceMask);
+    color.rgb = surfaceColor + transmittanceMask * (transmitted - foggedDiffuse);
     color.a = refraction.valid ? 1.0h : surfaceData.alpha;
 #else
     half4 color = UniversalFragmentPBR(inputData, surfaceData);

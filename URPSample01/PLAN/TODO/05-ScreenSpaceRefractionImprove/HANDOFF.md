@@ -1,7 +1,7 @@
 # ScreenSpaceRefraction 对齐 HDRP 与缺陷修复交接
 
 > 更新：2026-11-16
-> 状态：P0 里程碑交付完成。P0-1/P0-2/P0-3 实现并完成 T11 三模式验证；P1-1/P1-2 实现并完成静态/解析验证；P1-3/P2-* 未开始
+> 状态：P0 里程碑交付完成。P0-1/P0-2/P0-3 实现并完成 T11 三模式验证；P1-1/P1-2 实现并完成静态/解析验证；P1-3/P2-* 未开始。2026-11-16 复核修复 specular 合成与颜色金字塔 mip 上限（见第 13 节）
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`）
 > 相关文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[ScreenSpaceLighting 交接](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[T11 证据](../../Done/01-ScreenSpaceLighting/validation/T11/T11Report.json)
 
@@ -636,7 +636,7 @@ PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/
 本轮已落地 P0-1、P0-2、P0-3、P1-1、P1-2，P1-3/P2-* 未开始：
 
 - **P0-1**：`ScreenSpaceRefractionEvaluate` 返回 `ScreenSpaceRefractionResult`（`transmitted`/`weight`/`transmittance`/`refractV`/`refractPosWS`/`valid`）。新增 `ScreenSpaceRefractionTransmission`，用 `GlossyEnvironmentReflection` 沿折射射线补齐 `1 - weight`；`LitForwardPass` 与 ShaderGraph `PBRForwardPass` 都改用它。`intensity=0` 现在在 `RefractionPass` 直接关闭 keyword，保证关闭效果逐字节不变；`valid=false` 时材料保持原输出。
-- **P0-2**：`Lighting.hlsl` 新增 `UniversalFragmentPBRSplit` 与 `LightingPhysicallyBasedSplit`，镜像 `UniversalFragmentPBR` 的 GI/主光/附加光/clear coat/顶点光/emission 累加。折射变体按 `transmittanceMask = saturate(1 - surfaceData.alpha)` 把 diffuse/emission 桶向透射结果 lerp，specular 桶保留，输出 alpha 固定为 1。`DEBUG_DISPLAY` 仍走原 `UniversalFragmentPBR`。HDRP 的 emission 也在 mask lerp 内，与本实现一致。
+- **P0-2**：`Lighting.hlsl` 新增 `UniversalFragmentPBRSplit` 与 `LightingPhysicallyBasedSplit`，镜像 `UniversalFragmentPBR` 的 GI/主光/附加光/clear coat/顶点光/emission 累加。折射变体按 `transmittanceMask = saturate(1 - surfaceData.alpha)` 只把 diffuse/emission 桶向透射结果 lerp（合成式 `surfaceColor + mask * (transmitted - foggedDiffuse)`），specular 桶完全在 mask 之外，输出 alpha 固定为 1。`DEBUG_DISPLAY` 仍走原 `UniversalFragmentPBR`。HDRP 的 emission 也在 mask lerp 内，与本实现一致。
 - **P0-3**：`ScreenSpaceLightingRefractionPass.ProxyMode`（None/Box/Infinite）与 shader `SSL_REFRACTION_PROXY_MODE_*` 对齐。`SelectProxy` 先找 box-projected probe，再接受任意 active probe 的 bounds，最后返回 Infinite（shader 用 HDRP sky 的 65504 投影距离）。keyword 生命周期改为 Volume 开启 + intensity>0 + pyramid/depth 可用，不再因无 box probe 关闭。代理选择仍以相机为中心，per-object/per-pixel 表留给 P1-3。
 - **P1-1**：`InitializeBRDFData` 在 `_REFRACTION_* && _SCREEN_SPACE_REFRACTION` 时使用 `lerp(IorToFresnel0(_Ior), albedo, metallic)`，`reflectivity` 用对应亮度近似，F0 同时影响反射和 `(1-F)` 透射。只在全局 keyword 开启时生效，Volume 关闭保持旧 F0；Specular workflow 暂不改写（`_SPECULAR_SETUP` 分支保持原样，记录为近似）。
 - **P1-2**：`_REFRACTION_THIN` 下厚度与吸收距离都为 0.005。
@@ -653,3 +653,25 @@ PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/
 - **P0-3 指标**：非 box probe 场景 keyword 绑定 8 次、infinite 0 次；无 probe 场景绑定 8 次、infinite 8 次、折射变化 16281 像素。
 - **P0-1 指标**：Box/Complex/SG 折射变化 5915/2996/2476 像素；legacy 透明 0 像素变化；当前帧金字塔跟随场景。
 - **未完成证据**：P0-1 的单独 screen-miss probe-only 截图与边缘带连续性（P2-1）；P1-1 的 IOR 梯度图与 P1-2 的有色 Thin 图/HDRP 对照。`Report.json` 中 P1-1/P1-2 为 `passed=null`，总 `exitCriteriaMet=false`。
+
+## 13. 复核修复（2026-11-16）
+
+对照 HDRP 14.0.12 复核当前实现时发现两处此前未记录的偏差，已修复：
+
+- **A1 specular 被 mask 误伤**：此前 `LitForwardPass.hlsl` / `PBRForwardPass.hlsl` 先把 `diffuseColor + specularColor` 相加，再整体 `lerp(surfaceColor, transmitted, mask)`。HDRP `PostEvaluateBSDF` 只把 diffuse/emission 桶 lerp 到 `specularTransmitted`，specular 桶不参与 mask；因此 opacity=0 的 URP 玻璃会丢失全部 Fresnel/SSR/探针反射。现改为 `color.rgb = surfaceColor + mask * (transmitted - foggedDiffuse)`：mask=0 时与原合成逐字节一致，mask=1 时保留 `MixFog(specularColor)` + 透射。
+- **A2 颜色金字塔 mip 上限少一级**：`RefractionPass` 传入了 `colorPyramidMipCount - 1`，shader 内又计算 `max(pyramidMipCount - 1, 0)`，最粗糙材质只能采到倒数第二层。现在按 HDRP `_ColorPyramidLodCount` 语义传 mip 总数，由 shader 统一减 1。
+- **测试**：更新 `ScreenSpaceLightingRefractionImproveTests.OpacityIsConsumedAsTransmittanceMask` 的合成断言，新增 `ColorPyramidMipCountMatchesHdrpLodCount`。
+- **验证**：见第 14 节。
+
+## 14. 修复验证（2026-11-16）
+
+**EditMode**：完整套件 433/433 通过，0 failed（47 秒），包含 `ScreenSpaceLightingRefractionImproveTests`、`ScreenSpaceLightingRefractionTests`、`ScreenSpaceLightingMaterialTests`、`ScreenSpaceLightingHistoryTests`，以及新增的 `ColorPyramidMipCountMatchesHdrpLodCount` 与更新后的 `OpacityIsConsumedAsTransmittanceMask`。
+
+**T11**（Forward / Forward+ / Deferred，RTX 5060 Ti / DX11）：三模式 `completed=True passed=True issues=0`。证据入口：[validation/T11Hotfix/T11Verification.json](validation/T11Hotfix/T11Verification.json)，同目录含 54 张 PNG 与 3 份 opacity CSV。
+
+- opacity 0/0.3/1 扫描：三模式 `opacityMonotonic=True`；归一化 0.3 点误差 2.04%（修复前 2.33%，阈值 5%），R² 0.99975（阈值 0.99）。opacity=0 的玻璃内部亮度由 0.1628 升到 0.1780，对应恢复的 specular 桶；opacity=1 的亮度不变。
+- opacity=1 vs 关闭 Volume：0 像素差，最大通道差 4.58e-5，说明 mask=0 时新合成与 legacy 仍逐像素一致。
+- legacy 透明基线 0 像素变化；ModelsNone / Intensity0 / OffAgain 与 Reference 逐像素相同。
+- 屏幕命中、probe fallback、infinite proxy 状态保持原结论；当前低粗糙度 T11 材质未受 mip 修复影响。
+
+注意：T11 运行会改写 `ProjectSettings/*.asset` 与测试材质的换行/序列化状态，跑完需恢复（本轮已用开工前备份恢复，最终 `git status` 只含预期文件）。

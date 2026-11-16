@@ -162,11 +162,14 @@ void frag(
     half3 diffuseColor;
     half3 specularColor;
     UniversalFragmentPBRSplit(inputData, surface, diffuseColor, specularColor);
+    // Same composition as the built-in Lit pass: only the diffuse/emission bucket is masked into
+    // the transmission, the specular bucket stays outside it.
     half3 surfaceColor = MixFog(diffuseColor + specularColor, inputData.fogCoord);
+    half3 foggedDiffuse = MixFog(diffuseColor, inputData.fogCoord);
 
     half transmittanceMask = refraction.valid ? saturate(1.0h - surface.alpha) : 0.0h;
     half4 color;
-    color.rgb = lerp(surfaceColor, transmitted, transmittanceMask);
+    color.rgb = surfaceColor + transmittanceMask * (transmitted - foggedDiffuse);
     color.a = refraction.valid ? 1.0h : surface.alpha;
 #else
     half4 color = UniversalFragmentPBR(inputData, surface);

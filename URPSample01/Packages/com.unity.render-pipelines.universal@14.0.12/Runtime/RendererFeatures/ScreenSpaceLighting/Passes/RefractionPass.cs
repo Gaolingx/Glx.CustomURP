@@ -117,7 +117,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalVector(
                     ScreenSpaceLightingShaderIDs.RefractionParams,
                     new Vector4(
-                        Mathf.Max(0, m_History.colorPyramidMipCount - 1),
+                        // HDRP's _ColorPyramidLodCount is the mip count; the shader derives the last
+                        // mip index from it. Passing the last index here would lose the coarsest mip.
+                        Mathf.Max(0, m_History.colorPyramidMipCount),
                         fadeRcpLength,
                         settings.intensity.value,
                         0f));

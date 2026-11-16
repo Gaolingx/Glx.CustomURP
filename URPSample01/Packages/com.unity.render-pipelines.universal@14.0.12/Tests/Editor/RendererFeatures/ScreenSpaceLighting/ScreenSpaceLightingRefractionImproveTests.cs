@@ -59,14 +59,16 @@ namespace UnityEditor.Rendering.Universal.Tests
             StringAssert.Contains("UniversalFragmentPBRSplit", lit);
             StringAssert.Contains("saturate(1.0h - surfaceData.alpha)", lit);
             StringAssert.Contains("half3 surfaceColor = MixFog(diffuseColor + specularColor, inputData.fogCoord);", lit);
-            StringAssert.Contains("lerp(surfaceColor, transmitted, transmittanceMask)", lit);
+            StringAssert.Contains("half3 foggedDiffuse = MixFog(diffuseColor, inputData.fogCoord);", lit);
+            StringAssert.Contains("color.rgb = surfaceColor + transmittanceMask * (transmitted - foggedDiffuse);", lit);
             StringAssert.Contains("color.a = refraction.valid ? 1.0h : surfaceData.alpha;", lit);
 
             string graph = ReadPackageFile("Editor/ShaderGraph/Includes/PBRForwardPass.hlsl");
             StringAssert.Contains("UniversalFragmentPBRSplit", graph);
             StringAssert.Contains("saturate(1.0h - surface.alpha)", graph);
             StringAssert.Contains("half3 surfaceColor = MixFog(diffuseColor + specularColor, inputData.fogCoord);", graph);
-            StringAssert.Contains("lerp(surfaceColor, transmitted, transmittanceMask)", graph);
+            StringAssert.Contains("half3 foggedDiffuse = MixFog(diffuseColor, inputData.fogCoord);", graph);
+            StringAssert.Contains("color.rgb = surfaceColor + transmittanceMask * (transmitted - foggedDiffuse);", graph);
             StringAssert.Contains("color.a = refraction.valid ? 1.0h : surface.alpha;", graph);
 
             string lighting = ReadPackageFile("ShaderLibrary/Lighting.hlsl");
@@ -93,6 +95,20 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             float ratio = (ior - 1f) / (ior + 1f);
             return ratio * ratio;
+        }
+
+        [Test]
+        public void ColorPyramidMipCountMatchesHdrpLodCount()
+        {
+            string pass = ReadPackageFile("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/RefractionPass.cs");
+            // HDRP passes _ColorPyramidLodCount (the mip count) and the shader derives the last mip
+            // index with max(count - 1, 0). Subtract in both places would lose the coarsest mip.
+            StringAssert.Contains("Mathf.Max(0, m_History.colorPyramidMipCount)", pass);
+            StringAssert.DoesNotContain("m_History.colorPyramidMipCount - 1", pass);
+
+            string refraction = ReadPackageFile("ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl");
+            StringAssert.Contains("int pyramidMipCount = (int)_SslRefractionParams.x;", refraction);
+            StringAssert.Contains("PositivePow(input.perceptualRoughness, 1.3) * (float)max(pyramidMipCount - 1, 0)", refraction);
         }
 
         [Test]

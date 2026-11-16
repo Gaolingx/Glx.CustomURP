@@ -42,7 +42,8 @@ TEXTURE2D_X_FLOAT(_SslRefractionDepthTexture);
 // xy: viewport scale, zw: full resolution uv limit (same convention as HDRP's
 // _ColorPyramidUvScaleAndLimitCurrentFrame).
 float4 _SslRefractionColorPyramidScaleAndLimit;
-// x: last color pyramid mip, y: 1 / screen fade distance, z: intensity, w: unused
+// x: color pyramid mip count (same value as HDRP's _ColorPyramidLodCount),
+// y: 1 / screen fade distance, z: intensity, w: unused
 float4 _SslRefractionParams;
 
 // Scene proxy. URP has no per-material proxy volume, so the plugin binds the world AABB of a
