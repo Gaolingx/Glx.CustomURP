@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "renderer": "Forward",
+  "warmupFrames": 10,
+  "cases": [
+    {
+      "id": "forward_ssr_pbr_full_debug_off",
+      "renderer": "Forward",
+      "effect": "SSR",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0], "panPixelsPerFrame": 0 },
+      "captureAfterFrames": 0,
+      "capture": true,
+      "screenshot": true,
+      "bindingProbe": false,
+      "volume": {
+        "ssr": { "enabled": true, "enabledTransparent": false, "usedAlgorithm": 1, "fullResolution": true, "minSmoothness": 0.9, "smoothnessFadeStart": 0.9, "depthBufferThickness": 0.01, "screenFadeDistance": 0.1, "rayMaxIterations": 64, "reflectSky": true, "intensity": 1, "biasFactor": 0.5, "denoiserRadius": 8, "affectSmoothSurfaces": false, "singleReflectionBounce": true }
+      },
+      "gtao": { "intensity": 0, "fullResolution": false, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_ssr_pbr_full_debug_params",
+      "renderer": "Forward",
+      "effect": "SSR",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0], "panPixelsPerFrame": 0 },
+      "captureAfterFrames": 0,
+      "capture": true,
+      "screenshot": true,
+      "bindingProbe": false,
+      "volume": {
+        "ssr": { "enabled": true, "enabledTransparent": false, "usedAlgorithm": 1, "fullResolution": true, "minSmoothness": 0.9, "smoothnessFadeStart": 0.9, "depthBufferThickness": 0.01, "screenFadeDistance": 0.1, "rayMaxIterations": 64, "reflectSky": true, "intensity": 1, "biasFactor": 0.5, "denoiserRadius": 8, "affectSmoothSurfaces": false, "singleReflectionBounce": true }
+      },
+      "gtao": { "intensity": 0, "fullResolution": false, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true },
+      "feature": { "publishProbeAtlas": false, "debugMode": 14 }
+    }
+  ]
+}

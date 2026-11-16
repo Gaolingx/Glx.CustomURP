@@ -1,7 +1,7 @@
 # Screen Space Lighting 全量 GPU 验证与收尾交接（06-ValidationAllRDC）
 
 > 更新：2026-11-17
-> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1-1（F-01）、P2-1（SSGI 生效链）、P3-1（F-02）完成**；P1-2、P1-3、P2-2、P3-2 起未开始。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式。P1-1 修复 GTAO 全分辨率深度守卫；P2-1 完成 SSGI dispatch/history/LUT/atlas 的 CPU+GPU 验收（10/10）；P3-1 修复 SSR 降噪器像素展开角绑定（SSR-only 值精确、GPU 无 SSGI pass）。
+> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1-1（F-01）、P2-1（SSGI 生效链）、P3-1（F-02）、P3-2（F-04）、P3-3（F-06/F-08）完成**；P1-2、P1-3、P2-2 起未开始。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式。P1-1 修复 GTAO 全分辨率深度守卫；P2-1 完成 SSGI dispatch/history/LUT/atlas 的 CPU+GPU 验收（10/10）；P3-1 修复 SSR 降噪器像素展开角绑定（SSR-only 值精确、GPU 无 SSGI pass）；P3-2 隔离 SSR 调试目标（材质输出不被覆盖、降噪链保留）；P3-3 修复透明深度种子 Y 翻转规则并隔离透明 ComputeShader 变体（PBR/Approx 同帧共存）。
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`，下文 `HDRP/`）
 > URP 目标包：`URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）
 > 关联文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[T14 支持矩阵](../../Done/01-ScreenSpaceLighting/validation/T14/T14SupportMatrix.md)、[01 ScreenSpaceLighting](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[02 SSRImprove](../../Done/02-SSRImprove/HANDOFF.md)、[03 SSRImprove2](../../Done/03-SSRImprove2/HANDOFF.md)、[04 SSGIFallbackImprove](../../Done/04-SSGIFallbackImprove/HANDOFF.md)、[05 ScreenSpaceRefractionImprove](../../Done/05-ScreenSpaceRefractionImprove/HANDOFF.md)、[RenderDoc 操作手册](../../../../MCP/RenderDocOperations.md)
@@ -41,6 +41,8 @@
 **P1-1 与 P2-1（2026-11-17）**：F-01 修复 `GTAOCommon.hlsl` 的 `#ifdef FULL_RES` 守卫并删除 `_GtaoParams0.x` 死写入；新增 EditMode 回归测试。GPU 前后对比中 full↔half 相关系数 0.99090 → 0.99983、平均绝对差 1.005 → 0.144，半分辨率路径不变（证据 [validation/P1-1/Report.md](validation/P1-1/Report.md)）。P2-1 为 `ScreenSpaceLightingSsgiPass` 增加 DEV-only 调度快照（计数、组维度、keyword、history 槽位），10 个 SSGI 用例覆盖 full/half、temporal/denoise 变体、atlas 与三渲染器；CPU 逐 kernel 匹配，GPU 抓帧确认 dispatch 顺序、history 乒乓、blue-noise LUT 与探针 atlas 绑定（证据 [validation/P2-SSGI/Report.md](validation/P2-SSGI/Report.md)）。
 
 **P3-1（2026-11-17）**：F-02 修复 `SsrPass` 改用 `_SsgiDenoiserParams` 向量的 `x` 通道上传像素展开角，删除被 `ReflectionDenoiser.compute` 宏遮蔽的独立 float 写入，并清理 `SsgiPass` 对 `TemporalFilter` 的两处同类死写入。SSGI 关闭的 SSR-only full/half 用例中，值精确等于 `2·tan(fov/2)/min(traceW,traceH)`（0.00160375 / 0.00320750，误差 0），binding probe 回读一致；GPU 抓帧为 6/7 个 PBR 降噪 dispatch 且帧内无 SSGI marker（证据 [validation/P3-1/Report.md](validation/P3-1/Report.md)，EditMode 178/178）。
+
+**P3-2 与 P3-3（2026-11-17）**：F-04 为 `DebugSsrParams` 分配私有 `SslSsrDebugParams`（RGBA16F）并移除“调试时跳过降噪/改用 `ssrOutput`”的守卫；调试帧 7 dispatch（比关闭调试多且仅多调试 kernel），`SslSsrPbrOriginal` 仍由 reproject/temporal/bilateral 写、6 个不透明 draw 读，调试纹理只被调试 kernel 写、`SSL Debug View` 读（证据 [validation/P3-2/Report.md](validation/P3-2/Report.md)）。F-06 的深度种子改用 `IsHandleYFlipped` 差值；相机深度视图与透明深度视图在面板/水印外 826,164 像素最大差 0。F-08 复核发现实际危害是共享 `ComputeShader` 的关键字在**执行期**解析：透明 pass 的 `SSR_APPROX` 覆盖了同帧不透明 PBR 变体（首次运行报 `_SsrOutputTextureRW ... not set`）；改为 `Object.Instantiate` 独立实例并显式设置全部关键字后，GPU 抓帧中不透明 trace `9844`（144 B cbuffer）与透明 trace `9865`（112 B cbuffer）两个变体同帧共存（证据 [validation/P3-3/Report.md](validation/P3-3/Report.md)）。最终 EditMode 187/187。
 
 ---
 
@@ -214,7 +216,7 @@ cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiDenoiserPar
 
 `SsrPass` 在 `debugParams` 分支把 `DebugSsrParams` 写入 `m_History.ssrOutput` 后直接 `return`；该纹理正是 `ScreenSpaceLightingSetupPass` 交给材质的 `_ScreenSpaceSsrTexture`。因此只要开启 `SsrPbrParams` 调试视图且 SSR 生效，最终图就会被诊断值替换。
 
-修复：为调试参数分配独立 RT（例如 `m_History.ssrDebugParams`），或在 `ScreenSpaceLightingDebugPass` 内执行该 kernel。验收：开启任意调试视图时最终图与关闭调试逐字节一致。
+修复：为调试参数分配独立 RT（`m_History.ssrDebugParams`），`ScreenSpaceLightingDebugPass` 读取它。验收（P3-2 复核修正）：调试视图按设计替换最终显示，因此“最终图逐字节一致”只适用于**被材质/降噪消费的 SSR 纹理**——开启调试视图时 `SslSsrPbrOriginal` 仍由完整 PBR 链写入并被不透明 draw 读取，调试值只存在于私有目标；关闭调试的帧走同一路径。实现与 GPU 证据见 [validation/P3-2/Report.md](validation/P3-2/Report.md)。
 
 ### 3.5 F-05 折射 keyword 泄漏
 
@@ -234,7 +236,7 @@ Blitter.BlitTexture(cmd, depthSource,
     new Vector4(1f, yflip ? -1f : 1f, 0f, yflip ? 1f : 0f), material, 0);
 ```
 
-验收：在 Y 翻转的 RT 相机与普通相机上，透明 opt-in 面板的深度/法线可视化方向一致。
+验收：在 Y 翻转的 RT 相机与普通相机上，透明 opt-in 面板的深度/法线可视化方向一致。实现与证据见 [validation/P3-3/Report.md](validation/P3-3/Report.md)：桌面 D3D11 RT 用例中源/目标同为翻转态（`yflip=false`），相机深度与透明深度视图在面板外逐像素一致；源/目标翻转态不同的分支由 EditMode 规则断言覆盖，GPU 举证留给 P4 分辨率/XR 矩阵。
 
 ### 3.7 F-07 SSGI 历史 stamp
 
@@ -244,9 +246,9 @@ Blitter.BlitTexture(cmd, depthSource,
 
 ### 3.8 F-08 共享 ComputeShader keyword
 
-`TransparentSsrPass` 只设置 `SSL_XR_ARRAY`、`SSR_APPROX`、`SSR_NORMALS_OCT`（`TransparentSsrPass.cs:132-136`），没有显式设置 `SSR_HALF_RES`、`SSGI_BLUE_NOISE`。当前透明 pass 的 trace 尺寸等于屏幕尺寸，`SSR_HALF_RES` 残留恰好无害；蓝色噪声也没有被调用。这属于"靠调用顺序正确"，不是可验证的契约。
+`TransparentSsrPass` 只设置 `SSL_XR_ARRAY`、`SSR_APPROX`、`SSR_NORMALS_OCT`（`TransparentSsrPass.cs:132-136`），没有显式设置 `SSR_HALF_RES`、`SSGI_BLUE_NOISE`。**P3-3 复核修正**：危害不止“靠调用顺序正确”。`ComputeShader` keyword 是资产状态，在排队的 dispatch 执行时才解析；透明 pass 在共享 `ssrCompute` 上设置 `SSR_APPROX`/`SSR_HALF_RES` 后，同帧更早排队的不透明 PBR reproject 按 Approximation 变体运行，player 报 `Property (_SsrOutputTextureRW) at kernel index (1) is not set`，半分辨率 PBR 反射失效。补全关键字并不能解决两个变体同帧共存的问题。
 
-修复：在透明 pass 入口显式设置它需要的全部 keyword（`SSR_HALF_RES=false`、`SSGI_BLUE_NOISE` 按资源存在与否、`SSR_NORMALS_OCT=false`），不依赖不透明 pass 的副作用。
+修复：透明 pass 使用 `Object.Instantiate(ssrCompute)` 的独立实例（`ScreenSpaceLightingResources.ssrTransparentCompute`），并在入口显式设置它需要的全部 keyword（`SSR_HALF_RES=false`、`SSGI_BLUE_NOISE` 按资源存在与否、`SSR_NORMALS_OCT=false`、`SSR_APPROX=true`），绑定蓝色噪声 LUT；DEV 统计记录关键字与实例隔离状态。GPU 抓帧证明不透明 trace（`9844`，144 B cbuffer）与透明 trace（`9865`，112 B cbuffer）两个变体同帧共存且透明输出被材质读取。见 [validation/P3-3/Report.md](validation/P3-3/Report.md)。
 
 ### 3.9 F-09 SSGI 降噪器投影（待确认）
 
@@ -364,8 +366,8 @@ HDRP 的 `DiffuseDenoiser.compute:150-153` 在 tap 投影时处理 `UNITY_UV_STA
 | P2-4 | P2 | SSGI 覆盖/多探针/时域正确性场景 | P2-1/P2-2 | 测试场景/材质 | 待开始 |
 | P2-5 | P2 | 清理 SSGI 死代码 | P4-4 统一 | `SsgiPass.cs`、`RayMarching.hlsl` | 待开始 |
 | P3-1 | P3 | 修复 SSR 像素展开角绑定（F-02） | P0 | `SsrPass.cs`、`ReflectionDenoiser.compute` | **完成（Fixed，证据 [P3-1/Report.md](validation/P3-1/Report.md)）** |
-| P3-2 | P3 | 修复 SSR 调试覆盖（F-04） | P0 | `SsrPass.cs`、`ScreenSpaceLightingDebugPass.cs` | 待开始 |
-| P3-3 | P3 | 修复透明 Y 翻转与共享 keyword（F-06/F-08） | P0 | `TransparentDepthNormalRenderPass.cs`、`TransparentSsrPass.cs` | 待开始 |
+| P3-2 | P3 | 修复 SSR 调试覆盖（F-04） | P0 | `SsrPass.cs`、`ScreenSpaceLightingDebugPass.cs` | **完成（Fixed，证据 [P3-2/Report.md](validation/P3-2/Report.md)）** |
+| P3-3 | P3 | 修复透明 Y 翻转与共享 keyword（F-06/F-08） | P0 | `TransparentDepthNormalRenderPass.cs`、`TransparentSsrPass.cs` | **完成（Fixed，证据 [P3-3/Report.md](validation/P3-3/Report.md)）** |
 | P3-4 | P3 | SSR 生效链 GPU 验收（两种算法/全半分辨率/透明） | P0/P3-1..3 | `validation/.../P3-SSR/` | 待开始 |
 | P3-5 | P3 | SSR 正确性场景（反射/梯度/空洞/透明/probe 回退） | P3-3 | 测试场景/材质 | 待开始 |
 | P4-1 | P4 | 修复折射 keyword/绑定泄漏（F-05） | P0 | `ScriptableRenderer.cs`、`RefractionPass.cs` | 待开始 |
@@ -726,8 +728,10 @@ PLAN/TODO/06-ValidationAllRDC/validation/
 |---|---|
 | `06-01 Add the all-effects GPU validation plan` | 本文件 |
 | `06-02 Fix GTAO full-resolution and orthographic depth` | F-01/F-03 + EditMode 断言 |
-| `06-03 Bind the SSR denoiser pixel spread and isolate debug output` | F-02/F-04 |
-| `06-04 Harden transparent SSR depth and keyword state` | F-06/F-08 |
+| `06-03 Bind the SSR denoiser pixel spread angle to the shared vector` | F-02 + EditMode/player 断言（已完成，含 `Report the SSR denoiser spread angle` 与 `Add the P3-1 GPU evidence`） |
+| `06-04 Isolate the SSR debug target from the material output` | F-04 + EditMode/player 断言 |
+| `06-05 Own the transparent SSR depth flip and compute variant` | F-06/F-08 + EditMode/player 断言 |
+| `06-06 Add the P3-2/P3-3 RenderDoc evidence` | P3 证据（census/report） |
 | `06-05 Reset refraction state per camera` | F-05 |
 | `06-06 Reset SSGI history on probe-atlas changes` | F-07 |
 | `06-07 Add the validation player and binding probe` | P0 |
@@ -742,7 +746,7 @@ PLAN/TODO/06-ValidationAllRDC/validation/
 ## 11. 下一步
 
 1. P0 已完成：三渲染器 player、manifest、抓帧、census 与 binding probe 均可复现；后续任务直接复用 `SslValidation*` 资产与 `validation/P0/SmokeReport.md` 的字段契约。
-2. F-01（GTAO full-res）与 F-02（SSR 像素展开角）是两个最可能被用户直接看到的缺陷，优先修复并用小场景抓帧证明 before/after。修复后的 GTAO 用例复用 `forward_gtao_full`；F-02 需要用 P3-1 的 pass 级证据（probe 只能证明 C#→HLSL 契约）。
-3. GTAO 正交与 SSR 透明 Y 翻转依赖特定相机/目标，放在基础场景稳定后单独验收。
+2. P3-1..P3-3 已修复并留证：F-02 像素展开角、F-04 调试输出隔离、F-06 深度 Y 翻转、F-08 透明 ComputeShader 变体隔离。下一步 P3-4 汇总 SSR 生效链（两种算法/全半分辨率/透明）与 P3-5 正确性场景；透明 Y 翻转的“源/目标翻转态不同”分支留给 P4-3 分辨率/XR 矩阵做 GPU 举证。
+3. GTAO 正交（F-03）与 F-10 尚未处理，依赖 P1-2。
 4. 每完成一个修复就写 `validation/.../任务ID/` 证据，不攒到最后。
 5. 最后一轮只做回归、文档、清理与归档。P6-2 需要处理本轮 Unity 2022.3.62f1 自动迁移的 `GraphicsSettings/QualitySettings/URP-Balanced/Performant`（与本轮改动无关，当前未提交）。

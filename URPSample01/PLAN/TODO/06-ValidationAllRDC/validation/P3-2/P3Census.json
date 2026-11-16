@@ -1,0 +1,70 @@
+{
+  "captures": [
+    {
+      "caseId": "forward_ssr_pbr_full_debug_off",
+      "capture": "forward_ssr_pbr_full_debug_off_frame145.rdc",
+      "ssrMarker": { "start": 324, "end": 453 },
+      "dispatchCount": 6,
+      "debugKernelPresent": false,
+      "dispatches": [
+        { "order": 0, "eventId": 345, "label": "trace", "csShader": "ResourceId::9818" },
+        { "order": 1, "eventId": 367, "label": "reproject", "csShader": "ResourceId::9821" },
+        { "order": 2, "eventId": 394, "label": "temporalAccumulation", "csShader": "ResourceId::9824" },
+        { "order": 3, "eventId": 408, "label": "copyHistory", "csShader": "ResourceId::9827" },
+        { "order": 4, "eventId": 429, "label": "bilateralFilterH", "csShader": "ResourceId::9829" },
+        { "order": 5, "eventId": 450, "label": "bilateralFilterV", "csShader": "ResourceId::9832" }
+      ]
+    },
+    {
+      "caseId": "forward_ssr_pbr_full_debug_params",
+      "capture": "forward_ssr_pbr_full_debug_params_frame160.rdc",
+      "ssrMarker": { "start": 324, "end": 466 },
+      "dispatchCount": 7,
+      "debugKernelPresent": true,
+      "dispatches": [
+        { "order": 0, "eventId": 345, "label": "trace", "csShader": "ResourceId::9818" },
+        { "order": 1, "eventId": 367, "label": "reproject", "csShader": "ResourceId::9821" },
+        { "order": 2, "eventId": 380, "label": "DebugSsrParams", "csShader": "ResourceId::9844" },
+        { "order": 3, "eventId": 407, "label": "temporalAccumulation", "csShader": "ResourceId::9824" },
+        { "order": 4, "eventId": 421, "label": "copyHistory", "csShader": "ResourceId::9827" },
+        { "order": 5, "eventId": 442, "label": "bilateralFilterH", "csShader": "ResourceId::9829" },
+        { "order": 6, "eventId": 463, "label": "bilateralFilterV", "csShader": "ResourceId::9832" }
+      ],
+      "debugTarget": {
+        "resourceId": "ResourceId::9839",
+        "name": "SslSsrDebugParams_1280x720_R16G16B16A16_SFloat_Tex2D",
+        "format": "R16G16B16A16_SFloat",
+        "usage": [
+          { "eventId": 380, "usage": "CS_RWResource" },
+          { "eventId": 1485, "usage": "PS_Resource" }
+        ],
+        "min": [0.0, 0.5, 0.0, 1.0],
+        "max": [0.0, 0.5, 0.0, 1.0]
+      },
+      "materialOutput": {
+        "resourceId": "ResourceId::9766",
+        "name": "SslSsrPbrOriginal_1280x720_R16G16B16A16_SFloat_Tex2D",
+        "format": "R16G16B16A16_SFloat",
+        "usage": [
+          { "eventId": 367, "usage": "CS_RWResource" },
+          { "eventId": 407, "usage": "CS_Resource" },
+          { "eventId": 463, "usage": "CS_RWResource" },
+          { "eventId": 507, "usage": "PS_Resource" },
+          { "eventId": 513, "usage": "PS_Resource" },
+          { "eventId": 521, "usage": "PS_Resource" },
+          { "eventId": 585, "usage": "PS_Resource" },
+          { "eventId": 619, "usage": "PS_Resource" },
+          { "eventId": 625, "usage": "PS_Resource" }
+        ],
+        "min": [0.0, 0.0, 0.0, 0.0],
+        "max": [2.037109375, 1.1640625, 1.15625, 1.0]
+      },
+      "debugViewDraw": {
+        "marker": { "start": 1470, "end": 1486 },
+        "eventId": 1485,
+        "vertexShader": "ResourceId::9846",
+        "pixelShader": "ResourceId::9847"
+      }
+    }
+  ]
+}

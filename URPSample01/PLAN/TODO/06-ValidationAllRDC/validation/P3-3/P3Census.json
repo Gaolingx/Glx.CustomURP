@@ -1,0 +1,129 @@
+{
+  "captures": [
+    {
+      "caseId": "forward_ssr_pbr_half_transparent",
+      "capture": "forward_ssr_pbr_half_transparent_frame160.rdc",
+      "ssrMarker": { "start": 324, "end": 468 },
+      "dispatchCount": 7,
+      "dispatches": [
+        { "order": 0, "eventId": 345, "label": "trace", "csShader": "ResourceId::9844" },
+        { "order": 1, "eventId": 367, "label": "reproject", "csShader": "ResourceId::9847" },
+        { "order": 2, "eventId": 394, "label": "temporalAccumulationHalfRes", "csShader": "ResourceId::9850" },
+        { "order": 3, "eventId": 408, "label": "copyHistory", "csShader": "ResourceId::9853" },
+        { "order": 4, "eventId": 429, "label": "bilateralFilterH_HR", "csShader": "ResourceId::9855" },
+        { "order": 5, "eventId": 450, "label": "bilateralFilterV_HR", "csShader": "ResourceId::9858" },
+        { "order": 6, "eventId": 465, "label": "upsample", "csShader": "ResourceId::9859" }
+      ],
+      "opaquePbrVariant": {
+        "trace": {
+          "eventId": 345,
+          "shader": "ResourceId::9844",
+          "constantBuffer1Bytes": 144,
+          "constantBuffer1Variables": 9,
+          "readBindings": 7,
+          "readBindingSlots": ["texture0", "texture1", "texture2", "texture3", "structuredbuffer4", "texture5", "texture6"],
+          "uavCount": 1,
+          "blueNoiseLutsRead": ["OwenScrambledNoise256", "ScramblingTile1SPP", "RankingTile1SPP"]
+        },
+        "reproject": {
+          "eventId": 367,
+          "shader": "ResourceId::9847",
+          "readBindings": 4,
+          "uavCount": 2
+        }
+      },
+      "depthSeed": {
+        "passMarker": 1021,
+        "copyEventId": 1035,
+        "source": "ResourceId::9566 (_CameraDepthAttachment_1280x720_Depth)",
+        "destination": "ResourceId::9741 (SslTransparentDepth_1280x720_Depth)",
+        "destinationUsage": [
+          { "eventId": 1035, "usage": "DepthStencilTarget" },
+          { "eventId": 1054, "usage": "DepthStencilTarget" },
+          { "eventId": 1072, "usage": "DepthStencilTarget" },
+          { "eventId": 1101, "usage": "CS_Resource" },
+          { "eventId": 1123, "usage": "CS_Resource" }
+        ],
+        "sourceFlipped": true,
+        "destinationFlipped": true,
+        "yFlip": false,
+        "yFlipExpected": false
+      },
+      "transparentSsr": {
+        "marker": { "start": 1083, "end": 1126 },
+        "dispatchCount": 2,
+        "dispatches": [
+          {
+            "order": 0,
+            "eventId": 1101,
+            "label": "trace",
+            "csShader": "ResourceId::9865",
+            "constantBuffer1Bytes": 112,
+            "constantBuffer1Variables": 7,
+            "readBindings": 4,
+            "readBindingSlots": ["texture0", "structuredbuffer1", "texture2", "texture3"],
+            "uavCount": 1
+          },
+          {
+            "order": 1,
+            "eventId": 1123,
+            "label": "reproject",
+            "csShader": "ResourceId::9868",
+            "constantBuffer1Bytes": 112,
+            "constantBuffer1Variables": 7,
+            "readBindings": 4,
+            "uavCount": 2
+          }
+        ],
+        "output": {
+          "resourceId": "ResourceId::9757",
+          "name": "SslSsrTransparentOutput_1280x720_R16G16B16A16_SFloat_Tex2D",
+          "usage": [
+            { "eventId": 1123, "usage": "CS_RWResource" },
+            { "eventId": 1200, "usage": "PS_Resource" }
+          ]
+        }
+      },
+      "inlineControl": {
+        "isolatedCompute": true,
+        "halfResKeyword": false,
+        "normalsOctKeyword": false,
+        "approxKeyword": true,
+        "blueNoiseKeyword": true,
+        "blueNoiseTexturesBound": true
+      }
+    },
+    {
+      "caseId": "forward_camera_depth_view",
+      "screenshot": "forward_camera_depth_view.png",
+      "debugMode": 6,
+      "imageComparison": {
+        "comparedAgainst": "forward_transparent_depth_view.png",
+        "excludedRegions": [
+          { "label": "transparent panel", "x": 500, "y": 295, "width": 291, "height": 196 },
+          { "label": "watermark", "yStart": 690 }
+        ],
+        "comparedPixels": 826164,
+        "medianAbsDiff": 0,
+        "p95AbsDiff": 0,
+        "p99AbsDiff": 0,
+        "maxAbsDiff": 0,
+        "nonZeroPixels": 0
+      }
+    },
+    {
+      "caseId": "forward_transparent_depth_view",
+      "screenshot": "forward_transparent_depth_view.png",
+      "debugMode": 15,
+      "imageComparison": {
+        "comparedAgainst": "forward_camera_depth_view.png",
+        "comparedPixels": 826164,
+        "medianAbsDiff": 0,
+        "p95AbsDiff": 0,
+        "p99AbsDiff": 0,
+        "maxAbsDiff": 0,
+        "nonZeroPixels": 0
+      }
+    }
+  ]
+}
