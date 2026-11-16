@@ -20,6 +20,12 @@ namespace UnityEditor.Rendering.Universal
                 "The intermediate debug view only changes the image while a mode other than Off is selected.",
                 MessageType.Info);
 
+            EditorGUILayout.HelpBox(
+                "Publish Probe Atlas lets the SSGI miss fallback sample local reflection probes in Forward and Deferred. " +
+                "It is ignored in Forward+, which always publishes the atlas. Enabling it allocates and updates the probe " +
+                "atlas in those modes, and the sky part of Reflection Probes and Sky becomes the ambient probe.",
+                MessageType.None);
+
             if (settings != null && !settings.resources.isComplete)
             {
                 EditorGUILayout.HelpBox(
