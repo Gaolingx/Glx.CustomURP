@@ -486,7 +486,6 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.HistoryDepthTexture, m_History.readPreviousDepth);
                 cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.HistoryNormalTexture, m_History.readPreviousNormals);
                 cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.ValidationBufferRW, m_History.ssgiValidation);
-                cmd.SetComputeFloatParam(temporalCompute, ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent, m_ShaderVariables._SsgiDenoiserParams.x);
                 DispatchCompute(cmd, temporalCompute, validateKernel, screenGroupsX, screenGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 stats.validateDispatches++;
@@ -744,7 +743,6 @@ namespace UnityEngine.Rendering.Universal
         // exactly packed SSGI constant buffer.
         void BindTemporalFilterScalars(CommandBuffer cmd, ComputeShader temporalCompute)
         {
-            cmd.SetComputeFloatParam(temporalCompute, ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent, m_ShaderVariables._SsgiDenoiserParams.x);
             // SSGI has no intersection velocity buffer and URP has no exposure stage at this point,
             // so the HDRP rejection / exposure paths stay disabled, exactly like HDRP's SSGI caller
             // (which also passes false for both rejections).

@@ -45,6 +45,13 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_ReprojectDispatchCount;
         internal static int s_LastDispatchViewCount;
         internal static int s_LastDispatchTextureArray;
+        // Pixel spread angle the reflection denoiser receives, with the trace size it was derived
+        // from. The denoiser reads the shared _SsgiDenoiserParams.x uniform, so a standalone float
+        // would be shadowed by the macro in ReflectionDenoiser.compute.
+        internal static float s_LastPixelSpreadAngleTangent;
+        internal static int s_LastPixelSpreadTraceWidth;
+        internal static int s_LastPixelSpreadTraceHeight;
+        internal static int s_LastPixelSpreadFrame = -1;
 #endif
 
 #if UNITY_EDITOR
@@ -289,8 +296,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 PushDenoiserShaderVariables(cmd, ref cameraData, denoiser, screenWidth, screenHeight, traceWidth, traceHeight, pbrHistoryValid);
                 DispatchReflectionDenoise(cmd, denoiser, settings, depthTexture, normalTexture, motionTexture,
-                    cameraData.camera.fieldOfView, traceWidth, traceHeight, traceGroupsX, traceGroupsY, viewCount,
-                    pbrHistoryValid, halfResolution);
+                    traceGroupsX, traceGroupsY, viewCount, pbrHistoryValid, halfResolution);
 
                 if (halfResolution)
                 {
@@ -337,6 +343,20 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeMatrixParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiPrevInvViewProj, previousInvViewProj);
             cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiRayMarchingParams2,
                 new Vector4(1f, 0f, historyValid ? 1f : 0f, 0f));
+
+            // ReflectionDenoiser.compute maps _PixelSpreadAngleTangent to _SsgiDenoiserParams.x, and
+            // this pass is the only writer for its kernels. A standalone float write lands on an
+            // undeclared uniform and leaves the reprojection radius at its 0.1 world unit floor.
+            float pixelSpreadTangent = ScreenSpaceLightingRenderUtils.ComputePixelSpreadTangent(
+                cameraData.camera.fieldOfView, traceWidth, traceHeight);
+            cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiDenoiserParams,
+                new Vector4(pixelSpreadTangent, -1f, 0f, 0f));
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastPixelSpreadAngleTangent = pixelSpreadTangent;
+            s_LastPixelSpreadTraceWidth = traceWidth;
+            s_LastPixelSpreadTraceHeight = traceHeight;
+            s_LastPixelSpreadFrame = Time.frameCount;
+#endif
         }
 
         void DispatchReflectionDenoise(
@@ -346,9 +366,6 @@ namespace UnityEngine.Rendering.Universal
             RTHandle depthTexture,
             RTHandle normalTexture,
             RTHandle motionTexture,
-            float fieldOfView,
-            int effectWidth,
-            int effectHeight,
             int groupsX,
             int groupsY,
             int viewCount,
@@ -360,8 +377,6 @@ namespace UnityEngine.Rendering.Universal
             int readSlot = historyValid ? m_History.ssrPbrReadSlot : (m_History.ssrPbrWriteSlot ^ 1);
             int writeSlot = m_History.ssrPbrWriteSlot;
 
-            cmd.SetComputeFloatParam(denoiser, ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent,
-                ScreenSpaceLightingRenderUtils.ComputePixelSpreadTangent(fieldOfView, effectWidth, effectHeight));
             cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.AffectSmoothSurfaces,
                 settings.affectSmoothSurfaces.value ? 1 : 0);
             cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.SingleReflectionBounce,
