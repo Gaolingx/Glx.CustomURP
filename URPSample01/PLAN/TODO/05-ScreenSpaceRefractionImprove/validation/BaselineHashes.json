@@ -1,0 +1,10 @@
+{
+  "source": "T11Verification.json",
+  "generatedUtc": "2026-11-16T13:10:19.379952+00:00",
+  "modeReferenceSha256": {
+    "Forward": "E88A54403E36934ACA773A1E1625F0BD1C7DB645E9234A994EDBBCE0E67969B6",
+    "ForwardPlus": "FC0B861C1B56B408CB5BBA23C2B66B1A02D2B224E8D82D92C0797DD017508689",
+    "Deferred": "EE4F2B31E342187077E1CFA9AA6F303F3433BD7DD348A5B276B903EA32648100"
+  },
+  "note": "Reference captured with the volume disabled and the refractive test materials at opacity 0."
+}

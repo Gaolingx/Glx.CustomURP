@@ -1,0 +1,210 @@
+{
+  "round": "05-ScreenSpaceRefractionImprove",
+  "generatedUtc": "2026-11-16T13:10:19.382457+00:00",
+  "unityVersion": "2022.3.62f1",
+  "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+  "graphicsDeviceType": "Direct3D11",
+  "source": {
+    "t11Verification": "T11Verification.json",
+    "t11Log": "Logs/UnityT11Verification.log",
+    "editModeLog": "Logs/UnityEditModeTests.log"
+  },
+  "t11Passed": true,
+  "editMode": {
+    "passed": 170,
+    "failed": 0,
+    "skipped": 0
+  },
+  "cases": [
+    {
+      "taskId": "P0-1",
+      "case": "screen_path_and_legacy_unchanged",
+      "passed": true,
+      "images": [
+        "P0-1/T11_Forward_RefractionOn.png",
+        "P0-1/T11_ForwardPlus_RefractionOn.png",
+        "P0-1/T11_Deferred_RefractionOn.png",
+        "P0-1/T11_Forward_Reference.png",
+        "P0-1/T11_ForwardPlus_Reference.png",
+        "P0-1/T11_Deferred_Reference.png"
+      ],
+      "metrics": {
+        "Forward": {
+          "boxChangedPixels": 5915,
+          "complexChangedPixels": 2996,
+          "shaderGraphChangedPixels": 2476,
+          "legacyChangedPixels": 0,
+          "currentFramePyramidFollowsScene": true
+        },
+        "ForwardPlus": {
+          "boxChangedPixels": 5915,
+          "complexChangedPixels": 2996,
+          "shaderGraphChangedPixels": 2464,
+          "legacyChangedPixels": 0,
+          "currentFramePyramidFollowsScene": true
+        },
+        "Deferred": {
+          "boxChangedPixels": 5915,
+          "complexChangedPixels": 2996,
+          "shaderGraphChangedPixels": 2476,
+          "legacyChangedPixels": 0,
+          "currentFramePyramidFollowsScene": true
+        }
+      },
+      "baselineHash": {
+        "Forward": "E88A54403E36934ACA773A1E1625F0BD1C7DB645E9234A994EDBBCE0E67969B6",
+        "ForwardPlus": "FC0B861C1B56B408CB5BBA23C2B66B1A02D2B224E8D82D92C0797DD017508689",
+        "Deferred": "EE4F2B31E342187077E1CFA9AA6F303F3433BD7DD348A5B276B903EA32648100"
+      },
+      "notes": "Refraction changes the refractive glasses, the legacy transparent material is byte identical, and the transmitted color follows the current-frame pyramid. A probe-only screen-miss image and the edge-band continuity metric are not isolated yet (edge semantics is P2-1)."
+    },
+    {
+      "taskId": "P0-2",
+      "case": "opacity_mask_0p0_0p3_1p0",
+      "passed": true,
+      "images": [
+        "P0-2/T11_Forward_Opacity0.png",
+        "P0-2/T11_ForwardPlus_Opacity0.png",
+        "P0-2/T11_Deferred_Opacity0.png",
+        "P0-2/T11_Forward_Opacity0p3.png",
+        "P0-2/T11_ForwardPlus_Opacity0p3.png",
+        "P0-2/T11_Deferred_Opacity0p3.png",
+        "P0-2/T11_Forward_Opacity1.png",
+        "P0-2/T11_ForwardPlus_Opacity1.png",
+        "P0-2/T11_Deferred_Opacity1.png",
+        "P0-2/T11_Forward_Opacity1Reference.png",
+        "P0-2/T11_ForwardPlus_Opacity1Reference.png",
+        "P0-2/T11_Deferred_Opacity1Reference.png"
+      ],
+      "metrics": {
+        "Forward": {
+          "opacityLuminance": {
+            "0.0": 0.162845,
+            "0.3": 0.129606,
+            "1.0": 0.057773
+          },
+          "opacityFitR2": 0.999676,
+          "opacityMidError": 0.023347,
+          "opacityOneChangedPixels": 0,
+          "opacityOneMaxDelta": 4.57763671875e-05,
+          "opacityMonotonic": true
+        },
+        "ForwardPlus": {
+          "opacityLuminance": {
+            "0.0": 0.162845,
+            "0.3": 0.129606,
+            "1.0": 0.057773
+          },
+          "opacityFitR2": 0.999676,
+          "opacityMidError": 0.023347,
+          "opacityOneChangedPixels": 0,
+          "opacityOneMaxDelta": 4.57763671875e-05,
+          "opacityMonotonic": true
+        },
+        "Deferred": {
+          "opacityLuminance": {
+            "0.0": 0.163133,
+            "0.3": 0.129826,
+            "1.0": 0.057832
+          },
+          "opacityFitR2": 0.999678,
+          "opacityMidError": 0.023296,
+          "opacityOneChangedPixels": 0,
+          "opacityOneMaxDelta": 4.57763671875e-05,
+          "opacityMonotonic": true
+        }
+      },
+      "baselineHash": {
+        "Forward": "E88A54403E36934ACA773A1E1625F0BD1C7DB645E9234A994EDBBCE0E67969B6",
+        "ForwardPlus": "FC0B861C1B56B408CB5BBA23C2B66B1A02D2B224E8D82D92C0797DD017508689",
+        "Deferred": "EE4F2B31E342187077E1CFA9AA6F303F3433BD7DD348A5B276B903EA32648100"
+      },
+      "notes": "Opacity 0/0.3/1 sweep in the box-glass interior; normalized mid error and least-squares fit are in P0-2/fitting.csv. Opacity 1 is compared against the same surface with the volume disabled."
+    },
+    {
+      "taskId": "P0-3",
+      "case": "any_probe_and_infinite_proxy",
+      "passed": true,
+      "images": [
+        "P0-3/T11_Forward_NoProxyFallback.png",
+        "P0-3/T11_ForwardPlus_NoProxyFallback.png",
+        "P0-3/T11_Deferred_NoProxyFallback.png",
+        "P0-3/T11_Forward_InfiniteProxy.png",
+        "P0-3/T11_ForwardPlus_InfiniteProxy.png",
+        "P0-3/T11_Deferred_InfiniteProxy.png"
+      ],
+      "metrics": {
+        "Forward": {
+          "noProxyBoundCount": 8,
+          "noProxyInfiniteCount": 0,
+          "noProxyChangedPixels": 16281,
+          "infiniteProxyBoundCount": 8,
+          "infiniteProxyCount": 8,
+          "infiniteProxyChangedPixels": 16281
+        },
+        "ForwardPlus": {
+          "noProxyBoundCount": 8,
+          "noProxyInfiniteCount": 0,
+          "noProxyChangedPixels": 16281,
+          "infiniteProxyBoundCount": 8,
+          "infiniteProxyCount": 8,
+          "infiniteProxyChangedPixels": 16281
+        },
+        "Deferred": {
+          "noProxyBoundCount": 8,
+          "noProxyInfiniteCount": 0,
+          "noProxyChangedPixels": 16281,
+          "infiniteProxyBoundCount": 8,
+          "infiniteProxyCount": 8,
+          "infiniteProxyChangedPixels": 16281
+        }
+      },
+      "baselineHash": {
+        "Forward": "E88A54403E36934ACA773A1E1625F0BD1C7DB645E9234A994EDBBCE0E67969B6",
+        "ForwardPlus": "FC0B861C1B56B408CB5BBA23C2B66B1A02D2B224E8D82D92C0797DD017508689",
+        "Deferred": "EE4F2B31E342187077E1CFA9AA6F303F3433BD7DD348A5B276B903EA32648100"
+      },
+      "notes": "Non-box-projected probe still binds a box proxy (infinite count 0); disabling every probe binds the infinite/sky proxy (infinite count > 0) and refraction stays visible."
+    },
+    {
+      "taskId": "P1-1",
+      "case": "ior_fresnel0_analytic",
+      "passed": null,
+      "images": [
+        "P1-1/T11_Forward_RefractionOn.png",
+        "P1-1/T11_ForwardPlus_RefractionOn.png",
+        "P1-1/T11_Deferred_RefractionOn.png"
+      ],
+      "metrics": {
+        "analyticFresnel0": {
+          "ior1.0": 0.0,
+          "ior1.5": 0.04,
+          "ior2.5": 0.1837
+        }
+      },
+      "baselineHash": null,
+      "notes": "Implemented and covered by the EditMode analytic contract test; no HDRP IOR gradient capture yet."
+    },
+    {
+      "taskId": "P1-2",
+      "case": "thin_absorption_distance",
+      "passed": null,
+      "images": [
+        "P1-2/T11_Forward_Tinted.png",
+        "P1-2/T11_ForwardPlus_Tinted.png",
+        "P1-2/T11_Deferred_Tinted.png"
+      ],
+      "metrics": {
+        "thinAbsorptionDistance": 0.005
+      },
+      "baselineHash": null,
+      "notes": "Implemented and covered by the static contract test; a coloured Thin Beer-Lambert capture is pending."
+    }
+  ],
+  "exitCriteriaMet": false,
+  "exitCriteriaBlockers": [
+    "P1-1 and P1-2 only have static/analytic evidence, no HDRP visual comparison.",
+    "P0-1 probe-only screen-miss and edge-band continuity evidence depend on P2-1.",
+    "P1-3 per-object probe table and all P2 tasks are not started."
+  ]
+}

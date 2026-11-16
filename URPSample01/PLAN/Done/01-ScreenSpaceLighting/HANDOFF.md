@@ -228,10 +228,10 @@ python "PLAN/validation/T11/Analyze-T11Evidence.py"
 T11 事实与限制：
 
 - 材质契约：`_RefractionModel` 默认 None，关键字只在透明材质上设置；`_Ior` 与 `_Thickness`/`_TransmittanceDistance` 位于 LitInput 的 `UnityPerMaterial` CBUFFER（SRP Batcher 布局稳定）。ShaderGraph Lit 由 target 生成同名属性，材质 Inspector 的 Refraction 区与内置 Lit 共用 `LitGUI` 文案。
-- Proxy：URP 没有 HDRP 的 per-material proxy volume，首版使用**最近的 box-projected 反射探针 AABB**。运行时探针在本验证中未出现在 `CullingResults.visibleReflectionProbes`（计数 0），pass 回退到 30 帧缓存一次的 `FindObjectsOfType<ReflectionProbe>`；没有 box probe 时 weight=0，整图逐像素回到 probe/透明路径。旋转探针只取 AABB，Forward+ 的逐对象 probe atlas 不参与 proxy 选择。
+- Proxy：URP 没有 HDRP 的 per-material proxy volume。首选**最近的 box-projected 反射探针 AABB**；没有 box-projected 探针时退化为**任意 active 探针的 bounds**；仍没有探针时使用 **infinite/sky 代理**（等价 HDRP sky env light 的 `minProjectionDistance`）。运行时探针在本验证中未出现在 `CullingResults.visibleReflectionProbes`（计数 0），pass 回退到 30 帧缓存一次的 `FindObjectsOfType<ReflectionProbe>`。代理选择仍是相机级近似，不是 HDRP 的 per-object/per-pixel env light；旋转探针只取 AABB，Forward+ 的逐对象 probe atlas 不参与 proxy 选择。
 - 当前帧 pyramid：折射读取 400 生成的 opaque+sky 颜色金字塔，不读取本帧 transparents；透明面板开关时玻璃圆内 0 像素变化、`CurrentColorPyramid` 调试视图 0 像素变化。因此 HDRP 的 pre-refraction transparent 顺序不迁移，作为已知差异记录。
 - 深度拒绝：移植 HDRP 的 `hitLinearDepth > surfaceLinearDepth` 规则，前景遮挡时退回表面自身 UV；opaque depth 由 448 显式绑定，不依赖 `_CameraDepthTexture` 全局。
-- Alpha 语义：与 HDRP 一致，折射材质把 opacity 当 transmittance mask；本实现按折射权重把输出 alpha 强制到 1（`lerp(color.a, 1, weight)`），因此折射成立时背景由颜色金字塔替换，miss 时原透明混合不变。
+- Alpha 语义（05 轮 P0-1/P0-2 修正）：与 HDRP 一致，折射材质的 opacity 是 transmittance mask。`(1 - alpha)` 在 diffuse/emission 桶与透射之间 lerp，specular 桶保留，折射成立时输出 alpha 固定为 1。屏幕 miss 时不再直接为 0，而是继续用反射探针/sky cubemap 沿折射方向补齐屏幕路径未消费的权重；无探针场景使用 infinite/sky 代理。IOR 在效果开启时进入 F0（`IorToFresnel0`），同时影响反射与 `(1-F)` 透射；Thin 模型的吸收距离与厚度都固定为 0.005。
 - SG：`UniversalTransparentDepthNormals` 复用 `DepthNormalsOnlyPass.hlsl`（`URP_TRANSPARENT_DEPTH_NORMALS` 定义切换为 opt-in clip），Forward 变体新增 `_SCREEN_SPACE_TRANSPARENT_SSR`，T10 遗留的 SG 透明 prepass/receive 已补齐；SG 折射属性由 target `CollectShaderProperties` 生成，材质端与内置 Lit 共用 `ScreenSpaceRefraction.hlsl`。
 - 仅 forward 透明路径；Deferred 的 GBuffer 不参与折射（透明仍走 forward）。SimpleLit/Particles/Terrain 没有该契约，继续走 probe。
 - 仅 Compatibility `ScriptableRenderPass.Execute`；XR 单视图矩阵、逐眼矩阵留到 T13；MSAA、Depth Priming、Opaque Texture、TAA/Motion Blur 组合留到 T12。

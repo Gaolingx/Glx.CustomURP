@@ -30,7 +30,9 @@ public static class ScreenSpaceLightingT11Verification
     const string RendererRoot = "Assets/Tests/ScreenSpaceLighting/Renderers";
     const string MaterialRoot = "Assets/Tests/ScreenSpaceLighting/Materials";
     const string ShaderRoot = "Assets/Tests/ScreenSpaceLighting/Shaders";
-    const string OutputRoot = "PALN/validation/T11";
+    // The 05 refraction round writes its evidence into its own validation folder by setting this
+    // environment variable; the historical T11 default stays unchanged.
+    static readonly string OutputRoot = Environment.GetEnvironmentVariable("SSL_VALIDATION_OUTPUT_ROOT") ?? "PALN/validation/T11";
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity";
     const string T1RendererPathFormat = RendererRoot + "/Ssl{0}Renderer.asset";
     const string T11RendererPathFormat = RendererRoot + "/SslT11{0}Renderer.asset";
@@ -236,6 +238,62 @@ public static class ScreenSpaceLightingT11Verification
         result.states.Add(DescribeState("RefractionOn", refractionOn, reference));
         WriteImage(imageTarget, outputDirectory, "T11_" + modeName + "_RefractionOn.png");
 
+        // -----------------------------------------------------------------------------------------
+        // P0-2 opacity sweep: opacity is HDRP's transmittance mask, so the glass interior must move
+        // monotonically from the transmitted background (opacity 0) to the opaque surface (opacity 1)
+        // and opacity 1 must not contain any color-pyramid transmission.
+        // -----------------------------------------------------------------------------------------
+        var boxInset = InteriorInsetPixels(camera, rigParts.boxGlass, 0.2f);
+        rigParts.SetOpacity(0f);
+        cameraData.resetHistory = true;
+        var opacityZero = RenderAndCapture(camera, imageTarget, 6);
+        result.states.Add(DescribeState("Opacity0", opacityZero, reference));
+        WriteImage(imageTarget, outputDirectory, "T11_" + modeName + "_Opacity0.png");
+        ReadMeanInRect(camera, imageTarget, rigParts.boxGlass, boxInset, out var opacityZeroMean);
+
+        rigParts.SetOpacity(0.3f);
+        cameraData.resetHistory = true;
+        var opacityMid = RenderAndCapture(camera, imageTarget, 6);
+        result.states.Add(DescribeState("Opacity0p3", opacityMid, refractionOn));
+        WriteImage(imageTarget, outputDirectory, "T11_" + modeName + "_Opacity0p3.png");
+        ReadMeanInRect(camera, imageTarget, rigParts.boxGlass, boxInset, out var opacityMidMean);
+
+        rigParts.SetOpacity(1f);
+        cameraData.resetHistory = true;
+        var opacityOne = RenderAndCapture(camera, imageTarget, 6);
+        result.states.Add(DescribeState("Opacity1", opacityOne, reference));
+        WriteImage(imageTarget, outputDirectory, "T11_" + modeName + "_Opacity1.png");
+        ReadMeanInRect(camera, imageTarget, rigParts.boxGlass, boxInset, out var opacityOneMean);
+
+        // Reference for opacity 1: the same opaque surface with screen-space refraction disabled.
+        refraction.enabled.Override(false);
+        cameraData.resetHistory = true;
+        var opacityOneReference = RenderAndCapture(camera, imageTarget, 6);
+        result.states.Add(DescribeState("Opacity1Reference", opacityOneReference, reference));
+        WriteImage(imageTarget, outputDirectory, "T11_" + modeName + "_Opacity1Reference.png");
+        refraction.enabled.Override(true);
+
+        result.opacityZeroMean = opacityZeroMean;
+        result.opacityMidMean = opacityMidMean;
+        result.opacityOneMean = opacityOneMean;
+        result.opacityOneChangedPixels = CountDifferences(opacityOne, opacityOneReference, 1f / 255f);
+        result.opacityOneMaxDelta = MaxDifference(opacityOne, opacityOneReference);
+        float opacityZeroLuminance = Luminance(opacityZeroMean);
+        float opacityMidLuminance = Luminance(opacityMidMean);
+        float opacityOneLuminance = Luminance(opacityOneMean);
+        result.opacityMonotonic = opacityZeroLuminance + 0.01f >= opacityMidLuminance &&
+                                  opacityMidLuminance + 0.01f >= opacityOneLuminance;
+        WriteOpacitySweep(outputDirectory, modeName, opacityZeroMean, opacityMidMean, opacityOneMean);
+        if (!result.opacityMonotonic)
+            result.issues.Add("Opacity sweep did not move monotonically from transmission to the opaque surface.");
+        if (result.opacityOneChangedPixels != 0)
+            result.issues.Add("Opacity 1 still transmitted the color pyramid or changed the opaque surface.");
+
+        // Restore full transmission for the remaining refraction cases.
+        rigParts.SetOpacity(0f);
+        cameraData.resetHistory = true;
+        RenderAndCapture(camera, imageTarget, 4);
+
         // Editor evidence: the bindings pass must run and find a box-projected proxy.
         var refractionPassType = FindPackageType("ScreenSpaceLightingRefractionPass");
         ResetEditorEvidence(refractionPassType);
@@ -323,19 +381,43 @@ public static class ScreenSpaceLightingT11Verification
             result.issues.Add("The ShaderGraph Lit refraction material did not change with refraction enabled.");
 
         // -----------------------------------------------------------------------------------------
-        // No proxy: disabling box projection removes the only scene proxy, so every material must
-        // fall back to the reference image.
+        // No proxy: disabling box projection must not disable refraction. Any active probe still
+        // provides a proxy volume (P0-3), and the keyword must stay enabled.
         // -----------------------------------------------------------------------------------------
         rigParts.SetProbeBoxProjection(false);
+        ResetEditorEvidence(refractionPassType);
         cameraData.resetHistory = true;
         var noProxy = RenderAndCapture(camera, imageTarget, 8);
+        result.noProxyBoundCount = ReadEditorInt(refractionPassType, "s_EditorBoundCount");
+        result.noProxyInfiniteCount = ReadEditorInt(refractionPassType, "s_EditorNoProxyCount");
         result.states.Add(DescribeState("NoProxyFallback", noProxy, reference));
         WriteImage(imageTarget, outputDirectory, "T11_" + modeName + "_NoProxyFallback.png");
         result.noProxyChangedPixels = CountDifferences(noProxy, reference, k_IdenticalThreshold);
         result.noProxyMaxDelta = MaxDifference(noProxy, reference);
-        if (result.noProxyChangedPixels != 0)
-            result.issues.Add("Without a box-projected probe the refraction did not fall back to the reference image.");
+        if (result.noProxyBoundCount == 0)
+            result.issues.Add("Without box projection the refraction keyword was disabled instead of using any-probe/infinite fallback.");
+        if (result.noProxyChangedPixels == 0)
+            result.issues.Add("Without box projection the refraction output fell back to the legacy transparent image.");
         rigParts.SetProbeBoxProjection(true);
+
+        // -----------------------------------------------------------------------------------------
+        // Infinite proxy: with every reflection probe disabled the shader must still refract using
+        // the infinite (sky) proxy and the probe/sky transmission fallback.
+        // -----------------------------------------------------------------------------------------
+        rigParts.SetProbeActive(false);
+        ResetEditorEvidence(refractionPassType);
+        cameraData.resetHistory = true;
+        var infiniteProxy = RenderAndCapture(camera, imageTarget, 8);
+        result.infiniteProxyBoundCount = ReadEditorInt(refractionPassType, "s_EditorBoundCount");
+        result.infiniteProxyCount = ReadEditorInt(refractionPassType, "s_EditorNoProxyCount");
+        result.states.Add(DescribeState("InfiniteProxy", infiniteProxy, reference));
+        WriteImage(imageTarget, outputDirectory, "T11_" + modeName + "_InfiniteProxy.png");
+        result.infiniteProxyChangedPixels = CountDifferences(infiniteProxy, reference, k_IdenticalThreshold);
+        if (result.infiniteProxyBoundCount == 0)
+            result.issues.Add("Without any reflection probe the refraction keyword was disabled instead of using the infinite sky proxy.");
+        if (result.infiniteProxyChangedPixels == 0)
+            result.issues.Add("Without any reflection probe the refraction output fell back to the legacy transparent image.");
+        rigParts.SetProbeActive(true);
         cameraData.resetHistory = true;
         RenderAndCapture(camera, imageTarget, 4);
 
@@ -470,11 +552,13 @@ public static class ScreenSpaceLightingT11Verification
         }
 
         result.limitations =
-            "The proxy is the box of the active box-projected reflection probe (URP has no per-material proxy volume). " +
+            "The proxy is the AABB of an active reflection probe, or the infinite/sky proxy when no probe exists " +
+            "(URP has no per-material proxy volume or sphere influence, and the ray selection remains camera-based). " +
             "The color pyramid is captured before transparents, so pre-refraction transparents are absent from the " +
             "refraction; a transparent object between the refracting surface and the background is only visible through " +
             "its own blend, not through the refraction. Refraction is a forward transparent material path only; it is " +
-            "not available in the deferred GBuffer.";
+            "not available in the deferred GBuffer. Opacity is the transmittance mask, so the refractive test materials " +
+            "use opacity 0 and are invisible while the volume is disabled.";
         result.passed = result.issues.Count == 0;
         return result;
     }
@@ -566,12 +650,35 @@ public static class ScreenSpaceLightingT11Verification
                 m_TintMaterial.SetColor("_TransmittanceColor", color);
         }
 
+        public void SetOpacity(float alpha)
+        {
+            foreach (var material in new[]
+                     {
+                         m_BoxMaterial, m_SphereMaterial, m_ThinMaterial,
+                         m_ComplexMaterial, m_ShaderGraphMaterial, m_TintMaterial,
+                     })
+            {
+                if (material == null || !material.HasProperty("_BaseColor"))
+                    continue;
+                var color = material.GetColor("_BaseColor");
+                color.a = alpha;
+                material.SetColor("_BaseColor", color);
+            }
+        }
+
         public void SetProbeBoxProjection(bool enabled)
         {
             if (probe == null)
                 return;
             probe.boxProjection = enabled;
             probe.RenderProbe();
+        }
+
+        public void SetProbeActive(bool enabled)
+        {
+            if (probe == null)
+                return;
+            probe.enabled = enabled;
         }
 
         /// <summary>
@@ -782,7 +889,10 @@ public static class ScreenSpaceLightingT11Verification
 
         material.shader = shader;
         ApplyTransparentSettings(material);
-        material.SetColor("_BaseColor", new Color(0.12f, 0.14f, 0.16f, 1f));
+        // HDRP's transmittance mask: opacity 0 makes the diffuse bucket fully replaceable by the
+        // refracted background, so the glass shows the transmitted scene instead of a dark surface.
+        // The legacy transparent material must keep its opacity to stay a normal transparent object.
+        material.SetColor("_BaseColor", new Color(0.12f, 0.14f, 0.16f, legacy ? 1f : 0f));
         material.SetFloat("_Metallic", 0f);
         material.SetFloat("_Smoothness", 0.95f);
         if (material.HasProperty("_RefractionModel"))
@@ -850,7 +960,8 @@ public static class ScreenSpaceLightingT11Verification
         material.shader = shader;
         if (material.HasProperty("_Surface"))
             material.SetFloat("_Surface", 1f);
-        material.SetColor("_BaseColor", new Color(0.16f, 0.18f, 0.2f, 1f));
+        // Opacity is the transmittance mask for refractive materials (HDRP semantics).
+        material.SetColor("_BaseColor", new Color(0.16f, 0.18f, 0.2f, 0f));
         if (material.HasProperty("_Metallic"))
             material.SetFloat("_Metallic", 0f);
         if (material.HasProperty("_Smoothness"))
@@ -1219,6 +1330,21 @@ public static class ScreenSpaceLightingT11Verification
         return max;
     }
 
+    static void WriteOpacitySweep(string outputDirectory, string modeName, Color zero, Color mid, Color one)
+    {
+        if (string.IsNullOrEmpty(outputDirectory))
+            return;
+
+        var lines = new[]
+        {
+            "opacity,meanR,meanG,meanB,luminance",
+            FormattableString.Invariant($"0.0,{zero.r},{zero.g},{zero.b},{Luminance(zero)}"),
+            FormattableString.Invariant($"0.3,{mid.r},{mid.g},{mid.b},{Luminance(mid)}"),
+            FormattableString.Invariant($"1.0,{one.r},{one.g},{one.b},{Luminance(one)}"),
+        };
+        File.WriteAllLines(Path.Combine(outputDirectory, $"T11_{modeName}_OpacitySweep.csv"), lines);
+    }
+
     static ScreenRect ProjectBounds(Camera camera, GameObject gameObject, int inset)
     {
         var renderer = gameObject.GetComponent<Renderer>();
@@ -1417,8 +1543,7 @@ public static class ScreenSpaceLightingT11Verification
             return float.PositiveInfinity;
         float max = 0f;
         for (int i = 0; i < a.Length; i++)
-            max = Mathf.Max(max, MaxChannelDelta(a[i], b[i]));
-        return max;
+            max = Mathf.Max(max, MaxChannelDelta(a[i], b[i]));        return max;
     }
 
     static int Count(Color[] samples, Func<Color, bool> predicate)
@@ -1500,6 +1625,17 @@ public sealed class T11ModeResult
     public float shaderGraphMaxDelta;
     public int noProxyChangedPixels;
     public float noProxyMaxDelta;
+    public int noProxyBoundCount;
+    public int noProxyInfiniteCount;
+    public int infiniteProxyBoundCount;
+    public int infiniteProxyCount;
+    public int infiniteProxyChangedPixels;
+    public Color opacityZeroMean;
+    public Color opacityMidMean;
+    public Color opacityOneMean;
+    public int opacityOneChangedPixels;
+    public float opacityOneMaxDelta;
+    public bool opacityMonotonic;
     public bool tintApplied;
     public T11Tint tint;
     public Color tintStartMean;

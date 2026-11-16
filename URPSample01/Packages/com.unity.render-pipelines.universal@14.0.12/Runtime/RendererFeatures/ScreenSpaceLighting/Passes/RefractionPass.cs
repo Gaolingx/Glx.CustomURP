@@ -15,6 +15,14 @@ namespace UnityEngine.Rendering.Universal
     // `hitLinearDepth > posInput.linearDepth` rule.
     internal sealed class ScreenSpaceLightingRefractionPass : ScriptableRenderPass
     {
+        // Must match the SSL_REFRACTION_PROXY_MODE_* defines in ScreenSpaceRefraction.hlsl.
+        internal enum ProxyMode
+        {
+            None = 0,
+            Box = 1,
+            Infinite = 2,
+        }
+
         // 448: after the transparent depth/normal prepass (447), before transparent SSR (449) and
         // the URP transparent draw (450).
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.BeforeRenderingTransparents - 2);
@@ -24,7 +32,7 @@ namespace UnityEngine.Rendering.Universal
 
         ScreenSpaceLightingHistory m_History;
 
-        // Scene scans are expensive; a box-projected probe rarely changes, so refresh at a low rate.
+        // Scene scans are expensive; a reflection probe rarely changes, so refresh at a low rate.
         const int k_SceneProbeRefreshFrames = 30;
         ReflectionProbe[] m_SceneProbes;
         int m_SceneProbeRefreshFrame = -9999;
@@ -68,7 +76,9 @@ namespace UnityEngine.Rendering.Universal
             var cmd = renderingData.commandBuffer;
             var stack = VolumeManager.instance.stack;
             var settings = stack != null ? stack.GetComponent<ScreenSpaceRefraction>() : null;
-            bool active = settings != null && settings.enabled.value;
+            // Intensity zero must keep the legacy transparent output byte for byte, so it gates the
+            // whole effect instead of only scaling the screen-space weight.
+            bool active = settings != null && settings.enabled.value && settings.intensity.value > 0f;
 
             if (!active || m_History == null || !m_History.resourcesAllocated || m_History.currentColorPyramid == null)
             {
@@ -84,14 +94,11 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var cameraPosition = renderingData.cameraData.camera.transform.position;
-            if (!TryGetProxy(cameraPosition, renderingData.cullResults, out var proxyBoxMin, out var proxyBoxMax))
-            {
+            var proxyMode = SelectProxy(cameraPosition, renderingData.cullResults, out var proxyBoxMin, out var proxyBoxMax);
 #if UNITY_EDITOR
+            if (proxyMode != ProxyMode.Box)
                 s_EditorNoProxyCount++;
 #endif
-                DisableMaterialBinding(cmd);
-                return;
-            }
 
             int width = Mathf.Max(1, m_History.width);
             int height = Mathf.Max(1, m_History.height);
@@ -141,26 +148,56 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture(ScreenSpaceLightingShaderIDs.RefractionDepthTexture, Texture2D.blackTexture);
         }
 
-        // Picks the box-projected reflection probe that best approximates the scene around the
-        // camera: the probe whose bounds contain the camera wins, otherwise the nearest bounds.
-        // URP exposes no per-material proxy volume, so this world AABB replaces HDRP's proxy shape.
-        // The probe rotation is ignored (the AABB of a rotated probe is conservative).
+        // Picks the scene proxy for the refracted ray:
+        //  1. the box-projected reflection probe that best approximates the scene around the camera;
+        //  2. otherwise any active reflection probe bounds (box projection only affects reflections);
+        //  3. otherwise an infinite proxy, which mirrors HDRP's sky env light.
+        // URP exposes no per-material proxy volume and no sphere influence, so the world AABB is the
+        // approximation. The probe rotation is ignored (the AABB of a rotated probe is conservative).
         //
         // CullingResults normally contains the probes, but it does not include runtime probes in
         // every renderer path; a cached scene scan is the fallback.
-        bool TryGetProxy(Vector3 cameraPosition, CullingResults cullResults, out Vector4 boxMin, out Vector4 boxMax)
+        ProxyMode SelectProxy(Vector3 cameraPosition, CullingResults cullResults, out Vector4 boxMin, out Vector4 boxMax)
         {
             boxMin = Vector4.zero;
             boxMax = Vector4.zero;
 
+            RefreshSceneProbesIfNeeded();
+
+            if (TryFindProbe(cameraPosition, cullResults, requireBoxProjection: true, out var bounds))
+            {
+                boxMin = new Vector4(bounds.min.x, bounds.min.y, bounds.min.z, (float)ProxyMode.Box);
+                boxMax = new Vector4(bounds.max.x, bounds.max.y, bounds.max.z, 0f);
+                return ProxyMode.Box;
+            }
+
+            // No box-projected probe. Any probe volume is still a valid refraction proxy: the box
+            // projection flag only changes how reflections are sampled, not where the volume is.
+            if (TryFindProbe(cameraPosition, cullResults, requireBoxProjection: false, out bounds))
+            {
+                boxMin = new Vector4(bounds.min.x, bounds.min.y, bounds.min.z, (float)ProxyMode.Box);
+                boxMax = new Vector4(bounds.max.x, bounds.max.y, bounds.max.z, 0f);
+                return ProxyMode.Box;
+            }
+
+            // Sky/infinite proxy. The shader projects the ray at HDRP's minProjectionDistance.
+            boxMin = new Vector4(0f, 0f, 0f, (float)ProxyMode.Infinite);
+            return ProxyMode.Infinite;
+        }
+
+        bool TryFindProbe(Vector3 cameraPosition, CullingResults cullResults, bool requireBoxProjection, out Bounds bestBounds)
+        {
             bool found = false;
             float bestScore = float.MaxValue;
             int bestImportance = int.MinValue;
             float bestVolume = float.MaxValue;
-            Bounds bestBounds = default;
+            Bounds foundBounds = default;
 
             void Consider(Bounds bounds, int importance)
             {
+                if (bounds.size.x <= 0f || bounds.size.y <= 0f || bounds.size.z <= 0f)
+                    return;
+
                 // 0 when the camera is inside the probe; otherwise the squared distance to it.
                 float score = bounds.SqrDistance(cameraPosition);
                 float volume = bounds.size.sqrMagnitude;
@@ -174,7 +211,7 @@ namespace UnityEngine.Rendering.Universal
                     bestScore = score;
                     bestImportance = importance;
                     bestVolume = volume;
-                    bestBounds = bounds;
+                    foundBounds = bounds;
                 }
             }
 
@@ -187,34 +224,34 @@ namespace UnityEngine.Rendering.Universal
                 for (int i = 0; i < visibleProbes.Length; i++)
                 {
                     var probe = visibleProbes[i];
-                    if (probe.isBoxProjection)
-                        Consider(probe.bounds, probe.importance);
+                    if (requireBoxProjection && !probe.isBoxProjection)
+                        continue;
+                    Consider(probe.bounds, probe.importance);
                 }
             }
 
-            RefreshSceneProbesIfNeeded();
             int sceneProbeCount = m_SceneProbes?.Length ?? 0;
 #if UNITY_EDITOR
             s_EditorSceneProbeCount = sceneProbeCount;
-            s_EditorBoxProbeCount = 0;
+            if (requireBoxProjection)
+                s_EditorBoxProbeCount = 0;
 #endif
             for (int i = 0; i < sceneProbeCount; i++)
             {
                 var probe = m_SceneProbes[i];
-                if (probe == null || !probe.isActiveAndEnabled || !probe.boxProjection)
+                if (probe == null || !probe.isActiveAndEnabled)
+                    continue;
+                if (requireBoxProjection && !probe.boxProjection)
                     continue;
 #if UNITY_EDITOR
-                s_EditorBoxProbeCount++;
+                if (requireBoxProjection)
+                    s_EditorBoxProbeCount++;
 #endif
                 Consider(probe.bounds, probe.importance);
             }
 
-            if (!found)
-                return false;
-
-            boxMin = new Vector4(bestBounds.min.x, bestBounds.min.y, bestBounds.min.z, 1f);
-            boxMax = new Vector4(bestBounds.max.x, bestBounds.max.y, bestBounds.max.z, 0f);
-            return true;
+            bestBounds = foundBounds;
+            return found;
         }
 
         void RefreshSceneProbesIfNeeded()

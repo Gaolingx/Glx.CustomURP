@@ -1,12 +1,18 @@
 # T14 known differences and limitations
 
 > Updated 2026-11-16 after the SSR reflection denoiser port (02-SSRImprove T1–T5), the SSR/SSGI
-> HDRP alignment pass (03-SSRImprove2 T1–T3) and the SSGI Forward/Deferred probe fallback
-> (04-SSGIFallbackImprove P0–P5). Items below are deliberate URP adaptations or environment
-> limits, not open bugs.
+> HDRP alignment pass (03-SSRImprove2 T1–T3), the SSGI Forward/Deferred probe fallback
+> (04-SSGIFallbackImprove P0–P5) and the screen-space refraction HDRP alignment
+> (05-ScreenSpaceRefractionImprove P0-1/P0-2/P0-3/P1-1/P1-2). Items below are deliberate URP
+> adaptations or environment limits, not open bugs.
 
-- URP has no per-material proxy volume: refraction uses the nearest box-projected reflection probe AABB, found through CullingResults.visibleReflectionProbes with a scene lookup fallback.
+- Refraction proxy selection remains camera-based, not HDRP's per-object/per-pixel env light: the pass binds the nearest box-projected reflection probe AABB, then any active probe AABB, and finally an infinite/sky proxy. URP exposes no per-material proxy volume or sphere influence, so rotated probes use their conservative AABB, light layers do not filter the proxy, and the fallback `unity_SpecCube0` probe can differ from the probe used for reflections. P1-3 tracks the per-object table.
+- Refraction screen misses and screen-edge fades continue with `GlossyEnvironmentReflection` along the refracted ray for the remaining weight, using URP's per-renderer reflection probe and sky cubemap rather than HDRP's per-pixel env-light hierarchy. A scene without any probe and sky writes black into that fallback; the screen path still samples the opaque+sky color pyramid. The Volume `intensity` acts as the screen-space/probe crossfade (`weight = edgeFade * intensity`, fallback owns `1 - weight`); intensity 0 disables the effect keyword and restores the legacy transparent output.
 - Refraction samples the current opaque+sky color pyramid; HDRP's pre-refraction transparent ordering is not migrated, so transparents drawn after the opaque pass do not appear in refraction.
+- Refraction opacity is now HDRP's transmittance mask (`1 - alpha`, applied to the diffuse/emission bucket; specular is preserved and the output alpha is forced to 1). The legacy transparent path is only restored when the volume is disabled or intensity is 0. Alpha Blend is the validated mode; Premultiply/Additive keep their blend state but the forced alpha and mask interaction is not separately accepted.
+- Refraction uses URP's `EnvironmentBRDFSpecular` and IOR-corrected F0 instead of HDRP's pre-integrated FGD LUT (`P2-4` optional), so mid-roughness glass energy can differ. Clear coat is kept in the specular bucket; HDRP does not support refraction with clear coat, so Complex Lit behavior is an approximation.
+- Refraction screen-edge hits are still rejected when the projected NDC leaves [0,1] (hard miss into the probe fallback) and the sampling UV keeps the lower clamp; HDRP applies `EdgeOfScreenFade` plus a clamped upper limit. P2-1 tracks this.
+- Refraction remains forward transparent only (Lit, Complex Lit, ShaderGraph Lit); SimpleLit/Particles/Terrain keep their probe path. Deferred GBuffer does not refract. Dynamic resolution and thickness/transmittance maps are not implemented in this round (P2-3/P2-5).
 - SSGI runs its diffuse denoiser and consumes the denoised output; HDRP's raw SSGI return path is not reproduced (intentional, recorded since T6).
 - SSGI and SSR sample HDRP's three blue-noise LUTs, packaged under `Resources/SsgiBlueNoise`; SSR binds the 1SPP tiles and SSGI the 8SPP tiles, matching HDRP's per-effect strata (the Owen 256 texture is shared). If the assets are stripped the kernels fall back to IGN + R2 and can keep a faint stipple at 1 spp. The SSR frame index is the raw `Time.frameCount` and the shader masks it to 256 frames, like HDRP's per-camera counter.
 - Deferred consumes DepthNormals prepass material data, i.e. decal-deformed normals/decal color are not visible to SSGI/SSR tracing.

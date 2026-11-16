@@ -6,6 +6,14 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 
+// ShaderGraph Lit adds the refraction properties to the Properties block but does not declare them
+// in HLSL (HLSLDeclaration.DoNotDeclare), and BRDF.hlsl is included before ScreenSpaceRefraction.hlsl.
+// Declare the IOR here so InitializeBRDFData can build the IOR-corrected F0 for refractive variants.
+#if (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)) && !defined(URP_REFRACTION_MATERIAL_PROPERTIES_DECLARED) && !defined(URP_REFRACTION_IOR_DECLARED)
+#define URP_REFRACTION_IOR_DECLARED 1
+float _Ior;
+#endif
+
 #define kDielectricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
 
 struct BRDFData
@@ -94,7 +102,15 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
     half reflectivity = half(1.0) - oneMinusReflectivity;
     half3 brdfDiffuse = albedo * oneMinusReflectivity;
+#if (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)) && defined(_SCREEN_SPACE_REFRACTION)
+    // HDRP's FillMaterialTransparencyData: fresnel0 = lerp(IorToFresnel0(ior), baseColor, metallic).
+    // The IOR changes both the reflected energy and the (1 - F) transmitted energy. Gated by the
+    // global keyword so a disabled volume keeps the material's legacy F0 byte for byte.
+    half3 brdfSpecular = lerp(IorToFresnel0(max(_Ior, 1.0)).xxx, albedo, metallic);
+    reflectivity = dot(brdfSpecular, half3(0.2126, 0.7152, 0.0722));
+#else
     half3 brdfSpecular = lerp(kDieletricSpec.rgb, albedo, metallic);
+#endif
 #endif
 
     InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);

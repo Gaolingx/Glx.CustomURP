@@ -135,10 +135,7 @@ void frag(
     ApplyDecalToSurfaceData(unpacked.positionCS, surface, inputData);
 #endif
 
-    half4 color = UniversalFragmentPBR(inputData, surface);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
-
-#if (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)) && defined(_SCREEN_SPACE_REFRACTION)
+#if (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)) && defined(_SCREEN_SPACE_REFRACTION) && !defined(DEBUG_DISPLAY)
     // Same contract as the built-in Lit forward pass; see ScreenSpaceRefraction.hlsl.
     half refractionAlpha = surface.alpha;
     BRDFData refractionBrdfData;
@@ -159,10 +156,21 @@ void frag(
     refractionInput.transmittanceColor = _TransmittanceColor.rgb;
     refractionInput.transmittanceDistance = _TransmittanceDistance;
 
-    half refractionWeight;
-    half3 transmitted = ScreenSpaceRefractionEvaluate(refractionInput, refractionWeight);
-    color.rgb += transmitted;
-    color.a = lerp(color.a, 1.0, refractionWeight);
+    ScreenSpaceRefractionResult refraction = ScreenSpaceRefractionEvaluate(refractionInput);
+    half3 transmitted = ScreenSpaceRefractionTransmission(refraction, refractionInput);
+
+    half3 diffuseColor;
+    half3 specularColor;
+    UniversalFragmentPBRSplit(inputData, surface, diffuseColor, specularColor);
+    half3 surfaceColor = MixFog(diffuseColor + specularColor, inputData.fogCoord);
+
+    half transmittanceMask = refraction.valid ? saturate(1.0h - surface.alpha) : 0.0h;
+    half4 color;
+    color.rgb = lerp(surfaceColor, transmitted, transmittanceMask);
+    color.a = refraction.valid ? 1.0h : surface.alpha;
+#else
+    half4 color = UniversalFragmentPBR(inputData, surface);
+    color.rgb = MixFog(color.rgb, inputData.fogCoord);
 #endif
 
     color.a = OutputAlpha(color.a, isTransparent);

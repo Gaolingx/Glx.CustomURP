@@ -1,7 +1,7 @@
 # ScreenSpaceRefraction 对齐 HDRP 与缺陷修复交接
 
 > 更新：2026-11-16
-> 状态：R0 调研完成，实施未开始
+> 状态：P0 里程碑交付完成。P0-1/P0-2/P0-3 实现并完成 T11 三模式验证；P1-1/P1-2 实现并完成静态/解析验证；P1-3/P2-* 未开始
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`）
 > 相关文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[ScreenSpaceLighting 交接](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[T11 证据](../../Done/01-ScreenSpaceLighting/validation/T11/T11Report.json)
 
@@ -47,11 +47,11 @@
 
 | ID | 级别 | 任务 | 依赖 | 主要文件 | 状态 |
 |---|---|---|---|---|---|
-| P0-1 | P0 | 屏幕 miss 时用 probe cubemap 透射 fallback | 无 | `ScreenSpaceRefraction.hlsl`、`LitForwardPass.hlsl`、`PBRForwardPass.hlsl` | 待开始 |
-| P0-2 | P0 | opacity 作为 `transmittanceMask`，拆分 diffuse/specular | P0-1 | `Lighting.hlsl`、`LitForwardPass.hlsl`、`PBRForwardPass.hlsl`、`BRDF.hlsl` | 待开始 |
-| P0-3 | P0 | 代理 fallback：box → 任意 probe → 无限/sky | P0-1 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 待开始 |
-| P1-1 | P1 | `_Ior` 进入 F0/Fresnel，透射与反射能量一致 | P0-2 | `BRDF.hlsl`、`Lighting.hlsl`、`LitInput.hlsl`、`PBRForwardPass.hlsl` | 待开始 |
-| P1-2 | P1 | Thin 模型 atDistance 固定 0.005 | 无 | `ScreenSpaceRefraction.hlsl` | 待开始 |
+| P0-1 | P0 | 屏幕 miss 时用 probe cubemap 透射 fallback | 无 | `ScreenSpaceRefraction.hlsl`、`LitForwardPass.hlsl`、`PBRForwardPass.hlsl` | 实现完成，T11 通过（miss/边缘另列） |
+| P0-2 | P0 | opacity 作为 `transmittanceMask`，拆分 diffuse/specular | P0-1 | `Lighting.hlsl`、`LitForwardPass.hlsl`、`PBRForwardPass.hlsl`、`BRDF.hlsl` | 实现完成，T11 通过 |
+| P0-3 | P0 | 代理 fallback：box → 任意 probe → 无限/sky | P0-1 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 实现完成，T11 通过 |
+| P1-1 | P1 | `_Ior` 进入 F0/Fresnel，透射与反射能量一致 | P0-2 | `BRDF.hlsl`、`Lighting.hlsl`、`LitInput.hlsl`、`PBRForwardPass.hlsl` | 实现完成，静态/解析验证通过，视觉证据待补 |
+| P1-2 | P1 | Thin 模型 atDistance 固定 0.005 | 无 | `ScreenSpaceRefraction.hlsl` | 实现完成，静态验证通过，视觉证据待补 |
 | P1-3 | P1 | per-object/per-pixel probe 选择与 light layer | P0-3 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 待开始 |
 | P2-1 | P2 | 屏幕外命中改为 HDRP 式 fade + clamp | P0-1/P0-2 | `ScreenSpaceRefraction.hlsl` | 待开始 |
 | P2-2 | P2 | pre-refraction 透明队列 | P0-2 | `UniversalRenderer`、`RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 待开始（有决策门） |
@@ -630,3 +630,26 @@ PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/
 3. P1-1 依赖 P0-2 的拆分结果；P1-3 依赖 P0-3 的代理表。
 4. P2-2 在动 core 前先做决策：目标场景是否真的需要透明叠透明；不需要就保留已知差异并记录。
 5. 每个任务完成即写 `validation/.../任务ID/` 证据，不要攒到最后；最后一轮只做回归、文档和清理。
+
+## 11. 实施记录（2026-11-16）
+
+本轮已落地 P0-1、P0-2、P0-3、P1-1、P1-2，P1-3/P2-* 未开始：
+
+- **P0-1**：`ScreenSpaceRefractionEvaluate` 返回 `ScreenSpaceRefractionResult`（`transmitted`/`weight`/`transmittance`/`refractV`/`refractPosWS`/`valid`）。新增 `ScreenSpaceRefractionTransmission`，用 `GlossyEnvironmentReflection` 沿折射射线补齐 `1 - weight`；`LitForwardPass` 与 ShaderGraph `PBRForwardPass` 都改用它。`intensity=0` 现在在 `RefractionPass` 直接关闭 keyword，保证关闭效果逐字节不变；`valid=false` 时材料保持原输出。
+- **P0-2**：`Lighting.hlsl` 新增 `UniversalFragmentPBRSplit` 与 `LightingPhysicallyBasedSplit`，镜像 `UniversalFragmentPBR` 的 GI/主光/附加光/clear coat/顶点光/emission 累加。折射变体按 `transmittanceMask = saturate(1 - surfaceData.alpha)` 把 diffuse/emission 桶向透射结果 lerp，specular 桶保留，输出 alpha 固定为 1。`DEBUG_DISPLAY` 仍走原 `UniversalFragmentPBR`。HDRP 的 emission 也在 mask lerp 内，与本实现一致。
+- **P0-3**：`ScreenSpaceLightingRefractionPass.ProxyMode`（None/Box/Infinite）与 shader `SSL_REFRACTION_PROXY_MODE_*` 对齐。`SelectProxy` 先找 box-projected probe，再接受任意 active probe 的 bounds，最后返回 Infinite（shader 用 HDRP sky 的 65504 投影距离）。keyword 生命周期改为 Volume 开启 + intensity>0 + pyramid/depth 可用，不再因无 box probe 关闭。代理选择仍以相机为中心，per-object/per-pixel 表留给 P1-3。
+- **P1-1**：`InitializeBRDFData` 在 `_REFRACTION_* && _SCREEN_SPACE_REFRACTION` 时使用 `lerp(IorToFresnel0(_Ior), albedo, metallic)`，`reflectivity` 用对应亮度近似，F0 同时影响反射和 `(1-F)` 透射。只在全局 keyword 开启时生效，Volume 关闭保持旧 F0；Specular workflow 暂不改写（`_SPECULAR_SETUP` 分支保持原样，记录为近似）。
+- **P1-2**：`_REFRACTION_THIN` 下厚度与吸收距离都为 0.005。
+- **测试/资产**：更新 `ScreenSpaceLightingMaterialTests` 的新契约断言；新增 `ScreenSpaceLightingRefractionImproveTests`（代理模式、keyword 生命周期、fallback、mask、IOR、Thin）。T11 折射测试材质改为 opacity 0（HDRP mask 语义），新增 opacity 0/0.3/1 扫描、Opacity1 参照、非 box probe、无 probe infinite 代理状态；`OutputRoot` 可用 `SSL_VALIDATION_OUTPUT_ROOT` 指向本轮 validation 目录。
+- **待办**：P1-3 的 per-object probe 表、P2-1 屏幕边缘 fade、P2-2 pre-refraction 队列、P2-3 贴图、P2-4 FGD LUT 仍未做。
+
+## 12. 验证结果（2026-11-16）
+
+证据入口：[validation/Report.md](validation/Report.md)、[validation/Report.json](validation/Report.json)、[validation/T11Verification.json](validation/T11Verification.json)、[validation/Cleanup.md](validation/Cleanup.md)。
+
+- **T11**：`completed=True passed=True`，Forward / Forward+ / Deferred 三模式 0 issue。证据图与 CSV 在 `validation/P0-*`、`P1-*`，日志在 `validation/Logs/`。
+- **EditMode**：`passed=170 failed=0 skipped=0`，包含新增 `ScreenSpaceLightingRefractionImproveTests`（代理模式、keyword 生命周期、fallback、mask、IOR 解析值、Thin 距离）。
+- **P0-2 指标**：opacity 0/0.3/1 单调；归一化 0.3 点误差 2.33%（≤5%），R² 0.9997（≥0.99）；opacity=1 与关闭效果的差异 0 像素，最大通道差 4.6e-5。
+- **P0-3 指标**：非 box probe 场景 keyword 绑定 8 次、infinite 0 次；无 probe 场景绑定 8 次、infinite 8 次、折射变化 16281 像素。
+- **P0-1 指标**：Box/Complex/SG 折射变化 5915/2996/2476 像素；legacy 透明 0 像素变化；当前帧金字塔跟随场景。
+- **未完成证据**：P0-1 的单独 screen-miss probe-only 截图与边缘带连续性（P2-1）；P1-1 的 IOR 梯度图与 P1-2 的有色 Thin 图/HDRP 对照。`Report.json` 中 P1-1/P1-2 为 `passed=null`，总 `exitCriteriaMet=false`。

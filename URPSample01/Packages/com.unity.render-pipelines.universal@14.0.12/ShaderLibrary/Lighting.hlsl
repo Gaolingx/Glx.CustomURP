@@ -115,6 +115,40 @@ half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDi
     return LightingPhysicallyBased(brdfData, light, viewDirectionWS, specularHighlightsOff, specularHighlightsOff);
 }
 
+// Refractive Lit materials replace the diffuse lighting bucket with the transmitted background and
+// keep the specular bucket (HDRP's PostEvaluateBSDF transmittance mask). This split mirrors
+// LightingPhysicallyBased term by term; keep both in sync when the BRDF changes.
+void LightingPhysicallyBasedSplit(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light,
+    half3 normalWS, half3 viewDirectionWS,
+    half clearCoatMask, bool specularHighlightsOff,
+    out half3 diffuseLighting, out half3 specularLighting)
+{
+    half NdotL = saturate(dot(normalWS, light.direction));
+    half3 radiance = light.color * (light.distanceAttenuation * light.shadowAttenuation * NdotL);
+
+    half3 diffuse = brdfData.diffuse;
+    half3 specular = half3(0.0, 0.0, 0.0);
+#ifndef _SPECULARHIGHLIGHTS_OFF
+    [branch] if (!specularHighlightsOff)
+    {
+        specular = brdfData.specular * DirectBRDFSpecular(brdfData, normalWS, light.direction, viewDirectionWS);
+
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+        // Same clear coat blend as LightingPhysicallyBased, with the coat lobe kept in specular.
+        half brdfCoat = kDielectricSpec.r * DirectBRDFSpecular(brdfDataClearCoat, normalWS, light.direction, viewDirectionWS);
+        half NoV = saturate(dot(normalWS, viewDirectionWS));
+        half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * Pow4(1.0 - NoV);
+        half coatAttenuation = 1.0 - clearCoatMask * coatFresnel;
+        diffuse *= coatAttenuation;
+        specular = specular * coatAttenuation + brdfCoat * clearCoatMask;
+#endif
+    }
+#endif // _SPECULARHIGHLIGHTS_OFF
+
+    diffuseLighting = diffuse * radiance;
+    specularLighting = specular * radiance;
+}
+
 half3 VertexLighting(float3 positionWS, half3 normalWS)
 {
     half3 vertexLightColor = half3(0.0, 0.0, 0.0);
@@ -345,6 +379,134 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 #else
     return CalculateFinalColor(lightingData, surfaceData.alpha);
 #endif
+}
+
+// Splits the Lit lighting into HDRP's diffuse and specular buckets. Refractive materials pass the
+// diffuse bucket through lerp(diffuse, transmitted, 1 - opacity) and keep the specular bucket, which
+// matches PostEvaluateBSDF in HDRP 14. Must stay in sync with UniversalFragmentPBR; this variant is
+// only compiled into refractive transparent variants.
+void UniversalFragmentPBRSplit(InputData inputData, SurfaceData surfaceData,
+                               out half3 diffuseColor, out half3 specularColor)
+{
+    #if defined(_SPECULARHIGHLIGHTS_OFF)
+    bool specularHighlightsOff = true;
+    #else
+    bool specularHighlightsOff = false;
+    #endif
+    BRDFData brdfData;
+    InitializeBRDFData(surfaceData, brdfData);
+
+    BRDFData brdfDataClearCoat = CreateClearCoatBRDFData(surfaceData, brdfData);
+    half4 shadowMask = CalculateShadowMask(inputData);
+    AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
+    uint meshRenderingLayers = GetMeshRenderingLayer();
+    Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
+
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
+
+    // Indirect: mirror GlobalIllumination() but keep the environment diffuse and specular terms apart.
+    half3 reflectVector = reflect(-inputData.viewDirectionWS, inputData.normalWS);
+    half NoV = saturate(dot(inputData.normalWS, inputData.viewDirectionWS));
+    half fresnelTerm = Pow4(1.0 - NoV);
+
+    half3 indirectDiffuse = ScreenSpaceLightingApplyIndirectDiffuse(inputData.bakedGI, inputData.normalizedScreenSpaceUV);
+    half3 indirectSpecular;
+    half3 coatIndirectSpecular;
+
+    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    half3 environmentSpecular = GlossyEnvironmentReflection(reflectVector, inputData.positionWS, brdfData.perceptualRoughness, 1.0h, inputData.normalizedScreenSpaceUV);
+    half3 coatEnvironmentSpecular = GlossyEnvironmentReflection(reflectVector, inputData.positionWS, brdfDataClearCoat.perceptualRoughness, 1.0h, inputData.normalizedScreenSpaceUV);
+    ScreenSpaceLightingApplyIndirectSpecularClearCoat(environmentSpecular, coatEnvironmentSpecular,
+        brdfData.perceptualRoughness, surfaceData.clearCoatMask, inputData.normalizedScreenSpaceUV,
+        indirectSpecular, coatIndirectSpecular);
+    #else
+    indirectSpecular = GlossyEnvironmentReflection(reflectVector, inputData.positionWS, brdfData.perceptualRoughness, 1.0h, inputData.normalizedScreenSpaceUV);
+    indirectSpecular = ScreenSpaceLightingApplyIndirectSpecular(indirectSpecular, inputData.normalizedScreenSpaceUV);
+    coatIndirectSpecular = half3(0.0, 0.0, 0.0);
+    #endif
+
+    half3 giDiffuse = indirectDiffuse * brdfData.diffuse;
+    half3 giSpecular = indirectSpecular * EnvironmentBRDFSpecular(brdfData, fresnelTerm);
+
+    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    // GlobalIllumination blends both layers with (1 - coatFresnel * clearCoatMask) and adds the
+    // coat environment lobe to the specular bucket.
+    half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * fresnelTerm;
+    half coatAttenuation = 1.0 - coatFresnel * surfaceData.clearCoatMask;
+    giDiffuse *= coatAttenuation;
+    giSpecular = giSpecular * coatAttenuation
+               + coatIndirectSpecular * EnvironmentBRDFSpecular(brdfDataClearCoat, fresnelTerm) * surfaceData.clearCoatMask;
+    #endif
+
+    giDiffuse *= aoFactor.indirectAmbientOcclusion;
+    giSpecular *= aoFactor.indirectAmbientOcclusion;
+
+    half3 directDiffuse = half3(0.0, 0.0, 0.0);
+    half3 directSpecular = half3(0.0, 0.0, 0.0);
+
+#ifdef _LIGHT_LAYERS
+    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+#endif
+    {
+        half3 lightDiffuse;
+        half3 lightSpecular;
+        LightingPhysicallyBasedSplit(brdfData, brdfDataClearCoat, mainLight,
+            inputData.normalWS, inputData.viewDirectionWS, surfaceData.clearCoatMask,
+            specularHighlightsOff, lightDiffuse, lightSpecular);
+        directDiffuse += lightDiffuse;
+        directSpecular += lightSpecular;
+    }
+
+    #if defined(_ADDITIONAL_LIGHTS)
+    uint pixelLightCount = GetAdditionalLightsCount();
+
+    #if USE_FORWARD_PLUS
+    for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)
+    {
+        FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+
+#ifdef _LIGHT_LAYERS
+        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+#endif
+        {
+            half3 lightDiffuse;
+            half3 lightSpecular;
+            LightingPhysicallyBasedSplit(brdfData, brdfDataClearCoat, light,
+                inputData.normalWS, inputData.viewDirectionWS, surfaceData.clearCoatMask,
+                specularHighlightsOff, lightDiffuse, lightSpecular);
+            directDiffuse += lightDiffuse;
+            directSpecular += lightSpecular;
+        }
+    }
+    #endif
+
+    LIGHT_LOOP_BEGIN(pixelLightCount)
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+
+#ifdef _LIGHT_LAYERS
+        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+#endif
+        {
+            half3 lightDiffuse;
+            half3 lightSpecular;
+            LightingPhysicallyBasedSplit(brdfData, brdfDataClearCoat, light,
+                inputData.normalWS, inputData.viewDirectionWS, surfaceData.clearCoatMask,
+                specularHighlightsOff, lightDiffuse, lightSpecular);
+            directDiffuse += lightDiffuse;
+            directSpecular += lightSpecular;
+        }
+    LIGHT_LOOP_END
+    #endif
+
+    #if defined(_ADDITIONAL_LIGHTS_VERTEX)
+    directDiffuse += inputData.vertexLighting * brdfData.diffuse;
+    #endif
+
+    // HDRP adds emission into diffuseLighting before the transmittance mask, so it is masked too.
+    diffuseColor = giDiffuse + directDiffuse + surfaceData.emission;
+    specularColor = giSpecular + directSpecular;
 }
 
 // Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...

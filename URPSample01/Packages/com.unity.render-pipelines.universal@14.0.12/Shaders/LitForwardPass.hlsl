@@ -238,12 +238,9 @@ void LitPassFragment(
     ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
 #endif
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
-
-#if (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)) && defined(_SCREEN_SPACE_REFRACTION)
-    // The refraction contribution is added after fog: the color pyramid already contains the fogged
-    // background, so applying surface fog to it again would double fog the transmitted light.
+#if (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)) && defined(_SCREEN_SPACE_REFRACTION) && !defined(DEBUG_DISPLAY)
+    // HDRP's transmittance mask: opacity is the diffuse/refraction blend and the surface is opaque.
+    // The transmitted total combines the screen-space trace with the reflection probe fallback.
     half refractionAlpha = surfaceData.alpha;
     BRDFData refractionBrdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, refractionAlpha, refractionBrdfData);
@@ -263,12 +260,23 @@ void LitPassFragment(
     refractionInput.transmittanceColor = _TransmittanceColor.rgb;
     refractionInput.transmittanceDistance = _TransmittanceDistance;
 
-    half refractionWeight;
-    half3 transmitted = ScreenSpaceRefractionEvaluate(refractionInput, refractionWeight);
-    color.rgb += transmitted;
-    // HDRP uses opacity as a transmittance mask for refractive materials; the background behind the
-    // surface is replaced by the sampled color pyramid, so the blended surface becomes opaque.
-    color.a = lerp(color.a, 1.0, refractionWeight);
+    ScreenSpaceRefractionResult refraction = ScreenSpaceRefractionEvaluate(refractionInput);
+    half3 transmitted = ScreenSpaceRefractionTransmission(refraction, refractionInput);
+
+    half3 diffuseColor;
+    half3 specularColor;
+    UniversalFragmentPBRSplit(inputData, surfaceData, diffuseColor, specularColor);
+    // The transmitted background is already fogged inside the color pyramid; fog only the surface
+    // lighting once, then blend it with the unfogged transmission.
+    half3 surfaceColor = MixFog(diffuseColor + specularColor, inputData.fogCoord);
+
+    half transmittanceMask = refraction.valid ? saturate(1.0h - surfaceData.alpha) : 0.0h;
+    half4 color;
+    color.rgb = lerp(surfaceColor, transmitted, transmittanceMask);
+    color.a = refraction.valid ? 1.0h : surfaceData.alpha;
+#else
+    half4 color = UniversalFragmentPBR(inputData, surfaceData);
+    color.rgb = MixFog(color.rgb, inputData.fogCoord);
 #endif
 
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent(_Surface));

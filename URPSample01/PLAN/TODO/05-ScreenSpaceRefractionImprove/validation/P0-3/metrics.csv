@@ -1,0 +1,4 @@
+mode,noProxyBoundCount,noProxyInfiniteCount,noProxyChangedPixels,infiniteProxyBoundCount,infiniteProxyCount,infiniteProxyChangedPixels
+Forward,8,0,16281,8,8,16281
+ForwardPlus,8,0,16281,8,8,16281
+Deferred,8,0,16281,8,8,16281

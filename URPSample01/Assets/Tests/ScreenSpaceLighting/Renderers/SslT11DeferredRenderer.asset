@@ -83,6 +83,7 @@ MonoBehaviour:
   m_Settings:
     maxCachedCameras: 8
     maxUnusedFrames: 120
+    publishProbeAtlas: 0
     debugMode: 0
     debugMip: 0
     resources:
@@ -99,5 +100,7 @@ MonoBehaviour:
       bilateralUpsampleCompute: {fileID: 7200000, guid: d5ac01cf82505cd4595b75fe9fc6d47c,
         type: 3}
       ssrCompute: {fileID: 7200000, guid: 59711e8917f84109b7ac2fabf506e63a, type: 3}
+      ssrReflectionDenoiserCompute: {fileID: 7200000, guid: a8d9875c25ad428ca9f259609d3ca696,
+        type: 3}
       transparentDepthCopyShader: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220,
         type: 3}

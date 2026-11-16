@@ -200,8 +200,9 @@ namespace UnityEditor.Rendering.Universal.Tests
         public void RefractionMaterialPathFallsBackWithoutInputs()
         {
             string refraction = ReadPackageFile("ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl");
-            // Missing keyword, probe proxy, pyramid and off-screen hits all keep the original output.
-            AssertContains(refraction, "if (_SslRefractionProxyBoxMin.w <= 0.0)", "refraction proxy guard");
+            // Missing keyword, zero intensity and an unavailable pyramid keep the legacy output; a
+            // missing proxy only disables the screen trace and leaves the probe fallback active.
+            AssertContains(refraction, "if (proxyMode == SSL_REFRACTION_PROXY_MODE_NONE)", "refraction proxy guard");
             AssertContains(refraction, "if (pyramidMipCount <= 0 || intensity <= 0.0)", "refraction pyramid guard");
             AssertContains(refraction, "ScreenSpaceRefractionEdgeFade", "refraction edge fade");
             AssertContains(refraction, "ScreenSpaceRefractionToAbsorption", "refraction transmittance");
@@ -210,10 +211,23 @@ namespace UnityEditor.Rendering.Universal.Tests
             AssertContains(refraction, "LinearEyeDepth(hitDeviceDepth, _ZBufferParams)", "refraction depth rejection");
             AssertContains(refraction, "_SslRefractionColorPyramid", "refraction color pyramid input");
             AssertContains(refraction, "(1.0h - input.specularFGD)", "refraction fresnel transmission");
+            AssertContains(refraction, "SSL_REFRACTION_PROXY_MODE_INFINITE", "infinite proxy fallback");
+
+            // P0-1: the screen miss continues with the reflection probe/sky for the remaining weight.
+            AssertContains(refraction, "half3 ScreenSpaceRefractionTransmission", "refraction probe fallback");
+            AssertContains(refraction, "saturate(1.0h - result.weight)", "refraction remaining weight");
+            AssertContains(refraction, "GlossyEnvironmentReflection", "refraction probe fallback sampling");
+
+            // P1-2: the Thin model uses the same 0.005 distance for absorption and thickness.
+            AssertContains(refraction, "float absorptionDistance = 0.005;", "Thin absorption distance");
 
             string forward = ReadPackageFile("Shaders/LitForwardPass.hlsl");
             AssertContains(forward, "ScreenSpaceRefractionEvaluate", "Lit forward pass refraction");
-            AssertContains(forward, "color.a = lerp(color.a, 1.0, refractionWeight);", "Lit forward pass refraction alpha");
+            AssertContains(forward, "ScreenSpaceRefractionTransmission", "Lit forward pass probe fallback");
+            // P0-2: HDRP's transmittance mask and opaque refractive surface.
+            AssertContains(forward, "UniversalFragmentPBRSplit", "Lit forward pass lighting split");
+            AssertContains(forward, "saturate(1.0h - surfaceData.alpha)", "Lit forward pass transmittance mask");
+            AssertContains(forward, "color.a = refraction.valid ? 1.0h : surfaceData.alpha;", "Lit forward pass refraction alpha");
         }
 
         [Test]
@@ -237,6 +251,9 @@ namespace UnityEditor.Rendering.Universal.Tests
 
             string forward = ReadPackageFile("Editor/ShaderGraph/Includes/PBRForwardPass.hlsl");
             AssertContains(forward, "ScreenSpaceRefractionEvaluate", "ShaderGraph forward refraction");
+            AssertContains(forward, "ScreenSpaceRefractionTransmission", "ShaderGraph forward probe fallback");
+            AssertContains(forward, "UniversalFragmentPBRSplit", "ShaderGraph forward lighting split");
+            AssertContains(forward, "saturate(1.0h - surface.alpha)", "ShaderGraph forward transmittance mask");
         }
     }
 }
