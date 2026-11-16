@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-16 10:25:01Z" end-time="2026-11-16 10:25:01Z" duration="0.142221">
+  <test-suite type="TestSuite" id="1483" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="426" result="Passed" start-time="2026-11-16 10:25:01Z" end-time="2026-11-16 10:25:01Z" duration="0.142221" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1954" name="Unity.RenderPipelines.Universal.Editor.Tests.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll" runstate="Runnable" testcasecount="426" result="Passed" start-time="2026-11-16 10:25:01Z" end-time="2026-11-16 10:25:01Z" duration="0.119146" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="101052" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1956" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-11-16 10:25:01Z" end-time="2026-11-16 10:25:01Z" duration="0.112581" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1957" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-11-16 10:25:01Z" end-time="2026-11-16 10:25:01Z" duration="0.109491" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1958" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-11-16 10:25:01Z" end-time="2026-11-16 10:25:01Z" duration="0.106462" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1959" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-11-16 10:25:01Z" end-time="2026-11-16 10:25:01Z" duration="0.103267" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1761" name="PluginIsolationTests" fullname="UnityEditor.Rendering.Universal.Tests.PluginIsolationTests" classname="UnityEditor.Rendering.Universal.Tests.PluginIsolationTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-16 10:25:01Z" end-time="2026-11-16 10:25:01Z" duration="0.097452" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1762" name="CoreRuntimeSourcesDoNotReferencePluginTypes" fullname="UnityEditor.Rendering.Universal.Tests.PluginIsolationTests.CoreRuntimeSourcesDoNotReferencePluginTypes" methodname="CoreRuntimeSourcesDoNotReferencePluginTypes" classname="UnityEditor.Rendering.Universal.Tests.PluginIsolationTests" runstate="Runnable" seed="640322390" result="Passed" start-time="2026-11-16 10:25:01Z" end-time="2026-11-16 10:25:01Z" duration="0.081110" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

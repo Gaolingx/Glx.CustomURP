@@ -1,0 +1,301 @@
+{
+    "utcTimestamp": "2026-11-16T10:25:30.1705999Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "imageWidth": 320,
+    "imageHeight": 180,
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "Forward",
+            "passed": true,
+            "toggleImagesIdentical": false,
+            "issues": [],
+            "off": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.38277778029441836,
+                "meanWeight": 0.38277778029441836,
+                "coveredMeanWeight": 1.0,
+                "premultipliedMean": 0.35718095302581789,
+                "meanR": 0.9329055547714233,
+                "meanG": 0.929671049118042,
+                "meanB": 0.9368095993995667,
+                "probeGreenTint": -0.007138550281524658
+            },
+            "on": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.30638888478279116,
+                "meanWeight": 0.306284636259079,
+                "coveredMeanWeight": 0.9996597766876221,
+                "premultipliedMean": 0.30736690759658816,
+                "meanR": 0.14672178030014039,
+                "meanG": 2.7137699127197267,
+                "meanB": 0.14943204820156098,
+                "probeGreenTint": 2.564337968826294
+            },
+            "both": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.38277778029441836,
+                "meanWeight": 0.38277778029441836,
+                "coveredMeanWeight": 1.0,
+                "premultipliedMean": 0.32726606726646426,
+                "meanR": 0.1477854698896408,
+                "meanG": 2.2190098762512209,
+                "meanB": 0.1981346160173416,
+                "probeGreenTint": 2.0208752155303957
+            },
+            "sky": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.38277778029441836,
+                "meanWeight": 0.38277778029441836,
+                "coveredMeanWeight": 1.0,
+                "premultipliedMean": 0.09565035998821259,
+                "meanR": 0.15077662467956544,
+                "meanG": 0.22397451102733613,
+                "meanB": 0.3749033510684967,
+                "probeGreenTint": -0.15092884004116059
+            }
+        },
+        {
+            "name": "ForwardPlus",
+            "passed": true,
+            "toggleImagesIdentical": true,
+            "issues": [],
+            "off": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.30638888478279116,
+                "meanWeight": 0.306284636259079,
+                "coveredMeanWeight": 0.9996597766876221,
+                "premultipliedMean": 0.31059983372688296,
+                "meanR": 0.1482151746749878,
+                "meanG": 2.7425105571746828,
+                "meanB": 0.15085332095623017,
+                "probeGreenTint": 2.5916571617126467
+            },
+            "on": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.30638888478279116,
+                "meanWeight": 0.306284636259079,
+                "coveredMeanWeight": 0.9996597766876221,
+                "premultipliedMean": 0.31059983372688296,
+                "meanR": 0.1482151746749878,
+                "meanG": 2.7425105571746828,
+                "meanB": 0.15085332095623017,
+                "probeGreenTint": 2.5916571617126467
+            },
+            "both": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.38277778029441836,
+                "meanWeight": 0.38277778029441836,
+                "coveredMeanWeight": 1.0,
+                "premultipliedMean": 0.3304990231990814,
+                "meanR": 0.1489810198545456,
+                "meanG": 2.2420144081115724,
+                "meanB": 0.19927270710468293,
+                "probeGreenTint": 2.0427417755126955
+            },
+            "sky": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.38277778029441836,
+                "meanWeight": 0.38277778029441836,
+                "coveredMeanWeight": 1.0,
+                "premultipliedMean": 0.0988822877407074,
+                "meanR": 0.15197163820266725,
+                "meanG": 0.24697251617908479,
+                "meanB": 0.37604039907455447,
+                "probeGreenTint": -0.12906788289546967
+            }
+        },
+        {
+            "name": "Deferred",
+            "passed": true,
+            "toggleImagesIdentical": false,
+            "issues": [],
+            "off": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.38277778029441836,
+                "meanWeight": 0.38277778029441836,
+                "coveredMeanWeight": 1.0,
+                "premultipliedMean": 0.35724952816963198,
+                "meanR": 0.933091402053833,
+                "meanG": 0.9298292398452759,
+                "meanB": 0.9370031356811523,
+                "probeGreenTint": -0.007173895835876465
+            },
+            "on": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.30638888478279116,
+                "meanWeight": 0.306284636259079,
+                "coveredMeanWeight": 0.9996597766876221,
+                "premultipliedMean": 0.3074357211589813,
+                "meanR": 0.14695443212985993,
+                "meanG": 2.7139689922332765,
+                "meanB": 0.14967411756515504,
+                "probeGreenTint": 2.5642948150634767
+            },
+            "both": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.38277778029441836,
+                "meanWeight": 0.38277778029441836,
+                "coveredMeanWeight": 1.0,
+                "premultipliedMean": 0.3273348808288574,
+                "meanR": 0.1479715257883072,
+                "meanG": 2.2191689014434816,
+                "meanB": 0.1983289271593094,
+                "probeGreenTint": 2.0208399295806886
+            },
+            "sky": {
+                "missing": false,
+                "nonFinitePixels": 0,
+                "coveredFraction": 0.38277778029441836,
+                "meanWeight": 0.38277778029441836,
+                "coveredMeanWeight": 1.0,
+                "premultipliedMean": 0.09571889042854309,
+                "meanR": 0.15096239745616914,
+                "meanG": 0.22413232922554017,
+                "meanB": 0.3750968873500824,
+                "probeGreenTint": -0.15096455812454225
+            }
+        }
+    ],
+    "stress": {
+        "passed": true,
+        "issues": [],
+        "counts": [
+            {
+                "count": 0,
+                "visibleProbeCount": 0,
+                "sampleCount": 57600,
+                "outputWidth": 320,
+                "outputHeight": 180,
+                "stats": {
+                    "missing": false,
+                    "nonFinitePixels": 0,
+                    "coveredFraction": 0.03144097328186035,
+                    "meanWeight": 0.03144097328186035,
+                    "coveredMeanWeight": 1.0,
+                    "premultipliedMean": 0.0037834951654076578,
+                    "meanR": 0.122945137321949,
+                    "meanG": 0.09458447992801666,
+                    "meanB": 0.14347974956035615,
+                    "probeGreenTint": -0.04889526963233948
+                }
+            },
+            {
+                "count": 1,
+                "visibleProbeCount": 1,
+                "sampleCount": 57600,
+                "outputWidth": 320,
+                "outputHeight": 180,
+                "stats": {
+                    "missing": false,
+                    "nonFinitePixels": 0,
+                    "coveredFraction": 0.30638888478279116,
+                    "meanWeight": 0.306284636259079,
+                    "coveredMeanWeight": 0.9996597766876221,
+                    "premultipliedMean": 0.3072873651981354,
+                    "meanR": 0.14648529887199403,
+                    "meanG": 2.7135965824127199,
+                    "meanB": 0.14906321465969087,
+                    "probeGreenTint": 2.5645334720611574
+                }
+            },
+            {
+                "count": 4,
+                "visibleProbeCount": 4,
+                "sampleCount": 57600,
+                "outputWidth": 320,
+                "outputHeight": 180,
+                "stats": {
+                    "missing": false,
+                    "nonFinitePixels": 0,
+                    "coveredFraction": 0.30638888478279116,
+                    "meanWeight": 0.306284636259079,
+                    "coveredMeanWeight": 0.9996597766876221,
+                    "premultipliedMean": 0.3072873651981354,
+                    "meanR": 0.14648529887199403,
+                    "meanG": 2.7135965824127199,
+                    "meanB": 0.14906321465969087,
+                    "probeGreenTint": 2.5645334720611574
+                }
+            },
+            {
+                "count": 32,
+                "visibleProbeCount": 32,
+                "sampleCount": 57600,
+                "outputWidth": 320,
+                "outputHeight": 180,
+                "stats": {
+                    "missing": false,
+                    "nonFinitePixels": 0,
+                    "coveredFraction": 0.30638888478279116,
+                    "meanWeight": 0.306284636259079,
+                    "coveredMeanWeight": 0.9996597766876221,
+                    "premultipliedMean": 0.3072873651981354,
+                    "meanR": 0.14648529887199403,
+                    "meanG": 2.7135965824127199,
+                    "meanB": 0.14906321465969087,
+                    "probeGreenTint": 2.5645334720611574
+                }
+            }
+        ]
+    },
+    "performance": {
+        "width": 1280,
+        "height": 720,
+        "probeCount": 32,
+        "framesPerBattery": 30,
+        "batteryCount": 8,
+        "budgetMs": 0.20000000298023225,
+        "offMedianMs": 1.6130800247192383,
+        "onMedianMs": 2.001718282699585,
+        "deltaMs": 0.15277671813964845,
+        "deltaMaxMs": 0.7456831932067871,
+        "passed": true,
+        "method": "camera.Render() x frames, then a blocking 1x1 ReadPixels of the 1280x720 target; alternating off/on batteries; per-frame ms per battery; delta = median of paired differences; temporal/denoise off; no new SSGI dispatch.",
+        "offMs": [
+            4.086699962615967,
+            1.2979233264923096,
+            1.8962833881378174,
+            1.3456900119781495,
+            1.3659666776657105,
+            1.8720333576202393,
+            1.8279067277908326,
+            1.398253321647644
+        ],
+        "onMs": [
+            1.435770034790039,
+            1.425153374671936,
+            1.4203133583068848,
+            2.0913732051849367,
+            2.0264666080474855,
+            1.9972065687179566,
+            2.006230115890503,
+            2.0219600200653078
+        ],
+        "deltaSamplesMs": [
+            -2.6509299278259279,
+            0.12723004817962647,
+            -0.4759700298309326,
+            0.7456831932067871,
+            0.6604999303817749,
+            0.12517321109771729,
+            0.1783233880996704,
+            0.6237066984176636
+        ]
+    }
+}
