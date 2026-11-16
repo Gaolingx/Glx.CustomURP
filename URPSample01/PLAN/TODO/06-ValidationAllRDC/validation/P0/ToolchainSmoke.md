@@ -54,11 +54,11 @@ python "E:/GitHub/Glx.CustomURP/MCP/tools/rdmcp.py" debug-pixel "$RDC" 640 359 -
 
 | 阶段 | 状态 | 说明 |
 |---|---|---|
-| P0-1 构建 player | Ready（未执行） | Unity 版本匹配、构建方法存在、三渲染器资产齐全；首次执行时按 P1-3 约定恢复 ProjectSettings |
-| P0-1 抓帧 | Ready（未执行） | `renderdoccmd capture` 与 in-app API 参数确认；player 可执行文件按策略不入库，需在 P0-1 重建 |
-| P0-2 分析 | **Executable（已冒烟）** | CLI 回放、draw 定位、MCP 打开、像素调试全部通过 |
-| P0-3 Binding probe | 待实现 | 依赖 P0-1 的 player 场景；本冒烟只确认现有分析链路 |
-| P0-4 证据 | Ready | 目录/命名/JSON 方案已在 HANDOFF 第 7.4 节冻结 |
+| P0-1 构建 player | **Executed** | `ScreenSpaceLightingValidationPlayerSetup.BuildPlayer`：D3D11 Development 1280×720，0 error；以 Deferred 资产构建以保留 deferred 变体 |
+| P0-1 抓帧 | **Executed** | 9 个用例通过 in-app API 各抓 1 帧；`.rdc` 本地保留 |
+| P0-2 分析 | **Executed（CLI）** | 新抓帧上重跑 `renderdoc-cli events`，按 marker 统计 dispatch；脚本未产品化 |
+| P0-3 Binding probe | **Executed** | 35 字段 × 9 用例，0 不匹配；覆盖 SSGI 8 / SSR 7 / GTAO 14 / 折射 6 |
+| P0-4 证据 | **Executed** | `Report.json`、`BindingProbe_*.json`、PNG 已落盘，见 [SmokeReport.md](SmokeReport.md) |
 
 ## 5. 已知限制
 
@@ -82,3 +82,7 @@ RDC="E:/GitHub/Glx.CustomURP/URPSample01/PLAN/Done/05-ScreenSpaceRefractionImpro
 "$CLI" "$RDC" draws | awk '$2==2304{print}'
 python "E:/GitHub/Glx.CustomURP/MCP/tools/rdmcp.py" debug-pixel "$RDC" 640 359 --event 786
 ```
+
+## 7. P0 本轮结果（2026-11-17）
+
+P0-1/P0-3/P0-4 已执行：三渲染器 × GTAO/SSGI/SSR/折射 共 9 个用例全部通过，35 个 binding probe 字段 0 不匹配。构建、抓帧、census、probe 回读与图像差异的完整记录见 [SmokeReport.md](SmokeReport.md)。

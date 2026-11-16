@@ -1,7 +1,7 @@
 # Screen Space Lighting 全量 GPU 验证与收尾交接（06-ValidationAllRDC）
 
 > 更新：2026-11-17
-> 状态：**静态审计完成，P0 工具链冒烟通过，验证与修复未开始**。本轮当前只交付计划与本冒烟记录；没有修改运行时代码、没有启动 Unity、没有采集新抓帧。
+> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1–P6 修复与验收未开始**。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式；未修改运行时代码或 shader。
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`，下文 `HDRP/`）
 > URP 目标包：`URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）
 > 关联文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[T14 支持矩阵](../../Done/01-ScreenSpaceLighting/validation/T14/T14SupportMatrix.md)、[01 ScreenSpaceLighting](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[02 SSRImprove](../../Done/02-SSRImprove/HANDOFF.md)、[03 SSRImprove2](../../Done/03-SSRImprove2/HANDOFF.md)、[04 SSGIFallbackImprove](../../Done/04-SSGIFallbackImprove/HANDOFF.md)、[05 ScreenSpaceRefractionImprove](../../Done/05-ScreenSpaceRefractionImprove/HANDOFF.md)、[RenderDoc 操作手册](../../../../MCP/RenderDocOperations.md)
@@ -35,6 +35,8 @@
 **本轮未做**：任何运行时修改、shader 修改、测试运行、player 构建、`.rdc` 采集。本文件只冻结范围、缺陷与验收标准。
 
 **工具链冒烟（2026-11-17）**：RenderDoc 1.47、renderdoc-mcp v0.3.0、Python 3.13.9、Unity 2022.3.62f1 与三渲染器资产均已确认；在归档 P1-3 抓帧上跑通 `renderdoc-cli info/draws`、`rdmcp.py open/debug-pixel`，像素输出与归档证据一致。构建/抓帧段路径与参数就绪，实际 player 构建留给 P0-1。详见 [validation/P0/ToolchainSmoke.md](validation/P0/ToolchainSmoke.md)。原生 MCP 未在当前会话暴露，使用 CLI 或 `MCP/tools/rdmcp.py`。
+
+**P0 基础设施与冒烟（2026-11-17）**：`ScreenSpaceLightingValidationPlayerSetup` 生成三套 validation renderer/pipeline、Profile、材质与场景，并构建 D3D11 Development player；`ScreenSpaceLightingValidationPlayerVerification` 按 manifest 切换渲染器/Volume/Feature、设置位姿、预热、抓帧、截图并写 `Report.json`；`ScreenSpaceLightingBindingProbeFeature` + `ScreenSpaceLightingBindingProbe.compute` 回读 35 个 cbuffer/全局字段。9 个用例（三渲染器 × GTAO/SSGI/SSR/折射）全部通过：抓帧成功、0 非有限像素、probe 0 不匹配；dispatch census 与图像差异见 [validation/P0/SmokeReport.md](validation/P0/SmokeReport.md)。`BuildPlayer` 以 Deferred 资产构建（否则 URP 会剥离 deferred 变体），Forward/Forward+ 仍在运行时切换正常。
 
 ---
 
@@ -344,10 +346,10 @@ HDRP 的 `DiffuseDenoiser.compute:150-153` 在 tap 投影时处理 `UNITY_UV_STA
 
 | ID | 级别 | 任务 | 依赖 | 主要文件 | 状态 |
 |---|---|---|---|---|---|
-| P0-1 | P0 | 通用 validation player（三渲染器 × manifest × 位姿） | 无 | `Assets/Tests/ScreenSpaceLighting/Editor|Runtime/`、`Renderers/` | 待开始 |
-| P0-2 | P0 | RDC 分析管线（census / binding / pixel / RT 导出） | P0-1 | `MCP/tools/`、`Assets/Tests/.../Editor/` | 待开始 |
-| P0-3 | P0 | Binding probe（uniform 原样输出 + CPU 回读） | P0-1 | `Assets/Tests/ScreenSpaceLighting/Shaders/` | 待开始 |
-| P0-4 | P0 | 证据 schema、`.rdc` 体积策略、基线哈希 | 无 | `validation/06-ValidationAllRDC/` | 待开始 |
+| P0-1 | P0 | 通用 validation player（三渲染器 × manifest × 位姿） | 无 | `Assets/Tests/ScreenSpaceLighting/Editor|Runtime/`、`Renderers/` | **完成（冒烟）** |
+| P0-2 | P0 | RDC 分析管线（census / binding / pixel / RT 导出） | P0-1 | `MCP/tools/`、`Assets/Tests/.../Editor/` | 冒烟通过（CLI，未脚本化） |
+| P0-3 | P0 | Binding probe（uniform 原样输出 + CPU 回读） | P0-1 | `Assets/Tests/ScreenSpaceLighting/Shaders/` | **完成（冒烟）** |
+| P0-4 | P0 | 证据 schema、`.rdc` 体积策略、基线哈希 | 无 | `validation/06-ValidationAllRDC/` | **完成（schema 落地）** |
 | P1-1 | P1 | 修复 GTAO 全分辨率深度（F-01） | P0 | `GTAOCommon.hlsl` | 待开始 |
 | P1-2 | P1 | 修复 GTAO 正交深度/视线（F-03） | P0 | `GroundTruthAmbientOcclusionPass.cs`、`GTAO.compute`、`GTAOCommon.hlsl` | 待开始 |
 | P1-3 | P1 | GTAO 生效与正确性 GPU 验收（含 F-10） | P0/P1-1/P1-2 | `validation/.../P1-GTAO/` | 待开始 |
@@ -674,7 +676,7 @@ PLAN/TODO/06-ValidationAllRDC/validation/
 
 ## 9. 风险与开放问题
 
-1. **player 内多渲染器切换**：`QualitySettings.renderPipeline` 运行时切换可能有一帧延迟或状态残留。若不可靠，改为三次构建；成本增加但证据更可信。
+1. **player 内多渲染器切换**：已在 P0 冒烟中验证 Forward → Forward+ → Deferred 运行时切换可用。新增约束：player 必须以 **Deferred** 资产构建，否则 URP 会剥离 deferred GBuffer/StencilDeferred 变体；Forward/Forward+ 是基础变体，切换不受影响。
 2. **cbuffer 数值证据**：binding probe 能证明"值到达 shader"，但不能证明"实际效果 pass 的 cbuffer 未被另一个 SetCompute 覆盖"。RDC 的 shader 哈希 + 输出像素作为补充；若需要直接 dump，构建带 cbuffer 工具的 renderdoc-mcp。
 3. **HDRP 对照不可运行**：HDRP 工程与本工程曝光/探针/GI 不同，跨管线像素对比不可作为通过/失败判据。差异复盘以源码对照为准。
 4. **全分辨率 GTAO 修复后的视觉变化**：修复会改变 full-res 输出，属于设计变化；half-res 默认路径不变。需要在报告中保留 before/after。
@@ -735,8 +737,8 @@ PLAN/TODO/06-ValidationAllRDC/validation/
 
 ## 11. 下一步
 
-1. 先做 P0-1/P0-3：没有 binding probe，就无法用 GPU 证据回答"cbuffer 是否正确"；这是本轮与之前几轮最大的方法差异。
-2. F-01 与 F-02 是两个最可能被用户直接看到的缺陷，优先修复并用小场景抓帧证明 before/after。
+1. P0 已完成：三渲染器 player、manifest、抓帧、census 与 binding probe 均可复现；后续任务直接复用 `SslValidation*` 资产与 `validation/P0/SmokeReport.md` 的字段契约。
+2. F-01（GTAO full-res）与 F-02（SSR 像素展开角）是两个最可能被用户直接看到的缺陷，优先修复并用小场景抓帧证明 before/after。修复后的 GTAO 用例复用 `forward_gtao_full`；F-02 需要用 P3-1 的 pass 级证据（probe 只能证明 C#→HLSL 契约）。
 3. GTAO 正交与 SSR 透明 Y 翻转依赖特定相机/目标，放在基础场景稳定后单独验收。
 4. 每完成一个修复就写 `validation/.../任务ID/` 证据，不攒到最后。
-5. 最后一轮只做回归、文档、清理与归档。
+5. 最后一轮只做回归、文档、清理与归档。P6-2 需要处理本轮 Unity 2022.3.62f1 自动迁移的 `GraphicsSettings/QualitySettings/URP-Balanced/Performant`（与本轮改动无关，当前未提交）。

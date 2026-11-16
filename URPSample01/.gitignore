@@ -77,3 +77,6 @@ crashlytics-build.properties
 # Local player builds (rebuilt by ScreenSpaceLightingBaselineSetup / ScreenSpaceLightingT14PlayerSetup)
 /PALN/validation/T1/Player/
 /PALN/validation/T14/Player/
+
+# 06 P0 smoke captures stay local; the committed evidence is Report.json/BindingProbe/PNG (HANDOFF 7.5 budget)
+/PLAN/TODO/06-ValidationAllRDC/validation/P0/Smoke/*.rdc

@@ -1,0 +1,77 @@
+// Test-only probe for the Screen Space Lighting and GTAO constant buffers.
+//
+// The production kernels receive their values through CommandBuffer.SetComputeVectorParam, which
+// binds per-ComputeShader constant data and cannot be read back from C#. This probe declares the
+// same cbuffers (by including the generated headers) and is bound with the values the passes
+// computed for the current frame. A value that arrives here with the expected name, type and
+// packing proves the C# struct -> HLSL cbuffer contract; it does not observe the production
+// dispatch's own constant bindings, so the RDC dispatch/PSO/pixel evidence stays the second source.
+//
+// The refraction uniforms are plain shader globals (CommandBuffer.SetGlobal*), so those rows are
+// the actual values bound to the production transparent draw.
+#pragma kernel BindingProbe
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+// Generated from ScreenSpaceLightingSsgiShaderVariables and ScreenSpaceLightingSsrShaderVariables.
+#include "Packages/com.unity.render-pipelines.universal/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingShaderVariables.cs.hlsl"
+// Generated from GroundTruthAmbientOcclusionShaderVariables.
+#include "Packages/com.unity.render-pipelines.universal/Runtime/RendererFeatures/GroundTruthAmbientOcclusion/GroundTruthAmbientOcclusionShaderVariables.cs.hlsl"
+
+// Mirrors the declarations in ScreenSpaceRefraction.hlsl; these are globals, not a cbuffer.
+float4 _SslRefractionColorPyramidScaleAndLimit;
+float4 _SslRefractionParams;
+float4 _SslRefractionProbeMin[8];
+float4 _SslRefractionProbeMax[8];
+float4 _SslRefractionProbeParams[8];
+int _SslRefractionProbeCount;
+
+RWTexture2D<float4> _SslBindingProbeOutput;
+uint _SslBindingProbeIndex;
+uint _SslBindingProbeRow;
+
+[numthreads(1, 1, 1)]
+void BindingProbe(uint3 id : SV_DispatchThreadID)
+{
+    float4 value = 0.0;
+    uint index = _SslBindingProbeIndex;
+
+    // The indices must match ScreenSpaceLightingBindingProbeFeature.FieldNames.
+    if (index == 0u)        value = _SsgiScreenSize;
+    else if (index == 1u)   value = _SsgiTraceSize;
+    else if (index == 2u)   value = _SsgiRayMarchingParams;
+    else if (index == 3u)   value = _SsgiRayMarchingParams2;
+    else if (index == 4u)   value = _SsgiZBufferParams;
+    else if (index == 5u)   value = _SsgiTemporalParams;
+    else if (index == 6u)   value = _SsgiDenoiserParams;
+    else if (index == 7u)   value = _SsgiCameraPositionWS;
+    else if (index == 8u)   value = _SsrScreenSize;
+    else if (index == 9u)   value = _SsrTraceSize;
+    else if (index == 10u)  value = _SsrRayMarchingParams;
+    else if (index == 11u)  value = _SsrRoughnessFadeParams;
+    else if (index == 12u)  value = _SsrPyramidParams;
+    else if (index == 13u)  value = _SsrPbrParams;
+    else if (index == 14u)  value = _SsrPbrFlags;
+    else if (index == 15u)  value = _GtaoBufferSize;
+    else if (index == 16u)  value = _GtaoScreenSize;
+    else if (index == 17u)  value = _GtaoParams0;
+    else if (index == 18u)  value = _GtaoParams1;
+    else if (index == 19u)  value = _GtaoParams2;
+    else if (index == 20u)  value = _GtaoParams3;
+    else if (index == 21u)  value = _GtaoParams4;
+    else if (index == 22u)  value = _GtaoFirstTwoDepthMipOffsets;
+    else if (index == 23u)  value = _GtaoDepthToViewParams;
+    else if (index == 24u)  value = _GtaoZBufferParams;
+    else if (index == 25u)  value = _GtaoOrthoHalfSize;
+    else if (index == 26u)  value = _GtaoViewRow0;
+    else if (index == 27u)  value = _GtaoViewRow1;
+    else if (index == 28u)  value = _GtaoViewRow2;
+    else if (index == 29u)  value = _SslRefractionParams;
+    else if (index == 30u)  value = _SslRefractionColorPyramidScaleAndLimit;
+    else if (index == 31u)  value = float4(_SslRefractionProbeCount, 0.0, 0.0, 0.0);
+    else if (index == 32u)  value = _SslRefractionProbeMin[0];
+    else if (index == 33u)  value = _SslRefractionProbeMax[0];
+    else if (index == 34u)  value = _SslRefractionProbeParams[0];
+
+    _SslBindingProbeOutput[uint2(0u, _SslBindingProbeRow)] = value;
+}
