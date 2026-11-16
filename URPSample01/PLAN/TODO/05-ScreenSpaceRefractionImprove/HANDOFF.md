@@ -1,0 +1,632 @@
+# ScreenSpaceRefraction 对齐 HDRP 与缺陷修复交接
+
+> 更新：2026-11-16
+> 状态：R0 调研完成，实施未开始
+> 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`）
+> 相关文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[ScreenSpaceLighting 交接](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[T11 证据](../../Done/01-ScreenSpaceLighting/validation/T11/T11Report.json)
+
+## 0. 本轮做了什么
+
+本轮只做**静态源码对比**，没有修改任何运行时代码、Shader 或测试资产：
+
+- 逐行对比 URP 14.0.12 的 `ScreenSpaceRefraction.hlsl`、`RefractionPass`、颜色金字塔与材质入口，以及 HDRP 14.0.12 的 `Lit.hlsl`、`ScreenSpaceTracing.hlsl`、`LightLoop.hlsl`、`HDRenderPipeline.RenderGraph.cs`、`MipGenerator.cs`。
+- 确认已经对齐的部分：Box/Sphere/Thin 几何模型、`EdgeOfScreenFade`、深度拒绝规则、`1 - mip * 0.08` 偏移、roughness^1.3 的 mip 选择、9-tap Gaussian 金字塔、8x8 mip 截断、`screenFadeDistance=0.1` 默认值。
+- 确认需要处理的分歧，并按影响面归入 P0/P1/P2：
+  - P0：透射 miss 无 probe fallback；opacity 未作为 `transmittanceMask`；代理只认 camera 最近的 box-projected probe。
+  - P1：`_Ior` 未进入 F0；Thin 模型的吸收距离未固定为 0.005；probe 选择不是 per-object/per-pixel。
+  - P2：屏幕外采样语义、pre-refraction 队列、厚度/透射色贴图、预积分 FGD、动态分辨率/材质覆盖的文档与回归。
+- 发现的文档不一致：[ScreenSpaceLighting HANDOFF](../../Done/01-ScreenSpaceLighting/HANDOFF.md) 第 234 行声称“opacity 当 transmittance mask”，但当前代码只把 alpha 按折射权重推向 1，没有 `1 - alpha` 调制。实施 P0-2 时必须同步修文档或补测试证明这是有意行为。
+- 本轮唯一交付物：本文件。工作区其余内容未变。
+
+## 1. 目标、边界与不变量
+
+### 目标
+
+让 URP 的屏幕空间折射在**语义**上对齐 HDRP 14 的 Lit 折射，而不是只复用几何公式；优先修正在常见玻璃材质上肉眼可见的差异，其次补齐 HDRP 已有的材质与排序能力。
+
+### 不在本轮范围
+
+- 不改 SSGI/SSR/Transparent SSR 的算法与调度。
+- 不重构 URP 的 LightLoop / probe atlas；折射 fallback 只消费现有 probe 数据。
+- 不做 HDRP 的 Distortion、Rough Distortion、Path Tracing 折射、Recursive Rendering。
+- 不新增 HDRP 式 per-material proxy volume 组件；URP 侧仍以 reflection probe 的 influence bounds 为代理来源。
+- 不承诺 Metal/mobile/OpenGLES 与真实 HMD；只做当前工程的 DX11/DX12/Vulkan 与 Mock HMD 回归。
+- 动态分辨率是 URP 14.0.12 引擎限制，只记录、不实现。
+
+### 必须保持的不变量
+
+1. **效果关闭逐字节不变**：Volume `enabled=false`、`intensity=0`、材质 `_RefractionModel=None`、无 `_SCREEN_SPACE_REFRACTION` 时，输出与当前基线逐字节一致。
+2. **非折射材质不变**：不透明、普通透明、SimpleLit/Particles/Terrain 的输出不变。
+3. **SRP Batcher 布局稳定**：新增材质属性必须进 `UnityPerMaterial` CBUFFER；仅 ShaderGraph 使用的全局量不进材质 CBUFFER。
+4. **无每帧托管分配**：`RefractionPass` 与 probe 表更新不得产生新的 per-frame GC；probe 场景扫描仍保持 30 帧节流。
+5. **XR 可用**：新增纹理、数组和矩阵逻辑必须区分 per-view 与 per-object 数据；单 pass 与 multipass 至少 smoke test。
+6. **变体可控**：新增分支优先使用现有 `_REFRACTION_*` / `_SCREEN_SPACE_REFRACTION` 关键字；若新增关键字，记录变体数量前后对比。
+7. **证据可复现**：每个任务必须有 `validation/05-ScreenSpaceRefractionImprove/` 下的图像、指标与 JSON，不接受只看最终图的口头结论。
+
+## 2. 任务总览
+
+| ID | 级别 | 任务 | 依赖 | 主要文件 | 状态 |
+|---|---|---|---|---|---|
+| P0-1 | P0 | 屏幕 miss 时用 probe cubemap 透射 fallback | 无 | `ScreenSpaceRefraction.hlsl`、`LitForwardPass.hlsl`、`PBRForwardPass.hlsl` | 待开始 |
+| P0-2 | P0 | opacity 作为 `transmittanceMask`，拆分 diffuse/specular | P0-1 | `Lighting.hlsl`、`LitForwardPass.hlsl`、`PBRForwardPass.hlsl`、`BRDF.hlsl` | 待开始 |
+| P0-3 | P0 | 代理 fallback：box → 任意 probe → 无限/sky | P0-1 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 待开始 |
+| P1-1 | P1 | `_Ior` 进入 F0/Fresnel，透射与反射能量一致 | P0-2 | `BRDF.hlsl`、`Lighting.hlsl`、`LitInput.hlsl`、`PBRForwardPass.hlsl` | 待开始 |
+| P1-2 | P1 | Thin 模型 atDistance 固定 0.005 | 无 | `ScreenSpaceRefraction.hlsl` | 待开始 |
+| P1-3 | P1 | per-object/per-pixel probe 选择与 light layer | P0-3 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 待开始 |
+| P2-1 | P2 | 屏幕外命中改为 HDRP 式 fade + clamp | P0-1/P0-2 | `ScreenSpaceRefraction.hlsl` | 待开始 |
+| P2-2 | P2 | pre-refraction 透明队列 | P0-2 | `UniversalRenderer`、`RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 待开始（有决策门） |
+| P2-3 | P2 | 厚度贴图 / 透射色贴图 | P0-2 | `Lit.shader`、`ComplexLit.shader`、`LitInput.hlsl`、ShaderGraph | 待开始 |
+| P2-4 | P2 | 预积分 FGD LUT（可选） | P1-1 | `BRDF.hlsl`、资源包 | 待开始（可选） |
+| P2-5 | P2 | 动态分辨率/MSAA/材质覆盖的测试与文档 | 全部 | 文档、测试 | 待开始 |
+| P2-6 | P2 | 验证报告、已知差异、归档与清理 | 全部 | `validation/`、文档 | 待开始 |
+
+推荐实施顺序：`P0-1 → P0-2 → P0-3 → P1-2 → P1-1 → P1-3 → P2-*`。P0-2 依赖 P0-1，否则 opacity=0 且屏幕 miss 时表面会变黑；P0-3 在 P0-1 之后只是扩大可用场景，不改变 fallback 公式。
+
+---
+
+## 3. P0 任务
+
+### P0-1 屏幕 miss 时用 probe cubemap 透射 fallback
+
+**差异**
+
+HDRP 的屏幕空间折射失败或 fade 到 0 时，`refractionHierarchyWeight` 未用满，LightLoop 会继续用 reflection probe 的 cubemap 沿折射方向采样，乘 transmittance 后归入 `specularTransmitted`；天空也会作为 env light 参与。参考 HDRP `Lit.hlsl` 的 `EvaluateBSDF_Env` 折射分支（约 2016–2110 行）和 `LightLoop.hlsl` 的 refraction 调用（约 590–625 行）。
+
+URP 当前在 `ScreenSpaceRefractionEvaluate` 中 miss 直接返回 0（`ScreenSpaceRefraction.hlsl` 约 118–135 行），没有第二数据源；一旦 P0-2 把 opacity 用于 mask，opacity=0 的玻璃在 miss 时会出现黑色/纯镜面区域。
+
+**实现方案**
+
+1. 重构 `ScreenSpaceRefractionEvaluate` 的输出，显式返回：
+   - `transmitted`：屏幕空间贡献，仍按 `weight` 缩放；
+   - `weight`：edge fade × intensity，范围 0–1；
+   - `transmittance`：`exp(-absorption * refraction.dist)`；
+   - `refractV` / `refractPosWS`：离开体积后的射线；
+   - `valid`：模型、proxy/fallback 是否可用。
+2. 在 `LitForwardPass.hlsl` 与 `PBRForwardPass.hlsl` 中，仅在 `_REFRACTION_* && _SCREEN_SPACE_REFRACTION` 分支内计算 fallback：
+   ```hlsl
+   half3 probeTransmitted = GlossyEnvironmentReflection(
+       result.refractV, result.refractPosWS,
+       input.perceptualRoughness, 1.0, input.screenUV);
+   probeTransmitted *= (1.0 - input.specularFGD) * result.transmittance * (1.0 - result.weight);
+   half3 transmittedTotal = result.transmitted + probeTransmitted;
+   ```
+   `GlossyEnvironmentReflection` 已包含 `unity_SpecCube0` 的 HDR 解码与 box projection，见 `GlobalIllumination.hlsl` 约 281 行。若 `unity_SpecCube0` 在无 probe 场景为黑，再用 `SampleSH(result.refractV)` 作为最后兜底，但必须先验证 URP 默认 reflection probe 是否已回退到 sky。
+3. `RefractionPass` 不再仅因“没有 box-projected probe”关闭 keyword。无 proxy 时把屏幕路径的 `weight` 置 0，仍保留材质 keyword，让 fallback 生效。只有 Volume 关闭、feature 资源缺失或 capability 不支持时才关闭 keyword。
+4. 当 `_SCREEN_SPACE_REFRACTION` 且 Volume 开启时，折射材质的输出 alpha 固定为 1（与 HDRP 一致）；fallback 与屏幕路径都成立时，用 `weight` 决定两者比例，禁止双计数。
+5. Alpha/Premultiply/Additive 三种透明混合模式至少按 Alpha 语义验收；Premultiply/Additive 若与 `alpha=1` 冲突，记录限制并补测试，不在本轮强行统一。
+
+**风险与边界**
+
+- `unity_SpecCube0` 是 per-renderer 的 probe，不一定是 HDRP 在该像素选中的 env light；这是 URP 架构下的近似，必须在已知差异中记录。
+- 无 probe、无 sky 的纯色相机可能出现 fallback 为 0；验收要求至少覆盖“有 sky、无 reflection probe”的场景。
+- `GlossyEnvironmentReflection` 的 roughness mip 与 HDRP `SampleEnvWithDistanceBaseRoughness` 不完全一致，只要求语义与连续性，不要求像素相同。
+- 透射 fallback 不能再乘一次 albedo/diffuse，否则会与 P0-2 的 mask lerp 重复。
+
+**验收标准**
+
+1. 有 sky、无 reflection probe 时，折射可见且玻璃内颜色来自 sky/background，非黑、非仅镜面。
+2. 屏幕命中 `weight=1` 时 fallback 项必须为 0：把 probe 染成与背景明显不同的颜色，玻璃内必须显示背景而不是 probe。
+3. 屏幕 miss 时玻璃内显示 probe 颜色；将 probe 移走/关闭后回退到 sky 或 SH。
+4. 沿屏幕边缘 fade 带取一行像素，屏幕贡献与 fallback 的过渡无 > 1/255 的跳变（允许噪声阈值 2/255）。
+5. `opacity=1` 时，无论屏幕命中还是 miss，透射总量（screen + fallback）接近 0；`opacity=0` 时两者按 `weight` 连续混合。
+6. 所有 miss 像素无 NaN/Inf/负值；关闭 Volume 后与当前基线逐字节一致。
+7. EditMode 新增至少一个 shader/逻辑测试，验证无 proxy 时 keyword 仍开启、fallback 分支被编译进折射变体。
+
+**交付物**
+
+- `ScreenSpaceRefraction.hlsl` 的新输出结构与 fallback helper。
+- `LitForwardPass.hlsl`、`PBRForwardPass.hlsl` 的接线。
+- `RefractionPass.cs` 的 keyword 生命周期调整。
+- `validation/05-ScreenSpaceRefractionImprove/P0-1/` 下的 sky-only、probe-only、混合、边缘带图像与 `Report.json`。
+
+---
+
+### P0-2 opacity 作为 transmittanceMask，拆分 diffuse/specular
+
+**差异**
+
+HDRP 在折射材质上执行：
+
+- `surfaceData.transmittanceMask = 1 - alpha`，并把 `alpha = 1`（`LitDataIndividualLayer.hlsl` 约 345–358 行）。
+- `PostEvaluateBSDF` 用 `lightLoopOutput.diffuseLighting = lerp(diffuseLighting, specularTransmitted, transmittanceMask * _EnableSSRefraction)`（`Lit.hlsl` 约 2142–2150 行）；`specularLighting` 保留，不再乘 mask。
+
+URP 当前：
+
+- 把 `transmitted` 直接加到 `color.rgb`（`LitForwardPass.hlsl` 约 267 行）；
+- `color.a = lerp(color.a, 1.0, refractionWeight)`（约 271 行）；
+- `surfaceData.alpha` 只用于 `InitializeBRDFData`，而该函数只有 `_ALPHAPREMULTIPLY_ON` 时用 alpha 乘 diffuse（`BRDF.hlsl` 约 69–76 行）。
+
+因此 URP 在折射命中时保留全部 diffuse/直接光并叠加折射背景，且 opacity 不控制透射量；这是当前最大的语义差异。
+
+**实现方案**
+
+1. 在 `Lighting.hlsl` 新增一个仅折射变体使用的拆分函数，不要在现有 `UniversalFragmentPBR` 内改写出参，避免影响不透明路径的逐字节基线和编译器重组：
+   ```hlsl
+   void UniversalFragmentPBRSplit(InputData inputData, SurfaceData surfaceData,
+                                  out half3 diffuseColor, out half3 specularColor);
+   ```
+   内部镜像 `UniversalFragmentPBR` 的累加规则：
+   - diffuse：`bakedGI * brdfData.diffuse` + 主光/附加光的 Lambert 部分 + vertex lighting + emission；
+   - specular：直接光 `DirectBRDFSpecular * brdfData.specular` + 间接 `GlossyEnvironmentReflection * EnvironmentBRDFSpecular`；
+   - AO/clear coat/ComplexLit 的处理与现有函数保持一致；clear coat 归入 specular，base diffuse 可被 mask 替换，作为近似记录。
+2. 在 `LitForwardPass.hlsl` / `PBRForwardPass.hlsl` 中：
+   ```hlsl
+   half transmittanceMask = saturate(1.0 - surfaceData.alpha);
+   half3 diffuseColor, specularColor;
+   UniversalFragmentPBRSplit(inputData, surfaceData, diffuseColor, specularColor);
+   diffuseColor = MixFog(diffuseColor, fogCoord);   // 保持“透射不再吃一次雾”
+   specularColor = MixFog(specularColor, fogCoord);
+   color.rgb = specularColor + lerp(diffuseColor, transmittedTotal, transmittanceMask);
+   color.a = 1.0;
+   ```
+   `transmittedTotal` 来自 P0-1，已包含屏幕权重与 fallback 补权重；`transmittanceMask` 不再乘 `weight`，因为 `weight` 已在 screen/fallback 分工中消费。
+3. 非折射路径继续调用原 `UniversalFragmentPBR`，确保 `_REFRACTION_*` 未定义的变体不变。
+4. `DEBUG_DISPLAY` 下不启用拆分/折射合成，继续走原路径，避免调试视图被 mask 改写。
+5. 同步修正 `ScreenSpaceLighting HANDOFF.md` 第 234 行的描述，并新增 opacity 语义测试；如果决定保留“加色而非 mask”，必须在已知差异中明确写出，不能继续声称与 HDRP 一致。
+
+**风险与边界**
+
+- 完全复制 `UniversalFragmentPBR` 会让 shader 体积增加；拆分函数只在 `_REFRACTION_*` 变体编译，需记录变体/指令数变化。
+- Complex Lit 的 clear coat 在 HDRP 中“不支持 refraction + clear coat”，URP 目前允许编译；本轮只保证不崩溃、mask 作用于 base diffuse，并在已知差异中记录。
+- Premultiply/Additive 混合下 `alpha=1` 的语义不同；先以 Alpha Blend 验收，其他模式记录为限制。
+- 逐字节基线只要求非折射路径；折射路径允许按设计改变，但必须更新 T11 的预期值并保留旧图作为对照。
+
+**验收标准**
+
+1. 固定背景、固定相机，opacity=0 / 0.3 / 1.0 三张图：玻璃内像素随 opacity 单调向表面颜色收敛；用背景/表面颜色做线性拟合，`m = 1 - opacity` 的斜率误差 ≤ 5%，R² ≥ 0.99。
+2. opacity=1 时，玻璃内不存在来自颜色金字塔的透射（把背景换成高亮纯色，像素差 ≤ 1/255，允许抗锯齿边缘排除）。
+3. opacity=0 时，玻璃内 diffuse/直接光贡献接近 0；保留探针/SSR 镜面反射和折射背景。
+4. 透明材质的 `_RefractionModel=None`、非折射透明、PBR/Unlit/SimpleLit 输出与基线逐字节一致。
+5. 折射命中、屏幕 miss、无 proxy 三种情况下都遵守同一 mask；无 NaN/负值。
+6. 雾：透射仍只吃颜色金字塔里的雾，不在表面再叠加一次；与当前实现保持同一策略。
+7. 变体数量、指令数、SRP Batcher 兼容性记录在报告中；不透明路径的 shader 哈希不因本任务改变。
+
+**交付物**
+
+- `Lighting.hlsl` 的拆分函数；`LitForwardPass.hlsl`、`PBRForwardPass.hlsl` 的新合成路径。
+- opacity 测试场景/材质（`Assets/Tests/ScreenSpaceLighting/RefractionImprove/`）。
+- `validation/05-ScreenSpaceRefractionImprove/P0-2/` 图像、拟合 CSV、`Report.json`。
+- 更新后的 `T14KnownDifferences.md`（移除/修正 opacity 条目）与主 HANDOFF 第 234 行描述。
+
+---
+
+### P0-3 代理 fallback：box → 任意 probe → 无限/sky
+
+**差异**
+
+URP `TryGetProxy` 只考虑 `isBoxProjection` 的 probe，取“包含相机/离相机最近”的一个世界 AABB；没有 box-projected probe 就关闭折射 keyword。HDRP 使用物体所在位置的 env light，probe 用 box 或 sphere influence，完全取不到时用 sky 的默认 proxy；因此 HDRP 在空场景也能折射。
+
+**实现方案**
+
+1. `TryGetProxy` 改为返回明确模式：
+   ```csharp
+   enum ProxyMode { None = 0, Box = 1, Infinite = 2 }
+   ```
+   - 优先保留现有 box-projected probe（行为不变）；
+   - 没有 box-projected probe 时，接受任意 active/visible reflection probe 的 `bounds` 作为 AABB（`boxProjection` 只影响反射投影，不影响折射代理）；
+   - 仍没有 probe 时返回 `Infinite`，用相机 far plane 或固定 1e4 作为投影距离，语义对应 HDRP 的 sky/infinite proxy。
+2. 复用 `_SslRefractionProxyBoxMin.w` 作为模式：0=none、1=box、2=infinite；`_SslRefractionProxyBoxMax.w` 保留。Shader 中：
+   - mode 1：`IntersectRayAABBSimple`；
+   - mode 2：`projectionDistance = min(_ProjectionParams.z * 0.99, 1e4)`，不再与盒子求交；
+   - mode 0：屏幕贡献 0，但 P0-1 的 fallback 仍可运行。
+3. `RefractionPass` 的 keyword 条件改为“Volume 开启 + capability 支持 + color pyramid/depth 可用”；没有 proxy 不再单独关闭 keyword。资源缺失时保留 fallback（P0-1），只有 Volume 关闭才完全回到 legacy。
+4. 代理扫描保持现有 30 帧缓存；新增“任意 probe”分支时复用同一份 `ReflectionProbe[]` 快照，避免额外 `FindObjectsOfType`。
+5. 记录行为变化：过去“无 box probe = legacy 透明”，本轮后变成“no proxy = mask + probe/sky 透射 fallback”。如果必须保留旧行为，只能通过关闭 Volume 实现。
+
+**风险与边界**
+
+- URP reflection probe 没有 HDRP 的 sphere influence 数据；本轮把任意 probe 的 AABB 当 box 代理，sphere 近似放到 P1-3 再评估。
+- infinite 代理会让屏幕偏移不再被 probe 边界截断，可能放大远处采样误差；必须用 depth rejection 与 mip clamp 兜底，并做边缘测试。
+- 无 probe 时 `unity_SpecCube0` 可能是默认天空或黑，P0-1 验收已覆盖。
+
+**验收标准**
+
+1. 空场景（无 reflection probe，有 sky）折射可见，玻璃内显示 sky/背景，不是黑。
+2. 非 box-projection 的 reflection probe 也能提供代理；与当前 box-projected 场景相比，相同材质/相机的像素差仅在预期范围（记录差异图）。
+3. box-projected probe 场景与当前实现逐字节一致（除 P0-1/P0-2 的设计变化）。
+4. 无 proxy 时 keyword 仍开启，fallback 生效；Volume 关闭后与 legacy 基线逐字节一致。
+5. 相机移动/分辨率变化不产生 NaN、不越界采样；probe 扫描没有新增 per-frame GC。
+6. 在 `T14KnownDifferences.md` 中替换旧的“无 box probe 无折射”描述。
+
+**交付物**
+
+- `RefractionPass.cs` 的 proxy 模式与 keyword 逻辑。
+- `ScreenSpaceRefraction.hlsl` 的 infinite 分支。
+- `validation/05-ScreenSpaceRefractionImprove/P0-3/` 空场景、非 box probe、box probe、Volume off 对比与 `Report.json`。
+
+---
+
+## 4. P1 任务
+
+### P1-1 `_Ior` 进入 F0/Fresnel
+
+**差异**
+
+HDRP `FillMaterialTransparencyData` 执行 `fresnel0 = lerp(IorToFresnel0(ior), baseColor, metallic)`（`Lit.hlsl` 约 259–269 行），因此 IOR 同时影响反射率与 `(1-F)` 透射。URP 的 `_Ior` 只进入 `refract()` 和体积模型，主光照的 F0 仍由 `_SpecColor`/metallic 决定；高 IOR 材质会“弯得很多但反射不够”。
+
+**实现方案**
+
+1. 在 `BRDF.hlsl` 增加 `IorToFresnel0(float ior)`（`pow((ior - 1) / (ior + 1), 2)`），或复用 core 中同名函数（先检查 core 14.0.12 是否已提供）。
+2. 给 `SurfaceData` 增加一个仅折射使用的 F0 覆盖字段（默认 0 表示未设置），在 Lit/ComplexLit 的 SurfaceData 构建处和 ShaderGraph 的 `InitializeInputData`/forward 入口按 `_REFRACTION_*` 关键字写入 `IorToFresnel0(_Ior)`。
+3. 在 `InitializeBRDFData` 的折射分支使用该覆盖值：
+   ```hlsl
+   #if defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)
+       brdfSpecular = lerp(IorToFresnel0(_Ior).xxx, albedo, metallic);
+       reflectivity = Luminance(brdfSpecular); // 单通道近似，报告中注明
+   #endif
+   ```
+   不改变非折射变体的代码路径。
+4. `specularFGD` 继续使用 URP 的 `EnvironmentBRDFSpecular`，但 F0 已由 IOR 修正；HDRP 的 LUT 版本放到 P2-4，若不做则在已知差异中记录“rough glass 能量近似”。
+5. IOR=1.5 的默认材质输出应与当前基本一致（F0=0.04），用于限制回归范围。
+
+**验收标准**
+
+1. 解析检查：IOR 1.0 → F0=0，1.5 → 0.04，2.5 → 0.1837（误差 1e-4）。
+2. 固定环境光/天空，粗糙度 0 的玻璃：IOR 1.0/1.5/2.5 的反射亮度单调上升，透射亮度单调下降；IOR=2.5 的反射亮度与 Schlick 解析值误差 ≤ 10%。
+3. IOR=1.5 时与当前基线差异 ≤ 1/255（允许折射合成路径本身的设计差异，但 F0 部分不应跳变）。
+4. 非折射材质、非折射透明、opaque 输出逐字节不变。
+5. 无 NaN/Inf；SRP Batcher 布局与材质属性面板正常。
+
+**交付物**
+
+- `BRDF.hlsl`、`SurfaceData` 构建点、`LitForwardPass.hlsl`/`PBRForwardPass.hlsl` 的改动。
+- `validation/05-ScreenSpaceRefractionImprove/P1-1/` 的 IOR 梯度图、解析对照 CSV、`Report.json`。
+
+---
+
+### P1-2 Thin 模型 atDistance 固定 0.005
+
+**差异**
+
+HDRP 对 `_REFRACTION_THIN` 同时把 `atDistance` 和 `thickness` 设为 0.005（`Lit.hlsl` 约 456–466 行）；URP 只把 thickness 设为 0.005，吸收仍用 `_TransmittanceDistance`，导致有色薄玻璃吸收偏弱。
+
+**实现方案**
+
+1. 在 `ScreenSpaceRefraction.hlsl` 定义 `#define SSL_REFRACTION_THIN_DISTANCE 0.005`。
+2. 吸收距离计算改为：
+   ```hlsl
+   float absorptionDistance = input.transmittanceDistance;
+   #if defined(_REFRACTION_THIN)
+       absorptionDistance = SSL_REFRACTION_THIN_DISTANCE;
+   #endif
+   half3 absorption = ScreenSpaceRefractionToAbsorption(input.transmittanceColor, absorptionDistance);
+   ```
+3. 保持 thickness 分支不变（当前已经是 0.005）；不要修改 Box/Sphere。
+4. 如果 P2-3 增加 thickness map，Thin 模型仍强制 0.005，与 HDRP 一致。
+
+**验收标准**
+
+1. 白色 transmittance 的 Thin 图像不变（逐字节或 ≤1/255）。
+2. 有色 transmittance 的 Thin：玻璃出射颜色符合 `exp(-(-ln(T)/0.005) * dist)`，与解析值误差 ≤ 1%；与 HDRP 同参数截图的通道均值误差 ≤ 5%。
+3. Box/Sphere 模型、非折射材质输出不变。
+4. T11 的 Thin 用例若按设计改变，更新预期图/指标并在报告中注明“语义修复”。
+
+**交付物**
+
+- `ScreenSpaceRefraction.hlsl` 的单点改动。
+- Thin 白/有色、Box/Sphere 对照图与 `Report.json`。
+
+---
+
+### P1-3 per-object/per-pixel probe 选择与 light layer
+
+**差异**
+
+HDRP 用物体中心所在 tile 的第一个 env light 作为折射代理，并在 `EvaluateBSDF_Env` 中检查 light layer；URP 仍是“全局离相机最近的 probe”，同一物体跨多个 probe 区域时可能与反射/SSR 的 probe 不一致，相机移动时也可能跳变。
+
+**实现方案**
+
+1. `RefractionPass` 构建最多 N 个（先取 8）代理表：
+   - `Vector4 _SslRefractionProbeMin[N]`、`_SslRefractionProbeMax[N]`；
+   - `Vector4 _SslRefractionProbeParams[N]`（importance、layerMask、模式/序号）；
+   - `int _SslRefractionProbeCount`。
+   复用现有 visible probes + scene probe 快照，按 importance/包含关系排序。
+2. Shader 端在折射入口按**物体中心**选择：
+   ```hlsl
+   float3 objectCenterWS = GetObjectToWorldMatrix()._m03_m13_m23;
+   ```
+   优先第一个包含 objectCenter 的代理；否则最近；否则最后一个 infinite fallback。HDRP 用 object center 是为了稳定，URP 保持一致。
+3. Light layer：先确认 `ReflectionProbe`/`VisibleReflectionProbe` 在当前版本是否暴露 `renderingLayerMask`。可用则把 mask 写入 `_SslRefractionProbeParams`，用 `GetMeshRenderingLayer()` 过滤；不可用则在已知差异中写明“URP 14 不暴露 probe rendering layer，折射代理不按 layer 过滤”。
+4. 旋转：URP `probe.bounds` 是 AABB，不暴露朝向；本轮继续忽略旋转，报告中记录。
+5. 性能：循环 8 次只发生在透明折射变体；若指令数/耗材超预算，可降为 4 或先按 nearest 排序后只检查前 2 个包含关系。
+6. P0-3 的 infinite/sky fallback 作为表中的最后一项，保证永不为空。
+
+**验收标准**
+
+1. 两 probe 场景：相机在 A 附近、物体在 B 内；折射必须使用 B 的代理（构造 A/B 不同尺寸/位置，使屏幕命中点可区分），与 HDRP 同场景结构一致。
+2. 相机从 A 移到 B、物体不动：代理不因相机移动而跳变；物体跨 probe 边界时只在边界处切换，且切换帧无双影/黑边（记录差异图）。
+3. 若实现 light layer：不同 layer 的 probe/物体组合按预期匹配/忽略；未实现则报告明确标注。
+4. 空场景/无 probe 仍走 P0-3 infinite；box probe 单场景与 P0-3 结果逐字节一致。
+5. 性能：1080p 折射场景 GPU p95 回归 ≤ 10%（参考值，DVFS 无效时标注）；无 per-frame GC。
+6. 代码中无每帧 `FindObjectsOfType`；probe 表更新只在已有 30 帧节流点发生。
+
+**交付物**
+
+- probe 表上传与 shader 选择逻辑。
+- 双 probe、跨边界、layer（若支持）图像与 `Report.json`。
+- 性能/指令数记录。
+
+---
+
+## 5. P2 任务
+
+### P2-1 屏幕外命中改为 HDRP 式 fade + clamp
+
+**差异**
+
+URP 在 `hitNDC` 任一分量超出 [0,1] 时直接 miss；HDRP 用 `EdgeOfScreenFade` 计算权重，并对采样 UV 做 mip footprint clamp，屏幕外仍可能有部分贡献。URP 还多了一个 UV 下界 clamp。
+
+**实现方案**
+
+1. 去掉“NDC 出屏即 return 0”，保留投影距离/`w>0`/有限值检查。
+2. `hitPositionSS` clamp 到 `[0, _ScreenSize-1]` 后读 depth；采样 UV 继续用 HDRP 的 `scale + limit` 公式，只做上界 `min`，下界由 clamp 到 `scaleMinusLimit` 保证不越界。
+3. 用 `EdgeOfScreenFade(hitNDC, fadeRcp)` 作为唯一屏幕权重来源；fade 为 0 时自然回落到 P0-1 的 probe fallback。
+4. 该任务会改变边缘像素行为，必须在 P0-2 的合成路径稳定后做；若视觉上出现明显拖边/漏色，可以保留当前硬拒绝并在已知差异中记录，不强求。
+
+**验收标准**
+
+1. 边缘带 64px 内无硬切黑边/亮边；屏幕内外过渡的相邻像素差 ≤ 2/255。
+2. 屏幕外背景颜色不会被拉进屏幕中心；只允许靠近边缘的 clamp 采样。
+3. 无 NaN/Inf；中心区域与 P2-1 前逐字节一致（除边缘带）。
+4. fallback 在 fade→0 时接管，不出现双计。
+
+**交付物**
+
+- `ScreenSpaceRefraction.hlsl` 的边界分支。
+- 边缘带裁剪图、差异图与 `Report.json`。
+
+---
+
+### P2-2 pre-refraction 透明队列
+
+**差异**
+
+HDRP 在生成颜色金字塔前渲染 `PreRefraction` 队列（`HDRenderQueue` 约 31–33、95 行，队列中心 2750），因此这些透明体能被玻璃折射；URP 的金字塔只含 opaque+sky，所有透明体都不可见。该差异已在 [T14KnownDifferences](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md) 记录。
+
+**实现方案（有决策门）**
+
+URP 的 AlphaTest 队列覆盖 2450–2999，不能直接复用 HDRP 的 2750；需要自定义透明子区间并改 core 的透明绘制范围。建议方案：
+
+1. 约定 URP pre-refraction 队列为 `3000–3099`（仍在 Transparent 区间内），普通透明为 `3100–5000`。
+2. 新增 SSL pass `ScreenSpaceLightingPreRefractionPass`，事件放在 sky 之后、颜色金字塔之前（例如 `AfterRenderingSkybox + 1`，金字塔改为 `+2` 或 402），用 `DrawingSettings` + `FilteringSettings(RenderQueueRange(3000, 3099))` 绘制，`ShaderTagId("UniversalForward")`，颜色写相机色、深度测试用 opaque depth、ZWrite off。
+3. 在 `UniversalRenderer` 增加类似 `SetProbeAtlasPublishing` 的 hook，让 SSL feature 把普通透明 pass 的 queue range 改成 `3100–5000`；否则同一物体会被绘制两次。这是 core 改动，必须单独评审。
+4. 材质/文档明确“渲染队列 3000–3099 是 pre-refraction，需要 SSL feature；否则会被普通透明 pass 在 3100+ 才绘制”——若 feature 关闭，需要回退为普通透明（core hook 恢复默认 range）。
+5. 金字塔生成点移到预折射 pass 之后；`ScreenSpaceRefraction.hlsl` 不需要改采样逻辑。
+
+**决策门**：如果目标场景没有“透明叠透明”的需求，允许本任务延期并保留已知差异；但必须完成“普通透明不进入金字塔”的回归测试，防止未来误改。
+
+**验收标准**
+
+1. pre-refraction 面板放在玻璃后方时出现在玻璃内；普通透明面板放在同一位置时不出现（除非也设为 pre-refraction）。
+2. 面板恰好绘制一次：Frame Debugger 中预折射 pass 与普通透明 pass 的 DrawCall 不重复；最终图无变亮/双 alpha。
+3. 关闭 SSL feature 时，3000–3099 队列材质回到普通透明绘制，无丢失。
+4. 三路径（Forward/Forward+/Deferred）金字塔内容正确；T12 组合矩阵回归通过。
+5. 透明排序：预折射内部按距离/优先级排序，普通透明内部排序不变。
+
+**交付物**
+
+- 预折射 pass、core queue hook、材质/文档说明。
+- “预折射面板可见/普通面板不可见/关闭 feature 回退”三组图与 `Report.json`。
+- 如果延期：更新已知差异，附上决策记录。
+
+---
+
+### P2-3 厚度贴图 / 透射色贴图
+
+**差异**
+
+HDRP 支持 `_ThicknessMap` + `_ThicknessRemap`、`_TransmittanceColorMap`，以及 LayeredLit 的逐层参数；URP 当前只有标量 `_Thickness`/`_TransmittanceColor`。
+
+**实现方案**
+
+1. `Lit.shader` / `ComplexLit.shader` 增加：
+   - `_ThicknessMap("Thickness Map", 2D) = "white"`、`_ThicknessRemap("Thickness Remap", Vector) = (0,1,0,0)`；
+   - `_TransmittanceColorMap("Transmittance Color Map", 2D) = "white"`。
+2. `LitInput.hlsl` 在 `UnityPerMaterial` CBUFFER 增加纹理/缩放/偏移与 remap；声明与现有 `_BaseMap` 相同的 `_ST` 约定。
+3. SurfaceData 构建时按 UV 采样：`thickness = remap.x + remap.y * sample`；`transmittanceColor *= map.rgb`；仅在 `_REFRACTION_*` 变体启用纹理采样，避免非折射材质多采样。
+4. ShaderGraph Lit target 增加同名属性与 texture slot；`PBRForwardPass.hlsl` 从 SurfaceDescription 读取（如果 target 支持），否则至少暴露材质属性并走默认值。
+5. GUI 在 `LitShader.cs` / `ShaderGraphLitGUI.cs` 的 Refraction 区增加贴图槽；未选择时使用 white，保持旧材质视觉不变。
+6. 不使用 `_Thickness` 作为 SSS 厚度（URP Lit 无 SSS），避免与 transmission 语义冲突。
+
+**验收标准**
+
+1. 默认 white 贴图 + remap (0,1)：输出与 P1-2 后基线逐字节一致。
+2. 渐变 thickness 贴图：玻璃不同区域的吸收随厚度单调变化，与解析 Beer-Lambert 误差 ≤ 2%。
+3. 彩色 transmittance map：逐像素色相/强度正确，透明区域仍按 mask 合成。
+4. 未使用贴图的材质无额外纹理绑定/变体；SRP Batcher 兼容。
+5. 纹理缺失/默认资源被裁剪时回退 white，无洋红/黑块。
+
+**交付物**
+
+- 属性、CBUFFER、采样、GUI、ShaderGraph 属性。
+- 渐变厚度/彩色透射贴图对照与 `Report.json`。
+
+---
+
+### P2-4 预积分 FGD LUT（可选）
+
+**差异**
+
+HDRP 用 `GetPreIntegratedFGDGGXAndDisneyDiffuse` 的 LUT 计算 `specularFGD`；URP 用 `EnvironmentBRDFSpecular` + `Pow4(1-NdotV)` 近似。中等粗糙度玻璃的能量会有偏差。
+
+**实现方案**
+
+1. 评估是否值得：优先确认 P1-1 后粗糙玻璃与 HDRP 的差异是否仍超过验收阈值；若不超过，不引入 LUT。
+2. 若实施：把 HDRP 的 `_PreIntegratedFGD_GGXDisneyDiffuse` 资源与 `GetPreIntegratedFGD...` 函数移植到 URP，作为全局纹理绑定；仅折射变体采样。
+3. 与 P0-2 的拆分函数共用 FGD，确保 direct/indirect 一致。
+4. 记录显存、采样次数、变体数；若成本超过收益，保留近似并在已知差异中写明。
+
+**验收标准**
+
+1. 粗糙度 0.2/0.5/0.8 的玻璃反射/透射与 HDRP 同参数截图通道均值误差 ≤ 5%。
+2. 非折射材质不使用该 LUT，输出不变。
+3. 资源缺失时回退 `EnvironmentBRDFSpecular`，无报错。
+
+**交付物**
+
+- （若实施）LUT 资源、绑定、采样路径与对照报告；否则在已知差异中记录“FGD 近似”。
+
+---
+
+### P2-5 动态分辨率 / MSAA / 材质覆盖的测试与文档
+
+**内容**
+
+1. 动态分辨率：URP 14.0.12 不驱动 `DynamicResolutionHandler`，`ScalableBufferManager` 不缩放 RTHandle 相机目标；维持“不支持”结论，补一条折射相关的 readback/日志证据，避免后续误判。
+2. MSAA：补 Forward/Forward+ MSAA 下颜色金字塔生成与折射采样测试；Deferred 兼容路径忽略 MSAA，按现有 T12 结论记录。
+3. 材质覆盖：明确 Lit、Complex Lit、ShaderGraph Lit 支持；SimpleLit/Particles/Terrain 继续走 probe，不实现折射。若未来需要，按 P2-3 的属性契约另开任务。
+4. 平台：DX11/DX12/Vulkan 至少 smoke；Metal/mobile/HMD 未测试平台继续在支持矩阵标为不承诺。
+
+**验收标准**
+
+- 文档与实测一致；MSAA 开关不产生 NaN/越界；动态分辨率限制有证据；材质覆盖测试与 T11/T12 一致。
+
+**交付物**
+
+- 更新后的支持矩阵/已知差异；MSAA/材质覆盖测试结果。
+
+---
+
+### P2-6 验证报告、已知差异、归档与清理
+
+**内容**
+
+1. 汇总所有 P0/P1/P2 任务的结果到 `validation/05-ScreenSpaceRefractionImprove/Report.json` 与 `Report.md`。
+2. 更新 `T14KnownDifferences.md`：删除已修复条目（opacity、无 box probe 无折射、Thin 吸收距离），保留有意差异（per-object probe 近似、FGD 近似、pre-refraction 若延期、动态分辨率、材质覆盖）。
+3. 更新主 [ScreenSpaceLighting HANDOFF](../../Done/01-ScreenSpaceLighting/HANDOFF.md) 的当前位置与唯一事实入口。
+4. 退出后把本目录移动到 `PLAN/Done/05-ScreenSpaceRefractionImprove/`，保留 `validation/` 全部证据。
+5. 执行第 7、8 节的交付与清理清单。
+
+**验收标准**
+
+- 报告 `exitCriteriaMet=true`；所有 P0/P1 用例通过或明确记录阻塞；文档、代码、证据三者一致；工作区干净。
+
+---
+
+## 6. 如何收尾与验收
+
+### 6.1 收尾流程
+
+1. **冻结范围**：P0 全部完成；P1 完成或在报告中明确“引擎/接口阻塞”；P2 按决策门选择，不允许静默跳过。
+2. **跑完整回归**：
+   - EditMode / PlayMode 全量；
+   - T12 组合矩阵 34/34/35（Forward/Forward+/Deferred）；
+   - 关闭 Volume、intensity=0、`_RefractionModel=None`、非折射透明、SimpleLit 的逐字节基线；
+   - XR single-pass/multipass smoke；
+   - Release Player（含 shader prefiltering）构建，确认折射变体未被打掉。
+3. **采集证据**：每个用例保存 PNG、指标 CSV、基线哈希；所有用例写入 JSON，不接受“看起来正常”。
+4. **更新文档**：已知差异、支持矩阵、主 HANDOFF、本文件状态。
+5. **归档**：`PLAN/TODO/05-ScreenSpaceRefractionImprove` → `PLAN/Done/05-ScreenSpaceRefractionImprove`。
+6. **清理工作区**：见第 8 节；确认 `git status` 只包含预期文件。
+
+### 6.2 退出标准
+
+| 类别 | 标准 |
+|---|---|
+| 编译 | 0 error；新增 warning 为 0（或有明确理由） |
+| P0 | P0-1/P0-2/P0-3 全部验收用例通过；opacity、fallback、no-proxy 三个主场景无黑块/双计 |
+| P1 | P1-1/P1-2 通过；P1-3 通过或记录为“per-object probe 近似”的已接受差异 |
+| 回归 | 非折射/关闭效果逐字节一致；T12 34/34/35；EditMode/PlayMode 全绿 |
+| 视觉 | 边缘带无硬切；无 NaN/Inf/负值；屏幕命中与 fallback 过渡连续 |
+| XR | 单 pass + multipass smoke 通过；无 per-eye 资源串用 |
+| 构建 | Release Player 成功；17 个必需 Shader/ComputeShader 在包内；无 missing feature |
+| 性能 | 记录 1080p GPU p95；相对本轮基线回归 ≤ 10%（DVFS 无效时标注为参考） |
+| 显存 | 新增 probe 表/资源 ≤ 预算；分辨率切换 10 次无泄漏（RTHandle 计数回落） |
+| 文档 | 已知差异、支持矩阵、HANDOFF、报告一致；opacity 旧描述已修正 |
+| 证据 | `Report.json` 每个用例有 `passed`、图/指标路径、基线哈希；`Report.md` 有结论 |
+
+### 6.3 证据格式
+
+```text
+PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/
+  BaselineHashes.json
+  Report.json
+  Report.md
+  P0-1/{images,metrics.csv}
+  P0-2/{images,fitting.csv}
+  P0-3/{images}
+  P1-1/{images,analytic.csv}
+  P1-2/{images}
+  P1-3/{images,perf.json}
+  P2-*/...
+```
+
+`Report.json` 每个用例至少包含：
+
+```json
+{
+  "taskId": "P0-2",
+  "case": "opacity_mask_0p0_0p3_1p0",
+  "passed": true,
+  "images": ["P0-2/opacity_0.png", "P0-2/opacity_0p3.png", "P0-2/opacity_1.png"],
+  "metrics": { "fitSlopeError": 0.021, "r2": 0.997, "maxChannelDiff": 0 },
+  "baselineHash": "sha256:...",
+  "notes": ""
+}
+```
+
+---
+
+## 7. 交付产物
+
+1. **代码**
+   - `ScreenSpaceRefraction.hlsl`：输出结构、fallback、infinite proxy、Thin atDistance、边界语义。
+   - `LitForwardPass.hlsl` / `PBRForwardPass.hlsl`：拆分散射、mask 合成、fallback 接线。
+   - `Lighting.hlsl` / `BRDF.hlsl`：`UniversalFragmentPBRSplit`、`IorToFresnel0`、F0 覆盖。
+   - `RefractionPass.cs`：proxy 模式、keyword 生命周期、probe 表、可选 pre-refraction。
+   - `UniversalRenderer`（仅 P2-2）：透明队列范围 hook。
+   - `Lit.shader` / `ComplexLit.shader` / ShaderGraph target / GUI：P2-3 属性。
+2. **测试资产**
+   - `Assets/Tests/ScreenSpaceLighting/RefractionImprove/` 下的场景、材质、贴图、渲染器资产；命名与 T11 风格一致。
+   - EditMode/PlayMode 测试；shader 变体/关键字断言。
+3. **验证证据**
+   - `validation/05-ScreenSpaceRefractionImprove/` 下第 6.3 节结构；保留 PNG/CSV/JSON。
+4. **文档**
+   - 更新 `T14KnownDifferences.md`（或新建本轮 KnownDifferences）与支持矩阵。
+   - 更新主 `PLAN/Done/01-ScreenSpaceLighting/HANDOFF.md` 和本文件状态。
+   - 若 P2-2 延期，附决策记录；若 P2-4 不做，写明 FGD 近似。
+5. **清理记录**
+   - `Cleanup.md`：删除的临时目录、恢复的 ProjectSettings SHA-256、最终 `git status --short` 截图/文本。
+
+---
+
+## 8. 工作区清理
+
+完成验收后按以下顺序清理，保留证据、删除临时产物：
+
+1. **先记录再删除**：`git status --short`、`git diff --check` 各保存一份到 `validation/.../Cleanup/git-status.txt`。
+2. **删除临时播放器/构建**：本轮创建的 `Builds/RefractionImproveTemp*`、`Temp/`、`Logs/`、`UserSettings/` 变更；不要删除 `Assets/Tests/ScreenSpaceLighting/RefractionImprove/` 与 `validation/`。
+3. **恢复 ProjectSettings**：如果为测试改过 `ProjectSettings/*.asset`（Graphics/Quality/Pipeline 等），逐项恢复并用开工前记录的 SHA-256 校验；把校验结果写入 `Cleanup.md`。
+4. **清理临时场景/材质**：不留 `Assets/**/Temp*`、`Assets/**/Capture*`；测试所需资产保留并确认 `.meta` 齐全、无孤儿 `.meta`。
+5. **清理 GPU/Frame Debugger 临时捕获**：只保留 `validation/` 内的证据；删除 `Captures/`、`Recordings/` 中的临时文件。
+6. **确认没有提交生成物**：`Library/`、`Temp/`、`Logs/`、`*.csproj`、`*.sln` 不应进入提交；不要用 `git add -A` 盲目提交。
+7. **最终检查**：
+   - `git status --short` 只包含预期代码、测试资产、验证证据与文档；
+   - `git diff --check` 无空白错误；
+   - 所有新资源有 `.meta`；
+   - `Report.json` 的路径均存在；
+   - 归档目录从 `PLAN/TODO` 移到 `PLAN/Done` 后，旧路径无残留引用。
+8. **证据保留原则**：PNG/CSV/JSON 全部保留（项目既往做法）；只删“无法复现的临时中间文件”。如果不确定，先移到 `validation/.../Trash/` 并在 `Cleanup.md` 说明，不直接 `rm`。
+
+---
+
+## 9. 风险与开放问题
+
+1. **`GlossyEnvironmentReflection` 在无 probe 场景的行为**：必须实测 `unity_SpecCube0` 是否为 sky/默认 cube；若为黑，P0-1 需要 SH 兜底，验收指标要相应调整。
+2. **per-object probe 与 URP 反射 probe 选择不一致**：URP 的 `unity_SpecCube0` 由 Unity per-renderer 选择，shader 侧 probe 表是近似；可能出现“反射用 A、折射用 B”。P1-3 验收只要求不跳变、可解释。
+3. **Light layer 可用性**：先确认 14.0.12 的 `ReflectionProbe` 是否暴露 `renderingLayerMask`；不可用就明确记录，不硬造数据。
+4. **拆分函数与 URP 变体**：`UniversalFragmentPBRSplit` 复制光照逻辑，未来 URP 升级要同步；在已知差异中注明维护点。
+5. **pre-refraction 的 core 改动**：queue range hook 会影响所有透明材质排序；必须单独评审，不能与 P0 混在一个提交。
+6. **Premultiply/Additive 混合**：`alpha=1` 与 mask 语义可能冲突；先 Alpha，其他模式记录限制。
+7. **HDRP 像素级对照 vs 语义验收**：两条管线曝光、fog、probe 系统不同，P0/P1 以解析/结构指标为准；像素对照只作为辅助，不承诺全图误差阈值。
+8. **性能**：拆分光照 + probe 表循环会增加折射变体成本；必须在报告中给出 1080p p95、指令数和变体数，超过 10% 要有取舍记录。
+
+---
+
+## 10. 下一步
+
+1. 先做 P0-1（fallback），因为它是 P0-2 的前提；P0-1 完成后再改 P0-2，避免 opacity=0 时出现黑洞。
+2. P0-3 与 P1-2 可以并行；P1-2 是单点低风险修改，适合先拿一个可验证的语义修复。
+3. P1-1 依赖 P0-2 的拆分结果；P1-3 依赖 P0-3 的代理表。
+4. P2-2 在动 core 前先做决策：目标场景是否真的需要透明叠透明；不需要就保留已知差异并记录。
+5. 每个任务完成即写 `validation/.../任务ID/` 证据，不要攒到最后；最后一轮只做回归、文档和清理。
