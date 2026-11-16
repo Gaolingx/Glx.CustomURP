@@ -1,19 +1,21 @@
 #ifndef UNIVERSAL_SCREEN_SPACE_LIGHTING_REFLECTION_PROBE_FALLBACK_INCLUDED
 #define UNIVERSAL_SCREEN_SPACE_LIGHTING_REFLECTION_PROBE_FALLBACK_INCLUDED
 
-// Forward+ reflection probe fallback for the SSGI miss path.
+// Reflection probe fallback for the SSGI miss path.
 //
-// URP publishes the probe atlas, the per-probe boxes and the Forward+ zbin/tile cluster buffers as
-// globals (ReflectionProbeManager.cs and ForwardLights.cs), so a compute dispatch can read the same
-// per-pixel probe list the fragment path uses in GlobalIllumination.hlsl. This file repeats only the
-// pieces of Input.hlsl and Clustering.hlsl that are compute safe: Input.hlsl pulls per-draw state
-// and the full URP lighting library, which a compute kernel must not depend on.
+// URP publishes the probe atlas and the per-probe boxes as globals (ReflectionProbeManager.cs). In
+// Forward+ it also publishes the zbin/tile cluster buffers (ForwardLights.cs), so a compute dispatch
+// can read the same per-pixel probe list the fragment path uses in GlobalIllumination.hlsl. This file
+// repeats only the pieces of Input.hlsl and Clustering.hlsl that are compute safe: Input.hlsl pulls
+// per-draw state and the full URP lighting library, which a compute kernel must not depend on.
 //
 // Differences from the fragment path:
 // - the probe is sampled at mip 0 (HDRP samples its env atlas at LOD 0 for SSGI), not at the
 //   roughness-derived specular mip;
 // - box projection follows the per-probe flag instead of the per-material keyword, matching HDRP's
 //   per-probe influence shape;
+// - Forward and Deferred have no cluster list, so they iterate every visible probe instead (the box
+//   weight early-outs and does not depend on the engine's probe ordering).
 // - the cluster iterator receives the camera position and view forward explicitly because compute
 //   kernels have no per-draw view constants.
 
@@ -191,6 +193,39 @@ float3 SslSampleReflectionProbesAtlas(float3 directionWS, float3 positionWS,
         if (probeIndex >= (uint)urp_ReflProbes_Count)
             continue;
 
+        float weight = SslCalculateProbeWeight(positionWS, urp_ReflProbes_BoxMin[probeIndex],
+            urp_ReflProbes_BoxMax[probeIndex]);
+        weight = min(weight, 1.0 - totalWeight);
+        if (weight <= 0.0)
+            continue;
+
+        float3 sampleVector = SslBoxProjectedCubemapDirection(directionWS, positionWS,
+            urp_ReflProbes_ProbePosition[probeIndex], urp_ReflProbes_BoxMin[probeIndex],
+            urp_ReflProbes_BoxMax[probeIndex]);
+
+        float2 uv = saturate(PackNormalOctQuadEncode(sampleVector) * 0.5 + 0.5);
+        float4 scaleOffset = urp_ReflProbes_MipScaleOffset[probeIndex * 7];
+        float3 probeColor = SAMPLE_TEXTURE2D_LOD(urp_ReflProbes_Atlas, samplerurp_ReflProbes_Atlas,
+            uv * scaleOffset.xy + scaleOffset.zw, 0.0).rgb;
+
+        color += weight * probeColor;
+        totalWeight += weight;
+    }
+
+    return color;
+}
+
+// Non-clustered path for Forward and Deferred: the atlas holds every visible probe, so the list is
+// walked directly. The semantics match the cluster version (box weight, remaining-weight clamp,
+// box projection and mip 0).
+float3 SslSampleReflectionProbesList(float3 directionWS, float3 positionWS, out float totalWeight)
+{
+    totalWeight = 0.0;
+    float3 color = float3(0.0, 0.0, 0.0);
+
+    uint probeCount = (uint)urp_ReflProbes_Count;
+    [loop] for (uint probeIndex = 0; probeIndex < probeCount && totalWeight < 0.99; probeIndex++)
+    {
         float weight = SslCalculateProbeWeight(positionWS, urp_ReflProbes_BoxMin[probeIndex],
             urp_ReflProbes_BoxMax[probeIndex]);
         weight = min(weight, 1.0 - totalWeight);

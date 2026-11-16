@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly string SsgiNormalsOctKeyword = "SSGI_NORMALS_OCT";
         internal static readonly string SsgiBlueNoiseKeyword = "SSGI_BLUE_NOISE";
         internal static readonly string SslProbeAtlasKeyword = "SSL_PROBE_ATLAS";
+        internal static readonly string SslProbeListKeyword = "SSL_PROBE_LIST";
 
         // ---------------------------------------------------------------------------------------
         // Opaque Screen Space Reflections (Approximation)

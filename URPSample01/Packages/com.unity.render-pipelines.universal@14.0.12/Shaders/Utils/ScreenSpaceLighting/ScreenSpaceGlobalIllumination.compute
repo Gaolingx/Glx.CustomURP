@@ -11,13 +11,13 @@
 #pragma multi_compile _ SSGI_NORMALS_OCT
 #pragma multi_compile _ SSGI_BLUE_NOISE
 #pragma multi_compile _ SSL_XR_ARRAY
-#pragma multi_compile _ SSL_PROBE_ATLAS
+#pragma multi_compile _ SSL_PROBE_ATLAS SSL_PROBE_LIST
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayMarching.hlsl"
-#if defined(SSL_PROBE_ATLAS)
+#if defined(SSL_PROBE_ATLAS) || defined(SSL_PROBE_LIST)
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl"
 #endif
 
@@ -64,8 +64,9 @@ float3 SsgiEvaluateAmbientProbe(float3 normalWS)
     return max(SampleSH9(sh, normalWS), float3(0.0, 0.0, 0.0));
 }
 
-// HDRP samples its reflection probe atlas along the ray direction. URP has no per-tile env light list
-// inside a compute, so the default reflection cubemap (sky or the custom default probe) is sampled.
+// Last-resort fallback: the default reflection cubemap (sky or the custom default probe). Used when
+// the probe atlas variant is off, which is the Forward / Deferred default until the feature toggle
+// publishes the atlas.
 float3 SsgiSampleReflectionProbe(float3 directionWS)
 {
     float4 encoded = _SsgiReflectionProbeCubemap.SampleLevel(s_ssgi_linear_clamp_sampler, directionWS, 0);
@@ -181,6 +182,14 @@ void ReprojectGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
                     float2 normalizedUV = ((float2)inputCoord + 0.5) * _SsgiScreenSize.zw;
                     float probeWeight;
                     float3 probeColor = SslSampleReflectionProbesAtlas(sampleDir, positionWS, normalizedUV, probeWeight);
+                    color += probeColor;
+                    weight = probeWeight;
+#elif defined(SSL_PROBE_LIST)
+                    // Forward / Deferred with the feature toggle: no cluster list, so every visible
+                    // probe in the atlas is tested and the box weight rejects the distant ones.
+                    float3 positionWS = SsgiReconstructPositionWS((float2)inputCoord, deviceDepth);
+                    float probeWeight;
+                    float3 probeColor = SslSampleReflectionProbesList(sampleDir, positionWS, probeWeight);
                     color += probeColor;
                     weight = probeWeight;
 #else

@@ -227,10 +227,15 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, blueNoise);
             SetKeyword(denoiserCompute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, blueNoise);
 
-            // The probe atlas and cluster buffers are only published by the Forward+ path.
-            bool probeAtlas = cameraData.renderer is UniversalRenderer universalRenderer &&
-                universalRenderer.renderingModeActual == RenderingMode.ForwardPlus;
-            SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SslProbeAtlasKeyword, probeAtlas);
+            // Forward+ publishes the cluster list; Forward / Deferred use the flat visible-probe list
+            // when the Screen Space Lighting feature opts into the atlas.
+            bool forwardPlus = cameraData.renderer is UniversalRenderer forwardPlusRenderer &&
+                forwardPlusRenderer.renderingModeActual == RenderingMode.ForwardPlus;
+            bool probeList = !forwardPlus &&
+                cameraData.renderer is UniversalRenderer probeListRenderer &&
+                probeListRenderer.publishSslProbeAtlas;
+            SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SslProbeAtlasKeyword, forwardPlus);
+            SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SslProbeListKeyword, probeList);
 
             if (useTextureArray)
             {

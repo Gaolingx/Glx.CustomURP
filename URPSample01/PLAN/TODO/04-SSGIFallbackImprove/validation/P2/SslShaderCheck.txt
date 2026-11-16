@@ -1,0 +1,11 @@
+IMPORTED Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute computeMessages=0
+KERNEL TraceGlobalIllumination index=0
+KERNEL ReprojectGlobalIllumination index=1
+PRAGMA SSL_PROBE_ATLAS+SSL_PROBE_LIST: True
+INCLUDE SSL_PROBE_LIST: True
+CALL SslSampleReflectionProbesAtlas: True
+CALL SslSampleReflectionProbesList: True
+DEF SslSampleReflectionProbesAtlas: True
+DEF SslSampleReflectionProbesList: True
+LIST iterates urp_ReflProbes_Count: True
+EDITOR 2022.3.62f1
