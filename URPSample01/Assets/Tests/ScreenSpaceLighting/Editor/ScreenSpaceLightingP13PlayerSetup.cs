@@ -16,7 +16,7 @@ public static class ScreenSpaceLightingP13PlayerSetup
     const string PipelinePath = "Assets/Tests/ScreenSpaceLighting/Renderers/SslT11ForwardPipeline.asset";
     const string ProfilePath = "Assets/Tests/ScreenSpaceLighting/Profiles/ScreenSpaceLightingT3Profile.asset";
     const string MaterialRoot = "Assets/Tests/ScreenSpaceLighting/Materials";
-    const string OutputRoot = "PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/P1-3/Player";
+    const string OutputRoot = "PLAN/Done/05-ScreenSpaceRefractionImprove/validation/P1-3/Player";
 
     [MenuItem("Tests/Screen Space Lighting/Create P1-3 Player Scene")]
     public static void CreateScene()
