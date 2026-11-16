@@ -1,7 +1,7 @@
 # Screen Space Lighting 全量 GPU 验证与收尾交接（06-ValidationAllRDC）
 
 > 更新：2026-11-17
-> 状态：**静态审计完成，验证与修复未开始**。本轮当前只交付本文件；没有修改运行时代码、没有启动 Unity、没有采集抓帧。
+> 状态：**静态审计完成，P0 工具链冒烟通过，验证与修复未开始**。本轮当前只交付计划与本冒烟记录；没有修改运行时代码、没有启动 Unity、没有采集新抓帧。
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`，下文 `HDRP/`）
 > URP 目标包：`URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）
 > 关联文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[T14 支持矩阵](../../Done/01-ScreenSpaceLighting/validation/T14/T14SupportMatrix.md)、[01 ScreenSpaceLighting](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[02 SSRImprove](../../Done/02-SSRImprove/HANDOFF.md)、[03 SSRImprove2](../../Done/03-SSRImprove2/HANDOFF.md)、[04 SSGIFallbackImprove](../../Done/04-SSGIFallbackImprove/HANDOFF.md)、[05 ScreenSpaceRefractionImprove](../../Done/05-ScreenSpaceRefractionImprove/HANDOFF.md)、[RenderDoc 操作手册](../../../../MCP/RenderDocOperations.md)
@@ -33,6 +33,8 @@
 - 既有证据的覆盖盲区：GTAO 全分辨率与正交、SSGI 的多探针混合与覆盖比例、SSR 降噪器常量与 history 接受率、三效果的 cbuffer 数值绑定，都没有 GPU 侧证据。
 
 **本轮未做**：任何运行时修改、shader 修改、测试运行、player 构建、`.rdc` 采集。本文件只冻结范围、缺陷与验收标准。
+
+**工具链冒烟（2026-11-17）**：RenderDoc 1.47、renderdoc-mcp v0.3.0、Python 3.13.9、Unity 2022.3.62f1 与三渲染器资产均已确认；在归档 P1-3 抓帧上跑通 `renderdoc-cli info/draws`、`rdmcp.py open/debug-pixel`，像素输出与归档证据一致。构建/抓帧段路径与参数就绪，实际 player 构建留给 P0-1。详见 [validation/P0/ToolchainSmoke.md](validation/P0/ToolchainSmoke.md)。原生 MCP 未在当前会话暴露，使用 CLI 或 `MCP/tools/rdmcp.py`。
 
 ---
 
