@@ -1,7 +1,7 @@
 # Screen Space Lighting 全量 GPU 验证与收尾交接（06-ValidationAllRDC）
 
 > 更新：2026-11-17
-> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1–P6 修复与验收未开始**。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式；未修改运行时代码或 shader。
+> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1-1（F-01）与 P2-1（SSGI 生效链）完成**；P1-2、P1-3、P2-2 起未开始。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式。P1-1 修复 GTAO 全分辨率深度守卫；P2-1 完成 SSGI dispatch/history/LUT/atlas 的 CPU+GPU 验收（10/10）。
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`，下文 `HDRP/`）
 > URP 目标包：`URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）
 > 关联文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[T14 支持矩阵](../../Done/01-ScreenSpaceLighting/validation/T14/T14SupportMatrix.md)、[01 ScreenSpaceLighting](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[02 SSRImprove](../../Done/02-SSRImprove/HANDOFF.md)、[03 SSRImprove2](../../Done/03-SSRImprove2/HANDOFF.md)、[04 SSGIFallbackImprove](../../Done/04-SSGIFallbackImprove/HANDOFF.md)、[05 ScreenSpaceRefractionImprove](../../Done/05-ScreenSpaceRefractionImprove/HANDOFF.md)、[RenderDoc 操作手册](../../../../MCP/RenderDocOperations.md)
@@ -37,6 +37,8 @@
 **工具链冒烟（2026-11-17）**：RenderDoc 1.47、renderdoc-mcp v0.3.0、Python 3.13.9、Unity 2022.3.62f1 与三渲染器资产均已确认；在归档 P1-3 抓帧上跑通 `renderdoc-cli info/draws`、`rdmcp.py open/debug-pixel`，像素输出与归档证据一致。构建/抓帧段路径与参数就绪，实际 player 构建留给 P0-1。详见 [validation/P0/ToolchainSmoke.md](validation/P0/ToolchainSmoke.md)。原生 MCP 未在当前会话暴露，使用 CLI 或 `MCP/tools/rdmcp.py`。
 
 **P0 基础设施与冒烟（2026-11-17）**：`ScreenSpaceLightingValidationPlayerSetup` 生成三套 validation renderer/pipeline、Profile、材质与场景，并构建 D3D11 Development player；`ScreenSpaceLightingValidationPlayerVerification` 按 manifest 切换渲染器/Volume/Feature、设置位姿、预热、抓帧、截图并写 `Report.json`；`ScreenSpaceLightingBindingProbeFeature` + `ScreenSpaceLightingBindingProbe.compute` 回读 35 个 cbuffer/全局字段。9 个用例（三渲染器 × GTAO/SSGI/SSR/折射）全部通过：抓帧成功、0 非有限像素、probe 0 不匹配；dispatch census 与图像差异见 [validation/P0/SmokeReport.md](validation/P0/SmokeReport.md)。`BuildPlayer` 以 Deferred 资产构建（否则 URP 会剥离 deferred 变体），Forward/Forward+ 仍在运行时切换正常。
+
+**P1-1 与 P2-1（2026-11-17）**：F-01 修复 `GTAOCommon.hlsl` 的 `#ifdef FULL_RES` 守卫并删除 `_GtaoParams0.x` 死写入；新增 EditMode 回归测试。GPU 前后对比中 full↔half 相关系数 0.99090 → 0.99983、平均绝对差 1.005 → 0.144，半分辨率路径不变（证据 [validation/P1-1/Report.md](validation/P1-1/Report.md)）。P2-1 为 `ScreenSpaceLightingSsgiPass` 增加 DEV-only 调度快照（计数、组维度、keyword、history 槽位），10 个 SSGI 用例覆盖 full/half、temporal/denoise 变体、atlas 与三渲染器；CPU 逐 kernel 匹配，GPU 抓帧确认 dispatch 顺序、history 乒乓、blue-noise LUT 与探针 atlas 绑定（证据 [validation/P2-SSGI/Report.md](validation/P2-SSGI/Report.md)）。
 
 ---
 
@@ -350,11 +352,11 @@ HDRP 的 `DiffuseDenoiser.compute:150-153` 在 tap 投影时处理 `UNITY_UV_STA
 | P0-2 | P0 | RDC 分析管线（census / binding / pixel / RT 导出） | P0-1 | `MCP/tools/`、`Assets/Tests/.../Editor/` | 冒烟通过（CLI，未脚本化） |
 | P0-3 | P0 | Binding probe（uniform 原样输出 + CPU 回读） | P0-1 | `Assets/Tests/ScreenSpaceLighting/Shaders/` | **完成（冒烟）** |
 | P0-4 | P0 | 证据 schema、`.rdc` 体积策略、基线哈希 | 无 | `validation/06-ValidationAllRDC/` | **完成（schema 落地）** |
-| P1-1 | P1 | 修复 GTAO 全分辨率深度（F-01） | P0 | `GTAOCommon.hlsl` | 待开始 |
+| P1-1 | P1 | 修复 GTAO 全分辨率深度（F-01） | P0 | `GTAOCommon.hlsl` | **完成（Fixed，证据 [P1-1/Report.md](validation/P1-1/Report.md)）** |
 | P1-2 | P1 | 修复 GTAO 正交深度/视线（F-03） | P0 | `GroundTruthAmbientOcclusionPass.cs`、`GTAO.compute`、`GTAOCommon.hlsl` | 待开始 |
 | P1-3 | P1 | GTAO 生效与正确性 GPU 验收（含 F-10） | P0/P1-1/P1-2 | `validation/.../P1-GTAO/` | 待开始 |
 | P1-4 | P1 | GTAO 材质覆盖与 Deferred 双路径 | P1-3 | 测试场景/材质 | 待开始 |
-| P2-1 | P2 | SSGI 生效链 GPU 验收（dispatch/history/LUT/atlas） | P0 | `validation/.../P2-SSGI/` | 待开始 |
+| P2-1 | P2 | SSGI 生效链 GPU 验收（dispatch/history/LUT/atlas） | P0 | `validation/.../P2-SSGI/` | **完成（10/10，证据 [P2-SSGI/Report.md](validation/P2-SSGI/Report.md)）** |
 | P2-2 | P2 | 修复 SSGI 历史 stamp（F-07） | P2-1 | `SsgiPass.cs`、`ScreenSpaceLightingSettings.cs` | 待开始 |
 | P2-3 | P2 | 确认/修复 denoiser Y 翻转（F-09） | P2-1 | `DiffuseDenoiser.compute` | 待开始 |
 | P2-4 | P2 | SSGI 覆盖/多探针/时域正确性场景 | P2-1/P2-2 | 测试场景/材质 | 待开始 |

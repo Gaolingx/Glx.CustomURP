@@ -1,0 +1,18 @@
+{
+  "before": {
+    "fullHalfCorrelation": 0.9908975612907069,
+    "fullHalfMeanAbsoluteDifference": 1.0051816979166666
+  },
+  "after": {
+    "fullHalfCorrelation": 0.99983384010103,
+    "fullHalfMeanAbsoluteDifference": 0.14395200520833334
+  },
+  "fullResolutionChange": {
+    "meanAbsoluteDifference": 0.9214027135416667,
+    "correlation": 0.9911662246716699
+  },
+  "halfResolutionChange": {
+    "meanAbsoluteDifference": 0.07552972743055554,
+    "correlation": 0.9999683517141321
+  }
+}

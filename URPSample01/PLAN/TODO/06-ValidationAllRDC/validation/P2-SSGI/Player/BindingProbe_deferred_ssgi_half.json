@@ -1,0 +1,636 @@
+{
+    "id": "deferred_ssgi_half",
+    "frameIndex": 191,
+    "fields": [
+        {
+            "field": "_SsgiScreenSize",
+            "applicable": true,
+            "expected": {
+                "x": 1280.0,
+                "y": 720.0,
+                "z": 0.0007812500116415322,
+                "w": 0.0013888889225199819
+            },
+            "actual": {
+                "x": 1280.0,
+                "y": 720.0,
+                "z": 0.0007812500116415322,
+                "w": 0.0013888889225199819
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsgiTraceSize",
+            "applicable": true,
+            "expected": {
+                "x": 640.0,
+                "y": 360.0,
+                "z": 0.0015625000232830644,
+                "w": 0.0027777778450399639
+            },
+            "actual": {
+                "x": 640.0,
+                "y": 360.0,
+                "z": 0.0015625000232830644,
+                "w": 0.0027777778450399639
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsgiRayMarchingParams",
+            "applicable": true,
+            "expected": {
+                "x": 32.0,
+                "y": 0.9090909361839294,
+                "z": -0.00009100009629037231,
+                "w": 1.0
+            },
+            "actual": {
+                "x": 32.0,
+                "y": 0.9090909361839294,
+                "z": -0.00009100009629037231,
+                "w": 1.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsgiRayMarchingParams2",
+            "applicable": true,
+            "expected": {
+                "x": 2.0,
+                "y": 12.0,
+                "z": 1.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 2.0,
+                "y": 12.0,
+                "z": 1.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsgiZBufferParams",
+            "applicable": true,
+            "expected": {
+                "x": 999.0,
+                "y": 1.0,
+                "z": 9.989999771118164,
+                "w": 0.009999999776482582
+            },
+            "actual": {
+                "x": 999.0,
+                "y": 1.0,
+                "z": 9.989999771118164,
+                "w": 0.009999999776482582
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsgiTemporalParams",
+            "applicable": true,
+            "expected": {
+                "x": 0.5,
+                "y": 2.0,
+                "z": 0.20000000298023225,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.5,
+                "y": 2.0,
+                "z": 0.20000000298023225,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsgiDenoiserParams",
+            "applicable": true,
+            "expected": {
+                "x": 0.0032075014896690847,
+                "y": -1.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0032075014896690847,
+                "y": -1.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsgiCameraPositionWS",
+            "applicable": true,
+            "expected": {
+                "x": 0.0,
+                "y": 2.0,
+                "z": -7.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 2.0,
+                "z": -7.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsrScreenSize",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsrTraceSize",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsrRayMarchingParams",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsrRoughnessFadeParams",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsrPyramidParams",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsrPbrParams",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SsrPbrFlags",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoBufferSize",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoScreenSize",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoParams0",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoParams1",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoParams2",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoParams3",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoParams4",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoFirstTwoDepthMipOffsets",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoDepthToViewParams",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoZBufferParams",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoOrthoHalfSize",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoViewRow0",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoViewRow1",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_GtaoViewRow2",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SslRefractionParams",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SslRefractionColorPyramidScaleAndLimit",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SslRefractionProbeCount",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SslRefractionProbeMin[0]",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SslRefractionProbeMax[0]",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        },
+        {
+            "field": "_SslRefractionProbeParams[0]",
+            "applicable": false,
+            "expected": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "actual": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            },
+            "maxAbsoluteError": 0.0,
+            "passed": true
+        }
+    ]
+}

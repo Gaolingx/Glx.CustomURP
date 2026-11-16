@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "renderer": "Forward",
+  "warmupFrames": 10,
+  "cases": [
+    {
+      "id": "forward_gtao_full_after",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0], "panPixelsPerFrame": 0 },
+      "captureAfterFrames": 0,
+      "capture": true,
+      "screenshot": true,
+      "bindingProbe": true,
+      "volume": {},
+      "gtao": { "intensity": 1, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_half_after",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0], "panPixelsPerFrame": 0 },
+      "captureAfterFrames": 0,
+      "capture": true,
+      "screenshot": true,
+      "bindingProbe": true,
+      "volume": {},
+      "gtao": { "intensity": 1, "fullResolution": false, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    }
+  ]
+}

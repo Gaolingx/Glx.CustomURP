@@ -1,0 +1,2367 @@
+{
+  "captures": [
+    {
+      "capture": "deferred_ssgi_full_frame16235.rdc",
+      "caseId": "deferred_ssgi_full",
+      "ssgiMarker": {
+        "start": 342,
+        "end": 537
+      },
+      "dispatchCount": 9,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 363,
+          "label": "trace",
+          "csShader": "ResourceId::9849"
+        },
+        {
+          "order": 1,
+          "eventId": 391,
+          "label": "reproject",
+          "csShader": "ResourceId::9852"
+        },
+        {
+          "order": 2,
+          "eventId": 414,
+          "label": "validate",
+          "csShader": "ResourceId::9855"
+        },
+        {
+          "order": 3,
+          "eventId": 440,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 4,
+          "eventId": 454,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 5,
+          "eventId": 474,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 6,
+          "eventId": 500,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 7,
+          "eventId": 514,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 8,
+          "eventId": 534,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        }
+      ],
+      "resources": {
+        "OwenScrambledNoise256": [
+          {
+            "eventId": 363,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 391,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "ScramblingTile8SPP": [
+          {
+            "eventId": 363,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 391,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "RankingTile8SPP": [
+          {
+            "eventId": 363,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 391,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiHitPoint_1280x720_R16G16_SFloat_Tex2D": [
+          {
+            "eventId": 363,
+            "usage": "CS_RWResource",
+            "label": "trace"
+          },
+          {
+            "eventId": 391,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiProjection_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 391,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          },
+          {
+            "eventId": 440,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiAccumulation_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 440,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 454,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 474,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 500,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 514,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 534,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiDenoisedHF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 474,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 500,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiDenoisedLF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 534,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiValidation_1280x720_R8_UInt_Tex2D": [
+          {
+            "eventId": 414,
+            "usage": "CS_RWResource",
+            "label": "validate"
+          },
+          {
+            "eventId": 440,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 500,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 454,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiHistoryLF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 514,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiSampleCountHF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 440,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 500,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 440,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryLF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 500,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountHF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 440,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 500,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ]
+      }
+    },
+    {
+      "capture": "deferred_ssgi_half_frame16253.rdc",
+      "caseId": "deferred_ssgi_half",
+      "ssgiMarker": {
+        "start": 342,
+        "end": 552
+      },
+      "dispatchCount": 10,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 363,
+          "label": "trace",
+          "csShader": "ResourceId::9961"
+        },
+        {
+          "order": 1,
+          "eventId": 391,
+          "label": "reproject",
+          "csShader": "ResourceId::9962"
+        },
+        {
+          "order": 2,
+          "eventId": 414,
+          "label": "validate",
+          "csShader": "ResourceId::9855"
+        },
+        {
+          "order": 3,
+          "eventId": 440,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 4,
+          "eventId": 454,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 5,
+          "eventId": 474,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 6,
+          "eventId": 500,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 7,
+          "eventId": 514,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 8,
+          "eventId": 534,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 9,
+          "eventId": 549,
+          "label": "upsample",
+          "csShader": "ResourceId::9963"
+        }
+      ],
+      "resources": {
+        "OwenScrambledNoise256": [
+          {
+            "eventId": 363,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 391,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "ScramblingTile8SPP": [
+          {
+            "eventId": 363,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 391,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "RankingTile8SPP": [
+          {
+            "eventId": 363,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 391,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiHitPoint_640x360_R16G16_SFloat_Tex2D": [
+          {
+            "eventId": 363,
+            "usage": "CS_RWResource",
+            "label": "trace"
+          },
+          {
+            "eventId": 391,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiProjection_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 391,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          },
+          {
+            "eventId": 440,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiAccumulation_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 440,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 454,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 474,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 500,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 514,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 534,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiDenoisedHF_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 474,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 500,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiDenoisedLF_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 534,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 549,
+            "usage": "CS_Resource",
+            "label": "upsample"
+          }
+        ],
+        "SslSsgiFinal_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 549,
+            "usage": "CS_RWResource",
+            "label": "upsample"
+          }
+        ],
+        "SslSsgiValidation_1280x720_R8_UInt_Tex2D": [
+          {
+            "eventId": 414,
+            "usage": "CS_RWResource",
+            "label": "validate"
+          },
+          {
+            "eventId": 440,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 500,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF0_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 454,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiHistoryLF0_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 514,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiSampleCountHF0_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 440,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF0_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 500,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF1_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 440,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryLF1_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 500,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountHF1_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 440,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF1_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 500,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ]
+      }
+    },
+    {
+      "capture": "forward_ssgi_atlas_frame16193.rdc",
+      "caseId": "forward_ssgi_atlas",
+      "ssgiMarker": {
+        "start": 327,
+        "end": 526
+      },
+      "dispatchCount": 9,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 348,
+          "label": "trace",
+          "csShader": "ResourceId::10081"
+        },
+        {
+          "order": 1,
+          "eventId": 380,
+          "label": "reproject",
+          "csShader": "ResourceId::10082"
+        },
+        {
+          "order": 2,
+          "eventId": 403,
+          "label": "validate",
+          "csShader": "ResourceId::9855"
+        },
+        {
+          "order": 3,
+          "eventId": 429,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 4,
+          "eventId": 443,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 5,
+          "eventId": 463,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 6,
+          "eventId": 489,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 7,
+          "eventId": 503,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 8,
+          "eventId": 523,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        }
+      ],
+      "resources": {
+        "OwenScrambledNoise256": [
+          {
+            "eventId": 348,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 380,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "ScramblingTile8SPP": [
+          {
+            "eventId": 348,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 380,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "RankingTile8SPP": [
+          {
+            "eventId": 348,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 380,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiHitPoint_1280x720_R16G16_SFloat_Tex2D": [
+          {
+            "eventId": 348,
+            "usage": "CS_RWResource",
+            "label": "trace"
+          },
+          {
+            "eventId": 380,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiProjection_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 380,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          },
+          {
+            "eventId": 429,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiAccumulation_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 429,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 443,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 463,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 489,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 503,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 523,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiDenoisedHF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 463,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 489,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiDenoisedLF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 523,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiValidation_1280x720_R8_UInt_Tex2D": [
+          {
+            "eventId": 403,
+            "usage": "CS_RWResource",
+            "label": "validate"
+          },
+          {
+            "eventId": 429,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 489,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 443,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiHistoryLF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 503,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiSampleCountHF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 429,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 489,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 429,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryLF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 489,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountHF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 429,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 489,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "URP Reflection Probe Atlas": [
+          {
+            "eventId": 380,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ]
+      }
+    },
+    {
+      "capture": "forward_ssgi_full_frame16084.rdc",
+      "caseId": "forward_ssgi_full",
+      "ssgiMarker": {
+        "start": 323,
+        "end": 518
+      },
+      "dispatchCount": 9,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 344,
+          "label": "trace",
+          "csShader": "ResourceId::9849"
+        },
+        {
+          "order": 1,
+          "eventId": 372,
+          "label": "reproject",
+          "csShader": "ResourceId::9852"
+        },
+        {
+          "order": 2,
+          "eventId": 395,
+          "label": "validate",
+          "csShader": "ResourceId::9855"
+        },
+        {
+          "order": 3,
+          "eventId": 421,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 4,
+          "eventId": 435,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 5,
+          "eventId": 455,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 6,
+          "eventId": 481,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 7,
+          "eventId": 495,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 8,
+          "eventId": 515,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        }
+      ],
+      "resources": {
+        "SslSsgiHitPoint_1280x720_R16G16_SFloat_Tex2D": [
+          {
+            "eventId": 344,
+            "usage": "CS_RWResource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiProjection_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          },
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiAccumulation_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 435,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 455,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 481,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 495,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 515,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiDenoisedHF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 455,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiDenoisedLF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 515,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiValidation_1280x720_R8_UInt_Tex2D": [
+          {
+            "eventId": 395,
+            "usage": "CS_RWResource",
+            "label": "validate"
+          },
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 435,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiHistoryLF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 495,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiSampleCountHF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 481,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryLF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountHF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "OwenScrambledNoise256": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "ScramblingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "RankingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ]
+      }
+    },
+    {
+      "capture": "forward_ssgi_full_parity_frame16103.rdc",
+      "caseId": "forward_ssgi_full_parity",
+      "ssgiMarker": {
+        "start": 323,
+        "end": 518
+      },
+      "dispatchCount": 9,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 344,
+          "label": "trace",
+          "csShader": "ResourceId::9849"
+        },
+        {
+          "order": 1,
+          "eventId": 372,
+          "label": "reproject",
+          "csShader": "ResourceId::9852"
+        },
+        {
+          "order": 2,
+          "eventId": 395,
+          "label": "validate",
+          "csShader": "ResourceId::9855"
+        },
+        {
+          "order": 3,
+          "eventId": 421,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 4,
+          "eventId": 435,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 5,
+          "eventId": 455,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 6,
+          "eventId": 481,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 7,
+          "eventId": 495,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 8,
+          "eventId": 515,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        }
+      ],
+      "resources": {
+        "SslSsgiHitPoint_1280x720_R16G16_SFloat_Tex2D": [
+          {
+            "eventId": 344,
+            "usage": "CS_RWResource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiProjection_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          },
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiAccumulation_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 435,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 455,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 481,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 495,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 515,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiDenoisedHF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 455,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiDenoisedLF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 515,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiValidation_1280x720_R8_UInt_Tex2D": [
+          {
+            "eventId": 395,
+            "usage": "CS_RWResource",
+            "label": "validate"
+          },
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryLF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountHF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 435,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiHistoryLF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 495,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiSampleCountHF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 481,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "OwenScrambledNoise256": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "ScramblingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "RankingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ]
+      }
+    },
+    {
+      "capture": "forward_ssgi_half_denoiser_frame16139.rdc",
+      "caseId": "forward_ssgi_half_denoiser",
+      "ssgiMarker": {
+        "start": 323,
+        "end": 563
+      },
+      "dispatchCount": 12,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 344,
+          "label": "trace",
+          "csShader": "ResourceId::9961"
+        },
+        {
+          "order": 1,
+          "eventId": 372,
+          "label": "reproject",
+          "csShader": "ResourceId::9962"
+        },
+        {
+          "order": 2,
+          "eventId": 395,
+          "label": "validate",
+          "csShader": "ResourceId::9855"
+        },
+        {
+          "order": 3,
+          "eventId": 421,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 4,
+          "eventId": 435,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 5,
+          "eventId": 455,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 6,
+          "eventId": 470,
+          "label": "gather",
+          "csShader": "ResourceId::9970"
+        },
+        {
+          "order": 7,
+          "eventId": 496,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 8,
+          "eventId": 510,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 9,
+          "eventId": 530,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 10,
+          "eventId": 545,
+          "label": "gather",
+          "csShader": "ResourceId::9970"
+        },
+        {
+          "order": 11,
+          "eventId": 560,
+          "label": "upsample",
+          "csShader": "ResourceId::9963"
+        }
+      ],
+      "resources": {
+        "OwenScrambledNoise256": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "ScramblingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "RankingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiHitPoint_640x360_R16G16_SFloat_Tex2D": [
+          {
+            "eventId": 344,
+            "usage": "CS_RWResource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiProjection_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          },
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiAccumulation_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 435,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 455,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 496,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 510,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 530,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiDenoisedHF_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 470,
+            "usage": "CS_RWResource",
+            "label": "gather"
+          },
+          {
+            "eventId": 496,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiDenoisedLF_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 545,
+            "usage": "CS_RWResource",
+            "label": "gather"
+          },
+          {
+            "eventId": 560,
+            "usage": "CS_Resource",
+            "label": "upsample"
+          }
+        ],
+        "SslSsgiFinal_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 560,
+            "usage": "CS_RWResource",
+            "label": "upsample"
+          }
+        ],
+        "SslSsgiValidation_1280x720_R8_UInt_Tex2D": [
+          {
+            "eventId": 395,
+            "usage": "CS_RWResource",
+            "label": "validate"
+          },
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 496,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF0_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 435,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiHistoryLF0_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 510,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiSampleCountHF0_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF0_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 496,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF1_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryLF1_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 496,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountHF1_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF1_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 496,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiDenoiseIntermediate_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 455,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 470,
+            "usage": "CS_Resource",
+            "label": "gather"
+          },
+          {
+            "eventId": 530,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 545,
+            "usage": "CS_Resource",
+            "label": "gather"
+          }
+        ]
+      }
+    },
+    {
+      "capture": "forward_ssgi_half_frame16121.rdc",
+      "caseId": "forward_ssgi_half",
+      "ssgiMarker": {
+        "start": 323,
+        "end": 533
+      },
+      "dispatchCount": 10,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 344,
+          "label": "trace",
+          "csShader": "ResourceId::9961"
+        },
+        {
+          "order": 1,
+          "eventId": 372,
+          "label": "reproject",
+          "csShader": "ResourceId::9962"
+        },
+        {
+          "order": 2,
+          "eventId": 395,
+          "label": "validate",
+          "csShader": "ResourceId::9855"
+        },
+        {
+          "order": 3,
+          "eventId": 421,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 4,
+          "eventId": 435,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 5,
+          "eventId": 455,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 6,
+          "eventId": 481,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 7,
+          "eventId": 495,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 8,
+          "eventId": 515,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 9,
+          "eventId": 530,
+          "label": "upsample",
+          "csShader": "ResourceId::9963"
+        }
+      ],
+      "resources": {
+        "OwenScrambledNoise256": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "ScramblingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "RankingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiHitPoint_640x360_R16G16_SFloat_Tex2D": [
+          {
+            "eventId": 344,
+            "usage": "CS_RWResource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiProjection_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          },
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiAccumulation_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 435,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 455,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 481,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 495,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 515,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiDenoisedHF_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 455,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiDenoisedLF_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 515,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 530,
+            "usage": "CS_Resource",
+            "label": "upsample"
+          }
+        ],
+        "SslSsgiFinal_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 530,
+            "usage": "CS_RWResource",
+            "label": "upsample"
+          }
+        ],
+        "SslSsgiValidation_1280x720_R8_UInt_Tex2D": [
+          {
+            "eventId": 395,
+            "usage": "CS_RWResource",
+            "label": "validate"
+          },
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF0_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 435,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiHistoryLF0_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 495,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiSampleCountHF0_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF0_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 481,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF1_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryLF1_640x360_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountHF1_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF1_640x360_R16_SFloat_Tex2D": [
+          {
+            "eventId": 481,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ]
+      }
+    },
+    {
+      "capture": "forward_ssgi_nodenoise_frame16175.rdc",
+      "caseId": "forward_ssgi_nodenoise",
+      "ssgiMarker": {
+        "start": 323,
+        "end": 438
+      },
+      "dispatchCount": 5,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 344,
+          "label": "trace",
+          "csShader": "ResourceId::9849"
+        },
+        {
+          "order": 1,
+          "eventId": 372,
+          "label": "reproject",
+          "csShader": "ResourceId::9852"
+        },
+        {
+          "order": 2,
+          "eventId": 395,
+          "label": "validate",
+          "csShader": "ResourceId::9855"
+        },
+        {
+          "order": 3,
+          "eventId": 421,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 4,
+          "eventId": 435,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        }
+      ],
+      "resources": {
+        "OwenScrambledNoise256": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "ScramblingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "RankingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiHitPoint_1280x720_R16G16_SFloat_Tex2D": [
+          {
+            "eventId": 344,
+            "usage": "CS_RWResource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiProjection_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          },
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiAccumulation_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 435,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiValidation_1280x720_R8_UInt_Tex2D": [
+          {
+            "eventId": 395,
+            "usage": "CS_RWResource",
+            "label": "validate"
+          },
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 435,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiSampleCountHF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountHF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 421,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ]
+      }
+    },
+    {
+      "capture": "forward_ssgi_notemporal_frame16157.rdc",
+      "caseId": "forward_ssgi_notemporal",
+      "ssgiMarker": {
+        "start": 323,
+        "end": 395
+      },
+      "dispatchCount": 3,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 344,
+          "label": "trace",
+          "csShader": "ResourceId::9849"
+        },
+        {
+          "order": 1,
+          "eventId": 372,
+          "label": "reproject",
+          "csShader": "ResourceId::9852"
+        },
+        {
+          "order": 2,
+          "eventId": 392,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        }
+      ],
+      "resources": {
+        "OwenScrambledNoise256": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "ScramblingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "RankingTile8SPP": [
+          {
+            "eventId": 344,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiHitPoint_1280x720_R16G16_SFloat_Tex2D": [
+          {
+            "eventId": 344,
+            "usage": "CS_RWResource",
+            "label": "trace"
+          },
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiProjection_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 372,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          },
+          {
+            "eventId": 392,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiDenoisedHF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 392,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          }
+        ]
+      }
+    },
+    {
+      "capture": "forwardplus_ssgi_full_frame16214.rdc",
+      "caseId": "forwardplus_ssgi_full",
+      "ssgiMarker": {
+        "start": 329,
+        "end": 530
+      },
+      "dispatchCount": 9,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 350,
+          "label": "trace",
+          "csShader": "ResourceId::10386"
+        },
+        {
+          "order": 1,
+          "eventId": 384,
+          "label": "reproject",
+          "csShader": "ResourceId::10387"
+        },
+        {
+          "order": 2,
+          "eventId": 407,
+          "label": "validate",
+          "csShader": "ResourceId::9855"
+        },
+        {
+          "order": 3,
+          "eventId": 433,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 4,
+          "eventId": 447,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 5,
+          "eventId": 467,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        },
+        {
+          "order": 6,
+          "eventId": 493,
+          "label": "accumulate",
+          "csShader": "ResourceId::9858"
+        },
+        {
+          "order": 7,
+          "eventId": 507,
+          "label": "copyHistory",
+          "csShader": "ResourceId::9861"
+        },
+        {
+          "order": 8,
+          "eventId": 527,
+          "label": "diffuseDenoise",
+          "csShader": "ResourceId::9864"
+        }
+      ],
+      "resources": {
+        "OwenScrambledNoise256": [
+          {
+            "eventId": 350,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 384,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "ScramblingTile8SPP": [
+          {
+            "eventId": 350,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 384,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "RankingTile8SPP": [
+          {
+            "eventId": 350,
+            "usage": "CS_Resource",
+            "label": "trace"
+          },
+          {
+            "eventId": 384,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "URP Reflection Probe Atlas": [
+          {
+            "eventId": 384,
+            "usage": "CS_Resource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiHitPoint_1280x720_R16G16_SFloat_Tex2D": [
+          {
+            "eventId": 350,
+            "usage": "CS_RWResource",
+            "label": "trace"
+          },
+          {
+            "eventId": 384,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          }
+        ],
+        "SslSsgiProjection_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 384,
+            "usage": "CS_RWResource",
+            "label": "reproject"
+          },
+          {
+            "eventId": 433,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiAccumulation_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 433,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 447,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 467,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 493,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 507,
+            "usage": "CS_Resource",
+            "label": "copyHistory"
+          },
+          {
+            "eventId": 527,
+            "usage": "CS_Resource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiDenoisedHF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 467,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          },
+          {
+            "eventId": 493,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiDenoisedLF_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 527,
+            "usage": "CS_RWResource",
+            "label": "diffuseDenoise"
+          }
+        ],
+        "SslSsgiValidation_1280x720_R8_UInt_Tex2D": [
+          {
+            "eventId": 407,
+            "usage": "CS_RWResource",
+            "label": "validate"
+          },
+          {
+            "eventId": 433,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          },
+          {
+            "eventId": 493,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 447,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiHistoryLF0_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 507,
+            "usage": "CS_RWResource",
+            "label": "copyHistory"
+          }
+        ],
+        "SslSsgiSampleCountHF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 433,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF0_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 493,
+            "usage": "CS_RWResource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryHF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 433,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiHistoryLF1_1280x720_R16G16B16A16_SFloat_Tex2D": [
+          {
+            "eventId": 493,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountHF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 433,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ],
+        "SslSsgiSampleCountLF1_1280x720_R16_SFloat_Tex2D": [
+          {
+            "eventId": 493,
+            "usage": "CS_Resource",
+            "label": "accumulate"
+          }
+        ]
+      }
+    }
+  ]
+}
