@@ -40,6 +40,7 @@ public static class ScreenSpaceLightingTestRunner
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrDenoiserParamsTests",
+                "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrDebugViewTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests",
                 "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionImproveTests",

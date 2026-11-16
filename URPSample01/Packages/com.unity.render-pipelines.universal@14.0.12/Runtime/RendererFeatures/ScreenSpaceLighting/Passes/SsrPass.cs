@@ -52,6 +52,11 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_LastPixelSpreadTraceWidth;
         internal static int s_LastPixelSpreadTraceHeight;
         internal static int s_LastPixelSpreadFrame = -1;
+        // Debug view routing evidence: the parameter kernel must target its own texture and the
+        // material-facing output must stay on the real SSR result.
+        internal static int s_LastDebugParamsFrame = -1;
+        internal static string s_LastDebugParamsTarget = string.Empty;
+        internal static string s_LastMaterialOutputTarget = string.Empty;
 #endif
 
 #if UNITY_EDITOR
@@ -85,6 +90,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool producedOutput => m_ProducedOutput;
         internal RTHandle outputTexture => m_ProducedOutput ? m_OutputTexture : null;
+        internal RTHandle debugTexture => m_History != null ? m_History.ssrDebugParams : null;
 
         internal ScreenSpaceLightingSsrPass()
         {
@@ -169,6 +175,8 @@ namespace UnityEngine.Rendering.Universal
             bool octNormals = ScreenSpaceLightingSsgiPass.UseOctEncodedNormals(cameraData.renderer);
             bool debugParams = pbr && m_Settings != null && m_Settings.debugEnabled &&
                                m_Settings.debugMode == ScreenSpaceLightingDebugMode.SsrPbrParams;
+            if (debugParams)
+                m_History.EnsureSsrDebugResources(screenWidth, screenHeight, viewCount, dimension);
             if (cameraData.xr.enabled)
                 ScreenSpaceLightingXr.FillViewConstants(cameraData, viewCount, m_XrViews, m_History);
 
@@ -180,16 +188,26 @@ namespace UnityEngine.Rendering.Universal
                     pbr, halfResolution, debugParams);
             }
 
-            if (pbr && !debugParams)
+            if (pbr)
                 m_History.SwapSsrPbrBuffers();
 
             // Full resolution PBR writes the filtered result into its trace sized original texture;
             // the half resolution path upsamples into the full resolution output instead.
-            m_OutputTexture = pbr && !halfResolution && !debugParams
+            m_OutputTexture = pbr && !halfResolution
                 ? m_History.ssrPbrOriginal
                 : m_History.ssrOutput;
             m_History.MarkSsrOutputProduced();
             m_ProducedOutput = true;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastMaterialOutputTarget = m_OutputTexture != null ? m_OutputTexture.name : string.Empty;
+            if (debugParams)
+            {
+                s_LastDebugParamsFrame = Time.frameCount;
+                s_LastDebugParamsTarget = m_History.ssrDebugParams != null
+                    ? m_History.ssrDebugParams.name
+                    : string.Empty;
+            }
+#endif
         }
 
         void Dispatch(
@@ -286,10 +304,13 @@ namespace UnityEngine.Rendering.Universal
 
             if (debugParams)
             {
+                // Diagnostics have their own target. Writing them into m_History.ssrOutput replaced
+                // the material-facing texture, because the setup pass binds that same handle to the
+                // opaque GBuffer / forward shading.
                 int debugKernel = compute.FindKernel("DebugSsrParams");
-                cmd.SetComputeTextureParam(compute, debugKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW, m_History.ssrOutput);
+                cmd.SetComputeTextureParam(compute, debugKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
+                    m_History.ssrDebugParams);
                 cmd.DispatchCompute(compute, debugKernel, screenGroupsX, screenGroupsY, viewCount);
-                return;
             }
 
             if (pbr)

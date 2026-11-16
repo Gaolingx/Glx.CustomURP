@@ -185,11 +185,13 @@ namespace UnityEngine.Rendering.Universal
                 }
                 case ScreenSpaceLightingDebugMode.SsrPbrParams:
                 {
+                    // Diagnostics live in a private texture; the material-facing SSR output keeps
+                    // its real radiance while this view is selected.
                     if (m_SsrPass == null || !m_SsrPass.producedOutput ||
-                        m_SsrPass.outputTexture == null || m_SsrPass.outputTexture.rt == null)
+                        m_SsrPass.debugTexture == null || m_SsrPass.debugTexture.rt == null)
                         return false;
                     outputMode = 1;
-                    texture = m_SsrPass.outputTexture.rt;
+                    texture = m_SsrPass.debugTexture.rt;
                     return true;
                 }
                 case ScreenSpaceLightingDebugMode.TransparentDepth:

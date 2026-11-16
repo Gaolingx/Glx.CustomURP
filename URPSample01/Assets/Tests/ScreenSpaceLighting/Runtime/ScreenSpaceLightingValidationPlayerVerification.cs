@@ -236,6 +236,8 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         ReadEffectState(rendererData, result);
         ReadSsgiDispatchStats(testCase, rendererName, result);
         ReadSsrDenoiserStats(testCase, result);
+        ReadSsrDebugViewStats(testCase, result);
+        ReadTransparentSsrStats(testCase, result);
         LogStep(result.id + ": warmup done, effect state G=" + result.gtaoIntensity +
             " S=" + result.ssgiActive + " R=" + result.ssrActive + " T=" + result.refractionActive);
 
@@ -669,6 +671,128 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     {
         var field = type?.GetField(fieldName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         return field != null ? Convert.ToInt32(field.GetValue(null)) : -1;
+    }
+
+    static bool ReadStaticBool(Type type, string fieldName)
+    {
+        var field = type?.GetField(fieldName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        return field != null && Convert.ToBoolean(field.GetValue(null));
+    }
+
+    static string ReadStaticString(Type type, string fieldName)
+    {
+        var field = type?.GetField(fieldName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        return field != null ? field.GetValue(null) as string ?? string.Empty : string.Empty;
+    }
+
+    // F-04: the SsrPbrParams debug kernel must write its private texture, and the SSR pass must still
+    // run the PBR chain so the material-facing texture keeps real radiance while the view is selected.
+    void ReadSsrDebugViewStats(SslValidationCase testCase, SslValidationCaseResult result)
+    {
+        int debugMode = testCase.feature != null ? testCase.feature.debugMode : 0;
+        if (debugMode != (int)ScreenSpaceLightingDebugMode.SsrPbrParams)
+            return;
+
+        var passType = typeof(UniversalRendererData).Assembly.GetType(
+            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
+        if (passType == null)
+        {
+            result.issues.Add("The SSR pass type is unavailable; the debug view cannot be verified.");
+            return;
+        }
+
+        var stats = new SslSsrDebugViewStats
+        {
+            frameIndex = ReadStaticInt(passType, "s_LastDebugParamsFrame"),
+            debugTarget = ReadStaticString(passType, "s_LastDebugParamsTarget"),
+            materialOutput = ReadStaticString(passType, "s_LastMaterialOutputTarget"),
+        };
+        stats.debugTargetIsPrivate = string.Equals(stats.debugTarget, "SslSsrDebugParams", StringComparison.Ordinal);
+        stats.materialOutputIsReal =
+            string.Equals(stats.materialOutput, "SslSsrPbrOriginal", StringComparison.Ordinal) ||
+            string.Equals(stats.materialOutput, "SslSsrOutput", StringComparison.Ordinal);
+        stats.materialOutputIsDebugTarget =
+            !string.IsNullOrEmpty(stats.debugTarget) &&
+            string.Equals(stats.materialOutput, stats.debugTarget, StringComparison.Ordinal);
+        stats.denoiseChainRan = result.ssrDenoiser != null &&
+                                result.ssrDenoiser.frameIndex >= 0 &&
+                                Time.frameCount - result.ssrDenoiser.frameIndex <= 3;
+        stats.passed = stats.debugTargetIsPrivate && stats.materialOutputIsReal &&
+                       !stats.materialOutputIsDebugTarget && stats.denoiseChainRan;
+
+        if (stats.frameIndex < 0 || Time.frameCount - stats.frameIndex > 3)
+            result.issues.Add($"SSR debug params stat is stale: frame {stats.frameIndex}, current {Time.frameCount}.");
+        if (!stats.debugTargetIsPrivate)
+            result.issues.Add("The SSR debug kernel did not target its private SslSsrDebugParams texture.");
+        if (!stats.materialOutputIsReal)
+            result.issues.Add("The material-facing SSR output is not a real SSR texture: " + stats.materialOutput);
+        if (stats.materialOutputIsDebugTarget)
+            result.issues.Add("The material-facing SSR output is the debug texture.");
+        if (!stats.denoiseChainRan)
+            result.issues.Add("The PBR denoiser chain did not run while the debug view was selected.");
+
+        result.ssrDebugView = stats;
+    }
+
+    // F-06/F-08: the depth seed follows the CopyDepthPass y-flip rule, and the transparent trace
+    // explicitly owns every keyword it depends on instead of inheriting the opaque pass' state.
+    void ReadTransparentSsrStats(SslValidationCase testCase, SslValidationCaseResult result)
+    {
+        var ssr = testCase.volume?.ssr;
+        if (ssr == null || !ssr.enabled || !ssr.enabledTransparent)
+            return;
+
+        var assembly = typeof(UniversalRendererData).Assembly;
+        var keywordType = assembly.GetType(
+            "UnityEngine.Rendering.Universal.ScreenSpaceLightingTransparentSsrPass");
+        var seedType = assembly.GetType(
+            "UnityEngine.Rendering.Universal.ScreenSpaceLightingTransparentDepthNormalsPass");
+        if (keywordType == null || seedType == null)
+        {
+            result.issues.Add("The transparent SSR pass types are unavailable.");
+            return;
+        }
+
+        var stats = new SslTransparentSsrStats
+        {
+            keywordFrameIndex = ReadStaticInt(keywordType, "s_LastKeywordFrame"),
+            depthSeedFrameIndex = ReadStaticInt(seedType, "s_LastDepthSeedFrame"),
+            halfResKeyword = ReadStaticBool(keywordType, "s_LastHalfResKeyword"),
+            blueNoiseKeyword = ReadStaticBool(keywordType, "s_LastBlueNoiseKeyword"),
+            normalsOctKeyword = ReadStaticBool(keywordType, "s_LastNormalsOctKeyword"),
+            approxKeyword = ReadStaticBool(keywordType, "s_LastApproxKeyword"),
+            blueNoiseTexturesBound = ReadStaticBool(keywordType, "s_LastBlueNoiseTexturesBound"),
+            isolatedCompute = ReadStaticBool(keywordType, "s_LastIsolatedCompute"),
+            depthSeedYFlip = ReadStaticBool(seedType, "s_LastDepthSeedYFlip"),
+            depthSeedSourceFlipped = ReadStaticBool(seedType, "s_LastDepthSeedSourceFlipped"),
+            depthSeedDestinationFlipped = ReadStaticBool(seedType, "s_LastDepthSeedDestinationFlipped"),
+        };
+        stats.depthSeedYFlipExpected = stats.depthSeedSourceFlipped != stats.depthSeedDestinationFlipped;
+        stats.passed = !stats.halfResKeyword && !stats.normalsOctKeyword && stats.approxKeyword &&
+                       stats.isolatedCompute &&
+                       stats.blueNoiseKeyword == stats.blueNoiseTexturesBound &&
+                       stats.depthSeedYFlip == stats.depthSeedYFlipExpected;
+
+        if (stats.keywordFrameIndex < 0 || Time.frameCount - stats.keywordFrameIndex > 3)
+            result.issues.Add($"Transparent SSR keyword stat is stale: frame {stats.keywordFrameIndex}.");
+        if (stats.halfResKeyword)
+            result.issues.Add("SSR_HALF_RES is still enabled in the transparent pass.");
+        if (stats.normalsOctKeyword)
+            result.issues.Add("SSR_NORMALS_OCT is still enabled in the transparent pass.");
+        if (!stats.approxKeyword)
+            result.issues.Add("SSR_APPROX is not enabled in the transparent pass.");
+        if (stats.blueNoiseKeyword != stats.blueNoiseTexturesBound)
+            result.issues.Add("SSGI_BLUE_NOISE does not match the blue-noise LUT availability.");
+        if (!stats.isolatedCompute)
+            result.issues.Add("The transparent pass shares the opaque compute asset; its keywords can overwrite the opaque variant.");
+        if (stats.depthSeedFrameIndex < 0 || Time.frameCount - stats.depthSeedFrameIndex > 3)
+            result.issues.Add($"Transparent depth seed stat is stale: frame {stats.depthSeedFrameIndex}.");
+        if (stats.depthSeedYFlip != stats.depthSeedYFlipExpected)
+            result.issues.Add(
+                $"Transparent depth seed yflip {stats.depthSeedYFlip} != expected {stats.depthSeedYFlipExpected} " +
+                $"(source {stats.depthSeedSourceFlipped}, destination {stats.depthSeedDestinationFlipped}).");
+
+        result.transparentSsr = stats;
     }
 
     static void CheckCount(SslValidationCaseResult result, string label, int actual, int expected)
@@ -1278,6 +1402,8 @@ public sealed class SslValidationCaseResult
     public List<string> bindingProbeFailures;
     public SslSsgiDispatchStats ssgiDispatch;
     public SslSsrDenoiserStats ssrDenoiser;
+    public SslSsrDebugViewStats ssrDebugView;
+    public SslTransparentSsrStats transparentSsr;
     public bool passed;
     public List<string> issues;
 }
@@ -1293,6 +1419,37 @@ public sealed class SslSsrDenoiserStats
     public int expectedTraceWidth;
     public int expectedTraceHeight;
     public bool ssgiActive;
+    public bool passed;
+}
+
+[Serializable]
+public sealed class SslSsrDebugViewStats
+{
+    public int frameIndex;
+    public string debugTarget;
+    public string materialOutput;
+    public bool debugTargetIsPrivate;
+    public bool materialOutputIsReal;
+    public bool materialOutputIsDebugTarget;
+    public bool denoiseChainRan;
+    public bool passed;
+}
+
+[Serializable]
+public sealed class SslTransparentSsrStats
+{
+    public int keywordFrameIndex;
+    public int depthSeedFrameIndex;
+    public bool halfResKeyword;
+    public bool blueNoiseKeyword;
+    public bool normalsOctKeyword;
+    public bool approxKeyword;
+    public bool blueNoiseTexturesBound;
+    public bool isolatedCompute;
+    public bool depthSeedYFlip;
+    public bool depthSeedYFlipExpected;
+    public bool depthSeedSourceFlipped;
+    public bool depthSeedDestinationFlipped;
     public bool passed;
 }
 

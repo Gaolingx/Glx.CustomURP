@@ -304,6 +304,54 @@ namespace UnityEngine.Rendering.Universal
         TextureDimension m_SsrDimension;
 
         // ---------------------------------------------------------------------------------------
+        // SSR parameter debug view
+        // ---------------------------------------------------------------------------------------
+
+        // Diagnostic values are written here instead of the material-facing SSR output, so enabling
+        // the SsrPbrParams debug view never changes what the opaque GBuffer / forward shading reads.
+        internal RTHandle ssrDebugParams { get; private set; }
+
+        internal void EnsureSsrDebugResources(int width, int height, int viewCount, TextureDimension resourceDimension)
+        {
+            width = Mathf.Max(1, width);
+            height = Mathf.Max(1, height);
+            viewCount = Mathf.Max(1, viewCount);
+
+            if (ssrDebugParams != null &&
+                m_SsrDebugWidth == width &&
+                m_SsrDebugHeight == height &&
+                m_SsrDebugSlices == viewCount &&
+                m_SsrDebugDimension == resourceDimension)
+            {
+                return;
+            }
+
+            RTHandles.Release(ssrDebugParams);
+
+            m_SsrDebugWidth = width;
+            m_SsrDebugHeight = height;
+            m_SsrDebugSlices = viewCount;
+            m_SsrDebugDimension = resourceDimension;
+
+            ssrDebugParams = RTHandles.Alloc(
+                width, height,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: viewCount,
+                colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                filterMode: FilterMode.Point,
+                dimension: resourceDimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "SslSsrDebugParams");
+        }
+
+        int m_SsrDebugWidth;
+        int m_SsrDebugHeight;
+        int m_SsrDebugSlices;
+        TextureDimension m_SsrDebugDimension;
+
+        // ---------------------------------------------------------------------------------------
         // Transparent Screen Space Reflections (Approximation only)
         // ---------------------------------------------------------------------------------------
 
@@ -912,11 +960,16 @@ namespace UnityEngine.Rendering.Universal
             ssrHitPoint = null;
             RTHandles.Release(ssrOutput);
             ssrOutput = null;
+            RTHandles.Release(ssrDebugParams);
+            ssrDebugParams = null;
             ssrWidth = 0;
             ssrHeight = 0;
             m_SsrWidth = 0;
             m_SsrHeight = 0;
             m_SsrSlices = 0;
+            m_SsrDebugWidth = 0;
+            m_SsrDebugHeight = 0;
+            m_SsrDebugSlices = 0;
             ssrOutputProduced = false;
             ReleaseSsrPbrResources();
         }
