@@ -1,8 +1,9 @@
 # T14 known differences and limitations
 
-> Updated 2026-11-16 after the SSR reflection denoiser port (02-SSRImprove T1–T5) and the SSR/SSGI
-> HDRP alignment pass (03-SSRImprove2 T1–T3). Items below are deliberate URP adaptations or
-> environment limits, not open bugs.
+> Updated 2026-11-16 after the SSR reflection denoiser port (02-SSRImprove T1–T5), the SSR/SSGI
+> HDRP alignment pass (03-SSRImprove2 T1–T3) and the SSGI Forward/Deferred probe fallback
+> (04-SSGIFallbackImprove P0–P5). Items below are deliberate URP adaptations or environment
+> limits, not open bugs.
 
 - URP has no per-material proxy volume: refraction uses the nearest box-projected reflection probe AABB, found through CullingResults.visibleReflectionProbes with a scene lookup fallback.
 - Refraction samples the current opaque+sky color pyramid; HDRP's pre-refraction transparent ordering is not migrated, so transparents drawn after the opaque pass do not appear in refraction.
@@ -20,7 +21,8 @@
 - URP's Deferred compatibility path ignores MSAA, so the Deferred renderer does not promise MSAA support for these effects.
 - URP 14.0.12 does not drive DynamicResolutionHandler: hardware dynamic resolution cannot rescale the RTHandle camera targets, so it is recorded as unsupported (static render scale is supported).
 - APV is not integrated in URP 14.0.12, so probe-volume GI is marked unsupported; lightmap/SH/mixed lighting regresses green.
-- SSGI miss fallback in Forward+ walks the per-pixel probe list from URP's reflection probe atlas and Forward+ zbin/tile cluster, with per-probe box weights and atlas LOD 0, and the sky ambient probe fills the remaining weight. Forward and Deferred keep the single default reflection cubemap because URP 14 only publishes the atlas/cluster globals in Forward+. Atlas-full probe drops are URP's own behaviour and can make the fallback colour jump.
+- SSGI miss fallback in Forward+ walks the per-pixel probe list from URP's reflection probe atlas and Forward+ zbin/tile cluster, with per-probe box weights and atlas LOD 0, and the sky ambient probe fills the remaining weight. Atlas-full probe drops are URP's own behaviour and can make the fallback colour jump.
+- Forward and Deferred sample local reflection probes only when `ScreenSpaceLightingSettings.publishProbeAtlas` is enabled (default off). The toggle publishes the same atlas and walks the flat visible-probe list without a cluster; runtime switching applies on the next frame, and disabling stops the atlas update while keeping the allocation until the renderer is cleaned up. When enabled: the sky remainder of `ReflectionProbesAndSky` becomes the ambient SH instead of the default cubemap; `rayMiss=ReflectionProbes` reports weight 0 outside probe boxes, so the material keeps its baked GI (the old default cubemap reported weight 1). URP uses a linear box weight and box projection instead of HDRP's per-light influence shape/proxy volume, caps at 64 desktop / 32 mobile visible probes (HDRP 128/32), and material `unity_SpecCube0/1` probe selection can differ from the SSGI atlas list because the per-object sorting is untouched. Visible probes beyond the cap are truncated.
 - Reflection and preview cameras are rejected by `ScreenSpaceCapability` before any SSL pass runs, so SSGI/SSR are disabled rather than dimmed for probe rendering (HDRP disables SSGI for reflection cameras through FrameSettings as well).
 - The plugin keeps the _SCREEN_SPACE_GI/_SCREEN_SPACE_SSR/_SCREEN_SPACE_TRANSPARENT_SSR/_SCREEN_SPACE_REFRACTION variants in every build because URP's prefiltering data only covers URP keywords. Plugin-level build stripping was evaluated but not introduced in T14: it changes release behaviour and needs its own correctness cycle.
 - Metal, Android/OpenGLES, macOS/iOS and physical HMDs are not tested in this environment and are not claimed as supported.

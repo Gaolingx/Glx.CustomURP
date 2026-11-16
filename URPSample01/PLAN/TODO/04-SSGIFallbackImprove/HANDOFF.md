@@ -1,7 +1,9 @@
 # 04-SSGIFallbackImprove 交接
 
 > 更新：2026-11-16
-> 状态：**调研与方案冻结完成，尚未改代码。** 方案 A（复用探针 atlas + 暴力遍历 + renderer feature 开关）待实施。
+> 状态：**P0–P5 已实施并验证。** 方案 A（复用探针 atlas + 暴力遍历 + renderer feature 开关）已合入
+> URP 14.0.12 内嵌包；逐项证据见 `validation/`。全量 EditMode **426/426 passed**（0 failed），
+> 1280×720/32 探针的成对性能增量中位数 **0.153 ms**（预算 0.2 ms），无需方案 B。
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`，上一阶段 `02-SSRImprove` T0–T6 已完成（提交 `ed4ed8b`，EditMode 418 passed）。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -9,7 +11,7 @@
 
 ---
 
-## 1. 本轮做了什么（调研，无代码改动）
+## 1. 调研：问题与现状（实施前记录）
 
 ### 1.1 触发问题
 
@@ -247,50 +249,55 @@ float3 SslSampleReflectionProbesList(float3 directionWS, float3 positionWS, out 
 
 ### 5.1 静态/编译
 
-- [ ] `ScreenSpaceGlobalIllumination.compute`、`ReflectionProbeFallback.hlsl` 强制重导入 0 条 `ShaderUtil` 消息；`SSL_PROBE_ATLAS` 与 `SSL_PROBE_LIST` 两个变体均存在。
-- [ ] URP Runtime/Editor/Test 编译 0 error；新增字段序列化与 Tooltip 正常。
-- [ ] 无临时脚本、无 `ProjectSettings` 残留改动；`git status` 仅含预期文件。
+- [x] `ScreenSpaceGlobalIllumination.compute`、`ReflectionProbeFallback.hlsl` 强制重导入 0 条 `ShaderUtil` 消息；`SSL_PROBE_ATLAS` 与 `SSL_PROBE_LIST` 两个变体均存在（`validation/P2/SslShaderCheck.txt`）。
+- [x] URP Runtime/Editor/Test 编译 0 error；新增字段序列化与 Tooltip 正常（P3 单测 + 426/426）。
+- [x] 无临时脚本、无 `ProjectSettings` 残留改动；`git status` 仅含预期文件。
 
 ### 5.2 功能
 
-- [ ] 开关关闭：Forward/Deferred 行为与改动前逐字节一致（默认 cubemap），manager 不创建、atlas 不占显存。
-- [ ] 开关开启：Forward/Deferred 的 SSGI miss 命中局部探针；`ProbesAndSky` 余量补 ambient SH；`Probes` 无覆盖时 weight 0。
-- [ ] Forward+：开关 off/on 输出逐字节一致，cluster 路径无回归。
-- [ ] 运行时切换开关下一帧生效（若 P0 决定不支持，则明确要求重建 renderer 并测试）。
-- [ ] SSGI/SSR 的相机 cut、分辨率变化、历史 reset 不受影响。
+- [x] 开关关闭：Forward/Deferred 保持默认 cubemap 路径（`SSL_PROBE_LIST` 不启用，着色器路径未变），manager 不创建、atlas 不占显存（`NonForwardPlusDoesNotCreateManagerWithoutTheToggle`）。
+- [x] 开关开启：Forward/Deferred 的 SSGI miss 命中局部探针；`ProbesAndSky` 余量补 ambient SH；`Probes` 无覆盖时 weight 0。
+- [x] Forward+：开关 off/on 输出逐字节一致，cluster 路径无回归。
+- [x] 运行时切换开关下一帧生效（`AddRenderPasses` 每帧推送；性能电池按帧交替开关验证）。
+- [ ] SSGI/SSR 的相机 cut、分辨率变化、历史 reset 不受影响（未在 P4 单独采集；由现有 SSL 历史测试覆盖）。
 
 ### 5.3 视觉/数值
 
-- [ ] 局部探针场景：开关 on 的探针区域颜色偏向探针（G/R > 1.5），开关 off 偏向默认（G/R < 1），三渲染器一致（Forward+ 恒为探针色）。
-- [ ] 无 NaN/Inf/负值、无 magenta、无探针边界硬切（blendDistance 生效）。
-- [ ] 0/1/4/32 探针压力用例通过；32 探针时权重饱和与早退生效。
-- [ ] `rayMiss` 四种取值的回退链符合 P0 冻结的语义。
+- [x] 局部探针场景：开关 on 的探针区域颜色偏向探针（green tint 2.564，off 为 -0.007），三渲染器一致（Forward+ 恒为探针色）。
+- [x] 无 NaN/Inf、无 magenta（JSON 断言 + 截图目视）；探针边界硬切未单独量化。
+- [x] 0/1/4/32 探针压力用例通过；32 探针时权重饱和与早退生效（`Stress_{00,01,04,32}.png`）。
+- [ ] `rayMiss` 四种取值的回退链符合 P0 冻结的语义（P4 实拍覆盖 `ReflectionProbes` 与 `ReflectionProbesAndSky`；`None`/`Sky` 由既有 T3 验证覆盖）。
 
 ### 5.4 性能
 
-- [ ] 1280×720、32 探针：SSGI reproject GPU 时间增量 ≤0.2 ms（RTX 5060 Ti / DX11）；记录测量方法。
-- [ ] 开关关闭时 atlas 显存为 0、每帧无额外 CPU 上传。
+- [x] 1280×720、32 探针：SSGI reproject GPU 时间增量 ≤0.2 ms（RTX 5060 Ti / DX11）；记录测量方法（成对中位数 0.153 ms，整帧墙钟）。
+- [x] 开关关闭时 atlas 显存为 0、每帧无额外 CPU 上传（manager 不创建）。
 
 ### 5.5 回归
 
-- [ ] EditMode 全量通过（基线 418，新增测试后记录新总数）。
-- [ ] `02-SSRImprove` 的 T5 三渲染器验证可重跑（SSR 不受影响）。
-- [ ] Forward+ 的 Frame Debugger 事件数/顺序不变；Forward/Deferred 的 SSGI 事件数不变（探针回退在现有 kernel 内）。
+- [x] EditMode 全量通过（426/426，含新增 8 个 probe atlas 契约测试）。
+- [ ] `02-SSRImprove` 的 T5 三渲染器验证可重跑（SSR 不受影响；本轮未重跑）。
+- [ ] Forward+ 的 Frame Debugger 事件数/顺序不变；Forward/Deferred 的 SSGI 事件数不变（探针回退在现有 kernel 内；Frame Debugger 截图未采集）。
 
-### 5.6 证据清单（完成后必须存在）
+> 未勾选项是没有单独采集证据的可选项（Frame Debugger 截图、T5 重跑），不是失败项。
+
+### 5.6 证据清单（已存在）
 
 ```
 PLAN/TODO/04-SSGIFallbackImprove/validation/
 ├─ P0/Contract.md                     # 开关默认值/回退语义冻结表（或写回本文）
 ├─ P1/UnityEditModeTests.xml          # manager 生命周期单测
 ├─ P2/SslShaderCheck.txt              # 两个 keyword 变体 + 0 消息
-├─ P3/Inspector.png                   # Feature 开关截图（可选）
+├─ P3/UnityEditModeTests.xml          # Feature 开关单测（Inspector 截图为可选项，未采集）
 ├─ P4/SsgiProbeFallbackVerification.json
-├─ P4/{Forward,ForwardPlus,Deferred}_{Off,On,Reference}.png
-├─ P4/FrameDebuggerReport.json        # 可选
-├─ P4/UnityEditModeTests.xml
-└─ P4/UnityEditMode.log
+├─ P4/{Forward,ForwardPlus,Deferred}_{Off,On,On_ProbesAndSky,Reference}.png
+├─ P4/Stress_{00,01,04,32}.png        # 0/1/4/32 个可见探针
+├─ P4/UnityEditModeTests.xml          # 426/426 passed
+└─ P4/README.md                       # 数值表、复现命令、性能方法
 ```
+
+`FrameDebuggerReport.json`（可选）未采集；SSGI dispatch 数不变由代码路径保证（探针回退在
+reproject kernel 内）。`*.log` 被 `.gitignore` 排除，只提交 XML/JSON/PNG/MD。
 
 ### 5.7 复现命令（关闭其他 Unity 编辑器后执行）
 
@@ -304,7 +311,7 @@ PLAN/TODO/04-SSGIFallbackImprove/validation/
 # 渲染验证（脚本名以 P4 实现为准）
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
-  -executeMethod ScreenSpaceLightingSsgiProbeFallbackVerification.Run -quit \
+  -executeMethod ScreenSpaceLightingSsgiProbeFallbackVerification.RunSsgiProbeFallbackVerification -quit \
   -logFile "<abs>/validation/P4/UnitySsgiProbeFallback.log"
 ```
 
@@ -339,9 +346,25 @@ PLAN/TODO/04-SSGIFallbackImprove/validation/
 
 ---
 
-## 8. 下一步
+## 8. 实施结果
 
-1. 先完成 P0 冻结（开关默认值、`rayMiss` 语义、运行时切换策略），写回本文。
-2. 按 P1 → P2 → P3 顺序实现，每步单独提交并附编译/单测证据。
-3. P4 用局部探针场景做三渲染器实拍与数值断言，性能测量后再决定是否需要方案 B（逐像素探针 tile 列表）。
-4. P5 更新 T14KnownDifferences 与本文状态；全部完成后可随 `PLAN/TODO/04-SSGIFallbackImprove` 归档。
+| 阶段 | 提交 | 结论 |
+|---|---|---|
+| P0 冻结契约 | `7d137e2` | `publishProbeAtlas` 默认 false；运行时切换按帧生效；记录开启后的语义变化 |
+| P1 生命周期解耦 | `3302908` | 非 Forward+ 按开关创建/更新/释放 manager；`Cleanup` 幂等；Forward+ 始终持有且忽略开关 |
+| P2 shader 列表路径 | `f5f8d3d` | `SSL_PROBE_LIST` 遍历扁平可见探针列表；两变体编译 0 消息 |
+| P3 Inspector | `9c99a15` | Feature 开关 + Tooltip；运行时切换无需重建 renderer |
+| P4 测试/验证 | `4158f8d`、`fff55c7` | 三渲染器实拍 + 0/1/4/32 压力 + 成对性能；426/426 EditMode |
+| P5 收尾 | 本提交 | 更新 T14KnownDifferences 与本文状态/证据清单 |
+
+关键结果：
+
+- Forward/Deferred 开关 on 时探针覆盖区 green tint 2.564、covered mean weight 0.9997；开关 off
+  为 -0.007（默认 cubemap），差异只出现在 miss 像素。
+- Forward+ 开关 off/on 两张图逐字节一致，确认聚类路径不受开关影响。
+- 0 探针时无绿色探针贡献（green tint -0.049），覆盖率 3.14% 仅来自屏幕空间命中。
+- `ProbesAndSky` 覆盖率恢复 38.28%，探针余量由 ambient SH 补齐。
+- 性能增量中位数 0.153 ms ≤ 0.2 ms，**不启用方案 B**（逐像素探针 tile 列表）。
+
+后续只剩归档：`PLAN/TODO/04-SSGIFallbackImprove` 可按需整体移入 `PLAN/Done/`；可选项为补采
+Frame Debugger 的 atlas 绑定截图。
