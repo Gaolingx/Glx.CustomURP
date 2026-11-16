@@ -1,0 +1,35 @@
+{
+  "captures": [
+    {
+      "caseId": "forward_ssr_pbr_full_ssgi_off",
+      "capture": "forward_ssr_pbr_full_ssgi_off_frame15174.rdc",
+      "ssgiMarkerPresent": false,
+      "ssrMarker": { "start": 324, "end": 453 },
+      "dispatchCount": 6,
+      "dispatches": [
+        { "order": 0, "eventId": 345, "label": "trace", "csShader": "ResourceId::9824" },
+        { "order": 1, "eventId": 367, "label": "reproject", "csShader": "ResourceId::9827" },
+        { "order": 2, "eventId": 394, "label": "temporalAccumulation", "csShader": "ResourceId::9830" },
+        { "order": 3, "eventId": 408, "label": "copyHistory", "csShader": "ResourceId::9833" },
+        { "order": 4, "eventId": 429, "label": "bilateralFilterH", "csShader": "ResourceId::9835" },
+        { "order": 5, "eventId": 450, "label": "bilateralFilterV", "csShader": "ResourceId::9838" }
+      ]
+    },
+    {
+      "caseId": "forward_ssr_pbr_half_ssgi_off",
+      "capture": "forward_ssr_pbr_half_ssgi_off_frame15192.rdc",
+      "ssgiMarkerPresent": false,
+      "ssrMarker": { "start": 324, "end": 468 },
+      "dispatchCount": 7,
+      "dispatches": [
+        { "order": 0, "eventId": 345, "label": "trace", "csShader": "ResourceId::9886" },
+        { "order": 1, "eventId": 367, "label": "reproject", "csShader": "ResourceId::9888" },
+        { "order": 2, "eventId": 394, "label": "temporalAccumulationHalfRes", "csShader": "ResourceId::9889" },
+        { "order": 3, "eventId": 408, "label": "copyHistory", "csShader": "ResourceId::9833" },
+        { "order": 4, "eventId": 429, "label": "bilateralFilterH_HR", "csShader": "ResourceId::9890" },
+        { "order": 5, "eventId": 450, "label": "bilateralFilterV_HR", "csShader": "ResourceId::9891" },
+        { "order": 6, "eventId": 465, "label": "upsample", "csShader": "ResourceId::9892" }
+      ]
+    }
+  ]
+}
