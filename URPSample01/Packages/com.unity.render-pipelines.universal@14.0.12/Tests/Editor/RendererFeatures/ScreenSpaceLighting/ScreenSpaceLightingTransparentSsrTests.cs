@@ -1,5 +1,7 @@
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -13,6 +15,18 @@ namespace UnityEditor.Rendering.Universal.Tests
     class ScreenSpaceLightingTransparentSsrTests
     {
         ScreenSpaceLightingHistory m_History;
+
+        static string PackageRoot => Path.Combine(
+            Path.GetDirectoryName(Application.dataPath),
+            "Packages",
+            "com.unity.render-pipelines.universal@14.0.12");
+
+        static string ReadPackageFile(string relativePath)
+        {
+            string path = Path.Combine(PackageRoot, relativePath);
+            Assert.IsTrue(File.Exists(path), $"Expected package file at {path}.");
+            return File.ReadAllText(path);
+        }
 
         [SetUp]
         public void SetUp()
@@ -121,6 +135,65 @@ namespace UnityEditor.Rendering.Universal.Tests
             int serial = m_History.frameSerial;
             m_History.BeginFrame();
             Assert.AreEqual(serial + 1, m_History.frameSerial, "each camera render advances the serial once.");
+        }
+
+        [Test]
+        public void DepthSeedAppliesTheCopyDepthYFlipRule()
+        {
+            string pass = ReadPackageFile(
+                "Runtime/RendererFeatures/ScreenSpaceLighting/Passes/TransparentDepthNormalRenderPass.cs");
+
+            // CopyDepthPass flips when source and destination handles live in different y
+            // orientations; the seed copy must follow the same rule instead of a fixed scale bias.
+            StringAssert.Contains("cameraData.IsHandleYFlipped(depthSource)", pass);
+            StringAssert.Contains("cameraData.IsHandleYFlipped(m_History.transparentDepth)", pass);
+            StringAssert.Contains("yflip ? -1f : 1f", pass);
+            StringAssert.Contains("yflip ? 1f : 0f", pass);
+        }
+
+        [Test]
+        public void TransparentTraceOwnsEverySharedKeyword()
+        {
+            string pass = ReadPackageFile(
+                "Runtime/RendererFeatures/ScreenSpaceLighting/Passes/TransparentSsrPass.cs");
+
+            // The SSR compute shader is shared with the opaque pass; the transparent pass must set
+            // its own half resolution / blue-noise / normals state instead of inheriting it.
+            StringAssert.Contains("ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, false", pass);
+            StringAssert.Contains("ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise", pass);
+            StringAssert.Contains("ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, false", pass);
+            StringAssert.Contains("BindSsrBlueNoise(cmd, compute, traceKernel)", pass);
+        }
+
+        [Test]
+        public void TransparentPassUsesAnIsolatedComputeInstance()
+        {
+            var guids = AssetDatabase.FindAssets("ScreenSpaceReflections t:ComputeShader");
+            Assert.Greater(guids.Length, 0, "the SSR compute shader must be importable");
+            var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>(AssetDatabase.GUIDToAssetPath(guids[0]));
+            Assert.IsNotNull(shader);
+
+            // The opaque and transparent passes need different variants of the same kernels in one
+            // frame. Compute keywords are asset state, so two objects are required.
+            var instance = UnityEngine.Object.Instantiate(shader);
+            try
+            {
+                Assert.IsNotNull(instance);
+                Assert.AreNotSame(shader, instance);
+                shader.EnableKeyword("SSR_APPROX");
+                Assert.IsTrue(shader.IsKeywordEnabled("SSR_APPROX"));
+                Assert.IsFalse(instance.IsKeywordEnabled("SSR_APPROX"));
+            }
+            finally
+            {
+                if (instance != null)
+                    UnityEngine.Object.DestroyImmediate(instance);
+                shader.DisableKeyword("SSR_APPROX");
+            }
+
+            string pass = ReadPackageFile(
+                "Runtime/RendererFeatures/ScreenSpaceLighting/Passes/TransparentSsrPass.cs");
+            StringAssert.Contains("m_Resources.ssrTransparentCompute", pass);
         }
 
         [Test]

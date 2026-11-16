@@ -14,6 +14,11 @@ namespace UnityEngine.Rendering.Universal
     // the reprojection has no temporal accumulation history of its own, and the PBR accumulation
     // belongs to the opaque trace. The result is bound with its own texture and keyword for the
     // translucent draw (450); opaque materials never see it.
+    //
+    // The kernels come from an instance of the opaque SSR compute shader (ScreenSpaceLightingResources
+    // .ssrTransparentCompute). Compute keywords are asset state resolved when the queued dispatch
+    // executes, so sharing one asset would make the last pass to set keywords decide the variant for
+    // both the opaque and the transparent dispatches in the frame.
     internal sealed class ScreenSpaceLightingTransparentSsrPass : ScriptableRenderPass
     {
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.BeforeRenderingTransparents - 1);
@@ -50,6 +55,18 @@ namespace UnityEngine.Rendering.Universal
             s_EditorReprojectDispatchCount = 0;
             s_EditorAccumulationDispatchCount = 0;
         }
+#endif
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // The SSR compute shader is shared with the opaque pass, so the transparent pass must set
+        // every keyword it depends on instead of inheriting the opaque pass' state.
+        internal static int s_LastKeywordFrame = -1;
+        internal static bool s_LastHalfResKeyword;
+        internal static bool s_LastBlueNoiseKeyword;
+        internal static bool s_LastNormalsOctKeyword;
+        internal static bool s_LastApproxKeyword;
+        internal static bool s_LastBlueNoiseTexturesBound;
+        internal static bool s_LastIsolatedCompute;
 #endif
 
         internal bool producedOutput => m_ProducedOutput;
@@ -126,7 +143,13 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            var compute = m_Resources.ssrCompute;
+            var compute = m_Resources.ssrTransparentCompute;
+            if (compute == null)
+            {
+                DisableMaterialBinding(cmd);
+                return;
+            }
+
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
                 SetKeyword(compute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
@@ -134,6 +157,19 @@ namespace UnityEngine.Rendering.Universal
                 // deferred octahedral GBuffer layout.
                 SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, false);
                 SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, true);
+                // This pass traces at full resolution and binds its own blue-noise LUTs, so it must
+                // not inherit the half resolution / LUT state the opaque pass left on the shader.
+                SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, false);
+                SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                s_LastKeywordFrame = Time.frameCount;
+                s_LastHalfResKeyword = compute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsrHalfResKeyword);
+                s_LastBlueNoiseKeyword = compute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword);
+                s_LastNormalsOctKeyword = compute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword);
+                s_LastApproxKeyword = compute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsrApproxKeyword);
+                s_LastBlueNoiseTexturesBound = m_Resources.hasSsrBlueNoise;
+                s_LastIsolatedCompute = !ReferenceEquals(compute, m_Resources.ssrCompute);
+#endif
 
                 if (useTextureArray)
                 {
@@ -155,6 +191,7 @@ namespace UnityEngine.Rendering.Universal
                 PushShaderVariables(cmd, compute, cb);
 
                 var traceKernel = compute.FindKernel("ScreenSpaceReflectionsTracing");
+                BindSsrBlueNoise(cmd, compute, traceKernel);
                 cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, m_History.transparentDepth);
                 cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, m_History.transparentNormals);
                 cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramid, m_History.depthPyramid);
@@ -266,6 +303,21 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrCameraPositionWS, cb._SsrCameraPositionWS);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrPbrParams, cb._SsrPbrParams);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrPbrFlags, cb._SsrPbrFlags);
+        }
+
+        // The opaque pass binds the 1SPP tiles on the same tracing kernel; bind them here as well so
+        // the transparent trace never depends on the opaque pass having run first in this frame.
+        void BindSsrBlueNoise(CommandBuffer cmd, ComputeShader compute, int kernel)
+        {
+            if (!m_Resources.hasSsrBlueNoise)
+                return;
+
+            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsgiOwenScrambledTexture,
+                m_Resources.ssgiOwenScrambledTexture);
+            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsgiScramblingTileXSPP,
+                m_Resources.ssrScramblingTile);
+            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsgiRankingTileXSPP,
+                m_Resources.ssrRankingTile);
         }
 
         static void SetKeyword(ComputeShader compute, string keyword, bool enabled)

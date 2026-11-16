@@ -30,6 +30,15 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_EditorExecuteCount;
 #endif
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // Verification evidence: the seed copy must apply the same source/destination y-flip rule as
+        // CopyDepthPass, so a flipped handle never stores the opaque depth upside down.
+        internal static int s_LastDepthSeedFrame = -1;
+        internal static bool s_LastDepthSeedYFlip;
+        internal static bool s_LastDepthSeedSourceFlipped;
+        internal static bool s_LastDepthSeedDestinationFlipped;
+#endif
+
         internal bool producedOutput => m_ProducedOutput;
         internal int producedFrameSerial => m_ProducedFrameSerial;
 
@@ -106,8 +115,18 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableShaderKeyword("_DEPTH_MSAA_4");
                 cmd.DisableShaderKeyword("_DEPTH_MSAA_8");
                 cmd.EnableShaderKeyword(ScreenSpaceLightingShaderIDs.OutputDepthKeyword);
-                Blitter.BlitTexture(cmd, depthSource, new Vector4(1f, 1f, 0f, 0f), material, 0);
+                // CopyDepthPass flips when source and destination live in different y orientations
+                // (for example a backbuffer depth source copied into the private flipped target).
+                bool yflip = cameraData.IsHandleYFlipped(depthSource) != cameraData.IsHandleYFlipped(m_History.transparentDepth);
+                Blitter.BlitTexture(cmd, depthSource,
+                    new Vector4(1f, yflip ? -1f : 1f, 0f, yflip ? 1f : 0f), material, 0);
                 cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.OutputDepthKeyword);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                s_LastDepthSeedFrame = Time.frameCount;
+                s_LastDepthSeedYFlip = yflip;
+                s_LastDepthSeedSourceFlipped = cameraData.IsHandleYFlipped(depthSource);
+                s_LastDepthSeedDestinationFlipped = cameraData.IsHandleYFlipped(m_History.transparentDepth);
+#endif
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

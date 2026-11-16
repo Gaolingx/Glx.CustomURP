@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
         [NonSerialized] Material m_ColorPyramidMaterial;
         [NonSerialized] Material m_DebugMaterial;
         [NonSerialized] Material m_TransparentDepthCopyMaterial;
+        [NonSerialized] ComputeShader m_SsrTransparentCompute;
         [NonSerialized] bool m_SsgiBlueNoiseResolved;
         [NonSerialized] Texture2D m_SsgiOwenScrambledTexture;
         [NonSerialized] Texture2D m_SsgiScramblingTile;
@@ -130,6 +131,25 @@ namespace UnityEngine.Rendering.Universal
         // Transparent SSR additionally needs the depth copy shader to seed the private depth target.
         internal bool hasTransparentSsrResources => ssrCompute != null && transparentDepthCopyShader != null;
 
+        // ComputeShader keywords are asset state resolved when the queued dispatch executes, not
+        // per command. The opaque and transparent SSR passes need different variants (PBR vs
+        // Approximation, full vs half resolution) in the same frame, so the transparent pass owns a
+        // separate instance; sharing the asset would let whichever pass sets keywords last decide
+        // the variant for both.
+        internal ComputeShader ssrTransparentCompute
+        {
+            get
+            {
+                if (m_SsrTransparentCompute == null && ssrCompute != null)
+                {
+                    m_SsrTransparentCompute = UnityEngine.Object.Instantiate(ssrCompute);
+                    m_SsrTransparentCompute.name = ssrCompute.name + " (Transparent SSR)";
+                }
+
+                return m_SsrTransparentCompute;
+            }
+        }
+
         // The debug view is optional at runtime; the feature editor and tests require the full set.
         internal bool isComplete =>
             hasRuntimeResources && hasSsgiResources && hasSsrResources &&
@@ -173,6 +193,8 @@ namespace UnityEngine.Rendering.Universal
             m_DebugMaterial = null;
             CoreUtils.Destroy(m_TransparentDepthCopyMaterial);
             m_TransparentDepthCopyMaterial = null;
+            CoreUtils.Destroy(m_SsrTransparentCompute);
+            m_SsrTransparentCompute = null;
         }
     }
 
