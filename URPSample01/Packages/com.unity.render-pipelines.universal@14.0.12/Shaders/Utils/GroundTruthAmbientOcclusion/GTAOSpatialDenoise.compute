@@ -20,9 +20,10 @@ float BilateralWeight(float sampleDepth, float linearCentralDepth)
     return w;
 }
 
-// Bilateral spatial denoise over the 3x3 neighbourhood. The neighbour fetches use explicit integer
-// loads: the HDRP original derives them from a bilinearly clamped UV and GatherRed, and in the URP
-// compatibility compute path that combination returns a degenerate screen-column pattern.
+// Bilateral spatial denoise over the 4x4 neighbourhood used by the HDRP original (four Gather4
+// fetches around the centre). The neighbour fetches use explicit integer loads: the HDRP version
+// derives them from a bilinearly clamped UV and GatherRed, and in the URP compatibility compute path
+// that combination returns a degenerate screen-column pattern.
 float Blur(uint2 centralPos, out float centralDepth, out float centralAO)
 {
     int2 limit = max((int2)_GtaoBufferSize.xy - 1, int2(0, 0));
@@ -36,10 +37,10 @@ float Blur(uint2 centralPos, out float centralDepth, out float centralAO)
     float totalWeight = 1.0;
 
     [unroll]
-    for (int dy = -1; dy <= 1; dy++)
+    for (int dy = -1; dy <= 2; dy++)
     {
         [unroll]
-        for (int dx = -1; dx <= 1; dx++)
+        for (int dx = -1; dx <= 2; dx++)
         {
             if (dx == 0 && dy == 0)
                 continue;

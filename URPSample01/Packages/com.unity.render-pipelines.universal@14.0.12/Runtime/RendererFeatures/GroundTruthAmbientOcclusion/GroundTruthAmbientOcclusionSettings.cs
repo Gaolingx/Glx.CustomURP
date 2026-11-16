@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal
         internal float spatialBilateralAggressiveness = 0.15f;
 
         [SerializeField]
-        [Tooltip("Uses a bilateral filter when upsampling the half resolution result. Disable for a cheaper box filter.")]
+        [Tooltip("Uses a bilateral filter when upsampling the temporally accumulated half resolution result. Disable for a cheaper box filter. Without temporal accumulation the smart blur kernel always upsamples bilaterally.")]
         internal bool bilateralUpsample = true;
 
         [Header("History")]

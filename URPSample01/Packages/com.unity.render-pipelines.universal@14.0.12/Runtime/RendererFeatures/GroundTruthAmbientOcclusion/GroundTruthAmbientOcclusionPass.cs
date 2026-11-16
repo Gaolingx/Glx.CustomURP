@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
         GroundTruthAmbientOcclusionSettings m_Settings;
         GroundTruthAmbientOcclusionResources m_Resources;
         bool m_Orthographic;
+        bool m_LoggedMissingNormals;
         readonly Vector4[] m_XrViewRow0 = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
         readonly Vector4[] m_XrViewRow1 = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
         readonly Vector4[] m_XrViewRow2 = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
@@ -70,10 +71,22 @@ namespace UnityEngine.Rendering.Universal
 
             var normalTexture = GetNormalTexture(cameraData.renderer);
             var motionTexture = GetMotionTexture(cameraData.renderer);
-            if (!m_History.resourcesAllocated || normalTexture == null)
+            if (normalTexture == null)
             {
+                if (!m_LoggedMissingNormals)
+                {
+                    m_LoggedMissingNormals = true;
+                    Debug.LogWarning(
+                        "Ground Truth Ambient Occlusion requires the camera normals texture. Use a UniversalRenderer " +
+                        "and make sure opaque shaders provide a DepthNormals pass.");
+                }
                 return;
             }
+
+            m_LoggedMissingNormals = false;
+
+            if (!m_History.resourcesAllocated)
+                return;
 
             ComputeShaderVariables(ref cameraData, out var cb);
             bool temporal = m_Settings.temporalAccumulation && motionTexture != null;
@@ -116,10 +129,11 @@ namespace UnityEngine.Rendering.Universal
             var upsample = m_Resources.blurAndUpsampleCompute;
 
             bool fullResolution = m_Settings.fullResolution;
-            // The spatial bilateral denoise always runs: the half resolution non temporal path also
-            // up-samples from the denoised buffer, so it needs a packed half resolution result.
-            const bool spatialRuns = true;
-            bool packSpatialOutput = temporal || !fullResolution;
+            // Matches HDRP: the spatial bilateral denoise runs for the temporal path and for full
+            // resolution. Half resolution without temporal accumulation uses the smart blur fused
+            // into the BlurUpsample kernel instead.
+            bool spatialRuns = temporal || fullResolution;
+            bool packSpatialOutput = temporal;
             int aoWidth = m_History.aoWidth;
             int aoHeight = m_History.aoHeight;
             int groupCountX = DivideRoundUp(aoWidth, 8);
@@ -170,8 +184,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (!fullResolution)
                 {
-                    // Non temporal half resolution: up-sample the spatially denoised packed buffer.
-                    DispatchUpsample(cmd, upsample, cb, m_History.packedBlurred, viewCount, useTextureArray, groupCountX, groupCountY);
+                    // Non temporal half resolution: smart blur and upsample the raw packed buffer in
+                    // one pass, like HDRP's BlurUpsample kernel.
+                    DispatchBlurUpsample(cmd, upsample, cb, m_History.packedData, viewCount, useTextureArray, groupCountX, groupCountY);
                 }
 
                 return;
@@ -219,6 +234,28 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             DispatchUpsample(cmd, upsample, cb, temporalOutput, viewCount, useTextureArray, groupCountX, groupCountY);
+        }
+
+        void DispatchBlurUpsample(
+            CommandBuffer cmd,
+            ComputeShader upsample,
+            in GroundTruthAmbientOcclusionShaderVariables cb,
+            RTHandle packedInput,
+            int viewCount,
+            bool useTextureArray,
+            int groupCountX,
+            int groupCountY)
+        {
+            SetKeyword(upsample, GroundTruthAmbientOcclusionShaderIDs.XrArrayKeyword, useTextureArray);
+            int kernel = upsample.FindKernel("BlurUpsample");
+            PushShaderVariables(cmd, upsample, cb);
+            cmd.SetComputeTextureParam(upsample, kernel, GroundTruthAmbientOcclusionShaderIDs.PackedData, packedInput);
+            cmd.SetComputeTextureParam(upsample, kernel, GroundTruthAmbientOcclusionShaderIDs.OcclusionTexture, m_History.occlusionTexture);
+            cmd.SetComputeTextureParam(upsample, kernel, GroundTruthAmbientOcclusionShaderIDs.DepthPyramid, m_History.depthPyramid);
+            cmd.DispatchCompute(upsample, kernel, groupCountX, groupCountY, viewCount);
+#if UNITY_EDITOR
+            s_EditorUpsampleDispatchCount++;
+#endif
         }
 
         void DispatchUpsample(
