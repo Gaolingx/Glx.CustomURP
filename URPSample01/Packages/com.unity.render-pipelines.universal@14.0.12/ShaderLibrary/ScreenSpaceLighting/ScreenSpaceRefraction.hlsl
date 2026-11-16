@@ -46,18 +46,23 @@ float4 _SslRefractionColorPyramidScaleAndLimit;
 // y: 1 / screen fade distance, z: intensity, w: unused
 float4 _SslRefractionParams;
 
-// Scene proxy. URP has no per-material proxy volume, so the plugin binds the world AABB of a
-// reflection probe; HDRP's default probe uses its influence volume as the proxy as well. With no
-// probe the plugin selects the far-projection mode below, a deliberate URP extension: HDRP's
-// no-env-light default (InitDefaultRefractionEnvLightData) is a camera-centred sphere sized by the
-// renderer bounds whose projection usually clamps to 0, and 65504 is only its sky cubemap
-// minProjectionDistance. BoxMin.w is the proxy mode; None keeps the legacy transparent output.
+// Per-object proxy table. URP has no per-material proxy volume, so the plugin uploads the world
+// AABBs of nearby reflection probes; HDRP's default probe uses its influence volume as the proxy as
+// well. The table's last entry is always the far-projection fallback, a deliberate URP extension:
+// HDRP's no-env-light default (InitDefaultRefractionEnvLightData) is a camera-centred sphere sized
+// by the renderer bounds whose projection usually clamps to 0, and 65504 is only its sky cubemap
+// minProjectionDistance. Params.z is the proxy mode; None keeps the legacy transparent output.
 #define SSL_REFRACTION_PROXY_MODE_NONE 0
 #define SSL_REFRACTION_PROXY_MODE_BOX 1
 #define SSL_REFRACTION_PROXY_MODE_INFINITE 2
+#define SSL_REFRACTION_MAX_PROXIES 8
 
-float4 _SslRefractionProxyBoxMin;
-float4 _SslRefractionProxyBoxMax;
+float4 _SslRefractionProbeMin[SSL_REFRACTION_MAX_PROXIES];
+float4 _SslRefractionProbeMax[SSL_REFRACTION_MAX_PROXIES];
+// x: importance, y: reserved rendering layer mask (URP 14 exposes no per-probe layer),
+// z: proxy mode
+float4 _SslRefractionProbeParams[SSL_REFRACTION_MAX_PROXIES];
+int _SslRefractionProbeCount;
 
 struct ScreenSpaceRefractionInput
 {
@@ -101,6 +106,84 @@ float ScreenSpaceRefractionEdgeFade(float2 coordNDC, float fadeRcpLength)
 half3 ScreenSpaceRefractionToAbsorption(half3 transmittanceColor, float atDistance)
 {
     return -log(transmittanceColor + REAL_EPS) / max(atDistance, REAL_EPS);
+}
+
+struct ScreenSpaceRefractionProxy
+{
+    int mode;
+    float3 boxMin;
+    float3 boxMax;
+};
+
+// HDRP picks the env light at the object center for the whole object, which keeps the proxy stable
+// when the object spans tiles. The same idea over the uploaded table: a containing probe wins (the
+// highest importance among them), otherwise the nearest AABB, otherwise the infinite fallback.
+ScreenSpaceRefractionProxy ScreenSpaceRefractionSelectProxy(float3 objectCenterWS)
+{
+    ScreenSpaceRefractionProxy proxy;
+    proxy.mode = SSL_REFRACTION_PROXY_MODE_NONE;
+    proxy.boxMin = float3(0.0, 0.0, 0.0);
+    proxy.boxMax = float3(0.0, 0.0, 0.0);
+
+    int count = clamp(_SslRefractionProbeCount, 0, SSL_REFRACTION_MAX_PROXIES);
+    int infiniteIndex = -1;
+    int bestIndex = -1;
+    bool bestInside = false;
+    int bestImportance = -2147483647;
+    float bestScore = 3.402823466e+38;
+
+    for (int i = 0; i < count; i++)
+    {
+        int mode = (int)(_SslRefractionProbeParams[i].z + 0.5);
+        if (mode == SSL_REFRACTION_PROXY_MODE_INFINITE)
+        {
+            infiniteIndex = i;
+            continue;
+        }
+        if (mode != SSL_REFRACTION_PROXY_MODE_BOX)
+            continue;
+
+        float3 boxMin = _SslRefractionProbeMin[i].xyz;
+        float3 boxMax = _SslRefractionProbeMax[i].xyz;
+        if (any(boxMax <= boxMin))
+            continue;
+
+        // URP 14 does not expose per-probe rendering layer masks, so Params.y stays unused; HDRP
+        // filters env lights with IsMatchingLightLayer.
+        bool inside = all(objectCenterWS >= boxMin) && all(objectCenterWS <= boxMax);
+        float3 offset = max(max(boxMin - objectCenterWS, objectCenterWS - boxMax), float3(0.0, 0.0, 0.0));
+        float score = dot(offset, offset);
+        int importance = (int)_SslRefractionProbeParams[i].x;
+
+        bool better;
+        if (bestIndex < 0)
+            better = true;
+        else if (inside != bestInside)
+            better = inside;
+        else if (inside)
+            better = importance > bestImportance ||
+                     (importance == bestImportance && score < bestScore - 1e-4);
+        else
+            better = score < bestScore - 1e-4 ||
+                     (abs(score - bestScore) <= 1e-4 && importance > bestImportance);
+
+        if (better)
+        {
+            bestIndex = i;
+            bestInside = inside;
+            bestImportance = importance;
+            bestScore = score;
+        }
+    }
+
+    int chosen = bestIndex >= 0 ? bestIndex : infiniteIndex;
+    if (chosen < 0)
+        return proxy;
+
+    proxy.mode = (int)(_SslRefractionProbeParams[chosen].z + 0.5);
+    proxy.boxMin = _SslRefractionProbeMin[chosen].xyz;
+    proxy.boxMax = _SslRefractionProbeMax[chosen].xyz;
+    return proxy;
 }
 
 // Traces the refracted ray through the proxy and samples the current frame color pyramid. The
@@ -150,7 +233,11 @@ ScreenSpaceRefractionResult ScreenSpaceRefractionEvaluate(ScreenSpaceRefractionI
     result.refractPosWS = refraction.positionWS;
     result.valid = true;
 
-    int proxyMode = (int)(_SslRefractionProxyBoxMin.w + 0.5);
+    // HDRP selects the refraction env light at the object center; use the same point over the
+    // uploaded probe table so an object spanning probe regions keeps one proxy.
+    float3 objectCenterWS = GetObjectToWorldMatrix()._m03_m13_m23;
+    ScreenSpaceRefractionProxy proxy = ScreenSpaceRefractionSelectProxy(objectCenterWS);
+    int proxyMode = proxy.mode;
     if (proxyMode == SSL_REFRACTION_PROXY_MODE_NONE)
         return result;
 
@@ -158,8 +245,8 @@ ScreenSpaceRefractionResult ScreenSpaceRefractionEvaluate(ScreenSpaceRefractionI
     float projectionDistance;
     if (proxyMode == SSL_REFRACTION_PROXY_MODE_BOX)
     {
-        float3 boxMin = _SslRefractionProxyBoxMin.xyz;
-        float3 boxMax = _SslRefractionProxyBoxMax.xyz;
+        float3 boxMin = proxy.boxMin;
+        float3 boxMax = proxy.boxMax;
         if (any(boxMax <= boxMin))
             return result;
 

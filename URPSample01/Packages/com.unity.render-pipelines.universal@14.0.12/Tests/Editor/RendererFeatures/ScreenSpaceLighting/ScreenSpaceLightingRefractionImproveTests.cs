@@ -36,9 +36,37 @@ namespace UnityEditor.Rendering.Universal.Tests
             // P0-3: no proxy is a valid state (far-projection fallback); only missing inputs keep the
             // legacy path. Intensity zero must keep the disabled output byte identical.
             StringAssert.DoesNotContain("if (!TryGetProxy", pass);
-            StringAssert.Contains("SelectProxy(", pass);
+            StringAssert.Contains("BuildProbeTable(", pass);
             StringAssert.Contains("ProxyMode.Infinite", pass);
             StringAssert.Contains("settings.intensity.value > 0f", pass);
+        }
+
+        [Test]
+        public void RefractionProxyTableSelectsAtTheObjectCenter()
+        {
+            string pass = ReadPackageFile("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/RefractionPass.cs");
+            // A bounded table with one reserved infinite fallback; 30-frame scene scan is reused.
+            StringAssert.Contains("internal const int k_MaxRefractionProxies = 8;", pass);
+            StringAssert.Contains("const int k_MaxBoxProxies = k_MaxRefractionProxies - 1;", pass);
+            StringAssert.Contains("SetGlobalVectorArray(ScreenSpaceLightingShaderIDs.RefractionProbeMin", pass);
+            StringAssert.Contains("SetGlobalVectorArray(ScreenSpaceLightingShaderIDs.RefractionProbeMax", pass);
+            StringAssert.Contains("SetGlobalVectorArray(ScreenSpaceLightingShaderIDs.RefractionProbeParams", pass);
+            StringAssert.Contains("SetGlobalInt(ScreenSpaceLightingShaderIDs.RefractionProbeCount", pass);
+            StringAssert.Contains("m_ProbeParams[candidateCount] = new Vector4(0f, 0f, (float)ProxyMode.Infinite, 0f);", pass);
+            StringAssert.Contains("k_SceneProbeRefreshFrames", pass);
+
+            string refraction = ReadPackageFile("ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl");
+            StringAssert.Contains("float4 _SslRefractionProbeMin[SSL_REFRACTION_MAX_PROXIES];", refraction);
+            StringAssert.Contains("float4 _SslRefractionProbeParams[SSL_REFRACTION_MAX_PROXIES];", refraction);
+            StringAssert.Contains("int _SslRefractionProbeCount;", refraction);
+            StringAssert.Contains("GetObjectToWorldMatrix()._m03_m13_m23", refraction);
+            StringAssert.Contains("ScreenSpaceRefractionSelectProxy(", refraction);
+            // Containing proxy beats a closer one; the infinite entry is the fallback.
+            StringAssert.Contains("better = inside;", refraction);
+            StringAssert.Contains("int chosen = bestIndex >= 0 ? bestIndex : infiniteIndex;", refraction);
+            StringAssert.DoesNotContain("_SslRefractionProxyBoxMin", refraction);
+            // URP 14 does not expose per-probe rendering layers; keep the limitation explicit.
+            StringAssert.Contains("URP 14 does not expose per-probe rendering layer masks", refraction);
         }
 
         [Test]

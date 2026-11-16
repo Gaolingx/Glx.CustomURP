@@ -181,10 +181,13 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int RefractionColorPyramidScaleAndLimit = Shader.PropertyToID("_SslRefractionColorPyramidScaleAndLimit");
         internal static readonly int RefractionParams = Shader.PropertyToID("_SslRefractionParams");
 
-        // Scene proxy: the world AABB of the active box-projected reflection probe. w of BoxMin is
-        // 1 when a proxy is available (URP has no per-material proxy volume).
-        internal static readonly int RefractionProxyBoxMin = Shader.PropertyToID("_SslRefractionProxyBoxMin");
-        internal static readonly int RefractionProxyBoxMax = Shader.PropertyToID("_SslRefractionProxyBoxMax");
+        // Per-object proxy table. Each entry is a world AABB plus (importance, reserved layer mask,
+        // proxy mode); the last entry is always the infinite fallback. URP 14 does not expose
+        // per-probe rendering layer masks, so the layer mask slot stays unused.
+        internal static readonly int RefractionProbeMin = Shader.PropertyToID("_SslRefractionProbeMin");
+        internal static readonly int RefractionProbeMax = Shader.PropertyToID("_SslRefractionProbeMax");
+        internal static readonly int RefractionProbeParams = Shader.PropertyToID("_SslRefractionProbeParams");
+        internal static readonly int RefractionProbeCount = Shader.PropertyToID("_SslRefractionProbeCount");
 
         internal static readonly string ScreenSpaceRefractionKeyword = "_SCREEN_SPACE_REFRACTION";
     }

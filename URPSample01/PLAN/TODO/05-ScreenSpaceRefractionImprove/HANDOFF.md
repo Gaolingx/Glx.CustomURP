@@ -1,7 +1,7 @@
 # ScreenSpaceRefraction 对齐 HDRP 与缺陷修复交接
 
-> 更新：2026-11-16
-> 状态：P0 里程碑交付完成。P0-1/P0-2/P0-3 实现并完成 T11 三模式验证；P1-1/P1-2 实现并完成静态/解析验证；P1-3 与 P2-2..P2-6 未开始，P2-1 复核关闭（与 HDRP 等价）。2026-11-16 复核修复 specular 合成、金字塔 mip 上限与吸收公式，并修正代理语义文档（见第 13、15 节）
+> 更新：2026-11-17
+> 状态：P0 里程碑交付完成。P0-1/P0-2/P0-3 实现并完成 T11 三模式验证；P1-1/P1-2 实现并完成静态/解析验证；P1-3 实现并完成静态/EditMode 验证（双 probe 视觉与性能证据待补），P2-2..P2-6 未开始，P2-1 复核关闭（与 HDRP 等价）。2026-11-16 复核修复 specular 合成、金字塔 mip 上限与吸收公式，并修正代理语义文档（见第 13、15 节）；2026-11-17 完成 P1-3 per-object 代理表（见第 16 节）
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`）
 > 相关文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[ScreenSpaceLighting 交接](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[T11 证据](../../Done/01-ScreenSpaceLighting/validation/T11/T11Report.json)
 
@@ -52,7 +52,7 @@
 | P0-3 | P0 | 代理 fallback：box → 任意 probe → 无限/sky | P0-1 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 实现完成，T11 通过 |
 | P1-1 | P1 | `_Ior` 进入 F0/Fresnel，透射与反射能量一致 | P0-2 | `BRDF.hlsl`、`Lighting.hlsl`、`LitInput.hlsl`、`PBRForwardPass.hlsl` | 实现完成，静态/解析验证通过，视觉证据待补 |
 | P1-2 | P1 | Thin 模型 atDistance 固定 0.005 | 无 | `ScreenSpaceRefraction.hlsl` | 实现完成，静态验证通过，视觉证据待补 |
-| P1-3 | P1 | per-object/per-pixel probe 选择与 light layer | P0-3 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 待开始 |
+| P1-3 | P1 | per-object proxy 表；light layer 在 URP 14 不可用 | P0-3 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 实现完成，静态/EditMode 通过；双 probe 视觉与性能证据待补 |
 | P2-1 | P2 | 屏幕外命中改为 HDRP 式 fade + clamp | P0-1/P0-2 | `ScreenSpaceRefraction.hlsl` | 复核关闭：NDC 外 fade 恒为 0，与硬拒绝等价 |
 | P2-2 | P2 | pre-refraction 透明队列 | P0-2 | `UniversalRenderer`、`RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 待开始（有决策门） |
 | P2-3 | P2 | 厚度贴图 / 透射色贴图 | P0-2 | `Lit.shader`、`ComplexLit.shader`、`LitInput.hlsl`、ShaderGraph | 待开始 |
@@ -642,8 +642,9 @@ PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/
 - **P0-3**：`ScreenSpaceLightingRefractionPass.ProxyMode`（None/Box/Infinite）与 shader `SSL_REFRACTION_PROXY_MODE_*` 对齐。`SelectProxy` 先找 box-projected probe，再接受任意 active probe 的 bounds，最后返回 Infinite（URP 扩展的 65504 远投影；HDRP 无 env light 时的默认折射代理是相机中心、由 renderer bounds 定半径的球，投影通常夹到 0，65504 只是其 sky cubemap 的 `minProjectionDistance`）。keyword 生命周期改为 Volume 开启 + intensity>0 + pyramid/depth 可用，不再因无 box probe 关闭。代理选择仍以相机为中心，per-object/per-pixel 表留给 P1-3。
 - **P1-1**：`InitializeBRDFData` 在 `_REFRACTION_* && _SCREEN_SPACE_REFRACTION` 时使用 `lerp(IorToFresnel0(_Ior), albedo, metallic)`，`reflectivity` 用对应亮度近似，F0 同时影响反射和 `(1-F)` 透射。只在全局 keyword 开启时生效，Volume 关闭保持旧 F0；Specular workflow 暂不改写（`_SPECULAR_SETUP` 分支保持原样，记录为近似）。
 - **P1-2**：`_REFRACTION_THIN` 下厚度与吸收距离都为 0.005。
+- **P1-3**：`RefractionPass` 改为最多 8 项代理表（7 个有限 probe AABB + 1 个 infinite fallback），从 visible probes 与 30 帧节流的 scene probe 快照去重后按 importance/visibility/volume 排序；shader 以物体中心 `GetObjectToWorldMatrix()._m03_m13_m23` 选择“包含中心且 importance 最高”的代理，否则最近 AABB，否则 infinite。light layer 因 URP 14 不暴露 probe rendering layer mask 未实现，已在 T14/代码注释记录。
 - **测试/资产**：更新 `ScreenSpaceLightingMaterialTests` 的新契约断言；新增 `ScreenSpaceLightingRefractionImproveTests`（代理模式、keyword 生命周期、fallback、mask、IOR、Thin）。T11 折射测试材质改为 opacity 0（HDRP mask 语义），新增 opacity 0/0.3/1 扫描、Opacity1 参照、非 box probe、无 probe infinite 代理状态；`OutputRoot` 可用 `SSL_VALIDATION_OUTPUT_ROOT` 指向本轮 validation 目录。
-- **待办**：P1-3 的 per-object probe 表、P2-2 pre-refraction 队列、P2-3 贴图、P2-4 FGD LUT 仍未做；P2-1 已复核关闭。
+- **待办**：P2-2 pre-refraction 队列、P2-3 贴图、P2-4 FGD LUT 仍未做；P2-1 已复核关闭。P1-3 的双 probe/跨边界视觉与性能证据待补。
 
 ## 12. 验证结果（2026-11-16）
 
@@ -686,3 +687,13 @@ PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/
 - **已知差异补齐**：T14 增加 alpha 恒 1（HDRP）vs legacy 透明（URP 有意）、雾二次衰减、fallback box projection、clear coat 抬高 roughness 四条。
 - **验证**：EditMode 完整套件 434/434 通过（新增 `AbsorptionMatchesCoreTransmittanceSemantics`）。
 - **T11**：Forward / Forward+ / Deferred 均 `completed=True passed=True issues=0`；报告与 opacity CSV 见 [validation/T11Absorption/T11Verification.json](validation/T11Absorption/T11Verification.json)。本轮只入库报告与 CSV，未重复保存 54 张 PNG；tint 指标与 `T11Hotfix` 一致（起始/结束亮度 0.956651/0.750982），opacity=1 与 legacy 透明仍为 0 像素差。
+
+## 16. P1-3 实现（2026-11-17）
+
+- **代理表**：`RefractionPass` 构建最多 8 项（`k_MaxRefractionProxies = 8`，其中 7 个有限 probe AABB + 1 个保留的 infinite fallback）。候选来自 `CullingResults.visibleReflectionProbes` 与 30 帧节流的 `FindObjectsOfType<ReflectionProbe>()` 快照，按 `importance` 降序、可见优先、体积升序去重排序；不要求 `boxProjection`（该标志只影响反射采样）。
+- **上传**：`SetGlobalVectorArray` 上传固定 8 项 `_SslRefractionProbeMin/_Max/_Params`，`SetGlobalInt` 上传 `_SslRefractionProbeCount`；数组与 `HashSet<int>` 预分配，`FindObjectsOfType` 仍只在 30 帧节流点发生，无新增每帧托管分配。
+- **shader 选择**：以 `GetObjectToWorldMatrix()._m03_m13_m23` 为物体中心；优先“包含中心”的 proxy（其中取 importance 最高），否则最近 AABB，否则 infinite fallback。对象跨 probe 边界时不会因相机移动而切换代理。
+- **light layer**：URP 14 的 `ReflectionProbe` / `VisibleReflectionProbe` 不暴露 rendering layer mask，因此未实现按 layer 过滤；`_SslRefractionProbeParams.y` 保留为未来槽位，T14 与 shader 注释已记录。
+- **测试**：`ScreenSpaceLightingRefractionImproveTests` 更新 `KeywordLifetimeDoesNotDependOnABoxProjectedProbe`（改为检查 `BuildProbeTable`），新增 `RefractionProxyTableSelectsAtTheObjectCenter`（表上限、infinite 兜底、物体中心选择、旧 uniform 移除）。
+- **验证**：EditMode 173/173 通过（0 failed，0 skipped）；T11 Forward/Forward+/Deferred 均 `completed=True passed=True issues=0`，报告见 [validation/T11P13/T11Verification.json](validation/T11P13/T11Verification.json)。单 probe 指标与上一轮一致：三模式 `boxChangedPixels=5915`、`noProxyChangedPixels=infiniteProxyChangedPixels=16281`、`legacyChangedPixels=0`、`opacityOneChangedPixels=0`，说明 P1-3 未改变单 probe 与关闭效果基线。
+- **未完成**：双 probe 场景、相机 A→B 移动、跨边界切换的渲染证据；1080p GPU p95、指令数/变体数记录。P1-3 验收项 1/2/5 仍未闭环。本次只入库 JSON/CSV，未保留 54 张 PNG。

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -36,6 +37,26 @@ namespace UnityEngine.Rendering.Universal
         const int k_SceneProbeRefreshFrames = 30;
         ReflectionProbe[] m_SceneProbes;
         int m_SceneProbeRefreshFrame = -9999;
+
+        // The shader table has one slot reserved for the infinite fallback, so a miss always has a
+        // proxy. The remaining slots hold finite probe AABBs.
+        internal const int k_MaxRefractionProxies = 8;
+        const int k_MaxBoxProxies = k_MaxRefractionProxies - 1;
+
+        struct ProbeCandidate
+        {
+            public Bounds bounds;
+            public int importance;
+            public int instanceId;
+            public bool visible;
+        }
+
+        readonly Vector4[] m_ProbeMin = new Vector4[k_MaxRefractionProxies];
+        readonly Vector4[] m_ProbeMax = new Vector4[k_MaxRefractionProxies];
+        readonly Vector4[] m_ProbeParams = new Vector4[k_MaxRefractionProxies];
+        readonly ProbeCandidate[] m_ProbeCandidates = new ProbeCandidate[k_MaxBoxProxies];
+        readonly HashSet<int> m_ProbeInstanceIds = new HashSet<int>();
+        int m_ProbeCount;
 
 #if UNITY_EDITOR
         internal static int s_EditorExecuteCount;
@@ -93,10 +114,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            var cameraPosition = renderingData.cameraData.camera.transform.position;
-            var proxyMode = SelectProxy(cameraPosition, renderingData.cullResults, out var proxyBoxMin, out var proxyBoxMax);
+            int boxProxyCount = BuildProbeTable(renderingData.cullResults);
 #if UNITY_EDITOR
-            if (proxyMode != ProxyMode.Box)
+            if (boxProxyCount == 0)
                 s_EditorNoProxyCount++;
 #endif
 
@@ -112,8 +132,11 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalTexture(ScreenSpaceLightingShaderIDs.RefractionColorPyramid, m_History.currentColorPyramid);
                 cmd.SetGlobalTexture(ScreenSpaceLightingShaderIDs.RefractionDepthTexture, depthTexture);
                 cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.RefractionColorPyramidScaleAndLimit, scaleAndLimit);
-                cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.RefractionProxyBoxMin, proxyBoxMin);
-                cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.RefractionProxyBoxMax, proxyBoxMax);
+                // Upload the fixed-size arrays; the shader reads only _SslRefractionProbeCount entries.
+                cmd.SetGlobalVectorArray(ScreenSpaceLightingShaderIDs.RefractionProbeMin, m_ProbeMin);
+                cmd.SetGlobalVectorArray(ScreenSpaceLightingShaderIDs.RefractionProbeMax, m_ProbeMax);
+                cmd.SetGlobalVectorArray(ScreenSpaceLightingShaderIDs.RefractionProbeParams, m_ProbeParams);
+                cmd.SetGlobalInt(ScreenSpaceLightingShaderIDs.RefractionProbeCount, m_ProbeCount);
                 cmd.SetGlobalVector(
                     ScreenSpaceLightingShaderIDs.RefractionParams,
                     new Vector4(
@@ -144,81 +167,58 @@ namespace UnityEngine.Rendering.Universal
 
             cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceRefractionKeyword);
             cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.RefractionParams, Vector4.zero);
-            cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.RefractionProxyBoxMin, Vector4.zero);
-            cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.RefractionProxyBoxMax, Vector4.zero);
+            cmd.SetGlobalInt(ScreenSpaceLightingShaderIDs.RefractionProbeCount, 0);
             cmd.SetGlobalTexture(ScreenSpaceLightingShaderIDs.RefractionColorPyramid, Texture2D.blackTexture);
             cmd.SetGlobalTexture(ScreenSpaceLightingShaderIDs.RefractionDepthTexture, Texture2D.blackTexture);
         }
 
-        // Picks the scene proxy for the refracted ray:
-        //  1. the box-projected reflection probe that best approximates the scene around the camera;
-        //  2. otherwise any active reflection probe bounds (box projection only affects reflections);
-        //  3. otherwise a far-projection proxy. HDRP's no-env-light default is a camera-centred
-        //     renderer-bounds sphere whose projection usually clamps to 0; this branch is a
-        //     deliberate URP extension that keeps probe-less scenes refracting.
-        // URP exposes no per-material proxy volume and no sphere influence, so the world AABB is the
+        // Builds the per-object proxy table. The shader picks the entry containing the object
+        // center (highest importance), otherwise the nearest AABB, otherwise the infinite fallback.
+        // The last slot is always the fallback, so the table can never be empty.
+        //
+        // URP exposes no per-material proxy volume and no sphere influence, so a world AABB is the
         // approximation. HDRP's default probe also uses its influence volume as the proxy; only an
-        // explicit infinite proxy volume is not representable here. The probe rotation is ignored
-        // (the AABB of a rotated probe is conservative).
+        // explicit infinite proxy volume is not representable. Probe rotation is ignored (the AABB
+        // of a rotated probe is conservative). URP 14 does not expose per-probe rendering layer
+        // masks, so light layers do not filter the proxy.
         //
         // CullingResults normally contains the probes, but it does not include runtime probes in
-        // every renderer path; a cached scene scan is the fallback.
-        ProxyMode SelectProxy(Vector3 cameraPosition, CullingResults cullResults, out Vector4 boxMin, out Vector4 boxMax)
+        // every renderer path; the cached scene scan fills the remaining slots.
+        int BuildProbeTable(CullingResults cullResults)
         {
-            boxMin = Vector4.zero;
-            boxMax = Vector4.zero;
-
             RefreshSceneProbesIfNeeded();
 
-            if (TryFindProbe(cameraPosition, cullResults, requireBoxProjection: true, out var bounds))
-            {
-                boxMin = new Vector4(bounds.min.x, bounds.min.y, bounds.min.z, (float)ProxyMode.Box);
-                boxMax = new Vector4(bounds.max.x, bounds.max.y, bounds.max.z, 0f);
-                return ProxyMode.Box;
-            }
+            m_ProbeInstanceIds.Clear();
+            int candidateCount = 0;
 
-            // No box-projected probe. Any probe volume is still a valid refraction proxy: the box
-            // projection flag only changes how reflections are sampled, not where the volume is.
-            if (TryFindProbe(cameraPosition, cullResults, requireBoxProjection: false, out bounds))
-            {
-                boxMin = new Vector4(bounds.min.x, bounds.min.y, bounds.min.z, (float)ProxyMode.Box);
-                boxMax = new Vector4(bounds.max.x, bounds.max.y, bounds.max.z, 0f);
-                return ProxyMode.Box;
-            }
-
-            // Far-projection proxy (URP extension); see ScreenSpaceRefraction.hlsl.
-            boxMin = new Vector4(0f, 0f, 0f, (float)ProxyMode.Infinite);
-            return ProxyMode.Infinite;
-        }
-
-        bool TryFindProbe(Vector3 cameraPosition, CullingResults cullResults, bool requireBoxProjection, out Bounds bestBounds)
-        {
-            bool found = false;
-            float bestScore = float.MaxValue;
-            int bestImportance = int.MinValue;
-            float bestVolume = float.MaxValue;
-            Bounds foundBounds = default;
-
-            void Consider(Bounds bounds, int importance)
+            void Consider(Bounds bounds, int importance, int instanceId, bool visible)
             {
                 if (bounds.size.x <= 0f || bounds.size.y <= 0f || bounds.size.z <= 0f)
                     return;
+                if (!m_ProbeInstanceIds.Add(instanceId))
+                    return;
 
-                // 0 when the camera is inside the probe; otherwise the squared distance to it.
-                float score = bounds.SqrDistance(cameraPosition);
-                float volume = bounds.size.sqrMagnitude;
-                bool better = !found || score < bestScore - 1e-4f ||
-                              (Mathf.Abs(score - bestScore) <= 1e-4f &&
-                               (importance > bestImportance ||
-                                (importance == bestImportance && volume < bestVolume)));
-                if (better)
+                var candidate = new ProbeCandidate
                 {
-                    found = true;
-                    bestScore = score;
-                    bestImportance = importance;
-                    bestVolume = volume;
-                    foundBounds = bounds;
-                }
+                    bounds = bounds,
+                    importance = importance,
+                    instanceId = instanceId,
+                    visible = visible,
+                };
+
+                int insert = 0;
+                while (insert < candidateCount && !IsBetterCandidate(candidate, m_ProbeCandidates[insert]))
+                    insert++;
+
+                if (insert >= k_MaxBoxProxies)
+                    return;
+
+                int last = Mathf.Min(candidateCount, k_MaxBoxProxies - 1);
+                for (int i = last; i > insert; i--)
+                    m_ProbeCandidates[i] = m_ProbeCandidates[i - 1];
+                m_ProbeCandidates[insert] = candidate;
+                if (candidateCount < k_MaxBoxProxies)
+                    candidateCount++;
             }
 
             var visibleProbes = cullResults.visibleReflectionProbes;
@@ -230,34 +230,57 @@ namespace UnityEngine.Rendering.Universal
                 for (int i = 0; i < visibleProbes.Length; i++)
                 {
                     var probe = visibleProbes[i];
-                    if (requireBoxProjection && !probe.isBoxProjection)
+                    var reflectionProbe = probe.reflectionProbe;
+                    if (reflectionProbe == null)
                         continue;
-                    Consider(probe.bounds, probe.importance);
+                    Consider(probe.bounds, probe.importance, reflectionProbe.GetInstanceID(), true);
                 }
             }
 
             int sceneProbeCount = m_SceneProbes?.Length ?? 0;
 #if UNITY_EDITOR
             s_EditorSceneProbeCount = sceneProbeCount;
-            if (requireBoxProjection)
-                s_EditorBoxProbeCount = 0;
+            s_EditorBoxProbeCount = 0;
 #endif
             for (int i = 0; i < sceneProbeCount; i++)
             {
                 var probe = m_SceneProbes[i];
                 if (probe == null || !probe.isActiveAndEnabled)
                     continue;
-                if (requireBoxProjection && !probe.boxProjection)
-                    continue;
 #if UNITY_EDITOR
-                if (requireBoxProjection)
+                if (probe.boxProjection)
                     s_EditorBoxProbeCount++;
 #endif
-                Consider(probe.bounds, probe.importance);
+                Consider(probe.bounds, probe.importance, probe.GetInstanceID(), false);
             }
 
-            bestBounds = foundBounds;
-            return found;
+            for (int i = 0; i < candidateCount; i++)
+            {
+                var candidate = m_ProbeCandidates[i];
+                m_ProbeMin[i] = new Vector4(candidate.bounds.min.x, candidate.bounds.min.y, candidate.bounds.min.z, 0f);
+                m_ProbeMax[i] = new Vector4(candidate.bounds.max.x, candidate.bounds.max.y, candidate.bounds.max.z, 0f);
+                // y is reserved for a per-probe rendering layer mask; URP 14 exposes none.
+                m_ProbeParams[i] = new Vector4(candidate.importance, 0f, (float)ProxyMode.Box, 0f);
+            }
+
+            m_ProbeMin[candidateCount] = Vector4.zero;
+            m_ProbeMax[candidateCount] = Vector4.zero;
+            m_ProbeParams[candidateCount] = new Vector4(0f, 0f, (float)ProxyMode.Infinite, 0f);
+            m_ProbeCount = candidateCount + 1;
+            return candidateCount;
+        }
+
+        static bool IsBetterCandidate(ProbeCandidate candidate, ProbeCandidate current)
+        {
+            if (candidate.importance != current.importance)
+                return candidate.importance > current.importance;
+            if (candidate.visible != current.visible)
+                return candidate.visible;
+            float candidateVolume = candidate.bounds.size.sqrMagnitude;
+            float currentVolume = current.bounds.size.sqrMagnitude;
+            if (!Mathf.Approximately(candidateVolume, currentVolume))
+                return candidateVolume < currentVolume;
+            return candidate.instanceId < current.instanceId;
         }
 
         void RefreshSceneProbesIfNeeded()
