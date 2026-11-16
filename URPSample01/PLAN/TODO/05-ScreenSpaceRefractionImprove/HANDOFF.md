@@ -1,7 +1,7 @@
 # ScreenSpaceRefraction 对齐 HDRP 与缺陷修复交接
 
 > 更新：2026-11-17
-> 状态：P0 里程碑交付完成。P0-1/P0-2/P0-3 实现并完成 T11 三模式验证；P1-1/P1-2 实现并完成静态/解析验证；P1-3 实现并完成静态/EditMode 验证（双 probe 视觉与性能证据待补），P2-2..P2-6 未开始，P2-1 复核关闭（与 HDRP 等价）。2026-11-16 复核修复 specular 合成、金字塔 mip 上限与吸收公式，并修正代理语义文档（见第 13、15 节）；2026-11-17 完成 P1-3 per-object 代理表（见第 16 节）
+> 状态：P0 里程碑交付完成。P0-1/P0-2/P0-3 实现并完成 T11 三模式验证；P1-1/P1-2 实现并完成静态/解析验证；P1-3 实现并完成双 probe/相机移动/GC 验收（GPU p95 在编辑器不可测，物体边界序列帧待补），P2-2..P2-6 未开始，P2-1 复核关闭（与 HDRP 等价）。2026-11-16 复核修复 specular 合成、金字塔 mip 上限与吸收公式，并修正代理语义文档（见第 13、15 节）；2026-11-17 完成 P1-3 per-object 代理表（见第 16 节）
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`）
 > 相关文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[ScreenSpaceLighting 交接](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[T11 证据](../../Done/01-ScreenSpaceLighting/validation/T11/T11Report.json)
 
@@ -52,7 +52,7 @@
 | P0-3 | P0 | 代理 fallback：box → 任意 probe → 无限/sky | P0-1 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 实现完成，T11 通过 |
 | P1-1 | P1 | `_Ior` 进入 F0/Fresnel，透射与反射能量一致 | P0-2 | `BRDF.hlsl`、`Lighting.hlsl`、`LitInput.hlsl`、`PBRForwardPass.hlsl` | 实现完成，静态/解析验证通过，视觉证据待补 |
 | P1-2 | P1 | Thin 模型 atDistance 固定 0.005 | 无 | `ScreenSpaceRefraction.hlsl` | 实现完成，静态验证通过，视觉证据待补 |
-| P1-3 | P1 | per-object proxy 表；light layer 在 URP 14 不可用 | P0-3 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 实现完成，静态/EditMode 通过；双 probe 视觉与性能证据待补 |
+| P1-3 | P1 | per-object proxy 表；light layer 在 URP 14 不可用 | P0-3 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 实现完成；双 probe/相机移动/GC 验收通过；GPU p95 编辑器不可测，物体边界序列帧待补 |
 | P2-1 | P2 | 屏幕外命中改为 HDRP 式 fade + clamp | P0-1/P0-2 | `ScreenSpaceRefraction.hlsl` | 复核关闭：NDC 外 fade 恒为 0，与硬拒绝等价 |
 | P2-2 | P2 | pre-refraction 透明队列 | P0-2 | `UniversalRenderer`、`RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 待开始（有决策门） |
 | P2-3 | P2 | 厚度贴图 / 透射色贴图 | P0-2 | `Lit.shader`、`ComplexLit.shader`、`LitInput.hlsl`、ShaderGraph | 待开始 |
@@ -696,4 +696,15 @@ PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/
 - **light layer**：URP 14 的 `ReflectionProbe` / `VisibleReflectionProbe` 不暴露 rendering layer mask，因此未实现按 layer 过滤；`_SslRefractionProbeParams.y` 保留为未来槽位，T14 与 shader 注释已记录。
 - **测试**：`ScreenSpaceLightingRefractionImproveTests` 更新 `KeywordLifetimeDoesNotDependOnABoxProjectedProbe`（改为检查 `BuildProbeTable`），新增 `RefractionProxyTableSelectsAtTheObjectCenter`（表上限、infinite 兜底、物体中心选择、旧 uniform 移除）。
 - **验证**：EditMode 173/173 通过（0 failed，0 skipped）；T11 Forward/Forward+/Deferred 均 `completed=True passed=True issues=0`，报告见 [validation/T11P13/T11Verification.json](validation/T11P13/T11Verification.json)。单 probe 指标与上一轮一致：三模式 `boxChangedPixels=5915`、`noProxyChangedPixels=infiniteProxyChangedPixels=16281`、`legacyChangedPixels=0`、`opacityOneChangedPixels=0`，说明 P1-3 未改变单 probe 与关闭效果基线。
-- **未完成**：双 probe 场景、相机 A→B 移动、跨边界切换的渲染证据；1080p GPU p95、指令数/变体数记录。P1-3 验收项 1/2/5 仍未闭环。本次只入库 JSON/CSV，未保留 54 张 PNG。
+- **验收**：见第 17 节；双 probe 与相机移动通过，GPU p95 和物体边界序列帧仍待补。
+
+## 17. P1-3 验收（2026-11-17）
+
+- **验收脚本**：`ScreenSpaceLightingT11Verification.RunP13ProxySelectionVerification`。两个 probe 使用同一 capture 位置（cubemap 相同）：B 包围玻璃，A 包围相机；玻璃 IOR=1、opacity=0 使 F0=0，图案面板只进相机颜色金字塔、不进 probe cubemap，因此“屏幕路径”和“cubemap fallback”可区分。
+- **双 probe 选择**：Forward / Forward+ / Deferred 全部 `completed=True passed=True`。`Both` 与 `B-only` 在玻璃内圈 0 像素差、平均色差 0；与 `A-only` 分别差 2570 / 5392 像素，平均色差 0.223 / 0.155；无 NaN/Inf。说明物体中心在 B 时确实选 B，而不是相机最近的 A。
+- **相机移动**：相机从 A 移到 B 后重新渲染，`Both` 仍与 `B-only` 逐像素一致（0 差），代理不随相机切换。
+- **GC**：Forward 的 refraction on/off 各 24 帧均为 0 字节（`gcRecorderValid=true`）；`FindObjectsOfType` 仍只在 30 帧节流点，未新增 per-frame 分配。
+- **GPU p95**：`FrameTimingManager` 在编辑器 batchmode 返回 0 个 GPU 样本（启用 `PlayerSettings.enableFrameTimingStats` 后仍为 0），本环境无法给出 p95；需要 player build，按第 4 节性能项作为参考值/环境限制记录。
+- **未自动化**：物体跨越 probe 边界的逐帧切换。per-object 选择保证同一物体只用一个代理，不会双重采样；仍需要专门序列帧证据覆盖“只在边界处切换、无黑边”。
+- **证据**：`validation/P1-3/P13ProxyVerification.json` 与 18 张 PNG；单 probe 回归见 `validation/T11P13/T11Verification.json`。
+- **结论**：P1-3 功能验收（双 probe 选择、相机移动稳定性、GC、无 NaN）通过；GPU p95 与物体边界序列帧保留为环境/后续项。

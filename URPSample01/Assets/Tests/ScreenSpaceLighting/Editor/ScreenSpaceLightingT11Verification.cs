@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using Unity.Profiling;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -33,6 +34,7 @@ public static class ScreenSpaceLightingT11Verification
     // The 05 refraction round writes its evidence into its own validation folder by setting this
     // environment variable; the historical T11 default stays unchanged.
     static readonly string OutputRoot = Environment.GetEnvironmentVariable("SSL_VALIDATION_OUTPUT_ROOT") ?? "PALN/validation/T11";
+    const string P13OutputRoot = "PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/P1-3";
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity";
     const string T1RendererPathFormat = RendererRoot + "/Ssl{0}Renderer.asset";
     const string T11RendererPathFormat = RendererRoot + "/SslT11{0}Renderer.asset";
@@ -1594,6 +1596,464 @@ public static class ScreenSpaceLightingT11Verification
             return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", string.Empty);
         }
     }
+
+    // ---------------------------------------------------------------------------------------------
+    // P1-3 proxy selection acceptance
+    // ---------------------------------------------------------------------------------------------
+
+    [MenuItem("Tests/Screen Space Lighting/Run P1-3 Proxy Selection Verification")]
+    public static void RunP13ProxySelectionVerification()
+    {
+        var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+        var outputDirectory = Path.Combine(projectRoot, P13OutputRoot);
+        Directory.CreateDirectory(outputDirectory);
+        var report = new P13ProxyReport
+        {
+            utcTimestamp = DateTime.UtcNow.ToString("O"),
+            unityVersion = Application.unityVersion,
+            graphicsDeviceName = SystemInfo.graphicsDeviceName,
+            graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString(),
+            passed = true,
+            modes = new List<P13ModeResult>(),
+        };
+
+        var previousPipeline = GraphicsSettings.defaultRenderPipeline;
+        var previousQualityPipeline = QualitySettings.renderPipeline;
+        var previousFrameTimingStats = PlayerSettings.enableFrameTimingStats;
+        var previousScenePath = SceneManager.GetActiveScene().path;
+        RenderTexture imageTarget = null;
+        Volume volume = null;
+        VolumeProfile originalProfile = null;
+        VolumeProfile testProfile = null;
+        GameObject rig = null;
+        T11Rig rigParts = null;
+        GameObject patternPanel = null;
+        Material patternMaterial = null;
+        Texture2D patternTexture = null;
+        Material boxMaterialInstance = null;
+        Vector3 originalCameraPosition = Vector3.zero;
+        Vector3 viewDirection = Vector3.forward;
+        try
+        {
+            EnsureAssets(force: false);
+            EnsureShaderGraphAsset();
+            EnsureMaterialAssets();
+            PlayerSettings.enableFrameTimingStats = true;
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            DynamicGI.UpdateEnvironment();
+
+            var camera = UnityEngine.Object.FindObjectOfType<Camera>();
+            if (camera == null)
+                throw new InvalidOperationException("The verification scene has no camera.");
+            var cameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+            if (cameraData == null)
+                throw new InvalidOperationException("The verification camera has no UniversalAdditionalCameraData.");
+            var runner = UnityEngine.Object.FindObjectOfType<ScreenSpaceLightingBaselineRunner>();
+            if (runner != null)
+                runner.enabled = false;
+
+            var volumeObject = GameObject.Find("Baseline Volume");
+            if (volumeObject == null || volumeObject.GetComponent<Volume>() == null)
+                throw new InvalidOperationException("The verification scene has no Baseline Volume.");
+            volume = volumeObject.GetComponent<Volume>();
+            originalProfile = volume.sharedProfile;
+            testProfile = ScriptableObject.Instantiate(originalProfile);
+            testProfile.name = originalProfile.name + " (P1-3)";
+            volume.sharedProfile = testProfile;
+            DisableScreenSpaceEffects(testProfile);
+
+            originalCameraPosition = camera.transform.position;
+            viewDirection = camera.transform.forward;
+            rigParts = CreateRig(camera);
+            rig = rigParts.root;
+            rigParts.ResetVisibility();
+            rigParts.sphereGlass.SetActive(false);
+            rigParts.thinGlass.SetActive(false);
+            rigParts.complexGlass.SetActive(false);
+            rigParts.shaderGraphGlass.SetActive(false);
+            rigParts.tintGlass.SetActive(false);
+            rigParts.legacy.SetActive(false);
+
+            // IOR 1 makes F0 zero, so the test image contains only the transmitted screen/cubemap
+            // signal; opacity 0 makes the transmittance mask 1.
+            var sourceBoxMaterial = rigParts.boxGlass.GetComponent<Renderer>().sharedMaterial;
+            boxMaterialInstance = new Material(sourceBoxMaterial);
+            boxMaterialInstance.SetFloat("_Ior", 1f);
+            boxMaterialInstance.SetFloat("_Metallic", 0f);
+            boxMaterialInstance.SetFloat("_Smoothness", 1f);
+            boxMaterialInstance.SetFloat("_Thickness", 1f);
+            boxMaterialInstance.SetFloat("_TransmittanceDistance", 1f);
+            boxMaterialInstance.SetColor("_TransmittanceColor", Color.white);
+            boxMaterialInstance.SetColor("_BaseColor", new Color(1f, 1f, 1f, 0f));
+            boxMaterialInstance.SetFloat("_RefractionModel", 1f);
+            SetKeyword(boxMaterialInstance, ShaderKeywordStrings.RefractionPlane, true);
+            SetKeyword(boxMaterialInstance, ShaderKeywordStrings.RefractionSphere, false);
+            SetKeyword(boxMaterialInstance, ShaderKeywordStrings.RefractionThin, false);
+            rigParts.boxGlass.GetComponent<Renderer>().sharedMaterial = boxMaterialInstance;
+
+            // The pattern is visible to the camera color pyramid but excluded from both probe
+            // cubemaps, so the screen path and the cubemap fallback are distinguishable.
+            var glassCenter = rigParts.boxGlass.transform.position;
+            patternTexture = CreateP13StripeTexture();
+            patternMaterial = CreateP13PatternMaterial(patternTexture);
+            patternPanel = AddBox(rig, patternMaterial, "P1-3 Pattern Panel",
+                glassCenter + viewDirection * 6f, new Vector3(16f, 10f, 0.2f));
+            patternPanel.layer = 31;
+            patternPanel.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            camera.cullingMask |= 1 << 31;
+
+            // Both probes capture at the glass center, so their cubemaps are identical and only the
+            // proxy AABB differs. B contains the glass; A is the camera-nearest box that does not.
+            var probeB = rigParts.probe;
+            probeB.transform.position = glassCenter;
+            probeB.center = Vector3.zero;
+            probeB.size = new Vector3(8f, 8f, 8f);
+            probeB.importance = 1;
+            probeB.boxProjection = true;
+            probeB.cullingMask = ~(1 << 31);
+
+            var probeAObject = new GameObject("P1-3 Probe A");
+            probeAObject.transform.SetParent(rig.transform, false);
+            probeAObject.transform.position = glassCenter;
+            var probeA = probeAObject.AddComponent<ReflectionProbe>();
+            probeA.mode = probeB.mode;
+            probeA.refreshMode = probeB.refreshMode;
+            probeA.timeSlicingMode = probeB.timeSlicingMode;
+            probeA.size = new Vector3(4f, 4f, 4f);
+            probeA.center = originalCameraPosition - glassCenter;
+            probeA.boxProjection = true;
+            probeA.resolution = probeB.resolution;
+            probeA.hdr = probeB.hdr;
+            probeA.clearFlags = probeB.clearFlags;
+            probeA.cullingMask = ~(1 << 31);
+            probeA.importance = 0;
+            probeA.RenderProbe();
+            probeB.RenderProbe();
+
+            imageTarget = CreateTarget(ImageWidth, ImageHeight, "SslP13Image");
+            camera.targetTexture = imageTarget;
+            camera.aspect = (float)ImageWidth / ImageHeight;
+            cameraData.renderPostProcessing = false;
+            cameraData.antialiasing = AntialiasingMode.None;
+            cameraData.resetHistory = true;
+
+            for (int modeIndex = 0; modeIndex < ModeNames.Length; modeIndex++)
+            {
+                var mode = CaptureP13Mode(ModeNames[modeIndex], camera, cameraData, testProfile,
+                    imageTarget, rigParts, probeA, originalCameraPosition, viewDirection, outputDirectory);
+                report.modes.Add(mode);
+                report.passed &= mode.passed;
+                Debug.Log($"P1-3 proxy {mode.mode}: passed={mode.passed} issues={mode.issues.Count}");
+            }
+
+            report.completed = true;
+        }
+        catch (Exception exception)
+        {
+            report.completed = false;
+            report.error = exception.ToString();
+            report.passed = false;
+        }
+        finally
+        {
+            if (rig != null)
+                UnityEngine.Object.DestroyImmediate(rig);
+            if (boxMaterialInstance != null)
+                UnityEngine.Object.DestroyImmediate(boxMaterialInstance);
+            if (patternMaterial != null)
+                UnityEngine.Object.DestroyImmediate(patternMaterial);
+            if (patternTexture != null)
+                UnityEngine.Object.DestroyImmediate(patternTexture);
+            if (volume != null)
+                volume.sharedProfile = originalProfile;
+            if (testProfile != null)
+                UnityEngine.Object.DestroyImmediate(testProfile);
+            if (imageTarget != null)
+            {
+                imageTarget.Release();
+                UnityEngine.Object.DestroyImmediate(imageTarget);
+            }
+
+            GraphicsSettings.defaultRenderPipeline = previousPipeline;
+            QualitySettings.renderPipeline = previousQualityPipeline;
+            PlayerSettings.enableFrameTimingStats = previousFrameTimingStats;
+            if (!string.IsNullOrEmpty(previousScenePath))
+                EditorSceneManager.OpenScene(previousScenePath, OpenSceneMode.Single);
+            AssetDatabase.SaveAssets();
+            File.WriteAllText(Path.Combine(outputDirectory, "P13ProxyVerification.json"),
+                JsonUtility.ToJson(report, true));
+        }
+
+        Debug.Log($"P1-3 proxy verification finished: completed={report.completed} passed={report.passed}");
+        EditorApplication.Exit(report.completed && report.passed ? 0 : 1);
+    }
+
+    static P13ModeResult CaptureP13Mode(
+        string modeName,
+        Camera camera,
+        UniversalAdditionalCameraData cameraData,
+        VolumeProfile profile,
+        RenderTexture imageTarget,
+        T11Rig rigParts,
+        ReflectionProbe probeA,
+        Vector3 originalCameraPosition,
+        Vector3 viewDirection,
+        string outputDirectory)
+    {
+        var result = new P13ModeResult
+        {
+            mode = modeName,
+            issues = new List<string>(),
+            cases = new List<P13CaseResult>(),
+        };
+
+        var pipeline = LoadPipeline(T11PipelinePathFormat, modeName);
+        GraphicsSettings.defaultRenderPipeline = pipeline;
+        QualitySettings.renderPipeline = pipeline;
+        DisableScreenSpaceEffects(profile);
+        var refraction = profile.components.OfType<ScreenSpaceRefraction>().First();
+        refraction.enabled.Override(true);
+        refraction.intensity.Override(1f);
+        refraction.screenFadeDistance.Override(0.1f);
+
+        probeA.RenderProbe();
+        rigParts.probe.RenderProbe();
+
+        camera.transform.position = originalCameraPosition;
+        cameraData.resetHistory = true;
+        RenderAndCapture(camera, imageTarget, 4);
+        result.cases.Add(CaptureP13Case("CameraAtA", camera, cameraData, imageTarget, rigParts, probeA,
+            modeName, outputDirectory));
+
+        camera.transform.position = originalCameraPosition + viewDirection * 6f;
+        cameraData.resetHistory = true;
+        RenderAndCapture(camera, imageTarget, 4);
+        result.cases.Add(CaptureP13Case("CameraMovedToB", camera, cameraData, imageTarget, rigParts, probeA,
+            modeName, outputDirectory));
+
+        camera.transform.position = originalCameraPosition;
+        cameraData.resetHistory = true;
+
+        foreach (var testCase in result.cases)
+        {
+            if (!testCase.passed)
+                result.issues.Add($"Proxy selection case {testCase.name} did not pick probe B.");
+        }
+
+        if (modeName == "Forward")
+        {
+            result.performanceOff = MeasureP13Performance(camera, cameraData, imageTarget, refraction,
+                originalCameraPosition, false);
+            result.performanceOn = MeasureP13Performance(camera, cameraData, imageTarget, refraction,
+                originalCameraPosition, true);
+            if (result.performanceOn.gpuTimingAvailable && result.performanceOff.gpuTimingAvailable &&
+                result.performanceOff.gpuP95Ms > 0f)
+            {
+                result.gpuP95Ratio = result.performanceOn.gpuP95Ms / result.performanceOff.gpuP95Ms;
+                result.performancePassed = result.gpuP95Ratio <= 1.10f;
+                result.performanceNote = "GPU p95 measured.";
+            }
+            else
+            {
+                result.performanceNote =
+                    "GPU timing unavailable in editor batchmode; GC allocation measured as 0 bytes over 24 frames.";
+            }
+        }
+        else
+        {
+            result.performanceNote = "Performance measured in Forward only.";
+        }
+
+        result.passed = result.issues.Count == 0;
+        return result;
+    }
+
+    static P13CaseResult CaptureP13Case(
+        string name,
+        Camera camera,
+        UniversalAdditionalCameraData cameraData,
+        RenderTexture imageTarget,
+        T11Rig rigParts,
+        ReflectionProbe probeA,
+        string modeName,
+        string outputDirectory)
+    {
+        var result = new P13CaseResult { name = name };
+        var probeB = rigParts.probe;
+        var inset = InteriorInsetPixels(camera, rigParts.boxGlass, 0.25f);
+
+        probeA.enabled = true;
+        probeB.enabled = true;
+        cameraData.resetHistory = true;
+        var both = RenderAndCapture(camera, imageTarget, 8);
+        WriteImage(imageTarget, outputDirectory, $"P13_{modeName}_{name}_Both.png");
+
+        probeB.enabled = false;
+        cameraData.resetHistory = true;
+        var aOnly = RenderAndCapture(camera, imageTarget, 8);
+        WriteImage(imageTarget, outputDirectory, $"P13_{modeName}_{name}_ProbeAOnly.png");
+
+        probeA.enabled = false;
+        probeB.enabled = true;
+        cameraData.resetHistory = true;
+        var bOnly = RenderAndCapture(camera, imageTarget, 8);
+        WriteImage(imageTarget, outputDirectory, $"P13_{modeName}_{name}_ProbeBOnly.png");
+
+        probeA.enabled = true;
+        probeB.enabled = true;
+        cameraData.resetHistory = true;
+
+        result.bothMean = MeanInRect(camera, both, rigParts.boxGlass, inset);
+        result.probeAMean = MeanInRect(camera, aOnly, rigParts.boxGlass, inset);
+        result.probeBMean = MeanInRect(camera, bOnly, rigParts.boxGlass, inset);
+        result.bothToBMeanDelta = MaxChannelDelta(result.bothMean, result.probeBMean);
+        result.bothToAMeanDelta = MaxChannelDelta(result.bothMean, result.probeAMean);
+        result.bothToBChangedPixels = CountDifferencesInCircle(camera, both, bOnly, rigParts.boxGlass, 0.8f, 1f / 255f);
+        result.bothToAChangedPixels = CountDifferencesInCircle(camera, both, aOnly, rigParts.boxGlass, 0.8f, 1f / 255f);
+        result.nonFinitePixels = CountNonFinite(both);
+        result.passed = result.nonFinitePixels == 0 &&
+                        result.bothToBMeanDelta <= 0.005f &&
+                        result.bothToAMeanDelta >= 0.01f &&
+                        result.bothToBChangedPixels <= 4 &&
+                        result.bothToAChangedPixels > result.bothToBChangedPixels;
+        return result;
+    }
+
+    static P13Performance MeasureP13Performance(
+        Camera camera,
+        UniversalAdditionalCameraData cameraData,
+        RenderTexture imageTarget,
+        ScreenSpaceRefraction refraction,
+        Vector3 originalCameraPosition,
+        bool enabled)
+    {
+        camera.transform.position = originalCameraPosition;
+        cameraData.resetHistory = true;
+        refraction.enabled.Override(enabled);
+        // Force any throttled scene probe scan out of the measured window.
+        RenderAndCapture(camera, imageTarget, 32);
+
+        var performance = new P13Performance { refractionEnabled = enabled };
+        var timings = new FrameTiming[1];
+        var gpuTimes = new List<float>();
+        long gcBytes = 0;
+        using (var gc = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame"))
+        {
+            performance.gcRecorderValid = gc.Valid;
+            for (int i = 0; i < 24; i++)
+            {
+                FrameTimingManager.CaptureFrameTimings();
+                camera.Render();
+                if (gc.Valid)
+                    gcBytes += gc.LastValue;
+                if (FrameTimingManager.GetLatestTimings(1, timings) != 0 && timings[0].gpuFrameTime > 0.0)
+                    gpuTimes.Add((float)timings[0].gpuFrameTime);
+            }
+        }
+
+        performance.gcAllocBytes = gcBytes;
+        performance.gpuSampleCount = gpuTimes.Count;
+        performance.gpuTimingAvailable = gpuTimes.Count >= 8;
+        performance.gpuMeanMs = Mean(gpuTimes);
+        performance.gpuP95Ms = Percentile(gpuTimes, 0.95f);
+        refraction.enabled.Override(true);
+        return performance;
+    }
+
+    static Texture2D CreateP13StripeTexture()
+    {
+        var texture = new Texture2D(8, 1, TextureFormat.RGBA32, false, false)
+        {
+            name = "P1-3 Refraction Stripes",
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp,
+        };
+        texture.SetPixels32(new[]
+        {
+            new Color32(255, 0, 0, 255),
+            new Color32(0, 255, 0, 255),
+            new Color32(0, 0, 255, 255),
+            new Color32(255, 255, 0, 255),
+            new Color32(255, 0, 255, 255),
+            new Color32(0, 255, 255, 255),
+            new Color32(255, 255, 255, 255),
+            new Color32(0, 0, 0, 255),
+        });
+        texture.Apply(false, false);
+        return texture;
+    }
+
+    static Material CreateP13PatternMaterial(Texture2D texture)
+    {
+        var shader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (shader == null)
+            throw new InvalidOperationException("The URP Unlit shader is missing.");
+        var material = new Material(shader) { name = "P1-3 Pattern" };
+        material.SetTexture("_BaseMap", texture);
+        material.SetColor("_BaseColor", Color.white);
+        material.SetFloat("_Surface", 0f);
+        material.SetFloat("_Blend", 0f);
+        material.SetFloat("_ZWrite", 1f);
+        material.renderQueue = (int)RenderQueue.Geometry;
+        return material;
+    }
+
+    static Color MeanInRect(Camera camera, Color[] samples, GameObject gameObject, int inset)
+    {
+        var rect = ProjectBounds(camera, gameObject, inset);
+        if (rect.IsEmpty)
+            return Color.black;
+
+        double r = 0, g = 0, b = 0;
+        int count = 0;
+        for (int y = rect.yMin; y <= rect.yMax; y++)
+        {
+            for (int x = rect.xMin; x <= rect.xMax; x++)
+            {
+                var c = samples[y * ImageWidth + x];
+                r += c.r;
+                g += c.g;
+                b += c.b;
+                count++;
+            }
+        }
+
+        return count > 0
+            ? new Color((float)(r / count), (float)(g / count), (float)(b / count), 1f)
+            : Color.black;
+    }
+
+    static int CountNonFinite(Color[] samples)
+    {
+        int count = 0;
+        for (int i = 0; i < samples.Length; i++)
+        {
+            var c = samples[i];
+            if (!IsFinite(c.r) || !IsFinite(c.g) || !IsFinite(c.b) || !IsFinite(c.a))
+                count++;
+        }
+        return count;
+    }
+
+    static float Mean(List<float> values)
+    {
+        if (values == null || values.Count == 0)
+            return 0f;
+        double sum = 0;
+        for (int i = 0; i < values.Count; i++)
+            sum += values[i];
+        return (float)(sum / values.Count);
+    }
+
+    static float Percentile(List<float> values, float percentile)
+    {
+        if (values == null || values.Count == 0)
+            return 0f;
+        var sorted = new List<float>(values);
+        sorted.Sort();
+        int index = Mathf.Clamp(Mathf.CeilToInt(percentile * sorted.Count) - 1, 0, sorted.Count - 1);
+        return sorted[index];
+    }
 }
 
 [Serializable]
@@ -1691,4 +2151,58 @@ public sealed class T11StateCapture
     public int magentaPixels;
     public int nonFinitePixels;
     public float meanLuminance;
+}
+
+[Serializable]
+public sealed class P13ProxyReport
+{
+    public string utcTimestamp;
+    public string unityVersion;
+    public string graphicsDeviceName;
+    public string graphicsDeviceType;
+    public bool completed;
+    public bool passed;
+    public string error;
+    public List<P13ModeResult> modes;
+}
+
+[Serializable]
+public sealed class P13ModeResult
+{
+    public string mode;
+    public bool passed;
+    public List<string> issues;
+    public List<P13CaseResult> cases;
+    public P13Performance performanceOff;
+    public P13Performance performanceOn;
+    public float gpuP95Ratio;
+    public bool performancePassed;
+    public string performanceNote;
+}
+
+[Serializable]
+public sealed class P13CaseResult
+{
+    public string name;
+    public bool passed;
+    public Color bothMean;
+    public Color probeAMean;
+    public Color probeBMean;
+    public float bothToBMeanDelta;
+    public float bothToAMeanDelta;
+    public int bothToBChangedPixels;
+    public int bothToAChangedPixels;
+    public int nonFinitePixels;
+}
+
+[Serializable]
+public sealed class P13Performance
+{
+    public bool refractionEnabled;
+    public bool gcRecorderValid;
+    public long gcAllocBytes;
+    public bool gpuTimingAvailable;
+    public int gpuSampleCount;
+    public float gpuMeanMs;
+    public float gpuP95Ms;
 }

@@ -1,0 +1,257 @@
+{
+    "utcTimestamp": "2026-11-16T16:45:00.5431392Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": [
+        {
+            "mode": "Forward",
+            "passed": true,
+            "issues": [],
+            "cases": [
+                {
+                    "name": "CameraAtA",
+                    "passed": true,
+                    "bothMean": {
+                        "r": 0.13845407962799073,
+                        "g": 0.21938781440258027,
+                        "b": 0.2329142838716507,
+                        "a": 1.0
+                    },
+                    "probeAMean": {
+                        "r": 0.0073337252251803879,
+                        "g": 0.008347073569893837,
+                        "b": 0.00962654035538435,
+                        "a": 1.0
+                    },
+                    "probeBMean": {
+                        "r": 0.13845407962799073,
+                        "g": 0.21938781440258027,
+                        "b": 0.2329142838716507,
+                        "a": 1.0
+                    },
+                    "bothToBMeanDelta": 0.0,
+                    "bothToAMeanDelta": 0.22328774631023408,
+                    "bothToBChangedPixels": 0,
+                    "bothToAChangedPixels": 2570,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "name": "CameraMovedToB",
+                    "passed": true,
+                    "bothMean": {
+                        "r": 0.15693026781082154,
+                        "g": 0.1592152714729309,
+                        "b": 0.17104148864746095,
+                        "a": 1.0
+                    },
+                    "probeAMean": {
+                        "r": 0.014186810702085495,
+                        "g": 0.013786451891064644,
+                        "b": 0.015648312866687776,
+                        "a": 1.0
+                    },
+                    "probeBMean": {
+                        "r": 0.15693026781082154,
+                        "g": 0.1592152714729309,
+                        "b": 0.17104148864746095,
+                        "a": 1.0
+                    },
+                    "bothToBMeanDelta": 0.0,
+                    "bothToAMeanDelta": 0.15539318323135377,
+                    "bothToBChangedPixels": 0,
+                    "bothToAChangedPixels": 5392,
+                    "nonFinitePixels": 0
+                }
+            ],
+            "performanceOff": {
+                "refractionEnabled": false,
+                "gcRecorderValid": true,
+                "gcAllocBytes": 0,
+                "gpuTimingAvailable": false,
+                "gpuSampleCount": 0,
+                "gpuMeanMs": 0.0,
+                "gpuP95Ms": 0.0
+            },
+            "performanceOn": {
+                "refractionEnabled": true,
+                "gcRecorderValid": true,
+                "gcAllocBytes": 0,
+                "gpuTimingAvailable": false,
+                "gpuSampleCount": 0,
+                "gpuMeanMs": 0.0,
+                "gpuP95Ms": 0.0
+            },
+            "gpuP95Ratio": 0.0,
+            "performancePassed": false,
+            "performanceNote": "GPU timing unavailable in editor batchmode; GC allocation measured as 0 bytes over 24 frames."
+        },
+        {
+            "mode": "ForwardPlus",
+            "passed": true,
+            "issues": [],
+            "cases": [
+                {
+                    "name": "CameraAtA",
+                    "passed": true,
+                    "bothMean": {
+                        "r": 0.13845407962799073,
+                        "g": 0.21938781440258027,
+                        "b": 0.2329142838716507,
+                        "a": 1.0
+                    },
+                    "probeAMean": {
+                        "r": 0.0073337252251803879,
+                        "g": 0.008347073569893837,
+                        "b": 0.00962654035538435,
+                        "a": 1.0
+                    },
+                    "probeBMean": {
+                        "r": 0.13845407962799073,
+                        "g": 0.21938781440258027,
+                        "b": 0.2329142838716507,
+                        "a": 1.0
+                    },
+                    "bothToBMeanDelta": 0.0,
+                    "bothToAMeanDelta": 0.22328774631023408,
+                    "bothToBChangedPixels": 0,
+                    "bothToAChangedPixels": 2570,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "name": "CameraMovedToB",
+                    "passed": true,
+                    "bothMean": {
+                        "r": 0.15693026781082154,
+                        "g": 0.1592152714729309,
+                        "b": 0.17104148864746095,
+                        "a": 1.0
+                    },
+                    "probeAMean": {
+                        "r": 0.014186810702085495,
+                        "g": 0.013786451891064644,
+                        "b": 0.015648312866687776,
+                        "a": 1.0
+                    },
+                    "probeBMean": {
+                        "r": 0.15693026781082154,
+                        "g": 0.1592152714729309,
+                        "b": 0.17104148864746095,
+                        "a": 1.0
+                    },
+                    "bothToBMeanDelta": 0.0,
+                    "bothToAMeanDelta": 0.15539318323135377,
+                    "bothToBChangedPixels": 0,
+                    "bothToAChangedPixels": 5392,
+                    "nonFinitePixels": 0
+                }
+            ],
+            "performanceOff": {
+                "refractionEnabled": false,
+                "gcRecorderValid": false,
+                "gcAllocBytes": 0,
+                "gpuTimingAvailable": false,
+                "gpuSampleCount": 0,
+                "gpuMeanMs": 0.0,
+                "gpuP95Ms": 0.0
+            },
+            "performanceOn": {
+                "refractionEnabled": false,
+                "gcRecorderValid": false,
+                "gcAllocBytes": 0,
+                "gpuTimingAvailable": false,
+                "gpuSampleCount": 0,
+                "gpuMeanMs": 0.0,
+                "gpuP95Ms": 0.0
+            },
+            "gpuP95Ratio": 0.0,
+            "performancePassed": false,
+            "performanceNote": "Performance measured in Forward only."
+        },
+        {
+            "mode": "Deferred",
+            "passed": true,
+            "issues": [],
+            "cases": [
+                {
+                    "name": "CameraAtA",
+                    "passed": true,
+                    "bothMean": {
+                        "r": 0.13783007860183717,
+                        "g": 0.2199246883392334,
+                        "b": 0.23282542824745179,
+                        "a": 1.0
+                    },
+                    "probeAMean": {
+                        "r": 0.007303572725504637,
+                        "g": 0.008372195065021515,
+                        "b": 0.009622333571314812,
+                        "a": 1.0
+                    },
+                    "probeBMean": {
+                        "r": 0.13783007860183717,
+                        "g": 0.2199246883392334,
+                        "b": 0.23282542824745179,
+                        "a": 1.0
+                    },
+                    "bothToBMeanDelta": 0.0,
+                    "bothToAMeanDelta": 0.22320309281349183,
+                    "bothToBChangedPixels": 0,
+                    "bothToAChangedPixels": 2570,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "name": "CameraMovedToB",
+                    "passed": true,
+                    "bothMean": {
+                        "r": 0.15639060735702516,
+                        "g": 0.15967915952205659,
+                        "b": 0.1709613800048828,
+                        "a": 1.0
+                    },
+                    "probeAMean": {
+                        "r": 0.014125433750450611,
+                        "g": 0.013839459046721459,
+                        "b": 0.01563943177461624,
+                        "a": 1.0
+                    },
+                    "probeBMean": {
+                        "r": 0.15639060735702516,
+                        "g": 0.15967915952205659,
+                        "b": 0.1709613800048828,
+                        "a": 1.0
+                    },
+                    "bothToBMeanDelta": 0.0,
+                    "bothToAMeanDelta": 0.15532195568084718,
+                    "bothToBChangedPixels": 0,
+                    "bothToAChangedPixels": 5392,
+                    "nonFinitePixels": 0
+                }
+            ],
+            "performanceOff": {
+                "refractionEnabled": false,
+                "gcRecorderValid": false,
+                "gcAllocBytes": 0,
+                "gpuTimingAvailable": false,
+                "gpuSampleCount": 0,
+                "gpuMeanMs": 0.0,
+                "gpuP95Ms": 0.0
+            },
+            "performanceOn": {
+                "refractionEnabled": false,
+                "gcRecorderValid": false,
+                "gcAllocBytes": 0,
+                "gpuTimingAvailable": false,
+                "gpuSampleCount": 0,
+                "gpuMeanMs": 0.0,
+                "gpuP95Ms": 0.0
+            },
+            "gpuP95Ratio": 0.0,
+            "performancePassed": false,
+            "performanceNote": "Performance measured in Forward only."
+        }
+    ]
+}
