@@ -209,6 +209,7 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, !pbr);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, halfResolution);
+            SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
             SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
 
@@ -240,6 +241,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             var traceKernel = compute.FindKernel("ScreenSpaceReflectionsTracing");
+            BindSsrBlueNoise(cmd, compute, traceKernel);
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depthTexture);
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramid, m_History.depthPyramid);
@@ -522,7 +524,7 @@ namespace UnityEngine.Rendering.Universal
                 ? m_XrViews[0].cameraPositionWS
                 : cameraData.camera.transform.position;
             cb._SsrPbrParams = new Vector4(0f, settings.biasFactor.value, 0f, 0f);
-            cb._SsrPbrFlags = new Vector4(Time.frameCount % 64, historyValid ? 1f : 0f, 0f, 0f);
+            cb._SsrPbrFlags = new Vector4(Time.frameCount, historyValid ? 1f : 0f, 0f, 0f);
             return cb;
         }
 
@@ -537,6 +539,21 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrCameraPositionWS, cb._SsrCameraPositionWS);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrPbrParams, cb._SsrPbrParams);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrPbrFlags, cb._SsrPbrFlags);
+        }
+
+        // The trace uses the same BND sequence as HDRP, but with the 1SPP tiles because it takes one
+        // sample per pixel. The Owen scrambled texture is shared with SSGI, which binds 8SPP tiles.
+        void BindSsrBlueNoise(CommandBuffer cmd, ComputeShader compute, int kernel)
+        {
+            if (!m_Resources.hasSsrBlueNoise)
+                return;
+
+            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsgiOwenScrambledTexture,
+                m_Resources.ssgiOwenScrambledTexture);
+            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsgiScramblingTileXSPP,
+                m_Resources.ssrScramblingTile);
+            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.SsgiRankingTileXSPP,
+                m_Resources.ssrRankingTile);
         }
 
         static void SetKeyword(ComputeShader compute, string keyword, bool enabled)

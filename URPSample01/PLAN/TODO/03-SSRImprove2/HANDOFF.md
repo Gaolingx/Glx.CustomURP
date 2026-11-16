@@ -1,7 +1,7 @@
 # 03-SSRImprove2 交接
 
 > 更新：2026-11-16
-> 状态：**规划完成，未开工。T0 契约待确认，T1–T3 未提交任何代码。**
+> 状态：**T1–T3 已实现；T4 部分完成（导入/编译、EditMode、SSR T5、SSGI temporal 全通过；带探针的专项验证待补）。**
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`，当前 HEAD `c02f851`（02 收尾 + SSGI temporal 修复）。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -31,17 +31,19 @@
 | 类别 | 结论 |
 |---|---|
 | SSR PBR 算法族 | URP 用 HDRP **RT 反射 denoiser** 替换了 HDRP 屏幕空间 SSR 的 18-kernel accumulation（HDRP 的 `ReflectionDenoiser` 只服务 RT 反射）。这是 T0 的刻意选择，本轮**不改**；不要按 HDRP 屏幕空间 SSR 的拖影/速度拒绝逐像素对标 |
-| SSR 采样 | HDRP SSR 用 BND blue noise；URP SSR **未接 LUT**，实际走 IGN + R2 → 本轮 T1 |
-| SSR 半分辨率 | URP 半分辨率几何坐标取 `2c+1`，HDRP RT denoiser 用 `2c` → 本轮 T2 |
+| SSR 采样 | HDRP SSR 用 BND blue noise（1SPP tile）；URP SSR **未接 LUT**，实际走 IGN + R2 → 本轮 T1 |
+| SSR 半分辨率 | HDRP **屏幕空间 SSR 本身是全分辨率**，`2c` 只来自其 RT 反射 denoiser；URP 取 `2c+1` → 本轮 T2 |
 | SSGI 探针回退 | HDRP 逐像素 env-light list + atlas + 权重；URP 只有默认 cubemap → 本轮 T3（先调研） |
 | SSGI 其他 | 无 APV、无曝光、无 object-motion stencil、历史为 `(radiance, weight)` + 独立 sample count → 维持 T14 已知差异，本轮不改 |
 | 文档 | 3 处过时注释（blue noise、mip clamp、SSR 采样描述）在 T5 收尾时一并修 |
 
-### 1.3 本轮（03 准备）已完成的工作
+### 1.3 本轮已实现（2026-11-16）
 
-- 只做了规划与调研，**没有改任何运行时代码**。
-- 完成 T3 的可行性调研：核对 HDRP `TraceReflectionProbes`/APV/exposure 路径、外部 `SSGIURP/SSGIFallback.hlsl` 的两种回退实现，以及 URP 14.0.12 在 compute 中可用的探针数据（见 §5.2）。
-- 形成 §3 的 T0 契约草案与 §9 的 4 个待确认问题；T1/T2 的实现点已定位到具体文件与行号。
+- T0：HDRP 调研结论与四项决策写入 §3/§9。
+- T1：SSR 接入 BND blue noise，新增 1SPP LUT；帧索引直传 `Time.frameCount`。
+- T2：新增 `SslComputeSourceCoordinates`，SSR trace/reproject 与 ReflectionDenoiser 同源取 `2c`。
+- T3：新增 compute 安全头 `ReflectionProbeFallback.hlsl`（Forward+ atlas + zbin/tile cluster + box 权重 + LOD 0），SSGI 回退在 Forward+ 走 atlas，其余渲染路径保持默认 cubemap。
+- 未做：带真实探针的 `SsgiFallbackCheck` 专项验证（T4 剩余项）；Frame Debugger 采集。
 
 ---
 
@@ -64,31 +66,53 @@
 
 ---
 
-## 3. T0：本轮契约（冻结后再改代码）
+## 3. T0：本轮契约（已冻结）
 
 | 决策项 | 建议结论 | 理由 |
 |---|---|---|
 | SSR blue-noise 关键字 | 复用 `SSGI_BLUE_NOISE`，不新增 `SSL_BLUE_NOISE` | `Sampling.hlsl` 已由该宏控制；SSR/SSGI 是两个独立 compute，关键字互不影响；避免复制宏与变体名 |
-| SSR blue-noise 资源 | 复用 `ScreenSpaceLightingResources` 已解析的三张 LUT（`ssgiOwenScrambledTexture` 等） | 已有 `Resources/SsgiBlueNoise` 打包与 `Resources.Load`，不新增资产 |
-| SSR 帧索引 | 由 `Time.frameCount % 64` 改为 `% 256` | BND 在 shader 内 `& 255`；`%64` 会让序列每 64 帧重复。HDRP SSR 直接把 camera frame count 传给 shader |
+| SSR blue-noise 资源 | **新增 1SPP tile**（`ScramblingTile1SPP` / `RankingTile1SPP`），Owen 256 与 SSGI 共用 | HDRP SSR 绑 1SPP、SSGI 绑 8SPP，Owen 共用；1SPP 是 SSR 的精确对齐 |
+| SSR 帧索引 | 由 `Time.frameCount % 64` 改为**直传 `Time.frameCount`** | HDRP 传每相机单调计数、C# 不取模，shader 内 `& 255`；直传即等效 256 帧循环 |
 | SSR 缺失 LUT | 保持 `Sampling.hlsl` 的 IGN + R2 回退，关键字关闭 | 与 SSGI 同一回退语义 |
-| 半分辨率坐标公式 | SSR trace/reproject/denoiser 统一 `floor((float2)traceCoord * (screen/trace))` → 2× 时取 `2c` | 对齐 HDRP `ComputeSourceCoordinates`（`RayTracingCommon.hlsl:64-67`） |
-| SSGI 半分辨率坐标 | **不改**，保持 `round((c+0.5)*inv)` → `2c+1` | HDRP SSGI `GetLowResCoord` 本身就是 `2c+1`；两个效果在 HDRP 里也不一致 |
+| 半分辨率坐标公式 | SSR trace/reproject/denoiser 统一 `floor((float2)traceCoord * (screen/trace))` → 2× 时取 `2c` | 对齐 HDRP RT 反射 denoiser 的 `ComputeSourceCoordinates`（`RayTracingCommon.hlsl:63-67`）；注意 HDRP 屏幕空间 SSR 无半分辨率 |
+| SSGI 半分辨率坐标 | **不改**，保持 `round((c+0.5)*inv)` → `2c+1` | HDRP SSGI `GetLowResCoord`（`ScreenSpaceGlobalIllumination.compute:73-76`）就是 `2c+1`；HDRP 自身两套约定并存 |
 | 历史 | 半分辨率仍跟随 trace 尺寸；算法/分辨率切换重分配 + reset（已有） | 不改变 T3 契约 |
 | T3 探针数据 | Forward+ 用 URP 全局 probe atlas + cluster；非 Forward+ 保留默认 cubemap | URP 14 只有 Forward+ 暴露 atlas 全局；非 FP 的 `unity_SpecCube*` 在 compute 不可读（见 §5.2） |
 | T3 APV | 不迁移 | URP 14.0.12 无 APV/ProbeVolume shader 集成；core 的 `ProbeReferenceVolume` 只面向 HDRP |
-| T3 反射相机 | 待确认（建议 `CameraType.Reflection` 时把 SSGI 回退 dim 0.3 或禁用） | 防止 probe 渲染递归；`SSGIURP` 用 `_IsProbeCamera * 0.3` |
+| T3 反射相机 | **无需处理**（已确认） | `ScreenSpaceCapability.EvaluateCamera` 已对 `CameraType.Reflection` / `Preview` 直接返回不支持（`ScreenSpaceCapability.cs:121-126`），SSGI/SSR 根本不会 dispatch；HDRP 同样是禁用而非 dim，且无 0.3 系数 |
 | T3 Volume 参数 | 不新增；沿用 `rayMiss`（None / Sky / ReflectionProbes / ProbesAndSky） | 回退层级已有语义，不扩公开 API |
 
-**待用户确认的 4 个问题**（不阻塞 T1/T2）：
-1. T3 是否只做“Forward+ atlas + 非 FP 默认 cubemap”（推荐），还是追加非 FP 多探针上传（工作量 +1.5 天）。
-2. SSR 帧索引是否接受 64→256（会改变 T5 基线截图）。
-3. 反射相机是否 dim/禁用 SSGI 回退。
-4. 半分辨率坐标是否只改 SSR（推荐）而不动 SSGI。
+**已确认决策（2026-11-16，HDRP 调研后冻结）**：
+1. T3 范围：**仅 Forward+ atlas**；非 Forward+ 保留默认 cubemap，不做多探针上传。
+2. SSR 帧索引：**直传 `Time.frameCount`**；T5 基线截图需重录并标注预期变化。
+3. 反射相机：**不改**；现有 capability 检查已跳过 `Reflection`/`Preview`。
+4. 坐标对齐：**只改 SSR**（trace + denoiser 同源 2c）；SSGI 保持 HDRP 的 `2c+1`。
+5. SSR LUT：**新增 1SPP tile**，Owen 共用 SSGI 的 256 资产。
+
+**HDRP 调研修正**（详见 §5）：
+- HDRP 屏幕空间 SSR 是全分辨率（`HDRenderPipeline.LightLoop.cs:1253-1254`），`2c` 仅属于 RT 反射 denoiser。
+- HDRP SSR 的 `_FrameCount` 是每相机单调计数，C# 不取模，shader 内 `& 255`。
+- HDRP SSR 的 blue noise 无关键字、无缺失回退，绑 1SPP tile；SSGI 绑 8SPP tile。
+- HDRP 反射相机通过 FrameSettings 关闭 SSGI（平面反射例外），没有 0.3 调暗。
+
+### 3.1 本轮验证结果（`PLAN/TODO/03-SSRImprove2/validation/T4/`）
+
+| 证据 | 结果 |
+|---|---|
+| `UnityImport.log` | 批量导入与 C# 编译 0 error（唯一告警是仓库既有的 `ScreenSpaceReflections.compute.meta` 缺尾换行） |
+| `EditModeTests.xml` | 418/418 passed |
+| `UnitySsrT5Verification.log` + `T5/` | Forward / Forward+ / Deferred 全 pass；半分辨率 `fullVsHalfToneMappedPixelFraction` 0.000315（改前 0.00034） |
+| `UnitySsgiTemporalCheck.log` + `SsgiTemporal/` | 三渲染器 pass；`coveredFraction` 0.034438 与 AuditFix 基线一致 |
+| 待补 | 带真实反射探针的 `SsgiFallbackCheck`（验证 atlas 颜色随探针变化、四种 `rayMiss` 差异） |
+
+**实现落点**：
+- T1：`ScreenSpaceReflections.compute` pragma；`SsrPass.BindSsrBlueNoise`；`ScreenSpaceLightingResources.ssrScramblingTile/ssrRankingTile/hasSsrBlueNoise`；`Resources/SsgiBlueNoise/{Scrambling,Ranking}Tile1SPP.png`。
+- T2：`ScreenSpaceLightingCommon.hlsl:SslComputeSourceCoordinates`；`SsrGetFullResCoord` 与 `ReflectionGetGeometryCoord` 调用它。
+- T3：`Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl`；`SSL_PROBE_ATLAS` 关键字（`SsgiPass` 仅在 Forward+ 启用）；SSGI reproject 回退分支；`_SsgiProbeAtlasParams`（透视标志）。
 
 ---
 
-## 4. T1：SSR blue noise（0.5 天）
+## 4. T1：SSR blue noise（已实现，0.5 天）
 
 ### 4.1 现状证据
 - URP SSR trace 已经调用 `SsgiGetSequenceSample`（`URP/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute:250-258`），但该 compute 没有 `SSGI_BLUE_NOISE` 编译宏，`SsrPass` 也不绑定 LUT、不设置关键字（`URP/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs:208-213` 只有 XR/NormalsOct/Approx/HalfRes），所以始终走 `Sampling.hlsl:52` 的 IGN + R2 分支。
@@ -97,11 +121,12 @@
 
 ### 4.2 实现
 1. `ScreenSpaceReflections.compute`：在 `#pragma multi_compile` 区域加 `SSGI_BLUE_NOISE`。
-2. `SsrPass`：
-   - trace/reproject 的 `SetKeywords` 处加 `SSGI_BLUE_NOISE = m_Resources.hasSsgiBlueNoise`（对 SSR compute 有效；denoiser 不用序列，无需设置）。
-   - 新增 `BindSsrBlueNoise(cmd, ssrCompute, traceKernel)`，绑定 `SsgiOwenScrambledTexture / SsgiScramblingTileXSPP / SsgiRankingTileXSPP` 到 trace kernel；只在 `hasSsgiBlueNoise` 时绑定。
-   - `CreateShaderVariables` 的 `_SsrPbrFlags.x` 从 `Time.frameCount % 64` 改为 `% 256`（若确认）。
-3. 不改 `Sampling.hlsl`，缺失资源自动回退。
+2. 资源：从 HDRP 包复制 `ScramblingTile1SPP.png` / `RankingTile1SPP.png` 到 `Resources/SsgiBlueNoise/`（导入设置与 8SPP 一致：sRGB off、point、clamp、无 mip）。`ScreenSpaceLightingResources` 增加 `ssrScramblingTile` / `ssrRankingTile` 与 `hasSsrBlueNoise`，Owen 复用 `ssgiOwenScrambledTexture`。
+3. `SsrPass`：
+   - trace 的 `SetKeywords` 处加 `SSGI_BLUE_NOISE = m_Resources.hasSsrBlueNoise`；reproject/denoiser 不用序列，无需设置。
+   - 新增 `BindSsrBlueNoise(cmd, ssrCompute, traceKernel)`，绑定 Owen + 1SPP tile 到 trace kernel；只在 `hasSsrBlueNoise` 时绑定。
+   - `CreateShaderVariables` 的 `_SsrPbrFlags.x` 从 `Time.frameCount % 64` 改为直传 `Time.frameCount`。
+4. 仅更新 `Sampling.hlsl` 注释（说明 SSR 绑 1SPP），不改采样函数，缺失资源自动回退。
 
 ### 4.3 验收
 - 强制重导入 `ScreenSpaceReflections.compute` 消息 0；`SSGI_BLUE_NOISE` 变体成功编译。
@@ -112,18 +137,20 @@
 
 ### 4.4 风险
 - SSR compute 变体 +1（× XR/Oct/HalfRes 组合），构建时间略增。
-- 帧索引从 64 改 256 会改变 T5 的噪声/收敛截图，需重录基线并在报告中说明“预期变化”。
+- 帧索引从 `%64` 改为直传 `Time.frameCount` 会改变 T5 的噪声/收敛截图，需重录基线并在报告中说明“预期变化”。
+- 新增 1SPP tile 资产（两张小 PNG），包体影响可忽略，但需确认 Resources 打包检查仍通过。
 
 ---
 
 ## 5. T2 与 T3
 
-### 5.1 T2：半分辨率几何坐标（0.5 天）
+### 5.1 T2：半分辨率几何坐标（已实现，0.5 天）
 
 **现状**
 - `SsrGetFullResCoord`：`floor((c+0.5) * ratio)`，2× 得到 `2c+1`（`URP/.../ScreenSpaceReflections.compute:94-102`）。
 - `ReflectionDenoiser` 的 `ReflectionGetGeometryCoord` 同样 `(c+0.5)*ratio`（`URP/Shaders/Utils/Denoising/ReflectionDenoiser.compute:79-87`）。
-- HDRP RT denoiser 用 `ComputeSourceCoordinates(halfResCoord, frameIndex) = halfResCoord * 2`（`HDRP/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl:64-67`）。
+- HDRP 屏幕空间 SSR 是全分辨率，没有半分辨率路径；`2c` 只出现在 RT 反射链：`ComputeSourceCoordinates(halfResCoord) = halfResCoord * 2`（`HDRP/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl:63-67`），被 `RaytracingReflections` / `ReflectionDenoiser` / `RaytracingReflectionFilter` 使用。
+- 对照：HDRP SSGI `GetLowResCoord` 是 `round((c+0.5)*2) = 2c+1`；HDRP BilateralUpsample 用 `floor(c/2)` 与 `2c`。
 
 **实现**
 - 在 `ScreenSpaceLightingCommon.hlsl` 增加共享 helper（建议名 `SslComputeSourceCoordinates`）：
@@ -137,7 +164,7 @@
 - 全分辨率路径逐字节不变（ratio=1 时公式退化为 `c`）。
 - EditMode 418 passed。
 
-### 5.2 T3：SSGI 探针回退（调研完成，实现 1.5–2.5 天）
+### 5.2 T3：SSGI 探针回退（方案 A 已实现，1.5–2.5 天）
 
 #### 5.2.1 HDRP 目标
 - 复投影未命中时按 `rayMiss` 层级回退：`TraceReflectionProbes` 用逐像素 env-light list（`GetCountAndStart` / `FetchEnvLight`），每个 cubemap probe 做 influence shape 权重、atlas 采样、`UpdateLightingHierarchyWeights` 累积（`HDRP/.../ScreenSpaceGlobalIllumination.compute:141-201`）；剩余权重给 APV 或 ambient probe（`:286-313`）。
@@ -147,9 +174,10 @@
 - 两条路径：
   - `_FP_REFL_PROBE_ATLAS`（Forward+）：`ClusterInit/ClusterNext` 遍历逐像素探针，`CalculateProbeWeight` 权重、box projection、atlas `MipScaleOffset` 双 mip 混合，`totalWeight` 饱和后余量给天空/APV（`:206-289`）。
   - 非 Forward+：单个 `_SpecCube0`（box projection）+ 天空/APV，probe blending 明确标注为未实现（`:295-357`）。
-- 关键字 `_RAYMARCHING_FALLBACK_REFLECTION_PROBES` / `_RAYMARCHING_FALLBACK_SKY`；probe 相机结果乘 0.3（`:360-372`）。
-- 调用点用 mip 1.0（`SSGIURP/Shaders/ScreenSpaceGlobalIllumination.shader:243`），HDRP 用 LOD 0；本项目若要贴 HDRP 应用 0（或保留可配）。
-- APV 分支依赖 `PROBE_VOLUMES_L1/L2` 与新 URP，本项目不可用。
+- 注意：本方案只做 Forward+ 分支；非 FP 保持现有默认 cubemap，不引入 `_SpecCube0` box projection。
+- 关键字 `_RAYMARCHING_FALLBACK_REFLECTION_PROBES` / `_RAYMARCHING_FALLBACK_SKY`；probe 相机结果乘 0.3（`:360-372`）——本项目不需要该系数，`ScreenSpaceCapability` 已跳过反射相机。
+- 调用点用 mip 1.0（`SSGIURP/Shaders/ScreenSpaceGlobalIllumination.shader:243`），HDRP 用 LOD 0；本项目贴 HDRP 用 LOD 0。
+- APV 分支依赖 `PROBE_VOLUMES_L1/L2` 与新 URP，本项目不可用；HDRP 中 APV 是独立 `else if` 分支，不与探针权重混合。
 
 #### 5.2.3 URP 14.0.12 能力（已核实）
 | 事实 | 证据 |
@@ -192,6 +220,7 @@
 - atlas 满时探针会被丢弃（URP 自身行为），回退颜色可能突变；需在文档标注。
 - XR single-pass 的 cluster 数据含 eye offset（URP 代码已处理），compute 移植时要用 per-eye tile offset。
 - 性能：逐像素 cluster 循环在 SSGI 全分辨率上半分辨率 trace 下可接受（默认可见探针 ≤4），但需记录 GPU 时间。
+- 行为变化（Forward+ 限定）：若场景没有可见探针，`rayMiss=ReflectionProbes` 的 miss 权重为 0（保留 baked GI），不再像旧代码那样给默认 cubemap 权重 1；`ProbesAndSky` 仍由 ambient SH 补齐。需在 T4 专项验证中确认这是期望语义。
 
 ---
 
@@ -247,12 +276,13 @@ PLAN/TODO/03-SSRImprove2/validation/
 
 ---
 
-## 9. 待确认问题
+## 9. 决策记录（原待确认问题，已关闭）
 
-1. **T3 范围**：只做“Forward+ atlas + 非 FP 默认 cubemap”（推荐），还是包含非 FP 多探针（T3b）？
-2. **SSR 帧索引**：`%64 → %256` 是否接受（会改变 T5 基线截图）？
-3. **反射相机**：`CameraType.Reflection` 时 SSGI 回退是否 dim 0.3 / 禁用？
-4. **坐标对齐范围**：半分辨率 2c 只改 SSR（推荐，符合 HDRP RT denoiser），SSGI 保持 2c+1？
+1. **T3 范围**：仅 Forward+ atlas；非 FP 默认 cubemap（T3b 不做）。
+2. **SSR 帧索引**：直传 `Time.frameCount`（shader `&255`），T5 基线需重录。
+3. **反射相机**：无需改动；`ScreenSpaceCapability` 已跳过 `Reflection`/`Preview`。
+4. **坐标对齐范围**：只改 SSR 为 2c；SSGI 保持 2c+1。
+5. **SSR LUT**：新增 1SPP tile。
 
 ---
 
@@ -290,6 +320,8 @@ PLAN/TODO/03-SSRImprove2/validation/
 - SSGI trace/reproject：`URP/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute`
 - SSGI 采样：`URP/Shaders/Utils/ScreenSpaceLighting/Sampling.hlsl`
 - SSGI 调度/回退绑定：`URP/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsgiPass.cs`
+- Forward+ 探针回退头：`URP/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl`
+- SSR/SSGI blue noise 资产：`URP/Runtime/RendererFeatures/ScreenSpaceLighting/Resources/SsgiBlueNoise/`
 - 共享常量：`URP/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl`
 - URP 探针 atlas 全局：`URP/Runtime/ReflectionProbeManager.cs`、`URP/Runtime/ForwardLights.cs`、`URP/ShaderLibrary/Input.hlsl`
 - HDRP SSGI 回退：`HDRP/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute`

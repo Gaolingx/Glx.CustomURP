@@ -5,8 +5,11 @@
 // Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute and RayMarching.hlsl.
 // Changes from the HDRP source:
 // - the packed depth pyramid, full resolution depth/normal, motion texture and color pyramid are
-//   bound by URP explicitly (the HDRP light list, EnvLightData and probe volume paths are not used);
-// - ray directions come from an interleaved-gradient based sequence instead of the blue noise set;
+//   bound by URP explicitly (the HDRP light list and EnvLightData are not used);
+// - ray directions use the blue-noise distributed Owen scrambled Sobol sequence when the package
+//   LUTs are available and fall back to an interleaved-gradient based sequence otherwise;
+// - the miss fallback reads the Forward+ reflection probe atlas when available
+//   (ReflectionProbeFallback.hlsl) and the default cubemap otherwise; probe volumes are not ported;
 // - the reprojection writes radiance plus a validity weight; a miss writes weight 0 so the material
 //   keeps the baked GI instead of darkening the pixel;
 // - all private resource names carry the _Ssgi prefix.
@@ -139,6 +142,17 @@ uint2 SsgiGetFullResCoord(uint2 traceCoord)
 #else
     return traceCoord;
 #endif
+}
+
+// Maps an effect-resolution pixel to the full-resolution pixel that owns its depth, normal and
+// motion. HDRP's ray traced reflection denoiser reads the top-left pixel of each 2x2 group
+// (ComputeSourceCoordinates returns effectCoord * 2), so the trace and the denoiser must share this
+// mapping or they sample different sub-pixels. At full resolution the scale is 1 and this is the
+// identity.
+uint2 SslComputeSourceCoordinates(uint2 effectCoord, float2 screenSize, float2 effectSize)
+{
+    uint2 source = (uint2)floor((float2)effectCoord * (screenSize / effectSize));
+    return min(source, (uint2)screenSize - 1u);
 }
 
 float3 SsgiClampRadiance(float3 color)

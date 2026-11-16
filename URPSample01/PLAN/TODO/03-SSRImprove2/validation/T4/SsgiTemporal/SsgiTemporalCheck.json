@@ -1,0 +1,53 @@
+{
+    "utcTimestamp": "2026-11-16T05:29:15.4456568Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "Forward",
+            "passed": true,
+            "issues": [],
+            "offSampleCountMax": -1.0,
+            "onSampleCountMax": 8.0,
+            "onSampleCountSaturatedPixels": 75705,
+            "onHistoryNonZeroPixels": 35790,
+            "coveredPixels": 31738,
+            "coveredFraction": 0.034437935799360278,
+            "onAccumulationDispatchCount": 60,
+            "onValidationDispatchCount": 30,
+            "offAccumulationDispatchCount": 0
+        },
+        {
+            "name": "ForwardPlus",
+            "passed": true,
+            "issues": [],
+            "offSampleCountMax": -1.0,
+            "onSampleCountMax": 8.0,
+            "onSampleCountSaturatedPixels": 75705,
+            "onHistoryNonZeroPixels": 35790,
+            "coveredPixels": 31738,
+            "coveredFraction": 0.034437935799360278,
+            "onAccumulationDispatchCount": 60,
+            "onValidationDispatchCount": 30,
+            "offAccumulationDispatchCount": 0
+        },
+        {
+            "name": "Deferred",
+            "passed": true,
+            "issues": [],
+            "offSampleCountMax": -1.0,
+            "onSampleCountMax": 8.0,
+            "onSampleCountSaturatedPixels": 75705,
+            "onHistoryNonZeroPixels": 35790,
+            "coveredPixels": 31738,
+            "coveredFraction": 0.034437935799360278,
+            "onAccumulationDispatchCount": 60,
+            "onValidationDispatchCount": 30,
+            "offAccumulationDispatchCount": 0
+        }
+    ]
+}

@@ -32,6 +32,9 @@ namespace UnityEngine.Rendering.Universal
         [NonSerialized] Texture2D m_SsgiOwenScrambledTexture;
         [NonSerialized] Texture2D m_SsgiScramblingTile;
         [NonSerialized] Texture2D m_SsgiRankingTile;
+        [NonSerialized] bool m_SsrBlueNoiseResolved;
+        [NonSerialized] Texture2D m_SsrScramblingTile;
+        [NonSerialized] Texture2D m_SsrRankingTile;
         [NonSerialized] bool m_SsrFilterMappingResolved;
         [NonSerialized] Texture2D m_SsrReflectionFilterMapping;
 
@@ -55,6 +58,32 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool hasSsgiBlueNoise =>
             ssgiOwenScrambledTexture != null && ssgiScramblingTile != null && ssgiRankingTile != null;
+
+        // HDRP binds the 1SPP tiles to the screen space SSR trace and the 8SPP tiles to SSGI; the
+        // Owen scrambled 256 texture is shared. Keeping both sets means each effect matches the
+        // stratification HDRP uses for the same number of samples per pixel.
+        internal Texture2D ssrScramblingTile
+        {
+            get { ResolveSsrBlueNoise(); return m_SsrScramblingTile; }
+        }
+
+        internal Texture2D ssrRankingTile
+        {
+            get { ResolveSsrBlueNoise(); return m_SsrRankingTile; }
+        }
+
+        internal bool hasSsrBlueNoise =>
+            ssgiOwenScrambledTexture != null && ssrScramblingTile != null && ssrRankingTile != null;
+
+        void ResolveSsrBlueNoise()
+        {
+            if (m_SsrBlueNoiseResolved)
+                return;
+
+            m_SsrBlueNoiseResolved = true;
+            m_SsrScramblingTile = Resources.Load<Texture2D>("SsgiBlueNoise/ScramblingTile1SPP");
+            m_SsrRankingTile = Resources.Load<Texture2D>("SsgiBlueNoise/RankingTile1SPP");
+        }
 
         void ResolveSsgiBlueNoise()
         {

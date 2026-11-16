@@ -13,7 +13,8 @@
 //   keeps its (1 - weight) share and the BRDF is evaluated exactly once.
 // - The previous frame color pyramid is the SSL private linear HDR history (no pre-exposure).
 // - Ray marching is clamped to mip 6, identical to the shared SSGI Hi-Z helper.
-// - Reflection samples come from an IGN + R2 sequence instead of the HDRP blue-noise set.
+// - Reflection samples come from the same blue-noise distributed Owen scrambled Sobol sequence as
+//   HDRP (1SPP tiles), with the IGN + R2 sequence as the fallback when the LUTs are missing.
 // - SSS sample weights use the world-space normal for the GGX lambda terms; HDRP evaluates the
 //   lambda terms with world-space vectors as if they were in the local frame.
 #pragma kernel ScreenSpaceReflectionsTracing                  SSR_TRACE
@@ -24,6 +25,7 @@
 #pragma multi_compile _ SSR_HALF_RES
 #pragma multi_compile _ SSR_NORMALS_OCT
 #pragma multi_compile _ SSL_XR_ARRAY
+#pragma multi_compile _ SSGI_BLUE_NOISE
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/Sampling.hlsl"
@@ -90,12 +92,12 @@ float3 SsrReconstructPositionWS(float2 positionSS, float deviceDepth)
 
 // Maps a trace resolution pixel to the full resolution pixel that owns its depth, normal and motion.
 // The PBR half resolution path traces and reprojects at half the screen size; Approximation always
-// runs at full resolution.
+// runs at full resolution. HDRP's ray traced reflection denoiser reads the top-left pixel of the
+// 2x2 group (coord * 2), so this helper yields 2c in the half resolution path.
 uint2 SsrGetFullResCoord(uint2 traceCoord)
 {
 #if defined(SSR_HALF_RES)
-    uint2 fullRes = (uint2)floor(((float2)traceCoord + 0.5) * (_SsrScreenSize.xy / _SsrTraceSize.xy));
-    return min(fullRes, (uint2)_SsrScreenSize.xy - 1u);
+    return SslComputeSourceCoordinates(traceCoord, _SsrScreenSize.xy, _SsrTraceSize.xy);
 #else
     return traceCoord;
 #endif

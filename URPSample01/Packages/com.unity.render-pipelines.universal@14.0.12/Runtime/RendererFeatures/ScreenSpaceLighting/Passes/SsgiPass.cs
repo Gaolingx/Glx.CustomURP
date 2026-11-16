@@ -227,6 +227,11 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, blueNoise);
             SetKeyword(denoiserCompute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, blueNoise);
 
+            // The probe atlas and cluster buffers are only published by the Forward+ path.
+            bool probeAtlas = cameraData.renderer is UniversalRenderer universalRenderer &&
+                universalRenderer.renderingModeActual == RenderingMode.ForwardPlus;
+            SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SslProbeAtlasKeyword, probeAtlas);
+
             if (useTextureArray)
             {
                 BindXrViewConstants(cmd, viewCount);
@@ -293,6 +298,9 @@ namespace UnityEngine.Rendering.Universal
             // RenderSettings (compute kernels cannot read the per-draw unity_SH* constants).
             cmd.SetComputeVectorParam(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiFallbackParams,
                 new Vector4((int)settings.rayMiss.value, 0f, 0f, 0f));
+            // x: perspective flag for the Forward+ cluster zbin lookup.
+            cmd.SetComputeVectorParam(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiProbeAtlasParams,
+                new Vector4(cameraData.camera.orthographic ? 0f : 1f, 0f, 0f, 0f));
             cmd.SetComputeVectorArrayParam(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiAmbientProbeSH, BuildAmbientProbeSH());
             var reflectionProbeTexture = ReflectionProbe.defaultTexture;
             cmd.SetComputeTextureParam(ssgiCompute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsgiReflectionProbeCubemap,

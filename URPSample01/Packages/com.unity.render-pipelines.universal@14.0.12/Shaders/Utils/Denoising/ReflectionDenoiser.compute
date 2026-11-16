@@ -79,8 +79,7 @@ float _RaytracingReflectionMinSmoothness;
 uint2 ReflectionGetGeometryCoord(uint2 effectCoord)
 {
 #ifdef HALF_RESOLUTION
-    uint2 fullRes = (uint2)floor(((float2)effectCoord + 0.5) * (_SsgiScreenSize.xy / _SsgiTraceSize.xy));
-    return min(fullRes, (uint2)_SsgiScreenSize.xy - 1u);
+    return SslComputeSourceCoordinates(effectCoord, _SsgiScreenSize.xy, _SsgiTraceSize.xy);
 #else
     return effectCoord;
 #endif

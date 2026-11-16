@@ -5,9 +5,10 @@
 //
 // HDRP drives its ray directions and denoiser taps with the blue-noise distributed Owen scrambled
 // Sobol sequence (BND, Heitz et al.). URP ships the same three LUTs as package resources, so the
-// SSGI kernels use the identical sequence. When the resources are missing (for example a player
-// built from a renderer that never resolved them) the kernels stay self contained and fall back to
-// the interleaved gradient noise + R2 sequence this port used before.
+// SSGI and SSR kernels use the identical sequence (SSR binds the 1SPP tiles, SSGI the 8SPP ones).
+// When the resources are missing (for example a player built from a renderer that never resolved
+// them) the kernels stay self contained and fall back to the interleaved gradient noise + R2
+// sequence this port used before.
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"

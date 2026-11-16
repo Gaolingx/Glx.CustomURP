@@ -97,6 +97,7 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsgiOwenScrambledTexture = Shader.PropertyToID("_SsgiOwenScrambledTexture");
         internal static readonly int SsgiScramblingTileXSPP = Shader.PropertyToID("_SsgiScramblingTileXSPP");
         internal static readonly int SsgiRankingTileXSPP = Shader.PropertyToID("_SsgiRankingTileXSPP");
+        internal static readonly int SsgiProbeAtlasParams = Shader.PropertyToID("_SsgiProbeAtlasParams");
 
         // Constant buffer members.
         internal static readonly int SsgiScreenSize = Shader.PropertyToID("_SsgiScreenSize");
@@ -118,6 +119,7 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly string SsgiHalfResKeyword = "SSGI_HALF_RES";
         internal static readonly string SsgiNormalsOctKeyword = "SSGI_NORMALS_OCT";
         internal static readonly string SsgiBlueNoiseKeyword = "SSGI_BLUE_NOISE";
+        internal static readonly string SslProbeAtlasKeyword = "SSL_PROBE_ATLAS";
 
         // ---------------------------------------------------------------------------------------
         // Opaque Screen Space Reflections (Approximation)
