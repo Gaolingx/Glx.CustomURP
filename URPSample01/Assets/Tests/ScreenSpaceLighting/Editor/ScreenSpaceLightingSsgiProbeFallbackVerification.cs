@@ -19,7 +19,7 @@ public static class ScreenSpaceLightingSsgiProbeFallbackVerification
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity";
     const string RendererPathFormat = RendererRoot + "/SslT8{0}Renderer.asset";
     const string PipelinePathFormat = RendererRoot + "/SslT8{0}Pipeline.asset";
-    const string DefaultOutputRoot = "PLAN/TODO/04-SSGIFallbackImprove/validation/P4";
+    const string DefaultOutputRoot = "PLAN/Done/04-SSGIFallbackImprove/validation/P4";
     const string TempScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/~SsgiProbeFallbackVerificationTemp.unity";
     const string TempStressScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/~SsgiProbeFallbackStressTemp.unity";
     const string ProbeCubemapPath = "Assets/Tests/ScreenSpaceLighting/Scenes/~SsgiProbeFallbackVerificationCubemap.asset";

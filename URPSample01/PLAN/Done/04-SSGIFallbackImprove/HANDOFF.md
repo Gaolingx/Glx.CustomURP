@@ -1,13 +1,13 @@
 # 04-SSGIFallbackImprove 交接
 
 > 更新：2026-11-16
-> 状态：**P0–P5 已实施并验证。** 方案 A（复用探针 atlas + 暴力遍历 + renderer feature 开关）已合入
+> 状态：**P0–P5 已实施并验证，已归档到 `PLAN/Done/`。** 方案 A（复用探针 atlas + 暴力遍历 + renderer feature 开关）已合入
 > URP 14.0.12 内嵌包；逐项证据见 `validation/`。全量 EditMode **426/426 passed**（0 failed），
 > 1280×720/32 探针的成对性能增量中位数 **0.153 ms**（预算 0.2 ms），无需方案 B。
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`，上一阶段 `02-SSRImprove` T0–T6 已完成（提交 `ed4ed8b`，EditMode 418 passed）。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
-> 关联文档：`PLAN/TODO/02-SSRImprove/HANDOFF.md`、`PLAN/Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md`。
+> 关联文档：`PLAN/Done/02-SSRImprove/HANDOFF.md`、`PLAN/Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md`。
 
 ---
 
@@ -284,7 +284,7 @@ float3 SslSampleReflectionProbesList(float3 directionWS, float3 positionWS, out 
 ### 5.6 证据清单（已存在）
 
 ```
-PLAN/TODO/04-SSGIFallbackImprove/validation/
+PLAN/Done/04-SSGIFallbackImprove/validation/
 ├─ P0/Contract.md                     # 开关默认值/回退语义冻结表（或写回本文）
 ├─ P1/UnityEditModeTests.xml          # manager 生命周期单测
 ├─ P2/SslShaderCheck.txt              # 两个 keyword 变体 + 0 消息
@@ -366,5 +366,5 @@ reproject kernel 内）。`*.log` 被 `.gitignore` 排除，只提交 XML/JSON/P
 - `ProbesAndSky` 覆盖率恢复 38.28%，探针余量由 ambient SH 补齐。
 - 性能增量中位数 0.153 ms ≤ 0.2 ms，**不启用方案 B**（逐像素探针 tile 列表）。
 
-后续只剩归档：`PLAN/TODO/04-SSGIFallbackImprove` 可按需整体移入 `PLAN/Done/`；可选项为补采
+本阶段已归档到 `PLAN/Done/04-SSGIFallbackImprove`；可选项为补采
 Frame Debugger 的 atlas 绑定截图。
