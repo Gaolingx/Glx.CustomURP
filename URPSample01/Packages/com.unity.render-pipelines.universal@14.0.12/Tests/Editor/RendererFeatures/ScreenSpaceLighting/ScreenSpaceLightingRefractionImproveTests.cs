@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         public void KeywordLifetimeDoesNotDependOnABoxProjectedProbe()
         {
             string pass = ReadPackageFile("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/RefractionPass.cs");
-            // P0-3: no proxy is a valid state (infinite/sky fallback); only missing inputs keep the
+            // P0-3: no proxy is a valid state (far-projection fallback); only missing inputs keep the
             // legacy path. Intensity zero must keep the disabled output byte identical.
             StringAssert.DoesNotContain("if (!TryGetProxy", pass);
             StringAssert.Contains("SelectProxy(", pass);
@@ -109,6 +109,16 @@ namespace UnityEditor.Rendering.Universal.Tests
             string refraction = ReadPackageFile("ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl");
             StringAssert.Contains("int pyramidMipCount = (int)_SslRefractionParams.x;", refraction);
             StringAssert.Contains("PositivePow(input.perceptualRoughness, 1.3) * (float)max(pyramidMipCount - 1, 0)", refraction);
+        }
+
+        [Test]
+        public void AbsorptionMatchesCoreTransmittanceSemantics()
+        {
+            string refraction = ReadPackageFile("ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl");
+            // Core's TransmittanceColorAtDistanceToAbsorption, also used by HDRP:
+            // -log(transmittanceColor + REAL_EPS) / max(atDistance, REAL_EPS).
+            StringAssert.Contains("return -log(transmittanceColor + REAL_EPS) / max(atDistance, REAL_EPS);", refraction);
+            StringAssert.DoesNotContain("max(transmittanceColor, half3(1e-5", refraction);
         }
 
         [Test]

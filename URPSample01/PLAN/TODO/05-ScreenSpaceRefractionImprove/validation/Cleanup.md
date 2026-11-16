@@ -41,11 +41,11 @@ M  Packages/.../Tests/Editor/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLig
 ## 行为变化
 
 - 折射材质的 opacity 现在是 transmittance mask：opacity=1 不再显示透射，opacity=0 才把 diffuse/emission 桶替换为折射背景；输出 alpha 固定为 1。
-- 无 box-projected probe 不再退回 legacy 透明：任意 probe AABB 或 infinite/sky 代理继续提供折射；仅 Volume 关闭或 intensity=0 恢复 legacy。
+- 无 box-projected probe 不再退回 legacy 透明：任意 probe AABB 或 far-projection 代理（URP 扩展）继续提供折射；仅 Volume 关闭或 intensity=0 恢复 legacy。
 - `_Ior` 在效果开启时进入 F0，同一材质的反射率与 (1-F) 透射随 IOR 改变。
 - T11 折射测试材质改为 opacity 0，以匹配新的 mask 语义。
 
 ## 未完成
 
-- P1-3、P2-1、P2-2、P2-3、P2-4 未开始；P1-1/P1-2 的 HDRP 视觉对照、P0-1 的 screen-miss/边缘带证据待补。
+- P1-3、P2-2、P2-3、P2-4 未开始（P2-1 已复核关闭）；P1-1/P1-2 的 HDRP 视觉对照、P0-1 的 screen-miss 证据待补。
 - 计划目录仍保留在 `PLAN/TODO/05-ScreenSpaceRefractionImprove/`，不归档到 Done。

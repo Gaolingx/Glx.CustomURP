@@ -552,7 +552,9 @@ public static class ScreenSpaceLightingT11Verification
         }
 
         result.limitations =
-            "The proxy is the AABB of an active reflection probe, or the infinite/sky proxy when no probe exists " +
+            "The proxy is the AABB of an active reflection probe (HDRP's default probe uses its influence volume as " +
+            "proxy), or a far-projection proxy when no probe exists (a URP extension; HDRP's default refraction proxy " +
+            "is a camera-centred renderer-bounds sphere whose projection usually clamps to 0) " +
             "(URP has no per-material proxy volume or sphere influence, and the ray selection remains camera-based). " +
             "The color pyramid is captured before transparents, so pre-refraction transparents are absent from the " +
             "refraction; a transparent object between the refracting surface and the background is only visible through " +

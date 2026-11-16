@@ -153,9 +153,13 @@ namespace UnityEngine.Rendering.Universal
         // Picks the scene proxy for the refracted ray:
         //  1. the box-projected reflection probe that best approximates the scene around the camera;
         //  2. otherwise any active reflection probe bounds (box projection only affects reflections);
-        //  3. otherwise an infinite proxy, which mirrors HDRP's sky env light.
+        //  3. otherwise a far-projection proxy. HDRP's no-env-light default is a camera-centred
+        //     renderer-bounds sphere whose projection usually clamps to 0; this branch is a
+        //     deliberate URP extension that keeps probe-less scenes refracting.
         // URP exposes no per-material proxy volume and no sphere influence, so the world AABB is the
-        // approximation. The probe rotation is ignored (the AABB of a rotated probe is conservative).
+        // approximation. HDRP's default probe also uses its influence volume as the proxy; only an
+        // explicit infinite proxy volume is not representable here. The probe rotation is ignored
+        // (the AABB of a rotated probe is conservative).
         //
         // CullingResults normally contains the probes, but it does not include runtime probes in
         // every renderer path; a cached scene scan is the fallback.
@@ -182,7 +186,7 @@ namespace UnityEngine.Rendering.Universal
                 return ProxyMode.Box;
             }
 
-            // Sky/infinite proxy. The shader projects the ray at HDRP's minProjectionDistance.
+            // Far-projection proxy (URP extension); see ScreenSpaceRefraction.hlsl.
             boxMin = new Vector4(0f, 0f, 0f, (float)ProxyMode.Infinite);
             return ProxyMode.Infinite;
         }

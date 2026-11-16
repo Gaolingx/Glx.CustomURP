@@ -5,7 +5,7 @@
 //
 // A transparent Lit surface that selects a refraction model becomes a transmissive surface: the
 // ray that leaves the approximated volume is intersected with the active proxy (an arbitrary
-// reflection probe box or an infinite/sky fallback), the current frame color pyramid (opaque + sky,
+// reflection probe box or a far-projection fallback), the current frame color pyramid (opaque + sky,
 // generated before transparents) is sampled at the projected hit, attenuated by the material
 // transmittance and combined with the shaded color through the transmittance mask (1 - opacity).
 //
@@ -47,8 +47,11 @@ float4 _SslRefractionColorPyramidScaleAndLimit;
 float4 _SslRefractionParams;
 
 // Scene proxy. URP has no per-material proxy volume, so the plugin binds the world AABB of a
-// reflection probe and, when no probe exists, an infinite proxy that mirrors HDRP's sky env light.
-// BoxMin.w is the proxy mode (see the defines below); None keeps the legacy transparent output.
+// reflection probe; HDRP's default probe uses its influence volume as the proxy as well. With no
+// probe the plugin selects the far-projection mode below, a deliberate URP extension: HDRP's
+// no-env-light default (InitDefaultRefractionEnvLightData) is a camera-centred sphere sized by the
+// renderer bounds whose projection usually clamps to 0, and 65504 is only its sky cubemap
+// minProjectionDistance. BoxMin.w is the proxy mode; None keeps the legacy transparent output.
 #define SSL_REFRACTION_PROXY_MODE_NONE 0
 #define SSL_REFRACTION_PROXY_MODE_BOX 1
 #define SSL_REFRACTION_PROXY_MODE_INFINITE 2
@@ -94,10 +97,10 @@ float ScreenSpaceRefractionEdgeFade(float2 coordNDC, float fadeRcpLength)
     return Smoothstep01(t.x) * Smoothstep01(t.y);
 }
 
-// HDRP's TransmittanceColorAtDistanceToAbsorption.
+// Core's TransmittanceColorAtDistanceToAbsorption, which HDRP calls as well.
 half3 ScreenSpaceRefractionToAbsorption(half3 transmittanceColor, float atDistance)
 {
-    return -log(max(transmittanceColor, half3(1e-5, 1e-5, 1e-5))) / max(atDistance, 1e-5);
+    return -log(transmittanceColor + REAL_EPS) / max(atDistance, REAL_EPS);
 }
 
 // Traces the refracted ray through the proxy and samples the current frame color pyramid. The
@@ -167,7 +170,9 @@ ScreenSpaceRefractionResult ScreenSpaceRefractionEvaluate(ScreenSpaceRefractionI
     }
     else
     {
-        // Infinite proxy: HDRP's sky env light sets minProjectionDistance to 65504 (half max).
+        // Far-projection mode: deliberate URP extension for probe-less scenes. HDRP's default
+        // refraction proxy is a camera-centred renderer-bounds sphere with minProjectionDistance 0,
+        // which usually yields no offset; the sky env light's 65504 only affects cubemap fallback.
         projectionDistance = 65504.0;
     }
 

@@ -8,8 +8,10 @@ namespace UnityEngine.Rendering.Universal
     /// a transparent material that selects a refraction model.
     /// </summary>
     /// <remarks>
-    /// The defaults mirror HDRP 14.0.12. The proxy is the active box-projected reflection probe, the
-    /// only scene proxy available in URP; per-material proxy volumes are not migrated.
+    /// The defaults mirror HDRP 14.0.12. The proxy is the nearest box-projected reflection probe,
+    /// then any active probe's influence AABB (HDRP's default probes use the influence volume as the
+    /// proxy); with no probe URP uses a far-projection extension. Per-material proxy volumes are not
+    /// migrated.
     /// </remarks>
     [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Screen Space Refraction", typeof(UniversalRenderPipeline))]
     public sealed class ScreenSpaceRefraction : VolumeComponent
