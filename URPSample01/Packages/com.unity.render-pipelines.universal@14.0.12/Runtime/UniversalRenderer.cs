@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_DepthPrimingRecommended;
         StencilState m_DefaultStencilState;
         LightCookieManager m_LightCookieManager;
-        ScreenSpaceLightingRendererFeature m_ScreenSpaceLightingRendererFeature;
+        bool m_PublishSslProbeAtlas;
         IntermediateTextureMode m_IntermediateTextureMode;
         bool m_VulkanEnablePreTransform;
 
@@ -243,12 +243,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
 #endif
 
-            data.TryGetRendererFeature(out m_ScreenSpaceLightingRendererFeature);
-
             ForwardLights.InitParams forwardInitParams;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             forwardInitParams.forwardPlus = data.renderingMode == RenderingMode.ForwardPlus;
-            forwardInitParams.publishProbeAtlas = publishSslProbeAtlas;
+            forwardInitParams.publishProbeAtlas = false;
             m_Clustering = data.renderingMode == RenderingMode.ForwardPlus;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
@@ -1394,19 +1392,21 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // Read every frame so the feature toggle applies without rebuilding the renderer.
-            m_ForwardLights.SetProbeAtlasEnabled(publishSslProbeAtlas);
             m_ForwardLights.Setup(context, ref renderingData);
 
             if (this.renderingModeActual == RenderingMode.Deferred)
                 m_DeferredLights.SetupLights(context, ref renderingData);
         }
 
-        // Set by the Screen Space Lighting feature. Forward+ ignores it because clustering already
-        // needs the atlas.
-        internal bool publishSslProbeAtlas =>
-            m_ScreenSpaceLightingRendererFeature != null &&
-            m_ScreenSpaceLightingRendererFeature.settings.publishProbeAtlas;
+        // Pushed by the Screen Space Lighting feature before SetupLights, so core URP does not
+        // reference the plugin types. Forward+ ignores it because clustering already needs the atlas.
+        internal void SetProbeAtlasPublishing(bool enabled)
+        {
+            m_PublishSslProbeAtlas = enabled;
+            m_ForwardLights.SetProbeAtlasEnabled(enabled);
+        }
+
+        internal bool publishSslProbeAtlas => m_PublishSslProbeAtlas;
 
         /// <inheritdoc />
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,

@@ -84,6 +84,11 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            // Core URP must not reference the plugin, so the non-Forward+ probe atlas toggle is
+            // pushed here; AddRenderPasses runs before SetupLights for this camera.
+            if (renderer is UniversalRenderer universalRenderer)
+                universalRenderer.SetProbeAtlasPublishing(m_Settings.publishProbeAtlas);
+
             var cameraData = renderingData.cameraData;
             int frameIndex = Time.frameCount;
 
