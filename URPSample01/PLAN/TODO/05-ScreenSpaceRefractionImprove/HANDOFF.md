@@ -1,7 +1,7 @@
 # ScreenSpaceRefraction 对齐 HDRP 与缺陷修复交接
 
 > 更新：2026-11-17
-> 状态：P0 里程碑交付完成。P0-1/P0-2/P0-3 实现并完成 T11 三模式验证；P1-1/P1-2 实现并完成静态/解析验证；P1-3 实现并完成双 probe/相机移动/GC 验收（GPU p95 在编辑器不可测，物体边界序列帧待补），P2-2..P2-6 未开始，P2-1 复核关闭（与 HDRP 等价）。2026-11-16 复核修复 specular 合成、金字塔 mip 上限与吸收公式，并修正代理语义文档（见第 13、15 节）；2026-11-17 完成 P1-3 per-object 代理表（见第 16 节）
+> 状态：P0 里程碑交付完成。P0-1/P0-2/P0-3 实现并完成 T11 三模式验证；P1-1/P1-2 实现并完成静态/解析验证；P1-3 实现并完成双 probe/相机移动/GC 验收，并新增独立 player + RenderDoc `.rdc` 复核（见第 18 节；GPU p95 与物体边界序列帧仍待补），P2-2..P2-6 未开始，P2-1 复核关闭（与 HDRP 等价）。2026-11-16 复核修复 specular 合成、金字塔 mip 上限与吸收公式，并修正代理语义文档（见第 13、15 节）；2026-11-17 完成 P1-3 per-object 代理表（见第 16 节）与 player `.rdc` 验证（见第 18 节）
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`）
 > 相关文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[ScreenSpaceLighting 交接](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[T11 证据](../../Done/01-ScreenSpaceLighting/validation/T11/T11Report.json)
 
@@ -52,7 +52,7 @@
 | P0-3 | P0 | 代理 fallback：box → 任意 probe → 无限/sky | P0-1 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 实现完成，T11 通过 |
 | P1-1 | P1 | `_Ior` 进入 F0/Fresnel，透射与反射能量一致 | P0-2 | `BRDF.hlsl`、`Lighting.hlsl`、`LitInput.hlsl`、`PBRForwardPass.hlsl` | 实现完成，静态/解析验证通过，视觉证据待补 |
 | P1-2 | P1 | Thin 模型 atDistance 固定 0.005 | 无 | `ScreenSpaceRefraction.hlsl` | 实现完成，静态验证通过，视觉证据待补 |
-| P1-3 | P1 | per-object proxy 表；light layer 在 URP 14 不可用 | P0-3 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 实现完成；双 probe/相机移动/GC 验收通过；GPU p95 编辑器不可测，物体边界序列帧待补 |
+| P1-3 | P1 | per-object proxy 表；light layer 在 URP 14 不可用 | P0-3 | `RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 实现完成；编辑器验收通过；独立 player + RenderDoc `.rdc` 复核通过（第 18 节）；GPU p95 与物体边界序列帧待补 |
 | P2-1 | P2 | 屏幕外命中改为 HDRP 式 fade + clamp | P0-1/P0-2 | `ScreenSpaceRefraction.hlsl` | 复核关闭：NDC 外 fade 恒为 0，与硬拒绝等价 |
 | P2-2 | P2 | pre-refraction 透明队列 | P0-2 | `UniversalRenderer`、`RefractionPass.cs`、`ScreenSpaceRefraction.hlsl` | 待开始（有决策门） |
 | P2-3 | P2 | 厚度贴图 / 透射色贴图 | P0-2 | `Lit.shader`、`ComplexLit.shader`、`LitInput.hlsl`、ShaderGraph | 待开始 |
@@ -708,3 +708,31 @@ PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/
 - **未自动化**：物体跨越 probe 边界的逐帧切换。per-object 选择保证同一物体只用一个代理，不会双重采样；仍需要专门序列帧证据覆盖“只在边界处切换、无黑边”。
 - **证据**：`validation/P1-3/P13ProxyVerification.json` 与 18 张 PNG；单 probe 回归见 `validation/T11P13/T11Verification.json`。
 - **结论**：P1-3 功能验收（双 probe 选择、相机移动稳定性、GC、无 NaN）通过；GPU p95 与物体边界序列帧保留为环境/后续项。
+
+## 18. P1-3 player + RenderDoc `.rdc` 复核（2026-11-17）
+
+编辑器截图只能证明 CPU 侧读数；本轮新增一条独立验证路径：**D3D11 standalone player 内用 RenderDoc in-app API 精确抓帧**，再用 renderdoc-mcp 读抓帧结果。
+
+- **构建/运行**
+  - `ScreenSpaceLightingP13PlayerSetup.CreateScene` 生成 `Scenes/ScreenSpaceLightingP13Player.unity`（Forward pipeline、T3 volume profile、方向光、天空盒、P1-3 Player 材质）。
+  - `ScreenSpaceLightingP13PlayerSetup.BuildPlayer` 生成 1280x720 development player，仅启用 D3D11，输出到 `validation/P1-3/Player/`。
+  - `ScreenSpaceLightingP13PlayerVerification` 在 player 内重建与编辑器 P1-3 相同的 rig：B probe 8³ 包围玻璃（importance 1），A probe 4³ 围绕相机（importance 0）；玻璃 `_Ior=1`、opacity 0、plane model，图案面板放在 layer 31 并排除出两个 probe 的 cubemap；probe cubemap 在 refraction 关闭时冻结渲染。
+  - 运行命令：
+    ```bash
+    Unity.exe -batchmode -projectPath URPSample01 \
+      -executeMethod ScreenSpaceLightingP13PlayerSetup.BuildPlayer
+    renderdoccmd capture -w --opt-hook-children \
+      -c <out>/manual -d <out> <out>/SslP13Player.exe -ssl-p13-out <out>
+    ```
+    player 通过 `renderdoc.dll!RENDERDOC_GetAPI(1.6.0)` 的 `TriggerCapture` 对 `CameraAtA`、`CameraMovedToB` 两个位姿 × `Both/ProbeAOnly/ProbeBOnly` 三种配置各抓一帧，共 6 个 `.rdc`；抓帧后同一配置下再截 PNG 并计算玻璃内圈指标。
+- **结果**（`validation/P1-3/Player/P13PlayerReport.json`，`passed=true completed=true`）
+  - `CameraAtA`：判定圈 1257 px；`Both` vs `ProbeAOnly` 平均色差 **0.468**、`bothToAChangedPixels=1257`（100%）；`Both` vs `ProbeBOnly` 平均色差 **0.0025**、差异 30 px（2.4%，全部位于球体边缘，见下）。
+  - `CameraMovedToB`（相机前移 6 m）：判定圈 3745 px；`Both` vs `ProbeAOnly` 平均色差 **0.394**、差异 3745（100%）；`Both` vs `ProbeBOnly` 平均色差 **0**、差异 **0**。
+  - 相机进入 A 的包围盒再移出，`Both` 始终跟随 B：说明 shader 按物体中心选择，而不是按相机最近的 A。
+- **GPU 帧内证据**
+  - 6 个抓帧均为 D3D11、147 events / 65 draws；玻璃球 draw 为 2304 indices（EID 786/783/785/831/835，随配置变化）。
+  - `debug_pixel_*.json`：用 renderdoc-mcp `debug_pixel` 对每个抓帧的玻璃中心 (640,359) 调试像素 shader。`CameraAtA_Both` 输出 `(1,1,0,1)` 与 `ProbeBOnly` 完全一致，`ProbeAOnly` 为 `(0.138,0.119,0.104,1)`；`CameraMovedToB` 同样 `Both==ProbeBOnly`。这是 GPU 实际执行的 shader 输出，不是截图比较。
+  - `ps_reflection_Both.json`、`ps_shader_Both.txt`：抓帧内 PS 有 5 个常量块（含 16384 B 全局块）。Unity player 剥离了 DXBC 反射变量名，renderdoc-mcp v0.3.0 发布包也尚未包含源码中的 cbuffer 工具，因此无法直接从 `.rdc` dump `_SslRefractionProbe*` 数组数值；代理表内容与“物体中心优先、包含者优先”的规则由 EditMode `RefractionProxyTableSelectsAtTheObjectCenter` 覆盖，`.rdc` 侧以像素输出等价性证明实际选择。
+- **判定圈与边缘**：内圈取投影半径的 0.5 倍（A 位姿约 20 px）。球体边缘的 Fresnel/环境反射由 URP per-renderer `unity_SpecCube0` 决定，probe A 是否在场景中会改变该 cubemap 的图集绑定，因此边缘像素不属于代理表选择的判据；该耦合已在 T14 已知差异第 2 条记录（反射与折射可能用不同 probe）。0.5R 内 `Both` 与 `ProbeBOnly` 的余差 ≤ 2.4%（A 位姿）、0（B 位姿）。
+- **产物**：`validation/P1-3/Player/` 下 6 个 `.rdc`、6 张 PNG、`P13PlayerReport.json`、`P13Player.log`、`P13PlayerBuildSummary.json`、6 份 `debug_pixel_*.json` 与 PS 反射/反汇编；`PLAN/TODO/05-ScreenSpaceRefractionImprove/tools/rdmcp.py` 为 stdio MCP 客户端（open_capture / debug_pixel / 任意工具调用）。
+- **结论**：P1-3 的 per-object 代理选择与相机移动稳定性在独立 player 的 GPU 帧上复核通过。剩余项不变：GPU p95（player 端可后续补测）与物体跨越 probe 边界的序列帧。

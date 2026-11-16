@@ -1,0 +1,226 @@
+{
+    "utcTimestamp": "2026-11-16T17:39:25.8421436Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "outputDirectory": "E:/GitHub/Glx.CustomURP/URPSample01/PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/P1-3/Player",
+    "pipeline": "SslT11ForwardPipeline",
+    "renderDocAvailable": true,
+    "renderDocVersion": "1.7.0",
+    "renderWidth": 1280,
+    "renderHeight": 720,
+    "glassCenter": {
+        "x": 0.0,
+        "y": 1.600000023841858,
+        "z": 0.0
+    },
+    "probeACenter": {
+        "x": 0.0,
+        "y": 1.600000023841858,
+        "z": -15.0
+    },
+    "probeASize": {
+        "x": 4.0,
+        "y": 4.0,
+        "z": 4.0
+    },
+    "probeBCenter": {
+        "x": 0.0,
+        "y": 1.600000023841858,
+        "z": 0.0
+    },
+    "probeBSize": {
+        "x": 8.0,
+        "y": 8.0,
+        "z": 8.0
+    },
+    "passed": true,
+    "completed": true,
+    "error": "",
+    "poses": [
+        {
+            "name": "CameraAtA",
+            "cameraPosition": {
+                "x": 0.0,
+                "y": 1.600000023841858,
+                "z": -15.0
+            },
+            "cases": [
+                {
+                    "name": "Both",
+                    "pose": "CameraAtA",
+                    "captureTriggered": true,
+                    "captureSucceeded": true,
+                    "captureCountBefore": 0,
+                    "captureCountAfter": 1,
+                    "capture": "E:/GitHub/Glx.CustomURP/URPSample01/PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/P1-3/Player/P13_CameraAtA_Both_frame162.rdc",
+                    "screenshot": "P13Player_CameraAtA_Both.png",
+                    "glassCircleCenterX": 640,
+                    "glassCircleCenterY": 360,
+                    "glassCircleRenderDocX": 640,
+                    "glassCircleRenderDocY": 359,
+                    "glassCircleRadius": 20.0,
+                    "glassCirclePixelCount": 1257,
+                    "mean": {
+                        "r": 0.9963771104812622,
+                        "g": 0.5113413333892822,
+                        "b": 0.4867247939109802,
+                        "a": 1.0
+                    },
+                    "meanLuminance": 0.6126826405525208,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "name": "ProbeAOnly",
+                    "pose": "CameraAtA",
+                    "captureTriggered": true,
+                    "captureSucceeded": true,
+                    "captureCountBefore": 1,
+                    "captureCountAfter": 2,
+                    "capture": "E:/GitHub/Glx.CustomURP/URPSample01/PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/P1-3/Player/P13_CameraAtA_ProbeAOnly_frame173.rdc",
+                    "screenshot": "P13Player_CameraAtA_ProbeAOnly.png",
+                    "glassCircleCenterX": 640,
+                    "glassCircleCenterY": 360,
+                    "glassCircleRenderDocX": 640,
+                    "glassCircleRenderDocY": 359,
+                    "glassCircleRadius": 20.0,
+                    "glassCirclePixelCount": 1257,
+                    "mean": {
+                        "r": 0.8600950241088867,
+                        "g": 0.9506480097770691,
+                        "b": 0.955190122127533,
+                        "a": 1.0
+                    },
+                    "meanLuminance": 0.9317243695259094,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "name": "ProbeBOnly",
+                    "pose": "CameraAtA",
+                    "captureTriggered": true,
+                    "captureSucceeded": true,
+                    "captureCountBefore": 2,
+                    "captureCountAfter": 3,
+                    "capture": "E:/GitHub/Glx.CustomURP/URPSample01/PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/P1-3/Player/P13_CameraAtA_ProbeBOnly_frame184.rdc",
+                    "screenshot": "P13Player_CameraAtA_ProbeBOnly.png",
+                    "glassCircleCenterX": 640,
+                    "glassCircleCenterY": 360,
+                    "glassCircleRenderDocX": 640,
+                    "glassCircleRenderDocY": 359,
+                    "glassCircleRadius": 20.0,
+                    "glassCirclePixelCount": 1257,
+                    "mean": {
+                        "r": 0.9962884187698364,
+                        "g": 0.5102822184562683,
+                        "b": 0.4842495918273926,
+                        "a": 1.0
+                    },
+                    "meanLuminance": 0.6117275953292847,
+                    "nonFinitePixels": 0
+                }
+            ],
+            "circlePixelCount": 1257,
+            "bothToBMeanDelta": 0.0024752020835876467,
+            "bothToAMeanDelta": 0.46846532821655276,
+            "bothToBChangedPixels": 30,
+            "bothToAChangedPixels": 1257,
+            "bothToBMaxDelta": 0.125490203499794,
+            "bothToAMaxDelta": 1.0,
+            "nonFinitePixels": 0,
+            "passed": true,
+            "issues": []
+        },
+        {
+            "name": "CameraMovedToB",
+            "cameraPosition": {
+                "x": 0.0,
+                "y": 1.600000023841858,
+                "z": -9.0
+            },
+            "cases": [
+                {
+                    "name": "Both",
+                    "pose": "CameraMovedToB",
+                    "captureTriggered": true,
+                    "captureSucceeded": true,
+                    "captureCountBefore": 3,
+                    "captureCountAfter": 4,
+                    "capture": "E:/GitHub/Glx.CustomURP/URPSample01/PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/P1-3/Player/P13_CameraMovedToB_Both_frame195.rdc",
+                    "screenshot": "P13Player_CameraMovedToB_Both.png",
+                    "glassCircleCenterX": 640,
+                    "glassCircleCenterY": 360,
+                    "glassCircleRenderDocX": 640,
+                    "glassCircleRenderDocY": 359,
+                    "glassCircleRadius": 34.5,
+                    "glassCirclePixelCount": 3745,
+                    "mean": {
+                        "r": 0.9961936473846436,
+                        "g": 0.5051020979881287,
+                        "b": 0.48933181166648867,
+                        "a": 1.0
+                    },
+                    "meanLuminance": 0.6083695292472839,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "name": "ProbeAOnly",
+                    "pose": "CameraMovedToB",
+                    "captureTriggered": true,
+                    "captureSucceeded": true,
+                    "captureCountBefore": 4,
+                    "captureCountAfter": 5,
+                    "capture": "E:/GitHub/Glx.CustomURP/URPSample01/PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/P1-3/Player/P13_CameraMovedToB_ProbeAOnly_frame206.rdc",
+                    "screenshot": "P13Player_CameraMovedToB_ProbeAOnly.png",
+                    "glassCircleCenterX": 640,
+                    "glassCircleCenterY": 360,
+                    "glassCircleRenderDocX": 640,
+                    "glassCircleRenderDocY": 359,
+                    "glassCircleRadius": 34.5,
+                    "glassCirclePixelCount": 3745,
+                    "mean": {
+                        "r": 0.7844476103782654,
+                        "g": 0.8666402697563171,
+                        "b": 0.8830017447471619,
+                        "a": 1.0
+                    },
+                    "meanLuminance": 0.8503473997116089,
+                    "nonFinitePixels": 0
+                },
+                {
+                    "name": "ProbeBOnly",
+                    "pose": "CameraMovedToB",
+                    "captureTriggered": true,
+                    "captureSucceeded": true,
+                    "captureCountBefore": 5,
+                    "captureCountAfter": 6,
+                    "capture": "E:/GitHub/Glx.CustomURP/URPSample01/PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/P1-3/Player/P13_CameraMovedToB_ProbeBOnly_frame217.rdc",
+                    "screenshot": "P13Player_CameraMovedToB_ProbeBOnly.png",
+                    "glassCircleCenterX": 640,
+                    "glassCircleCenterY": 360,
+                    "glassCircleRenderDocX": 640,
+                    "glassCircleRenderDocY": 359,
+                    "glassCircleRadius": 34.5,
+                    "glassCirclePixelCount": 3745,
+                    "mean": {
+                        "r": 0.9961936473846436,
+                        "g": 0.5051020979881287,
+                        "b": 0.48933181166648867,
+                        "a": 1.0
+                    },
+                    "meanLuminance": 0.6083695292472839,
+                    "nonFinitePixels": 0
+                }
+            ],
+            "circlePixelCount": 3745,
+            "bothToBMeanDelta": 0.0,
+            "bothToAMeanDelta": 0.3936699330806732,
+            "bothToBChangedPixels": 0,
+            "bothToAChangedPixels": 3745,
+            "bothToBMaxDelta": 0.0,
+            "bothToAMaxDelta": 1.0,
+            "nonFinitePixels": 0,
+            "passed": true,
+            "issues": []
+        }
+    ]
+}
