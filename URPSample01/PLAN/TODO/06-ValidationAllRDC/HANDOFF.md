@@ -249,7 +249,7 @@ Blitter.BlitTexture(cmd, depthSource,
 
 `ComputeSettingsStamp` 覆盖 `fullResolution`、`rayMiss`、`temporalAccumulation`、`denoise`、`secondDenoiserPass`、`halfResolutionDenoiser`、trace 尺寸与资源代数，但不包含 `publishProbeAtlas`、`maxRaySteps`、`depthBufferThickness`、`denoiserRadius`、`bilateralUpsample`、`intensity`。切换这些值不会重置 history，旧 radiance 会与新配置混合。
 
-修复（P2-2）：`ComputeSettingsStamp` 增加 `publishProbeAtlas`（实际 `probeList`）、`maxRaySteps`、`depthBufferThickness`；`intensity`、`denoiserRadius`、`bilateralUpsample` 在 CopyHistory 之后才生效，不纳入并加注释。DEV 快照新增 `settingsStamp`/`settingsResetCount`，验证 player 在预热后切换设置并读取下一帧：4 个被覆盖字段均 `historyValid=true→false`、reset +1；`intensity`/`denoiserRadius` 对照保持有效。见 [P2-2/Report.md](validation/P2-2/Report.md)。
+修复（P2-2）：`ComputeSettingsStamp` 增加 `publishProbeAtlas`（实际 `probeList`）、`maxRaySteps`、`depthBufferThickness`；`intensity`、`denoiserRadius`、`bilateralUpsample` 在 CopyHistory 之后才生效，不纳入并加注释。DEV 快照新增 `settingsStamp`/`settingsResetCount`，验证 player 在预热后切换设置并读取下一帧：3 个被覆盖字段（共 5 个用例，含 Forward/Deferred 两条路径）均 `historyValid=true→false`、reset +1；`intensity`/`denoiserRadius` 对照保持有效。见 [P2-2/Report.md](validation/P2-2/Report.md)。
 
 ### 3.8 F-08 共享 ComputeShader keyword
 
@@ -648,6 +648,8 @@ PLAN/TODO/06-ValidationAllRDC/validation/
     Metrics.csv
     Report.json
   P2-SSGI/...
+  P2-2/{P2Manifest.json, analyze.py, Metrics.json, Report.md, Player/Report.json, Player/*.png}
+  P2-3/{P2Manifest.json, CaptureManifest.json, analyze.py, Metrics.json, Report.md, EditModeFull.xml, Player/Report.json, Player/*.png, Player/renderdoc-mcp-export/..., Player/fix/...}
   P3-SSR/...
   P4-Cross/{KeywordLeak.json,ResolutionMatrix.json}
   P5-Docs/
@@ -748,11 +750,11 @@ PLAN/TODO/06-ValidationAllRDC/validation/
 | `06-08 Add the P3-4/P3-5 validation evidence` | P3-4/P3-5 证据（dispatch/census/report/metrics） |
 | `06-09 Reset refraction state per camera` | F-05 |
 | `06-10 Reset SSGI history on probe-atlas changes` | F-07（已完成，含 `Record the P2-2 stamp evidence`） |
-| `06-14 Undo the render target flip in the SSGI denoiser taps` | F-09 + `Record the P2-3 denoiser evidence` |
 | `06-11 Add the validation player and binding probe` | P0 |
 | `06-12 Add GTAO/SSGI/SSR RenderDoc evidence` | P1–P3 证据 |
 | `06-13 Remove Screen Space Lighting dead code` | P4-4 |
 | `06-14 Document the HDRP differences and archive the round` | P5/P6 |
+| `06-15 Undo the render target flip in the SSGI denoiser taps` | F-09 + `Record the P2-3 denoiser evidence` |
 
 > 提交前逐项确认：不含 player 二进制/`_Data`/`Library`/`Temp`/`Logs`/`.csproj`/`.sln`；`.rdc` 在预算内；`git diff --check` 无空白错误；文档中的文件/行号引用与当前代码一致。
 
