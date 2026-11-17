@@ -102,6 +102,9 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     bool m_ProbesDisabled;
     AmbientMode m_AmbientMode = AmbientMode.Skybox;
     float m_AmbientIntensity = -1f;
+    // URP applies the pipeline render scale inside the camera descriptor; Camera.pixelWidth is the
+    // unscaled screen size, so the pass expectations have to use this value instead.
+    float m_RenderScale = 1f;
 
     void Awake()
     {
@@ -259,6 +262,8 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
             m_Log.AppendLine("switching to " + pipeline.name);
             yield return WaitFrames(3, 0f);
         }
+        if (ApplyPipelineSettings(pipeline, testCase.pipeline))
+            yield return WaitFrames(3, 0f);
 
         ApplyVolume(testCase.volume);
         ApplyFeatureSettings(rendererData, testCase.feature);
@@ -340,6 +345,10 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         LogProbeState();
 
         result.frameIndex = Time.frameCount;
+        result.renderScale = pipeline.renderScale;
+        result.msaaSamples = pipeline.msaaSampleCount;
+        result.targetWidth = ScaledWidth;
+        result.targetHeight = ScaledHeight;
         result.cameraPosition = m_Camera.transform.position;
         result.cameraRotation = m_Camera.transform.rotation.eulerAngles;
         result.cameraOrthographic = m_Camera.orthographic;
@@ -737,6 +746,43 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         }
     }
 
+    // X2: render scale and MSAA are pipeline-asset state. The camera opts into MSAA; the pipeline
+    // sample count alone does not apply when the camera disallows it.
+    bool ApplyPipelineSettings(UniversalRenderPipelineAsset pipeline, SslPipelineCase settings)
+    {
+        if (pipeline == null)
+            return false;
+
+        float scale = settings != null && settings.renderScale > 0f ? settings.renderScale : 1f;
+        int msaa = settings != null && settings.msaa > 0 ? settings.msaa : 1;
+        m_RenderScale = scale;
+        bool changed = false;
+        if (!Mathf.Approximately(pipeline.renderScale, scale))
+        {
+            pipeline.renderScale = scale;
+            changed = true;
+        }
+        if (pipeline.msaaSampleCount != msaa)
+        {
+            pipeline.msaaSampleCount = msaa;
+            changed = true;
+        }
+        m_Camera.allowMSAA = msaa > 1;
+        return changed;
+    }
+
+    // X2: every effect pass must consume the render-scaled camera target, not the screen size.
+    int ScaledWidth => Mathf.Max(1, Mathf.RoundToInt(Screen.width * m_RenderScale));
+    int ScaledHeight => Mathf.Max(1, Mathf.RoundToInt(Screen.height * m_RenderScale));
+
+    void CheckTargetSize(SslValidationCaseResult result, string effect, int width, int height)
+    {
+        int targetWidth = ScaledWidth;
+        int targetHeight = ScaledHeight;
+        if (width != targetWidth || height != targetHeight)
+            result.issues.Add($"{effect} screen size {width}x{height} != camera target {targetWidth}x{targetHeight}.");
+    }
+
     void ApplyFeatureSettings(UniversalRendererData rendererData, SslFeatureCase feature)
     {
         var ssl = FindFeature<ScreenSpaceLightingRendererFeature>(rendererData);
@@ -917,6 +963,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         bool temporal = gtao.temporalAccumulation;
         int screenWidth = Mathf.Max(1, report.screenWidth);
         int screenHeight = Mathf.Max(1, report.screenHeight);
+        CheckTargetSize(result, "GTAO", report.screenWidth, report.screenHeight);
         int aoWidth = fullResolution ? screenWidth : (screenWidth + 1) >> 1;
         int aoHeight = fullResolution ? screenHeight : (screenHeight + 1) >> 1;
         int groupsX = (aoWidth + 7) / 8;
@@ -1031,6 +1078,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
 
         int screenWidth = Mathf.Max(1, report.screenWidth);
         int screenHeight = Mathf.Max(1, report.screenHeight);
+        CheckTargetSize(result, "SSGI", report.screenWidth, report.screenHeight);
         bool fullResolution = ssgi.fullResolution;
         int traceWidth = fullResolution ? screenWidth : Mathf.Max(1, screenWidth >> 1);
         int traceHeight = fullResolution ? screenHeight : Mathf.Max(1, screenHeight >> 1);
@@ -1154,8 +1202,8 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
             frameIndex = ReadStaticInt(passType, "s_LastPixelSpreadFrame"),
             traceWidth = ReadStaticInt(passType, "s_LastPixelSpreadTraceWidth"),
             traceHeight = ReadStaticInt(passType, "s_LastPixelSpreadTraceHeight"),
-            expectedTraceWidth = ssr.fullResolution ? Screen.width : Mathf.Max(1, Screen.width >> 1),
-            expectedTraceHeight = ssr.fullResolution ? Screen.height : Mathf.Max(1, Screen.height >> 1),
+            expectedTraceWidth = ssr.fullResolution ? ScaledWidth : Mathf.Max(1, ScaledWidth >> 1),
+            expectedTraceHeight = ssr.fullResolution ? ScaledHeight : Mathf.Max(1, ScaledHeight >> 1),
             ssgiActive = result.ssgiActive,
         };
         float minTrace = Mathf.Max(1, Mathf.Min(stats.traceWidth, stats.traceHeight));
@@ -1254,8 +1302,9 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
 
         bool pbr = ssr.usedAlgorithm == (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation;
         bool half = pbr && !ssr.fullResolution;
-        int screenWidth = Screen.width;
-        int screenHeight = Screen.height;
+        int screenWidth = ScaledWidth;
+        int screenHeight = ScaledHeight;
+        CheckTargetSize(result, "SSR", stats.screenWidth, stats.screenHeight);
         int traceWidth = half ? Mathf.Max(1, screenWidth >> 1) : screenWidth;
         int traceHeight = half ? Mathf.Max(1, screenHeight >> 1) : screenHeight;
         int tile = 8;
@@ -2293,8 +2342,19 @@ public sealed class SslValidationCase
     // F-05: after the refraction effect warmed up, render a capability-rejected reflection camera and
     // read back whether the refraction keyword and bindings reached it.
     public bool refractionLeakCheck;
+    // X2: render scale and MSAA live on the pipeline asset; the camera target descriptor follows.
+    public SslPipelineCase pipeline = new SslPipelineCase();
     // S2: dim the ambient term so the emitter bounce is the only indirect light on the floor.
     public float ambientIntensity = -1f;
+}
+
+[Serializable]
+public sealed class SslPipelineCase
+{
+    // URP multiplies the camera target descriptor by the render scale; 1 leaves it untouched.
+    public float renderScale = 1f;
+    // Pipeline MSAA sample count. The validation camera must also allow MSAA for it to apply.
+    public int msaa = 1;
 }
 
 [Serializable]
@@ -2495,6 +2555,10 @@ public sealed class SslValidationCaseResult
     public SslSsrDebugViewStats ssrDebugView;
     public SslTransparentSsrStats transparentSsr;
     public SslRefractionLeakStats refractionLeak;
+    public float renderScale;
+    public int msaaSamples;
+    public int targetWidth;
+    public int targetHeight;
     public bool passed;
     public List<string> issues;
 }

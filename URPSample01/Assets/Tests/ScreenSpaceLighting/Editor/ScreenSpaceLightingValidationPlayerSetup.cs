@@ -126,11 +126,20 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         Directory.CreateDirectory(outputDirectory);
         var executablePath = Path.Combine(outputDirectory, "SslValidationPlayer.exe");
 
-        // URP strips shader variants that the build-time pipeline does not use, so the player is built
-        // with the Deferred asset; Forward and Forward+ are the base variants and stay available
-        // when the verification switches renderers at runtime.
+        // URP strips shader variants that the build-time pipeline does not use. ShaderBuildPreprocessor
+        // only collects features from the pipeline assets referenced by the build target's quality
+        // levels, so building from one asset drops the other renderers (Forward+ in particular). Park
+        // the three validation pipelines on the quality levels for the build so all variants survive.
         var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(
             RendererRoot + "/SslValidationDeferredPipeline.asset");
+        var validationPipelines = new[]
+        {
+            pipeline,
+            AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(
+                RendererRoot + "/SslValidationForwardPipeline.asset"),
+            AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(
+                RendererRoot + "/SslValidationForwardPlusPipeline.asset"),
+        };
         var options = new BuildPlayerOptions
         {
             scenes = new[] { ScenePath },
@@ -145,8 +154,18 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         var previousWidth = PlayerSettings.defaultScreenWidth;
         var previousHeight = PlayerSettings.defaultScreenHeight;
         var previousPipeline = GraphicsSettings.defaultRenderPipeline;
-        var previousQualityPipeline = QualitySettings.renderPipeline;
         var previousStripping = PlayerSettings.GetManagedStrippingLevel(BuildTargetGroup.Standalone);
+
+        // renderPipeline is a property of the active quality level, so snapshot and restore each level.
+        int previousQualityLevel = QualitySettings.GetQualityLevel();
+        int qualityLevelCount = Mathf.Max(1, QualitySettings.names.Length);
+        var previousQualityPipelines = new RenderPipelineAsset[qualityLevelCount];
+        for (int i = 0; i < qualityLevelCount; i++)
+        {
+            QualitySettings.SetQualityLevel(i, true);
+            previousQualityPipelines[i] = QualitySettings.renderPipeline;
+        }
+        QualitySettings.SetQualityLevel(previousQualityLevel, true);
 
         PlayerSettings.SetGraphicsAPIs(BuildTarget.StandaloneWindows64, new[] { GraphicsDeviceType.Direct3D11 });
         PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
@@ -158,13 +177,23 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         try
         {
             GraphicsSettings.defaultRenderPipeline = pipeline;
-            QualitySettings.renderPipeline = pipeline;
+            for (int i = 0; i < qualityLevelCount; i++)
+            {
+                QualitySettings.SetQualityLevel(i, true);
+                QualitySettings.renderPipeline = validationPipelines[i % validationPipelines.Length];
+            }
+            QualitySettings.SetQualityLevel(previousQualityLevel, true);
             report = BuildPipeline.BuildPlayer(options);
         }
         finally
         {
+            for (int i = 0; i < qualityLevelCount; i++)
+            {
+                QualitySettings.SetQualityLevel(i, true);
+                QualitySettings.renderPipeline = previousQualityPipelines[i];
+            }
+            QualitySettings.SetQualityLevel(previousQualityLevel, true);
             GraphicsSettings.defaultRenderPipeline = previousPipeline;
-            QualitySettings.renderPipeline = previousQualityPipeline;
             PlayerSettings.SetGraphicsAPIs(BuildTarget.StandaloneWindows64, previousApis);
             PlayerSettings.fullScreenMode = previousFullScreenMode;
             PlayerSettings.defaultScreenWidth = previousWidth;
