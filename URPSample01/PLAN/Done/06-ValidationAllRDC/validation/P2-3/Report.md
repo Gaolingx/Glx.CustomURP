@@ -50,6 +50,8 @@ hClip.y = -hClip.y;
 
 修复前 tap y=513，而中心像素在纹理空间是 y=216（`H-1-216=503`），即整体镜像；修复后落在中心附近（206），符合 ~60 px 的降噪半径。
 
+> 机器可读证据是 `Metrics.json` 的 `highFrequencyRatio 0.5054` 与导出的输入/输出纹理；1/16→16/16 的计数来自本次 `debug_thread` 追踪，未单独写入 JSON。
+
 ### 3.2 同一帧输入/输出纹理
 
 抓帧配置：[CaptureManifest.json](CaptureManifest.json)（Forward、全分辨率、temporal off、denoise on、`rayMiss=None`）。从同一抓帧导出 `SslSsgiProjection`（过滤器输入）与 `SslSsgiDenoisedHF`（过滤器输出；导出文件见 [Player/renderdoc-mcp-export/](Player/renderdoc-mcp-export/) 与 [Player/fix/renderdoc-mcp-export/](Player/fix/renderdoc-mcp-export/)）。alpha 是 SSGI 有效性（命中 1、miss 0），因此“输入二值、输出平滑”直接反映过滤器是否真的在平均邻居。

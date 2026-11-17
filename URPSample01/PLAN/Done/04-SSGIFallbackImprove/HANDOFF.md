@@ -3,7 +3,7 @@
 > 更新：2026-11-16
 > 状态：**P0–P5 已实施并验证，已归档到 `PLAN/Done/`。** 方案 A（复用探针 atlas + 暴力遍历 + renderer feature 开关）已合入
 > URP 14.0.12 内嵌包；逐项证据见 `validation/`。全量 EditMode **426/426 passed**（0 failed），
-> 1280×720/32 探针的成对性能增量中位数 **0.153 ms**（预算 0.2 ms），无需方案 B。
+> 1280×720/32 探针的成对性能增量中位数 **0.153 ms**（预算 0.2 ms；差值中位数 0.389 ms，含冷启动离群，两者都记录），无需方案 B。
 > 基线：Unity `2022.3.62f1`，URP `14.0.12`，上一阶段 `02-SSRImprove` T0–T6 已完成（提交 `ed4ed8b`，EditMode 418 passed）。
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
@@ -265,12 +265,12 @@ float3 SslSampleReflectionProbesList(float3 directionWS, float3 positionWS, out 
 
 - [x] 局部探针场景：开关 on 的探针区域颜色偏向探针（green tint 2.564，off 为 -0.007），三渲染器一致（Forward+ 恒为探针色）。
 - [x] 无 NaN/Inf、无 magenta（JSON 断言 + 截图目视）；探针边界硬切未单独量化。
-- [x] 0/1/4/32 探针压力用例通过；32 探针时权重饱和与早退生效（`Stress_{00,01,04,32}.png`）。
+- [x] 0/1/4/32 探针压力用例通过；32 探针时权重饱和与早退生效（`Stress_{00,01,04,32}.png`）。注意 `Stress_01/04/32.png` 是同一文件，只证明饱和/早退路径，不证明多探针累积；多探针由 06 P2-4 覆盖。
 - [ ] `rayMiss` 四种取值的回退链符合 P0 冻结的语义（P4 实拍覆盖 `ReflectionProbes` 与 `ReflectionProbesAndSky`；`None`/`Sky` 由既有 T3 验证覆盖）。
 
 ### 5.4 性能
 
-- [x] 1280×720、32 探针：SSGI reproject GPU 时间增量 ≤0.2 ms（RTX 5060 Ti / DX11）；记录测量方法（成对中位数 0.153 ms，整帧墙钟）。
+- [x] 1280×720、32 探针：SSGI reproject GPU 时间增量 ≤0.2 ms（RTX 5060 Ti / DX11）；记录测量方法（成对中位数 0.153 ms，差值中位数 0.389 ms，整帧墙钟）。
 - [x] 开关关闭时 atlas 显存为 0、每帧无额外 CPU 上传（manager 不创建）。
 
 ### 5.5 回归
@@ -364,7 +364,7 @@ reproject kernel 内）。`*.log` 被 `.gitignore` 排除，只提交 XML/JSON/P
 - Forward+ 开关 off/on 两张图逐字节一致，确认聚类路径不受开关影响。
 - 0 探针时无绿色探针贡献（green tint -0.049），覆盖率 3.14% 仅来自屏幕空间命中。
 - `ProbesAndSky` 覆盖率恢复 38.28%，探针余量由 ambient SH 补齐。
-- 性能增量中位数 0.153 ms ≤ 0.2 ms，**不启用方案 B**（逐像素探针 tile 列表）。
+- 性能增量中位数 0.153 ms ≤ 0.2 ms（差值中位数 0.389 ms，含冷启动离群，两者都记录），**不启用方案 B**（逐像素探针 tile 列表）。
 
 本阶段已归档到 `PLAN/Done/04-SSGIFallbackImprove`；可选项为补采
 Frame Debugger 的 atlas 绑定截图。

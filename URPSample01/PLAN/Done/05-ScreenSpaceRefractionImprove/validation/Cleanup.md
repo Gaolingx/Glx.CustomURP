@@ -14,10 +14,12 @@
 
 - `ProjectSettings/GraphicsSettings.asset`、`ProjectSettings/QualitySettings.asset` 被 Unity 打开工程时的 serializedVersion 迁移改写；已恢复为 HEAD，`git status --short -- URPSample01/ProjectSettings` 为空。
 - 最终日志保留在 `validation/Logs/`；失败的中间编译/运行日志移到 `validation/Logs/Intermediate/` 便于追溯 ShaderGraph 修复过程。
-- 本轮未创建 Player 构建，未留下 `Builds/`、`Temp/`、`Captures/` 或 GPU 捕获文件。
+- P0 阶段未创建 Player；P1-3 阶段创建了 D3D11 player，保留了 6 个 `.rdc`（见 `P1-3/Player/`）与 `P13PlayerBuildSummary.json`。
 - `git diff --check` 通过（退出码 0）。
 
 ## 提交前 git status（节选）
+
+> 下方 git status 为归档前快照；其中 `PLAN/TODO/05-...` 已在归档时移到 `PLAN/Done/05-...`，快照保留原样，不代表当前路径。
 
 ```text
 M  Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT11Verification.cs
@@ -47,5 +49,5 @@ M  Packages/.../Tests/Editor/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLig
 
 ## 未完成
 
-- P1-3、P2-2、P2-3、P2-4 未开始（P2-1 已复核关闭）；P1-1/P1-2 的 HDRP 视觉对照、P0-1 的 screen-miss 证据待补。
+- P2-2、P2-3、P2-4 未开始（P2-1 已复核关闭）；P1-1/P1-2 的 HDRP 视觉对照、P0-1 的 screen-miss 证据待补。P1-3 已完成并留证（见 HANDOFF §16–§18 与 `P1-3/Player/`）。
 - 计划目录已归档到 `PLAN/Done/05-ScreenSpaceRefractionImprove/`（本节上方 git status 为归档前的历史快照）。

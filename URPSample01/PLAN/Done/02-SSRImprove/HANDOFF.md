@@ -520,6 +520,8 @@ PLAN/Done/02-SSRImprove/validation/
 
 ### 4.5 复现命令（关闭其他 Unity 编辑器后执行）
 
+> 证据说明：上表中的 `*.log` 因仓库 `.gitignore` 只保留在本地，未入库；入库的 XML/JSON/txt 是权威证据。`SslShaderCheck` 是手跑 artifact，`416 passed` 与 `ShaderUtil 0 消息` 没有 committed log，引用时按“当时本地验证”理解。
+
 ```bash
 # 编译 + shader 消息（临时 Editor 脚本 SslTempShaderCompileCheck，验证后删除）
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \

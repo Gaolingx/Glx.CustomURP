@@ -19,7 +19,7 @@
 | `rayMiss` | 改动前（非 Forward+） | 开关开启后 |
 |---|---|---|
 | `None` | 无回退，材质保留 baked GI | 不变 |
-| `Sky` | 默认 cubemap | 不变（ambient SH） |
+| `Sky` | ambient SH | 不变（ambient SH） |
 | `ReflectionProbes` | 默认 cubemap，weight = 1 | 可见探针列表；无覆盖时 weight = 0，材质保留 baked GI（**行为变化**） |
 | `ReflectionProbesAndSky` | 默认 cubemap，weight = 1 | 探针列表，权重不足 1 的余量补 ambient SH（**行为变化**：天空从方向性 cubemap 变为 SH） |
 

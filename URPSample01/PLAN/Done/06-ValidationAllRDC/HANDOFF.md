@@ -36,7 +36,7 @@
 
 **工具链冒烟（2026-11-17）**：RenderDoc 1.47、renderdoc-mcp v0.3.0、Python 3.13.9、Unity 2022.3.62f1 与三渲染器资产均已确认；在归档 P1-3 抓帧上跑通 `renderdoc-cli info/draws`、`rdmcp.py open/debug-pixel`，像素输出与归档证据一致。构建/抓帧段路径与参数就绪，实际 player 构建留给 P0-1。详见 [validation/P0/ToolchainSmoke.md](validation/P0/ToolchainSmoke.md)。原生 MCP 未在当前会话暴露，使用 CLI 或 `MCP/tools/rdmcp.py`。
 
-**P0 基础设施与冒烟（2026-11-17）**：`ScreenSpaceLightingValidationPlayerSetup` 生成三套 validation renderer/pipeline、Profile、材质与场景，并构建 D3D11 Development player；`ScreenSpaceLightingValidationPlayerVerification` 按 manifest 切换渲染器/Volume/Feature、设置位姿、预热、抓帧、截图并写 `Report.json`；`ScreenSpaceLightingBindingProbeFeature` + `ScreenSpaceLightingBindingProbe.compute` 回读 35 个 cbuffer/全局字段。9 个用例（三渲染器 × GTAO/SSGI/SSR/折射）全部通过：抓帧成功、0 非有限像素、probe 0 不匹配；dispatch census 与图像差异见 [validation/P0/SmokeReport.md](validation/P0/SmokeReport.md)。`BuildPlayer` 以 Deferred 资产构建（否则 URP 会剥离 deferred 变体），Forward/Forward+ 仍在运行时切换正常。
+**P0 基础设施与冒烟（2026-11-17）**：`ScreenSpaceLightingValidationPlayerSetup` 生成三套 validation renderer/pipeline、Profile、材质与场景，并构建 D3D11 Development player；`ScreenSpaceLightingValidationPlayerVerification` 按 manifest 切换渲染器/Volume/Feature、设置位姿、预热、抓帧、截图并写 `Report.json`；`ScreenSpaceLightingBindingProbeFeature` + `ScreenSpaceLightingBindingProbe.compute` 回读 35 个 cbuffer/全局字段（每个用例记录其任务相关的 14 项）。9 个用例（三渲染器 × GTAO/SSGI/SSR/折射）全部通过：抓帧成功、0 非有限像素、probe 0 不匹配；dispatch census 与图像差异见 [validation/P0/SmokeReport.md](validation/P0/SmokeReport.md)。`BuildPlayer` 以 Deferred 资产构建（否则 URP 会剥离 deferred 变体），Forward/Forward+ 仍在运行时切换正常。
 
 **P1-1 与 P2-1（2026-11-17）**：F-01 修复 `GTAOCommon.hlsl` 的 `#ifdef FULL_RES` 守卫并删除 `_GtaoParams0.x` 死写入；新增 EditMode 回归测试。GPU 前后对比中 full↔half 相关系数 0.99090 → 0.99983、平均绝对差 1.005 → 0.144，半分辨率路径不变（证据 [validation/P1-1/Report.md](validation/P1-1/Report.md)）。P2-1 为 `ScreenSpaceLightingSsgiPass` 增加 DEV-only 调度快照（计数、组维度、keyword、history 槽位），10 个 SSGI 用例覆盖 full/half、temporal/denoise 变体、atlas 与三渲染器；CPU 逐 kernel 匹配，GPU 抓帧确认 dispatch 顺序、history 乒乓、blue-noise LUT 与探针 atlas 绑定（证据 [validation/P2-SSGI/Report.md](validation/P2-SSGI/Report.md)）。
 
@@ -697,6 +697,8 @@ PLAN/Done/06-ValidationAllRDC/validation/
   "baselineHash": "sha256:..."
 }
 ```
+
+> 实际交付：根目录未单独生成 `Report.json`/`Report.md`/`BaselineHashes.json`；汇总入口是 `P6/Results.json` 与 `P6/Report.md`，各任务证据在子目录。
 
 ### 7.5 `.rdc` 体积与提交策略
 

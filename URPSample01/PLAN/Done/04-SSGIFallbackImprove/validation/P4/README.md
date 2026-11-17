@@ -73,7 +73,7 @@ paired per-frame differences.
 |---|---|
 | off median | 1.613 ms/frame |
 | on median | 2.002 ms/frame |
-| median paired delta | **0.153 ms** (budget 0.2 ms) |
+| median paired delta | **0.153 ms** (budget 0.2 ms); difference-of-medians 0.389 ms, both recorded |
 | max paired delta | 0.746 ms (scheduling noise) |
 
 The SSGI dispatch count is unchanged (the probe list runs inside the existing reproject kernel); the

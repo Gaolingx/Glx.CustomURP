@@ -239,6 +239,7 @@
 - `ScreenSpaceReflections.compute`、`ReflectionDenoiser.compute`、`ScreenSpaceGlobalIllumination.compute`、`BilateralUpsample.compute` 强制重导入消息 0。
 - 新增 `SSL_PROBE_ATLAS` / `SSGI_BLUE_NOISE` 变体全部编译；kernel 清单不变（SSR trace/reproject/DebugSsrParams + denoiser 7 + SSGI 2）。
 - EditMode 全量（基线 418）不下降；新增单测（如资源/关键字配置）按需添加。
+- **证据缺口（2026-11-17 验收）**：本轮未单独产出 03 的 `SslShaderCheck.txt`；T1 的 blue-noise A/B 与 missing-LUT fallback 未单独留图，仅由 T5 回归间接覆盖；Frame Debugger 仍未采集（§3.1 `completed=false`）。以上按“未完成”理解，不按通过计。
 
 ### 6.2 功能/视觉
 - T1：blue noise 开/关 A/B（32 帧）截图 + 稳定帧权重统计；缺失 LUT 回退。

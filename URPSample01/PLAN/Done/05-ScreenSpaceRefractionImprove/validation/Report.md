@@ -78,7 +78,7 @@ opacity 拟合明细见 [P0-2/fitting.csv](P0-2/fitting.csv)，模式代理指�
 - P0-2 的雾场景（场景无雾），代码改为“表面光照单次 MixFog 后与未再雾化的透射混合”，需要雾场景补图。
 - P0-3 的相机移动/分辨率切换 NaN 与 per-frame GC 测量。
 - 所有 HDRP 像素级对照（P1-1/P1-2 的解析/结构指标已通过，但未做同参数 HDRP 截图）。
-- P1-3 per-object/per-pixel probe、P2-2、P2-3、P2-4 未开始；P2-1 已复核关闭。
+- P1-3 per-object/per-pixel probe 已完成（HANDOFF §16–§18、`P1-3/P13ProxyVerification.json` 与 `P1-3/Player/`）；P2-2/P2-3/P2-4 未开始；P2-1 已复核关闭。
 
 ## 复现
 

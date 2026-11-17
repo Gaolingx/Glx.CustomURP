@@ -652,7 +652,7 @@ PLAN/Done/05-ScreenSpaceRefractionImprove/validation/
 
 - **T11**：`completed=True passed=True`，Forward / Forward+ / Deferred 三模式 0 issue。证据图与 CSV 在 `validation/P0-*`、`P1-*`，日志在 `validation/Logs/`。
 - **EditMode**：`passed=170 failed=0 skipped=0`，包含新增 `ScreenSpaceLightingRefractionImproveTests`（代理模式、keyword 生命周期、fallback、mask、IOR 解析值、Thin 距离）。
-- **P0-2 指标**：opacity 0/0.3/1 单调；归一化 0.3 点误差 2.33%（≤5%），R² 0.9997（≥0.99）；opacity=1 与关闭效果的差异 0 像素，最大通道差 4.6e-5。
+- **P0-2 指标**：opacity 0/0.3/1 单调；归一化 0.3 点误差 2.33%（≤5%），R² 0.9997（≥0.99）；opacity=1 与关闭效果的差异 0 个超过 1/255 的像素，最大通道差 4.6e-5。
 - **P0-3 指标**：非 box probe 场景 keyword 绑定 8 次、infinite 0 次；无 probe 场景绑定 8 次、infinite 8 次、折射变化 16281 像素。
 - **P0-1 指标**：Box/Complex/SG 折射变化 5915/2996/2476 像素；legacy 透明 0 像素变化；当前帧金字塔跟随场景。
 - **未完成证据**：P0-1 的单独 screen-miss probe-only 截图与边缘带连续性（P2-1）；P1-1 的 IOR 梯度图与 P1-2 的有色 Thin 图/HDRP 对照。`Report.json` 中 P1-1/P1-2 为 `passed=null`，总 `exitCriteriaMet=false`。
@@ -673,7 +673,7 @@ PLAN/Done/05-ScreenSpaceRefractionImprove/validation/
 **T11**（Forward / Forward+ / Deferred，RTX 5060 Ti / DX11）：三模式 `completed=True passed=True issues=0`。证据入口：[validation/T11Hotfix/T11Verification.json](validation/T11Hotfix/T11Verification.json)，同目录含 54 张 PNG 与 3 份 opacity CSV。
 
 - opacity 0/0.3/1 扫描：三模式 `opacityMonotonic=True`；归一化 0.3 点误差 2.04%（修复前 2.33%，阈值 5%），R² 0.99975（阈值 0.99）。opacity=0 的玻璃内部亮度由 0.1628 升到 0.1780，对应恢复的 specular 桶；opacity=1 的亮度不变。
-- opacity=1 vs 关闭 Volume：0 像素差，最大通道差 4.58e-5，说明 mask=0 时新合成与 legacy 仍逐像素一致。
+- opacity=1 vs 关闭 Volume：0 个超过 1/255 的像素，最大通道差 4.58e-5，说明 mask=0 时新合成与 legacy 仍逐像素一致。
 - legacy 透明基线 0 像素变化；ModelsNone / Intensity0 / OffAgain 与 Reference 逐像素相同。
 - 屏幕命中、probe fallback、infinite proxy 状态保持原结论；当前低粗糙度 T11 材质未受 mip 修复影响。
 
@@ -686,7 +686,7 @@ PLAN/Done/05-ScreenSpaceRefractionImprove/validation/
 - **吸收公式**：`ScreenSpaceRefractionToAbsorption` 改为 core 的 `-log(T + REAL_EPS) / max(atDistance, REAL_EPS)`；新增 `AbsorptionMatchesCoreTransmittanceSemantics` 契约测试。
 - **已知差异补齐**：T14 增加 alpha 恒 1（HDRP）vs legacy 透明（URP 有意）、雾二次衰减、fallback box projection、clear coat 抬高 roughness 四条。
 - **验证**：EditMode 完整套件 434/434 通过（新增 `AbsorptionMatchesCoreTransmittanceSemantics`）。
-- **T11**：Forward / Forward+ / Deferred 均 `completed=True passed=True issues=0`；报告与 opacity CSV 见 [validation/T11Absorption/T11Verification.json](validation/T11Absorption/T11Verification.json)。本轮只入库报告与 CSV，未重复保存 54 张 PNG；tint 指标与 `T11Hotfix` 一致（起始/结束亮度 0.956651/0.750982），opacity=1 与 legacy 透明仍为 0 像素差。
+- **T11**：Forward / Forward+ / Deferred 均 `completed=True passed=True issues=0`；报告与 opacity CSV 见 [validation/T11Absorption/T11Verification.json](validation/T11Absorption/T11Verification.json)。本轮只入库报告与 CSV，未重复保存 54 张 PNG；tint 指标与 `T11Hotfix` 一致（起始/结束亮度 0.956651/0.750982），opacity=1 与 legacy 透明仍为 0 个超过 1/255 的像素。
 
 ## 16. P1-3 实现（2026-11-17）
 
@@ -726,11 +726,11 @@ PLAN/Done/05-ScreenSpaceRefractionImprove/validation/
     ```
     player 通过 `renderdoc.dll!RENDERDOC_GetAPI(1.6.0)` 的 `TriggerCapture` 对 `CameraAtA`、`CameraMovedToB` 两个位姿 × `Both/ProbeAOnly/ProbeBOnly` 三种配置各抓一帧，共 6 个 `.rdc`；抓帧后同一配置下再截 PNG 并计算玻璃内圈指标。
 - **结果**（`validation/P1-3/Player/P13PlayerReport.json`，`passed=true completed=true`）
-  - `CameraAtA`：判定圈 1257 px；`Both` vs `ProbeAOnly` 平均色差 **0.468**、`bothToAChangedPixels=1257`（100%）；`Both` vs `ProbeBOnly` 平均色差 **0.0025**、差异 30 px（2.4%，全部位于球体边缘，见下）。
+  - `CameraAtA`：判定圈 1257 px；`Both` vs `ProbeAOnly` 平均色差 **0.468**、`bothToAChangedPixels=1257`（100%）；`Both` vs `ProbeBOnly` 平均色差 **0.0025**、差异 30 px（2.4%，集中在球体边缘，未逐像素归类）。
   - `CameraMovedToB`（相机前移 6 m）：判定圈 3745 px；`Both` vs `ProbeAOnly` 平均色差 **0.394**、差异 3745（100%）；`Both` vs `ProbeBOnly` 平均色差 **0**、差异 **0**。
   - 相机进入 A 的包围盒再移出，`Both` 始终跟随 B：说明 shader 按物体中心选择，而不是按相机最近的 A。
 - **GPU 帧内证据**
-  - 6 个抓帧均为 D3D11、147 events / 65 draws；玻璃球 draw 为 2304 indices（EID 786/783/785/831/835，随配置变化）。
+  - 抓帧时为 D3D11、147 events / 65 draws（事件数按抓帧时记录）；玻璃球 draw 为 2304 indices（EID 786/783/785/831/835，随配置变化）。
   - `debug_pixel_*.json`：用 renderdoc-mcp `debug_pixel` 对每个抓帧的玻璃中心 (640,359) 调试像素 shader。`CameraAtA_Both` 输出 `(1,1,0,1)` 与 `ProbeBOnly` 完全一致，`ProbeAOnly` 为 `(0.138,0.119,0.104,1)`；`CameraMovedToB` 同样 `Both==ProbeBOnly`。这是 GPU 实际执行的 shader 输出，不是截图比较。
   - `ps_reflection_Both.json`、`ps_shader_Both.txt`：抓帧内 PS 有 5 个常量块（含 16384 B 全局块）。Unity player 剥离了 DXBC 反射变量名，renderdoc-mcp v0.3.0 发布包也尚未包含源码中的 cbuffer 工具，因此无法直接从 `.rdc` dump `_SslRefractionProbe*` 数组数值；代理表内容与“物体中心优先、包含者优先”的规则由 EditMode `RefractionProxyTableSelectsAtTheObjectCenter` 覆盖，`.rdc` 侧以像素输出等价性证明实际选择。
 - **判定圈与边缘**：内圈取投影半径的 0.5 倍（A 位姿约 20 px）。球体边缘的 Fresnel/环境反射由 URP per-renderer `unity_SpecCube0` 决定，probe A 是否在场景中会改变该 cubemap 的图集绑定，因此边缘像素不属于代理表选择的判据；该耦合已在 T14 已知差异第 2 条记录（反射与折射可能用不同 probe）。0.5R 内 `Both` 与 `ProbeBOnly` 的余差 ≤ 2.4%（A 位姿）、0（B 位姿）。
