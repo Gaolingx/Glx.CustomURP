@@ -272,6 +272,9 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
             }
         }
 
+        if (testCase.switchFeatureAfterWarmup || testCase.switchVolumeAfterWarmup)
+            yield return ApplySettingsSwitch(rendererData, testCase, result);
+
         result.frameIndex = Time.frameCount;
         result.cameraPosition = m_Camera.transform.position;
         result.cameraRotation = m_Camera.transform.rotation.eulerAngles;
@@ -312,6 +315,73 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
             result.issues.Add("The binding probe found " + result.bindingProbeMismatches + " mismatching fields.");
 
         result.passed = result.issues.Count == 0;
+    }
+
+    // F-07: change one volume / feature field after history is valid and inspect the very next
+    // frame. The pass publishes its settings stamp and a reset counter with the dispatch snapshot,
+    // so the assertion does not depend on image differences.
+    IEnumerator ApplySettingsSwitch(UniversalRendererData rendererData, SslValidationCase testCase, SslValidationCaseResult result)
+    {
+        var evidence = new SslSsgiSwitchStats { expectReset = testCase.expectHistoryReset };
+        result.ssgiSwitch = evidence;
+
+        var stats = ReadSsgiStatsObject();
+        if (stats == null)
+        {
+            result.issues.Add("SSGI dispatch stats are unavailable; build the player with development mode.");
+            yield break;
+        }
+
+        evidence.beforeFrameIndex = ReadStatInt(stats, "frameIndex");
+        evidence.beforeHistoryValid = ReadStatBool(stats, "historyValid");
+        evidence.beforeResetCount = ReadStatInt(stats, "settingsResetCount");
+        evidence.beforeStamp = ReadStatInt(stats, "settingsStamp");
+
+        if (testCase.switchVolumeAfterWarmup)
+            ApplyVolume(testCase.volumeSwitch);
+        if (testCase.switchFeatureAfterWarmup)
+            ApplyFeatureSettings(rendererData, testCase.featureSwitch);
+
+        yield return new WaitForEndOfFrame();
+
+        stats = ReadSsgiStatsObject();
+        evidence.afterFrameIndex = ReadStatInt(stats, "frameIndex");
+        evidence.afterHistoryValid = ReadStatBool(stats, "historyValid");
+        evidence.afterResetCount = ReadStatInt(stats, "settingsResetCount");
+        evidence.afterStamp = ReadStatInt(stats, "settingsStamp");
+
+        bool frameAdvanced = evidence.afterFrameIndex > evidence.beforeFrameIndex;
+        bool passed = frameAdvanced && evidence.beforeHistoryValid;
+        if (testCase.expectHistoryReset)
+        {
+            passed &= !evidence.afterHistoryValid &&
+                evidence.afterResetCount == evidence.beforeResetCount + 1 &&
+                evidence.afterStamp != evidence.beforeStamp;
+        }
+        else
+        {
+            passed &= evidence.afterHistoryValid &&
+                evidence.afterResetCount == evidence.beforeResetCount &&
+                evidence.afterStamp == evidence.beforeStamp;
+        }
+
+        evidence.passed = passed;
+        if (!passed)
+        {
+            result.issues.Add(
+                $"SSGI switch evidence failed: valid {evidence.beforeHistoryValid}->{evidence.afterHistoryValid}, " +
+                $"resets {evidence.beforeResetCount}->{evidence.afterResetCount}, " +
+                $"stamp {evidence.beforeStamp}->{evidence.afterStamp}, " +
+                $"frames {evidence.beforeFrameIndex}->{evidence.afterFrameIndex}, expected reset={evidence.expectReset}.");
+        }
+    }
+
+    static object ReadSsgiStatsObject()
+    {
+        var passType = typeof(UniversalRendererData).Assembly.GetType(
+            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsgiPass");
+        var statsField = passType?.GetField("s_LastDispatchStats", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        return statsField?.GetValue(null);
     }
 
     UniversalRenderPipelineAsset ResolvePipeline(string rendererName)
@@ -636,10 +706,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         if (ssgi == null || !ssgi.enabled)
             return;
 
-        var passType = typeof(UniversalRendererData).Assembly.GetType(
-            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsgiPass");
-        var statsField = passType?.GetField("s_LastDispatchStats", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-        var stats = statsField?.GetValue(null);
+        var stats = ReadSsgiStatsObject();
         if (stats == null)
         {
             result.issues.Add("SSGI dispatch stats are unavailable; build the player with development mode.");
@@ -660,6 +727,8 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
             historyReadSlot = ReadStatInt(stats, "historyReadSlot"),
             historyWriteSlot = ReadStatInt(stats, "historyWriteSlot"),
             historyValid = ReadStatBool(stats, "historyValid"),
+            settingsStamp = ReadStatInt(stats, "settingsStamp"),
+            settingsResetCount = ReadStatInt(stats, "settingsResetCount"),
             traceDispatches = ReadStatInt(stats, "traceDispatches"),
             reprojectDispatches = ReadStatInt(stats, "reprojectDispatches"),
             validateDispatches = ReadStatInt(stats, "validateDispatches"),
@@ -759,7 +828,8 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
             result.issues.Add("SSGI_BLUE_NOISE is off; the blue-noise LUTs are not used.");
 
         bool forwardPlus = string.Equals(rendererName, "ForwardPlus", StringComparison.OrdinalIgnoreCase);
-        bool probeList = !forwardPlus && testCase.feature != null && testCase.feature.publishProbeAtlas;
+        var effectiveFeature = testCase.switchFeatureAfterWarmup ? testCase.featureSwitch : testCase.feature;
+        bool probeList = !forwardPlus && effectiveFeature != null && effectiveFeature.publishProbeAtlas;
         if (report.probeAtlasKeyword != forwardPlus)
             result.issues.Add("SSL_PROBE_ATLAS does not match the Forward+ renderer.");
         if (report.probeListKeyword != probeList)
@@ -1745,6 +1815,13 @@ public sealed class SslValidationCase
     public SslGtaoCase gtao = new SslGtaoCase();
     public SslFeatureCase feature = new SslFeatureCase();
     public SslLightCase light = new SslLightCase();
+    // F-07: the switch is applied after the warmup established a valid history, so the next frame
+    // proves whether the new settings reset it. Exactly one of the two switches is used per case.
+    public bool switchVolumeAfterWarmup;
+    public SslVolumeCase volumeSwitch = new SslVolumeCase();
+    public bool switchFeatureAfterWarmup;
+    public SslFeatureCase featureSwitch = new SslFeatureCase();
+    public bool expectHistoryReset = true;
 }
 
 [Serializable]
@@ -1938,6 +2015,7 @@ public sealed class SslValidationCaseResult
     public int bindingProbeMismatches;
     public List<string> bindingProbeFailures;
     public SslSsgiDispatchStats ssgiDispatch;
+    public SslSsgiSwitchStats ssgiSwitch;
     public SslSsrDenoiserStats ssrDenoiser;
     public SslSsrDispatchStats ssrDispatch;
     public SslSsrDebugViewStats ssrDebugView;
@@ -2051,6 +2129,21 @@ public sealed class SslTransparentSsrStats
 }
 
 [Serializable]
+public sealed class SslSsgiSwitchStats
+{
+    public bool expectReset;
+    public int beforeFrameIndex;
+    public bool beforeHistoryValid;
+    public int beforeResetCount;
+    public int beforeStamp;
+    public int afterFrameIndex;
+    public bool afterHistoryValid;
+    public int afterResetCount;
+    public int afterStamp;
+    public bool passed;
+}
+
+[Serializable]
 public sealed class SslSsgiDispatchStats
 {
     public int frameIndex;
@@ -2065,6 +2158,8 @@ public sealed class SslSsgiDispatchStats
     public int historyReadSlot;
     public int historyWriteSlot;
     public bool historyValid;
+    public int settingsStamp;
+    public int settingsResetCount;
     public int[] historyReadSlots;
     public int[] historyWriteSlots;
 

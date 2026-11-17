@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_ProducedOutput;
         bool m_HistoryWritten;
         int m_SettingsStamp;
+        int m_SettingsResetCount;
         int m_PointDistributionGeneration = -1;
         bool m_LoggedMissingResources;
         ScreenSpaceLightingSsgiShaderVariables m_ShaderVariables;
@@ -65,6 +66,8 @@ namespace UnityEngine.Rendering.Universal
             public int historyReadSlot = -1;
             public int historyWriteSlot = -1;
             public bool historyValid;
+            public int settingsStamp;
+            public int settingsResetCount;
 
             public int traceDispatches;
             public int reprojectDispatches;
@@ -241,10 +244,17 @@ namespace UnityEngine.Rendering.Universal
             if (!m_History.ssgiResourcesAllocated)
                 return;
 
-            int stamp = ComputeSettingsStamp(settings, traceWidth, traceHeight, m_History.ssgiResourceGeneration);
+            bool forwardPlus = cameraData.renderer is UniversalRenderer forwardPlusRenderer &&
+                forwardPlusRenderer.renderingModeActual == RenderingMode.ForwardPlus;
+            bool probeList = !forwardPlus &&
+                cameraData.renderer is UniversalRenderer probeListRenderer &&
+                probeListRenderer.publishSslProbeAtlas;
+
+            int stamp = ComputeSettingsStamp(settings, traceWidth, traceHeight, m_History.ssgiResourceGeneration, probeList);
             if (stamp != m_SettingsStamp)
             {
                 m_SettingsStamp = stamp;
+                m_SettingsResetCount++;
                 m_History.ResetSsgiHistory();
             }
 
@@ -279,7 +289,9 @@ namespace UnityEngine.Rendering.Universal
                     denoise,
                     secondPass,
                     halfResolutionDenoise,
-                    octNormals);
+                    octNormals,
+                    forwardPlus,
+                    probeList);
             }
 
             if (temporal)
@@ -306,7 +318,9 @@ namespace UnityEngine.Rendering.Universal
             bool denoise,
             bool secondPass,
             bool halfResolutionDenoise,
-            bool octNormals)
+            bool octNormals,
+            bool forwardPlus,
+            bool probeList)
         {
             var ssgiCompute = m_Resources.ssgiCompute;
             var temporalCompute = m_Resources.ssgiTemporalFilterCompute;
@@ -332,6 +346,8 @@ namespace UnityEngine.Rendering.Universal
             stats.halfResolutionDenoiser = halfResolutionDenoise;
             stats.orthographic = cameraData.camera.orthographic;
             stats.groupsZ = viewCount;
+            stats.settingsStamp = m_SettingsStamp;
+            stats.settingsResetCount = m_SettingsResetCount;
             stats.RecordHistory(m_History.ssgiReadSlot, m_History.ssgiWriteSlot, m_History.ssgiHasValidHistory);
 #endif
 
@@ -352,11 +368,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Forward+ publishes the cluster list; Forward / Deferred use the flat visible-probe list
             // when the Screen Space Lighting feature opts into the atlas.
-            bool forwardPlus = cameraData.renderer is UniversalRenderer forwardPlusRenderer &&
-                forwardPlusRenderer.renderingModeActual == RenderingMode.ForwardPlus;
-            bool probeList = !forwardPlus &&
-                cameraData.renderer is UniversalRenderer probeListRenderer &&
-                probeListRenderer.publishSslProbeAtlas;
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SslProbeAtlasKeyword, forwardPlus);
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SslProbeListKeyword, probeList);
 
@@ -892,13 +903,23 @@ namespace UnityEngine.Rendering.Universal
             return s_AmbientProbeSH;
         }
 
-        static int ComputeSettingsStamp(ScreenSpaceGlobalIllumination settings, int traceWidth, int traceHeight, int resourceGeneration)
+        static int ComputeSettingsStamp(
+            ScreenSpaceGlobalIllumination settings,
+            int traceWidth,
+            int traceHeight,
+            int resourceGeneration,
+            bool probeList)
         {
             unchecked
             {
                 int hash = 17;
                 hash = hash * 31 + (settings.fullResolution.value ? 1 : 0);
                 hash = hash * 31 + (int)settings.rayMiss.value;
+                hash = hash * 31 + (probeList ? 1 : 0);
+                // The trace shape decides which surface a history sample represents, so changing it
+                // invalidates the accumulated radiance the same way a fallback change does.
+                hash = hash * 31 + settings.maxRaySteps.value;
+                hash = hash * 31 + settings.depthBufferThickness.value.GetHashCode();
                 hash = hash * 31 + (settings.temporalAccumulation.value ? 1 : 0);
                 hash = hash * 31 + (settings.denoise.value ? 1 : 0);
                 hash = hash * 31 + (settings.secondDenoiserPass.value ? 1 : 0);
@@ -906,6 +927,9 @@ namespace UnityEngine.Rendering.Universal
                 hash = hash * 31 + traceWidth;
                 hash = hash * 31 + traceHeight;
                 hash = hash * 31 + resourceGeneration;
+                // intensity is applied when materials sample the final texture, denoiserRadius and
+                // bilateralUpsample only shape the output after CopyHistory, so none of them alter
+                // the radiance stored in history and none reset it.
                 return hash;
             }
         }
