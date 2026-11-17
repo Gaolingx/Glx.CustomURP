@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-17",
+  "unity": "2022.3.62f1",
+  "graphics": "D3D11 editor",
+  "editMode": {
+    "total": 455,
+    "passed": 455,
+    "failed": 0,
+    "skipped": 0,
+    "xml": "EditMode/UnityEditModeFull.xml",
+    "log": "EditMode/UnityEditModeFull.log"
+  },
+  "playMode": {
+    "preFix": {
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "cause": "P4-4 removed validFrameCount; the PlayMode assertion still read it",
+      "evidence": "PlayMode/BeforeFix.json"
+    },
+    "postFix": {
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "xml": "PlayMode/UnityPlayModeTests.xml",
+      "log": "PlayMode/UnityPlayModeTests.log"
+    }
+  },
+  "closedBaseline": {
+    "effectsOff": "byte-identical reference after on/off cycle (3 renderers)",
+    "featureDisabled": "byte-identical reference (3 renderers)",
+    "volumeComponentsRemoved": "byte-identical reference (3 renderers)",
+    "intensityZero": "covered by P1-GTAO and P3-5 evidence"
+  },
+  "settingsRestoration": {
+    "GraphicsSettings.asset": "1965d795622315852c0e3dced3f15db7b16b805958387add74fe54f10d684e71",
+    "QualitySettings.asset": "f7698a6c2c236296dc0f4ff054c925bf44a80a57c09b2ad2b643105e8a389249",
+    "ProjectSettings.asset": "ecba8e50b77feb0ceb8ec4dee2fc85faa0512fb2058a6c5568e88451b42b0a93",
+    "EditorSettings.asset": "2702f317d35952146794d4b795d5a202d5139ee2a5a4540ac5df015ff4d89a86"
+  },
+  "pending": [
+    "T12 combination matrix replay 34/34/35",
+    "1280x720 GPU time delta <=10%",
+    "RT count after 10x resolution/camera cycles",
+    "XR single-pass smoke (accepted environment limit)"
+  ]
+}

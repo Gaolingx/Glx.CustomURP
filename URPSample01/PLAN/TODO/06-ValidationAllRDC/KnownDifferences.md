@@ -95,6 +95,7 @@
 |---|---|---|
 | F-06 的“源/目标翻转态不同”分支 | **Accepted** | D3D11 验证器中源/目标同为非 backbuffer RT，分支不可达；由 EditMode 规则断言覆盖，不做 GPU 举证 |
 | F-12 的运行时归因 | **Fixed / 非运行时缺陷** | 根因是验证构建未收集 Forward+ 变体；运行时路径本身没有 Forward+ 专属错误 |
+| P4-4 的 PlayMode 断言残留 | **Fixed（P6）** | 删除 `validFrameCount` 时未同步 PlayMode 测试，三渲染器读到 -1；改用 `frameSerial > 1` 后 PlayMode 6/6、EditMode 455/455（[P6/Report.md](validation/P6/Report.md)） |
 | XR single-pass smoke | **Accepted（环境限制，另行排期）** | 06 未重跑 Mock HMD；T13/T14 的 XR 证据仍有效。`TEXTURE2D_X`/`blackTexture` 绑定需要单独 smoke，本轮不展开 |
 | 构建 warning 基线 | **Accepted（既有噪音）** | P4-4 构建 4001 条 shader warning，其中 3998 条为插件 compute 的 `Load` 隐式截断（SSR 3171、SSGI 746、GTAO 80、Leak Probe 1），3 条来自 URP 核心 shader；无 C# warning，与 P4-2 数量相同 |
 

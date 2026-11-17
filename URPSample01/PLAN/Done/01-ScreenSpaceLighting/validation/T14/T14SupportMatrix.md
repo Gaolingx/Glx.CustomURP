@@ -54,9 +54,10 @@ This section records 06 GPU validation coverage; rows marked Pending are exit-cr
 | A→B camera keyword/binding reset | Passed (P4-1/P4-2; injected leaks 60/60 before fix → 0 after; 44/44 rejected-camera bindings clean) |
 | XR single-pass | NotRevalidatedAfter06 (T13/T14 Mock HMD evidence remains; a dedicated smoke is deferred) |
 | T12 combination matrix replay | Pending (historical 34/34/35 from T12; 06 replay deferred) |
-| PlayMode full suite | Pending (suite exists; 06 run deferred) |
+| EditMode full suite | Passed (455/455, P6) |
+| PlayMode full suite | Passed (6/6, P6; 3 renderers × 2 tests) |
 | Performance (1280×720 GPU delta) | Pending (no 06 measurement; not claimed) |
-| Resource-count leak loop | Pending (resolution/camera cycling not yet measured) |
+| Resource-count leak loop | Pending (camera-lifetime history pruning passes; 10× RT-count cycling not yet instrumented) |
 | Release/validation player build | Passed (0 errors; 4001 shader warnings: 3998 plugin `Load` truncations + 3 URP core shader warnings, same count as P4-2) |
 
 ForwardPlus absolute values from P4-3 onward are not directly comparable with earlier rounds because the validation build now collects Forward+ variants for all three validation pipelines; relative metrics and pass/fail outcomes remain comparable.

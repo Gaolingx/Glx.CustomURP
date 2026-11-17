@@ -1,0 +1,28 @@
+{
+  "run": "pre-fix",
+  "date": "2026-11-17",
+  "unity": "2022.3.62f1",
+  "total": 6,
+  "passed": 3,
+  "failed": 3,
+  "durationSeconds": 42.4072627,
+  "cause": "P4-4 removed ScreenSpaceLightingHistory.validFrameCount; the PlayMode assertion still reflected on it and read -1.",
+  "failures": [
+    {
+      "case": "AllEffectsDispatchAndRestoreReference(\"Forward\")",
+      "message": "Forward: the SSL history has no accumulated frames. Expected: greater than 1 But was: -1",
+      "location": "Assets/Tests/ScreenSpaceLighting/Tests/PlayMode/ScreenSpaceLightingPlayModeTests.cs:96"
+    },
+    {
+      "case": "AllEffectsDispatchAndRestoreReference(\"ForwardPlus\")",
+      "message": "ForwardPlus: the SSL history has no accumulated frames. Expected: greater than 1 But was: -1",
+      "location": "Assets/Tests/ScreenSpaceLighting/Tests/PlayMode/ScreenSpaceLightingPlayModeTests.cs:96"
+    },
+    {
+      "case": "AllEffectsDispatchAndRestoreReference(\"Deferred\")",
+      "message": "Deferred: the SSL history has no accumulated frames. Expected: greater than 1 But was: -1",
+      "location": "Assets/Tests/ScreenSpaceLighting/Tests/PlayMode/ScreenSpaceLightingPlayModeTests.cs:96"
+    }
+  ],
+  "note": "The original XML and log were overwritten by the post-fix rerun; these values were transcribed from the first run's NUnit output."
+}

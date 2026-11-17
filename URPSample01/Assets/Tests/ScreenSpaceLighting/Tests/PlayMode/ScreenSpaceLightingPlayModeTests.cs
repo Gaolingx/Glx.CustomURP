@@ -92,8 +92,7 @@ namespace Unity.ScreenSpaceLighting.Tests.PlayMode
 
                 Assert.AreEqual(1, HistoryEntryCount(), mode + ": the feature did not keep exactly one history entry for the camera.");
                 Assert.IsTrue(TryGetHistory(m_Camera, out var history), mode + ": the feature has no history for the camera.");
-                Assert.Greater(ReadInt(history, "frameSerial"), 0, mode + ": the SSL history never advanced a frame.");
-                Assert.Greater(ReadInt(history, "validFrameCount"), 1, mode + ": the SSL history has no accumulated frames.");
+                Assert.Greater(ReadInt(history, "frameSerial"), 1, mode + ": the SSL history did not accumulate past the first rendered frame.");
                 Assert.IsTrue((bool)ReadMember(history, "hasValidHistory"), mode + ": the SSL history is not valid after a warmup.");
                 Assert.Greater(ReadInt(history, "resetCount"), 0, mode + ": the SSL history was never allocated/reset.");
 

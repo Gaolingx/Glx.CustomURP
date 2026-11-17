@@ -96,3 +96,7 @@ Shader：`ScreenSpaceReflections.compute`（调试 kernel 输出通道）、`Ray
 测试：`ScreenSpaceLightingHistoryTests.cs`、`ScreenSpaceLightingSsrTests.cs`、`ScreenSpaceLightingTransparentSsrTests.cs`、`ScreenSpaceLightingSsrDenoiserParamsTests.cs`。
 
 文档：`GroundTruthAmbientOcclusionEditor.cs`、`PLAN/Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md`、本任务的 `HANDOFF.md` 状态与 §6.6 核实说明。
+
+## 8. P6 follow-up（2026-11-17）
+
+P4-4 删除 `validFrameCount` 时只同步了 EditMode 测试，PlayMode 的 `AllEffectsDispatchAndRestoreReference` 仍在反射读取该字段；P6 首次全量 PlayMode 因此在三渲染器全部失败（读数为 `-1`，`ScreenSpaceLightingPlayModeTests.cs:96`）。已把断言改为 `frameSerial > 1`，保留 `hasValidHistory`/`resetCount`；复跑 **PlayMode 6/6、EditMode 全量 455/455**。证据见 [P6/Report.md](../P6/Report.md)。
