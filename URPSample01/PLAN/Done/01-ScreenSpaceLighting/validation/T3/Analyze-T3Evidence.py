@@ -18,7 +18,7 @@ import pathlib
 import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
-PROJECT = HERE.parent.parent.parent
+PROJECT = HERE.parent.parent.parent.parent.parent
 MODES = ("Forward", "ForwardPlus", "Deferred")
 
 
@@ -135,9 +135,9 @@ def verification():
 
 
 def t1_regression():
-    reference = load(PROJECT / "PALN" / "validation" / "T1" / "T1Report.json")
+    reference = load(HERE.parent / "T1" / "T1Report.json")
     baseline = {mode["name"]: mode for mode in
-                load(PROJECT / "PALN" / "validation" / "T1" / "FrameDebugger" /
+                load(HERE.parent / "T1" / "FrameDebugger" /
                      "FrameDebuggerReport.json")["modes"]}
     problems = []
     if not reference.get("t1ExitCriteriaMet"):

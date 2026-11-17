@@ -19,7 +19,7 @@ using UnityEngine.SceneManagement;
 public static class ScreenSpaceLightingT4Verification
 {
     const string RendererRoot = "Assets/Tests/ScreenSpaceLighting/Renderers";
-    const string OutputRoot = "PALN/validation/T4";
+    const string OutputRoot = "PLAN/Done/01-ScreenSpaceLighting/validation/T4";
     const string T1RendererPathFormat = RendererRoot + "/Ssl{0}Renderer.asset";
     const string T1PipelinePathFormat = RendererRoot + "/Ssl{0}Pipeline.asset";
     const string T4RendererPathFormat = RendererRoot + "/SslT4{0}Renderer.asset";

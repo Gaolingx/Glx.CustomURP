@@ -48,4 +48,4 @@ M  Packages/.../Tests/Editor/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLig
 ## 未完成
 
 - P1-3、P2-2、P2-3、P2-4 未开始（P2-1 已复核关闭）；P1-1/P1-2 的 HDRP 视觉对照、P0-1 的 screen-miss 证据待补。
-- 计划目录仍保留在 `PLAN/TODO/05-ScreenSpaceRefractionImprove/`，不归档到 Done。
+- 计划目录已归档到 `PLAN/Done/05-ScreenSpaceRefractionImprove/`（本节上方 git status 为归档前的历史快照）。

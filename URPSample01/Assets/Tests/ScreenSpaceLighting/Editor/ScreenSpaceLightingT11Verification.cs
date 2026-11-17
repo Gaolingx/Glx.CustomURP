@@ -32,8 +32,8 @@ public static class ScreenSpaceLightingT11Verification
     const string MaterialRoot = "Assets/Tests/ScreenSpaceLighting/Materials";
     const string ShaderRoot = "Assets/Tests/ScreenSpaceLighting/Shaders";
     // The 05 refraction round writes its evidence into its own validation folder by setting this
-    // environment variable; the historical T11 default stays unchanged.
-    static readonly string OutputRoot = Environment.GetEnvironmentVariable("SSL_VALIDATION_OUTPUT_ROOT") ?? "PALN/validation/T11";
+    // environment variable; the default keeps pointing at the archived T11 folder.
+    static readonly string OutputRoot = Environment.GetEnvironmentVariable("SSL_VALIDATION_OUTPUT_ROOT") ?? "PLAN/Done/01-ScreenSpaceLighting/validation/T11";
     const string P13OutputRoot = "PLAN/Done/05-ScreenSpaceRefractionImprove/validation/P1-3";
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity";
     const string T1RendererPathFormat = RendererRoot + "/Ssl{0}Renderer.asset";

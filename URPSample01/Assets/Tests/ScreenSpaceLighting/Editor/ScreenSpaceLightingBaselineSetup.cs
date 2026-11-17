@@ -63,7 +63,7 @@ public static class ScreenSpaceLightingBaselineSetup
         CreateBaseline();
 
         var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-        var outputDirectory = Path.Combine(projectRoot, "PALN", "validation", "T1", "Player");
+        var outputDirectory = Path.Combine(projectRoot, "PLAN", "Done", "01-ScreenSpaceLighting", "validation", "T1", "Player");
         Directory.CreateDirectory(outputDirectory);
         var executablePath = Path.Combine(outputDirectory, "SslBaselinePlayer.exe");
         var options = new BuildPlayerOptions
@@ -110,7 +110,7 @@ public static class ScreenSpaceLightingBaselineSetup
             PlayerSettings.enableFrameTimingStats = previousFrameTimingStats;
         }
         var summary = report.summary;
-        var summaryPath = Path.Combine(projectRoot, "PALN", "validation", "T1", "BuildSummary.json");
+        var summaryPath = Path.Combine(projectRoot, "PLAN", "Done", "01-ScreenSpaceLighting", "validation", "T1", "BuildSummary.json");
         var data = new BuildSummaryData
         {
             result = summary.result.ToString(),

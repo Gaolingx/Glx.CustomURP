@@ -26,7 +26,7 @@ public static class ScreenSpaceLightingSsgiFallbackCheck
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity";
     const string RendererPathFormat = RendererRoot + "/SslT8{0}Renderer.asset";
     const string PipelinePathFormat = RendererRoot + "/SslT8{0}Pipeline.asset";
-    const string DefaultOutputRoot = "PLAN/TODO/03-SSRImprove2/validation/T4/SsgiFallback";
+    const string DefaultOutputRoot = "PLAN/Done/03-SSRImprove2/validation/T4/SsgiFallback";
     const string TempScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/~SsgiFallbackCheckTemp.unity";
     const string ProbeCubemapPath = "Assets/Tests/ScreenSpaceLighting/Scenes/~SsgiFallbackProbeCubemap.asset";
 

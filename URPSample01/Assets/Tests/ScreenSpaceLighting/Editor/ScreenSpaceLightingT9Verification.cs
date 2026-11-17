@@ -30,7 +30,7 @@ public static class ScreenSpaceLightingT9Verification
     const string RendererRoot = "Assets/Tests/ScreenSpaceLighting/Renderers";
     const string ShaderRoot = "Assets/Tests/ScreenSpaceLighting/Shaders";
     const string MaterialRoot = "Assets/Tests/ScreenSpaceLighting/Materials";
-    const string OutputRoot = "PALN/validation/T9";
+    const string OutputRoot = "PLAN/Done/01-ScreenSpaceLighting/validation/T9";
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity";
     const string LightmapScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT9Lightmap.unity";
     const string T1RendererPathFormat = RendererRoot + "/Ssl{0}Renderer.asset";

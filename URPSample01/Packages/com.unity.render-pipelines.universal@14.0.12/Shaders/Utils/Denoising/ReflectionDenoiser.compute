@@ -1,7 +1,7 @@
 // Reflection denoiser for the opaque PBR screen space reflections.
 // Ported from HDRP 14.0.12 Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReflectionDenoiser.compute.
 //
-// URP adaptations (contract frozen in PLAN/TODO/02-SSRImprove, T0):
+// URP adaptations (contract frozen in PLAN/Done/02-SSRImprove, T0):
 // - the history stores (radiance, weight): rgb is the accumulated un-premultiplied radiance and a is
 //   the current frame blend weight, because the material consumes alpha as lerp weight. The temporal
 //   accumulation sample count therefore lives in a separate single channel texture instead of

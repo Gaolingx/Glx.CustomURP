@@ -57,7 +57,7 @@ public static class ScreenSpaceLightingFrameDebuggerCapture
 
         modeNames = DefaultModeNames;
         pipelinePaths = DefaultPipelinePaths;
-        var defaultOutput = Path.Combine("PALN", "validation", "T1", "FrameDebugger");
+        var defaultOutput = Path.Combine("PLAN", "Done", "01-ScreenSpaceLighting", "validation", "T1", "FrameDebugger");
         var outputArgument = GetArgument("--ssl-fd-output") ?? defaultOutput;
         var namesArgument = GetArgument("--ssl-fd-names");
         var pipelinesArgument = GetArgument("--ssl-fd-pipelines");

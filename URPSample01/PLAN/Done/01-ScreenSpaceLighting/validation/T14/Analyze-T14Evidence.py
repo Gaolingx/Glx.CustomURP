@@ -16,7 +16,8 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-PROJECT = os.path.abspath(os.path.join(ROOT, "..", "..", ".."))
+PROJECT = os.path.abspath(os.path.join(ROOT, "..", "..", "..", "..", ".."))
+EVIDENCE = os.path.relpath(os.path.join(ROOT, ".."), PROJECT).replace("\\", "/")
 URP = "Packages/com.unity.render-pipelines.universal@14.0.12"
 
 MODES = ["Forward", "ForwardPlus", "Deferred"]
@@ -35,10 +36,10 @@ REQUIRED_FILES = [
     "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT13XrPlayer.unity",
     "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT14Stripping.unity",
     URP + "/Runtime/AssemblyInfo.cs",
-    "PALN/validation/T1/Invoke-T1Unity.ps1",
-    "PALN/validation/T14/Invoke-T14PlayModeTests.ps1",
-    "PALN/validation/T14/Invoke-T14EditModeTests.ps1",
-    "PALN/validation/T14/Analyze-T14Evidence.py",
+    EVIDENCE + "/T1/Invoke-T1Unity.ps1",
+    EVIDENCE + "/T14/Invoke-T14PlayModeTests.ps1",
+    EVIDENCE + "/T14/Invoke-T14EditModeTests.ps1",
+    EVIDENCE + "/T14/Analyze-T14Evidence.py",
 ]
 
 KNOWN_DIFFERENCES = [
@@ -325,14 +326,12 @@ def previous_evidence_integrity():
             problems.append("T13 required file changed or missing: " + entry["path"])
 
     git = subprocess.run(
-        ["git", "status", "--porcelain", "--", "PALN/validation/T1", "PALN/validation/T2",
-         "PALN/validation/T3", "PALN/validation/T4", "PALN/validation/T5", "PALN/validation/T6",
-         "PALN/validation/T7", "PALN/validation/T8", "PALN/validation/T9", "PALN/validation/T10",
-         "PALN/validation/T11", "PALN/validation/T12", "PALN/validation/T13"],
+        ["git", "status", "--porcelain", "--"] +
+        ["%s/T%d" % (EVIDENCE, index) for index in range(1, 14)],
         cwd=PROJECT, capture_output=True, text=True, check=False)
     # The T1 wrapper is shared tooling that T14 extends (optional -executeMethod) without touching
-    # any recorded evidence, so it is the one allowed modification below PALN/validation/T1..T13.
-    allowed = {"PALN/validation/T1/Invoke-T1Unity.ps1"}
+    # any recorded evidence, so it is the one allowed modification below EVIDENCE/T1..T13.
+    allowed = {EVIDENCE + "/T1/Invoke-T1Unity.ps1"}
     dirty = []
     for line in git.stdout.splitlines():
         if not line.strip():
@@ -376,8 +375,8 @@ def support_matrix(t13_report, player_runs, graphics):
 
 
 def performance_report(graphics):
-    budget = load_json(os.path.join(PROJECT, "PALN/validation/T1/PerformanceBudget.json"))
-    reproducibility = load_json(os.path.join(PROJECT, "PALN/validation/T1/Reproducibility.json"))
+    budget = load_json(os.path.join(ROOT, "..", "T1", "PerformanceBudget.json"))
+    reproducibility = load_json(os.path.join(ROOT, "..", "T1", "Reproducibility.json"))
     gpu_policy = reproducibility.get("gpuTimingPolicy")
     baseline = []
     for mode in reproducibility.get("modes", []):
@@ -434,8 +433,8 @@ def archive_manifest(exclude_names):
         "fileCount": len(entries),
         "totalBytes": sum(entry["bytes"] for entry in entries if not entry["excluded"]),
         "excludedArtifacts": [
-            "PALN/validation/T14/Player/ (temporary release player, rebuilt by Build T14 Release Player)",
-            "PALN/validation/T14/*.Run*.log retention follows the T1-T13 convention: every run is kept",
+            EVIDENCE + "/T14/Player/ (temporary release player, rebuilt by Build T14 Release Player)",
+            EVIDENCE + "/T14/*.Run*.log retention follows the T1-T13 convention: every run is kept",
         ],
         "files": entries,
     }
@@ -523,7 +522,7 @@ def main():
 
     report = {
         "utcTimestamp": utc_now(),
-        "unityVersion": load_json(os.path.join(PROJECT, "PALN/validation/T1/Environment.json")).get("unityVersion"),
+        "unityVersion": load_json(os.path.join(ROOT, "..", "T1", "Environment.json")).get("unityVersion"),
         "urpVersion": "14.0.12",
         "t14ExitCriteriaMet": all(criteria.values()),
         "criteria": criteria,
@@ -539,11 +538,11 @@ def main():
         "supportMatrix": matrix,
         "knownDifferences": KNOWN_DIFFERENCES,
         "performance": {
-            "report": "PALN/validation/T14/T14Performance.json",
+            "report": EVIDENCE + "/T14/T14Performance.json",
             "privateResources1280x720": performance["privateResources1280x720"],
             "gpuTimingPolicy": performance["budget"]["gpuTimingPolicy"],
         },
-        "archive": "PALN/validation/T14/T14ArchiveManifest.json",
+        "archive": EVIDENCE + "/T14/T14ArchiveManifest.json",
     }
 
     with open(os.path.join(ROOT, "T14Report.json"), "w", encoding="utf-8") as handle:
@@ -555,7 +554,7 @@ def main():
     with open(os.path.join(ROOT, "T14Performance.json"), "w", encoding="utf-8") as handle:
         json.dump(performance, handle, indent=2)
     with open(os.path.join(ROOT, "T14ArchiveManifest.json"), "w", encoding="utf-8") as handle:
-        json.dump(archive_manifest(["PALN/validation/T14/Player/"]), handle, indent=2)
+        json.dump(archive_manifest([EVIDENCE + "/T14/Player/"]), handle, indent=2)
 
     print("T14 report written")
     for key, value in criteria.items():

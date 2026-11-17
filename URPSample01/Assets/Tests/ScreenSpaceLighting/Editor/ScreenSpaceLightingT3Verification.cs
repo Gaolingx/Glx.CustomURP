@@ -21,7 +21,7 @@ public static class ScreenSpaceLightingT3Verification
     const string RendererRoot = Root + "/Renderers";
     const string ProfileRoot = Root + "/Profiles";
     const string SceneRoot = Root + "/Scenes";
-    const string OutputRoot = "PALN/validation/T3";
+    const string OutputRoot = "PLAN/Done/01-ScreenSpaceLighting/validation/T3";
 
     public const string T3ScenePath = SceneRoot + "/ScreenSpaceLightingT3Verification.unity";
     const string T3ProfilePath = ProfileRoot + "/ScreenSpaceLightingT3Profile.asset";

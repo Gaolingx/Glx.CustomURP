@@ -312,7 +312,7 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
   - 动态相机/物体用例证明历史失效，无拖影。
 - Frame Debugger 记录事件顺序（SSGI 205 → SSR 206 → GBuffer 210 / opaque 250）。
 - 数值检查：无 NaN/Inf/负值；intensity=0 与首帧恢复基线。
-- 证据保存到 `PLAN/TODO/02-SSRImprove/validation/T5/`，完成后随目录归档。
+- 证据保存到 `PLAN/Done/02-SSRImprove/validation/T5/`（已随本轮目录归档）。
 
 #### T5 结论（2026-11-16，已完成）
 
@@ -373,7 +373,7 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 ### T6：收尾（0.5 天）
 
 - 更新 `T14KnownDifferences.md`：SSR 降噪替换、mapping 资源、URP 无 stencil/曝光差异。
-- 更新本文“已完成”与 `PLAN/HANDOFF`（如果恢复根级 HANDOFF）。
+- 更新本文“已完成”与交接入口（根级 HANDOFF 未恢复，交接记录即本文，现归档在 `PLAN/Done/02-SSRImprove/HANDOFF.md`）。
 - 清理临时脚本/临时资源；确认 `Resources` 下的 LUT 与 mapping 进入构建且不重复。
 
 #### T6 结论（2026-11-16，已完成）
@@ -413,7 +413,7 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 
 - HDRP 同场景/同曝光参照图（4.3 第一项）。
 - XR 下重跑新的 PBR 半分辨率降噪路径（T13 历史证据未覆盖本轮变化）。
-- 将 `PLAN/TODO/02-SSRImprove` 归档到 `PLAN/Done/`（会改变本文与证据链接路径，需单独确认）。
+- 已归档到 `PLAN/Done/02-SSRImprove/`（本文与证据链接路径已随之更新）。
 
 #### T6 追加清理（2026-11-16，按用户要求删除残留选项）
 
@@ -477,7 +477,7 @@ BilateralFilterV_FR  → ssrOutput             (材质消费)
 ### 4.4 证据清单（完成后必须存在）
 
 ```
-PLAN/TODO/02-SSRImprove/validation/
+PLAN/Done/02-SSRImprove/validation/
 ├─ T1/SslShaderCheck.txt              # 强制重导入 + kernel 存在/删除检查
 ├─ T1/UnityShaderCheck.log            # 批处理编译日志
 ├─ T1/UnityEditModeTests.xml          # EditMode 结果（417 passed）
@@ -525,26 +525,26 @@ PLAN/TODO/02-SSRImprove/validation/
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
   -executeMethod SslTempShaderCompileCheck.Run -quit \
-  -logFile "<abs>/validation/T1/UnityShaderCheck.log"
+  -logFile "<abs>/PLAN/Done/02-SSRImprove/validation/T1/UnityShaderCheck.log"
 
 # EditMode
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" -runTests -testPlatform EditMode \
-  -testResults "<abs>/validation/T1/UnityEditModeTests.xml" \
-  -logFile "<abs>/validation/T1/UnityEditMode.log"
+  -testResults "<abs>/PLAN/Done/02-SSRImprove/validation/T1/UnityEditModeTests.xml" \
+  -logFile "<abs>/PLAN/Done/02-SSRImprove/validation/T1/UnityEditMode.log"
 
 # T5 三渲染器实拍（GUI 或 batchmode 均可；退出由脚本 EditorApplication.Exit 控制）
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
   -executeMethod ScreenSpaceLightingSsrT5Verification.RunSsrT5Verification -quit \
-  -logFile "<abs>/validation/T5/UnitySsrT5Verification.log"
+  -logFile "<abs>/PLAN/Done/02-SSRImprove/validation/T5/UnitySsrT5Verification.log"
 
 # T5 Frame Debugger（必须 GUI，不带 -batchmode；确保没有残留 Unity 进程）
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" \
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
   -executeMethod ScreenSpaceLightingFrameDebuggerCapture.Capture \
-  -logFile "<abs>/validation/T5/FrameDebugger/UnitySsrT5FrameDebugger.log" \
-  --ssl-fd-output "PLAN/TODO/02-SSRImprove/validation/T5/FrameDebugger" \
+  -logFile "<abs>/PLAN/Done/02-SSRImprove/validation/T5/FrameDebugger/UnitySsrT5FrameDebugger.log" \
+  --ssl-fd-output "PLAN/Done/02-SSRImprove/validation/T5/FrameDebugger" \
   --ssl-fd-names "Forward,ForwardPlus,Deferred" \
   --ssl-fd-pipelines "Assets/Tests/ScreenSpaceLighting/Renderers/SslT8ForwardPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT8ForwardPlusPipeline.asset,Assets/Tests/ScreenSpaceLighting/Renderers/SslT8DeferredPipeline.asset" \
   --ssl-fd-scene "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity" \
@@ -581,7 +581,7 @@ PLAN/TODO/02-SSRImprove/validation/
 - SSR T5 验证：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingSsrT5Verification.cs`
 - SSGI 收敛检查：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingSsgiTemporalCheck.cs`
 - Frame Debugger 采集：`Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingFrameDebuggerCapture.cs`（`--ssl-fd-ssr-pbr`）
-- T5 证据：`PLAN/TODO/02-SSRImprove/validation/T5/`（JSON、24 张 PNG、FrameDebugger 目录）
+- T5 证据：`PLAN/Done/02-SSRImprove/validation/T5/`（JSON、24 张 PNG、FrameDebugger 目录）
 - 已知差异文档：`PLAN/Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md`（T6 已同步 SSR 条目）
 - HDRP 参照：`HDRP/Runtime/RenderPipeline/Raytracing/{HDReflectionDenoiser.cs,Shaders/Denoising/ReflectionDenoiser.compute}`、`HDTemporalFilter.cs`、`HDDiffuseDenoiser.cs`
 - HDRP mapping 资源：`HDRP/Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png`

@@ -305,14 +305,14 @@ reproject kernel 内）。`*.log` 被 `.gitignore` 排除，只提交 XML/JSON/P
 # EditMode
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" -runTests -testPlatform EditMode \
-  -testResults "<abs>/validation/P4/UnityEditModeTests.xml" \
-  -logFile "<abs>/validation/P4/UnityEditMode.log"
+  -testResults "<abs>/PLAN/Done/04-SSGIFallbackImprove/validation/P4/UnityEditModeTests.xml" \
+  -logFile "<abs>/PLAN/Done/04-SSGIFallbackImprove/validation/P4/UnityEditMode.log"
 
 # 渲染验证（脚本名以 P4 实现为准）
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
   -executeMethod ScreenSpaceLightingSsgiProbeFallbackVerification.RunSsgiProbeFallbackVerification -quit \
-  -logFile "<abs>/validation/P4/UnitySsgiProbeFallback.log"
+  -logFile "<abs>/PLAN/Done/04-SSGIFallbackImprove/validation/P4/UnitySsgiProbeFallback.log"
 ```
 
 > Unity 批处理会重写 `ProjectSettings/{Graphics,Quality,Project}Settings.asset`，跑完按惯例 `git checkout --` 还原。

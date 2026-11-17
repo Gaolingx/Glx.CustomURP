@@ -85,18 +85,18 @@ opacity 拟合明细见 [P0-2/fitting.csv](P0-2/fitting.csv)，模式代理指�
 关闭所有 Unity 编辑器后，在 `URPSample01` 目录运行：
 
 ```bash
-SSL_VALIDATION_OUTPUT_ROOT="PLAN/TODO/05-ScreenSpaceRefractionImprove/validation" \
+SSL_VALIDATION_OUTPUT_ROOT="PLAN/Done/05-ScreenSpaceRefractionImprove/validation" \
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" \
   -batchmode -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
   -executeMethod ScreenSpaceLightingT11Verification.RunT11Verification \
-  -logFile "PLAN/TODO/05-ScreenSpaceRefractionImprove/UnityT11Verification.Run.log" -quit
+  -logFile "PLAN/Done/05-ScreenSpaceRefractionImprove/UnityT11Verification.Run.log" -quit
 
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" \
   -batchmode -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
   -executeMethod ScreenSpaceLightingTestRunner.RunEditModeTests \
-  -logFile "PLAN/TODO/05-ScreenSpaceRefractionImprove/UnityEditModeTests.Run.log"
+  -logFile "PLAN/Done/05-ScreenSpaceRefractionImprove/UnityEditModeTests.Run.log"
 
-python PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/Analyze-05Evidence.py
+python PLAN/Done/05-ScreenSpaceRefractionImprove/validation/Analyze-05Evidence.py
 ```
 
 注意：直接调用 Unity 不会像 `Invoke-T1Unity.ps1` 那样自动恢复 `ProjectSettings`；跑完后应把 `ProjectSettings/{Graphics,Quality,ProjectSettings}.asset` 恢复到开工前状态，或使用带快照恢复的包装脚本。

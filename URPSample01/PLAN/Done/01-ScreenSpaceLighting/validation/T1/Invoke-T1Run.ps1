@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
-$projectRoot = (Resolve-Path (Join-Path $root "..\..\..")).Path
+$projectRoot = (Resolve-Path (Join-Path $root "..\..\..\..\..")).Path
 $player = Join-Path $root "Player\SslBaselinePlayer.exe"
 $runDirectory = Join-Path $root $RunName
 $clockCsv = Join-Path $runDirectory "GpuClocks.csv"

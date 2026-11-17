@@ -18,7 +18,7 @@ public static class ScreenSpaceLightingT2Verification
     const string T1RendererRoot = Root + "/Renderers";
     const string T2RendererRoot = Root + "/Renderers";
     const string MaterialRoot = Root + "/Materials";
-    const string OutputRoot = "PALN/validation/T2";
+    const string OutputRoot = "PLAN/Done/01-ScreenSpaceLighting/validation/T2";
 
     static readonly string[] ModeNames = { "Forward", "ForwardPlus", "Deferred" };
 

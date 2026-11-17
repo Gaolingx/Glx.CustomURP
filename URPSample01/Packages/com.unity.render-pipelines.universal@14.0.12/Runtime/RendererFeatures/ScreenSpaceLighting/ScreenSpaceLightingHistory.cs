@@ -459,7 +459,7 @@ namespace UnityEngine.Rendering.Universal
         // follow the trace resolution: full resolution, or half the screen when the volume asks for
         // the half resolution denoiser.
         //
-        // Frozen contract (PLAN/TODO/02-SSRImprove, T0/T3): a history slot stores the accumulated
+        // Frozen contract (PLAN/Done/02-SSRImprove, T0/T3): a history slot stores the accumulated
         // un-premultiplied radiance in rgb and the latest frame's blend weight in a, because the
         // material consumes alpha as the lerp weight. The temporal sample count therefore lives in a
         // separate single channel texture per slot; it must never share history.a. The two denoise

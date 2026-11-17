@@ -14,7 +14,7 @@ public static class ScreenSpaceLightingT13PlayerSetup
 {
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT13XrPlayer.unity";
     const string PipelinePath = "Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPipeline.asset";
-    const string OutputRoot = "PALN/validation/T13";
+    const string OutputRoot = "PLAN/Done/01-ScreenSpaceLighting/validation/T13";
 
     [MenuItem("Tests/Screen Space Lighting/Create T13 XR Player Scene")]
     public static void CreateScene()

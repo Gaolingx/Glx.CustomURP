@@ -9,7 +9,7 @@ import sys
 from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-PROJECT = os.path.abspath(os.path.join(ROOT, "..", "..", ".."))
+PROJECT = os.path.abspath(os.path.join(ROOT, "..", "..", "..", "..", ".."))
 URP = "Packages/com.unity.render-pipelines.universal@14.0.12"
 
 GTAO_RUNTIME = URP + "/Runtime/RendererFeatures/GroundTruthAmbientOcclusion"

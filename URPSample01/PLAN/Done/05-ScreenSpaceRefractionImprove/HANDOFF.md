@@ -518,7 +518,7 @@ HDRP 用 `GetPreIntegratedFGDGGXAndDisneyDiffuse` 的 LUT 计算 `specularFGD`�
    - Release Player（含 shader prefiltering）构建，确认折射变体未被打掉。
 3. **采集证据**：每个用例保存 PNG、指标 CSV、基线哈希；所有用例写入 JSON，不接受“看起来正常”。
 4. **更新文档**：已知差异、支持矩阵、主 HANDOFF、本文件状态。
-5. **归档**：`PLAN/TODO/05-ScreenSpaceRefractionImprove` → `PLAN/Done/05-ScreenSpaceRefractionImprove`。
+5. **归档**：已归档到 `PLAN/Done/05-ScreenSpaceRefractionImprove`（旧 `PLAN/TODO` 路径已移除）。
 6. **清理工作区**：见第 8 节；确认 `git status` 只包含预期文件。
 
 ### 6.2 退出标准
@@ -540,7 +540,7 @@ HDRP 用 `GetPreIntegratedFGDGGXAndDisneyDiffuse` 的 LUT 计算 `specularFGD`�
 ### 6.3 证据格式
 
 ```text
-PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/
+PLAN/Done/05-ScreenSpaceRefractionImprove/validation/
   BaselineHashes.json
   Report.json
   Report.md
@@ -607,7 +607,7 @@ PLAN/TODO/05-ScreenSpaceRefractionImprove/validation/
    - `git diff --check` 无空白错误；
    - 所有新资源有 `.meta`；
    - `Report.json` 的路径均存在；
-   - 归档目录从 `PLAN/TODO` 移到 `PLAN/Done` 后，旧路径无残留引用。
+   - 归档目录从 `PLAN/TODO` 移到 `PLAN/Done` 后，工作用文档与脚本中的旧路径引用已全部更新。
 8. **证据保留原则**：PNG/CSV/JSON 全部保留（项目既往做法）；只删“无法复现的临时中间文件”。如果不确定，先移到 `validation/.../Trash/` 并在 `Cleanup.md` 说明，不直接 `rm`。
 
 ---

@@ -8,7 +8,7 @@ import re
 from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-PROJECT = os.path.abspath(os.path.join(ROOT, "..", "..", ".."))
+PROJECT = os.path.abspath(os.path.join(ROOT, "..", "..", "..", "..", ".."))
 
 APIS = ["DX11", "DX12", "Vulkan"]
 PLAYER_MODES = ["MultiPass", "SinglePassInstanced"]

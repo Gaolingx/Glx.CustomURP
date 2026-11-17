@@ -37,7 +37,7 @@ public static class ScreenSpaceLightingT3UiEvidence
     const string T1RendererPath = Root + "/Renderers/SslForwardRenderer.asset";
 
     static readonly string ProjectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-    static readonly string UiRoot = Path.Combine(ProjectRoot, "PALN/validation/T3/UI");
+    static readonly string UiRoot = Path.Combine(ProjectRoot, "PLAN/Done/01-ScreenSpaceLighting/validation/T3/UI");
     static readonly string EvidenceReportPath = Path.Combine(UiRoot, "T3UiEvidence.json");
 
     static VolumeComponentListEditor s_VolumeListEditor;

@@ -1,4 +1,4 @@
-$log = "E:\GitHub\Glx.CustomURP\URPSample01\PALN\validation\T1\Diagnostics\lock-log.txt"
+$log = "E:\GitHub\Glx.CustomURP\URPSample01\PLAN\Done\01-ScreenSpaceLighting\validation\T1\Diagnostics\lock-log.txt"
 Remove-Item -LiteralPath $log -ErrorAction SilentlyContinue
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = New-Object Security.Principal.WindowsPrincipal($identity)

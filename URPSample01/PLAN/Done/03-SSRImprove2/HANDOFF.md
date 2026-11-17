@@ -6,7 +6,7 @@
 > URP 目标包：`E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）。
 > HDRP 源包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`（下文 `HDRP/`）。
 > 外部参照：`E:/GitHub/UnitySSGIURP/`（下文 `SSGIURP/`），其回退实现见 `Shaders/SSGIFallback.hlsl`。
-> 上一轮交接：`PLAN/TODO/02-SSRImprove/HANDOFF.md`（T0–T6 + 审核修复）。
+> 上一轮交接：`PLAN/Done/02-SSRImprove/HANDOFF.md`（T0–T6 + 审核修复）。
 
 ---
 
@@ -22,7 +22,7 @@
 | `c02f851` | **审核修复**：SSGI temporal 历史 UV 尺度、velocity buffer 绑定、jitter 移到第一遍、第二遍写 LF 输出；新增 SSGI temporal 收敛检查与 T5 回归（证据 `validation/AuditFix/`） |
 
 - 02 的 T0–T6 全部完成；SSR PBR 使用 HDRP `ReflectionDenoiser`，Approximation 保持单帧 3×3 洞填充；半分辨率只作用于 PBR。
-- `PLAN/TODO/02-SSRImprove/validation/AuditFix/T5RegressionSummary.txt`：修复后 T5 三渲染器全部 pass，仅两个运动序列像素计数变化（379184→379180、293236→293223），属预期。
+- `PLAN/Done/02-SSRImprove/validation/AuditFix/T5RegressionSummary.txt`：修复后 T5 三渲染器全部 pass，仅两个运动序列像素计数变化（379184→379180、293236→293223），属预期。
 
 ### 1.2 本轮完成的审核结论（决定 03 范围）
 
@@ -95,7 +95,7 @@
 - HDRP SSR 的 blue noise 无关键字、无缺失回退，绑 1SPP tile；SSGI 绑 8SPP tile。
 - HDRP 反射相机通过 FrameSettings 关闭 SSGI（平面反射例外），没有 0.3 调暗。
 
-### 3.1 本轮验证结果（`PLAN/TODO/03-SSRImprove2/validation/T4/`）
+### 3.1 本轮验证结果（`PLAN/Done/03-SSRImprove2/validation/T4/`）
 
 | 证据 | 结果 |
 |---|---|
@@ -248,12 +248,13 @@
 
 ### 6.3 证据目录
 ```
-PLAN/TODO/03-SSRImprove2/validation/
-├─ T1/SslShaderCheck.txt、UnityShaderCheck.log、A-B PNG
-├─ T2/HalfResMapping.json、Before/After PNG、T5 回归 JSON
-├─ T3/SsgiFallbackCheck.json、三渲染器 PNG、UnitySsgiFallbackCheck.log
-├─ T4/T5Verification.json、SsgiTemporalCheck.json、FrameDebugger/
-└─ EditModeTests.xml、日志
+PLAN/Done/03-SSRImprove2/validation/
+└─ T4/EditModeTests.xml、EditMode.log、UnityImport.log
+   T4/T5/T5Verification.json 与 24 张 PNG
+   T4/SsgiTemporal/SsgiTemporalCheck.json 与三渲染器 On/Off PNG
+   T4/SsgiFallback/SsgiFallbackCheck.json 与三渲染器 PNG
+   T4/FrameDebugger/FrameDebuggerReport.json、FrameDebuggerError.txt
+   T4/UnitySsrT5Verification.log、UnitySsgiTemporalCheck.log、UnitySsgiFallbackCheck.log
 ```
 
 ---
@@ -265,9 +266,9 @@ PLAN/TODO/03-SSRImprove2/validation/
   - SSR 半分辨率几何坐标已对齐 HDRP RT denoiser（2c）。
   - SSGI 回退：Forward+ 使用 URP atlas + cluster（与 HDRP env-light list 近似）；非 Forward+ 仍为默认 cubemap；APV 不支持。
   - 反射相机策略（若实现）。
-- 在 `02-SSRImprove/HANDOFF.md` 顶部加一句“03 已接手三项改进，见 03 交接”。
+- 在 `PLAN/Done/02-SSRImprove/HANDOFF.md` 顶部加一句“03 已接手三项改进，见 03 交接”。
 - 清理临时脚本/截图；确认 `Resources` 无新增重复资产。
-- 03 完成后将目录归档到 `PLAN/Done/03-SSRImprove2/`（会改链接路径，需单独确认）。
+- 目录已归档到 `PLAN/Done/03-SSRImprove2/`（本文与证据链接路径已随之更新）。
 
 ---
 
@@ -301,20 +302,20 @@ PLAN/TODO/03-SSRImprove2/validation/
 # EditMode
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" -runTests -testPlatform EditMode \
-  -testResults "<abs>/03-SSRImprove2/validation/EditModeTests.xml" \
-  -logFile "<abs>/03-SSRImprove2/validation/EditMode.log"
+  -testResults "<abs>/PLAN/Done/03-SSRImprove2/validation/T4/EditModeTests.xml" \
+  -logFile "<abs>/PLAN/Done/03-SSRImprove2/validation/T4/EditMode.log"
 
 # 现有 SSR T5 回归（三渲染器）
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
   -executeMethod ScreenSpaceLightingSsrT5Verification.RunSsrT5Verification -quit \
-  -logFile "<abs>/03-SSRImprove2/validation/T4/UnitySsrT5Verification.log"
+  -logFile "<abs>/PLAN/Done/03-SSRImprove2/validation/T4/UnitySsrT5Verification.log"
 
 # 现有 SSGI temporal 检查
 "D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe" -batchmode \
   -projectPath "E:/GitHub/Glx.CustomURP/URPSample01" \
   -executeMethod ScreenSpaceLightingSsgiTemporalCheck.Run -quit \
-  -logFile "<abs>/03-SSRImprove2/validation/T4/UnitySsgiTemporalCheck.log"
+  -logFile "<abs>/PLAN/Done/03-SSRImprove2/validation/T4/UnitySsgiTemporalCheck.log"
 ```
 
 > Frame Debugger 需 GUI 编辑器并进入 Play Mode；采集前确认无残留 Unity 进程（否则占项目锁，新实例 exit 0 且无产物）。Unity 批处理会重写 `ProjectSettings/*.asset`，跑完 `git checkout --` 还原。

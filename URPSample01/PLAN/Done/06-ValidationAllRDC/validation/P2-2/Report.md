@@ -5,7 +5,7 @@
 
 ## 1. 修复
 
-`ScreenSpaceLightingSsgiPass.ComputeSettingsStamp`（[SsgiPass.cs](../../../../Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsgiPass.cs)）新增：
+`ScreenSpaceLightingSsgiPass.ComputeSettingsStamp`（[SsgiPass.cs](../../../../../Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsgiPass.cs)）新增：
 
 | 字段 | 纳入原因 |
 |---|---|

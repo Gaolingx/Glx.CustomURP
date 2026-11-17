@@ -10,7 +10,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..\..\..")).Path
 $runningUnity = Get-Process -Name Unity -ErrorAction SilentlyContinue
 if ($runningUnity) {
     throw "Close all Unity Editor processes before running the T1 wrapper."

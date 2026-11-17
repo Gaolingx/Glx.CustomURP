@@ -17,7 +17,7 @@ public static class ScreenSpaceLightingT14PlayerSetup
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT13XrPlayer.unity";
     const string StrippingScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT14Stripping.unity";
     const string PipelinePath = "Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPipeline.asset";
-    const string OutputRoot = "PALN/validation/T14";
+    const string OutputRoot = "PLAN/Done/01-ScreenSpaceLighting/validation/T14";
     const string PlayerFolder = "Player";
     const string ExecutableName = "SslT14Player.exe";
 

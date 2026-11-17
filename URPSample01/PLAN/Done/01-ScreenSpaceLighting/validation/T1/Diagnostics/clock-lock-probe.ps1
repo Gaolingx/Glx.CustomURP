@@ -1,4 +1,4 @@
-$log = "E:\GitHub\Glx.CustomURP\URPSample01\PALN\validation\T1\Diagnostics\clock-lock-probe.txt"
+$log = "E:\GitHub\Glx.CustomURP\URPSample01\PLAN\Done\01-ScreenSpaceLighting\validation\T1\Diagnostics\clock-lock-probe.txt"
 Remove-Item -LiteralPath $log -ErrorAction SilentlyContinue
 $nvidiaSmi = "$env:SystemRoot\System32\nvidia-smi.exe"
 & $nvidiaSmi -lgc 1800 *>&1 | Add-Content -LiteralPath $log

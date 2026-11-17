@@ -19,7 +19,7 @@ using UnityEngine.SceneManagement;
 // from, per-frame resolution scale changes.
 public static class ScreenSpaceLightingT13Verification
 {
-    const string OutputRoot = "PALN/validation/T13";
+    const string OutputRoot = "PLAN/Done/01-ScreenSpaceLighting/validation/T13";
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity";
     const string PipelinePath = "Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPipeline.asset";
 

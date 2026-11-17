@@ -29,7 +29,7 @@ public static class ScreenSpaceLightingT12Verification
 {
     const string RendererRoot = "Assets/Tests/ScreenSpaceLighting/Renderers";
     const string MaterialRoot = "Assets/Tests/ScreenSpaceLighting/Materials";
-    const string OutputRoot = "PALN/validation/T12";
+    const string OutputRoot = "PLAN/Done/01-ScreenSpaceLighting/validation/T12";
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity";
     const string T1RendererPathFormat = RendererRoot + "/Ssl{0}Renderer.asset";
     const string T12RendererPathFormat = RendererRoot + "/SslT12{0}Renderer.asset";

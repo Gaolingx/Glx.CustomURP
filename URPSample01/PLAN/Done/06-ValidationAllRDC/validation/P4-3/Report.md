@@ -54,7 +54,7 @@ Forward+ 的 TerrainLit 在修复前与 P1-4 记录的环境光基线一致；�
 
 **根因。** `ShaderBuildPreprocessor` 只收集**构建目标 quality levels 引用的** URP pipeline 资产的 shader feature。项目三个 quality level 原本都指向默认 Forward 资产；`BuildPlayer` 之前只把当前 level 临时指向 Deferred，因此收集到 Forward + Deferred，Forward+ 的 `_FORWARD_PLUS` 变体被剥离。
 
-**修复**（[ScreenSpaceLightingValidationPlayerSetup.BuildPlayer](../../../../Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingValidationPlayerSetup.cs)）：构建前把 Deferred / Forward / Forward+ 三套 validation pipeline 分别停放到三个 quality level，构建后逐级恢复原值（`QualitySettings.renderPipeline` 是当前 level 的属性，必须切级读写）。player 体积 119.3 MB → 121.7 MB，构建时间从 ~30 s 增至 ~15 min（全量变体编译）。
+**修复**（[ScreenSpaceLightingValidationPlayerSetup.BuildPlayer](../../../../../Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingValidationPlayerSetup.cs)）：构建前把 Deferred / Forward / Forward+ 三套 validation pipeline 分别停放到三个 quality level，构建后逐级恢复原值（`QualitySettings.renderPipeline` 是当前 level 的属性，必须切级读写）。player 体积 119.3 MB → 121.7 MB，构建时间从 ~30 s 增至 ~15 min（全量变体编译）。
 
 **影响范围。** P1-4 §6 的“Forward+ 地形缺主光”不是 Terrain 缺陷；P1-4 的 Forward+ 明暗对比结论已在原文加更正注记。P0–P3 各轮 Forward+ 用例的**相对指标**（开/关比值、dispatch 计数、history 行为）不受影响，但任何依赖直接光照绝对值的 Forward+ 数值不应跨轮比较。
 

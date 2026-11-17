@@ -24,7 +24,7 @@ float3 ComputeNormalizedDeviceCoordinatesWithZ(float3 position, float4x4 clipSpa
 
 ## 2. 修复
 
-[DiffuseDenoiser.compute](../../../../Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/Denoising/DiffuseDenoiser.compute) 在裁剪空间除法后、NDC 映射前补上与 core helper 一致的翻转：
+[DiffuseDenoiser.compute](../../../../../Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/Denoising/DiffuseDenoiser.compute) 在裁剪空间除法后、NDC 映射前补上与 core helper 一致的翻转：
 
 ```hlsl
 hClip.xyz /= hClip.w;

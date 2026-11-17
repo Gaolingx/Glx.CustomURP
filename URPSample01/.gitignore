@@ -75,13 +75,13 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 # Local player builds (rebuilt by ScreenSpaceLightingBaselineSetup / ScreenSpaceLightingT14PlayerSetup)
-/PALN/validation/T1/Player/
-/PALN/validation/T14/Player/
+/PLAN/Done/01-ScreenSpaceLighting/validation/T1/Player/
+/PLAN/Done/01-ScreenSpaceLighting/validation/T14/Player/
 
 # 06 P0 smoke captures stay local; the committed evidence is Report.json/BindingProbe/PNG (HANDOFF 7.5 budget)
-/PLAN/TODO/06-ValidationAllRDC/validation/P0/Smoke/*.rdc
+/PLAN/Done/06-ValidationAllRDC/validation/P0/Smoke/*.rdc
 
 # 06 player captures stay local (budget: HANDOFF §7.5); the committed evidence is
 # Report.json/BindingProbe/PNG/P2Census.json and, for P2-3, the exported texture pair
-/PLAN/TODO/06-ValidationAllRDC/validation/*/Player/*.rdc
-/PLAN/TODO/06-ValidationAllRDC/validation/*/Player/*/*.rdc
+/PLAN/Done/06-ValidationAllRDC/validation/*/Player/*.rdc
+/PLAN/Done/06-ValidationAllRDC/validation/*/Player/*/*.rdc

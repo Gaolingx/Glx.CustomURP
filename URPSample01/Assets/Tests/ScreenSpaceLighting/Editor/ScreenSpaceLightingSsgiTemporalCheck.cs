@@ -21,7 +21,7 @@ public static class ScreenSpaceLightingSsgiTemporalCheck
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity";
     const string RendererPathFormat = RendererRoot + "/SslT8{0}Renderer.asset";
     const string PipelinePathFormat = RendererRoot + "/SslT8{0}Pipeline.asset";
-    const string DefaultOutputRoot = "PLAN/TODO/02-SSRImprove/validation/AuditFix";
+    const string DefaultOutputRoot = "PLAN/Done/02-SSRImprove/validation/AuditFix";
 
     const int ImageWidth = 1280;
     const int ImageHeight = 720;
