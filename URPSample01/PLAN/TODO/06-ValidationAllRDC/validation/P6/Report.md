@@ -87,5 +87,6 @@ After restoration `git status` contains only the PlayMode test fix and this `P6/
 | T12 combination matrix replay 34/34/35 | Pending; historical T12 evidence remains, Forward+ absolute values are not comparable after P4-3 |
 | 1280×720 GPU time delta ≤10% | Pending; no paired measurement in `validation/` |
 | RT count after 10× resolution/camera cycles | Pending; needs a dedicated resource-count instrumentation (the PlayMode camera-lifetime test only proves history entry pruning) |
+| T4–T7 historical menu harnesses | Deferred to P6-2: 39 references to removed history fields (`validFrameCount`, `resourceGeneration`, `depthPyramidMipCount`) remain in four Editor harnesses. They compile (string reflection) and are outside the test suite, but running them yields -1; replace or delete them with the P6-2 cleanup. |
 | XR single-pass smoke | Accepted environment limit; T13/T14 Mock HMD evidence remains |
 | Build warning attribution | Done: 4001 shader warnings = 3998 plugin `Load` truncations + 3 URP core; 0 C# warnings, same count as P4-2 |
