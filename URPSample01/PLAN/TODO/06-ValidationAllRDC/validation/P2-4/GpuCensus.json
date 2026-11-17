@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "api": "D3D11",
+  "player": "Builds/SslValidationPlayer/SslValidationPlayer.exe (D3D11 development, 1280x720)",
+  "probeAtlasOn": {
+    "rdc": "Player/GPU/p2_4_probe_on_frame6585.rdc",
+    "marker": "Screen Space Global Illumination",
+    "markerEvents": [261, 460],
+    "dispatches": [282, 314, 337, 363, 377, 397, 423, 437, 457],
+    "atlas": { "name": "URP Reflection Probe Atlas", "width": 2048, "height": 1024, "format": "R11G11B10_FLOAT" },
+    "probeCubemap": { "name": "SSGI Probe 3", "width": 128, "height": 128, "slices": 6, "mips": 8, "format": "R16G16B16A16_FLOAT" },
+    "export": "renderdoc-mcp-export/probe_atlas.png, probe_on_denoised.png"
+  },
+  "probeAtlasOff": {
+    "rdc": "Player/GPU/p2_4_probe_off_frame6607.rdc",
+    "atlas": null,
+    "note": "No URP Reflection Probe Atlas resource exists in the capture; the reproject fallback samples the default reflection cubemap.",
+    "export": "renderdoc-mcp-export/probe_off_denoised.png"
+  },
+  "halfResolution": {
+    "rdc": "Player/GPU/p2_4_half_reference_frame6670.rdc",
+    "traceTextures": ["SslSsgiHitPoint_640x360", "SslSsgiProjection_640x360", "SslSsgiAccumulation_640x360", "SslSsgiDenoisedHF_640x360", "SslSsgiDenoisedLF_640x360", "SslSsgiHistoryHF0_640x360", "SslSsgiHistoryLF0_640x360"],
+    "upsampledFinal": "SslSsgiFinal_1280x720",
+    "export": "renderdoc-mcp-export/half_final.png"
+  },
+  "fullResolution": {
+    "rdc": "Player/GPU/p2_4_full_reference_frame6649.rdc",
+    "final": "SslSsgiDenoisedHF_1280x720",
+    "export": "renderdoc-mcp-export/full_final.png"
+  },
+  "roomCoverage": {
+    "rdc": "Player/GPU/p2_4_room_coverage_frame6628.rdc",
+    "note": "Debug weight view capture for the closed-room coverage scene; capture kept locally (ignored by git) because the coverage metric is recomputed from the screenshot in analyze.py."
+  }
+}

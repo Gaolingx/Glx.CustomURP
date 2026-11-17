@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "renderer": "Forward",
+  "warmupFrames": 16,
+  "cases": [
+    {
+      "id": "p2_4_probe_on",
+      "renderer": "Forward",
+      "effect": "SSGI",
+      "layout": "ssgiProbes",
+      "camera": {
+        "position": [
+          0,
+          3.2,
+          -8
+        ],
+        "rotation": [
+          14,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": true,
+      "screenshot": true,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": true,
+        "debugMode": 8
+      }
+    },
+    {
+      "id": "p2_4_probe_off",
+      "renderer": "Forward",
+      "effect": "SSGI",
+      "layout": "ssgiProbes",
+      "camera": {
+        "position": [
+          0,
+          3.2,
+          -8
+        ],
+        "rotation": [
+          14,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": true,
+      "screenshot": true,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 8
+      }
+    },
+    {
+      "id": "p2_4_room_coverage",
+      "renderer": "Forward",
+      "effect": "SSGI",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": true,
+      "screenshot": true,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 0,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 10
+      },
+      "layout": "ssgiRoom",
+      "ambientIntensity": 0.05,
+      "light": {
+        "noDirectionalLight": true
+      }
+    },
+    {
+      "id": "p2_4_full_reference",
+      "renderer": "Forward",
+      "effect": "SSGI",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": true,
+      "screenshot": true,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 8
+      }
+    },
+    {
+      "id": "p2_4_half_reference",
+      "renderer": "Forward",
+      "effect": "SSGI",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": true,
+      "screenshot": true,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": false,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 8
+      }
+    }
+  ]
+}

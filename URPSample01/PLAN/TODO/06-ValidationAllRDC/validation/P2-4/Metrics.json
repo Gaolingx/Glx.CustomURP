@@ -1,0 +1,218 @@
+{
+  "reportPassed": true,
+  "caseCount": 17,
+  "s2": {
+    "coverageFraction": 0.5709,
+    "coverageAnyFraction": 0.9507,
+    "coverageThreshold": 0.5,
+    "emitterGain": 2.2616,
+    "emitterRegionOnG": 0.02064,
+    "emitterRegionOffG": 0.00913,
+    "uncoveredPixels": 33960,
+    "uncoveredDiff": {
+      "pixels": 33960,
+      "mean": 0.0,
+      "max": 0.2884,
+      "aboveOne": 0
+    },
+    "passed": true
+  },
+  "s3": {
+    "convergence": {
+      "pixels": 382800,
+      "mean": 0.0343,
+      "max": 8.6763,
+      "aboveOne": 5356
+    },
+    "cameraCut": {
+      "present": true,
+      "beforeHistoryValid": true,
+      "afterHistoryValid": false,
+      "beforeResetCount": 2,
+      "afterResetCount": 2,
+      "passed": true
+    },
+    "resetFrameMean": 0.51231,
+    "cutResidual": {
+      "pixels": 696000,
+      "mean": 0.1609,
+      "max": 5.2324,
+      "aboveOne": 48372
+    },
+    "passed": true
+  },
+  "s4": {
+    "cases": {
+      "ssgi_probes_forward_on": {
+        "greenOverRed": 4.6427,
+        "redOverOthers": 3.4694,
+        "blueOverOthers": 6.9034,
+        "yellowOverBlue": 2.9516,
+        "greenChromaBands": [
+          0.51697,
+          0.450436,
+          0.358032
+        ]
+      },
+      "ssgi_probes_forward_off": {
+        "greenOverRed": 1.0,
+        "redOverOthers": 1.0,
+        "blueOverOthers": 1.0,
+        "yellowOverBlue": 1.0,
+        "greenChromaBands": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "ssgi_probes_forward_zero": {
+        "greenOverRed": 0.0,
+        "redOverOthers": 0.0,
+        "blueOverOthers": 0.0,
+        "yellowOverBlue": 0.0,
+        "greenChromaBands": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "ssgi_probes_forwardplus": {
+        "greenOverRed": 4.2908,
+        "redOverOthers": 3.2116,
+        "blueOverOthers": 6.3441,
+        "yellowOverBlue": 2.7614,
+        "greenChromaBands": [
+          0.517888,
+          0.451053,
+          0.358409
+        ]
+      },
+      "ssgi_probes_forwardplus_atlas": {
+        "greenOverRed": 4.2798,
+        "redOverOthers": 3.2075,
+        "blueOverOthers": 6.3277,
+        "yellowOverBlue": 2.759,
+        "greenChromaBands": [
+          0.517267,
+          0.450677,
+          0.358103
+        ]
+      },
+      "ssgi_probes_deferred_on": {
+        "greenOverRed": 4.6469,
+        "redOverOthers": 3.4777,
+        "blueOverOthers": 6.911,
+        "yellowOverBlue": 2.9517,
+        "greenChromaBands": [
+          0.517428,
+          0.450902,
+          0.358316
+        ]
+      },
+      "ssgi_probes_deferred_off": {
+        "greenOverRed": 1.0,
+        "redOverOthers": 1.0,
+        "blueOverOthers": 1.0,
+        "yellowOverBlue": 1.0,
+        "greenChromaBands": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "togglePassed": true,
+    "forwardPlusPassed": true,
+    "zeroProbes": {
+      "nonFinitePixels": 0,
+      "greenOverRed": 0.0,
+      "passed": true
+    },
+    "monotonicFalloff": true,
+    "passed": true
+  },
+  "s5": {
+    "correlation": 0.99924,
+    "fullSeamRatio": 1.1644,
+    "halfSeamRatio": 1.0602,
+    "seamRatio": 0.9105,
+    "passed": true
+  },
+  "s6": {
+    "materials": {
+      "lit": {
+        "pixels": 2160,
+        "mean": 1.9373,
+        "max": 3.3123,
+        "aboveOne": 2008,
+        "role": "target",
+        "passed": true
+      },
+      "complexLit": {
+        "pixels": 2160,
+        "mean": 2.7074,
+        "max": 7.0687,
+        "aboveOne": 2062,
+        "role": "target",
+        "passed": true
+      },
+      "simpleLit": {
+        "pixels": 2160,
+        "mean": 0.0,
+        "max": 0.0,
+        "aboveOne": 0,
+        "role": "control",
+        "passed": true
+      },
+      "bakedLit": {
+        "pixels": 2160,
+        "mean": 0.0,
+        "max": 0.0,
+        "aboveOne": 0,
+        "role": "control",
+        "passed": true
+      },
+      "unlit": {
+        "pixels": 2160,
+        "mean": 0.0,
+        "max": 0.0,
+        "aboveOne": 0,
+        "role": "control",
+        "passed": true
+      },
+      "shaderGraphLit": {
+        "pixels": 2160,
+        "mean": 1.8092,
+        "max": 3.5386,
+        "aboveOne": 1567,
+        "role": "target",
+        "passed": true
+      },
+      "terrain": {
+        "pixels": 1200,
+        "mean": 0.0,
+        "max": 0.0,
+        "aboveOne": 0,
+        "role": "control",
+        "passed": true
+      }
+    },
+    "passed": true
+  },
+  "gpu": {
+    "probeAtlasExport": {
+      "width": 2048,
+      "height": 1024
+    },
+    "probeZones": {
+      "on": {
+        "greenZoneGreenOverOthers": 3.115
+      },
+      "off": {
+        "greenZoneGreenOverOthers": 1.0
+      }
+    },
+    "halfVsFullCorrelation": 0.9997
+  },
+  "passed": true
+}
