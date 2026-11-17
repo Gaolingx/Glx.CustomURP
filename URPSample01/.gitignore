@@ -87,3 +87,7 @@ crashlytics-build.properties
 
 # 06 P3-1 captures stay local; the committed evidence is Report.json/BindingProbe/PNG
 /PLAN/TODO/06-ValidationAllRDC/validation/P3-1/Player/*.rdc
+
+# 06 P2-3 denoiser capture stays local; the committed evidence is the exported texture pair
+/PLAN/TODO/06-ValidationAllRDC/validation/P2-3/Player/*.rdc
+/PLAN/TODO/06-ValidationAllRDC/validation/P2-3/Player/fix/*.rdc

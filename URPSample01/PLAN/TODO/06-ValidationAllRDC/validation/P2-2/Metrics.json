@@ -1,0 +1,183 @@
+{
+  "reportPassed": true,
+  "completed": true,
+  "cases": {
+    "forward_ssgi_probe_atlas_switch": {
+      "present": true,
+      "expectReset": true,
+      "switch": {
+        "expectReset": true,
+        "beforeFrameIndex": 25,
+        "beforeHistoryValid": true,
+        "beforeResetCount": 1,
+        "beforeStamp": -534514056,
+        "afterFrameIndex": 26,
+        "afterHistoryValid": false,
+        "afterResetCount": 2,
+        "afterStamp": -731027561,
+        "passed": true
+      },
+      "checks": {
+        "frameAdvanced": true,
+        "historyValidBefore": true,
+        "historyInvalidAfter": true,
+        "resetExactlyOnce": true,
+        "stampChanged": true
+      },
+      "issues": [],
+      "passed": true
+    },
+    "forward_ssgi_probe_atlas_switch_back": {
+      "present": true,
+      "expectReset": true,
+      "switch": {
+        "expectReset": true,
+        "beforeFrameIndex": 45,
+        "beforeHistoryValid": true,
+        "beforeResetCount": 2,
+        "beforeStamp": -731027561,
+        "afterFrameIndex": 46,
+        "afterHistoryValid": false,
+        "afterResetCount": 3,
+        "afterStamp": -534514056,
+        "passed": true
+      },
+      "checks": {
+        "frameAdvanced": true,
+        "historyValidBefore": true,
+        "historyInvalidAfter": true,
+        "resetExactlyOnce": true,
+        "stampChanged": true
+      },
+      "issues": [],
+      "passed": true
+    },
+    "forward_ssgi_raysteps_switch": {
+      "present": true,
+      "expectReset": true,
+      "switch": {
+        "expectReset": true,
+        "beforeFrameIndex": 65,
+        "beforeHistoryValid": true,
+        "beforeResetCount": 3,
+        "beforeStamp": -534514056,
+        "afterFrameIndex": 66,
+        "afterHistoryValid": false,
+        "afterResetCount": 4,
+        "afterStamp": -1680013720,
+        "passed": true
+      },
+      "checks": {
+        "frameAdvanced": true,
+        "historyValidBefore": true,
+        "historyInvalidAfter": true,
+        "resetExactlyOnce": true,
+        "stampChanged": true
+      },
+      "issues": [],
+      "passed": true
+    },
+    "forward_ssgi_thickness_switch": {
+      "present": true,
+      "expectReset": true,
+      "switch": {
+        "expectReset": true,
+        "beforeFrameIndex": 85,
+        "beforeHistoryValid": true,
+        "beforeResetCount": 5,
+        "beforeStamp": -534514056,
+        "afterFrameIndex": 86,
+        "afterHistoryValid": false,
+        "afterResetCount": 6,
+        "afterStamp": -841133083,
+        "passed": true
+      },
+      "checks": {
+        "frameAdvanced": true,
+        "historyValidBefore": true,
+        "historyInvalidAfter": true,
+        "resetExactlyOnce": true,
+        "stampChanged": true
+      },
+      "issues": [],
+      "passed": true
+    },
+    "forward_ssgi_denoiser_radius_switch": {
+      "present": true,
+      "expectReset": false,
+      "switch": {
+        "expectReset": false,
+        "beforeFrameIndex": 105,
+        "beforeHistoryValid": true,
+        "beforeResetCount": 7,
+        "beforeStamp": -534514056,
+        "afterFrameIndex": 106,
+        "afterHistoryValid": true,
+        "afterResetCount": 7,
+        "afterStamp": -534514056,
+        "passed": true
+      },
+      "checks": {
+        "frameAdvanced": true,
+        "historyValidBefore": true,
+        "historyValidAfter": true,
+        "noReset": true,
+        "stampUnchanged": true
+      },
+      "issues": [],
+      "passed": true
+    },
+    "forward_ssgi_intensity_switch": {
+      "present": true,
+      "expectReset": false,
+      "switch": {
+        "expectReset": false,
+        "beforeFrameIndex": 125,
+        "beforeHistoryValid": true,
+        "beforeResetCount": 7,
+        "beforeStamp": -534514056,
+        "afterFrameIndex": 126,
+        "afterHistoryValid": true,
+        "afterResetCount": 7,
+        "afterStamp": -534514056,
+        "passed": true
+      },
+      "checks": {
+        "frameAdvanced": true,
+        "historyValidBefore": true,
+        "historyValidAfter": true,
+        "noReset": true,
+        "stampUnchanged": true
+      },
+      "issues": [],
+      "passed": true
+    },
+    "deferred_ssgi_probe_atlas_switch": {
+      "present": true,
+      "expectReset": true,
+      "switch": {
+        "expectReset": true,
+        "beforeFrameIndex": 148,
+        "beforeHistoryValid": true,
+        "beforeResetCount": 1,
+        "beforeStamp": -534514056,
+        "afterFrameIndex": 149,
+        "afterHistoryValid": false,
+        "afterResetCount": 2,
+        "afterStamp": -731027561,
+        "passed": true
+      },
+      "checks": {
+        "frameAdvanced": true,
+        "historyValidBefore": true,
+        "historyInvalidAfter": true,
+        "resetExactlyOnce": true,
+        "stampChanged": true
+      },
+      "issues": [],
+      "passed": true
+    }
+  },
+  "missingCases": [],
+  "passed": true
+}

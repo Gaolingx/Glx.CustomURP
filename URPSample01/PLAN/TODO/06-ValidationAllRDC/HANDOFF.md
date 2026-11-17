@@ -1,7 +1,7 @@
 # Screen Space Lighting 全量 GPU 验证与收尾交接（06-ValidationAllRDC）
 
 > 更新：2026-11-17
-> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1-1（F-01）、P1-2（F-03）、P1-3（GTAO 生效/正确性，含 F-10）、P1-4（GTAO 材质覆盖与 Deferred 双路径，G6）、P2-1（SSGI 生效链）、P3-1（F-02）、P3-2（F-04）、P3-3（F-06/F-08）、P3-4（SSR 生效链）、P3-5（SSR 正确性）完成**；P2-2 起未开始。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式。P1-1 修复 GTAO 全分辨率深度守卫；P1-2 修复 GTAO 正交深度/视线；P1-3 用 16 用例、9 个抓帧验收 GTAO 调度/keyword/输出/正交/full-res 与 F-10；P1-4 用 16 用例、3 个抓帧验收材质覆盖矩阵、Deferred 有/无方向光两条 AO 路径的单次乘积与关闭基线；P2-1 完成 SSGI dispatch/history/LUT/atlas 的 CPU+GPU 验收（10/10）；P3-1 修复 SSR 降噪器像素展开角绑定（SSR-only 值精确、GPU 无 SSGI pass）；P3-2 隔离 SSR 调试目标（材质输出不被覆盖、降噪链保留）；P3-3 修复透明深度种子 Y 翻转规则并隔离透明 ComputeShader 变体（PBR/Approx 同帧共存）；P3-4 汇总 SSR 两条算法/全半分辨率/透明的 dispatch 链并抓帧证明资源消费（12/12）；P3-5 用截图指标验收反射中心/权重/空洞/透明/probe 回退（9/9）。
+> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1-1（F-01）、P1-2（F-03）、P1-3（GTAO 生效/正确性，含 F-10）、P1-4（GTAO 材质覆盖与 Deferred 双路径，G6）、P2-1（SSGI 生效链）、P2-2（F-07）、P2-3（F-09）、P3-1（F-02）、P3-2（F-04）、P3-3（F-06/F-08）、P3-4（SSR 生效链）、P3-5（SSR 正确性）完成**；P2-4 起未开始。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式。P1-1 修复 GTAO 全分辨率深度守卫；P1-2 修复 GTAO 正交深度/视线；P1-3 用 16 用例、9 个抓帧验收 GTAO 调度/keyword/输出/正交/full-res 与 F-10；P1-4 用 16 用例、3 个抓帧验收材质覆盖矩阵、Deferred 有/无方向光两条 AO 路径的单次乘积与关闭基线；P2-1 完成 SSGI dispatch/history/LUT/atlas 的 CPU+GPU 验收（10/10）；P2-2 把 probe atlas、ray steps、depth thickness 纳入 SSGI history stamp，7 用例证明切换后下一帧 validity=0、无关参数不重置；P2-3 确认 denoiser tap 投影缺少 UV 原点朝上平台的 Y 翻转并修复，同一抓帧的 tap 接受数 1/16→16/16、输出高频能量 0.505×；P3-1 修复 SSR 降噪器像素展开角绑定（SSR-only 值精确、GPU 无 SSGI pass）；P3-2 隔离 SSR 调试目标（材质输出不被覆盖、降噪链保留）；P3-3 修复透明深度种子 Y 翻转规则并隔离透明 ComputeShader 变体（PBR/Approx 同帧共存）；P3-4 汇总 SSR 两条算法/全半分辨率/透明的 dispatch 链并抓帧证明资源消费（12/12）；P3-5 用截图指标验收反射中心/权重/空洞/透明/probe 回退（9/9）。
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`，下文 `HDRP/`）
 > URP 目标包：`URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）
 > 关联文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[T14 支持矩阵](../../Done/01-ScreenSpaceLighting/validation/T14/T14SupportMatrix.md)、[01 ScreenSpaceLighting](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[02 SSRImprove](../../Done/02-SSRImprove/HANDOFF.md)、[03 SSRImprove2](../../Done/03-SSRImprove2/HANDOFF.md)、[04 SSGIFallbackImprove](../../Done/04-SSGIFallbackImprove/HANDOFF.md)、[05 ScreenSpaceRefractionImprove](../../Done/05-ScreenSpaceRefractionImprove/HANDOFF.md)、[RenderDoc 操作手册](../../../../MCP/RenderDocOperations.md)
@@ -172,9 +172,9 @@ Deferred 下 SSGI/SSR 在 GBuffer 阶段消费（事件 207 < 210）；Forward/F
 | F-04 | Medium | SSR | 开启 `SsrPbrParams` 调试图时，`DebugSsrParams` 覆盖正式 `ssrOutput`，最终图被替换为诊断参数 | `SsrPass.cs:278-285`；`ScreenSpaceLightingSetupPass.cs` 绑定同一纹理 | P3-2 |
 | F-05 | Medium | 折射 | `_SCREEN_SPACE_REFRACTION` 无相机起点清理；被能力检测拒绝的相机可能继承上一相机的全局 keyword/纹理绑定 | `ScriptableRenderer.cs:1419-1445` 未清理折射；`RefractionPass.DisableMaterialBinding` 只清参数 | P4-1 |
 | F-06 | Medium | Transparent SSR | 透明深度种子固定 `(1,1,0,0)`，在 Y 翻转目标（RT/XR）上与后续深度读取上下颠倒 | `TransparentDepthNormalRenderPass.cs:109` vs `CopyDepthPass.cs:181-182` | P3-3 |
-| F-07 | Medium | SSGI | `publishProbeAtlas` 等开关切换后不重置历史；旧 history 与新的回退策略混用 | `SsgiPass.cs:702-718` 的 stamp 不包含该字段 | P2-2 |
+| F-07 | Medium | SSGI | `publishProbeAtlas` 等开关切换后不重置历史；旧 history 与新的回退策略混用 | `SsgiPass.cs` 的 stamp 不包含该字段 | P2-2（**Fixed**，[P2-2/Report.md](validation/P2-2/Report.md)） |
 | F-08 | Medium | SSR/SSGI | 多个共享 `ComputeShader` 的 keyword 依赖调用顺序：透明 pass 不显式设置 `SSR_HALF_RES` 与 `SSGI_BLUE_NOISE`（`SSR_NORMALS_OCT` 已显式关闭） | `TransparentSsrPass.cs:132-136` | P3-3 |
-| F-09 | Low | SSGI | denoiser 的屏幕投影未处理 `UNITY_UV_STARTS_AT_TOP`，与 HDRP 不一致；需确认 Y 翻转目标是否偏移 | `DiffuseDenoiser.compute` 的 tap 投影 vs `HDRP/.../DiffuseDenoiser.compute:150-153` | P2-3 |
+| F-09 | Medium | SSGI | denoiser 的 tap 投影漏掉 `UNITY_UV_STARTS_AT_TOP` 的 Y 翻转，tap 落在镜像行、几乎全部被深度测试拒绝，降噪近似直通 | `DiffuseDenoiser.compute` 手写 NDC 映射 vs core `ComputeNormalizedDeviceCoordinatesWithZ` | P2-3（**Fixed**，[P2-3/Report.md](validation/P2-3/Report.md)） |
 | F-10 | Low | GTAO | `intensity>0` 且 history 槽为空时提前 return，但 `_SCREEN_SPACE_OCCLUSION` 仍处于开启状态，可能消费上一帧纹理 | `GroundTruthAmbientOcclusionPass.cs:109,202-203` | P1-3（**Fixed**，[P1-GTAO/Report.md](validation/P1-GTAO/Report.md) §7） |
 | F-11 | Low | GTAO/SSGI/SSR | 死代码、重复 ID、过时注释与文档（清单见 6.6） | 见 6.6 | P4-4 |
 | F-12 | Medium | Terrain/Forward+ | Forward+ 下 TerrainLit 只收到环境光：方向光与阴影开关都不改变地形亮度；同帧 Lit 地板与 Forward/Deferred 正常 | [P1-4/Report.md](validation/P1-4/Report.md) §6、[P1-4/ShadowTest/](validation/P1-4/ShadowTest/) | P4-3 |
@@ -249,7 +249,7 @@ Blitter.BlitTexture(cmd, depthSource,
 
 `ComputeSettingsStamp` 覆盖 `fullResolution`、`rayMiss`、`temporalAccumulation`、`denoise`、`secondDenoiserPass`、`halfResolutionDenoiser`、trace 尺寸与资源代数，但不包含 `publishProbeAtlas`、`maxRaySteps`、`depthBufferThickness`、`denoiserRadius`、`bilateralUpsample`、`intensity`。切换这些值不会重置 history，旧 radiance 会与新配置混合。
 
-修复：把至少 `publishProbeAtlas` 与 `rayMiss`（已有）纳入；其余按"影响 history 语义"判断，逐项加入或显式注释为何不需要。验收：切换 `publishProbeAtlas` 后下一帧 `historyValidity=0`，无跨配置残影。
+修复（P2-2）：`ComputeSettingsStamp` 增加 `publishProbeAtlas`（实际 `probeList`）、`maxRaySteps`、`depthBufferThickness`；`intensity`、`denoiserRadius`、`bilateralUpsample` 在 CopyHistory 之后才生效，不纳入并加注释。DEV 快照新增 `settingsStamp`/`settingsResetCount`，验证 player 在预热后切换设置并读取下一帧：4 个被覆盖字段均 `historyValid=true→false`、reset +1；`intensity`/`denoiserRadius` 对照保持有效。见 [P2-2/Report.md](validation/P2-2/Report.md)。
 
 ### 3.8 F-08 共享 ComputeShader keyword
 
@@ -257,9 +257,11 @@ Blitter.BlitTexture(cmd, depthSource,
 
 修复：透明 pass 使用 `Object.Instantiate(ssrCompute)` 的独立实例（`ScreenSpaceLightingResources.ssrTransparentCompute`），并在入口显式设置它需要的全部 keyword（`SSR_HALF_RES=false`、`SSGI_BLUE_NOISE` 按资源存在与否、`SSR_NORMALS_OCT=false`、`SSR_APPROX=true`），绑定蓝色噪声 LUT；DEV 统计记录关键字与实例隔离状态。GPU 抓帧证明不透明 trace（`9844`，144 B cbuffer）与透明 trace（`9865`，112 B cbuffer）两个变体同帧共存且透明输出被材质读取。见 [validation/P3-3/Report.md](validation/P3-3/Report.md)。
 
-### 3.9 F-09 SSGI 降噪器投影（待确认）
+### 3.9 F-09 SSGI 降噪器投影
 
-HDRP 的 `DiffuseDenoiser.compute:150-153` 在 tap 投影时处理 `UNITY_UV_STARTS_AT_TOP`；URP 的移植没有。D3D11 的 UV 原点与 HDRP 目标平台约定可能不同，需要用一个屏幕上下不对称的梯度场景确认。若确认偏移，补上翻转；若确认等价，在已知差异中写明。
+HDRP 的 `DiffuseDenoiser.compute` 在 tap 投影时处理 `UNITY_UV_STARTS_AT_TOP`；URP 的移植手写 `mul(SSL_VIEW_PROJ, wsPos)` + `hClip*0.5+0.5`，漏掉 core helper 里的 CS→NDC 翻转。**确认是缺陷**：D3D11 抓帧的 `debug_thread` 显示 tap 投影 y≈513 而中心像素 y=216（`H-1-216=503`），16 个 tap 只有 1 个通过深度/法线测试；同一抓帧的降噪输出与输入 99.99% 字节相同。
+
+修复（P2-3）：在 NDC 映射前补 `#if UNITY_UV_STARTS_AT_TOP hClip.y = -hClip.y;`。修复后 16/16 tap 通过，同一帧输入/输出 18.4% 像素不同，alpha 高频能量 0.505×。见 [P2-3/Report.md](validation/P2-3/Report.md)。
 
 ### 3.10 F-10 GTAO 提前返回
 
@@ -318,7 +320,7 @@ HDRP 的 `DiffuseDenoiser.compute:150-153` 在 tap 投影时处理 `UNITY_UV_STA
 - Forward/Deferred 的探针 atlas 默认关闭；开启后天空余量从默认 cubemap 变为 ambient SH（04 轮记录）。
 - `reflectSky` 在 SSGI 调用点恒为 1，`reflectsSky=false` 分支不可达。
 
-**本轮缺陷**：F-07（stamp）、F-09（Y 翻转待确认）。
+**本轮缺陷**：F-07（stamp，已修）、F-09（denoiser Y 翻转，已修）。
 
 ### 4.4 SSR / Transparent SSR
 
@@ -368,8 +370,8 @@ HDRP 的 `DiffuseDenoiser.compute:150-153` 在 tap 投影时处理 `UNITY_UV_STA
 | P1-3 | P1 | GTAO 生效与正确性 GPU 验收（含 F-10） | P0/P1-1/P1-2 | `validation/.../P1-GTAO/` | **完成（16/16，证据 [P1-GTAO/Report.md](validation/P1-GTAO/Report.md)）** |
 | P1-4 | P1 | GTAO 材质覆盖与 Deferred 双路径 | P1-3 | 测试场景/材质 | **完成（16/16，证据 [P1-4/Report.md](validation/P1-4/Report.md)）** |
 | P2-1 | P2 | SSGI 生效链 GPU 验收（dispatch/history/LUT/atlas） | P0 | `validation/.../P2-SSGI/` | **完成（10/10，证据 [P2-SSGI/Report.md](validation/P2-SSGI/Report.md)）** |
-| P2-2 | P2 | 修复 SSGI 历史 stamp（F-07） | P2-1 | `SsgiPass.cs`、`ScreenSpaceLightingSettings.cs` | 待开始 |
-| P2-3 | P2 | 确认/修复 denoiser Y 翻转（F-09） | P2-1 | `DiffuseDenoiser.compute` | 待开始 |
+| P2-2 | P2 | 修复 SSGI 历史 stamp（F-07） | P2-1 | `SsgiPass.cs`、`ScreenSpaceLightingSettings.cs` | **完成（7/7，证据 [P2-2/Report.md](validation/P2-2/Report.md)）** |
+| P2-3 | P2 | 确认/修复 denoiser Y 翻转（F-09） | P2-1 | `DiffuseDenoiser.compute` | **完成（Fixed，证据 [P2-3/Report.md](validation/P2-3/Report.md)）** |
 | P2-4 | P2 | SSGI 覆盖/多探针/时域正确性场景 | P2-1/P2-2 | 测试场景/材质 | 待开始 |
 | P2-5 | P2 | 清理 SSGI 死代码 | P4-4 统一 | `SsgiPass.cs`、`RayMarching.hlsl` | 待开始 |
 | P3-1 | P3 | 修复 SSR 像素展开角绑定（F-02） | P0 | `SsrPass.cs`、`ReflectionDenoiser.compute` | **完成（Fixed，证据 [P3-1/Report.md](validation/P3-1/Report.md)）** |
@@ -745,7 +747,8 @@ PLAN/TODO/06-ValidationAllRDC/validation/
 | `06-07 Calibrate the transparent SSR validation panel` | P3-5 场景标定 + `ssrDispatch`/透明截图指标 |
 | `06-08 Add the P3-4/P3-5 validation evidence` | P3-4/P3-5 证据（dispatch/census/report/metrics） |
 | `06-09 Reset refraction state per camera` | F-05 |
-| `06-10 Reset SSGI history on probe-atlas changes` | F-07 |
+| `06-10 Reset SSGI history on probe-atlas changes` | F-07（已完成，含 `Record the P2-2 stamp evidence`） |
+| `06-14 Undo the render target flip in the SSGI denoiser taps` | F-09 + `Record the P2-3 denoiser evidence` |
 | `06-11 Add the validation player and binding probe` | P0 |
 | `06-12 Add GTAO/SSGI/SSR RenderDoc evidence` | P1–P3 证据 |
 | `06-13 Remove Screen Space Lighting dead code` | P4-4 |
@@ -759,6 +762,6 @@ PLAN/TODO/06-ValidationAllRDC/validation/
 
 1. P0 已完成：三渲染器 player、manifest、抓帧、census 与 binding probe 均可复现；后续任务直接复用 `SslValidation*` 资产与 `validation/P0/SmokeReport.md` 的字段契约。
 2. P3-1..P3-5 已完成并留证：F-02 像素展开角、F-04 调试输出隔离、F-06 深度 Y 翻转、F-08 透明 ComputeShader 变体隔离；P3-4 的 12 用例与 3 个抓帧覆盖 Approx/PBR 全半分辨率/透明，P3-5 的截图指标覆盖反射中心、权重、空洞、透明、`reflectSky`、关闭基线与探针回退。透明 Y 翻转的“源/目标翻转态不同”分支留给 P4-3 分辨率/XR 矩阵做 GPU 举证。
-3. 下一步 P2-2/P2-3（SSGI 历史 stamp、denoiser Y 翻转）与 P2-4、P4-1（折射 keyword/绑定泄漏）。P1-3 的正交 2 m/20 m 场景、P1-4 的 `gtaoCoverage` 布局与 `light` 开关可复用于后续覆盖/多相机用例。F-12（Forward+ TerrainLit 只收到环境光）建议在 P4-3 渲染器矩阵中定位，它与 GTAO 无关。
+3. 下一步 P2-4（SSGI 覆盖/多探针/时域正确性）与 P4-1（折射 keyword/绑定泄漏）。降噪器在 P2-3 前实际是直通，S3/S5 的时域与半分辨率指标需要在 P2-4 用修复后的构建重新度量。P1-3 的正交 2 m/20 m 场景、P1-4 的 `gtaoCoverage` 布局与 `light` 开关可复用于后续覆盖/多相机用例。F-12（Forward+ TerrainLit 只收到环境光）建议在 P4-3 渲染器矩阵中定位，它与 GTAO 无关。
 4. 每完成一个修复就写 `validation/.../任务ID/` 证据，不攒到最后。
 5. 最后一轮只做回归、文档、清理与归档。P6-2 需要处理本轮 Unity 2022.3.62f1 自动迁移的 `GraphicsSettings/QualitySettings/URP-Balanced/Performant`（与本轮改动无关，当前未提交）。

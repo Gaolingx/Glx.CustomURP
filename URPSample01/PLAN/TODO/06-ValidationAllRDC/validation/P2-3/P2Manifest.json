@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "renderer": "Forward",
+  "warmupFrames": 12,
+  "cases": [
+    {
+      "id": "forward_ssgi_full_denoise_raw",
+      "renderer": "Forward",
+      "effect": "SSGI",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "panPixelsPerFrame": 0
+      },
+      "capture": false,
+      "screenshot": true,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 0,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": false,
+          "denoise": false,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        }
+      },
+      "gtao": {
+        "intensity": 0,
+        "fullResolution": false,
+        "stepCount": 6,
+        "directionCount": 2,
+        "maximumRadiusInPixels": 40,
+        "radius": 2,
+        "directLightingStrength": 0,
+        "temporalAccumulation": true,
+        "ghostingReduction": 0.5,
+        "blurSharpness": 0.1,
+        "spatialBilateralAggressiveness": 0.15,
+        "bilateralUpsample": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 10
+      }
+    },
+    {
+      "id": "forward_ssgi_full_denoise_filtered",
+      "renderer": "Forward",
+      "effect": "SSGI",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "panPixelsPerFrame": 0
+      },
+      "capture": false,
+      "screenshot": true,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 0,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": false,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        }
+      },
+      "gtao": {
+        "intensity": 0,
+        "fullResolution": false,
+        "stepCount": 6,
+        "directionCount": 2,
+        "maximumRadiusInPixels": 40,
+        "radius": 2,
+        "directLightingStrength": 0,
+        "temporalAccumulation": true,
+        "ghostingReduction": 0.5,
+        "blurSharpness": 0.1,
+        "spatialBilateralAggressiveness": 0.15,
+        "bilateralUpsample": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 10
+      }
+    },
+    {
+      "id": "forward_ssgi_half_denoise_raw",
+      "renderer": "Forward",
+      "effect": "SSGI",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "panPixelsPerFrame": 0
+      },
+      "capture": false,
+      "screenshot": true,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 0,
+          "fullResolution": false,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": false,
+          "denoise": false,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": true,
+          "bilateralUpsample": true
+        }
+      },
+      "gtao": {
+        "intensity": 0,
+        "fullResolution": false,
+        "stepCount": 6,
+        "directionCount": 2,
+        "maximumRadiusInPixels": 40,
+        "radius": 2,
+        "directLightingStrength": 0,
+        "temporalAccumulation": true,
+        "ghostingReduction": 0.5,
+        "blurSharpness": 0.1,
+        "spatialBilateralAggressiveness": 0.15,
+        "bilateralUpsample": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 10
+      }
+    },
+    {
+      "id": "forward_ssgi_half_denoise_filtered",
+      "renderer": "Forward",
+      "effect": "SSGI",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "panPixelsPerFrame": 0
+      },
+      "capture": false,
+      "screenshot": true,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 0,
+          "fullResolution": false,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": false,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": true,
+          "bilateralUpsample": true
+        }
+      },
+      "gtao": {
+        "intensity": 0,
+        "fullResolution": false,
+        "stepCount": 6,
+        "directionCount": 2,
+        "maximumRadiusInPixels": 40,
+        "radius": 2,
+        "directLightingStrength": 0,
+        "temporalAccumulation": true,
+        "ghostingReduction": 0.5,
+        "blurSharpness": 0.1,
+        "spatialBilateralAggressiveness": 0.15,
+        "bilateralUpsample": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 10
+      }
+    }
+  ]
+}

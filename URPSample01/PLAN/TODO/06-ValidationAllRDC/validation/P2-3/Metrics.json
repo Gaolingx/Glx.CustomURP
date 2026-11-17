@@ -1,0 +1,31 @@
+{
+  "reportPassed": true,
+  "completed": true,
+  "sameFrame": {
+    "inputMidFraction": 0.0,
+    "outputMidFraction": 0.1837,
+    "inputHf": 0.185644,
+    "outputHf": 0.093817,
+    "highFrequencyRatio": 0.5054,
+    "changedFraction": 0.1837,
+    "passed": true
+  },
+  "screenshots": {
+    "fullResolution": {
+      "inputHf": 0.195288,
+      "outputHf": 0.253171,
+      "highFrequencyRatio": 1.2964
+    },
+    "halfResolution": {
+      "inputHf": 0.060836,
+      "outputHf": 0.051073,
+      "highFrequencyRatio": 0.8395
+    }
+  },
+  "thresholds": {
+    "maxHighFrequencyRatio": 0.75,
+    "minOutputMidFraction": 0.01,
+    "minChangedFraction": 0.05
+  },
+  "passed": true
+}
