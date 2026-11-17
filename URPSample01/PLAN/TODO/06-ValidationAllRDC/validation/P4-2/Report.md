@@ -100,7 +100,7 @@ cmd.SetGlobalTexture(s_ScreenSpaceOcclusionTextureID, Texture2D.blackTexture);
 
 正对照与修复前完全一致：不透明阶段 keyword 22 = GI|SSR|遮挡，透明阶段 25 = 折射|透明 SSR|遮挡（GTAO 的 keyword 在透明阶段仍然开启，清理发生在相机结束）；纹理与参数同理。判断任一掩码为 0 之前，装置先验证 alpha marker（Base 128 / Overlay 191）与正对照，排除“没画到”或“探针失效”造成的假通过。
 
-图像证据：`Before/` 与 `Player/` 各有 45 张 64×64 面图（3 相机 × 5 状态 × 3 模式，文件名 `<case>_leak_<state>_<keywords|bindings|uniforms>.png`）。例如：
+图像证据：`Before/` 与 `Player/` 各有 42 张 64×64 面图（Forward / Forward+ 各 15 = 5 状态 × 3 模式，Deferred 12 = 4 状态 × 3 模式，Overlay 不适用；文件名 `<case>_leak_<state>_<keywords|bindings|uniforms>.png`）。例如：
 
 | 文件 | 内容 |
 |---|---|
