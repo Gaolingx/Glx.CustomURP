@@ -1,7 +1,7 @@
 # P2-2 SSGI 历史 stamp（F-07）（2026-11-17）
 
 > 任务：P2-2。目标：切换 `publishProbeAtlas` 等影响历史语义的设置后，下一帧 `historyValidity=0`，旧 radiance 不跨配置残留；不影响历史的参数切换则不重置。
-> 结论：**7/7 用例通过**。4 个被纳入 stamp 的字段（probe atlas、ray steps、depth thickness，覆盖 Forward/Deferred 两条渲染路径）在切换后下一帧 `historyValid=false`、reset 计数 +1、stamp 改变；`intensity` 与 `denoiserRadius` 作为对照，切换后 history 保持有效且 stamp 不变。
+> 结论：**7/7 用例通过**。3 个被纳入 stamp 的字段（probe atlas、ray steps、depth thickness，共 5 个用例，覆盖 Forward/Deferred 两条渲染路径）在切换后下一帧 `historyValid=false`、reset 计数 +1、stamp 改变；`intensity` 与 `denoiserRadius` 作为对照，切换后 history 保持有效且 stamp 不变。
 
 ## 1. 修复
 
