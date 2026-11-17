@@ -1,3 +1,4 @@
+using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -125,6 +126,46 @@ namespace UnityEditor.Rendering.Universal.Tests
             m_Feature.Dispose();
 
             Assert.IsNull(m_Feature.historyStore);
+        }
+
+        // X1: a camera that never runs the feature (preview / reflection / overlay / missing
+        // resources) must not inherit the previous camera's result textures either. The player
+        // evidence is in validation/P4-2; this guards the per-camera clear wiring.
+        [Test]
+        public void PerCameraClearResetsTheMaterialBindings()
+        {
+            var projectRoot = Path.GetDirectoryName(Application.dataPath);
+            var path = Path.Combine(
+                projectRoot, "Packages", "com.unity.render-pipelines.universal@14.0.12",
+                "Runtime", "ScriptableRenderer.cs");
+            Assert.IsTrue(File.Exists(path), $"URP renderer source not found at {path}.");
+
+            var source = File.ReadAllText(path);
+            int start = source.IndexOf("static void ClearRenderingState(CommandBuffer cmd)", System.StringComparison.Ordinal);
+            Assert.GreaterOrEqual(start, 0, "ClearRenderingState is missing.");
+            int end = source.IndexOf("internal void Clear(CameraRenderType cameraType)", start, System.StringComparison.Ordinal);
+            Assert.Greater(end, start, "ClearRenderingState end marker is missing.");
+            var body = source.Substring(start, end - start);
+
+            StringAssert.Contains("cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceGI);", body);
+            StringAssert.Contains("cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceSSR);", body);
+            StringAssert.Contains("cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceTransparentSSR);", body);
+            StringAssert.Contains("cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);", body);
+            StringAssert.Contains("s_SsgiTextureID", body);
+            StringAssert.Contains("s_SsgiParamsID", body);
+            StringAssert.Contains("s_SsrTextureID", body);
+            StringAssert.Contains("s_SsrParamsID", body);
+            StringAssert.Contains("s_TransparentSsrTextureID", body);
+            StringAssert.Contains("s_TransparentSsrParamsID", body);
+            StringAssert.Contains("s_ScreenSpaceOcclusionTextureID", body);
+
+            StringAssert.Contains("Shader.PropertyToID(\"_ScreenSpaceGiTexture\")", source);
+            StringAssert.Contains("Shader.PropertyToID(\"_ScreenSpaceGiParams\")", source);
+            StringAssert.Contains("Shader.PropertyToID(\"_ScreenSpaceSsrTexture\")", source);
+            StringAssert.Contains("Shader.PropertyToID(\"_ScreenSpaceSsrParams\")", source);
+            StringAssert.Contains("Shader.PropertyToID(\"_ScreenSpaceTransparentSsrTexture\")", source);
+            StringAssert.Contains("Shader.PropertyToID(\"_ScreenSpaceTransparentSsrParams\")", source);
+            StringAssert.Contains("Shader.PropertyToID(\"_ScreenSpaceOcclusionTexture\")", source);
         }
     }
 }

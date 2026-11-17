@@ -1423,6 +1423,19 @@ namespace UnityEngine.Rendering.Universal
         static readonly int s_RefractionColorPyramidID = Shader.PropertyToID("_SslRefractionColorPyramid");
         static readonly int s_RefractionDepthTextureID = Shader.PropertyToID("_SslRefractionDepthTexture");
 
+        // The GI, SSR and transparent SSR result textures also point at camera-owned RTHandles. A
+        // camera that never runs the feature must not keep sampling the previous camera's handles, so
+        // the per-camera clear resets them to the same fallback the passes use when they stop.
+        static readonly int s_SsgiTextureID = Shader.PropertyToID("_ScreenSpaceGiTexture");
+        static readonly int s_SsgiParamsID = Shader.PropertyToID("_ScreenSpaceGiParams");
+        static readonly int s_SsrTextureID = Shader.PropertyToID("_ScreenSpaceSsrTexture");
+        static readonly int s_SsrParamsID = Shader.PropertyToID("_ScreenSpaceSsrParams");
+        static readonly int s_TransparentSsrTextureID = Shader.PropertyToID("_ScreenSpaceTransparentSsrTexture");
+        static readonly int s_TransparentSsrParamsID = Shader.PropertyToID("_ScreenSpaceTransparentSsrParams");
+        // GTAO's occlusion texture is also camera-owned; the keyword that gates it is already cleared
+        // above, and the binding follows the same rule.
+        static readonly int s_ScreenSpaceOcclusionTextureID = Shader.PropertyToID("_ScreenSpaceOcclusionTexture");
+
         static void ClearRenderingState(CommandBuffer cmd)
         {
             using var profScope = new ProfilingScope(null, Profiling.clearRenderingState);
@@ -1458,6 +1471,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalInt(s_RefractionProbeCountID, 0);
             cmd.SetGlobalTexture(s_RefractionColorPyramidID, Texture2D.blackTexture);
             cmd.SetGlobalTexture(s_RefractionDepthTextureID, Texture2D.blackTexture);
+            cmd.SetGlobalTexture(s_SsgiTextureID, Texture2D.blackTexture);
+            cmd.SetGlobalVector(s_SsgiParamsID, Vector4.zero);
+            cmd.SetGlobalTexture(s_SsrTextureID, Texture2D.blackTexture);
+            cmd.SetGlobalVector(s_SsrParamsID, Vector4.zero);
+            cmd.SetGlobalTexture(s_TransparentSsrTextureID, Texture2D.blackTexture);
+            cmd.SetGlobalVector(s_TransparentSsrParamsID, Vector4.zero);
+            cmd.SetGlobalTexture(s_ScreenSpaceOcclusionTextureID, Texture2D.blackTexture);
             cmd.SetGlobalVector(s_AmbientOcclusionParamID, Vector4.zero);
         }
 
