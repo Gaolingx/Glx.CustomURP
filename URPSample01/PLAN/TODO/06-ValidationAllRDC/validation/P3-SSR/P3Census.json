@@ -1,0 +1,126 @@
+{
+  "generated": "2026-11-17",
+  "player": "Builds/SslValidationPlayer/SslValidationPlayer.exe (D3D11, Development, 1280x720)",
+  "captures": [
+    {
+      "caseId": "forwardplus_ssr_approx_full",
+      "renderer": "ForwardPlus",
+      "capture": "forwardplus_ssr_approx_full_frame14367.rdc",
+      "file": "forwardplus_ssr_approx_full_frame14367.rdc",
+      "sha256": "81eed8e3f543c416e6f6412df2394c96e66639ca666c83e30455a7c11d34df8a",
+      "byteSize": 21385484,
+      "ssrMarker": { "start": 330, "end": 373 },
+      "dispatchCount": 2,
+      "dispatches": [
+        {
+          "order": 0,
+          "eventId": 348,
+          "label": "trace",
+          "shader": "ScreenSpaceReflections.ScreenSpaceReflectionsTracing",
+          "csShader": "ResourceId::9777",
+          "cbuffer1Bytes": 112,
+          "cbuffer1Variables": 7,
+          "readBindings": 4,
+          "readBindingSlots": ["texture0", "structuredbuffer1", "texture2", "texture3"],
+          "uavCount": 1
+        },
+        {
+          "order": 1,
+          "eventId": 370,
+          "label": "reproject",
+          "shader": "ScreenSpaceReflections.ScreenSpaceReflectionsReprojection",
+          "csShader": "ResourceId::9780",
+          "cbuffer1Bytes": 112,
+          "cbuffer1Variables": 7,
+          "readBindings": 4,
+          "readBindingSlots": ["texture0", "texture1", "texture2", "texture3"],
+          "uavCount": 2
+        }
+      ],
+      "note": "Approximation path has no temporal, copyHistory, bilateral or upsample dispatch; the reproject kernel writes the final colour directly."
+    },
+    {
+      "caseId": "deferred_ssr_pbr_full",
+      "renderer": "Deferred",
+      "capture": "deferred_ssr_pbr_full",
+      "file": "deferred_ssr_pbr_full_frame14437.rdc",
+      "sha256": "8be61fdf90687e02c9ea11ba16fc6db91e0814b2ec4c82c933c8701c10264efc",
+      "byteSize": 37309259,
+      "ssrMarker": { "start": 343, "end": 472 },
+      "dispatchCount": 6,
+      "dispatches": [
+        { "order": 0, "eventId": 364, "label": "trace", "csShader": "ResourceId::9829", "cbuffer1Bytes": 144, "cbuffer1Variables": 9, "readBindings": 7, "uavCount": 1 },
+        { "order": 1, "eventId": 386, "label": "reproject", "csShader": "ResourceId::9831", "cbuffer1Bytes": 112, "cbuffer1Variables": 7, "readBindings": 4, "uavCount": 2 },
+        { "order": 2, "eventId": 413, "label": "temporalAccumulation", "csShader": "ResourceId::9833", "cbuffer1Bytes": 208, "cbuffer1Variables": 13, "readBindings": 8, "uavCount": 2 },
+        { "order": 3, "eventId": 427, "label": "copyHistory", "csShader": "ResourceId::9836", "cbuffer1Bytes": 0, "cbuffer1Variables": 0, "readBindings": 1, "uavCount": 1 },
+        { "order": 4, "eventId": 448, "label": "bilateralFilterH", "csShader": "ResourceId::9838", "cbuffer1Bytes": 144, "cbuffer1Variables": 9, "readBindings": 4, "uavCount": 1 },
+        { "order": 5, "eventId": 469, "label": "bilateralFilterV", "csShader": "ResourceId::9841", "cbuffer1Bytes": 144, "cbuffer1Variables": 9, "readBindings": 4, "uavCount": 1 }
+      ],
+      "note": "PBR full-resolution chain. copyHistory only binds one SRV and one UAV, so RenderDoc reports a 32-byte cbuffer0 with no cbuffer1."
+    },
+    {
+      "caseId": "forward_ssr_pbr_half_transparent",
+      "renderer": "Forward",
+      "capture": "forward_ssr_pbr_half_transparent",
+      "file": "forward_ssr_pbr_half_transparent_frame14349.rdc",
+      "sha256": "52e70ba114ae2d4e3f9751a676c471804942d61b3a0a70828ca6e3b9c60b5381",
+      "byteSize": 28751930,
+      "ssrMarker": { "start": 324, "end": 468 },
+      "dispatchCount": 7,
+      "dispatches": [
+        { "order": 0, "eventId": 345, "label": "trace", "csShader": "ResourceId::9886", "cbuffer1Bytes": 144, "cbuffer1Variables": 9, "readBindings": 7, "uavCount": 1 },
+        { "order": 1, "eventId": 367, "label": "reproject", "csShader": "ResourceId::9888", "cbuffer1Bytes": 112, "cbuffer1Variables": 7, "readBindings": 4, "uavCount": 2 },
+        { "order": 2, "eventId": 394, "label": "temporalAccumulationHalfRes", "csShader": "ResourceId::9889", "cbuffer1Bytes": 208, "cbuffer1Variables": 13, "readBindings": 8, "uavCount": 2 },
+        { "order": 3, "eventId": 408, "label": "copyHistory", "csShader": "ResourceId::9836", "cbuffer1Bytes": 0, "cbuffer1Variables": 0, "readBindings": 1, "uavCount": 1 },
+        { "order": 4, "eventId": 429, "label": "bilateralFilterH_HR", "csShader": "ResourceId::9890", "cbuffer1Bytes": 144, "cbuffer1Variables": 9, "readBindings": 4, "uavCount": 1 },
+        { "order": 5, "eventId": 450, "label": "bilateralFilterV_HR", "csShader": "ResourceId::9891", "cbuffer1Bytes": 144, "cbuffer1Variables": 9, "readBindings": 4, "uavCount": 1 },
+        { "order": 6, "eventId": 465, "label": "upsample", "csShader": "ResourceId::9892", "cbuffer1Bytes": 0, "cbuffer1Variables": 0, "readBindings": 2, "uavCount": 1 }
+      ],
+      "resourceChains": [
+        {
+          "resource": "ResourceId::9851",
+          "name": "SslSsrPbrOriginal_640x360",
+          "usage": [
+            { "eventId": 367, "usage": "CS_RWResource", "role": "reproject write" },
+            { "eventId": 394, "usage": "CS_Resource", "role": "temporal read" },
+            { "eventId": 450, "usage": "CS_RWResource", "role": "bilateral V write" },
+            { "eventId": 465, "usage": "CS_Resource", "role": "upsample read" }
+          ]
+        },
+        {
+          "resource": "ResourceId::9756",
+          "name": "SslSsrOutput_1280x720",
+          "usage": [
+            { "eventId": 465, "usage": "CS_RWResource", "role": "upsample write" },
+            { "eventId": 509, "usage": "PS_Resource", "role": "opaque draw read" },
+            { "eventId": 515, "usage": "PS_Resource", "role": "opaque draw read" },
+            { "eventId": 523, "usage": "PS_Resource", "role": "opaque draw read" },
+            { "eventId": 587, "usage": "PS_Resource", "role": "opaque draw read" },
+            { "eventId": 621, "usage": "PS_Resource", "role": "opaque draw read" },
+            { "eventId": 627, "usage": "PS_Resource", "role": "opaque draw read" }
+          ]
+        },
+        {
+          "resource": "ResourceId::9913",
+          "name": "SslSsrTransparentOutput_1280x720",
+          "usage": [
+            { "eventId": 1123, "usage": "CS_RWResource", "role": "transparent reproject write" },
+            { "eventId": 1200, "usage": "PS_Resource", "role": "transparent draw read" }
+          ]
+        }
+      ],
+      "textureStats": {
+        "SslSsrOutput_1280x720": { "min": [0.0, 0.0, 0.0, 0.0], "max": [4.94140625, 4.296875, 3.419921875, 1.0] },
+        "SslSsrTransparentOutput_1280x720": { "min": [0.0, 0.0, 0.0, 0.0], "max": [0.433837890625, 0.465087890625, 0.533203125, 1.0] },
+        "SslSsrTransparentHitPoint_1280x720": { "min": [0.3720703125, 0.0, 0.0, 1.0], "max": [99.0, 0.3076171875, 0.0, 1.0] }
+      },
+      "transparentSsrMarker": { "start": 1083, "end": 1126 },
+      "transparentDispatchCount": 2,
+      "transparentDispatches": [
+        { "order": 0, "eventId": 1101, "label": "trace", "csShader": "ResourceId::9925", "shader": "ScreenSpaceReflections (Transparent SSR).ScreenSpaceReflectionsTracing", "cbuffer1Bytes": 112, "cbuffer1Variables": 7, "readBindings": 4, "uavCount": 1 },
+        { "order": 1, "eventId": 1123, "label": "reproject", "csShader": "ResourceId::9928", "shader": "ScreenSpaceReflections (Transparent SSR).ScreenSpaceReflectionsReprojection", "cbuffer1Bytes": 112, "cbuffer1Variables": 7, "readBindings": 4, "uavCount": 2 }
+      ],
+      "note": "Opaque trace 9886 carries the 144-byte / 9-variable PBR variant while the transparent trace 9925 carries the 112-byte / 7-variable variant, so both keyword sets coexist in one frame."
+    }
+  ]
+}

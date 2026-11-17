@@ -1,0 +1,135 @@
+{
+  "weightMonotonicity": {
+    "samples": [
+      {
+        "smoothness": 0.95,
+        "p90Weight": 255
+      },
+      {
+        "smoothness": 0.8,
+        "p90Weight": 245
+      },
+      {
+        "smoothness": 0.65,
+        "p90Weight": 207
+      },
+      {
+        "smoothness": 0.4,
+        "p90Weight": 78
+      }
+    ],
+    "decreasing": true,
+    "passed": true
+  },
+  "coverage": {
+    "region": {
+      "x": [
+        100,
+        1180
+      ],
+      "y": [
+        600,
+        700
+      ]
+    },
+    "pbr": {
+      "pixels": 108000,
+      "nonzero": 105887,
+      "fraction": 0.9804,
+      "passed": true
+    },
+    "approximation": {
+      "pixels": 108000,
+      "nonzero": 108000,
+      "fraction": 1.0,
+      "passed": true
+    }
+  },
+  "mirrorCenter": {
+    "expected": [
+      515.29,
+      609.42
+    ],
+    "measured": [
+      514.59,
+      608.9
+    ],
+    "errorPx": 0.87,
+    "passed": true
+  },
+  "gradientOrder": {
+    "column": 765,
+    "measured": [
+      "blue",
+      "green",
+      "red",
+      "white"
+    ],
+    "expected": [
+      "blue",
+      "green",
+      "red",
+      "white"
+    ],
+    "passed": true
+  },
+  "transparentOptIn": {
+    "panelDiff": {
+      "pixels": 48960,
+      "meanAbsDiff": 1.495,
+      "maxAbsDiff": 121,
+      "pixelsAbove1": 19137
+    },
+    "controlDiff": {
+      "pixels": 68000,
+      "meanAbsDiff": 0.392,
+      "maxAbsDiff": 13,
+      "pixelsAbove1": 4652
+    },
+    "passed": true
+  },
+  "transparentWeight": {
+    "region": {
+      "x": [
+        480,
+        800
+      ],
+      "y": [
+        325,
+        478
+      ]
+    },
+    "pixels": 48960,
+    "weightedPixels": 22000,
+    "fraction": 0.4493,
+    "passed": true
+  },
+  "reflectSky": {
+    "floorDiff": {
+      "pixels": 301600,
+      "meanAbsDiff": 8.2,
+      "maxAbsDiff": 139,
+      "pixelsAbove1": 262044
+    },
+    "skyDiff": {
+      "pixels": 301600,
+      "meanAbsDiff": 0.0,
+      "maxAbsDiff": 0,
+      "pixelsAbove1": 0
+    },
+    "passed": true
+  },
+  "baselineIntensityZero": {
+    "pixels": 883200,
+    "meanAbsDiff": 0.0,
+    "maxAbsDiff": 0,
+    "pixelsAbove1": 0,
+    "passed": true
+  },
+  "probeFallback": {
+    "pixels": 500568,
+    "maxAbsDiff": 0,
+    "pixelsAbove1": 0,
+    "passed": true
+  }
+}
