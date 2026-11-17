@@ -1,0 +1,84 @@
+{
+  "date": "2026-11-17",
+  "unity": "2022.3.62f1",
+  "graphics": "D3D11 editor",
+  "editMode": {
+    "total": 455,
+    "passed": 455,
+    "failed": 0,
+    "skipped": 0,
+    "xml": "EditMode/UnityEditModeFull.xml",
+    "log": "EditMode/UnityEditModeFull.log"
+  },
+  "playMode": {
+    "preFix": {
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "cause": "P4-4 removed validFrameCount; the PlayMode assertion still read it",
+      "evidence": "PlayMode/BeforeFix.json"
+    },
+    "postFix": {
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "xml": "PlayMode/UnityPlayModeTests.xml",
+      "log": "PlayMode/UnityPlayModeTests.log"
+    }
+  },
+  "closedBaseline": {
+    "effectsOff": "byte-identical reference after on/off cycle (3 renderers)",
+    "featureDisabled": "byte-identical reference (3 renderers)",
+    "volumeComponentsRemoved": "byte-identical reference (3 renderers)",
+    "intensityZero": "covered by P1-GTAO and P3-5 evidence"
+  },
+  "settingsRestoration": {
+    "GraphicsSettings.asset": "1965d795622315852c0e3dced3f15db7b16b805958387add74fe54f10d684e71",
+    "QualitySettings.asset": "f7698a6c2c236296dc0f4ff054c925bf44a80a57c09b2ad2b643105e8a389249",
+    "ProjectSettings.asset": "ecba8e50b77feb0ceb8ec4dee2fc85faa0512fb2058a6c5568e88451b42b0a93",
+    "EditorSettings.asset": "2702f317d35952146794d4b795d5a202d5139ee2a5a4540ac5df015ff4d89a86"
+  },
+  "t12Replay": {
+    "total": 103,
+    "forward": { "cases": 34, "failed": 0 },
+    "forwardPlus": { "cases": 34, "failed": 0 },
+    "deferred": { "cases": 35, "failed": 0 },
+    "globalKeywordsClean": true,
+    "cameraStackPreviewReflection": true,
+    "sslPrivateBytes": 107827712,
+    "gtaoPrivateBytes": 3686400,
+    "sslDepthPyramidMips": 12,
+    "sslColorPyramidMips": 9,
+    "report": "T12/T12Verification.json",
+    "log": "T12/UnityT12.log"
+  },
+  "performance": {
+    "protocol": "T1 baseline player, 1280x720, 60 warmup, 1800 samples, 60 fps target, D3D11",
+    "baselineReference": "PLAN/Done/01-ScreenSpaceLighting/validation/T14/T14Performance.json",
+    "cpuP95DeltaPercent": { "Forward": 0.956, "ForwardPlus": 2.191, "Deferred": 1.035 },
+    "cpuGate10Percent": true,
+    "gpuPolicy": "reference-only; DVFS cannot be locked on this machine",
+    "graphicsDriverBytesDeltaPercent": { "Forward": 0.088, "ForwardPlus": 0.088, "Deferred": 0.065 },
+    "evidence": "Perf/PerfComparison.json"
+  },
+  "harnessMigration": {
+    "files": [
+      "ScreenSpaceLightingT4Verification.cs",
+      "ScreenSpaceLightingT5Verification.cs",
+      "ScreenSpaceLightingT6Verification.cs",
+      "ScreenSpaceLightingT7Verification.cs",
+      "ScreenSpaceLightingT12Verification.cs"
+    ],
+    "replacement": "validFrameCount -> frameSerial; depthPyramidMipCount -> depthPyramidInfo.mipLevelCount; dead resourceGeneration check -> color-pyramid mip count",
+    "runtimeVerified": "T4 run: serial 12 -> 13 after cut, temp camera 1 -> 4, 640x360 color mips 8, depth mips 12",
+    "t4Exit": "1 (pre-existing live-reference and DEV-counter assertions, unrelated to the migration)"
+  },
+  "accepted": {
+    "gpuP95Gate": "reference-only (DVFS non-lockable)",
+    "rtCount10xCyles": "accepted; no dedicated counter; T12 byte snapshot + PlayMode pruning",
+    "xrSinglePassSmoke": "accepted environment limit",
+    "t4T7HarnessSuiteStatus": "outside the test suite"
+  },
+  "exitCriteriaMet": true
+}

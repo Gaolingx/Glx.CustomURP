@@ -4,9 +4,9 @@
 > HDRP alignment pass (03-SSRImprove2 T1–T3), the SSGI Forward/Deferred probe fallback
 > (04-SSGIFallbackImprove P0–P5), the screen-space refraction HDRP alignment
 > (05-ScreenSpaceRefractionImprove P0-1/P0-2/P0-3/P1-1/P1-2/P1-3) and the all-effects GPU
-> validation (06-ValidationAllRDC P0–P5). Items below are deliberate URP adaptations or
+> validation (06-ValidationAllRDC P0–P6). Items below are deliberate URP adaptations or
 > environment limits, not open bugs; the 06 four-category record is
-> [KnownDifferences.md](../../../../TODO/06-ValidationAllRDC/KnownDifferences.md).
+> [KnownDifferences.md](../../../../Done/06-ValidationAllRDC/KnownDifferences.md).
 > 06 fixed F-01–F-12 (GTAO full-res/orthographic/early-return, SSGI stamp/denoiser taps,
 > SSR spread angle/debug target/depth flip/keyword ordering, refraction state reset, dead code,
 > and the validation-build Forward+ variant gap).

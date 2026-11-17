@@ -53,7 +53,7 @@ This section records 06 GPU validation coverage; rows marked Pending are exit-cr
 | MSAA 1× / 4× | Passed on Forward and ForwardPlus; Deferred compatibility path ignores MSAA (P4-3) |
 | A→B camera keyword/binding reset | Passed (P4-1/P4-2; injected leaks 60/60 before fix → 0 after; 44/44 rejected-camera bindings clean) |
 | XR single-pass | NotRevalidatedAfter06 (T13/T14 Mock HMD evidence remains; a dedicated smoke is deferred) |
-| T12 combination matrix replay | Pending (historical 34/34/35 from T12; 06 replay deferred) |
+| T12 combination matrix replay | Met: 06 replay 34/34/35, 0 issues (PLAN/Done/06-ValidationAllRDC/validation/P6/T12) |
 | EditMode full suite | Passed (455/455, P6) |
 | PlayMode full suite | Passed (6/6, P6; 3 renderers × 2 tests) |
 | Performance (1280×720 GPU delta) | Pending (no 06 measurement; not claimed) |

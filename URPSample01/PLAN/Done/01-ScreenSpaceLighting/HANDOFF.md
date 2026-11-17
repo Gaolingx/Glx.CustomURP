@@ -31,7 +31,7 @@
 - Release Player（`BuildOptions.None`，不含 Development/TestAssemblies）构建成功、0 errors，17 个必需 ComputeShader/Shader 资产全部在包内；DX11/DX12/Vulkan 三 API 双 XR 模式全部 `passed=true`。
 - 支持矩阵、已知差异、性能/显存与归档清单已生成；T1 与 T14 临时 Player 目录已删除。
 - 四个模板/测试 pipeline 资产上被构建期 shader prefiltering 改写的字段已还原；`URP-HighFidelity-Renderer` 与 `URP-Balanced-Renderer` 中 T5 删除 SSAO 后残留的 SSAO Feature 已移除（这正是此前每次构建日志里 `missing RendererFeatures` 报错的来源）。
-- **06-ValidationAllRDC 进行中（2026-11-17）**：P0–P4 已完成并留证，P5 差异文档已完成，P6 回归子集完成（EditMode 455/455、PlayMode 6/6）；P6 汇总、清理与归档以及 T12 回放、性能、RT 计数待做。四分类差异（A 引擎能力 / B URP 架构 / C 有意适配 / D 缺陷）与 F-01..F-12 状态见 [KnownDifferences.md](../../TODO/06-ValidationAllRDC/KnownDifferences.md)；任务表、证据索引与退出标准见 [06 HANDOFF](../../TODO/06-ValidationAllRDC/HANDOFF.md)，回归证据见 [P6/Report.md](../../TODO/06-ValidationAllRDC/validation/P6/Report.md)。T14 的“重复 Hi-Z 显存”条目已作废（GTAO 与 SSL 共享 packed Hi-Z），支持矩阵已补 06 覆盖与 Pending 项。
+- **06-ValidationAllRDC 已完成（2026-11-17）**：P0–P4 已完成并留证，P5 差异文档已完成，P6 完成（EditMode 455/455、PlayMode 6/6、T12 回放 34/34/35、1280×720 CPU p95 与显存复测；10× RT 计数与 XR 按 Accepted）。四分类差异（A 引擎能力 / B URP 架构 / C 有意适配 / D 缺陷）与 F-01..F-12 状态见 [KnownDifferences.md](../../Done/06-ValidationAllRDC/KnownDifferences.md)；任务表、证据索引与退出标准见 [06 HANDOFF](../../Done/06-ValidationAllRDC/HANDOFF.md)，回归证据见 [P6/Report.md](../../Done/06-ValidationAllRDC/validation/P6/Report.md)。T14 的“重复 Hi-Z 显存”条目已作废（GTAO 与 SSL 共享 packed Hi-Z），支持矩阵已补 06 覆盖。
 
 ## 后续缺陷修复（2026-11-15）：GTAO 竖向条带
 
