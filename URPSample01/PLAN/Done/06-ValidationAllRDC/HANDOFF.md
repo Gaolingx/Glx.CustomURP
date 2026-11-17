@@ -62,7 +62,7 @@
 
 **P5（2026-11-17）**：差异复盘与文档收敛。新建 [KnownDifferences.md](KnownDifferences.md)，按 A 引擎能力 / B URP 架构 / C 有意适配 / D 缺陷四类固化 GTAO、SSGI、SSR、透明 SSR 与折射的差异和 F-01..F-12 状态。记录两项本轮决定：`ScreenSpaceLightingDebugMode` 枚举从 14–17 重排为 13–16（13 的空洞被补平，项目内 45 个序列化 `debugMode` 全为 0，属破坏性 API 变更但无需资产迁移）；GTAO 与 SSL 共享 packed Hi-Z，使 T14 的“重复 Hi-Z 显存”条目作废。同步更新 [T14KnownDifferences](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)（06 范围、正交 GTAO、未复现 warning）、[T14SupportMatrix](../../Done/01-ScreenSpaceLighting/validation/T14/T14SupportMatrix.md)（06 覆盖与 Pending 项）与 [主 HANDOFF](../../Done/01-ScreenSpaceLighting/HANDOFF.md) 的当前位置。下一项为 P6 回归、汇总、清理与归档。
 
-**P6 回归子集（2026-11-17）**：全量 EditMode **455/455**、全量 PlayMode **6/6**（三渲染器 × 两用例）。PlayMode 首跑暴露 P4-4 的清理残留：`validFrameCount` 删除后测试仍反射读取该字段，三渲染器均读到 -1；把断言改为 `frameSerial > 1` 后通过。PlayMode 同时覆盖效果关/feature 关/Volume 组件移除后逐字节恢复参考、第二相机 history 条目回收、全局 keyword 清理；`intensity=0` 基线沿用 P1-3（GTAO）与 P3-5（SSR）。构建 warning 抽查确认 4001 条中 3998 条为插件 `Load` 截断、3 条为 URP 核心 shader，无 C# warning。T12 回放、1280×720 性能、10× RT 计数循环与 XR smoke 仍未完成（证据 [validation/P6/Report.md](validation/P6/Report.md)）。
+**P6 回归子集（2026-11-17）**：全量 EditMode **455/455**、全量 PlayMode **6/6**（三渲染器 × 两用例）。PlayMode 首跑暴露 P4-4 的清理残留：`validFrameCount` 删除后测试仍反射读取该字段，三渲染器均读到 -1；把断言改为 `frameSerial > 1` 后通过。PlayMode 同时覆盖效果关/feature 关/Volume 组件移除后逐字节恢复参考、第二相机 history 条目回收、全局 keyword 清理；`intensity=0` 基线沿用 P1-3（GTAO）与 P3-5（SSR）。构建 warning 抽查确认 4001 条中 3998 条为插件 `Load` 截断、3 条为 URP 核心 shader，无 C# warning。T12 回放与 1280×720 性能已在 P6 完成；10× RT 计数循环与 XR smoke 按 Accepted 记录（证据 [validation/P6/Report.md](validation/P6/Report.md)）。
 
 ---
 
@@ -103,7 +103,7 @@
 2. **非目标材质不受影响**：SimpleLit、Unlit、Particles、Terrain、Decal、未 opt-in 的透明材质输出不变，SSGI/SSR 权重为 0。
 3. **无每帧托管分配**：新增验证代码不得进入播放器每帧路径；probe 扫描仍只在 30 帧节流点发生。
 4. **无资源泄漏**：相机切换、分辨率变化、效果开关循环后，RTHandle/RT 计数回到基线；全局纹理不得指向已释放句柄。
-5. **证据可复现**：每个缺陷/验收项必须有 `validation/06-ValidationAllRDC/` 下的图像、JSON 或 GPU 抓帧；不接受"看起来正常"。
+5. **证据可复现**：每个缺陷/验收项必须有 `PLAN/Done/06-ValidationAllRDC/validation/` 下的图像、JSON 或 GPU 抓帧；不接受"看起来正常"。
 6. **允许破坏性变更**：本轮可以删除 Volume 字段、死 uniform、兼容分支与旧调试视图；但必须同步更新测试、文档和已知差异，不保留旧路径。
 
 ---
@@ -402,7 +402,7 @@ HDRP 的 `DiffuseDenoiser.compute` 在 tap 投影时处理 `UNITY_UV_STARTS_AT_T
 | P5-3 | P5 | 更新主 HANDOFF 的当前位置 | P5-2 | 文档 | **完成（[主 HANDOFF](../../Done/01-ScreenSpaceLighting/HANDOFF.md)）** |
 | P6-0 | P6 | 全量 EditMode/PlayMode 与关闭基线回归 | P5 | 测试 | **完成（EditMode 455/455、PlayMode 6/6，证据 [P6/Report.md](validation/P6/Report.md)）** |
 | P6-1 | P6 | 汇总 `Report.json` / `Report.md`（exitCriteriaMet） | 全部 | `validation/` | **完成（exitCriteriaMet=true，证据 [P6/Results.json](validation/P6/Results.json)）** |
-| P6-2 | P6 | 清理 player/设置/临时抓帧，恢复 ProjectSettings | 全部 | 工作区 | **完成（设置逐字节恢复；player/Builds/Logs 已清）** |
+| P6-2 | P6 | 清理 player/设置/临时抓帧，恢复 ProjectSettings | 全部 | 工作区 | **完成（设置逐字节恢复；player/Builds/Logs 已清；52 个抓帧按 1 GB 预算入库）** |
 | P6-3 | P6 | 归档到 `PLAN/Done/06-ValidationAllRDC/` | P6-1/P6-2 | 目录 | **完成** |
 
 ---
@@ -701,8 +701,9 @@ PLAN/Done/06-ValidationAllRDC/validation/
 ### 7.5 `.rdc` 体积与提交策略
 
 - 每个效果每种渲染器至少保留 1 个代表抓帧；全部抓帧的 `Census.json`、`BindingProbe.json`、PNG、指标都提交。
-- 提交的 `.rdc` 总量预算 **≤150 MB**，代表抓帧 **≤12 个**；超出部分只保留 SHA-256 与本地 `validation-local/` 路径，不入库。
+- 本轮验证抓帧**全部入库**：当前 52 个、963.9 MiB；提交总量预算 **≤1 GB**（`git ls-files '*.rdc'` 统计）。抓帧是本轮 GPU 证据的一部分，不再只保留本地副本。
 - 不提交 player 可执行文件与 `_Data`/`UnityPlayer.dll`；`.rdc` 提交前确认仓库策略与 review 成本。
+- 历史 `Player.log` 保留抓帧时的绝对路径（含 `PLAN/TODO`），不随归档改写；JSON/MD 中的路径已指向 `PLAN/Done`。
 
 ---
 
@@ -711,7 +712,7 @@ PLAN/Done/06-ValidationAllRDC/validation/
 1. **先记录再删除**：保存 `git status --short`、`git diff --check` 到 `validation/P6/Cleanup/`。
 2. **恢复 ProjectSettings**：批处理会重写 `Graphics/Quality/Project`，逐项恢复到开工前 SHA-256；记录校验结果。
 3. **删除临时产物**：`Builds/Validation*`、`Temp/`、`Logs/`、`UserSettings/` 变更；保留 `validation/` 与测试资产。
-4. **清理抓帧**：只保留预算内的 `.rdc`；`renderdoc-cli`/`qrenderdoc` 进程不占用文件后再移动。
+4. **清理抓帧**：抓帧按 1 GB 预算全部入库；只删除临时/重复抓帧，确保每类用例至少保留一个可判读的代表帧；`renderdoc-cli`/`qrenderdoc` 进程不占用文件后再移动。
 5. **资源完整性**：所有新资产有 `.meta`，无孤儿 `.meta`；`Report.json` 中路径均存在。
 6. **归档**：已移动到 `PLAN/Done/06-ValidationAllRDC`，旧 `PLAN/TODO/06-ValidationAllRDC` 已移除。
 7. **最终检查**：`git status --short` 只含预期文件；无生成物；提交信息为英文、描述"为什么"而不是"改了什么"。
@@ -727,7 +728,7 @@ PLAN/Done/06-ValidationAllRDC/validation/
 5. **SSR 像素展开角修复后的视觉变化**：移动相机下 history 保留更多，可能出现轻微拖影；这是 HDRP 的预期行为，需与"残影 ≤1/255"阈值一起验收。
 6. **正交 GTAO 是 URP 新增**：没有 HDRP 对照，验收依赖解析半径与稳定性，不承诺像素级一致。
 7. **XR**：RDC 抓帧只保证 D3D11；Mock HMD + single-pass 的纹理数组绑定（`blackTexture` 2D 绑到 `TEXTURE2D_X`）需要单独 smoke，可能无法在 RDC 内完整验证。
-8. **`.rdc` 体积**：大场景抓帧可能超过预算；优先保留小而可判读的场景，复杂场景只保留分析 JSON。
+8. **`.rdc` 体积**：本轮已入库 52 个、963.9 MiB，预算提高到 1 GB；大场景仍优先保留小而可判读的代表帧，复杂场景同时保留分析 JSON。
 9. **破坏性清理**：删除 Volume 字段/旧调试视图会影响现有场景/Profile；本轮允许，但必须在迁移说明中列出并更新测试资产。
 
 ---
@@ -780,7 +781,7 @@ PLAN/Done/06-ValidationAllRDC/validation/
 | `06-14 Document the HDRP differences and archive the round` | P5/P6 |
 | `06-15 Undo the render target flip in the SSGI denoiser taps` | F-09 + `Record the P2-3 denoiser evidence` |
 
-> 提交前逐项确认：不含 player 二进制/`_Data`/`Library`/`Temp`/`Logs`/`.csproj`/`.sln`；`.rdc` 在预算内；`git diff --check` 无空白错误；文档中的文件/行号引用与当前代码一致。
+> 提交前逐项确认：不含 player 二进制/`_Data`/`Library`/`Temp`/`Logs`/`.csproj`/`.sln`；`.rdc` 总量 ≤1 GB；`git diff --check` 无空白错误；文档中的文件/行号引用与当前代码一致。
 
 ---
 

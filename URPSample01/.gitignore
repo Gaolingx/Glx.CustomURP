@@ -78,10 +78,5 @@ crashlytics-build.properties
 /PLAN/Done/01-ScreenSpaceLighting/validation/T1/Player/
 /PLAN/Done/01-ScreenSpaceLighting/validation/T14/Player/
 
-# 06 P0 smoke captures stay local; the committed evidence is Report.json/BindingProbe/PNG (HANDOFF 7.5 budget)
-/PLAN/Done/06-ValidationAllRDC/validation/P0/Smoke/*.rdc
-
-# 06 player captures stay local (budget: HANDOFF §7.5); the committed evidence is
-# Report.json/BindingProbe/PNG/P2Census.json and, for P2-3, the exported texture pair
-/PLAN/Done/06-ValidationAllRDC/validation/*/Player/*.rdc
-/PLAN/Done/06-ValidationAllRDC/validation/*/Player/*/*.rdc
+# 06 validation captures are committed as GPU evidence under the 1 GB budget (HANDOFF §7.5).
+# Only player binaries and build outputs stay local.

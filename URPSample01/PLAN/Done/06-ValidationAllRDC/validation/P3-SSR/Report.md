@@ -101,4 +101,4 @@
 | `Player/deferred_ssr_pbr_full_frame14437.rdc` | `8be61fdf…64efc` | 37,309,259 |
 | `Player/forward_ssr_pbr_half_transparent_frame14349.rdc` | `52e70ba1…0b5381` | 28,751,930 |
 
-连同 P3-2（2 个）与 P3-3（1 个），当前 `.rdc` 共 6 个、140,263,245 B（约 133.8 MiB），在 150 MB / 12 个预算内。截图 `Player/*.png` 为 12 个用例的最终画面；完整计数见 `Player/Report.json` 与 [P3Census.json](P3Census.json)。
+连同 P3-1（2 个）、P3-2（2 个）与 P3-3（1 个），当前 `.rdc` 共 8 个、约 168 MB，在 1 GB 预算内。截图 `Player/*.png` 为 12 个用例的最终画面；完整计数见 `Player/Report.json` 与 [P3Census.json](P3Census.json)。

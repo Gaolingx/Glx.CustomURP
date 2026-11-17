@@ -140,7 +140,7 @@ Atlas 只在 miss 回退的 reproject kernel 读取，与 `ReflectionProbeFallba
 
 1. **dispatch 组维度只能来自 CPU。** renderdoc-mcp v0.3.0 与 `renderdoc-cli` 都不导出 D3D11 的 dispatch group count；GPU 侧能证明的是 dispatch 是否存在、顺序、kernel shader 与绑定。CPU 统计在 dispatch 调用点直接记录参数，二者互补。
 2. **cbuffer 数值来自 binding probe。** Unity player 剥离 DXBC 反射名，v0.3.0 没有 cbuffer 工具；probe 证明 C# → HLSL 名称/类型/打包契约，GPU 绑定与像素输出作为第二证据。
-3. **`.rdc` 不入库。** 10 个抓帧约 320 MB，超出单轮预算；本地保留在 `validation/P2-SSGI/Player/`，SHA-256 如下。
+3. **`.rdc` 已入库。** 10 个抓帧约 318 MB，在 1 GB 预算内；位于 `validation/P2-SSGI/Player/`，SHA-256 如下。
 
 | 抓帧 | 字节 | SHA-256 |
 |---|---|---|
@@ -167,5 +167,5 @@ validation/P2-SSGI/
     Report.json
     BindingProbe_<case>.json ×10
     <case>.png ×10
-    *.rdc ×10（本地，不入库）
+    *.rdc ×10（已入库）
 ```

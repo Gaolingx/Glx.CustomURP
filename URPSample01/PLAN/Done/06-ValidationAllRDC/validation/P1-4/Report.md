@@ -128,7 +128,7 @@ validation/P1-4/
   Player/
     Report.json          # 16/16 passed
     *.png                # 16 张截图（含 AO 全局视图）
-    *.rdc                # 3 个抓帧，本地保留，不入库（约 12 MB）
+    *.rdc                # 3 个抓帧，已入库（约 12 MB）
   ShadowTest/
     Report.json / *.png  # Forward+ 地形光照观察
 ```

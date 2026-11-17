@@ -84,7 +84,7 @@
 ## 6. 已知边界
 
 - 交付的 player 是 Development 构建，DXBC 反射名被剥离；调度身份由 CS shader ResourceId 与资源使用/统计证明，常量值由 DEV 统计与 `Report.json` 证明。
-- `.rdc` 本地保留，不入库：
+- `.rdc` 已入库：
 
 | 抓帧 | 字节 | SHA-256 |
 |---|---|---|
@@ -102,5 +102,5 @@ validation/P3-2/
     Report.json
     forward_ssr_pbr_full_debug_off.png
     forward_ssr_pbr_full_debug_params.png
-    *.rdc ×2（本地，不入库）
+    *.rdc ×2（已入库）
 ```

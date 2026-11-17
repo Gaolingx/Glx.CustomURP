@@ -55,7 +55,7 @@ python "E:/GitHub/Glx.CustomURP/MCP/tools/rdmcp.py" debug-pixel "$RDC" 640 359 -
 | 阶段 | 状态 | 说明 |
 |---|---|---|
 | P0-1 构建 player | **Executed** | `ScreenSpaceLightingValidationPlayerSetup.BuildPlayer`：D3D11 Development 1280×720，0 error；以 Deferred 资产构建以保留 deferred 变体 |
-| P0-1 抓帧 | **Executed** | 9 个用例通过 in-app API 各抓 1 帧；`.rdc` 本地保留 |
+| P0-1 抓帧 | **Executed** | 9 个用例通过 in-app API 各抓 1 帧；`.rdc` 已入库 |
 | P0-2 分析 | **Executed（CLI）** | 新抓帧上重跑 `renderdoc-cli events`，按 marker 统计 dispatch；脚本未产品化 |
 | P0-3 Binding probe | **Executed** | 35 字段 × 9 用例，0 不匹配；覆盖 SSGI 8 / SSR 7 / GTAO 14 / 折射 6 |
 | P0-4 证据 | **Executed** | `Report.json`、`BindingProbe_*.json`、PNG 已落盘，见 [SmokeReport.md](SmokeReport.md) |
@@ -65,7 +65,7 @@ python "E:/GitHub/Glx.CustomURP/MCP/tools/rdmcp.py" debug-pixel "$RDC" 640 359 -
 1. **原生 MCP 未在当前会话暴露**：`mcp_list(keyword="renderdoc")` 返回空；当前可直接使用 `renderdoc-cli` 或 `MCP/tools/rdmcp.py`。若需要 `mcp__renderdoc_mcp__*` 工具，需在新会话中确认注册生效。
 2. **v0.3.0 没有 cbuffer 工具**：无法直接 dump 常量缓冲；cbuffer 数值证据继续以 binding probe 为主，RDC 的 PSO/shader hash/像素输出为辅。可选从上游 `main` 源码构建带 cbuffer 工具的版本。
 3. **Unity player 剥离 DXBC 反射**：抓帧内常量块显示为 `cbuffer0..4`，变量名为空；不要依赖按名字读取 shader 变量。
-4. **`.rdc` 体积**：沿用 HANDOFF 第 7.5 节预算（提交总量 ≤150 MB、代表抓帧 ≤12 个）。
+4. **`.rdc` 体积**：沿用 HANDOFF 第 7.5 节预算（提交总量 ≤1 GB）。
 5. **抓帧/回放版本**：抓帧使用系统 RenderDoc 1.47，回放使用 renderdoc-mcp 包内运行时；本冒烟回放成功，后续若出现回放失败，优先用系统 `qrenderdoc` 交叉确认。
 
 ## 6. 复现

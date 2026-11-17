@@ -79,7 +79,7 @@
 
 - Unity player 剥离 DXBC 反射名，renderdoc-mcp v0.3.0 没有 cbuffer 工具，因此生产 dispatch 的常量数值由 DEV 统计 + binding probe 证明；RDC 负责 dispatch 存在性、kernel 身份与"帧内无 SSGI"。
 - 慢速平移的 history 接受率与拖影阈值留给 P3-4；本修复的预期收益需在那里量化。
-- `.rdc` 约 36 MB，本地保留，不入库：
+- `.rdc` 约 36 MB，已入库：
 
 | 抓帧 | 字节 | SHA-256 |
 |---|---|---|
@@ -99,5 +99,5 @@ validation/P3-1/
     BindingProbe_forward_ssr_pbr_half_ssgi_off.json
     forward_ssr_pbr_full_ssgi_off.png
     forward_ssr_pbr_half_ssgi_off.png
-    *.rdc ×2（本地，不入库）
+    *.rdc ×2（已入库）
 ```

@@ -80,5 +80,5 @@ validation/P1-1/
     BindingProbe_forward_gtao_half_after.json
     forward_gtao_full_after.png
     forward_gtao_half_after.png
-    *.rdc（本地，约 40 MB，按 7.5 预算不入库）
+    *.rdc（已入库）
 ```

@@ -84,7 +84,7 @@ hClip.y = -hClip.y;
 | 降噪器截图用例 | [P2Manifest.json](P2Manifest.json) → `Player/*.png`、[Player/Report.json](Player/Report.json) |
 | 同帧抓帧用例 | [CaptureManifest.json](CaptureManifest.json) |
 | 分析 | [analyze.py](analyze.py) → [Metrics.json](Metrics.json) |
-| 抓帧 | `Player/forward_ssgi_denoise_capture_frame13144.rdc`（修复前）、`Player/fix/forward_ssgi_denoise_capture_frame12655.rdc`（修复后），本地保留、不入库 |
+| 抓帧 | `Player/forward_ssgi_denoise_capture_frame13144.rdc`（修复前）、`Player/fix/forward_ssgi_denoise_capture_frame12655.rdc`（修复后），已入库 |
 | 导出纹理 | `Player/renderdoc-mcp-export/tex_ResourceId__9830_mip0.png, tex_ResourceId__9840_mip0.png`（修复前）、`Player/fix/renderdoc-mcp-export/…`（修复后） |
 
 ```bash

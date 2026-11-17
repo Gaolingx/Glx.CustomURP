@@ -139,10 +139,10 @@ validation/P1-GTAO/
     BindingProbe_forward_gtao_full_temporal.json   # 15/15 GTAO 字段
     BindingProbe_forward_gtao_ortho.json           # 15/15 GTAO 字段
     *.png                # 16 张截图
-    *.rdc                # 9 个抓帧，本地保留，不入库
+    *.rdc                # 9 个抓帧，已入库
 ```
 
-复现：`python census.py && python rdc_probe.py && python analyze.py`；三个脚本只读 `Player/` 与已提交的抓帧，不需要重跑 player。`.rdc` 按 7.5 预算只保留本地（约 60 MB）。
+复现：`python census.py && python rdc_probe.py && python analyze.py`；三个脚本只读 `Player/` 与已提交的抓帧，不需要重跑 player。`.rdc` 已入库（约 65 MB）。
 
 ## 10. 边界
 

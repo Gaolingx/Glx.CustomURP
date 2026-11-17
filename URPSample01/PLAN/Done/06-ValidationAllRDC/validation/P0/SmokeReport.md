@@ -73,7 +73,7 @@
 - 折射是纯绑定 pass（`SetGlobal*`），没有 dispatch；其证据是 marker 存在 + binding probe 的 6 个全局面量回读。
 - `forward_off` 只有 `SSL Binding Probe` marker，没有 Depth Pyramid / SSL / GTAO pass，关闭基线干净。
 
-`.rdc` 总计约 300 MB，按 HANDOFF 7.5 预算不入库；本地保留在 `validation/P0/Smoke/`，由 `.gitignore` 排除。
+`.rdc` 总计约 171 MB，按 HANDOFF 7.5 的 1 GB 预算已入库；分析 JSON/PNG 与抓帧同目录。
 
 ## 4. Binding probe 结果
 
@@ -125,7 +125,7 @@ SSR 的视觉差异小是因为场景的金属球已由反射探针提供相近�
 2. **Probe 的观测边界**：见 §4 末段；F-02（SSR 降噪器像素展开角）需要 P3-1 的 pass 级证据，不能仅靠 probe。
 3. **SSR 视觉差异小**：P3-5 需要专门的反射场景。
 4. **GTAO 的 frameIndex**：probe 在 pass 之后重算，按 `effectFrameCount - 1` 还原上传帧；RDC 作为最终判据。
-5. **`.rdc` 不入库**：本轮 9 个抓帧共约 300 MB，超出单轮预算；提交的 JSON/PNG 足以复核指标，抓帧按需在本地重放。
+5. **`.rdc` 已入库**：本轮 9 个抓帧共约 171 MB，在 1 GB 预算内；JSON/PNG 与抓帧同目录，可直接重放。
 6. **ProjectSettings 迁移**：Unity 2022.3.62f1 打开了工程并把 `GraphicsSettings/QualitySettings/URP-Balanced/Performant` 重新序列化（与本轮改动无关，未提交）；P6-2 会统一恢复/记录。
 
 ## 8. 证据文件
@@ -139,5 +139,5 @@ validation/P0/
     Player.log
     BindingProbe_<case>.json   ×9
     <case>.png                 ×9
-    <case>_frame*.rdc          ×9（本地，不入库）
+    <case>_frame*.rdc          ×9（已入库）
 ```

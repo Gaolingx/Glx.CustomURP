@@ -125,7 +125,7 @@ LUT 使用说明：Approximation trace 不采样蓝噪声（`SsgiGetSequenceSamp
 
 - 独立实例依赖 `UnityEngine.Object.Instantiate(ComputeShader)`：已验证实例的 keyword 与源资产相互独立，但会额外持有一份 compute 程序；资源生命周期随 feature 释放（EditMode 覆盖）。
 - 桌面 D3D11 的 RT 用例中源与目标句柄同为 Y 翻转态（`sourceFlipped=true, destinationFlipped=true`），因此本帧 `yflip=false`。真正需要翻转的路径（二者不同）由规则源码断言覆盖，GPU 举证留给 P4 的分辨率/XR 矩阵。
-- `.rdc` 本地保留，不入库：
+- `.rdc` 已入库：
 
 | 抓帧 | 字节 | SHA-256 |
 |---|---|---|
@@ -143,5 +143,5 @@ validation/P3-3/
     forward_ssr_pbr_half_transparent.png
     forward_camera_depth_view.png
     forward_transparent_depth_view.png
-    *.rdc ×1（本地，不入库）
+    *.rdc ×1（已入库）
 ```
