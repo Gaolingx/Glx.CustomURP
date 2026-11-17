@@ -1,0 +1,1267 @@
+{
+  "schemaVersion": 1,
+  "renderer": "Forward",
+  "warmupFrames": 16,
+  "cases": [
+    {
+      "id": "matrix_forward_scale50",
+      "renderer": "Forward",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 0.5,
+        "msaa": 1
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_forward_scale100",
+      "renderer": "Forward",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 1.0,
+        "msaa": 1
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_forward_scale200",
+      "renderer": "Forward",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 2.0,
+        "msaa": 1
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_forwardplus_scale50",
+      "renderer": "ForwardPlus",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 0.5,
+        "msaa": 1
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_forwardplus_scale100",
+      "renderer": "ForwardPlus",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 1.0,
+        "msaa": 1
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_forwardplus_scale200",
+      "renderer": "ForwardPlus",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 2.0,
+        "msaa": 1
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_deferred_scale50",
+      "renderer": "Deferred",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 0.5,
+        "msaa": 1
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_deferred_scale100",
+      "renderer": "Deferred",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 1.0,
+        "msaa": 1
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_deferred_scale200",
+      "renderer": "Deferred",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 2.0,
+        "msaa": 1
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_forward_scale75",
+      "renderer": "Forward",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 0.75,
+        "msaa": 1
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_forward_scale100_msaa4",
+      "renderer": "Forward",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 1.0,
+        "msaa": 4
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_forwardplus_scale100_msaa4",
+      "renderer": "ForwardPlus",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 1.0,
+        "msaa": 4
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_deferred_scale100_msaa4",
+      "renderer": "Deferred",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 1.0,
+        "msaa": 4
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "matrix_forward_scale50_msaa4",
+      "renderer": "Forward",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 0.5,
+        "msaa": 4
+      },
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "rayMiss": 3,
+          "fullResolution": true,
+          "maxRaySteps": 32,
+          "depthBufferThickness": 0.1,
+          "intensity": 1,
+          "temporalAccumulation": true,
+          "denoise": true,
+          "denoiserRadius": 0.6,
+          "secondDenoiserPass": true,
+          "halfResolutionDenoiser": false,
+          "bilateralUpsample": true
+        },
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "pbr_forward_scale50",
+      "renderer": "Forward",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 0.5,
+        "msaa": 1
+      },
+      "volume": {
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 1,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "pbr_forward_scale200",
+      "renderer": "Forward",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 2.0,
+        "msaa": 1
+      },
+      "volume": {
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 1,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "pbr_forwardplus_scale50",
+      "renderer": "ForwardPlus",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 0.5,
+        "msaa": 1
+      },
+      "volume": {
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 1,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "pbr_forwardplus_scale200",
+      "renderer": "ForwardPlus",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 2.0,
+        "msaa": 1
+      },
+      "volume": {
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 1,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "pbr_deferred_scale50",
+      "renderer": "Deferred",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 0.5,
+        "msaa": 1
+      },
+      "volume": {
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 1,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    },
+    {
+      "id": "pbr_deferred_scale200",
+      "renderer": "Deferred",
+      "effect": "All",
+      "camera": {
+        "position": [
+          0,
+          2,
+          -7
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warmupFrames": 16,
+      "capture": false,
+      "screenshot": true,
+      "pipeline": {
+        "renderScale": 2.0,
+        "msaa": 1
+      },
+      "volume": {
+        "ssr": {
+          "enabled": true,
+          "usedAlgorithm": 1,
+          "fullResolution": true,
+          "minSmoothness": 0.9,
+          "smoothnessFadeStart": 0.9,
+          "depthBufferThickness": 0.01,
+          "screenFadeDistance": 0.1,
+          "rayMaxIterations": 64,
+          "reflectSky": true,
+          "intensity": 1,
+          "biasFactor": 0.5,
+          "denoiserRadius": 8,
+          "affectSmoothSurfaces": false,
+          "singleReflectionBounce": true
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      }
+    }
+  ]
+}

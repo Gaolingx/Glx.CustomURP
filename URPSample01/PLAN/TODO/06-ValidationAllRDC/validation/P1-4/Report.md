@@ -101,6 +101,8 @@
 
 ## 6. 附带观察：Forward+ 下 TerrainLit 只收到环境光（非 GTAO）
 
+> **P4-3 复核更正（2026-11-17）**：根因不是 Terrain/URP 运行时缺陷。当时的 player 构建期只收集了 Forward/Deferred 变体（quality levels 未引用 Forward+ pipeline），Forward+ 帧实际运行非 Forward+ 变体且没有 `PerObjectData.LightData`，TerrainLit 因此丢掉主光。修正构建期变体收集后，Forward+ 地形像素与 Forward 完全一致（0.184/0.235/0.306 → 0.545/0.529/0.514）。下列 Forward+ 明暗对比结论作废；相对指标（AO 比值）不受影响。证据见 [validation/P4-3/Report.md](../P4-3/Report.md) §2。
+
 覆盖截图中 Forward/Deferred 的 TerrainLit 正常受方向光照射（亮度 0.2446），**Forward+ 的 TerrainLit 只呈现环境光**（0.0439 ≈ 无方向光帧的 0.0483），同帧 Lit 地板在三渲染器均为 0.4391。
 
 [ShadowTest](ShadowTest/)（[P1ShadowTest.json](P1ShadowTest.json)）关闭方向光阴影后：

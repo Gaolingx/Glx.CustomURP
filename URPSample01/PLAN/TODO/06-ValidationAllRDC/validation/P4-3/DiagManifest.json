@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "renderer": "Forward",
+  "warmupFrames": 12,
+  "cases": [
+    {
+      "id": "diag_terrain_forward",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "layout": "gtaoCoverage",
+      "camera": { "position": [0, 2, -9], "rotation": [0, 0, 0] },
+      "capture": true,
+      "screenshot": false,
+      "gtao": { "intensity": 0 },
+      "light": { "directional": true }
+    },
+    {
+      "id": "diag_terrain_forward_plus",
+      "renderer": "ForwardPlus",
+      "effect": "GTAO",
+      "layout": "gtaoCoverage",
+      "camera": { "position": [0, 2, -9], "rotation": [0, 0, 0] },
+      "capture": true,
+      "screenshot": false,
+      "gtao": { "intensity": 0 },
+      "light": { "directional": true }
+    }
+  ]
+}

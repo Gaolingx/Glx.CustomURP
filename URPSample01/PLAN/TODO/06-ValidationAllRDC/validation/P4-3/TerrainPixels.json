@@ -1,0 +1,62 @@
+{
+  "method": "RenderDoc pick_pixel on the final camera color, gtaoCoverage layout, camera (0,2,-9), directional light on. Terrain pixel (1134,463) world (9.5,0.01,3.0); Lit fin pixel (153,438) world (-10,0.4,3.8). Values are the raw linear color attachment.",
+  "before": {
+    "note": "Player built before the quality-level pipeline collection fix; _FORWARD_PLUS variants were stripped.",
+    "forward": "TerrainBefore/diag_terrain_forward_frame10514.rdc @ EID 416",
+    "forwardPlus": "TerrainBefore/diag_terrain_forward_plus_frame10534.rdc @ EID 416",
+    "terrain": {
+      "forward": [
+        0.545098,
+        0.529412,
+        0.513726
+      ],
+      "forwardPlus": [
+        0.184314,
+        0.235294,
+        0.305882
+      ]
+    },
+    "lit": {
+      "forward": [
+        0.54902,
+        0.564706,
+        0.580392
+      ],
+      "forwardPlus": [
+        0.54902,
+        0.564706,
+        0.580392
+      ]
+    }
+  },
+  "after": {
+    "note": "Player built with the three validation pipelines parked on the quality levels for the build.",
+    "forward": "TerrainAfter/diag_terrain_forward_frame5602.rdc @ EID 416",
+    "forwardPlus": "TerrainAfter/diag_terrain_forward_plus_frame5622.rdc @ EID 467",
+    "terrain": {
+      "forward": [
+        0.545098,
+        0.529412,
+        0.513726
+      ],
+      "forwardPlus": [
+        0.545098,
+        0.529412,
+        0.513726
+      ]
+    },
+    "lit": {
+      "forward": [
+        0.54902,
+        0.564706,
+        0.580392
+      ],
+      "forwardPlus": [
+        0.54902,
+        0.564706,
+        0.580392
+      ]
+    }
+  },
+  "passed": true
+}
