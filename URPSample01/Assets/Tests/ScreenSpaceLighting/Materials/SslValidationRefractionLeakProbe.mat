@@ -25,6 +25,8 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _LeakProbeMarker: 0.5
+    - _LeakProbeMinBoundSize: 2
     - _LeakProbeMode: 0
     m_Colors: []
   m_BuildTextureStacks: []

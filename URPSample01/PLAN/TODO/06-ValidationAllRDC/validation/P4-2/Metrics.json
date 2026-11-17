@@ -1,0 +1,400 @@
+{
+  "task": "P4-2",
+  "criterion": "X1",
+  "masks": [
+    "opaqueKeywords",
+    "transparentKeywords",
+    "opaqueBindings",
+    "transparentBindings",
+    "opaqueUniforms",
+    "transparentUniforms"
+  ],
+  "cases": [
+    {
+      "id": "keyword_leak_forward",
+      "before": {
+        "passed": false,
+        "overlaySupported": true,
+        "control": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 44,
+            "transparentBindings": 44,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "live": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 22,
+            "transparentKeywords": 25,
+            "opaqueBindings": 44,
+            "transparentBindings": 63,
+            "opaqueUniforms": 12,
+            "transparentUniforms": 19
+          }
+        },
+        "overlay": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 44,
+            "transparentBindings": 44,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "stale": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 60,
+            "transparentBindings": 60,
+            "opaqueUniforms": 28,
+            "transparentUniforms": 28
+          }
+        },
+        "missing": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 44,
+            "transparentBindings": 44,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        }
+      },
+      "after": {
+        "passed": true,
+        "overlaySupported": true,
+        "control": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "live": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 22,
+            "transparentKeywords": 25,
+            "opaqueBindings": 44,
+            "transparentBindings": 63,
+            "opaqueUniforms": 12,
+            "transparentUniforms": 19
+          }
+        },
+        "overlay": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "stale": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "missing": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        }
+      },
+      "beforeLeaked": true,
+      "beforeResidual": true,
+      "afterCleared": true,
+      "liveObserved": true,
+      "passed": true
+    },
+    {
+      "id": "keyword_leak_forward_plus",
+      "before": {
+        "passed": false,
+        "overlaySupported": true,
+        "control": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 44,
+            "transparentBindings": 44,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "live": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 22,
+            "transparentKeywords": 25,
+            "opaqueBindings": 44,
+            "transparentBindings": 63,
+            "opaqueUniforms": 12,
+            "transparentUniforms": 19
+          }
+        },
+        "overlay": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 44,
+            "transparentBindings": 44,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "stale": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 60,
+            "transparentBindings": 60,
+            "opaqueUniforms": 28,
+            "transparentUniforms": 28
+          }
+        },
+        "missing": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 44,
+            "transparentBindings": 44,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        }
+      },
+      "after": {
+        "passed": true,
+        "overlaySupported": true,
+        "control": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "live": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 22,
+            "transparentKeywords": 25,
+            "opaqueBindings": 44,
+            "transparentBindings": 63,
+            "opaqueUniforms": 12,
+            "transparentUniforms": 19
+          }
+        },
+        "overlay": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "stale": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "missing": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        }
+      },
+      "beforeLeaked": true,
+      "beforeResidual": true,
+      "afterCleared": true,
+      "liveObserved": true,
+      "passed": true
+    },
+    {
+      "id": "keyword_leak_deferred",
+      "before": {
+        "passed": false,
+        "overlaySupported": false,
+        "control": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 44,
+            "transparentBindings": 44,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "live": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 22,
+            "transparentKeywords": 25,
+            "opaqueBindings": 44,
+            "transparentBindings": 63,
+            "opaqueUniforms": 12,
+            "transparentUniforms": 19
+          }
+        },
+        "overlay": {
+          "visible": false,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "stale": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 60,
+            "transparentBindings": 60,
+            "opaqueUniforms": 28,
+            "transparentUniforms": 28
+          }
+        },
+        "missing": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 44,
+            "transparentBindings": 44,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        }
+      },
+      "after": {
+        "passed": true,
+        "overlaySupported": false,
+        "control": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "live": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 22,
+            "transparentKeywords": 25,
+            "opaqueBindings": 44,
+            "transparentBindings": 63,
+            "opaqueUniforms": 12,
+            "transparentUniforms": 19
+          }
+        },
+        "overlay": {
+          "visible": false,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "stale": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        },
+        "missing": {
+          "visible": true,
+          "masks": {
+            "opaqueKeywords": 0,
+            "transparentKeywords": 0,
+            "opaqueBindings": 0,
+            "transparentBindings": 0,
+            "opaqueUniforms": 0,
+            "transparentUniforms": 0
+          }
+        }
+      },
+      "beforeLeaked": true,
+      "beforeResidual": true,
+      "afterCleared": true,
+      "liveObserved": true,
+      "passed": true
+    }
+  ],
+  "editMode": {
+    "result": "Passed",
+    "total": 456,
+    "passed": 456,
+    "failed": 0,
+    "skipped": 0
+  },
+  "allPassed": true
+}

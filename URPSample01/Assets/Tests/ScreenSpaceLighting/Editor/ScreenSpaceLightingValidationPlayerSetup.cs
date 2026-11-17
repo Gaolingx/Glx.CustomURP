@@ -99,7 +99,7 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         verification.mirrorMaterial = materials.mirror;
         verification.gradientMaterial = materials.gradient;
         verification.glassMaterial = materials.glass;
-        verification.refractionLeakProbeMaterial = materials.refractionLeakProbe;
+        verification.leakProbeMaterial = materials.refractionLeakProbe;
         verification.complexLitMaterial = materials.complexLit;
         verification.simpleLitMaterial = materials.simpleLit;
         verification.bakedLitMaterial = materials.bakedLit;
@@ -498,6 +498,7 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         }
 
         material.SetFloat("_LeakProbeMode", 0f);
+        material.SetFloat("_LeakProbeMarker", 0.5f);
         material.renderQueue = (int)RenderQueue.Geometry;
         EditorUtility.SetDirty(material);
         return material;

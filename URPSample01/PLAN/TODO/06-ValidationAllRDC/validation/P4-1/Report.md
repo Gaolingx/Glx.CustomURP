@@ -100,6 +100,8 @@ python analyze.py   # Before/Report.json × Player/Report.json → Metrics.json
 
 `Before/` 由未修复代码构建的同版本 player 产生（与 `Player/` 使用同一 manifest、同一场景）。
 
+> 装置说明：P4-2 把本 rig 泛化为 5 个 keyword / 6 个绑定 / 5 组参数的位掩码矩阵，manifest 字段由 `refractionLeakCheck` 改为 `keywordLeakCheck`，表面 shader 改为 `mask / 255` 输出。复现本节数值需检出 `158a17c`（P4-1 证据提交）；当前装置的 GI/SSR/遮挡 `44/60 → 0` 证据见 [P4-2/Report.md](../P4-2/Report.md)。
+
 ## 5. 回归与构建
 
 | 项 | 结果 |
@@ -112,5 +114,5 @@ python analyze.py   # Before/Report.json × Player/Report.json → Metrics.json
 ## 6. 覆盖边界
 
 - **Preview / Overlay / 零尺寸 / XR 布局**：player 无法创建 Preview 相机，本用例以 Reflection 相机验证“能力拒绝 + 无 pass”路径；其余相机类型的拒绝规则已有 `ScreenSpaceCapabilityTests` 覆盖（`PreviewCameraIsRejected` / `OverlayCameraIsRejected` / `EmptyTargetSizeIsRejected`）。
-- **其余 4 个贡献 keyword**（GI/SSR/TransparentSSR/Occlusion）：`ClearRenderingState` 早已逐相机关闭；本用例只对折射做注入对比。若 P4-2 执行完整 keyword 矩阵，可复用本 rig，把表面 shader 的 `multi_compile` 扩展到 5 个 keyword 并按位编码。
+- **其余 4 个贡献 keyword**（GI/SSR/TransparentSSR/Occlusion）：`ClearRenderingState` 早已逐相机关闭；本用例只对折射做注入对比。P4-2 已复用本 rig 扩展为 5 keyword / 6 绑定的完整矩阵，并补上 GI/SSR/TransparentSSR 与遮挡纹理的逐相机重置（见 [P4-2/Report.md](../P4-2/Report.md)）。
 - **纹理绑定通道**：以白色哨兵 RT 模拟残留纹理；修复后表面采样到黑纹理。真实泄漏中该句柄可能已被释放，shader 是否采样取决于 keyword，故不构造释放句柄的崩溃场景。

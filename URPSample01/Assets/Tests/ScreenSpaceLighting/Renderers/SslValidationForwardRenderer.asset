@@ -1,48 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-5921632351433088709
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5624af99c865277678c7187eee45b915, type: 3}
-  m_Name: SslValidationForwardRenderergtao
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  m_Settings:
-    fullResolution: 0
-    stepCount: 6
-    directionCount: 2
-    maximumRadiusInPixels: 40
-    intensity: 1
-    radius: 2
-    directLightingStrength: 0
-    temporalAccumulation: 1
-    ghostingReduction: 0.5
-    blurSharpness: 0.1
-    spatialBilateralAggressiveness: 0.15
-    bilateralUpsample: 1
-    maxCachedCameras: 8
-    maxUnusedFrames: 120
-    debugMode: 0
-    debugMip: 0
-    resources:
-      gtaoCompute: {fileID: 7200000, guid: cfa2fe98245a09a4db7c7060eee5760f, type: 3}
-      spatialDenoiseCompute: {fileID: 7200000, guid: 265162610aee0494b8c21ce381f3b216,
-        type: 3}
-      temporalDenoiseCompute: {fileID: 7200000, guid: de7aa8161c0a89b4782ec168885e39f4,
-        type: 3}
-      copyHistoryCompute: {fileID: 7200000, guid: 33c8ee286fbdde746aa3264343e5ea54,
-        type: 3}
-      blurAndUpsampleCompute: {fileID: 7200000, guid: e4d69d1bed818664c9bfbcb988f3e256,
-        type: 3}
-      depthPyramidCompute: {fileID: 7200000, guid: e0af0549a8ee5484f995fb60630c4558,
-        type: 3}
-      debugShader: {fileID: 4800000, guid: c98c3e6b641ab544abb57ed80a4fdf37, type: 3}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60,10 +17,10 @@ MonoBehaviour:
       type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
-  - {fileID: -5921632351433088709}
-  - {fileID: 6573628345565796681}
-  - {fileID: 8184201582529345910}
-  m_RendererFeatureMap: 3ba15e22c022d2ad4959e3d626383a5b76f9d940fa1f9471
+  - {fileID: 4866669570355602615}
+  - {fileID: 3300039363024956110}
+  - {fileID: 4256927254426731620}
+  m_RendererFeatureMap: b7a43f8430e28943ceaae8f95018cc2d64c4c8a2c8a4133b
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -112,7 +69,7 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
---- !u!114 &6573628345565796681
+--- !u!114 &3300039363024956110
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -149,7 +106,7 @@ MonoBehaviour:
         type: 3}
       transparentDepthCopyShader: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220,
         type: 3}
---- !u!114 &8184201582529345910
+--- !u!114 &4256927254426731620
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -163,6 +120,49 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   probeCompute: {fileID: 7200000, guid: ff4399db7e03b3d469cd51911ab79349, type: 3}
-  lightingFeature: {fileID: 6573628345565796681}
-  ambientOcclusionFeature: {fileID: -5921632351433088709}
+  lightingFeature: {fileID: 3300039363024956110}
+  ambientOcclusionFeature: {fileID: 4866669570355602615}
   probeEnabled: 0
+--- !u!114 &4866669570355602615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5624af99c865277678c7187eee45b915, type: 3}
+  m_Name: SslValidationForwardRenderergtao
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Settings:
+    fullResolution: 0
+    stepCount: 6
+    directionCount: 2
+    maximumRadiusInPixels: 40
+    intensity: 1
+    radius: 2
+    directLightingStrength: 0
+    temporalAccumulation: 1
+    ghostingReduction: 0.5
+    blurSharpness: 0.1
+    spatialBilateralAggressiveness: 0.15
+    bilateralUpsample: 1
+    maxCachedCameras: 8
+    maxUnusedFrames: 120
+    debugMode: 0
+    debugMip: 0
+    resources:
+      gtaoCompute: {fileID: 7200000, guid: cfa2fe98245a09a4db7c7060eee5760f, type: 3}
+      spatialDenoiseCompute: {fileID: 7200000, guid: 265162610aee0494b8c21ce381f3b216,
+        type: 3}
+      temporalDenoiseCompute: {fileID: 7200000, guid: de7aa8161c0a89b4782ec168885e39f4,
+        type: 3}
+      copyHistoryCompute: {fileID: 7200000, guid: 33c8ee286fbdde746aa3264343e5ea54,
+        type: 3}
+      blurAndUpsampleCompute: {fileID: 7200000, guid: e4d69d1bed818664c9bfbcb988f3e256,
+        type: 3}
+      depthPyramidCompute: {fileID: 7200000, guid: e0af0549a8ee5484f995fb60630c4558,
+        type: 3}
+      debugShader: {fileID: 4800000, guid: c98c3e6b641ab544abb57ed80a4fdf37, type: 3}

@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "renderer": "Forward",
+  "warmupFrames": 12,
+  "cases": [
+    {
+      "id": "keyword_leak_forward",
+      "renderer": "Forward",
+      "effect": "ScreenSpaceLighting",
+      "camera": {
+        "position": [0, 2, -7],
+        "rotation": [0, 0, 0]
+      },
+      "warmupFrames": 12,
+      "capture": false,
+      "screenshot": false,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "fullResolution": true,
+          "temporalAccumulation": true,
+          "denoise": true
+        },
+        "ssr": {
+          "enabled": true,
+          "enabledTransparent": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "disabled": false,
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      },
+      "keywordLeakCheck": true
+    },
+    {
+      "id": "keyword_leak_forward_plus",
+      "renderer": "ForwardPlus",
+      "effect": "ScreenSpaceLighting",
+      "camera": {
+        "position": [0, 2, -7],
+        "rotation": [0, 0, 0]
+      },
+      "warmupFrames": 12,
+      "capture": false,
+      "screenshot": false,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "fullResolution": true,
+          "temporalAccumulation": true,
+          "denoise": true
+        },
+        "ssr": {
+          "enabled": true,
+          "enabledTransparent": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "disabled": false,
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      },
+      "keywordLeakCheck": true
+    },
+    {
+      "id": "keyword_leak_deferred",
+      "renderer": "Deferred",
+      "effect": "ScreenSpaceLighting",
+      "camera": {
+        "position": [0, 2, -7],
+        "rotation": [0, 0, 0]
+      },
+      "warmupFrames": 12,
+      "capture": false,
+      "screenshot": false,
+      "volume": {
+        "ssgi": {
+          "enabled": true,
+          "fullResolution": true,
+          "temporalAccumulation": true,
+          "denoise": true
+        },
+        "ssr": {
+          "enabled": true,
+          "enabledTransparent": true,
+          "usedAlgorithm": 0,
+          "fullResolution": true
+        },
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "disabled": false,
+        "intensity": 1,
+        "fullResolution": true
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      },
+      "keywordLeakCheck": true
+    }
+  ]
+}

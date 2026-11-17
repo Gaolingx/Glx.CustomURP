@@ -49,7 +49,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     public Material gradientMaterial;
     public Material glassMaterial;
     public Material mirrorMaterial;
-    public Material refractionLeakProbeMaterial;
+    public Material leakProbeMaterial;
 
     [Header("Coverage materials")]
     public Material complexLitMaterial;
@@ -84,13 +84,38 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     readonly List<ReflectionProbe> m_ProbeRigProbes = new List<ReflectionProbe>();
     GameObject m_LeakRig;
     Camera m_LeakCamera;
+    Camera m_LeakBaseCamera;
+    Camera m_LeakOverlayCamera;
     RenderTexture m_LeakTarget;
+    readonly List<Material> m_LeakMaterials = new List<Material>();
+    int m_LeakBindThreshold = 2;
+    int m_LeakBlackTextureSize = 1;
 
     static readonly int s_RefractionParamsID = Shader.PropertyToID("_SslRefractionParams");
     static readonly int s_RefractionProbeCountID = Shader.PropertyToID("_SslRefractionProbeCount");
     static readonly int s_RefractionColorPyramidID = Shader.PropertyToID("_SslRefractionColorPyramid");
+    static readonly int s_RefractionDepthTextureID = Shader.PropertyToID("_SslRefractionDepthTexture");
+    static readonly int s_SsgiTextureID = Shader.PropertyToID("_ScreenSpaceGiTexture");
+    static readonly int s_SsgiParamsID = Shader.PropertyToID("_ScreenSpaceGiParams");
+    static readonly int s_SsrTextureID = Shader.PropertyToID("_ScreenSpaceSsrTexture");
+    static readonly int s_SsrParamsID = Shader.PropertyToID("_ScreenSpaceSsrParams");
+    static readonly int s_TransparentSsrTextureID = Shader.PropertyToID("_ScreenSpaceTransparentSsrTexture");
+    static readonly int s_TransparentSsrParamsID = Shader.PropertyToID("_ScreenSpaceTransparentSsrParams");
+    static readonly int s_OcclusionTextureID = Shader.PropertyToID("_ScreenSpaceOcclusionTexture");
     const string k_RefractionKeyword = "_SCREEN_SPACE_REFRACTION";
+    const string k_SsgiKeyword = "_SCREEN_SPACE_GI";
+    const string k_SsrKeyword = "_SCREEN_SPACE_SSR";
+    const string k_TransparentSsrKeyword = "_SCREEN_SPACE_TRANSPARENT_SSR";
+    const string k_OcclusionKeyword = "_SCREEN_SPACE_OCCLUSION";
     const int k_LeakProbeSize = 64;
+    // The two probe surfaces sit in separate screen regions so one readback reports the opaque and
+    // the transparent pass state; the overlay stack uses the same layout on its own layer.
+    const int k_OpaqueProbeLayer = 30;
+    const int k_OverlayProbeLayer = 31;
+    static readonly Vector2Int s_OpaqueProbePixel = new Vector2Int(32, 32);
+    static readonly Vector2Int s_TransparentProbePixel = new Vector2Int(55, 32);
+    const int k_BaseMarker = 128;
+    const int k_OverlayMarker = 191;
     Light m_DirectionalLight;
     bool m_OutputsWritten;
     float m_ProgressDeadline;
@@ -364,8 +389,8 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         LogStep(result.id + ": warmup done, effect state G=" + result.gtaoIntensity +
             " S=" + result.ssgiActive + " R=" + result.ssrActive + " T=" + result.refractionActive);
 
-        if (testCase.refractionLeakCheck)
-            yield return CheckRefractionLeak(testCase, result);
+        if (testCase.keywordLeakCheck)
+            yield return CheckKeywordLeak(testCase, result);
 
         if (testCase.bindingProbe && probeFeature != null)
             yield return ReadBindingProbe(probeFeature, testCase.id, result);
@@ -509,55 +534,117 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         }
     }
 
-    // F-05: a capability-rejected reflection camera must not inherit the refraction keyword or the
-    // material-facing bindings. The injection goes through a command buffer so it lands in the same
-    // device-level state a previous camera's commands leave behind, and the reflection camera renders
-    // synchronously between the injection and the readback.
-    IEnumerator CheckRefractionLeak(SslValidationCase testCase, SslValidationCaseResult result)
+    // X1: a camera that never runs the Screen Space Lighting / GTAO passes must not inherit the
+    // previous camera's keywords or material-facing bindings. Four rejected paths are measured: the
+    // reflection camera type, an overlay camera in a stack, the missing-resource early return, and a
+    // command-buffer injection that recreates a stale device state. Every state is read from an
+    // opaque and a transparent probe surface, because refraction and transparent SSR only exist
+    // during the transparent phase.
+    IEnumerator CheckKeywordLeak(SslValidationCase testCase, SslValidationCaseResult result)
     {
-        var evidence = new SslRefractionLeakStats();
-        result.refractionLeak = evidence;
+        var evidence = new SslKeywordLeakStats();
+        result.keywordLeak = evidence;
 
-        if (m_LeakRig == null || m_LeakCamera == null || m_LeakTarget == null || refractionLeakProbeMaterial == null)
+        if (m_LeakRig == null || m_LeakCamera == null || m_LeakBaseCamera == null ||
+            m_LeakOverlayCamera == null || m_LeakTarget == null || m_LeakMaterials.Count == 0)
         {
-            result.issues.Add("The refraction leak rig is unavailable.");
+            result.issues.Add("The keyword leak rig is unavailable.");
             yield break;
         }
 
-        if (!result.refractionActive)
+        if (!result.ssgiActive || !result.ssrActive || !result.refractionActive)
         {
-            result.issues.Add("The refraction leak check needs an active refraction effect on the main camera.");
+            result.issues.Add("The keyword leak check needs SSGI, SSR and refraction active on the main camera.");
             yield break;
         }
 
         m_LeakRig.SetActive(true);
+        m_LeakOverlayCamera.enabled = false;
         yield return WaitFrames(2, 0f);
-
         evidence.frameIndex = Time.frameCount;
+        evidence.blackTextureSize = m_LeakBlackTextureSize;
+        evidence.bindThreshold = m_LeakBindThreshold;
 
-        var controlState = RenderLeakCamera(testCase.id + "_leak_control_state", 0f);
-        var controlTexture = RenderLeakCamera(testCase.id + "_leak_control_texture", 1f);
-        evidence.controlVisible = controlState.a > 32 && controlState.a < 224 &&
-                                  controlTexture.a > 32 && controlTexture.a < 224;
-        evidence.controlKeyword = controlState.r;
-        evidence.controlParameters = controlState.g;
-        evidence.controlProbeCount = controlState.b;
-        evidence.controlTexture = controlTexture.r;
+        // Control: the rejected reflection camera with nothing injected. A clean state reads zero.
+        evidence.controlVisible = ReadLeakMasks(
+            m_LeakCamera, testCase.id + "_leak_control", k_BaseMarker, evidence.control);
 
-        var sentinel = new RenderTexture(4, 4, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+        // Live: the supported base camera runs every pass. The opaque probe must see GI, SSR and
+        // occlusion, the transparent probe refraction and transparent SSR; that proves the masks can
+        // actually observe enabled state instead of being stuck at zero.
+        WarmupLeakCamera(m_LeakBaseCamera, 4);
+        evidence.liveVisible = ReadLeakMasks(
+            m_LeakBaseCamera, testCase.id + "_leak_live", k_BaseMarker, evidence.live);
+
+        // Missing resources: the feature returns before enqueueing anything, so the base camera must
+        // still observe a cleared state. This runs before the injection so the values left by the
+        // live renders are the ones the early return has to displace. GTAO is muted so its own
+        // occlusion keyword cannot mask the result.
+        var rendererData = ResolveRendererData(result.renderer);
+        var sslFeature = FindFeature<ScreenSpaceLightingRendererFeature>(rendererData);
+        var settings = sslFeature?.GetType().GetProperty("settings", InstanceFlags)?.GetValue(sslFeature);
+        var resources = settings?.GetType().GetField("resources", InstanceFlags)?.GetValue(settings);
+        var depthComputeField = resources?.GetType().GetField("depthPyramidCompute", InstanceFlags);
+        if (depthComputeField == null)
+        {
+            result.issues.Add("The Screen Space Lighting feature has no depth pyramid resource field.");
+        }
+        else
+        {
+            var originalDepthCompute = depthComputeField.GetValue(resources);
+            try
+            {
+                ApplyGtaoSettings(rendererData, new SslGtaoCase { intensity = 0f });
+                depthComputeField.SetValue(resources, null);
+                evidence.missingVisible = ReadLeakMasks(
+                    m_LeakBaseCamera, testCase.id + "_leak_missing", k_BaseMarker, evidence.missing);
+            }
+            finally
+            {
+                depthComputeField.SetValue(resources, originalDepthCompute);
+                ApplyGtaoSettings(rendererData, testCase.gtao);
+            }
+        }
+
+        // Overlay: the base camera leaves its state behind and the overlay camera must clear it. The
+        // larger marker proves the overlay draw wrote the readback pixel. Deferred does not support
+        // camera stacking, so its overlay camera never renders and the branch does not exist there.
+        evidence.overlaySupported = SupportsOverlayStack(m_LeakBaseCamera);
+        if (evidence.overlaySupported)
+        {
+            m_LeakOverlayCamera.enabled = true;
+            evidence.overlayVisible = ReadLeakMasks(
+                m_LeakBaseCamera, testCase.id + "_leak_overlay", k_OverlayMarker, evidence.overlay);
+            m_LeakOverlayCamera.enabled = false;
+        }
+
+        var sentinelSize = Mathf.Max(8, m_LeakBindThreshold * 2);
+        var sentinel = new RenderTexture(sentinelSize, sentinelSize, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
         sentinel.Create();
         try
         {
             Graphics.SetRenderTarget(sentinel);
             GL.Clear(true, true, Color.white);
 
-            var inject = CommandBufferPool.Get("SSL Refraction Leak Injection");
+            var inject = CommandBufferPool.Get("SSL Keyword Leak Injection");
             try
             {
                 inject.EnableShaderKeyword(k_RefractionKeyword);
+                inject.EnableShaderKeyword(k_SsgiKeyword);
+                inject.EnableShaderKeyword(k_SsrKeyword);
+                inject.EnableShaderKeyword(k_TransparentSsrKeyword);
+                inject.EnableShaderKeyword(k_OcclusionKeyword);
                 inject.SetGlobalVector(s_RefractionParamsID, new Vector4(7f, 8f, 9f, 10f));
                 inject.SetGlobalInt(s_RefractionProbeCountID, 5);
                 inject.SetGlobalTexture(s_RefractionColorPyramidID, sentinel);
+                inject.SetGlobalTexture(s_RefractionDepthTextureID, sentinel);
+                inject.SetGlobalTexture(s_SsgiTextureID, sentinel);
+                inject.SetGlobalVector(s_SsgiParamsID, new Vector4(1f, 2f, 3f, 4f));
+                inject.SetGlobalTexture(s_SsrTextureID, sentinel);
+                inject.SetGlobalVector(s_SsrParamsID, new Vector4(5f, 6f, 7f, 8f));
+                inject.SetGlobalTexture(s_TransparentSsrTextureID, sentinel);
+                inject.SetGlobalVector(s_TransparentSsrParamsID, new Vector4(9f, 10f, 11f, 12f));
+                inject.SetGlobalTexture(s_OcclusionTextureID, sentinel);
                 Graphics.ExecuteCommandBuffer(inject);
             }
             finally
@@ -565,24 +652,30 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
                 CommandBufferPool.Release(inject);
             }
 
-            var injectedState = RenderLeakCamera(testCase.id + "_leak_injected_state", 0f);
-            var injectedTexture = RenderLeakCamera(testCase.id + "_leak_injected_texture", 1f);
-            evidence.visible = injectedState.a > 32 && injectedState.a < 224 &&
-                               injectedTexture.a > 32 && injectedTexture.a < 224;
-            evidence.keyword = injectedState.r;
-            evidence.parameters = injectedState.g;
-            evidence.probeCount = injectedState.b;
-            evidence.texture = injectedTexture.r;
+            evidence.staleVisible = ReadLeakMasks(
+                m_LeakCamera, testCase.id + "_leak_stale", k_BaseMarker, evidence.stale);
         }
         finally
         {
-            var restore = CommandBufferPool.Get("SSL Refraction Leak Restore");
+            var restore = CommandBufferPool.Get("SSL Keyword Leak Restore");
             try
             {
                 restore.DisableShaderKeyword(k_RefractionKeyword);
+                restore.DisableShaderKeyword(k_SsgiKeyword);
+                restore.DisableShaderKeyword(k_SsrKeyword);
+                restore.DisableShaderKeyword(k_TransparentSsrKeyword);
+                restore.DisableShaderKeyword(k_OcclusionKeyword);
                 restore.SetGlobalVector(s_RefractionParamsID, Vector4.zero);
                 restore.SetGlobalInt(s_RefractionProbeCountID, 0);
                 restore.SetGlobalTexture(s_RefractionColorPyramidID, Texture2D.blackTexture);
+                restore.SetGlobalTexture(s_RefractionDepthTextureID, Texture2D.blackTexture);
+                restore.SetGlobalTexture(s_SsgiTextureID, Texture2D.blackTexture);
+                restore.SetGlobalVector(s_SsgiParamsID, Vector4.zero);
+                restore.SetGlobalTexture(s_SsrTextureID, Texture2D.blackTexture);
+                restore.SetGlobalVector(s_SsrParamsID, Vector4.zero);
+                restore.SetGlobalTexture(s_TransparentSsrTextureID, Texture2D.blackTexture);
+                restore.SetGlobalVector(s_TransparentSsrParamsID, Vector4.zero);
+                restore.SetGlobalTexture(s_OcclusionTextureID, Texture2D.blackTexture);
                 Graphics.ExecuteCommandBuffer(restore);
             }
             finally
@@ -595,31 +688,96 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
             Destroy(sentinel);
         }
 
-        evidence.passed =
-            evidence.controlVisible && evidence.visible &&
-            evidence.controlKeyword == 0 && evidence.controlParameters == 0 &&
-            evidence.controlProbeCount == 0 && evidence.controlTexture == 0 &&
-            evidence.keyword == 0 && evidence.parameters == 0 &&
-            evidence.probeCount == 0 && evidence.texture == 0;
+        m_LeakRig.SetActive(false);
+
+        bool controlCleared = evidence.controlVisible && IsLeakStateCleared(evidence.control);
+        bool liveObserved = evidence.liveVisible &&
+            (evidence.live.opaqueKeywords & (2 | 4 | 16)) == (2 | 4 | 16) &&
+            (evidence.live.transparentKeywords & (1 | 8)) == (1 | 8) &&
+            (evidence.live.opaqueBindings & (4 | 8 | 32)) == (4 | 8 | 32) &&
+            (evidence.live.transparentBindings & (1 | 16)) == (1 | 16) &&
+            (evidence.live.transparentUniforms & (1 | 16)) == (1 | 16);
+        bool overlayCleared = !evidence.overlaySupported ||
+            (evidence.overlayVisible && IsLeakStateCleared(evidence.overlay));
+        bool staleCleared = evidence.staleVisible && IsLeakStateCleared(evidence.stale);
+        bool missingCleared = evidence.missingVisible && IsLeakStateCleared(evidence.missing);
+
+        evidence.passed = controlCleared && liveObserved && overlayCleared && staleCleared && missingCleared;
         if (!evidence.passed)
         {
             result.issues.Add(
-                $"Refraction leak evidence failed: control visible={evidence.controlVisible} " +
-                $"keyword/parameters/count/texture={evidence.controlKeyword}/{evidence.controlParameters}/" +
-                $"{evidence.controlProbeCount}/{evidence.controlTexture}, " +
-                $"injected visible={evidence.visible} state={evidence.keyword}/{evidence.parameters}/" +
-                $"{evidence.probeCount} texture={evidence.texture}.");
+                $"Keyword leak evidence failed: control {DescribeLeakState(evidence.controlVisible, evidence.control)}, " +
+                $"live {DescribeLeakState(evidence.liveVisible, evidence.live)}, " +
+                $"overlay supported={evidence.overlaySupported} " +
+                $"{DescribeLeakState(evidence.overlayVisible, evidence.overlay)}, " +
+                $"stale {DescribeLeakState(evidence.staleVisible, evidence.stale)}, " +
+                $"missing {DescribeLeakState(evidence.missingVisible, evidence.missing)}.");
         }
     }
 
-    Color32 RenderLeakCamera(string fileName, float mode)
+    static string DescribeLeakState(bool visible, SslLeakMaskSet masks)
     {
-        refractionLeakProbeMaterial.SetFloat("_LeakProbeMode", mode);
-        m_LeakCamera.Render();
-        return ReadLeakProbeCenter(fileName);
+        return $"visible={visible} keywords={masks.opaqueKeywords}/{masks.transparentKeywords} " +
+               $"bindings={masks.opaqueBindings}/{masks.transparentBindings} " +
+               $"uniforms={masks.opaqueUniforms}/{masks.transparentUniforms}";
     }
 
-    Color32 ReadLeakProbeCenter(string fileName)
+    static bool IsLeakStateCleared(SslLeakMaskSet masks)
+    {
+        return masks.opaqueKeywords == 0 && masks.transparentKeywords == 0 &&
+               masks.opaqueBindings == 0 && masks.transparentBindings == 0 &&
+               masks.opaqueUniforms == 0 && masks.transparentUniforms == 0;
+    }
+
+    void WarmupLeakCamera(Camera camera, int frames)
+    {
+        for (var i = 0; i < frames; i++)
+            camera.Render();
+    }
+
+    // UniversalRenderer only accepts overlay cameras in Forward and Forward+; Deferred reports Base
+    // only and skips the overlay camera, so the rejected-overlay branch cannot exist there.
+    static bool SupportsOverlayStack(Camera camera)
+    {
+        var data = camera.GetComponent<UniversalAdditionalCameraData>();
+        return data != null && data.scriptableRenderer != null &&
+            (data.scriptableRenderer.SupportedCameraStackingTypes() & (1 << (int)CameraRenderType.Overlay)) != 0;
+    }
+
+    bool ReadLeakMasks(Camera camera, string fileName, int marker, SslLeakMaskSet masks)
+    {
+        var keywords = RenderLeakProbe(camera, fileName + "_keywords", 0f);
+        var bindings = RenderLeakProbe(camera, fileName + "_bindings", 1f);
+        var uniforms = RenderLeakProbe(camera, fileName + "_uniforms", 2f);
+
+        masks.opaqueKeywords = ProbeMask(keywords.opaque, marker);
+        masks.transparentKeywords = ProbeMask(keywords.transparent, marker);
+        masks.opaqueBindings = ProbeMask(bindings.opaque, marker);
+        masks.transparentBindings = ProbeMask(bindings.transparent, marker);
+        masks.opaqueUniforms = ProbeMask(uniforms.opaque, marker);
+        masks.transparentUniforms = ProbeMask(uniforms.transparent, marker);
+
+        return masks.opaqueKeywords >= 0 && masks.transparentKeywords >= 0 &&
+               masks.opaqueBindings >= 0 && masks.transparentBindings >= 0 &&
+               masks.opaqueUniforms >= 0 && masks.transparentUniforms >= 0;
+    }
+
+    // A missing marker means the readback pixel did not come from the expected camera, which would
+    // make a zero mask meaningless.
+    static int ProbeMask(Color32 color, int marker)
+    {
+        return Mathf.Abs(color.a - marker) <= 16 ? color.r : -1;
+    }
+
+    LeakProbeReadback RenderLeakProbe(Camera camera, string fileName, float mode)
+    {
+        foreach (var material in m_LeakMaterials)
+            material.SetFloat("_LeakProbeMode", mode);
+        camera.Render();
+        return ReadLeakProbe(fileName);
+    }
+
+    LeakProbeReadback ReadLeakProbe(string fileName)
     {
         var previous = RenderTexture.active;
         Texture2D readback = null;
@@ -636,7 +794,11 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
                     readback.EncodeToPNG());
             }
 
-            return readback.GetPixel(k_LeakProbeSize / 2, k_LeakProbeSize / 2);
+            return new LeakProbeReadback
+            {
+                opaque = readback.GetPixel(s_OpaqueProbePixel.x, s_OpaqueProbePixel.y),
+                transparent = readback.GetPixel(s_TransparentProbePixel.x, s_TransparentProbePixel.y),
+            };
         }
         finally
         {
@@ -644,6 +806,12 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
                 Destroy(readback);
             RenderTexture.active = previous;
         }
+    }
+
+    struct LeakProbeReadback
+    {
+        public Color32 opaque;
+        public Color32 transparent;
     }
 
     static object ReadSsgiStatsObject()
@@ -1818,53 +1986,101 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         }
     }
 
-    // F-05: a self-contained rig parked below the main scene. The reflection camera is disabled and
-    // rendered only by the leak check, so its render happens exactly between the state injection and
-    // the readback. The rig stays inactive until a leak case asks for it.
+    // X1: a self-contained rig parked below the main scene. The base camera runs the full effect
+    // chain, the reflection camera is capability-rejected, and the overlay camera is rejected as a
+    // stack overlay. Each layer carries an opaque and a transparent probe surface, so one readback
+    // reports both the opaque-pass and the transparent-pass material state. The rig stays inactive
+    // until a leak case asks for it.
     void BuildLeakRig()
     {
-        m_LeakRig = new GameObject("SSL Refraction Leak Rig");
+        m_LeakRig = new GameObject("SSL Keyword Leak Rig");
         m_LeakRig.transform.position = new Vector3(0f, -200f, 0f);
-
-        var surface = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        surface.name = "Leak Surface";
-        surface.transform.SetParent(m_LeakRig.transform, false);
-        surface.transform.localPosition = new Vector3(0f, 0f, 4f);
-        // The built-in quad's front face looks down -Z, toward the leak camera.
-        surface.transform.localRotation = Quaternion.identity;
-        surface.transform.localScale = new Vector3(2f, 2f, 1f);
-        surface.GetComponent<Renderer>().sharedMaterial = refractionLeakProbeMaterial;
-        Destroy(surface.GetComponent<Collider>());
-
-        var cameraObject = new GameObject("Leak Camera");
-        cameraObject.transform.SetParent(m_LeakRig.transform, false);
-        cameraObject.transform.localPosition = Vector3.zero;
-        cameraObject.transform.localRotation = Quaternion.identity;
-        m_LeakCamera = cameraObject.AddComponent<Camera>();
-        // A capability-rejected camera type: the SSL feature must not enqueue any pass for it.
-        m_LeakCamera.cameraType = CameraType.Reflection;
-        m_LeakCamera.enabled = false;
-        m_LeakCamera.clearFlags = CameraClearFlags.SolidColor;
-        m_LeakCamera.backgroundColor = new Color(0f, 0f, 0f, 1f);
-        m_LeakCamera.fieldOfView = 60f;
-        m_LeakCamera.nearClipPlane = 0.1f;
-        m_LeakCamera.farClipPlane = 10f;
-        m_LeakCamera.allowHDR = true;
-        m_LeakCamera.allowMSAA = false;
-        var cameraData = cameraObject.AddComponent<UniversalAdditionalCameraData>();
-        cameraData.renderType = CameraRenderType.Base;
-        cameraData.renderPostProcessing = false;
-        cameraData.antialiasing = AntialiasingMode.None;
 
         m_LeakTarget = new RenderTexture(
             k_LeakProbeSize, k_LeakProbeSize, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear)
         {
-            name = "SSL Refraction Leak Target",
+            name = "SSL Keyword Leak Target",
         };
         m_LeakTarget.Create();
-        m_LeakCamera.targetTexture = m_LeakTarget;
+
+        // The reset value is the built-in black texture; anything at least one pixel larger than it is
+        // a real camera result texture. Sizes are read at runtime so the probe never guesses.
+        m_LeakBlackTextureSize = Mathf.Max(Texture2D.blackTexture.width, Texture2D.blackTexture.height);
+        m_LeakBindThreshold = Mathf.Max(2, m_LeakBlackTextureSize + 1);
+
+        var baseOpaque = CreateLeakProbeMaterial("SSL Leak Probe (Base Opaque)", k_BaseMarker, RenderQueue.Geometry);
+        var baseTransparent = CreateLeakProbeMaterial("SSL Leak Probe (Base Transparent)", k_BaseMarker, RenderQueue.Transparent);
+        var overlayOpaque = CreateLeakProbeMaterial("SSL Leak Probe (Overlay Opaque)", k_OverlayMarker, RenderQueue.Geometry);
+        var overlayTransparent = CreateLeakProbeMaterial("SSL Leak Probe (Overlay Transparent)", k_OverlayMarker, RenderQueue.Transparent);
+
+        BuildLeakProbeSurface("Reflection Leak Surface", k_OpaqueProbeLayer,
+            new Vector3(0f, 0f, 4f), new Vector3(2f, 2f, 1f), baseOpaque);
+        BuildLeakProbeSurface("Reflection Leak Transparent Surface", k_OpaqueProbeLayer,
+            new Vector3(1.6f, 0f, 4f), new Vector3(1.2f, 1.2f, 1f), baseTransparent);
+        BuildLeakProbeSurface("Overlay Leak Surface", k_OverlayProbeLayer,
+            new Vector3(0f, 0f, 4f), new Vector3(2f, 2f, 1f), overlayOpaque);
+        BuildLeakProbeSurface("Overlay Leak Transparent Surface", k_OverlayProbeLayer,
+            new Vector3(1.6f, 0f, 4f), new Vector3(1.2f, 1.2f, 1f), overlayTransparent);
+
+        // A capability-rejected camera type: the SSL and GTAO features must not enqueue any pass.
+        m_LeakCamera = CreateLeakCamera("Reflection Leak Camera", CameraType.Reflection, k_OpaqueProbeLayer, false);
+        m_LeakBaseCamera = CreateLeakCamera("Overlay Base Camera", CameraType.Game, k_OpaqueProbeLayer, false);
+        m_LeakOverlayCamera = CreateLeakCamera("Overlay Leak Camera", CameraType.Game, k_OverlayProbeLayer, true);
+        m_LeakBaseCamera.GetComponent<UniversalAdditionalCameraData>().cameraStack.Add(m_LeakOverlayCamera);
 
         m_LeakRig.SetActive(false);
+    }
+
+    Material CreateLeakProbeMaterial(string name, int marker, RenderQueue queue)
+    {
+        var material = new Material(leakProbeMaterial) { name = name };
+        material.SetFloat("_LeakProbeMarker", marker / 255f);
+        material.SetFloat("_LeakProbeMinBoundSize", m_LeakBindThreshold);
+        material.renderQueue = (int)queue;
+        m_LeakMaterials.Add(material);
+        return material;
+    }
+
+    void BuildLeakProbeSurface(string name, int layer, Vector3 position, Vector3 scale, Material material)
+    {
+        var surface = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        surface.name = name;
+        surface.layer = layer;
+        surface.transform.SetParent(m_LeakRig.transform, false);
+        surface.transform.localPosition = position;
+        // The built-in quad's front face looks down -Z, toward the leak cameras.
+        surface.transform.localRotation = Quaternion.identity;
+        surface.transform.localScale = scale;
+        var renderer = surface.GetComponent<Renderer>();
+        renderer.sharedMaterial = material;
+        renderer.shadowCastingMode = ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+        Destroy(surface.GetComponent<Collider>());
+    }
+
+    Camera CreateLeakCamera(string name, CameraType cameraType, int layer, bool overlay)
+    {
+        var cameraObject = new GameObject(name);
+        cameraObject.transform.SetParent(m_LeakRig.transform, false);
+        cameraObject.transform.localPosition = Vector3.zero;
+        cameraObject.transform.localRotation = Quaternion.identity;
+        var camera = cameraObject.AddComponent<Camera>();
+        camera.cameraType = cameraType;
+        camera.enabled = false;
+        camera.cullingMask = 1 << layer;
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(0f, 0f, 0f, 1f);
+        camera.fieldOfView = 60f;
+        camera.nearClipPlane = 0.1f;
+        camera.farClipPlane = 10f;
+        camera.allowHDR = true;
+        camera.allowMSAA = false;
+        camera.targetTexture = m_LeakTarget;
+        var cameraData = cameraObject.AddComponent<UniversalAdditionalCameraData>();
+        cameraData.renderType = overlay ? CameraRenderType.Overlay : CameraRenderType.Base;
+        cameraData.renderPostProcessing = false;
+        cameraData.antialiasing = AntialiasingMode.None;
+        return camera;
     }
 
     // Analytic reflection measurements need an uncluttered floor: a single emissive target for the
@@ -2339,9 +2555,9 @@ public sealed class SslValidationCase
     public int screenshotAfterFrames;
     // S4: disable every reflection probe for the zero-probe control.
     public bool disableReflectionProbes;
-    // F-05: after the refraction effect warmed up, render a capability-rejected reflection camera and
-    // read back whether the refraction keyword and bindings reached it.
-    public bool refractionLeakCheck;
+    // X1: after the effects warmed up, render the capability-rejected cameras and read back whether
+    // the five material keywords and the material-facing bindings reached them.
+    public bool keywordLeakCheck;
     // X2: render scale and MSAA live on the pipeline asset; the camera target descriptor follows.
     public SslPipelineCase pipeline = new SslPipelineCase();
     // S2: dim the ambient term so the emitter bounce is the only indirect light on the floor.
@@ -2554,7 +2770,7 @@ public sealed class SslValidationCaseResult
     public SslSsrDispatchStats ssrDispatch;
     public SslSsrDebugViewStats ssrDebugView;
     public SslTransparentSsrStats transparentSsr;
-    public SslRefractionLeakStats refractionLeak;
+    public SslKeywordLeakStats keywordLeak;
     public float renderScale;
     public int msaaSamples;
     public int targetWidth;
@@ -2564,21 +2780,38 @@ public sealed class SslValidationCaseResult
 }
 
 [Serializable]
-public sealed class SslRefractionLeakStats
+public sealed class SslKeywordLeakStats
 {
     public int frameIndex;
-    // The probe surface reports channel 0/1 values; alpha reports that the surface was drawn.
+    // The fallback size and the "bound" threshold the probe used, so the masks are reproducible.
+    public int blackTextureSize;
+    public int bindThreshold;
     public bool controlVisible;
-    public int controlKeyword;
-    public int controlParameters;
-    public int controlProbeCount;
-    public int controlTexture;
-    public bool visible;
-    public int keyword;
-    public int parameters;
-    public int probeCount;
-    public int texture;
+    public SslLeakMaskSet control = new SslLeakMaskSet();
+    public bool liveVisible;
+    public SslLeakMaskSet live = new SslLeakMaskSet();
+    public bool overlaySupported;
+    public bool overlayVisible;
+    public SslLeakMaskSet overlay = new SslLeakMaskSet();
+    public bool staleVisible;
+    public SslLeakMaskSet stale = new SslLeakMaskSet();
+    public bool missingVisible;
+    public SslLeakMaskSet missing = new SslLeakMaskSet();
     public bool passed;
+}
+
+[Serializable]
+public sealed class SslLeakMaskSet
+{
+    // Bits: 1 refraction / 2 GI / 4 SSR / 8 transparent SSR / 16 occlusion.
+    public int opaqueKeywords;
+    public int transparentKeywords;
+    // Bits: 1 refraction pyramid / 2 refraction depth / 4 GI / 8 SSR / 16 transparent SSR.
+    public int opaqueBindings;
+    public int transparentBindings;
+    // Bits: 1 refraction params / 2 refraction probe count / 4 GI / 8 SSR / 16 transparent SSR.
+    public int opaqueUniforms;
+    public int transparentUniforms;
 }
 
 [Serializable]
