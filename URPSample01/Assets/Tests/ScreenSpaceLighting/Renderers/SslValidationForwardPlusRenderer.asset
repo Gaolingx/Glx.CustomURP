@@ -17,10 +17,10 @@ MonoBehaviour:
       type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
-  - {fileID: 7597250059850884207}
-  - {fileID: 8786116031882885695}
-  - {fileID: 4229150395921330289}
-  m_RendererFeatureMap: 6f243a6fadda6e693f7abeebfa8dee7971f097cae0f5b03a
+  - {fileID: 7088799544815920276}
+  - {fileID: 7458356886040108904}
+  - {fileID: 4106331666281710539}
+  m_RendererFeatureMap: 9424b4c0a0796062685f826012688167cbc3a8eae49efc38
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -69,7 +69,7 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
---- !u!114 &4229150395921330289
+--- !u!114 &4106331666281710539
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -83,10 +83,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   probeCompute: {fileID: 7200000, guid: ff4399db7e03b3d469cd51911ab79349, type: 3}
-  lightingFeature: {fileID: 8786116031882885695}
-  ambientOcclusionFeature: {fileID: 7597250059850884207}
+  lightingFeature: {fileID: 7458356886040108904}
+  ambientOcclusionFeature: {fileID: 7088799544815920276}
   probeEnabled: 0
---- !u!114 &7597250059850884207
+--- !u!114 &7088799544815920276
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -129,7 +129,7 @@ MonoBehaviour:
       depthPyramidCompute: {fileID: 7200000, guid: e0af0549a8ee5484f995fb60630c4558,
         type: 3}
       debugShader: {fileID: 4800000, guid: c98c3e6b641ab544abb57ed80a4fdf37, type: 3}
---- !u!114 &8786116031882885695
+--- !u!114 &7458356886040108904
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

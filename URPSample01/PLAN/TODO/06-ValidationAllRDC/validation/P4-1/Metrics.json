@@ -1,0 +1,110 @@
+{
+  "task": "P4-1",
+  "defect": "F-05",
+  "channels": [
+    "keyword",
+    "parameters",
+    "probeCount",
+    "texture"
+  ],
+  "cases": [
+    {
+      "id": "refraction_leak_forward",
+      "beforeInjected": {
+        "keyword": 255,
+        "parameters": 255,
+        "probeCount": 255,
+        "texture": 255
+      },
+      "beforeControl": {
+        "keyword": 0,
+        "parameters": 0,
+        "probeCount": 0,
+        "texture": 0
+      },
+      "afterInjected": {
+        "keyword": 0,
+        "parameters": 0,
+        "probeCount": 0,
+        "texture": 0
+      },
+      "afterControl": {
+        "keyword": 0,
+        "parameters": 0,
+        "probeCount": 0,
+        "texture": 0
+      },
+      "beforeLeaked": true,
+      "afterCleared": true,
+      "passed": true
+    },
+    {
+      "id": "refraction_leak_forward_plus",
+      "beforeInjected": {
+        "keyword": 255,
+        "parameters": 255,
+        "probeCount": 255,
+        "texture": 255
+      },
+      "beforeControl": {
+        "keyword": 0,
+        "parameters": 0,
+        "probeCount": 0,
+        "texture": 0
+      },
+      "afterInjected": {
+        "keyword": 0,
+        "parameters": 0,
+        "probeCount": 0,
+        "texture": 0
+      },
+      "afterControl": {
+        "keyword": 0,
+        "parameters": 0,
+        "probeCount": 0,
+        "texture": 0
+      },
+      "beforeLeaked": true,
+      "afterCleared": true,
+      "passed": true
+    },
+    {
+      "id": "refraction_leak_deferred",
+      "beforeInjected": {
+        "keyword": 255,
+        "parameters": 255,
+        "probeCount": 255,
+        "texture": 255
+      },
+      "beforeControl": {
+        "keyword": 0,
+        "parameters": 0,
+        "probeCount": 0,
+        "texture": 0
+      },
+      "afterInjected": {
+        "keyword": 0,
+        "parameters": 0,
+        "probeCount": 0,
+        "texture": 0
+      },
+      "afterControl": {
+        "keyword": 0,
+        "parameters": 0,
+        "probeCount": 0,
+        "texture": 0
+      },
+      "beforeLeaked": true,
+      "afterCleared": true,
+      "passed": true
+    }
+  ],
+  "editMode": {
+    "result": "Passed",
+    "total": 455,
+    "passed": 455,
+    "failed": 0,
+    "skipped": 0
+  },
+  "allPassed": true
+}

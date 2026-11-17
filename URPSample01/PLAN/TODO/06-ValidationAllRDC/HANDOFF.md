@@ -1,7 +1,7 @@
 # Screen Space Lighting 全量 GPU 验证与收尾交接（06-ValidationAllRDC）
 
 > 更新：2026-11-17
-> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1-1（F-01）、P1-2（F-03）、P1-3（GTAO 生效/正确性，含 F-10）、P1-4（GTAO 材质覆盖与 Deferred 双路径，G6）、P2-1（SSGI 生效链）、P2-2（F-07）、P2-3（F-09）、P2-4（SSGI 覆盖/探针/时域）、P3-1（F-02）、P3-2（F-04）、P3-3（F-06/F-08）、P3-4（SSR 生效链）、P3-5（SSR 正确性）完成**；P4-1 起未开始。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式。P1-1 修复 GTAO 全分辨率深度守卫；P1-2 修复 GTAO 正交深度/视线；P1-3 用 16 用例、9 个抓帧验收 GTAO 调度/keyword/输出/正交/full-res 与 F-10；P1-4 用 16 用例、3 个抓帧验收材质覆盖矩阵、Deferred 有/无方向光两条 AO 路径的单次乘积与关闭基线；P2-1 完成 SSGI dispatch/history/LUT/atlas 的 CPU+GPU 验收（10/10）；P2-2 把 probe atlas、ray steps、depth thickness 纳入 SSGI history stamp，7 用例证明切换后下一帧 validity=0、无关参数不重置；P2-3 确认 denoiser tap 投影缺少 UV 原点朝上平台的 Y 翻转并修复，同一抓帧的 tap 接受数 1/16→16/16、输出高频能量 0.505×；P3-1 修复 SSR 降噪器像素展开角绑定（SSR-only 值精确、GPU 无 SSGI pass）；P3-2 隔离 SSR 调试目标（材质输出不被覆盖、降噪链保留）；P3-3 修复透明深度种子 Y 翻转规则并隔离透明 ComputeShader 变体（PBR/Approx 同帧共存）；P3-4 汇总 SSR 两条算法/全半分辨率/透明的 dispatch 链并抓帧证明资源消费（12/12）；P3-5 用截图指标验收反射中心/权重/空洞/透明/probe 回退（9/9）。
+> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1-1（F-01）、P1-2（F-03）、P1-3（GTAO 生效/正确性，含 F-10）、P1-4（GTAO 材质覆盖与 Deferred 双路径，G6）、P2-1（SSGI 生效链）、P2-2（F-07）、P2-3（F-09）、P2-4（SSGI 覆盖/探针/时域）、P3-1（F-02）、P3-2（F-04）、P3-3（F-06/F-08）、P3-4（SSR 生效链）、P3-5（SSR 正确性）、P4-1（F-05 折射 keyword/绑定泄漏）完成**；P4-2 起未开始。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式。P1-1 修复 GTAO 全分辨率深度守卫；P1-2 修复 GTAO 正交深度/视线；P1-3 用 16 用例、9 个抓帧验收 GTAO 调度/keyword/输出/正交/full-res 与 F-10；P1-4 用 16 用例、3 个抓帧验收材质覆盖矩阵、Deferred 有/无方向光两条 AO 路径的单次乘积与关闭基线；P2-1 完成 SSGI dispatch/history/LUT/atlas 的 CPU+GPU 验收（10/10）；P2-2 把 probe atlas、ray steps、depth thickness 纳入 SSGI history stamp，7 用例证明切换后下一帧 validity=0、无关参数不重置；P2-3 确认 denoiser tap 投影缺少 UV 原点朝上平台的 Y 翻转并修复，同一抓帧的 tap 接受数 1/16→16/16、输出高频能量 0.505×；P3-1 修复 SSR 降噪器像素展开角绑定（SSR-only 值精确、GPU 无 SSGI pass）；P3-2 隔离 SSR 调试目标（材质输出不被覆盖、降噪链保留）；P3-3 修复透明深度种子 Y 翻转规则并隔离透明 ComputeShader 变体（PBR/Approx 同帧共存）；P3-4 汇总 SSR 两条算法/全半分辨率/透明的 dispatch 链并抓帧证明资源消费（12/12）；P3-5 用截图指标验收反射中心/权重/空洞/透明/probe 回退（9/9）。
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`，下文 `HDRP/`）
 > URP 目标包：`URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）
 > 关联文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[T14 支持矩阵](../../Done/01-ScreenSpaceLighting/validation/T14/T14SupportMatrix.md)、[01 ScreenSpaceLighting](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[02 SSRImprove](../../Done/02-SSRImprove/HANDOFF.md)、[03 SSRImprove2](../../Done/03-SSRImprove2/HANDOFF.md)、[04 SSGIFallbackImprove](../../Done/04-SSGIFallbackImprove/HANDOFF.md)、[05 ScreenSpaceRefractionImprove](../../Done/05-ScreenSpaceRefractionImprove/HANDOFF.md)、[RenderDoc 操作手册](../../../../MCP/RenderDocOperations.md)
@@ -51,6 +51,8 @@
 **P1-4（2026-11-17）**：新增 `gtaoCoverage` 布局（Lit/ComplexLit/SimpleLit/BakedLit/Unlit 竖板、TerrainLit 平地 + 接触盒、天空前的透明面板）与 `light` 用例开关（方向光/阴影），16 个用例覆盖三渲染器 × 有/无方向光 × AO on/off × 两条 Deferred 关闭基线。结果：竖板 AO 比值 Lit/ComplexLit/SimpleLit **0.93–0.95**、BakedLit **0.77–0.79**，Unlit 与透明面板 **0 字节差**；TerrainLit 在无方向光帧接触 0.910/0.913 vs 开阔 0.966/0.971；无光路径亮度比与材质 AO 纹理误差 ≤0.011；Deferred 有光路径的像素移动量匹配单次乘积预测（0.18%/0.26%/0.99%），双次预测为 1.45%/2.76%/3.77%；两条路径的消费 shader 哈希互斥（有光 2 个 stencil 照明 draw，无光 1 个 AO-only draw）；两套关闭基线 **max 0 / 0 像素**（证据 [validation/P1-4/Report.md](validation/P1-4/Report.md)）。附带发现：Forward+ 下 TerrainLit 只收到环境光（阴影开关无影响，Forward/Deferred 正常），记入 F-12，建议 P4-3 定位。
 
 **P2-4（2026-11-17）**：新增 SSGI 专用布局（封闭房间、四色反射探针、材质覆盖鳍片）与 player 能力（Flat 环境基线、相机 cut、同序列第二张截图、探针停车），17 个用例覆盖 S2–S6。封闭房间覆盖 **57.1%**、发光体地面 G 增益 **2.26×**、未覆盖像素量化差 0；静止 30 帧帧间 mean **0.034/255**、相机 cut 首帧 validity **true→false**、30 帧残影 **0.161/255**；探针 atlas 开/关在三渲染器为 **4.6/4.3× vs 1.00**，四色权重 **0.517→0.450→0.358**，0 探针无 NaN；半/全相关 **0.9992** 且无 1 px 硬缝；Lit/ComplexLit/ShaderGraph Lit 生效，SimpleLit/BakedLit/Unlit/Terrain **逐字节 0**。GPU 抓帧确认开启 atlas 时存在 2048×1024 探针图集、关闭时不存在；半分辨率 trace 为 640×360 并由 `SslSsgiFinal` 上采样到 1280×720（证据 [validation/P2-4/Report.md](validation/P2-4/Report.md)）。
+
+**P4-1（2026-11-17）**：F-05 修复 `ScriptableRenderer.ClearRenderingState` 缺少的折射清理：每相机起点关闭 `_SCREEN_SPACE_REFRACTION` 并重置 `_SslRefractionParams`、`_SslRefractionProbeCount` 与颜色金字塔/深度两张全局纹理（属性 ID 在 core 内私有声明，保持 `PluginIsolationTests` 通过）。新增泄漏 rig：`CameraType.Reflection` 相机 + 64×64 RT + 表面 shader 逐通道编码 keyword/参数/计数/纹理。注入命令缓冲区级残留后，修复前三渲染器 4 通道全为 255，修复后全为 0，正常 A→B 对照前后均为 0；全量 EditMode **455/455**（证据 [validation/P4-1/Report.md](validation/P4-1/Report.md)）。
 
 ---
 
@@ -172,7 +174,7 @@ Deferred 下 SSGI/SSR 在 GBuffer 阶段消费（事件 207 < 210）；Forward/F
 | F-02 | High | SSR | 反射降噪器的像素展开角为 0；移动相机时 history 世界半径退化为 0.1 下限，时域累积近似失效；SSR-only 相机读到未定义值 | `ReflectionDenoiser.compute:75`；`SsrPass.cs:363` 写独立 float；`_SsgiDenoiserParams` 仅 `SsgiPass.cs:729` 上传 | P3-1 |
 | F-03 | Medium | GTAO | 正交相机用透视 `_ZBufferParams` 线性化深度；`V = normalize(-positionVS)` 在正交下方向随屏幕位置变化 | `GroundTruthAmbientOcclusionPass.cs:356`；`GTAO.compute:143` | P1-2（**Fixed**，[P1-2/Report.md](validation/P1-2/Report.md)） |
 | F-04 | Medium | SSR | 开启 `SsrPbrParams` 调试图时，`DebugSsrParams` 覆盖正式 `ssrOutput`，最终图被替换为诊断参数 | `SsrPass.cs:278-285`；`ScreenSpaceLightingSetupPass.cs` 绑定同一纹理 | P3-2 |
-| F-05 | Medium | 折射 | `_SCREEN_SPACE_REFRACTION` 无相机起点清理；被能力检测拒绝的相机可能继承上一相机的全局 keyword/纹理绑定 | `ScriptableRenderer.cs:1419-1445` 未清理折射；`RefractionPass.DisableMaterialBinding` 只清参数 | P4-1 |
+| F-05 | Medium | 折射 | `_SCREEN_SPACE_REFRACTION` 无相机起点清理；被能力检测拒绝的相机可能继承上一相机的全局 keyword/纹理绑定 | `ScriptableRenderer.cs` 的 `ClearRenderingState` 未清理折射；`RefractionPass.DisableMaterialBinding` 只清参数 | P4-1（**Fixed**，[P4-1/Report.md](validation/P4-1/Report.md)） |
 | F-06 | Medium | Transparent SSR | 透明深度种子固定 `(1,1,0,0)`，在 Y 翻转目标（RT/XR）上与后续深度读取上下颠倒 | `TransparentDepthNormalRenderPass.cs:109` vs `CopyDepthPass.cs:181-182` | P3-3 |
 | F-07 | Medium | SSGI | `publishProbeAtlas` 等开关切换后不重置历史；旧 history 与新的回退策略混用 | `SsgiPass.cs` 的 stamp 不包含该字段 | P2-2（**Fixed**，[P2-2/Report.md](validation/P2-2/Report.md)） |
 | F-08 | Medium | SSR/SSGI | 多个共享 `ComputeShader` 的 keyword 依赖调用顺序：透明 pass 不显式设置 `SSR_HALF_RES` 与 `SSGI_BLUE_NOISE`（`SSR_NORMALS_OCT` 已显式关闭） | `TransparentSsrPass.cs:132-136` | P3-3 |
@@ -381,7 +383,7 @@ HDRP 的 `DiffuseDenoiser.compute` 在 tap 投影时处理 `UNITY_UV_STARTS_AT_T
 | P3-3 | P3 | 修复透明 Y 翻转与共享 keyword（F-06/F-08） | P0 | `TransparentDepthNormalRenderPass.cs`、`TransparentSsrPass.cs` | **完成（Fixed，证据 [P3-3/Report.md](validation/P3-3/Report.md)）** |
 | P3-4 | P3 | SSR 生效链 GPU 验收（两种算法/全半分辨率/透明） | P0/P3-1..3 | `validation/.../P3-SSR/` | **完成（12/12，证据 [P3-SSR/Report.md](validation/P3-SSR/Report.md)）** |
 | P3-5 | P3 | SSR 正确性场景（反射/梯度/空洞/透明/probe 回退） | P3-3 | 测试场景/材质 | **完成（9/9 指标，证据 [P3-5/Report.md](validation/P3-5/Report.md)）** |
-| P4-1 | P4 | 修复折射 keyword/绑定泄漏（F-05） | P0 | `ScriptableRenderer.cs`、`RefractionPass.cs` | 待开始 |
+| P4-1 | P4 | 修复折射 keyword/绑定泄漏（F-05） | P0 | `ScriptableRenderer.cs`、`RefractionPass.cs` | **完成（Fixed，证据 [P4-1/Report.md](validation/P4-1/Report.md)）** |
 | P4-2 | P4 | keyword 泄漏与多相机矩阵 | P4-1 | 测试 | 待开始 |
 | P4-3 | P4 | 分辨率/MSAA/渲染器矩阵 | P0 | 测试 | 待开始 |
 | P4-4 | P4 | 删除死代码/重复声明/过时注释（F-11 + 6.6） | P1–P3 | 全量 | 待开始 |
@@ -766,6 +768,6 @@ PLAN/TODO/06-ValidationAllRDC/validation/
 
 1. P0 已完成：三渲染器 player、manifest、抓帧、census 与 binding probe 均可复现；后续任务直接复用 `SslValidation*` 资产与 `validation/P0/SmokeReport.md` 的字段契约。
 2. P3-1..P3-5 已完成并留证：F-02 像素展开角、F-04 调试输出隔离、F-06 深度 Y 翻转、F-08 透明 ComputeShader 变体隔离；P3-4 的 12 用例与 3 个抓帧覆盖 Approx/PBR 全半分辨率/透明，P3-5 的截图指标覆盖反射中心、权重、空洞、透明、`reflectSky`、关闭基线与探针回退。透明 Y 翻转的“源/目标翻转态不同”分支留给 P4-3 分辨率/XR 矩阵做 GPU 举证。
-3. 下一步 P4-1（折射 keyword/绑定泄漏）与 P4-3（分辨率/MSAA/渲染器矩阵，含 F-12、透明 Y 翻转的翻转态不同分支）。P2-4 已用修复后的降噪器重测 S2–S6：覆盖、探针、时域与半分辨率全部达标，代价是新增了房间/探针/材质三套布局与 `ssgiRoom`/`ssgiProbes`/`ssgiCoverage` 用例。P1-3 的正交 2 m/20 m 场景、P1-4 的 `gtaoCoverage` 布局与 `light` 开关可复用于后续覆盖/多相机用例。
+3. P4-1 已完成并留证：折射 keyword/参数/探针计数/颜色金字塔绑定在每相机起点统一清零，三渲染器注入泄漏态 255→0，正常 A→B 对照为 0，全量 EditMode 455/455。新增的 Reflection 泄漏 rig 可复用于 P4-2 的多相机 keyword 矩阵。下一步 P4-3（分辨率/MSAA/渲染器矩阵，含 F-12、透明 Y 翻转的翻转态不同分支）；P4-2 的其余 4 个贡献 keyword 与 Overlay/缺资源分支按需补测。P2-4 已用修复后的降噪器重测 S2–S6：覆盖、探针、时域与半分辨率全部达标，代价是新增了房间/探针/材质三套布局与 `ssgiRoom`/`ssgiProbes`/`ssgiCoverage` 用例。P1-3 的正交 2 m/20 m 场景、P1-4 的 `gtaoCoverage` 布局与 `light` 开关可复用于后续覆盖/多相机用例。
 4. 每完成一个修复就写 `validation/.../任务ID/` 证据，不攒到最后。
 5. 最后一轮只做回归、文档、清理与归档。P6-2 需要处理本轮 Unity 2022.3.62f1 自动迁移的 `GraphicsSettings/QualitySettings/ProjectSettings/URP-Balanced/Performant`（与本轮改动无关，当前未提交）。验证用 `SslValidation*Renderer.asset` 与场景的 fileID 重排已在 P2-4 一并提交（场景需要新增的 ShaderGraph Lit / Room Floor 材质引用），工作区只保留上述设置迁移。

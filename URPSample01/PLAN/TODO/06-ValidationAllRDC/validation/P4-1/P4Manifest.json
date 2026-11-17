@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "renderer": "Forward",
+  "warmupFrames": 12,
+  "cases": [
+    {
+      "id": "refraction_leak_forward",
+      "renderer": "Forward",
+      "effect": "Refraction",
+      "camera": {
+        "position": [0, 2, -7],
+        "rotation": [0, 0, 0]
+      },
+      "warmupFrames": 12,
+      "capture": false,
+      "screenshot": false,
+      "volume": {
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      },
+      "refractionLeakCheck": true
+    },
+    {
+      "id": "refraction_leak_forward_plus",
+      "renderer": "ForwardPlus",
+      "effect": "Refraction",
+      "camera": {
+        "position": [0, 2, -7],
+        "rotation": [0, 0, 0]
+      },
+      "warmupFrames": 12,
+      "capture": false,
+      "screenshot": false,
+      "volume": {
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      },
+      "refractionLeakCheck": true
+    },
+    {
+      "id": "refraction_leak_deferred",
+      "renderer": "Deferred",
+      "effect": "Refraction",
+      "camera": {
+        "position": [0, 2, -7],
+        "rotation": [0, 0, 0]
+      },
+      "warmupFrames": 12,
+      "capture": false,
+      "screenshot": false,
+      "volume": {
+        "refraction": {
+          "enabled": true,
+          "screenFadeDistance": 0.1,
+          "intensity": 1
+        }
+      },
+      "gtao": {
+        "intensity": 0
+      },
+      "feature": {
+        "publishProbeAtlas": false,
+        "debugMode": 0
+      },
+      "refractionLeakCheck": true
+    }
+  ]
+}

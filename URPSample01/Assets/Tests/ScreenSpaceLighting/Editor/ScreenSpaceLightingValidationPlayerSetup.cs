@@ -20,6 +20,7 @@ public static class ScreenSpaceLightingValidationPlayerSetup
     const string ScenePath = Root + "/Scenes/ScreenSpaceLightingValidationPlayer.unity";
     const string SourceRendererPath = "Assets/Settings/URP-HighFidelity-Renderer.asset";
     const string ProbeComputePath = Root + "/Shaders/ScreenSpaceLightingBindingProbe.compute";
+    const string LeakProbeShaderPath = Root + "/Shaders/ScreenSpaceLightingRefractionLeakProbe.shader";
     const string GradientTexturePath = MaterialRoot + "/SslValidationGradient.png";
     const string OutputRoot = "Builds/SslValidationPlayer";
 
@@ -98,6 +99,7 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         verification.mirrorMaterial = materials.mirror;
         verification.gradientMaterial = materials.gradient;
         verification.glassMaterial = materials.glass;
+        verification.refractionLeakProbeMaterial = materials.refractionLeakProbe;
         verification.complexLitMaterial = materials.complexLit;
         verification.simpleLitMaterial = materials.simpleLit;
         verification.bakedLitMaterial = materials.bakedLit;
@@ -339,6 +341,7 @@ public static class ScreenSpaceLightingValidationPlayerSetup
                 new Color(0.8f, 0.6f, 0.2f), 0f, 0.3f),
             shaderGraphLit = AssetDatabase.LoadAssetAtPath<Material>(MaterialRoot + "/SslT9LitT14.mat"),
             roomFloor = EnsureLitMaterial("SslValidationRoomFloor", new Color(0.7f, 0.7f, 0.7f), 0f, 0.05f),
+            refractionLeakProbe = EnsureRefractionLeakProbeMaterial(),
             terrain = EnsureTerrainMaterial(),
             terrainAlbedo = EnsureTerrainAlbedo(),
         };
@@ -443,6 +446,30 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         material.renderQueue = (int)RenderQueue.Transparent;
         material.SetShaderPassEnabled("SHADOWCASTER", false);
+        EditorUtility.SetDirty(material);
+        return material;
+    }
+
+    static Material EnsureRefractionLeakProbeMaterial()
+    {
+        var shader = AssetDatabase.LoadAssetAtPath<Shader>(LeakProbeShaderPath);
+        if (shader == null)
+            throw new FileNotFoundException("Missing shader.", LeakProbeShaderPath);
+
+        var path = MaterialRoot + "/SslValidationRefractionLeakProbe.mat";
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(shader) { name = "SslValidationRefractionLeakProbe" };
+            AssetDatabase.CreateAsset(material, path);
+        }
+        else if (material.shader != shader)
+        {
+            material.shader = shader;
+        }
+
+        material.SetFloat("_LeakProbeMode", 0f);
+        material.renderQueue = (int)RenderQueue.Geometry;
         EditorUtility.SetDirty(material);
         return material;
     }
@@ -621,6 +648,7 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         public Material unlit;
         public Material shaderGraphLit;
         public Material roomFloor;
+        public Material refractionLeakProbe;
         public Material terrain;
         public Texture2D terrainAlbedo;
     }
