@@ -1,0 +1,53 @@
+{
+  "deferred_coverage_on_frame12691.rdc": {
+    "gtaoMarker": 409,
+    "gtaoDispatches": [
+      422,
+      436,
+      453,
+      468
+    ],
+    "depthPyramidMarker": 249,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": null,
+    "gBufferMarker": 474,
+    "deferredPassMarker": 648,
+    "deferredShadingMarker": 649,
+    "forwardOnlyMarker": 689,
+    "skyboxMarker": 793
+  },
+  "deferred_nolight_on_frame12759.rdc": {
+    "gtaoMarker": 336,
+    "gtaoDispatches": [
+      349,
+      363,
+      380,
+      395
+    ],
+    "depthPyramidMarker": 176,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": null,
+    "gBufferMarker": 401,
+    "deferredPassMarker": 575,
+    "deferredShadingMarker": null,
+    "forwardOnlyMarker": 591,
+    "skyboxMarker": 695
+  },
+  "forward_coverage_on_frame12623.rdc": {
+    "gtaoMarker": 390,
+    "gtaoDispatches": [
+      403,
+      417,
+      434,
+      449
+    ],
+    "depthPyramidMarker": 230,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": 454,
+    "gBufferMarker": null,
+    "deferredPassMarker": null,
+    "deferredShadingMarker": null,
+    "forwardOnlyMarker": null,
+    "skyboxMarker": 663
+  }
+}

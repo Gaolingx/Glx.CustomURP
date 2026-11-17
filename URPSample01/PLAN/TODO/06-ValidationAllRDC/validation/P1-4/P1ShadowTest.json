@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "renderer": "Forward",
+  "warmupFrames": 12,
+  "cases": [
+    {
+      "id": "forwardplus_shadow_on",
+      "renderer": "ForwardPlus",
+      "effect": "GTAO",
+      "layout": "gtaoCoverage",
+      "camera": { "position": [0, 2, -9], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "intensity": 0 },
+      "light": { "directional": true }
+    },
+    {
+      "id": "forwardplus_shadow_off",
+      "renderer": "ForwardPlus",
+      "effect": "GTAO",
+      "layout": "gtaoCoverage",
+      "camera": { "position": [0, 2, -9], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "intensity": 0 },
+      "light": { "noShadows": true }
+    },
+    {
+      "id": "forward_shadow_on",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "layout": "gtaoCoverage",
+      "camera": { "position": [0, 2, -9], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "intensity": 0 },
+      "light": { "directional": true }
+    },
+    {
+      "id": "forward_shadow_off",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "layout": "gtaoCoverage",
+      "camera": { "position": [0, 2, -9], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "intensity": 0 },
+      "light": { "noShadows": true }
+    }
+  ]
+}

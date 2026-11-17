@@ -1,0 +1,309 @@
+{
+  "forward": {
+    "capture": "forward_coverage_on_frame12623.rdc",
+    "gtaoMarker": 390,
+    "gtaoDispatches": [
+      403,
+      417,
+      434,
+      449
+    ],
+    "depthPyramidDispatches": 12,
+    "occlusion": "ResourceId::9701",
+    "occlusionWrites": [
+      {
+        "eventId": 449,
+        "usage": "CS_RWResource"
+      }
+    ],
+    "opaqueReaders": [
+      {
+        "eventId": 488,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationForwardRenderer",
+          "MainLightShadow",
+          "DrawOpaqueObjects",
+          "RenderLoop.Draw"
+        ],
+        "shader": "ResourceId::9763",
+        "hash": "184a1b37-da545a94-4b24d3b2-fbec43a6",
+        "texture2d": 7
+      },
+      {
+        "eventId": 511,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationForwardRenderer",
+          "MainLightShadow",
+          "DrawOpaqueObjects",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9593",
+        "hash": "61432227-6bd04a35-fc7c0fca-d800a4c5",
+        "texture2d": 2
+      },
+      {
+        "eventId": 548,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationForwardRenderer",
+          "MainLightShadow",
+          "DrawOpaqueObjects",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9706",
+        "hash": "b1ea629c-c6cf6b85-05e26194-6a514fa9",
+        "texture2d": 3
+      },
+      {
+        "eventId": 551,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationForwardRenderer",
+          "MainLightShadow",
+          "DrawOpaqueObjects",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9706",
+        "hash": "b1ea629c-c6cf6b85-05e26194-6a514fa9",
+        "texture2d": 3
+      },
+      {
+        "eventId": 556,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationForwardRenderer",
+          "MainLightShadow",
+          "DrawOpaqueObjects",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9706",
+        "hash": "b1ea629c-c6cf6b85-05e26194-6a514fa9",
+        "texture2d": 3
+      },
+      {
+        "eventId": 585,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationForwardRenderer",
+          "MainLightShadow",
+          "DrawOpaqueObjects",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9768",
+        "hash": "3441f151-63656328-91be47aa-350c437d",
+        "texture2d": 2
+      },
+      {
+        "eventId": 622,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationForwardRenderer",
+          "MainLightShadow",
+          "DrawOpaqueObjects",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9772",
+        "hash": "b1ea629c-c6cf6b85-05e26194-6a514fa9",
+        "texture2d": 3
+      },
+      {
+        "eventId": 654,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationForwardRenderer",
+          "MainLightShadow",
+          "DrawOpaqueObjects",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9776",
+        "hash": "eb04ff82-ecb39d07-1dfadc91-c97633e1",
+        "texture2d": 3
+      }
+    ],
+    "readerCount": 8
+  },
+  "deferred": {
+    "capture": "deferred_coverage_on_frame12691.rdc",
+    "gtaoMarker": 409,
+    "gtaoDispatches": [
+      422,
+      436,
+      453,
+      468
+    ],
+    "depthPyramidDispatches": 12,
+    "deferredPassMarker": 648,
+    "occlusion": "ResourceId::10009",
+    "occlusionWrites": [
+      {
+        "eventId": 468,
+        "usage": "CS_RWResource"
+      }
+    ],
+    "lightingReaders": [
+      {
+        "eventId": 670,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationDeferredRenderer",
+          "MainLightShadow",
+          "Deferred Pass",
+          "Deferred Shading (Stencil)"
+        ],
+        "shader": "ResourceId::9575",
+        "hash": "1d509d79-cad00756-7d73535e-dcdde8d1",
+        "texture2d": 6
+      },
+      {
+        "eventId": 685,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationDeferredRenderer",
+          "MainLightShadow",
+          "Deferred Pass",
+          "Deferred Shading (Stencil)"
+        ],
+        "shader": "ResourceId::9577",
+        "hash": "d6128900-84f23a77-4fca1c9d-522f2fd8",
+        "texture2d": 6
+      }
+    ],
+    "forwardOnlyReaders": [
+      {
+        "eventId": 715,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationDeferredRenderer",
+          "MainLightShadow",
+          "Render Opaques Forward Only",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9593",
+        "hash": "61432227-6bd04a35-fc7c0fca-d800a4c5",
+        "texture2d": 2
+      },
+      {
+        "eventId": 742,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationDeferredRenderer",
+          "MainLightShadow",
+          "Render Opaques Forward Only",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9768",
+        "hash": "3441f151-63656328-91be47aa-350c437d",
+        "texture2d": 2
+      },
+      {
+        "eventId": 784,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationDeferredRenderer",
+          "MainLightShadow",
+          "Render Opaques Forward Only",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9772",
+        "hash": "b1ea629c-c6cf6b85-05e26194-6a514fa9",
+        "texture2d": 3
+      }
+    ],
+    "readerCount": 6
+  },
+  "deferredNoLight": {
+    "capture": "deferred_nolight_on_frame12759.rdc",
+    "gtaoMarker": 336,
+    "gtaoDispatches": [
+      349,
+      363,
+      380,
+      395
+    ],
+    "depthPyramidDispatches": 12,
+    "deferredPassMarker": 575,
+    "occlusion": "ResourceId::10248",
+    "occlusionWrites": [
+      {
+        "eventId": 395,
+        "usage": "CS_RWResource"
+      }
+    ],
+    "lightingReaders": [
+      {
+        "eventId": 588,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationDeferredRenderer",
+          "DepthNormalPrepass",
+          "Deferred Pass"
+        ],
+        "shader": "ResourceId::10254",
+        "hash": "2bd9be42-a2084fc6-9fcf130b-db5f591d",
+        "texture2d": 2
+      }
+    ],
+    "forwardOnlyReaders": [
+      {
+        "eventId": 617,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationDeferredRenderer",
+          "DepthNormalPrepass",
+          "Render Opaques Forward Only",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9593",
+        "hash": "61432227-6bd04a35-fc7c0fca-d800a4c5",
+        "texture2d": 2
+      },
+      {
+        "eventId": 644,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationDeferredRenderer",
+          "DepthNormalPrepass",
+          "Render Opaques Forward Only",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9768",
+        "hash": "3441f151-63656328-91be47aa-350c437d",
+        "texture2d": 2
+      },
+      {
+        "eventId": 686,
+        "scopes": [
+          "UniversalRenderPipeline.RenderSingleCameraInternal: Validation Camera",
+          "ScriptableRenderer.Execute: SslValidationDeferredRenderer",
+          "DepthNormalPrepass",
+          "Render Opaques Forward Only",
+          "RenderLoop.DrawSRPBatcher"
+        ],
+        "shader": "ResourceId::9772",
+        "hash": "b1ea629c-c6cf6b85-05e26194-6a514fa9",
+        "texture2d": 3
+      }
+    ],
+    "readerCount": 5
+  },
+  "pathShaders": {
+    "withLight": [
+      "1d509d79-cad00756-7d73535e-dcdde8d1",
+      "d6128900-84f23a77-4fca1c9d-522f2fd8"
+    ],
+    "noLight": [
+      "2bd9be42-a2084fc6-9fcf130b-db5f591d"
+    ],
+    "distinctPaths": true,
+    "withLightTexture2D": [
+      6,
+      6
+    ],
+    "noLightTexture2D": [
+      2
+    ]
+  },
+  "passed": true
+}

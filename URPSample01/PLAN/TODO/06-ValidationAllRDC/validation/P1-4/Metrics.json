@@ -1,0 +1,801 @@
+{
+  "forward": {
+    "lit": {
+      "pixel": [
+        152.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.26243,
+      "meanOff": 0.27679,
+      "ratio": 0.94812,
+      "delta": -0.014359,
+      "maxByteDiff": 7,
+      "changedFraction": 1.0
+    },
+    "complexLit": {
+      "pixel": [
+        323.36,
+        437.94
+      ],
+      "pixels": 112,
+      "meanOn": 0.23066,
+      "meanOff": 0.24536,
+      "ratio": 0.94009,
+      "delta": -0.0147,
+      "maxByteDiff": 9,
+      "changedFraction": 1.0
+    },
+    "simpleLit": {
+      "pixel": [
+        493.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.32973,
+      "meanOff": 0.35,
+      "ratio": 0.94208,
+      "delta": -0.02027,
+      "maxByteDiff": 6,
+      "changedFraction": 1.0
+    },
+    "bakedLit": {
+      "pixel": [
+        664.36,
+        437.94
+      ],
+      "pixels": 112,
+      "meanOn": 0.05496,
+      "meanOff": 0.06995,
+      "ratio": 0.78575,
+      "delta": -0.014987,
+      "maxByteDiff": 13,
+      "changedFraction": 1.0
+    },
+    "unlit": {
+      "pixel": [
+        834.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.3585,
+      "meanOff": 0.3585,
+      "ratio": 1.0,
+      "delta": 0.0,
+      "maxByteDiff": 0,
+      "changedFraction": 0.0
+    },
+    "floorContact": {
+      "pixel": [
+        487.92,
+        461.39
+      ],
+      "pixels": 28,
+      "meanOn": 0.50492,
+      "meanOff": 0.5247,
+      "ratio": 0.9623,
+      "delta": -0.019782,
+      "maxByteDiff": 14,
+      "changedFraction": 1.0
+    },
+    "terrainContact": {
+      "pixel": [
+        1133.63,
+        463.4
+      ],
+      "pixels": 30,
+      "meanOn": 0.24009,
+      "meanOff": 0.24456,
+      "ratio": 0.98172,
+      "delta": -0.00447,
+      "maxByteDiff": 3,
+      "changedFraction": 1.0
+    },
+    "terrainOpen": {
+      "pixel": [
+        1076.48,
+        484.08
+      ],
+      "pixels": 198,
+      "meanOn": 0.24065,
+      "meanOff": 0.24385,
+      "ratio": 0.98686,
+      "delta": -0.003203,
+      "maxByteDiff": 1,
+      "changedFraction": 1.0
+    },
+    "transparent": {
+      "pixel": [
+        640.0,
+        264.98
+      ],
+      "pixels": 1250,
+      "meanOn": 0.55217,
+      "meanOff": 0.55217,
+      "ratio": 1.0,
+      "delta": 0.0,
+      "maxByteDiff": 0,
+      "changedFraction": 0.0
+    }
+  },
+  "forwardPlus": {
+    "lit": {
+      "pixel": [
+        152.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.26048,
+      "meanOff": 0.27679,
+      "ratio": 0.94106,
+      "delta": -0.016314,
+      "maxByteDiff": 7,
+      "changedFraction": 1.0
+    },
+    "complexLit": {
+      "pixel": [
+        323.36,
+        437.94
+      ],
+      "pixels": 112,
+      "meanOn": 0.22888,
+      "meanOff": 0.24536,
+      "ratio": 0.9328,
+      "delta": -0.016487,
+      "maxByteDiff": 9,
+      "changedFraction": 1.0
+    },
+    "simpleLit": {
+      "pixel": [
+        493.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.32802,
+      "meanOff": 0.35,
+      "ratio": 0.93722,
+      "delta": -0.021973,
+      "maxByteDiff": 6,
+      "changedFraction": 1.0
+    },
+    "bakedLit": {
+      "pixel": [
+        664.36,
+        437.94
+      ],
+      "pixels": 112,
+      "meanOn": 0.05386,
+      "meanOff": 0.06995,
+      "ratio": 0.77005,
+      "delta": -0.016085,
+      "maxByteDiff": 14,
+      "changedFraction": 1.0
+    },
+    "unlit": {
+      "pixel": [
+        834.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.3585,
+      "meanOff": 0.3585,
+      "ratio": 1.0,
+      "delta": 0.0,
+      "maxByteDiff": 0,
+      "changedFraction": 0.0
+    },
+    "floorContact": {
+      "pixel": [
+        487.92,
+        461.39
+      ],
+      "pixels": 28,
+      "meanOn": 0.51141,
+      "meanOff": 0.5247,
+      "ratio": 0.97466,
+      "delta": -0.013297,
+      "maxByteDiff": 9,
+      "changedFraction": 1.0
+    },
+    "terrainContact": {
+      "pixel": [
+        1133.63,
+        463.4
+      ],
+      "pixels": 30,
+      "meanOn": 0.04067,
+      "meanOff": 0.04386,
+      "ratio": 0.92714,
+      "delta": -0.003196,
+      "maxByteDiff": 6,
+      "changedFraction": 1.0
+    },
+    "terrainOpen": {
+      "pixel": [
+        1076.48,
+        484.08
+      ],
+      "pixels": 198,
+      "meanOn": 0.04265,
+      "meanOff": 0.04386,
+      "ratio": 0.97228,
+      "delta": -0.001216,
+      "maxByteDiff": 2,
+      "changedFraction": 0.9899
+    },
+    "transparent": {
+      "pixel": [
+        640.0,
+        264.98
+      ],
+      "pixels": 1250,
+      "meanOn": 0.55217,
+      "meanOff": 0.55217,
+      "ratio": 1.0,
+      "delta": 0.0,
+      "maxByteDiff": 0,
+      "changedFraction": 0.0
+    }
+  },
+  "deferred": {
+    "lit": {
+      "pixel": [
+        152.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.26039,
+      "meanOff": 0.27964,
+      "ratio": 0.93115,
+      "delta": -0.019254,
+      "maxByteDiff": 7,
+      "changedFraction": 1.0
+    },
+    "complexLit": {
+      "pixel": [
+        323.36,
+        437.94
+      ],
+      "pixels": 112,
+      "meanOn": 0.22888,
+      "meanOff": 0.24536,
+      "ratio": 0.9328,
+      "delta": -0.016487,
+      "maxByteDiff": 9,
+      "changedFraction": 1.0
+    },
+    "simpleLit": {
+      "pixel": [
+        493.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.3267,
+      "meanOff": 0.35,
+      "ratio": 0.93345,
+      "delta": -0.023293,
+      "maxByteDiff": 7,
+      "changedFraction": 1.0
+    },
+    "bakedLit": {
+      "pixel": [
+        664.36,
+        437.94
+      ],
+      "pixels": 112,
+      "meanOn": 0.05386,
+      "meanOff": 0.06995,
+      "ratio": 0.76999,
+      "delta": -0.016089,
+      "maxByteDiff": 14,
+      "changedFraction": 1.0
+    },
+    "unlit": {
+      "pixel": [
+        834.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.3585,
+      "meanOff": 0.3585,
+      "ratio": 1.0,
+      "delta": 0.0,
+      "maxByteDiff": 0,
+      "changedFraction": 0.0
+    },
+    "floorContact": {
+      "pixel": [
+        487.92,
+        461.39
+      ],
+      "pixels": 28,
+      "meanOn": 0.5098,
+      "meanOff": 0.52216,
+      "ratio": 0.97632,
+      "delta": -0.012365,
+      "maxByteDiff": 7,
+      "changedFraction": 0.9286
+    },
+    "terrainContact": {
+      "pixel": [
+        1133.63,
+        463.4
+      ],
+      "pixels": 30,
+      "meanOn": 0.23949,
+      "meanOff": 0.24429,
+      "ratio": 0.98035,
+      "delta": -0.004801,
+      "maxByteDiff": 3,
+      "changedFraction": 1.0
+    },
+    "terrainOpen": {
+      "pixel": [
+        1076.48,
+        484.08
+      ],
+      "pixels": 198,
+      "meanOn": 0.24064,
+      "meanOff": 0.24343,
+      "ratio": 0.98856,
+      "delta": -0.002784,
+      "maxByteDiff": 1,
+      "changedFraction": 1.0
+    },
+    "transparent": {
+      "pixel": [
+        640.0,
+        264.98
+      ],
+      "pixels": 1250,
+      "meanOn": 0.55217,
+      "meanOff": 0.55217,
+      "ratio": 1.0,
+      "delta": 0.0,
+      "maxByteDiff": 0,
+      "changedFraction": 0.0
+    }
+  },
+  "forwardNoLight": {
+    "lit": {
+      "pixel": [
+        152.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.07071,
+      "meanOff": 0.08651,
+      "ratio": 0.81737,
+      "delta": -0.015799,
+      "maxByteDiff": 11,
+      "changedFraction": 1.0
+    },
+    "complexLit": {
+      "pixel": [
+        323.36,
+        437.94
+      ],
+      "pixels": 112,
+      "meanOn": 0.06085,
+      "meanOff": 0.07752,
+      "ratio": 0.78493,
+      "delta": -0.016673,
+      "maxByteDiff": 17,
+      "changedFraction": 1.0
+    },
+    "simpleLit": {
+      "pixel": [
+        493.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.07823,
+      "meanOff": 0.09975,
+      "ratio": 0.78426,
+      "delta": -0.021519,
+      "maxByteDiff": 14,
+      "changedFraction": 1.0
+    },
+    "bakedLit": {
+      "pixel": [
+        664.36,
+        437.94
+      ],
+      "pixels": 112,
+      "meanOn": 0.05387,
+      "meanOff": 0.06995,
+      "ratio": 0.7701,
+      "delta": -0.016081,
+      "maxByteDiff": 14,
+      "changedFraction": 1.0
+    },
+    "unlit": {
+      "pixel": [
+        834.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.3585,
+      "meanOff": 0.3585,
+      "ratio": 1.0,
+      "delta": 0.0,
+      "maxByteDiff": 0,
+      "changedFraction": 0.0
+    },
+    "floorContact": {
+      "pixel": [
+        487.92,
+        461.39
+      ],
+      "pixels": 28,
+      "meanOn": 0.26359,
+      "meanOff": 0.27516,
+      "ratio": 0.95794,
+      "delta": -0.011572,
+      "maxByteDiff": 11,
+      "changedFraction": 1.0
+    },
+    "terrainContact": {
+      "pixel": [
+        1133.63,
+        463.4
+      ],
+      "pixels": 30,
+      "meanOn": 0.04405,
+      "meanOff": 0.04827,
+      "ratio": 0.91261,
+      "delta": -0.004219,
+      "maxByteDiff": 8,
+      "changedFraction": 1.0
+    },
+    "terrainOpen": {
+      "pixel": [
+        1076.48,
+        484.08
+      ],
+      "pixels": 198,
+      "meanOn": 0.04685,
+      "meanOff": 0.04827,
+      "ratio": 0.97054,
+      "delta": -0.001422,
+      "maxByteDiff": 2,
+      "changedFraction": 1.0
+    },
+    "transparent": {
+      "pixel": [
+        640.0,
+        264.98
+      ],
+      "pixels": 1250,
+      "meanOn": 0.39991,
+      "meanOff": 0.39991,
+      "ratio": 1.0,
+      "delta": 0.0,
+      "maxByteDiff": 0,
+      "changedFraction": 0.0
+    }
+  },
+  "deferredNoLight": {
+    "lit": {
+      "pixel": [
+        152.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.07004,
+      "meanOff": 0.08651,
+      "ratio": 0.80955,
+      "delta": -0.016476,
+      "maxByteDiff": 13,
+      "changedFraction": 1.0
+    },
+    "complexLit": {
+      "pixel": [
+        323.36,
+        437.94
+      ],
+      "pixels": 112,
+      "meanOn": 0.06092,
+      "meanOff": 0.07752,
+      "ratio": 0.78581,
+      "delta": -0.016604,
+      "maxByteDiff": 17,
+      "changedFraction": 1.0
+    },
+    "simpleLit": {
+      "pixel": [
+        493.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.07805,
+      "meanOff": 0.09975,
+      "ratio": 0.78247,
+      "delta": -0.021698,
+      "maxByteDiff": 14,
+      "changedFraction": 1.0
+    },
+    "bakedLit": {
+      "pixel": [
+        664.36,
+        437.94
+      ],
+      "pixels": 112,
+      "meanOn": 0.05387,
+      "meanOff": 0.06995,
+      "ratio": 0.77009,
+      "delta": -0.016082,
+      "maxByteDiff": 14,
+      "changedFraction": 1.0
+    },
+    "unlit": {
+      "pixel": [
+        834.86,
+        437.94
+      ],
+      "pixels": 113,
+      "meanOn": 0.3585,
+      "meanOff": 0.3585,
+      "ratio": 1.0,
+      "delta": 0.0,
+      "maxByteDiff": 0,
+      "changedFraction": 0.0
+    },
+    "floorContact": {
+      "pixel": [
+        487.92,
+        461.39
+      ],
+      "pixels": 28,
+      "meanOn": 0.26143,
+      "meanOff": 0.27516,
+      "ratio": 0.95008,
+      "delta": -0.013735,
+      "maxByteDiff": 12,
+      "changedFraction": 1.0
+    },
+    "terrainContact": {
+      "pixel": [
+        1133.63,
+        463.4
+      ],
+      "pixels": 30,
+      "meanOn": 0.04391,
+      "meanOff": 0.04827,
+      "ratio": 0.9096,
+      "delta": -0.004364,
+      "maxByteDiff": 8,
+      "changedFraction": 1.0
+    },
+    "terrainOpen": {
+      "pixel": [
+        1076.48,
+        484.08
+      ],
+      "pixels": 198,
+      "meanOn": 0.04665,
+      "meanOff": 0.04827,
+      "ratio": 0.96632,
+      "delta": -0.001626,
+      "maxByteDiff": 2,
+      "changedFraction": 1.0
+    },
+    "transparent": {
+      "pixel": [
+        640.0,
+        264.98
+      ],
+      "pixels": 1250,
+      "meanOn": 0.39991,
+      "meanOff": 0.39991,
+      "ratio": 1.0,
+      "delta": 0.0,
+      "maxByteDiff": 0,
+      "changedFraction": 0.0
+    }
+  },
+  "aoValues": {
+    "floorContact": {
+      "forward": 0.9612,
+      "deferred": 0.9612
+    },
+    "terrainContact": {
+      "forward": 0.9162,
+      "deferred": 0.9156
+    },
+    "lit": {
+      "forward": 0.8075,
+      "deferred": 0.8075
+    }
+  },
+  "ratioMatchesAO": {
+    "forwardNoLight:floorContact": {
+      "ratio": 0.95794,
+      "ao": 0.9612,
+      "ratioError": 0.0033
+    },
+    "forwardNoLight:terrainContact": {
+      "ratio": 0.91261,
+      "ao": 0.9162,
+      "ratioError": 0.0036
+    },
+    "forwardNoLight:lit": {
+      "ratio": 0.81737,
+      "ao": 0.8075,
+      "ratioError": 0.0099
+    },
+    "deferredNoLight:floorContact": {
+      "ratio": 0.95008,
+      "ao": 0.9612,
+      "ratioError": 0.0111
+    },
+    "deferredNoLight:terrainContact": {
+      "ratio": 0.9096,
+      "ao": 0.9156,
+      "ratioError": 0.006
+    },
+    "deferredNoLight:lit": {
+      "ratio": 0.80955,
+      "ao": 0.8075,
+      "ratioError": 0.002
+    }
+  },
+  "ratioMatchesAOPassed": true,
+  "singleApplication": {
+    "deferred": {
+      "lit": {
+        "pixel": [
+          152.86,
+          437.94
+        ],
+        "ambientOff": 0.0864,
+        "litOff": 0.27964,
+        "ao": 0.80936,
+        "litOnMeasured": 0.2604,
+        "litOnSingleApplication": 0.26317,
+        "litOnDoubleApplication": 0.24984,
+        "errorSingle": 0.00993,
+        "errorDouble": 0.03774
+      },
+      "floorContact": {
+        "pixel": [
+          487.92,
+          461.39
+        ],
+        "ambientOff": 0.27516,
+        "litOff": 0.52216,
+        "ao": 0.95008,
+        "litOnMeasured": 0.5098,
+        "litOnSingleApplication": 0.50843,
+        "litOnDoubleApplication": 0.49538,
+        "errorSingle": 0.00262,
+        "errorDouble": 0.02762
+      },
+      "terrainContact": {
+        "pixel": [
+          1133.63,
+          463.4
+        ],
+        "ambientOff": 0.04827,
+        "litOff": 0.24429,
+        "ao": 0.9096,
+        "litOnMeasured": 0.23949,
+        "litOnSingleApplication": 0.23992,
+        "litOnDoubleApplication": 0.23595,
+        "errorSingle": 0.00179,
+        "errorDouble": 0.01446
+      }
+    },
+    "forward": {
+      "lit": {
+        "pixel": [
+          152.86,
+          437.94
+        ],
+        "ambientOff": 0.0864,
+        "litOff": 0.2766,
+        "ao": 0.81907,
+        "litOnMeasured": 0.26235,
+        "litOnSingleApplication": 0.26097,
+        "litOnDoubleApplication": 0.24817,
+        "errorSingle": 0.00499,
+        "errorDouble": 0.05128
+      },
+      "floorContact": {
+        "pixel": [
+          487.92,
+          461.39
+        ],
+        "ambientOff": 0.27516,
+        "litOff": 0.5247,
+        "ao": 0.95794,
+        "litOnMeasured": 0.50492,
+        "litOnSingleApplication": 0.51313,
+        "litOnDoubleApplication": 0.50205,
+        "errorSingle": 0.01565,
+        "errorDouble": 0.00548
+      },
+      "terrainContact": {
+        "pixel": [
+          1133.63,
+          463.4
+        ],
+        "ambientOff": 0.04827,
+        "litOff": 0.24456,
+        "ao": 0.91261,
+        "litOnMeasured": 0.24009,
+        "litOnSingleApplication": 0.24034,
+        "litOnDoubleApplication": 0.23649,
+        "errorSingle": 0.00103,
+        "errorDouble": 0.01471
+      }
+    }
+  },
+  "singleApplicationPassed": true,
+  "coverage": {
+    "forward": {
+      "receiving": {
+        "lit": true,
+        "complexLit": true,
+        "simpleLit": true,
+        "bakedLit": true
+      },
+      "terrainAmbient": {
+        "contactRatio": 0.91261,
+        "openRatio": 0.97054,
+        "gap": 0.0579,
+        "passed": true
+      },
+      "terrainContactVsOpenGap": 0.0051,
+      "terrainContactDarkerThanOpen": true,
+      "unlitUnchanged": true,
+      "transparentUnchanged": true,
+      "passed": true
+    },
+    "forwardPlus": {
+      "receiving": {
+        "lit": true,
+        "complexLit": true,
+        "simpleLit": true,
+        "bakedLit": true
+      },
+      "terrainAmbient": null,
+      "terrainContactVsOpenGap": 0.0451,
+      "terrainContactDarkerThanOpen": true,
+      "unlitUnchanged": true,
+      "transparentUnchanged": true,
+      "passed": true
+    },
+    "deferred": {
+      "receiving": {
+        "lit": true,
+        "complexLit": true,
+        "simpleLit": true,
+        "bakedLit": true
+      },
+      "terrainAmbient": {
+        "contactRatio": 0.9096,
+        "openRatio": 0.96632,
+        "gap": 0.0567,
+        "passed": true
+      },
+      "terrainContactVsOpenGap": 0.0082,
+      "terrainContactDarkerThanOpen": true,
+      "unlitUnchanged": true,
+      "transparentUnchanged": true,
+      "passed": true
+    }
+  },
+  "offBaseline": {
+    "deferred_off_zero.png": {
+      "maxAbsDiff": 0,
+      "changedPixels": 0
+    },
+    "deferred_nolight_off_zero.png": {
+      "maxAbsDiff": 0,
+      "changedPixels": 0
+    }
+  },
+  "offBaselinePassed": true,
+  "passed": true
+}
