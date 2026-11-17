@@ -101,6 +101,14 @@ void BilateralFilterColor(uint3 dispatchThreadId : SV_DispatchThreadID)
         float4 hClip = mul(SSL_VIEW_PROJ, float4(wsPos, 1.0));
         hClip.xyz /= hClip.w;
 
+        // The projection matrix bakes the render target flip into clip space on UV-starts-at-top
+        // platforms. Crossing back from clip to screen has to undo it, exactly like
+        // ComputeNormalizedDeviceCoordinatesWithZ does for the ray march; without this the taps
+        // land on the mirrored row and fail the depth test.
+#if UNITY_UV_STARTS_AT_TOP
+        hClip.y = -hClip.y;
+#endif
+
         if (hClip.x > 1.0 || hClip.x < -1.0 || hClip.y > 1.0 || hClip.y < -1.0)
             continue;
 
