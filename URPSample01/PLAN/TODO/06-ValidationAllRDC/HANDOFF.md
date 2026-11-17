@@ -766,4 +766,4 @@ PLAN/TODO/06-ValidationAllRDC/validation/
 2. P3-1..P3-5 已完成并留证：F-02 像素展开角、F-04 调试输出隔离、F-06 深度 Y 翻转、F-08 透明 ComputeShader 变体隔离；P3-4 的 12 用例与 3 个抓帧覆盖 Approx/PBR 全半分辨率/透明，P3-5 的截图指标覆盖反射中心、权重、空洞、透明、`reflectSky`、关闭基线与探针回退。透明 Y 翻转的“源/目标翻转态不同”分支留给 P4-3 分辨率/XR 矩阵做 GPU 举证。
 3. 下一步 P2-4（SSGI 覆盖/多探针/时域正确性）与 P4-1（折射 keyword/绑定泄漏）。降噪器在 P2-3 前实际是直通，S3/S5 的时域与半分辨率指标需要在 P2-4 用修复后的构建重新度量。P1-3 的正交 2 m/20 m 场景、P1-4 的 `gtaoCoverage` 布局与 `light` 开关可复用于后续覆盖/多相机用例。F-12（Forward+ TerrainLit 只收到环境光）建议在 P4-3 渲染器矩阵中定位，它与 GTAO 无关。
 4. 每完成一个修复就写 `validation/.../任务ID/` 证据，不攒到最后。
-5. 最后一轮只做回归、文档、清理与归档。P6-2 需要处理本轮 Unity 2022.3.62f1 自动迁移的 `GraphicsSettings/QualitySettings/URP-Balanced/Performant`（与本轮改动无关，当前未提交）。同一原因下 `SslValidation*Renderer.asset` 与 `ScreenSpaceLightingValidationPlayer.unity` 也只剩 fileID 重排（本轮 player 构建后由 Unity 重存，语义相同），一并留给 P6-2 决定丢弃或随迁移提交。
+5. 最后一轮只做回归、文档、清理与归档。P6-2 需要处理本轮 Unity 2022.3.62f1 自动迁移的 `GraphicsSettings/QualitySettings/ProjectSettings/URP-Balanced/Performant`（与本轮改动无关，当前未提交）；验证用 `SslValidation*Renderer.asset` 与场景的 fileID 重排已丢弃，工作区只保留这些设置迁移。
