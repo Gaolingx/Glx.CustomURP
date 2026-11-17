@@ -14,7 +14,7 @@
 | 截图 | `Player/*.png`（17 张 + 时域第二帧） |
 | GPU 导出 | `Player/GPU/renderdoc-mcp-export/`（探针 atlas、探针 on/off、全/半分辨率 final） |
 | Player | `Builds/SslValidationPlayer/SslValidationPlayer.exe`（D3D11、Development、1280×720、Deferred 资产构建） |
-| 构建 | [BuildPlayer.log](BuildPlayer.log)，`BuildSummary.json`：Succeeded、0 error |
+| 构建 | 本地 `BuildPlayer.log`（`*.log` 不入库）：Succeeded、0 error；摘要 `Builds/SslValidationPlayer/BuildSummary.json` |
 | 回归 | [EditModeFull.xml](EditModeFull.xml) |
 
 ```bash
@@ -129,7 +129,7 @@ GPU 抓帧显示 trace/reproject/accumulate/denoise/history 均为 **640×360**�
 
 | 项 | 结果 |
 |---|---|
-| Player 构建 | Succeeded，0 error（[BuildPlayer.log](BuildPlayer.log)） |
+| Player 构建 | Succeeded，0 error（本地 `BuildPlayer.log`；`*.log` 按仓库规则不入库） |
 | 截图/CPU 用例 | **17/17**，[Player/Report.json](Player/Report.json) `completed=true passed=true` |
 | 指标脚本 | [Metrics.json](Metrics.json) `passed=true`（S2/S3/S4/S5/S6 全绿） |
 | 全量 EditMode | **454/454**（[EditModeFull.xml](EditModeFull.xml)） |
