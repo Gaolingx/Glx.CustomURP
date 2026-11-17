@@ -68,6 +68,49 @@ Shader "Hidden/Universal Render Pipeline/GroundTruthAmbientOcclusion/Debug"
                 }
             ENDHLSL
         }
+
+        // Editor-only camera motion vectors for cameras that URP's MotionVectorRenderPass skips
+        // (those without a UniversalAdditionalCameraData, including Scene View). Kept in this shader
+        // so the feature can reuse its already serialized debug material.
+        Pass
+        {
+            Name "GTAO Editor Camera Motion Vectors"
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragEditorCameraMotion
+
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+
+                float4 FragEditorCameraMotion(Varyings input) : SV_Target
+                {
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                    float2 uv = input.texcoord;
+                    float depth = SampleSceneDepth(uv);
+
+                #if !UNITY_REVERSED_Z
+                    depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, depth);
+                #endif
+
+                    float3 posWS = ComputeWorldSpacePosition(uv, depth, UNITY_MATRIX_I_VP);
+                    float4 posCS = mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0));
+                    float4 prevPosCS = mul(_PrevViewProjMatrix, float4(posWS, 1.0));
+
+                    float2 posNDC = posCS.xy * rcp(posCS.w);
+                    float2 prevPosNDC = prevPosCS.xy * rcp(prevPosCS.w);
+
+                    float2 velocity = posNDC - prevPosNDC;
+
+                #if UNITY_UV_STARTS_AT_TOP
+                    velocity.y = -velocity.y;
+                #endif
+
+                    // Convert NDC (-1..1) to screen UV (0..1) offsets, matching CameraMotionVectors.shader.
+                    velocity *= 0.5;
+                    return float4(velocity, 0.0, 0.0);
+                }
+            ENDHLSL
+        }
     }
     Fallback Off
 }

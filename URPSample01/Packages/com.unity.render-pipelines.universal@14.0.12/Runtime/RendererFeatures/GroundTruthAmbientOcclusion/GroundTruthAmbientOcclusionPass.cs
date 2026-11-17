@@ -545,7 +545,7 @@ namespace UnityEngine.Rendering.Universal
             return null;
         }
 
-        static RTHandle GetMotionTexture(ScriptableRenderer renderer)
+        internal static RTHandle GetMotionTexture(ScriptableRenderer renderer)
         {
             if (renderer is UniversalRenderer universalRenderer)
                 return universalRenderer.m_MotionVectorColor;

@@ -17,12 +17,19 @@ namespace UnityEngine.Rendering.Universal
         GroundTruthAmbientOcclusionDebugPass m_DebugPass;
         CameraHistoryStore<GroundTruthAmbientOcclusionHistory> m_HistoryStore;
         bool m_LoggedMissingResources;
+#if UNITY_EDITOR
+        GroundTruthAmbientOcclusionEditorMotionPass m_EditorMotionPass;
+        internal static bool s_EditorSuppressEditorMotionPass;
+#endif
 
         internal GroundTruthAmbientOcclusionSettings settings => m_Settings;
         internal GroundTruthAmbientOcclusionPass pass => m_Pass;
         internal GroundTruthAmbientOcclusionDebugPass debugPass => m_DebugPass;
         internal CameraHistoryStore<GroundTruthAmbientOcclusionHistory> historyStore => m_HistoryStore;
         internal bool loggedMissingResources => m_LoggedMissingResources;
+#if UNITY_EDITOR
+        internal GroundTruthAmbientOcclusionEditorMotionPass editorMotionPass => m_EditorMotionPass;
+#endif
 
         /// <inheritdoc/>
         public override void Create()
@@ -36,6 +43,9 @@ namespace UnityEngine.Rendering.Universal
             m_HistoryStore = new CameraHistoryStore<GroundTruthAmbientOcclusionHistory>();
             m_Pass = new GroundTruthAmbientOcclusionPass();
             m_DebugPass = new GroundTruthAmbientOcclusionDebugPass();
+#if UNITY_EDITOR
+            m_EditorMotionPass = new GroundTruthAmbientOcclusionEditorMotionPass();
+#endif
 
             ScreenSpaceDepthPyramidSystem.RegisterOwner(this);
         }
@@ -96,6 +106,20 @@ namespace UnityEngine.Rendering.Universal
             m_Pass.Setup(history, m_Settings, m_Settings.resources);
             m_DebugPass.Setup(history, m_Settings);
 
+#if UNITY_EDITOR
+            // URP returns from its motion pass before writing anything when the camera has no
+            // UniversalAdditionalCameraData, which is the case for Scene View and other editor-created
+            // cameras. Supplement camera motion only for those; cameras with the component keep URP's
+            // camera and object motion untouched.
+            if (!s_EditorSuppressEditorMotionPass &&
+                m_EditorMotionPass != null &&
+                !cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out _))
+            {
+                m_EditorMotionPass.Setup(history, m_Settings.resources);
+                renderer.EnqueuePass(m_EditorMotionPass);
+            }
+#endif
+
             renderer.EnqueuePass(m_Pass);
 
             if (m_Settings.debugEnabled && m_Settings.resources.debugShader != null)
@@ -122,6 +146,9 @@ namespace UnityEngine.Rendering.Universal
                 m_HistoryStore?.Dispose();
                 m_HistoryStore = null;
                 m_Settings?.resources?.DisposeMaterials();
+#if UNITY_EDITOR
+                m_EditorMotionPass = null;
+#endif
             }
 
             base.Dispose(disposing);

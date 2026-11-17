@@ -17,6 +17,9 @@ namespace UnityEditor.Rendering.Universal
                 "motion vectors. Preview, reflection and overlay cameras are skipped. It uses the packed depth " +
                 "pyramid shared with Screen Space Lighting and owns its own AO history, so it runs independently " +
                 "on the same renderer. It is the renderer's only ambient occlusion producer.\n\n" +
+                "In the Editor, cameras without a UniversalAdditionalCameraData (Scene View included) receive " +
+                "camera-only motion vectors from this feature so temporal accumulation follows the camera. " +
+                "Object motion still comes from URP and is not supplemented for those cameras.\n\n" +
                 "Normal coverage: every opaque shader in the scene must render into the DepthNormals prepass. " +
                 "A custom shader without a DepthNormals pass leaves zero normals in the texture, and those " +
                 "pixels receive no ambient occlusion. Deferred rendering requires Accurate G-buffer Normals " +
