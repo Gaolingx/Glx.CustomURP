@@ -7,7 +7,7 @@ Scope: P6 closes the 06 round — full EditMode, full PlayMode, the closed-effec
 - Unity 2022.3.62f1, batchmode, Windows 10 (10.0.20348), D3D11.
 - NVIDIA GeForce RTX 5060 Ti, driver 32.0.15.7680.
 - Unity logged `No ULF license found` / `Access token unavailable` in every run; the runs still executed and the post-fix runs exited 0.
-- GPU clocks cannot be locked on this machine (GeForce/WDDM rejects application clock locks; SM clocks swing 63–1519 MHz). GPU timings are reference-only, matching the T1/T14 protocol decision in [T14Performance.json](../../../Done/01-ScreenSpaceLighting/validation/T14/T14Performance.json).
+- GPU clocks cannot be locked on this machine (GeForce/WDDM rejects application clock locks; SM clocks swing 63–1519 MHz). GPU timings are reference-only, matching the T1/T14 protocol decision in [T14Performance.json](../../../01-ScreenSpaceLighting/validation/T14/T14Performance.json).
 
 ## EditMode
 
@@ -135,7 +135,7 @@ The T1 baseline player (60 warmup frames, 1800 samples per mode, 60 fps target, 
 - Initial and final graphics-driver memory are recorded in [Run/BaselineReport.json](Perf/Run/BaselineReport.json); no growth between modes.
 - All screenshots captured with 0 magenta pixels; 1800 CPU samples per mode, 1798–1800 GPU samples.
 - **CPU p95 is within the 10% regression gate** on all three renderers.
-- **GPU p95 is reference-only**: DVFS cannot be locked on this machine ([T1 DVFS diagnostics](../../../Done/01-ScreenSpaceLighting/validation/T1/Diagnostics/Dvfs-2026-11-14/)), and the T14 protocol explicitly forbids using this harness as a GPU pass/fail gate. The archived GPU numbers (2.99/2.54/2.58 ms) and the new ones (1.39/2.57/2.67 ms) are both dominated by clock state, not by the code change.
+- **GPU p95 is reference-only**: DVFS cannot be locked on this machine ([T1 DVFS diagnostics](../../../01-ScreenSpaceLighting/validation/T1/Diagnostics/Dvfs-2026-11-14/)), and the T14 protocol explicitly forbids using this harness as a GPU pass/fail gate. The archived GPU numbers (2.99/2.54/2.58 ms) and the new ones (1.39/2.57/2.67 ms) are both dominated by clock state, not by the code change.
 - Scope limit: the T1 baseline renderers intentionally contain no SSL feature, so this run measures **core-path regression plus memory**, not the incremental cost of SSL. SSL's incremental GPU cost remains covered by the T14 budget table, which is itself reference-only.
 
 Evidence: [PerfComparison.json](Perf/PerfComparison.json), [BuildSummary.json](Perf/BuildSummary.json), [Build log](Perf/UnityBaselineBuild.log), [Run/BaselineReport.json](Perf/Run/BaselineReport.json), [FrameTimes.csv](Perf/Run/FrameTimes.csv), [RawFrameTimes.csv](Perf/Run/RawFrameTimes.csv), three PNGs.
