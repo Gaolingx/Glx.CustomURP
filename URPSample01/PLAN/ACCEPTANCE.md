@@ -4,6 +4,8 @@
 > 验收基线：`f85952c`；整改提交：`fa67325`、`f6f754e`、`726e57b`（本文件在其后提交）。工作区干净。
 > 方法：每轮的 HANDOFF/计划声称 → git commit/diff → `validation/` 证据 → HEAD 代码。
 > 结论：**所有轮次的代码交付均可在 HEAD 验证，未发现代码回归。** 初次验收发现 06 的捕获预算/路径漂移与若干文档矛盾；仓库所有者决定把 06 预算提高到 1 GB，并完成路径/文档整改（见 §11）。整改后 06 为 **PASS\***（`P6-2` 不再 FAIL），03 仍为 **PARTIAL**（Frame Debugger/T1 视觉证据缺失），其余轮次为 PASS\*。
+>
+> **独立复核（2026-11-17，§12）**：6 个只读子代理逐轮重验 + RenderDoc MCP 抽查。代码交付 01–06 仍无回归；但 §1–§11 有若干**评级/统计/证据债**需要修正（06 的 P0-3/P0-2 描述、04 的任务计数、05 的 P0-2/P1-1/P1-2、03 的 T3 指标、01 的 T14 脚本与 T10/T13 数字）。§12 只追加修正，不改写历史结论。
 
 ## 0. 验收口径
 
@@ -229,3 +231,192 @@ EditMode 153（T14）→ 418/419（02）→ 426（04）→ 455/456（06）是**�
 - 非日志 `PLAN/TODO` 引用 = 3 个历史说明/快照；83 个 `.log` 保留抓帧时路径并已注明。
 - `git status --short` 为空；未修改任何运行时代码。
 - 未删除任何 `.rdc`。
+
+---
+
+## 12. 独立逐轮复核（2026-11-17，subagent）
+
+> 方法：6 个只读子代理分别对 01–06 提取任务/验收项 → `git log/show/ls-files` → committed evidence → HEAD 代码；主线用 `renderdoc_mcp` 抽查 05/06 抓帧，并复核高危结论。未修改代码、未删除证据。
+> 判定沿用 §0：PASS / PASS\* / PARTIAL / ACCEPTED / FAIL / SUPERSEDED。历史证据按“当时有效”判断，被后续轮次替代的行为标 SUPERSEDED。
+> 结论：**代码交付 01–06 全部 PASS，未发现声称的修复在 HEAD 缺失。** 证据/汇总层有下述修正；§1–§11 的评级与统计不全部成立。
+
+### 12.1 总览修正
+
+| 轮次 | §1–§11 原结论 | 独立复核 | 主要修正 |
+|---|---|---|---|
+| 01-ScreenSpaceLighting | PASS\* | PASS\*（7 PASS、10 PASS\*、1 SUPERSEDED，共 18） | T14 分析脚本仍断言独立 Hi-Z；11 个 T14 日志被 `6606cfb` 删除；T10/T13 数字与范围 |
+| 02-SSRImprove | PASS\* | PASS\*（3 PASS、4 PASS\*、1 PARTIAL，共 8） | T6 降 PARTIAL：06 把 debug enum 14–17 重编号为 13–16；16 个日志可从 `894e49d^` 取回 |
+| 03-SSRImprove2 | PARTIAL | PARTIAL（2 PASS\*、4 PARTIAL） | T3 的“probe G 2.743”实为 magenta R 2.7485；T1 零证据；T4 FD 原因错误 |
+| 04-SSGIFallbackImprove | PASS\* | PASS\*（1 PASS、5 PASS\*、1 PARTIAL，共 7；原统计写成 8） | 0.389 ms 是中位数之差；`3302908` 违反插件隔离 |
+| 05-ScreenSpaceRefractionImprove | PASS\* | 代码 PASS；证据/汇总 PARTIAL（1 PASS\*、3 PARTIAL、8 ACCEPTED、1 FAIL、1 Unverifiable） | P0-2 CSV 过期；P1-1/P1-2 图片重复；汇总生成器硬编码 `exitCriteriaMet=False` |
+| 06-ValidationAllRDC | PASS\* | PASS\*（16 PASS、8 PASS\*、3 PARTIAL，共 27） | P0-3 “14 项/用例”不实；P0-2 已脚本化；1 GB 单位；P3-3 应为 PASS\* |
+
+### 12.2 逐轮逐项
+
+#### 01-ScreenSpaceLighting
+
+| 任务 | 复核 | 备注 |
+|---|---|---|
+| T1 | PASS\* | `Reproducibility.json` 选 Run17/18；HANDOFF:8 已改，但 :551-552 仍写 Run15/16 |
+| T2 / T3 / T4 | PASS | — |
+| T5 | PASS\* | 现在的 GTAO 使用共享 Hi-Z；T5 的“重复显存”只对当时成立 |
+| T6 | PASS\* | 03 重写 reprojection/denoise；T6 数值是历史快照 |
+| T7 | PASS\* | 权重均值是 `2b38091` 前的；已披露 |
+| T8 | SUPERSEDED | 18 个累积 kernel 已被 02 的 `ReflectionDenoiser` 替换；HANDOFF:15 已标，plan:495 未标 |
+| T9 / T11 | PASS | — |
+| T10 | PASS\* | 文档 9,560 / 2,314 px；JSON 实为 13,619 / 3,580 |
+| T12 | PASS\* | FD 报告无顶层 `passed` |
+| T13 | PASS\* | 文档范围 214k–232k / 45k–82k；JSON 193,003–328,849 / 38,903–81,914 |
+| T14 | PASS\* | 必需资源 22（plan 仍写 17）；11 个日志被 `6606cfb` 删除；6 个 JSON 含 `PALN/` |
+| GTAO 条带 | PASS\* | “每个不同哈希都是 GTAO 用例”不精确：73/103，含 21 个关闭基线 |
+| SSR 射线原点 | PASS | — |
+| SSR 空洞填充 | PASS\* | 96,040→98,960 / 2,920 只在 `Report.md`，无 artifact |
+| SSR 拖动残影 | PASS | — |
+
+**01 首要缺口**：`Analyze-T14Evidence.py:52` 仍写“GTAO 与 SSL 各自拥有 packed Hi-Z”，与 `T14KnownDifferences.md:35` / HANDOFF:206 矛盾；按文档重跑会重新生成过时结论。
+
+#### 02-SSRImprove
+
+| 任务 | 复核 | 备注 |
+|---|---|---|
+| T0 | PASS\* | 契约在代码中成立；“冻结先于代码”Unverifiable |
+| T1 | PASS\* | 7 kernels/417 成立；`ShaderUtil=0` 与 416 baseline 只在被删日志里，可从 `894e49d^` 取回 |
+| T2 | PASS | PNG 与 HDRP 逐字节一致；文档漏了 NoV=1 的 0.008 |
+| T3 | PASS\* | half-res 成立；`2c` 统一到 03 `ca0f9ee` 才与 HDRP 一致 |
+| T4 | PASS | 弃用字段后被 `ed4ed8b` 删除，属预期 |
+| T5 | PASS\* | 30/30、825,556/0、640×360 成立；Approximation 的“2 事件”来自计数器，FD 只跑 PBR |
+| T6 | **PARTIAL** | `ScreenSpaceLightingDebugMode` 由 14–17 改为 13–16（06 `86e5ee6`）；HANDOFF:421 “14 以上不变”已假，`T6/VolumeOptionsCheck.txt` 与 HEAD 不一致 |
+| AuditFix | PASS | 3/3；三渲染器数值相同未解释 |
+
+**02 首要缺口**：T6 的重编号没有在 02 的 HANDOFF/ACCEPTANCE 中交叉引用；旧 Volume/材质若选 14–17 会解析到别的调试视图（06 P4-4 已记录“场景资产全为 0，无迁移”）。
+
+#### 03-SSRImprove2
+
+| 任务 | 复核 | 备注 |
+|---|---|---|
+| T0 | PARTIAL | 无独立 commit，全部并入 `ca0f9ee` |
+| T1 | **PARTIAL** | 代码/资源/关键字在 HEAD；32 帧 A/B、缺 LUT fallback、03 shader check **全部无证据** |
+| T2 | PASS\* | `2c` 统一；参考图是 SSR 关闭路径，md5 一致不能证明 PBR 全分辨率不变 |
+| T3 | PASS\*（non-FP 半 SUPERSEDED） | `probeGreenTint=2.5917`、`magentaMeanR=2.7485`、`probesMean=(0,0,0)`；文档“probe G 2.743”把 magenta R 写成 green。Forward/Deferred 的默认 cubemap 行为已被 04 `SSL_PROBE_LIST` 替代 |
+| T4 | PARTIAL | FD `completed=false`；真实原因是 `locallySupported=False`，不是 GUI 卡住；`UnityImport.log` 有 licensing error + 2 条 YAML GUID 警告 |
+| T5 | PARTIAL | `ScreenSpaceLightingSsgiTemporalCheck.Run` 不存在（实际 `RunSsgiTemporalCheck`）；`OutputRoot` 硬编码到 02；fallback 无命令 |
+
+**03 首要缺口**：T1 没有任务专属证据；文档无法按原命令重新生成 03 证据。
+
+#### 04-SSGIFallbackImprove
+
+| 任务 | 复核 | 备注 |
+|---|---|---|
+| P0 | PASS\* | 默认 false/opt-in 成立；`Sky` 的 before 单元格原描述错误，已修 |
+| P1 | PASS\* | 8/8；`3302908` 在 core `UniversalRenderer` 引用插件，违反 `PluginIsolationTests`，`4158f8d` 修复；生产路径走未测的 lazy 分支 |
+| P2 | PASS\* | `SSL_PROBE_LIST` 成立；`SslShaderCheck.txt` 无 producer，且一半是源码 grep |
+| P3 | PARTIAL | 字段/HelpBox 在 HEAD；无 Inspector 证据，P3 XML 与 P1 是同一组 8 个测试 |
+| P4 | PASS\* | 2.56434/−0.00714、0.99966、FP 逐字节、0.15278 均复现；Stress 1/4/32 同一文件；0.389 是中位数之差，配对中位数才是 0.153（n=8，含 −2.65 outlier） |
+| P5 | PASS\* | T14 条目在；“runtime switching next frame”在当时代码下为假 |
+| 归档 | PASS | 无临时资产 |
+
+**04 首要缺口**：运行时开关未做图像级跨帧证明；默认 temporal 下缺少 stamp，实际直到 06 F-07 才正确。
+
+#### 05-ScreenSpaceRefractionImprove
+
+| 任务 | 复核 | 备注 |
+|---|---|---|
+| P0-1 | PARTIAL | 代码/fallback 成立；screen-miss-only、tinted probe、edge-band 均无 artifact；criterion 7 仅文本 |
+| P0-2 | **PARTIAL**（原 PASS） | 2.04%/0.99975 只在 `T11Hotfix/*_OpacitySweep.csv`；`P0-2/fitting.csv` 是 2.335%/0.999676 的旧快照；criterion 4/6/7 无 artifact |
+| P0-3 | PARTIAL | `3F4364CC…` 三个状态都启用探针，只证明 `boxProjection` 无效，不证明 probe/sky 不可区分；`InfiniteProxy` 哈希不同 |
+| P1-1 | ACCEPTED | 解析值成立；无梯度图 |
+| P1-2 | ACCEPTED | 代码成立；`P1-2/*_Tinted.png` 与 P0-1 逐字节相同，且材质是 `_REFRACTION_PLANE`，不是 Thin |
+| P1-3 | PASS\* | CPU/玩家 `debug_pixel` 成立；GPU p95、边界序列帧缺失；GC 采样排除了 30 帧刷新帧；`P13Player.log` 未跟踪 |
+| P2-1 | ACCEPTED | 公式等价性复核成立 |
+| P2-2…P2-6 | ACCEPTED | 如实 pending |
+| 汇总 `Report.json` | **FAIL（作为 roll-up）** | `Analyze-05Evidence.py:239` 硬编码 `exitCriteriaMet=False`；editMode 170；无 P1-3 case；`Report.md:12` 说 P1-3 未开始，`:81` 说已完成；`Cleanup.md:4` 仍 TODO |
+| EditMode 433/434 | Unverifiable | 只有 170 入库；未跟踪日志报 173 |
+
+**05 首要缺口**：P1-1/P1-2 的证据目录是 P0-1 图片的副本；P0-2 的引用 CSV 与热修后数值不一致；汇总生成器结构上无法通过。
+
+#### 06-ValidationAllRDC
+
+| 任务 | 复核 | 备注 |
+|---|---|---|
+| P0-1 | PASS | 9/9 smoke；3 渲染器 asset；manifest 驱动 |
+| P0-2 | PARTIAL | RDC 分析**已脚本化**（P1-4/P2-SSGI/P3 等），但按任务定制且硬编码仓库外 `renderdoc-cli.exe` |
+| P0-3 | PASS\* | smoke 用 35 字段，适用数 14(GTAO)/8(SSGI)/7(SSR)/6(折射)/0(off)，不是“每用例 14”；HEAD 已增至 37 |
+| P0-4 | PARTIAL | 无根 `Report.json/Report.md/BaselineHashes.json`；`exitCriteriaMet` 只在 `P6/Results.json:83`；HANDOFF:381 仍写“完成”并含死路径 |
+| P1-1 / P1-3 / P1-4 | PASS | F-01、F-10、材质覆盖均在 HEAD 与 artifact |
+| P1-2 | PASS\* | 正交 0.18%/0.08% 成立；`P1-2/` 只有 `Report.md`，数字在 `P1-GTAO/Metrics.json` |
+| P2-1 / P2-2 / P2-4 / P2-5 | PASS | — |
+| P2-3 | PARTIAL | `0.5054/0.1837` 可复现；“1/16→16/16 tap”只在叙述里，无 `debug_thread` |
+| P3-1 | PASS\* | 0.00160375/0.00320750、6/7 dispatch 成立；0.5 px/帧平移的 ≥50% history 接受率未测 |
+| P3-2 | PASS | 调试帧 7 dispatch，正式输出隔离 |
+| P3-3 | **PASS\***（原 ACCEPTED） | F-06/F-08 已 Fixed 且有 GPU 证明（826,164 px 最大差 0；9844/9865 两变体）；只有 Y 翻转分支 Accepted |
+| P3-4 / P3-5 | PASS | 12/12；反射 0.87 px、空洞 100%/98% |
+| P4-1 / P4-2 / P4-4 | PASS | 泄漏 255→0、60/60→0、死代码删除 |
+| P4-3 | PASS\* | 20 用例，不是 3×4×2 全矩阵；4 个 `P4-3/Terrain`、`P4-3/Diag` 悬空路径（目录不存在） |
+| P5 | PASS | 四分类 + F-01..F-12；F-06 的 `0.006142>0.003819` 误引 01/T10 数字 |
+| P6-0 / P6-1 | PASS\* | 455/455、6/6、T12 34/34/35；R2 pan 与 R6 sample-count 饱和未测 |
+| P6-2 | PASS\* | 58 `.rdc` / 1,048,717,328 B（0.977 GiB，**十进制 1 GB 超 4.9%**）；`.rdc` 的 ignored-but-tracked=0，但全仓库为 **14 个 `.log`**；45 个 06 日志被忽略；3 个 P6 日志被 `84dd666` 删除 |
+| P6-3 | PASS | 归档；T12 回放通过 |
+
+**06 首要缺口**：P0-4 的根汇总从未落地；证据卫生仍有 45 个忽略日志、3 个被归档提交删除的 P6 日志、4 个悬空路径；两个 §7.2 数值项（R2 pan、R6 sample count）未测却被 P6 宣称“thresholds Met”。
+
+### 12.3 跨轮问题
+
+| ID | 问题 | 证据 | 影响 | 建议 |
+|---|---|---|---|---|
+| X-1 | ACCEPTANCE 的若干行未随 `726e57b` 刷新 | 01 的 Run15/16、T8、17 资源；05 的 blocker | 读者会得到过期结论 | 以 §12 为准；下次整改时同步 §1–§11 |
+| X-2 | 后续轮次 break change 未回写旧轮文档 | 02 T6 enum 14–17→13–16；01 T14 Hi-Z；03 non-FP superseded；04 runtime toggle | 旧 HANDOFF 与 HEAD 矛盾 | 在旧 HANDOFF 加 SUPERSEDED/重编号注记 |
+| X-3 | 日志证据链断裂 | 11 个 T14 日志（`6606cfb`）、16 个 02 日志（`894e49d`）、3 个 P6 日志（`84dd666`） | fresh clone 无法复现部分叙述 | 从历史 commit 取回或标 local-only；不要声称“全部保留” |
+| X-4 | 路径漂移与悬空引用 | 6 个 `PALN/` JSON；4 个 `P4-3/Terrain`、`P4-3/Diag`；3 个 P6 日志链接 | 文档命令/链接不可用 | 批量修正或标历史快照 |
+| X-5 | 数值只在叙述里 | 03 probe G、05 P0-2、01 T10/T13、06 P2-3 tap | 无法机器复核 | 补 JSON 字段或降级为 narrative-only |
+| X-6 | 测试计数已验证 | 455/455、6/6、34/34/35；58 `.rdc`/1,048,717,328 B | — | 保持 |
+
+### 12.4 GPU 独立抽查（RenderDoc MCP）
+
+| 抓帧 | 检查 | 结果 |
+|---|---|---|
+| `05/.../P13_CameraAtA_Both_frame162.rdc` | EID 786 玻璃球，`debug_pixel(640,359)` | `o0=(1,1,~0,1)`，382 steps，与归档 `(1,1,0,1)` 一致 |
+| `06/.../P3-1/forward_ssr_pbr_full_ssgi_off` | `Screen Space Reflections` pass | 6 dispatch，无 SSGI marker |
+| `06/.../P1-1/forward_gtao_full_after` | GTAO pass | 3 dispatch（full） |
+| `06/.../P1-1/forward_gtao_half_after` | GTAO pass | 4 dispatch（half，+upsample） |
+| `06/.../P3-2/forward_ssr_pbr_full_debug_params` | SSR pass | 7 dispatch（正常 6 + 调试 1） |
+
+### 12.5 结论与整改
+
+**代码交付**：01–06 全部 PASS；F-01…F-12 的修复均在 HEAD 可验证；未发现声称的修复缺失。
+
+**证据/汇总**：
+
+- 01 PASS\*（文档/日志债）；02 PASS\*（T6 PARTIAL）；03 PARTIAL（T1/T4/T5 证据）；04 PASS\*（开关未图像级证明）；05 代码 PASS、证据 PARTIAL、roll-up FAIL；06 PASS\*（P0-4/P2-3 PARTIAL，证据卫生债）。
+- 尚不能宣称“public-review clean”：ACCEPTANCE 有过期行、若干日志/路径不可复现、若干数值只在叙述里。
+
+**建议整改（按优先级）**
+
+1. **R1**：修 `Analyze-T14Evidence.py:52` 的独立 Hi-Z 文本，避免重跑生成过时结论。
+2. **R2**：在 02 T6 行/02 HANDOFF 标注 debug enum 14–17→13–16；这是 06 已记录的 break change，不是回归。
+3. **R3**：替换或标注 `P0-2/fitting.csv`；把 2.04%/0.99975 指向 `T11Hotfix/T11_*_OpacitySweep.csv`。
+4. **R4**：把 05 的 P1-1/P1-2 图片标为“复用 P0-1，无任务专属测量”，或补 IOR 梯度/有色 Thin。
+5. **R5**：修 05 汇总生成器（读最终 T11/EditMode、计算 `exitCriteriaMet`、加入 P1-3 case），同步 `Report.md:12` 与 `Cleanup.md:4`。
+6. **R6**：修 06 的 P0-4/HANDOFF:381（根 schema 或明确只在 `P6/`），以及 4 个 `P4-3` 悬空路径和 3 个 P6 日志链接。
+7. **R7**：补 06 R2 pan 接受率与 R6 sample-count 饱和的 artifact，或把 P6 的“7.2 thresholds Met”降级为“已测项 Met”。
+8. **R8**：把 06 的“1 GB”写成 `1 GiB`，把“ignored-but-tracked=0”限定为 `.rdc`；全仓库仍有 14 个被忽略但跟踪的 `.log`。
+
+**复现命令**
+
+```bash
+# 逐轮代码/证据
+git log --oneline --all -- URPSample01/PLAN/Done/<round>
+git ls-files URPSample01/PLAN/Done/<round>/validation
+git show <hash> --stat
+
+# 抓帧预算
+git ls-files '*.rdc' | wc -l
+git ls-files -z '*.rdc' | xargs -0 du -cb | tail -1
+git ls-files -i -c --exclude-standard '*.rdc' | wc -l
+
+# 测试 XML
+python - <<'PY'
+import xml.etree.ElementTree as ET
+for f in [".../P6/EditMode/UnityEditModeFull.xml", ".../P6/PlayMode/UnityPlayModeTests.xml"]:
+    print(f, ET.parse(f).getroot().attrib)
+PY
+```
