@@ -40,3 +40,23 @@
 | HardwareDynamicResolution | UnsupportedByUrp14 |
 
 Not tested results are not counted as supported.
+
+## 06-ValidationAllRDC status (2026-11-17)
+
+This section records 06 GPU validation coverage; rows marked Pending are exit-criteria gaps, not support claims.
+
+| Area | Result |
+|---|---|
+| Forward / ForwardPlus / Deferred | Passed (GTAO, SSGI, SSR, transparent SSR and refraction dispatch, binding probe and image cases) |
+| Orthographic GTAO | Passed (P1-2; URP addition, no HDRP counterpart) |
+| Static render scale 0.5 / 0.75 / 1 / 2 | Passed (P4-3; dispatch dimensions 640×360 / 960×540 / 1280×720 / 2560×1440, 0 non-finite pixels) |
+| MSAA 1× / 4× | Passed on Forward and ForwardPlus; Deferred compatibility path ignores MSAA (P4-3) |
+| A→B camera keyword/binding reset | Passed (P4-1/P4-2; injected leaks 60/60 before fix → 0 after; 44/44 rejected-camera bindings clean) |
+| XR single-pass | NotRevalidatedAfter06 (T13/T14 Mock HMD evidence remains; a dedicated smoke is deferred) |
+| T12 combination matrix replay | Pending (historical 34/34/35 from T12; 06 replay deferred) |
+| PlayMode full suite | Pending (suite exists; 06 run deferred) |
+| Performance (1280×720 GPU delta) | Pending (no 06 measurement; not claimed) |
+| Resource-count leak loop | Pending (resolution/camera cycling not yet measured) |
+| Release/validation player build | Passed (0 errors; 4001 shader warnings: 3998 plugin `Load` truncations + 3 URP core shader warnings, same count as P4-2) |
+
+ForwardPlus absolute values from P4-3 onward are not directly comparable with earlier rounds because the validation build now collects Forward+ variants for all three validation pipelines; relative metrics and pass/fail outcomes remain comparable.

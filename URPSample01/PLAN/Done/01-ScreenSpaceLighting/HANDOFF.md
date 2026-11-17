@@ -1,6 +1,6 @@
 # ScreenSpaceLighting 交接
 
-> 更新：2026-11-15（T14 退出；同日补 SSR 反射修复与 GTAO 条带修复）。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
+> 更新：2026-11-15（T14 退出；同日补 SSR 反射修复与 GTAO 条带修复）；2026-11-17 记入 06-ValidationAllRDC 进行中。架构理由、边界和完整任务依赖见 [实施计划](HDRP%20ScreenSpaceLighting%20迁移到%20URP%2014.0.12%20实施计划.md)；本文件只维护下一步。
 
 ## 当前位置
 
@@ -31,6 +31,7 @@
 - Release Player（`BuildOptions.None`，不含 Development/TestAssemblies）构建成功、0 errors，17 个必需 ComputeShader/Shader 资产全部在包内；DX11/DX12/Vulkan 三 API 双 XR 模式全部 `passed=true`。
 - 支持矩阵、已知差异、性能/显存与归档清单已生成；T1 与 T14 临时 Player 目录已删除。
 - 四个模板/测试 pipeline 资产上被构建期 shader prefiltering 改写的字段已还原；`URP-HighFidelity-Renderer` 与 `URP-Balanced-Renderer` 中 T5 删除 SSAO 后残留的 SSAO Feature 已移除（这正是此前每次构建日志里 `missing RendererFeatures` 报错的来源）。
+- **06-ValidationAllRDC 进行中（2026-11-17）**：P0–P4 已完成并留证，P5 差异文档已完成，P6 回归、汇总、清理与归档未开始。四分类差异（A 引擎能力 / B URP 架构 / C 有意适配 / D 缺陷）与 F-01..F-12 状态见 [KnownDifferences.md](../../TODO/06-ValidationAllRDC/KnownDifferences.md)；任务表、证据索引与退出标准见 [06 HANDOFF](../../TODO/06-ValidationAllRDC/HANDOFF.md)。T14 的“重复 Hi-Z 显存”条目已作废（GTAO 与 SSL 共享 packed Hi-Z），支持矩阵已补 06 覆盖与 Pending 项。
 
 ## 后续缺陷修复（2026-11-15）：GTAO 竖向条带
 

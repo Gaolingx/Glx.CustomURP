@@ -2,9 +2,14 @@
 
 > Updated 2026-11-17 after the SSR reflection denoiser port (02-SSRImprove T1–T5), the SSR/SSGI
 > HDRP alignment pass (03-SSRImprove2 T1–T3), the SSGI Forward/Deferred probe fallback
-> (04-SSGIFallbackImprove P0–P5) and the screen-space refraction HDRP alignment
-> (05-ScreenSpaceRefractionImprove P0-1/P0-2/P0-3/P1-1/P1-2/P1-3). Items below are deliberate URP
-> adaptations or environment limits, not open bugs.
+> (04-SSGIFallbackImprove P0–P5), the screen-space refraction HDRP alignment
+> (05-ScreenSpaceRefractionImprove P0-1/P0-2/P0-3/P1-1/P1-2/P1-3) and the all-effects GPU
+> validation (06-ValidationAllRDC P0–P5). Items below are deliberate URP adaptations or
+> environment limits, not open bugs; the 06 four-category record is
+> [KnownDifferences.md](../../../../TODO/06-ValidationAllRDC/KnownDifferences.md).
+> 06 fixed F-01–F-12 (GTAO full-res/orthographic/early-return, SSGI stamp/denoiser taps,
+> SSR spread angle/debug target/depth flip/keyword ordering, refraction state reset, dead code,
+> and the validation-build Forward+ variant gap).
 
 - Refraction proxy selection uses an object-center table (up to 7 finite probe AABBs plus a reserved infinite fallback), not HDRP's per-pixel env-light hierarchy. The pass builds the table from visible and scene reflection probes sorted by importance/visibility/volume; the shader picks the containing proxy with the highest importance, otherwise the nearest AABB, otherwise the infinite fallback. The object-center point is the transform pivot (`GetObjectToWorldMatrix()._m03_m13_m23`), matching HDRP. HDRP's default probe uses its influence volume as the proxy (`ProbeSettings.NewDefault`), so the AABB mapping is intentional; only an explicit infinite proxy volume is not representable. Rotated probes use their conservative AABB, URP 14 does not expose per-probe rendering layer masks so light layers do not filter the proxy, the fallback `unity_SpecCube0` probe can differ from the proxy, and the 8-entry cap can drop a probe in dense scenes.
 - A finite-probe AABB miss is a screen miss in URP: the screen weight becomes 0 and the probe/sky fallback owns it. HDRP clamps the proxy intersection distance to `minProjectionDistance` (0 for finite probes), so it still samples the screen at the volume exit point. This only differs when the refracting object or refracted ray lies outside every finite proxy; URP then shows the cubemap instead of the unrefracted screen background.
@@ -28,6 +33,7 @@
 - `singleReflectionBounce`, `affectSmoothSurfaces` and `denoiserRadius` are re-interpreted without a ray-tracing path: a single bounce only enables roughness-based radius scaling, `affectSmoothSurfaces` controls the >0.99 smoothness early-out, and `denoiserRadius` is the maximum kernel radius (halved at half resolution).
 - The former SSR accumulation and speed rejection Volume parameters (`accumulationFactor`, `speedRejectionParam`, `speedRejectionScalerFactor`, `speedSmoothReject`, `speedSurfaceOnly`, `speedTargetOnly`, `enableWorldSpeedRejection`) and the `SsrAccumulationSpeed` debug view were removed after the reflection denoiser port; existing Volume overrides for them are ignored on load. `biasFactor` still biases the trace.
 - GTAO and Screen Space Lighting share one packed Hi-Z chain per camera view through `ScreenSpaceDepthPyramidSystem`; the earlier note about duplicate depth-pyramid memory is obsolete (fixed in 06-ValidationAllRDC).
+- Orthographic GTAO is a URP addition with no HDRP counterpart. It uses reversed-Z-aware linear depth and fixes the view direction to view-space `(0,0,-1)`; 06 validated the same world radius at 2 m/20 m within 0.18% and left/right within 0.08%. Orthographic support is not claimed as pixel-identical to HDRP.
 - URP's Deferred compatibility path ignores MSAA, so the Deferred renderer does not promise MSAA support for these effects.
 - URP 14.0.12 does not drive DynamicResolutionHandler: hardware dynamic resolution cannot rescale the RTHandle camera targets, so it is recorded as unsupported (static render scale is supported).
 - APV is not integrated in URP 14.0.12, so probe-volume GI is marked unsupported; lightmap/SH/mixed lighting regresses green.
@@ -36,4 +42,4 @@
 - Reflection and preview cameras are rejected by `ScreenSpaceCapability` before any SSL pass runs, so SSGI/SSR are disabled rather than dimmed for probe rendering (HDRP disables SSGI for reflection cameras through FrameSettings as well).
 - The plugin keeps the _SCREEN_SPACE_GI/_SCREEN_SPACE_SSR/_SCREEN_SPACE_TRANSPARENT_SSR/_SCREEN_SPACE_REFRACTION variants in every build because URP's prefiltering data only covers URP keywords. Plugin-level build stripping was evaluated but not introduced in T14: it changes release behaviour and needs its own correctness cycle.
 - Metal, Android/OpenGLES, macOS/iOS and physical HMDs are not tested in this environment and are not claimed as supported.
-- One 'CommandBuffer: temporary render texture not found (SetComputeTextureParam)' warning is logged on the first frame after the effects are enabled on DX11; it predates T14 (present in the T12 capture logs) and does not affect the measured images, which are identical to the recorded T12 hashes.
+- One 'CommandBuffer: temporary render texture not found (SetComputeTextureParam)' warning was logged on the first frame after the effects were enabled on DX11; it predates T14 (present in the T12 capture logs) and did not affect the measured images, which were identical to the recorded T12 hashes. The warning was not reproduced in the 06 P4-1/P4-2/P4-4 player logs, so it is kept as a historical observation rather than current behaviour.
