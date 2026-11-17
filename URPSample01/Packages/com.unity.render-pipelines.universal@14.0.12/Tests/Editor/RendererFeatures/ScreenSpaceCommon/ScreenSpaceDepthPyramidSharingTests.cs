@@ -103,6 +103,31 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
+        public void CameraPoseChangeRebuildsTheSharedPyramidInTheSameFrame()
+        {
+            AddBothFeatures(gtaoFirst: true);
+            Assert.AreEqual(1, PyramidEnqueues());
+
+            m_Camera.transform.position += new Vector3(0.5f, 0f, 0f);
+            AddBothFeatures(gtaoFirst: true);
+
+            Assert.AreEqual(2, PyramidEnqueues(),
+                "A second pose rendered in the same Time.frameCount must not reuse the previous pose's depth chain.");
+        }
+
+        [Test]
+        public void BuildTokenCombinesFrameAndViewProjection()
+        {
+            var pyramid = new ScreenSpaceDepthPyramid();
+            var pose = Matrix4x4.TRS(new Vector3(1f, 2f, 3f), Quaternion.identity, Vector3.one);
+
+            Assert.IsTrue(pyramid.ShouldBuild(7, pose));
+            Assert.IsFalse(pyramid.ShouldBuild(7, pose), "The same pose in the same frame reuses the chain.");
+            Assert.IsTrue(pyramid.ShouldBuild(7, pose * Matrix4x4.Translate(new Vector3(0f, 0.1f, 0f))));
+            Assert.IsTrue(pyramid.ShouldBuild(8, pose), "A new frame rebuilds even at the same pose.");
+        }
+
+        [Test]
         public void IdleSslDoesNotAffectTheGtaoPyramid()
         {
             AddBothFeatures(gtaoFirst: true);

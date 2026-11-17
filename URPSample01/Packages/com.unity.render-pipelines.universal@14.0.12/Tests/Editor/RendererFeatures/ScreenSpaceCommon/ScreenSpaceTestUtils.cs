@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             int width = 320,
             int height = 180)
         {
-            return new CameraData
+            var cameraData = new CameraData
             {
                 camera = camera,
                 cameraType = cameraType,
@@ -37,6 +37,11 @@ namespace UnityEditor.Rendering.Universal.Tests
                 cameraTargetDescriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.ARGB32, 24),
                 xr = new XRPass(),
             };
+            // URP initializes these from the camera; tests that move the camera between renders need
+            // the same matrices instead of CameraData's default identity.
+            if (camera != null)
+                cameraData.SetViewAndProjectionMatrix(camera.worldToCameraMatrix, camera.projectionMatrix);
+            return cameraData;
         }
 
         internal static RenderingData CreateRenderingData(CameraData cameraData)

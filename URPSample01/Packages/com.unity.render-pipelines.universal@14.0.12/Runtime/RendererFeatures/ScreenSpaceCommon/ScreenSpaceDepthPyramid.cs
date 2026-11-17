@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.Universal
         int m_AllocatedSlices;
         TextureDimension m_AllocatedDimension;
         int m_BuildFrame = -1;
+        Matrix4x4 m_BuildViewProjection;
+        bool m_HasBuildViewProjection;
 
         // The chain is rebuilt on every rendered frame, so a camera reset only changes the layout
         // the next build uses; the allocation is released by EnsureResources when it changes.
@@ -33,6 +35,8 @@ namespace UnityEngine.Rendering.Universal
         {
             m_Width = Mathf.Max(1, width);
             m_Height = Mathf.Max(1, height);
+            m_BuildFrame = -1;
+            m_HasBuildViewProjection = false;
         }
 
         internal void Prepare(int width, int height, int viewCount, TextureDimension dimension)
@@ -82,13 +86,20 @@ namespace UnityEngine.Rendering.Universal
             m_Info.GetOffsetBufferData(offsets);
         }
 
-        // True exactly once per camera view and frame: the caller enqueues the shared build pass.
-        internal bool ShouldBuild(int frameIndex)
+        // True once per camera view, frame and pose: the caller enqueues the shared build pass.
+        // Editor repaints can render the same camera several times in one Time.frameCount, so the
+        // frame index alone would keep a pyramid built from an older pose. Moving objects within an
+        // unchanged pose still reuse the chain; there is no cheap token for that case.
+        internal bool ShouldBuild(int frameIndex, Matrix4x4 viewProjection)
         {
-            if (m_BuildFrame == frameIndex)
+            if (m_BuildFrame == frameIndex &&
+                m_HasBuildViewProjection &&
+                m_BuildViewProjection == viewProjection)
                 return false;
 
             m_BuildFrame = frameIndex;
+            m_BuildViewProjection = viewProjection;
+            m_HasBuildViewProjection = true;
             return true;
         }
 
@@ -112,6 +123,8 @@ namespace UnityEngine.Rendering.Universal
             m_AllocatedWidth = 0;
             m_AllocatedHeight = 0;
             m_AllocatedSlices = 0;
+            m_BuildFrame = -1;
+            m_HasBuildViewProjection = false;
         }
     }
 }

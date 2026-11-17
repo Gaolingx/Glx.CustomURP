@@ -76,7 +76,10 @@ namespace UnityEngine.Rendering.Universal
 
             pyramid.Prepare(descriptor.width, descriptor.height, viewCount, dimension);
 
-            if (pyramid.ShouldBuild(frameIndex))
+            // Jitter is disabled so TAA's sub-pixel offset does not force a rebuild every frame.
+            Matrix4x4 viewProjection =
+                cameraData.GetProjectionMatrixNoJitter(0) * cameraData.GetViewMatrix(0);
+            if (pyramid.ShouldBuild(frameIndex, viewProjection))
             {
                 s_Pass.Setup(pyramid, compute);
                 renderer.EnqueuePass(s_Pass);
