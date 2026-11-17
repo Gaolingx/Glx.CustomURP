@@ -65,6 +65,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     string m_ManifestPath;
     GameObject m_Rig;
     GameObject m_MirrorRig;
+    GameObject m_OrthoRig;
     bool m_OutputsWritten;
     float m_ProgressDeadline;
     string m_PreviousSsrRenderer;
@@ -160,6 +161,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         m_Report.renderer = manifest.renderer;
         BuildRig();
         BuildMirrorRig();
+        BuildOrthoRig();
         m_RenderDoc = RenderDocApi.Load(m_OutputDirectory, m_Log);
         m_Report.renderDocAvailable = m_RenderDoc != null;
         m_Report.renderDocVersion = m_RenderDoc != null ? m_RenderDoc.Version : "unavailable";
@@ -227,22 +229,34 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
 
         var camera = testCase.camera ?? new SslCameraCase();
         ApplyPose(camera);
-        var warmup = Mathf.Max(1, manifest.warmupFrames);
+        var warmup = testCase.warmupFrames >= 0 ? testCase.warmupFrames : Mathf.Max(1, manifest.warmupFrames);
         m_CameraData.resetHistory = true;
         yield return WaitFrames(2, 0f);
         m_CameraData.resetHistory = true;
-        yield return WaitFrames(warmup, camera.panPixelsPerFrame);
-
-        for (var i = 0; i < testCase.captureAfterFrames; i++)
+        if (testCase.captureOnResetFrame)
         {
-            ApplyPanStep(camera.panPixelsPerFrame);
-            yield return new WaitForEndOfFrame();
+            // Trigger before the first post-reset frame is submitted so the capture contains the
+            // empty-history frame itself (F-10 / G7 evidence).
+            yield return CaptureWithRenderDoc(result, testCase.id);
+        }
+        else
+        {
+            yield return WaitFrames(warmup, camera.panPixelsPerFrame);
+
+            for (var i = 0; i < testCase.captureAfterFrames; i++)
+            {
+                ApplyPanStep(camera.panPixelsPerFrame);
+                yield return new WaitForEndOfFrame();
+            }
         }
 
         result.frameIndex = Time.frameCount;
         result.cameraPosition = m_Camera.transform.position;
         result.cameraRotation = m_Camera.transform.rotation.eulerAngles;
+        result.cameraOrthographic = m_Camera.orthographic;
+        result.cameraOrthographicSize = m_Camera.orthographicSize;
         ReadEffectState(rendererData, result);
+        ReadGtaoDispatchStats(testCase, result);
         ReadSsgiDispatchStats(testCase, rendererName, result);
         ReadSsrDenoiserStats(testCase, result);
         ReadSsrDispatchStats(testCase, result);
@@ -254,7 +268,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         if (testCase.bindingProbe && probeFeature != null)
             yield return ReadBindingProbe(probeFeature, testCase.id, result);
 
-        if (testCase.capture)
+        if (testCase.capture && !testCase.captureOnResetFrame)
             yield return CaptureWithRenderDoc(result, testCase.id);
 
         yield return WaitFrames(1, camera.panPixelsPerFrame);
@@ -386,6 +400,10 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         if (feature == null || gtao == null)
             return;
 
+        // A disabled feature is the reference for the intensity=0 baseline: neither path enqueues the
+        // pass, so their frames must be identical.
+        feature.SetActive(!gtao.disabled);
+
         var settings = feature.GetType().GetProperty("settings", InstanceFlags)?.GetValue(feature);
         SetField(settings, "fullResolution", gtao.fullResolution);
         SetField(settings, "stepCount", gtao.stepCount);
@@ -399,6 +417,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         SetField(settings, "blurSharpness", gtao.blurSharpness);
         SetField(settings, "spatialBilateralAggressiveness", gtao.spatialBilateralAggressiveness);
         SetField(settings, "bilateralUpsample", gtao.bilateralUpsample);
+        SetEnumField(settings, "debugMode", gtao.debugMode);
     }
 
     static void SetField(object target, string name, object value)
@@ -420,6 +439,9 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         m_Camera.transform.position = ToVector3(camera.position, new Vector3(0f, 2f, -7f));
         m_Camera.transform.rotation = Quaternion.Euler(ToVector3(camera.rotation, Vector3.zero));
         m_Camera.fieldOfView = 60f;
+        m_Camera.orthographic = camera.orthographic;
+        if (camera.orthographic)
+            m_Camera.orthographicSize = Mathf.Max(0.01f, camera.orthographicSize);
         m_Camera.nearClipPlane = 0.1f;
         m_Camera.farClipPlane = 100f;
     }
@@ -454,6 +476,119 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         var settings = gtaoFeature?.GetType().GetProperty("settings", InstanceFlags)?.GetValue(gtaoFeature);
         var intensity = settings?.GetType().GetField("intensity", InstanceFlags)?.GetValue(settings);
         result.gtaoIntensity = intensity != null ? Convert.ToSingle(intensity) : 0f;
+    }
+
+    // P1-3: assert the GTAO dispatch chain from the pass snapshot, including the empty-history
+    // (copy) frame and the fact that an inactive feature never publishes material facing AO.
+    void ReadGtaoDispatchStats(SslValidationCase testCase, SslValidationCaseResult result)
+    {
+        var gtao = testCase.gtao;
+        if (gtao == null)
+            return;
+
+        var passType = typeof(UniversalRendererData).Assembly.GetType(
+            "UnityEngine.Rendering.Universal.GroundTruthAmbientOcclusionPass");
+        var statsField = passType?.GetField(
+            "s_LastDispatchStats", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var stats = statsField?.GetValue(null);
+        if (stats == null)
+        {
+            result.issues.Add("GTAO dispatch stats are unavailable; build the player with development mode.");
+            return;
+        }
+
+        var report = new SslGtaoDispatchStats
+        {
+            frameIndex = ReadStatInt(stats, "frameIndex"),
+            screenWidth = ReadStatInt(stats, "screenWidth"),
+            screenHeight = ReadStatInt(stats, "screenHeight"),
+            aoWidth = ReadStatInt(stats, "aoWidth"),
+            aoHeight = ReadStatInt(stats, "aoHeight"),
+            groupsX = ReadStatInt(stats, "groupsX"),
+            groupsY = ReadStatInt(stats, "groupsY"),
+            groupsZ = ReadStatInt(stats, "groupsZ"),
+            fullResolution = ReadStatBool(stats, "fullResolution"),
+            temporal = ReadStatBool(stats, "temporal"),
+            orthographic = ReadStatBool(stats, "orthographic"),
+            spatialRuns = ReadStatBool(stats, "spatialRuns"),
+            historyReady = ReadStatBool(stats, "historyReady"),
+            produced = ReadStatBool(stats, "produced"),
+            historyReadSlot = ReadStatInt(stats, "historyReadSlot"),
+            historyWriteSlot = ReadStatInt(stats, "historyWriteSlot"),
+            mainDispatches = ReadStatInt(stats, "mainDispatches"),
+            spatialDispatches = ReadStatInt(stats, "spatialDispatches"),
+            copyHistoryDispatches = ReadStatInt(stats, "copyHistoryDispatches"),
+            temporalDispatches = ReadStatInt(stats, "temporalDispatches"),
+            blurUpsampleDispatches = ReadStatInt(stats, "blurUpsampleDispatches"),
+            upsampleDispatches = ReadStatInt(stats, "upsampleDispatches"),
+        };
+        report.executedThisFrame = report.frameIndex == Time.frameCount;
+        bool active = !gtao.disabled && gtao.intensity > 0f;
+        if (!active)
+        {
+            // Everything else in the snapshot belongs to the last frame that did execute; keep only
+            // the liveness fields so the report cannot be read as an inactive-feature dispatch.
+            result.gtaoDispatch = new SslGtaoDispatchStats
+            {
+                frameIndex = report.frameIndex,
+                executedThisFrame = report.executedThisFrame,
+            };
+            if (report.executedThisFrame)
+                result.issues.Add("GTAO executed a frame while the feature is inactive.");
+            return;
+        }
+
+        result.gtaoDispatch = report;
+
+        if (report.frameIndex < 0 || Time.frameCount - report.frameIndex > 3)
+        {
+            result.issues.Add($"GTAO dispatch stats are stale: frame {report.frameIndex}, current {Time.frameCount}.");
+            return;
+        }
+
+        bool fullResolution = gtao.fullResolution;
+        bool temporal = gtao.temporalAccumulation;
+        int screenWidth = Mathf.Max(1, report.screenWidth);
+        int screenHeight = Mathf.Max(1, report.screenHeight);
+        int aoWidth = fullResolution ? screenWidth : (screenWidth + 1) >> 1;
+        int aoHeight = fullResolution ? screenHeight : (screenHeight + 1) >> 1;
+        int groupsX = (aoWidth + 7) / 8;
+        int groupsY = (aoHeight + 7) / 8;
+
+        report.expectedAoWidth = aoWidth;
+        report.expectedAoHeight = aoHeight;
+        report.expectedGroupsX = groupsX;
+        report.expectedGroupsY = groupsY;
+        report.expectedMainDispatches = 1;
+        report.expectedSpatialDispatches = temporal || fullResolution ? 1 : 0;
+        report.expectedTemporalDispatches = temporal ? 1 : 0;
+        report.expectedCopyHistoryDispatches = temporal && !report.historyReady ? 1 : 0;
+        report.expectedUpsampleDispatches = temporal && !fullResolution ? 1 : 0;
+        report.expectedBlurUpsampleDispatches = !temporal && !fullResolution ? 1 : 0;
+
+        CheckSsrStat(result, "GTAO main", report.mainDispatches, report.expectedMainDispatches);
+        CheckSsrStat(result, "GTAO spatial", report.spatialDispatches, report.expectedSpatialDispatches);
+        CheckSsrStat(result, "GTAO temporal", report.temporalDispatches, report.expectedTemporalDispatches);
+        CheckSsrStat(result, "GTAO copyHistory", report.copyHistoryDispatches, report.expectedCopyHistoryDispatches);
+        CheckSsrStat(result, "GTAO upsample", report.upsampleDispatches, report.expectedUpsampleDispatches);
+        CheckSsrStat(result, "GTAO blurUpsample", report.blurUpsampleDispatches, report.expectedBlurUpsampleDispatches);
+
+        if (report.aoWidth != aoWidth || report.aoHeight != aoHeight)
+            result.issues.Add($"GTAO AO size {report.aoWidth}x{report.aoHeight} != expected {aoWidth}x{aoHeight}.");
+        if (report.groupsX != groupsX || report.groupsY != groupsY)
+            result.issues.Add($"GTAO groups {report.groupsX}x{report.groupsY} != expected {groupsX}x{groupsY}.");
+        if (report.groupsZ != 1)
+            result.issues.Add($"GTAO view count {report.groupsZ} != expected 1.");
+        if (report.fullResolution != fullResolution)
+            result.issues.Add("GTAO resolution does not match the configured value.");
+        if (report.temporal != temporal)
+            result.issues.Add("GTAO temporal state does not match the configured value.");
+        if (report.orthographic != (testCase.camera != null && testCase.camera.orthographic))
+            result.issues.Add("GTAO orthographic state does not match the camera.");
+        if (!report.produced)
+            result.issues.Add("GTAO did not publish the material facing AO.");
+        if (temporal && report.historyReady && (report.historyReadSlot ^ report.historyWriteSlot) != 1)
+            result.issues.Add($"GTAO history slots are not a ping-pong pair: read={report.historyReadSlot} write={report.historyWriteSlot}.");
     }
 
     // P2-1: compare the SSGI dispatch chain the pass actually submitted last frame against the
@@ -1285,13 +1420,35 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         m_MirrorRig.SetActive(false);
     }
 
+    // F-03 orthographic rig: one floor with two pairs of identical spheres. The near pair sits at a
+    // 2 m contact depth and the far pair at 20 m for the validation camera (0, 3.5, -2) rotated 10
+    // degrees down; both pairs share the same world size and the same screen x, so the AO footprint
+    // must not depend on depth or on the screen position.
+    void BuildOrthoRig()
+    {
+        m_OrthoRig = new GameObject("SSL GTAO Ortho Rig");
+
+        AddBox(m_OrthoRig.transform, floorMaterial, "Ortho Floor",
+            new Vector3(0f, -0.05f, 15f), new Vector3(60f, 0.1f, 90f));
+
+        AddSphere(m_OrthoRig.transform, metal65Material, "Ortho Near Left", new Vector3(-3f, 1f, -0.586f), 2f);
+        AddSphere(m_OrthoRig.transform, metal65Material, "Ortho Near Right", new Vector3(3f, 1f, -0.586f), 2f);
+        AddSphere(m_OrthoRig.transform, metal65Material, "Ortho Far Left", new Vector3(-3f, 1f, 17.710f), 2f);
+        AddSphere(m_OrthoRig.transform, metal65Material, "Ortho Far Right", new Vector3(3f, 1f, 17.710f), 2f);
+
+        m_OrthoRig.SetActive(false);
+    }
+
     void ApplyLayout(string layout)
     {
         bool mirror = string.Equals(layout, "ssrMirror", StringComparison.OrdinalIgnoreCase);
+        bool ortho = string.Equals(layout, "gtaoOrtho", StringComparison.OrdinalIgnoreCase);
         if (m_Rig != null)
-            m_Rig.SetActive(!mirror);
+            m_Rig.SetActive(!mirror && !ortho);
         if (m_MirrorRig != null)
             m_MirrorRig.SetActive(mirror);
+        if (m_OrthoRig != null)
+            m_OrthoRig.SetActive(ortho);
     }
 
     static GameObject AddBox(Transform parent, Material material, string name, Vector3 position, Vector3 scale)
@@ -1485,6 +1642,9 @@ public sealed class SslValidationCase
     // target and a gradient target for analytic reflection measurements.
     public string layout;
     public SslCameraCase camera = new SslCameraCase();
+    public int warmupFrames = -1;
+    // Captures the first frame after the history reset instead of the warmed up frame.
+    public bool captureOnResetFrame;
     public int captureAfterFrames;
     public bool capture = true;
     public bool screenshot = true;
@@ -1500,6 +1660,8 @@ public sealed class SslCameraCase
     public float[] position = { 0f, 2f, -7f };
     public float[] rotation = { 0f, 0f, 0f };
     public float panPixelsPerFrame;
+    public bool orthographic;
+    public float orthographicSize = 4f;
 }
 
 [Serializable]
@@ -1560,6 +1722,7 @@ public sealed class SslRefractionCase
 [Serializable]
 public sealed class SslGtaoCase
 {
+    public bool disabled;
     public float intensity;
     public bool fullResolution;
     public int stepCount = 6;
@@ -1572,6 +1735,45 @@ public sealed class SslGtaoCase
     public float blurSharpness = 0.1f;
     public float spatialBilateralAggressiveness = 0.15f;
     public bool bilateralUpsample = true;
+    public int debugMode;
+}
+
+[Serializable]
+public sealed class SslGtaoDispatchStats
+{
+    public int frameIndex;
+    public bool executedThisFrame;
+    public int screenWidth;
+    public int screenHeight;
+    public int aoWidth;
+    public int aoHeight;
+    public int groupsX;
+    public int groupsY;
+    public int groupsZ;
+    public bool fullResolution;
+    public bool temporal;
+    public bool orthographic;
+    public bool spatialRuns;
+    public bool historyReady;
+    public bool produced;
+    public int historyReadSlot;
+    public int historyWriteSlot;
+    public int mainDispatches;
+    public int spatialDispatches;
+    public int copyHistoryDispatches;
+    public int temporalDispatches;
+    public int blurUpsampleDispatches;
+    public int upsampleDispatches;
+    public int expectedAoWidth;
+    public int expectedAoHeight;
+    public int expectedGroupsX;
+    public int expectedGroupsY;
+    public int expectedMainDispatches;
+    public int expectedSpatialDispatches;
+    public int expectedCopyHistoryDispatches;
+    public int expectedTemporalDispatches;
+    public int expectedBlurUpsampleDispatches;
+    public int expectedUpsampleDispatches;
 }
 
 [Serializable]
@@ -1610,6 +1812,8 @@ public sealed class SslValidationCaseResult
     public string pipeline;
     public Vector3 cameraPosition;
     public Vector3 cameraRotation;
+    public bool cameraOrthographic;
+    public float cameraOrthographicSize;
     public int frameIndex;
     public bool captureTriggered;
     public bool captureSucceeded;
@@ -1623,6 +1827,7 @@ public sealed class SslValidationCaseResult
     public bool ssrActive;
     public bool refractionActive;
     public float gtaoIntensity;
+    public SslGtaoDispatchStats gtaoDispatch;
     public bool bindingProbeRequested;
     public bool bindingProbeWritten;
     public string bindingProbeError;

@@ -16,7 +16,7 @@ using Object = UnityEngine.Object;
 // own constant bindings are covered by the RenderDoc census and pixel output instead.
 public sealed class ScreenSpaceLightingBindingProbeFeature : ScriptableRendererFeature
 {
-    public const int FieldCount = 36;
+    public const int FieldCount = 37;
 
     public static readonly string[] FieldNames =
     {
@@ -46,6 +46,7 @@ public sealed class ScreenSpaceLightingBindingProbeFeature : ScriptableRendererF
         "_GtaoDepthToViewParams",
         "_GtaoZBufferParams",
         "_GtaoOrthoHalfSize",
+        "_GtaoOrthoDepthParams",
         "_GtaoViewRow0",
         "_GtaoViewRow1",
         "_GtaoViewRow2",
@@ -94,6 +95,7 @@ public sealed class ScreenSpaceLightingBindingProbeFeature : ScriptableRendererF
         "_GtaoDepthToViewParams",
         "_GtaoZBufferParams",
         "_GtaoOrthoHalfSize",
+        "_GtaoOrthoDepthParams",
         "_GtaoViewRow0",
         "_GtaoViewRow1",
         "_GtaoViewRow2",
@@ -431,7 +433,7 @@ public sealed class ScreenSpaceLightingBindingProbeFeature : ScriptableRendererF
 
     void ReadRefractionVariables(bool active, ScreenSpaceRefraction settings)
     {
-        const int offset = 29;
+        const int offset = 30;
         for (var i = 0; i < 6; i++)
             SetField(offset + i, Vector4.zero, false);
 

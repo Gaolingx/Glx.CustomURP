@@ -68,16 +68,17 @@ void BindingProbe(uint3 id : SV_DispatchThreadID)
     else if (index == 23u)  value = _GtaoDepthToViewParams;
     else if (index == 24u)  value = _GtaoZBufferParams;
     else if (index == 25u)  value = _GtaoOrthoHalfSize;
-    else if (index == 26u)  value = _GtaoViewRow0;
-    else if (index == 27u)  value = _GtaoViewRow1;
-    else if (index == 28u)  value = _GtaoViewRow2;
-    else if (index == 29u)  value = _SslRefractionParams;
-    else if (index == 30u)  value = _SslRefractionColorPyramidScaleAndLimit;
-    else if (index == 31u)  value = float4(_SslRefractionProbeCount, 0.0, 0.0, 0.0);
-    else if (index == 32u)  value = _SslRefractionProbeMin[0];
-    else if (index == 33u)  value = _SslRefractionProbeMax[0];
-    else if (index == 34u)  value = _SslRefractionProbeParams[0];
-    else if (index == 35u)  value = _SsrDenoiserPixelSpread;
+    else if (index == 26u)  value = _GtaoOrthoDepthParams;
+    else if (index == 27u)  value = _GtaoViewRow0;
+    else if (index == 28u)  value = _GtaoViewRow1;
+    else if (index == 29u)  value = _GtaoViewRow2;
+    else if (index == 30u)  value = _SslRefractionParams;
+    else if (index == 31u)  value = _SslRefractionColorPyramidScaleAndLimit;
+    else if (index == 32u)  value = float4(_SslRefractionProbeCount, 0.0, 0.0, 0.0);
+    else if (index == 33u)  value = _SslRefractionProbeMin[0];
+    else if (index == 34u)  value = _SslRefractionProbeMax[0];
+    else if (index == 35u)  value = _SslRefractionProbeParams[0];
+    else if (index == 36u)  value = _SsrDenoiserPixelSpread;
 
     _SslBindingProbeOutput[uint2(0u, _SslBindingProbeRow)] = value;
 }

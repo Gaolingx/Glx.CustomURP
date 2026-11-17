@@ -1,0 +1,176 @@
+{
+  "onCapture": "forward_gtao_full_temporal_frame11980.rdc",
+  "offCapture": "forward_gtao_off_zero_frame12180.rdc",
+  "orthoCapture": "forward_gtao_ortho_frame12165.rdc",
+  "firstFrameCapture": "forward_gtao_first_frame_frame12069.rdc",
+  "probe": {
+    "renderTargetX": 640,
+    "renderTargetY": 209,
+    "presentedY": 510,
+    "onFloorDraw": 422,
+    "onDepth": 0.01107927318662405,
+    "offFloorDraw": 108,
+    "offDepth": 0.01107927318662405,
+    "depthEqual": true
+  },
+  "dispatch": {
+    "onGtaoMarker": 323,
+    "onDispatches": [
+      336,
+      350,
+      367
+    ],
+    "offGtaoMarker": null,
+    "offDispatches": [],
+    "orthoDispatches": [
+      291,
+      305,
+      322
+    ],
+    "firstFrameDispatches": [
+      336,
+      350,
+      364,
+      381,
+      396
+    ],
+    "depthPyramidDispatches": 12
+  },
+  "materialVariant": {
+    "onShader": "ResourceId::9632",
+    "onHash": "b1ea629c-c6cf6b85-05e26194-6a514fa9",
+    "onTexture2D": 3,
+    "onSamplers": 4,
+    "offShader": "ResourceId::10172",
+    "offHash": "ffd71032-f0b3aa06-12bdf0ad-bdb8e3fe",
+    "offTexture2D": 2,
+    "offSamplers": 3
+  },
+  "computeVariant": {
+    "perspectiveShader": "ResourceId::9664",
+    "perspectiveHash": "9cafa59e-65c83583-17bd0c70-ddf9d2ef",
+    "orthographicShader": "ResourceId::10162",
+    "orthographicHash": "4c0aae2d-9eb10f42-1480c83c-a5908d89"
+  },
+  "occlusionTexture": {
+    "resourceId": "ResourceId::9659",
+    "usage": [
+      {
+        "eventId": 367,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 408,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 414,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 422,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 447,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 489,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 523,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 529,
+        "usage": "PS_Resource"
+      }
+    ]
+  },
+  "depthSource": {
+    "pyramid": "ResourceId::9452",
+    "cameraDepth": "ResourceId::9580",
+    "pyramidMin": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "pyramidMax": [
+      0.027855239808559418,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "cameraMin": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "cameraMax": [
+      0.027855239808559418,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "extremesEqual": true,
+    "comparedPixels": 921600,
+    "differentPixels": 0,
+    "maxExportDifference": 0
+  },
+  "firstFrame": {
+    "occlusion": [
+      {
+        "eventId": 396,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 437,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 443,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 451,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 476,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 518,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 552,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 558,
+        "usage": "PS_Resource"
+      }
+    ],
+    "history0": [
+      {
+        "eventId": 364,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 381,
+        "usage": "CS_Resource"
+      }
+    ],
+    "history1": [
+      {
+        "eventId": 381,
+        "usage": "CS_RWResource"
+      }
+    ]
+  }
+}

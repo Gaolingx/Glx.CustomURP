@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "renderer": "Forward",
+  "warmupFrames": 10,
+  "cases": [
+    {
+      "id": "forward_gtao_full_temporal",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": true,
+      "screenshot": true,
+      "bindingProbe": true,
+      "gtao": { "intensity": 1, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 0 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_half_temporal",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": true,
+      "screenshot": true,
+      "gtao": { "intensity": 1, "fullResolution": false, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 0 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_full_spatial",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": true,
+      "screenshot": true,
+      "gtao": { "intensity": 1, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": false, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 0 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_half_spatial",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": true,
+      "screenshot": true,
+      "gtao": { "intensity": 1, "fullResolution": false, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": false, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 0 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forwardplus_gtao_half_temporal",
+      "renderer": "ForwardPlus",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": true,
+      "screenshot": true,
+      "gtao": { "intensity": 1, "fullResolution": false, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 0 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "deferred_gtao_half_temporal",
+      "renderer": "Deferred",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": true,
+      "screenshot": true,
+      "gtao": { "intensity": 1, "fullResolution": false, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 0 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_first_frame",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "captureOnResetFrame": true,
+      "capture": true,
+      "screenshot": true,
+      "gtao": { "intensity": 1, "fullResolution": false, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 0 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_ao_contact",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "intensity": 1, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 1 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_ao_intensity_05",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "intensity": 0.5, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 1 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_ao_intensity_4",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "intensity": 4, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 1 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_ao_radius_025",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "intensity": 1, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 0.25, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 1 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_ao_radius_1",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "intensity": 1, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 1, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 1 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_ao_radius_3",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "intensity": 1, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 3, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 1 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_ortho",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "layout": "gtaoOrtho",
+      "camera": { "position": [0, 3.5, -2], "rotation": [10, 0, 0], "orthographic": true, "orthographicSize": 4 },
+      "capture": true,
+      "screenshot": true,
+      "bindingProbe": true,
+      "gtao": { "intensity": 1, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 1 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_off_zero",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": true,
+      "screenshot": true,
+      "gtao": { "intensity": 0, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 0 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    },
+    {
+      "id": "forward_gtao_off_disabled",
+      "renderer": "Forward",
+      "effect": "GTAO",
+      "camera": { "position": [0, 2, -7], "rotation": [0, 0, 0] },
+      "capture": false,
+      "screenshot": true,
+      "gtao": { "disabled": true, "intensity": 1, "fullResolution": true, "stepCount": 6, "directionCount": 2, "maximumRadiusInPixels": 40, "radius": 2, "directLightingStrength": 0, "temporalAccumulation": true, "ghostingReduction": 0.5, "blurSharpness": 0.1, "spatialBilateralAggressiveness": 0.15, "bilateralUpsample": true, "debugMode": 0 },
+      "feature": { "publishProbeAtlas": false, "debugMode": 0 }
+    }
+  ]
+}

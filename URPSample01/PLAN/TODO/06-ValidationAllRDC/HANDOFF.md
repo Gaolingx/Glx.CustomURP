@@ -1,7 +1,7 @@
 # Screen Space Lighting 全量 GPU 验证与收尾交接（06-ValidationAllRDC）
 
 > 更新：2026-11-17
-> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1-1（F-01）、P2-1（SSGI 生效链）、P3-1（F-02）、P3-2（F-04）、P3-3（F-06/F-08）、P3-4（SSR 生效链）、P3-5（SSR 正确性）完成**；P1-2、P1-3、P2-2 起未开始。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式。P1-1 修复 GTAO 全分辨率深度守卫；P2-1 完成 SSGI dispatch/history/LUT/atlas 的 CPU+GPU 验收（10/10）；P3-1 修复 SSR 降噪器像素展开角绑定（SSR-only 值精确、GPU 无 SSGI pass）；P3-2 隔离 SSR 调试目标（材质输出不被覆盖、降噪链保留）；P3-3 修复透明深度种子 Y 翻转规则并隔离透明 ComputeShader 变体（PBR/Approx 同帧共存）；P3-4 汇总 SSR 两条算法/全半分辨率/透明的 dispatch 链并抓帧证明资源消费（12/12）；P3-5 用截图指标验收反射中心/权重/空洞/透明/probe 回退（9/9）。
+> 状态：**静态审计完成；P0 基础设施完成并通过 9/9 冒烟；P1-1（F-01）、P1-2（F-03）、P1-3（GTAO 生效/正确性，含 F-10）、P2-1（SSGI 生效链）、P3-1（F-02）、P3-2（F-04）、P3-3（F-06/F-08）、P3-4（SSR 生效链）、P3-5（SSR 正确性）完成**；P1-4、P2-2 起未开始。P0 交付通用三渲染器 player、manifest、binding probe 与 `Report.json`/`BindingProbe_*.json` 证据格式。P1-1 修复 GTAO 全分辨率深度守卫；P1-2 修复 GTAO 正交深度/视线；P1-3 用 16 用例、9 个抓帧验收 GTAO 调度/keyword/输出/正交/full-res 与 F-10；P2-1 完成 SSGI dispatch/history/LUT/atlas 的 CPU+GPU 验收（10/10）；P3-1 修复 SSR 降噪器像素展开角绑定（SSR-only 值精确、GPU 无 SSGI pass）；P3-2 隔离 SSR 调试目标（材质输出不被覆盖、降噪链保留）；P3-3 修复透明深度种子 Y 翻转规则并隔离透明 ComputeShader 变体（PBR/Approx 同帧共存）；P3-4 汇总 SSR 两条算法/全半分辨率/透明的 dispatch 链并抓帧证明资源消费（12/12）；P3-5 用截图指标验收反射中心/权重/空洞/透明/probe 回退（9/9）。
 > 上游语义基准：HDRP 14.0.12（`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`，下文 `HDRP/`）
 > URP 目标包：`URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12`（下文 `URP/`）
 > 关联文档：[T14 已知差异](../../Done/01-ScreenSpaceLighting/validation/T14/T14KnownDifferences.md)、[T14 支持矩阵](../../Done/01-ScreenSpaceLighting/validation/T14/T14SupportMatrix.md)、[01 ScreenSpaceLighting](../../Done/01-ScreenSpaceLighting/HANDOFF.md)、[02 SSRImprove](../../Done/02-SSRImprove/HANDOFF.md)、[03 SSRImprove2](../../Done/03-SSRImprove2/HANDOFF.md)、[04 SSGIFallbackImprove](../../Done/04-SSGIFallbackImprove/HANDOFF.md)、[05 ScreenSpaceRefractionImprove](../../Done/05-ScreenSpaceRefractionImprove/HANDOFF.md)、[RenderDoc 操作手册](../../../../MCP/RenderDocOperations.md)
@@ -45,6 +45,8 @@
 **P3-2 与 P3-3（2026-11-17）**：F-04 为 `DebugSsrParams` 分配私有 `SslSsrDebugParams`（RGBA16F）并移除“调试时跳过降噪/改用 `ssrOutput`”的守卫；调试帧 7 dispatch（比关闭调试多且仅多调试 kernel），`SslSsrPbrOriginal` 仍由 reproject/temporal/bilateral 写、6 个不透明 draw 读，调试纹理只被调试 kernel 写、`SSL Debug View` 读（证据 [validation/P3-2/Report.md](validation/P3-2/Report.md)）。F-06 的深度种子改用 `IsHandleYFlipped` 差值；相机深度视图与透明深度视图在面板/水印外 826,164 像素最大差 0。F-08 复核发现实际危害是共享 `ComputeShader` 的关键字在**执行期**解析：透明 pass 的 `SSR_APPROX` 覆盖了同帧不透明 PBR 变体（首次运行报 `_SsrOutputTextureRW ... not set`）；改为 `Object.Instantiate` 独立实例并显式设置全部关键字后，GPU 抓帧中不透明 trace `9844`（144 B cbuffer）与透明 trace `9865`（112 B cbuffer）两个变体同帧共存（证据 [validation/P3-3/Report.md](validation/P3-3/Report.md)）。最终 EditMode 187/187。
 
 **P3-4 与 P3-5（2026-11-17）**：P3-4 用 12 个用例（三渲染器 × Approx 全分辨率/PBR 全分辨率/PBR 半分辨率/PBR 半分辨率+透明）断言 dispatch 数、组维度、keyword 与 history 槽位；3 个抓帧确认 Approx 仅 2 dispatch、PBR 全分辨率 6、PBR 半分辨率 7、透明 +2，且 `SslSsrOutput`/`SslSsrTransparentOutput` 分别被不透明/透明 draw 消费（证据 [validation/P3-SSR/Report.md](validation/P3-SSR/Report.md)）。P3-5 的截图指标验收反射中心 0.87 px、smoothness 权重单调、空洞覆盖 100%/98%、透明 opt-in/`reflectSky`/`intensity=0`/探针回退；首次运行发现透明面板正对相机导致所有透明光线 miss，已将面板绕 X 轴转 `-45°` 使反射落到可见地面（证据 [validation/P3-5/Report.md](validation/P3-5/Report.md)）。最终 EditMode 449/449。
+
+**P1-2 与 P1-3（2026-11-17）**：P1-2 修复正交 GTAO：新增 `_GtaoOrthoDepthParams`（reversed-Z 感知的 scale/bias）与共享 `GTAOLinearDepth`，正交分支视线固定 `(0,0,-1)`，spatial denoise 同步使用线性深度；cbuffer 增至 15 个 float4、binding probe 增至 37 字段；新增 5 项 EditMode 断言。GPU 验收中 2 m/20 m 接触 AO 覆盖相对差 **0.18%**、左右差 **0.08%**，正交/透视 GTAOMain 变体独立（证据 [validation/P1-2/Report.md](validation/P1-2/Report.md)）。P1-3 用 16 个用例（三渲染器、全/半分辨率、temporal/非 temporal、正交、空 history、intensity/radius 梯度、关闭基线）与 9 个抓帧验收：dispatch 与 CPU 快照一致；AO 开/关的 Lit PS 是两个变体且 `GtaoOcclusion` 在 7 个不透明 draw 被读取；接触 0.4175 ≤0.7、开阔 0.9832 ≥0.98、intensity 0.5/1/4 单调、radius 0.25/1/3 强遮挡足迹 688/1108/3376；pyramid mip0 与 `_CameraDepthTexture` 导出逐像素 **0 差异**（921,600 px，float min/max 位模式相同），full↔half 相关 0.99978；`intensity=0` 与 feature 禁用 **0 像素差**。F-10 改为“只有本帧写出正式 AO 才发布 keyword/纹理”，reset 首帧抓帧显示 CopyHistory→Temporal→材质读取的完整链（证据 [validation/P1-GTAO/Report.md](validation/P1-GTAO/Report.md)）。最终 EditMode **454/454**。
 
 ---
 
@@ -164,14 +166,14 @@ Deferred 下 SSGI/SSR 在 GBuffer 阶段消费（事件 207 < 210）；Forward/F
 |---|---|---|---|---|---|
 | F-01 | High | GTAO | 全分辨率模式的中心深度/首次采样读取错误区域，AO 在 full-res 下与实际几何不匹配 | `GTAOCommon.hlsl:88,97` 用未定义的 `GTAO_FULL_RES`；`GTAO.compute:4` 只定义 `FULL_RES` | P1-1 |
 | F-02 | High | SSR | 反射降噪器的像素展开角为 0；移动相机时 history 世界半径退化为 0.1 下限，时域累积近似失效；SSR-only 相机读到未定义值 | `ReflectionDenoiser.compute:75`；`SsrPass.cs:363` 写独立 float；`_SsgiDenoiserParams` 仅 `SsgiPass.cs:729` 上传 | P3-1 |
-| F-03 | Medium | GTAO | 正交相机用透视 `_ZBufferParams` 线性化深度；`V = normalize(-positionVS)` 在正交下方向随屏幕位置变化 | `GroundTruthAmbientOcclusionPass.cs:356`；`GTAO.compute:143` | P1-2 |
+| F-03 | Medium | GTAO | 正交相机用透视 `_ZBufferParams` 线性化深度；`V = normalize(-positionVS)` 在正交下方向随屏幕位置变化 | `GroundTruthAmbientOcclusionPass.cs:356`；`GTAO.compute:143` | P1-2（**Fixed**，[P1-2/Report.md](validation/P1-2/Report.md)） |
 | F-04 | Medium | SSR | 开启 `SsrPbrParams` 调试图时，`DebugSsrParams` 覆盖正式 `ssrOutput`，最终图被替换为诊断参数 | `SsrPass.cs:278-285`；`ScreenSpaceLightingSetupPass.cs` 绑定同一纹理 | P3-2 |
 | F-05 | Medium | 折射 | `_SCREEN_SPACE_REFRACTION` 无相机起点清理；被能力检测拒绝的相机可能继承上一相机的全局 keyword/纹理绑定 | `ScriptableRenderer.cs:1419-1445` 未清理折射；`RefractionPass.DisableMaterialBinding` 只清参数 | P4-1 |
 | F-06 | Medium | Transparent SSR | 透明深度种子固定 `(1,1,0,0)`，在 Y 翻转目标（RT/XR）上与后续深度读取上下颠倒 | `TransparentDepthNormalRenderPass.cs:109` vs `CopyDepthPass.cs:181-182` | P3-3 |
 | F-07 | Medium | SSGI | `publishProbeAtlas` 等开关切换后不重置历史；旧 history 与新的回退策略混用 | `SsgiPass.cs:702-718` 的 stamp 不包含该字段 | P2-2 |
 | F-08 | Medium | SSR/SSGI | 多个共享 `ComputeShader` 的 keyword 依赖调用顺序：透明 pass 不显式设置 `SSR_HALF_RES` 与 `SSGI_BLUE_NOISE`（`SSR_NORMALS_OCT` 已显式关闭） | `TransparentSsrPass.cs:132-136` | P3-3 |
 | F-09 | Low | SSGI | denoiser 的屏幕投影未处理 `UNITY_UV_STARTS_AT_TOP`，与 HDRP 不一致；需确认 Y 翻转目标是否偏移 | `DiffuseDenoiser.compute` 的 tap 投影 vs `HDRP/.../DiffuseDenoiser.compute:150-153` | P2-3 |
-| F-10 | Low | GTAO | `intensity>0` 且 history 槽为空时提前 return，但 `_SCREEN_SPACE_OCCLUSION` 仍处于开启状态，可能消费上一帧纹理 | `GroundTruthAmbientOcclusionPass.cs:109,202-203` | P1-3 |
+| F-10 | Low | GTAO | `intensity>0` 且 history 槽为空时提前 return，但 `_SCREEN_SPACE_OCCLUSION` 仍处于开启状态，可能消费上一帧纹理 | `GroundTruthAmbientOcclusionPass.cs:109,202-203` | P1-3（**Fixed**，[P1-GTAO/Report.md](validation/P1-GTAO/Report.md) §7） |
 | F-11 | Low | GTAO/SSGI/SSR | 死代码、重复 ID、过时注释与文档（清单见 6.6） | 见 6.6 | P4-4 |
 
 ### 3.1 F-01 GTAO 全分辨率深度
@@ -212,7 +214,7 @@ cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiDenoiserPar
 - `GroundTruthAmbientOcclusionPass.cs:356` 无论相机是否正交都用 `ComputeZBufferParams(near, far)` 生成透视参数，`GTAOCommon.hlsl:110` 的 `LinearEyeDepth` 在正交窗口深度上不成立。
 - `GTAO.compute:143` 的 `V = normalize(-positionVS)` 在正交下随屏幕坐标变化；正交相机的视线方向应恒为视图空间 `(0,0,1)`（指向相机）。
 
-修复：为 `GTAO_ORTHO` 增加线性深度参数（例如 `_GtaoOrthoDepthParams = (1/(far-near), near, 0, 0)`，`linearDepth = rawDepth * scale + bias`），并在正交分支把 `V` 固定为 `(0,0,1)`。正交支持是 URP 新增能力，HDRP 无对照，验收以"世界半径不变"为准。
+修复：为 `GTAO_ORTHO` 增加线性深度参数 `_GtaoOrthoDepthParams = (scale, bias, 0, 0)`（reversed Z 为 `(-(far-near), far)`，否则 `(far-near, near)`；`linearDepth = rawDepth * scale + bias`），并在正交分支把 `V` 固定为视图空间 `(0,0,-1)`（本实现视空间 +z 指向远离相机）。正交支持是 URP 新增能力，HDRP 无对照，验收以“世界半径不变”为准。实际实现见 [P1-2/Report.md](validation/P1-2/Report.md)。
 
 ### 3.4 F-04 SSR 调试覆盖
 
@@ -359,8 +361,8 @@ HDRP 的 `DiffuseDenoiser.compute:150-153` 在 tap 投影时处理 `UNITY_UV_STA
 | P0-3 | P0 | Binding probe（uniform 原样输出 + CPU 回读） | P0-1 | `Assets/Tests/ScreenSpaceLighting/Shaders/` | **完成（冒烟）** |
 | P0-4 | P0 | 证据 schema、`.rdc` 体积策略、基线哈希 | 无 | `validation/06-ValidationAllRDC/` | **完成（schema 落地）** |
 | P1-1 | P1 | 修复 GTAO 全分辨率深度（F-01） | P0 | `GTAOCommon.hlsl` | **完成（Fixed，证据 [P1-1/Report.md](validation/P1-1/Report.md)）** |
-| P1-2 | P1 | 修复 GTAO 正交深度/视线（F-03） | P0 | `GroundTruthAmbientOcclusionPass.cs`、`GTAO.compute`、`GTAOCommon.hlsl` | 待开始 |
-| P1-3 | P1 | GTAO 生效与正确性 GPU 验收（含 F-10） | P0/P1-1/P1-2 | `validation/.../P1-GTAO/` | 待开始 |
+| P1-2 | P1 | 修复 GTAO 正交深度/视线（F-03） | P0 | `GroundTruthAmbientOcclusionPass.cs`、`GTAO.compute`、`GTAOCommon.hlsl` | **完成（Fixed，证据 [P1-2/Report.md](validation/P1-2/Report.md)）** |
+| P1-3 | P1 | GTAO 生效与正确性 GPU 验收（含 F-10） | P0/P1-1/P1-2 | `validation/.../P1-GTAO/` | **完成（16/16，证据 [P1-GTAO/Report.md](validation/P1-GTAO/Report.md)）** |
 | P1-4 | P1 | GTAO 材质覆盖与 Deferred 双路径 | P1-3 | 测试场景/材质 | 待开始 |
 | P2-1 | P2 | SSGI 生效链 GPU 验收（dispatch/history/LUT/atlas） | P0 | `validation/.../P2-SSGI/` | **完成（10/10，证据 [P2-SSGI/Report.md](validation/P2-SSGI/Report.md)）** |
 | P2-2 | P2 | 修复 SSGI 历史 stamp（F-07） | P2-1 | `SsgiPass.cs`、`ScreenSpaceLightingSettings.cs` | 待开始 |
@@ -481,14 +483,17 @@ cmd.SetComputeVectorParam(denoiser, ScreenSpaceLightingShaderIDs.SsgiDenoiserPar
 
 ```hlsl
 // GTAOCommon.hlsl
+float GTAOLinearDepth(float rawDepth)
+{
 #ifdef GTAO_ORTHO
-    float linearDepth = rawDepth * _GtaoOrthoDepthParams.x + _GtaoOrthoDepthParams.y;
+    return rawDepth * _GtaoOrthoDepthParams.x + _GtaoOrthoDepthParams.y;
 #else
-    float linearDepth = LinearEyeDepth(rawDepth, _GtaoZBufferParams);
+    return LinearEyeDepth(rawDepth, _GtaoZBufferParams);
 #endif
+}
 ```
 
-`GTAO.compute` 的 `V` 在正交分支固定为 `float3(0, 0, 1)`；C# 上传 `_GtaoOrthoDepthParams = (1/(far-near), near, 0, 0)`。
+`GTAO.compute` 的 `V` 在正交分支固定为 `float3(0, 0, -1)`；C# 上传 `_GtaoOrthoDepthParams`（reversed Z 为 `(-(f-n), f)`，否则 `(f-n, n)`）。`GTAOSpatialDenoise.compute` 增加 `GTAO_ORTHO` 变体并使用同一 helper。
 
 **F-04**：把 `DebugSsrParams` 的目标改为独立 RT（`m_History.ssrDebugParams`），`ScreenSpaceLightingDebugPass` 读取它；`SetupPass` 永远拿正式 `ssrOutput`。
 
@@ -751,6 +756,6 @@ PLAN/TODO/06-ValidationAllRDC/validation/
 
 1. P0 已完成：三渲染器 player、manifest、抓帧、census 与 binding probe 均可复现；后续任务直接复用 `SslValidation*` 资产与 `validation/P0/SmokeReport.md` 的字段契约。
 2. P3-1..P3-5 已完成并留证：F-02 像素展开角、F-04 调试输出隔离、F-06 深度 Y 翻转、F-08 透明 ComputeShader 变体隔离；P3-4 的 12 用例与 3 个抓帧覆盖 Approx/PBR 全半分辨率/透明，P3-5 的截图指标覆盖反射中心、权重、空洞、透明、`reflectSky`、关闭基线与探针回退。透明 Y 翻转的“源/目标翻转态不同”分支留给 P4-3 分辨率/XR 矩阵做 GPU 举证。
-3. 下一步 P1-2（GTAO 正交 F-03）与 P1-3（GTAO 生效/正确性，含 F-10）；随后 P2-2/P2-3（SSGI 历史 stamp、denoiser Y 翻转）与 P2-4。
+3. 下一步 P1-4（GTAO 材质覆盖与 Deferred 双路径，G6），随后 P2-2/P2-3（SSGI 历史 stamp、denoiser Y 翻转）与 P2-4、P4-1（折射 keyword/绑定泄漏）。P1-3 的正交 2 m/20 m 场景与 `layout=gtaoOrtho` 可直接复用于 P1-4 的材质覆盖矩阵。
 4. 每完成一个修复就写 `validation/.../任务ID/` 证据，不攒到最后。
 5. 最后一轮只做回归、文档、清理与归档。P6-2 需要处理本轮 Unity 2022.3.62f1 自动迁移的 `GraphicsSettings/QualitySettings/URP-Balanced/Performant`（与本轮改动无关，当前未提交）。

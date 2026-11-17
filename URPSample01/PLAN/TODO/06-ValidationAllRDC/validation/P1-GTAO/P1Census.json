@@ -1,0 +1,109 @@
+{
+  "deferred_gtao_half_temporal_frame12061.rdc": {
+    "gtaoMarker": 342,
+    "gtaoDispatches": [
+      355,
+      369,
+      386,
+      401
+    ],
+    "depthPyramidMarker": 182,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": null,
+    "gBufferMarker": null
+  },
+  "forward_gtao_first_frame_frame12069.rdc": {
+    "gtaoMarker": 323,
+    "gtaoDispatches": [
+      336,
+      350,
+      364,
+      381,
+      396
+    ],
+    "depthPyramidMarker": 163,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": 401,
+    "gBufferMarker": null
+  },
+  "forward_gtao_full_spatial_frame12010.rdc": {
+    "gtaoMarker": 323,
+    "gtaoDispatches": [
+      336,
+      350
+    ],
+    "depthPyramidMarker": 163,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": 355,
+    "gBufferMarker": null
+  },
+  "forward_gtao_full_temporal_frame11980.rdc": {
+    "gtaoMarker": 323,
+    "gtaoDispatches": [
+      336,
+      350,
+      367
+    ],
+    "depthPyramidMarker": 163,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": 372,
+    "gBufferMarker": null
+  },
+  "forward_gtao_half_spatial_frame12025.rdc": {
+    "gtaoMarker": 323,
+    "gtaoDispatches": [
+      336,
+      351
+    ],
+    "depthPyramidMarker": 163,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": 356,
+    "gBufferMarker": null
+  },
+  "forward_gtao_half_temporal_frame11995.rdc": {
+    "gtaoMarker": 323,
+    "gtaoDispatches": [
+      336,
+      350,
+      367,
+      382
+    ],
+    "depthPyramidMarker": 163,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": 387,
+    "gBufferMarker": null
+  },
+  "forward_gtao_off_zero_frame12180.rdc": {
+    "gtaoMarker": null,
+    "gtaoDispatches": [],
+    "depthPyramidMarker": null,
+    "depthPyramidDispatches": 0,
+    "drawOpaqueMarker": 64,
+    "gBufferMarker": null
+  },
+  "forward_gtao_ortho_frame12165.rdc": {
+    "gtaoMarker": 278,
+    "gtaoDispatches": [
+      291,
+      305,
+      322
+    ],
+    "depthPyramidMarker": 118,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": 327,
+    "gBufferMarker": null
+  },
+  "forwardplus_gtao_half_temporal_frame12043.rdc": {
+    "gtaoMarker": 329,
+    "gtaoDispatches": [
+      342,
+      356,
+      373,
+      388
+    ],
+    "depthPyramidMarker": 169,
+    "depthPyramidDispatches": 12,
+    "drawOpaqueMarker": 393,
+    "gBufferMarker": null
+  }
+}

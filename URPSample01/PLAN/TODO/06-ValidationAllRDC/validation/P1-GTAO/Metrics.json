@@ -1,0 +1,186 @@
+{
+  "contact": {
+    "pixel": [
+      526.63,
+      473.37
+    ],
+    "disc12": {
+      "pixels": 453,
+      "mean": 0.4175,
+      "p50": 0.3613,
+      "p10": 0.2086,
+      "below090": 445,
+      "below070": 388,
+      "below097": 453,
+      "fractionBelow090": 0.9823
+    },
+    "disc24": {
+      "pixels": 1812,
+      "mean": 0.5931,
+      "p50": 0.5647,
+      "p10": 0.2502,
+      "below090": 1403,
+      "below070": 1174,
+      "below097": 1492,
+      "fractionBelow090": 0.7743
+    }
+  },
+  "openFloor": {
+    "pixel": [
+      640.0,
+      498.56
+    ],
+    "disc20": {
+      "pixels": 1250,
+      "mean": 0.9832,
+      "p50": 0.9823,
+      "p10": 0.9734,
+      "below090": 0,
+      "below070": 0,
+      "below097": 0,
+      "fractionBelow090": 0.0
+    }
+  },
+  "openPanel": {
+    "pixel": [
+      640.0,
+      360.0
+    ],
+    "disc20": {
+      "pixels": 1257,
+      "mean": 1.0,
+      "p50": 1.0,
+      "p10": 1.0,
+      "below090": 0,
+      "below070": 0,
+      "below097": 0,
+      "fractionBelow090": 0.0
+    }
+  },
+  "contactPassed": true,
+  "openPassed": true,
+  "intensity": {
+    "05": {
+      "pixels": 453,
+      "mean": 0.6257,
+      "p50": 0.5972,
+      "p10": 0.4508,
+      "below090": 422,
+      "below070": 337,
+      "below097": 452,
+      "fractionBelow090": 0.9316
+    },
+    "1": {
+      "pixels": 453,
+      "mean": 0.4175,
+      "p50": 0.3613,
+      "p10": 0.2086,
+      "below090": 445,
+      "below070": 388,
+      "below097": 453,
+      "fractionBelow090": 0.9823
+    },
+    "4": {
+      "pixels": 453,
+      "mean": 0.0938,
+      "p50": 0.016,
+      "p10": 0.0,
+      "below090": 453,
+      "below070": 446,
+      "below097": 453,
+      "fractionBelow090": 1.0
+    }
+  },
+  "intensityMonotonic": true,
+  "radiusStrongFootprint": {
+    "025": 688,
+    "1": 1108,
+    "3": 3376
+  },
+  "radiusMonotonic": true,
+  "ortho": {
+    "nearLeft": {
+      "pixel": [
+        370.0,
+        648.12
+      ],
+      "disc40": {
+        "pixels": 5022,
+        "mean": 0.69,
+        "p50": 0.7379,
+        "p10": 0.2789,
+        "below090": 3134,
+        "below070": 2422,
+        "below097": 3453,
+        "fractionBelow090": 0.6241
+      }
+    },
+    "nearRight": {
+      "pixel": [
+        910.0,
+        648.12
+      ],
+      "disc40": {
+        "pixels": 5022,
+        "mean": 0.6897,
+        "p50": 0.7379,
+        "p10": 0.2789,
+        "below090": 3138,
+        "below070": 2414,
+        "below097": 3447,
+        "fractionBelow090": 0.6249
+      }
+    },
+    "farLeft": {
+      "pixel": [
+        370.0,
+        362.18
+      ],
+      "disc40": {
+        "pixels": 5022,
+        "mean": 0.6801,
+        "p50": 0.7305,
+        "p10": 0.2542,
+        "below090": 3144,
+        "below070": 2426,
+        "below097": 3457,
+        "fractionBelow090": 0.626
+      }
+    },
+    "farRight": {
+      "pixel": [
+        910.0,
+        362.18
+      ],
+      "disc40": {
+        "pixels": 5022,
+        "mean": 0.6797,
+        "p50": 0.7305,
+        "p10": 0.2542,
+        "below090": 3140,
+        "below070": 2422,
+        "below097": 3463,
+        "fractionBelow090": 0.6252
+      }
+    }
+  },
+  "orthoDepths": {
+    "near": 2.0,
+    "far": 20.019
+  },
+  "orthoNearCoverage": 0.6245,
+  "orthoFarCoverage": 0.6256,
+  "orthoDepthRelativeDifference": 0.0018,
+  "orthoScreenRelativeDifference": 0.0008,
+  "orthoDepthPassed": true,
+  "orthoScreenPassed": true,
+  "fullHalfCorrelation": 0.99978,
+  "fullHalfMeanAbsoluteDifference": 0.159,
+  "fullHalfPassed": true,
+  "offBaseline": {
+    "maxAbsDiff": 0,
+    "changedPixels": 0
+  },
+  "offBaselinePassed": true,
+  "passed": true
+}
