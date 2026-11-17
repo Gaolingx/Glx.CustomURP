@@ -57,6 +57,106 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_LastDebugParamsFrame = -1;
         internal static string s_LastDebugParamsTarget = string.Empty;
         internal static string s_LastMaterialOutputTarget = string.Empty;
+
+        // Verification snapshot: the player cannot see the editor-only counters above, so every
+        // dispatched frame publishes the algorithm, sizes, groups, keywords and history slots it
+        // actually used. One snapshot per camera/frame is enough; the player reads it after warmup.
+        internal sealed class SsrDispatchStats
+        {
+            public int frameIndex = -1;
+            public int screenWidth;
+            public int screenHeight;
+            public int traceWidth;
+            public int traceHeight;
+            public int groupsZ = 1;
+            public bool pbr;
+            public bool halfResolution;
+            public bool approxKeyword;
+            public bool halfResKeyword;
+            public bool normalsOctKeyword;
+            public bool blueNoiseKeyword;
+            public bool xrArrayKeyword;
+
+            public int traceDispatches;
+            public int reprojectDispatches;
+            public int temporalDispatches;
+            public int copyHistoryDispatches;
+            public int bilateralHDispatches;
+            public int bilateralVDispatches;
+            public int upsampleDispatches;
+            public int debugDispatches;
+
+            public int traceGroupsX;
+            public int traceGroupsY;
+            public int screenGroupsX;
+            public int screenGroupsY;
+
+            public bool historyValid;
+            public int historyReadSlot = -1;
+            public int historyWriteSlot = -1;
+            public int historyResetCount;
+
+            // Oldest first. Eight frames are enough to show the ping-pong in one report.
+            public readonly int[] historyReadSlots = new int[8];
+            public readonly int[] historyWriteSlots = new int[8];
+
+            public void BeginFrame(
+                int frame, int width, int height, int traceW, int traceH, int viewCount,
+                bool isPbr, bool halfRes, bool octNormals, bool blueNoise, bool xrArray,
+                int traceGX, int traceGY, int screenGX, int screenGY)
+            {
+                frameIndex = frame;
+                screenWidth = width;
+                screenHeight = height;
+                traceWidth = traceW;
+                traceHeight = traceH;
+                groupsZ = viewCount;
+                pbr = isPbr;
+                halfResolution = halfRes;
+                approxKeyword = !isPbr;
+                halfResKeyword = halfRes;
+                normalsOctKeyword = octNormals;
+                blueNoiseKeyword = blueNoise;
+                xrArrayKeyword = xrArray;
+                traceGroupsX = traceGX;
+                traceGroupsY = traceGY;
+                screenGroupsX = screenGX;
+                screenGroupsY = screenGY;
+                traceDispatches = 0;
+                reprojectDispatches = 0;
+                temporalDispatches = 0;
+                copyHistoryDispatches = 0;
+                bilateralHDispatches = 0;
+                bilateralVDispatches = 0;
+                upsampleDispatches = 0;
+                debugDispatches = 0;
+                historyValid = false;
+                historyReadSlot = -1;
+                historyWriteSlot = -1;
+                for (int i = 1; i < historyReadSlots.Length; i++)
+                {
+                    historyReadSlots[i - 1] = historyReadSlots[i];
+                    historyWriteSlots[i - 1] = historyWriteSlots[i];
+                }
+
+                int last = historyReadSlots.Length - 1;
+                historyReadSlots[last] = -1;
+                historyWriteSlots[last] = -1;
+            }
+
+            public void RecordHistory(int readSlot, int writeSlot, bool valid, int resetCount)
+            {
+                historyValid = valid;
+                historyReadSlot = readSlot;
+                historyWriteSlot = writeSlot;
+                historyResetCount = resetCount;
+                int last = historyReadSlots.Length - 1;
+                historyReadSlots[last] = readSlot;
+                historyWriteSlots[last] = writeSlot;
+            }
+        }
+
+        internal static readonly SsrDispatchStats s_LastDispatchStats = new SsrDispatchStats();
 #endif
 
 #if UNITY_EDITOR
@@ -256,6 +356,21 @@ namespace UnityEngine.Rendering.Universal
             int screenGroupsX = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenWidth, k_TileSize);
             int screenGroupsY = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenHeight, k_TileSize);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var dispatchStats = s_LastDispatchStats;
+            dispatchStats.BeginFrame(
+                Time.frameCount, screenWidth, screenHeight, traceWidth, traceHeight, viewCount,
+                pbr, halfResolution, octNormals, m_Resources.hasSsrBlueNoise, useTextureArray,
+                traceGroupsX, traceGroupsY, screenGroupsX, screenGroupsY);
+            if (pbr)
+            {
+                // BeginSsrPbrFrame already picked this frame's slots.
+                dispatchStats.RecordHistory(
+                    m_History.ssrPbrReadSlot, m_History.ssrPbrWriteSlot,
+                    m_History.ssrPbrHasValidHistory, m_History.ssrPbrResetCount);
+            }
+#endif
+
             bool pbrHistoryValid = pbr && m_History.ssrPbrHasValidHistory;
             var cb = CreateShaderVariables(ref cameraData, settings, screenWidth, screenHeight, traceWidth, traceHeight, pbrHistoryValid);
             PushShaderVariables(cmd, compute, cb);
@@ -278,6 +393,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.DispatchCompute(compute, traceKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_TraceDispatchCount++;
+            s_LastDispatchStats.traceDispatches++;
 #endif
 #if UNITY_EDITOR
             s_EditorTraceDispatchCount++;
@@ -297,6 +413,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.DispatchCompute(compute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_ReprojectDispatchCount++;
+            s_LastDispatchStats.reprojectDispatches++;
 #endif
 #if UNITY_EDITOR
             s_EditorReprojectDispatchCount++;
@@ -311,6 +428,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(compute, debugKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
                     m_History.ssrDebugParams);
                 cmd.DispatchCompute(compute, debugKernel, screenGroupsX, screenGroupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                s_LastDispatchStats.debugDispatches++;
+#endif
             }
 
             if (pbr)
@@ -423,6 +543,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrDenoiseIntermediate0);
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseSampleCountRW, m_History.GetSsrPbrSampleCount(writeSlot));
             cmd.DispatchCompute(denoiser, temporalKernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.temporalDispatches++;
+#endif
 #if UNITY_EDITOR
             s_EditorTemporalDispatchCount++;
             s_EditorLastDenoiseKernel = temporalKernelName;
@@ -439,6 +562,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(denoiser, copyKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, m_History.ssrDenoiseIntermediate0);
             cmd.SetComputeTextureParam(denoiser, copyKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.GetSsrPbrHistory(writeSlot));
             cmd.DispatchCompute(denoiser, copyKernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.copyHistoryDispatches++;
+#endif
 #if UNITY_EDITOR
             s_EditorCopyHistoryDispatchCount++;
             s_EditorLastDenoiseKernel = "CopyHistory";
@@ -453,6 +579,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrDenoiseIntermediate1);
             cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.ReflectionFilterMapping, mapping);
             cmd.DispatchCompute(denoiser, filterHKernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.bilateralHDispatches++;
+#endif
 #if UNITY_EDITOR
             s_EditorBilateralH_DispatchCount++;
             s_EditorLastDenoiseKernel = filterHKernelName;
@@ -468,6 +597,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrPbrOriginal);
             cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.ReflectionFilterMapping, mapping);
             cmd.DispatchCompute(denoiser, filterVKernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.bilateralVDispatches++;
+#endif
 #if UNITY_EDITOR
             s_EditorBilateralV_DispatchCount++;
             s_EditorLastDenoiseKernel = filterVKernelName;
@@ -507,6 +639,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(upsample, kernel, ScreenSpaceLightingShaderIDs.SsgiLowResolutionTexture, lowResolution);
             cmd.SetComputeTextureParam(upsample, kernel, ScreenSpaceLightingShaderIDs.SsgiUpsampledTextureRW, output);
             cmd.DispatchCompute(upsample, kernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.upsampleDispatches++;
+#endif
 #if UNITY_EDITOR
             s_EditorUpsampleDispatchCount++;
 #endif

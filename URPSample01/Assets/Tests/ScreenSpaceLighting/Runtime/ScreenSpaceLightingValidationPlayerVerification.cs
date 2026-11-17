@@ -48,6 +48,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     public Material transparentSsrMaterial;
     public Material gradientMaterial;
     public Material glassMaterial;
+    public Material mirrorMaterial;
 
     readonly SslValidationReport m_Report = new SslValidationReport();
     readonly StringBuilder m_Log = new StringBuilder();
@@ -63,8 +64,14 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     string m_OutputDirectory;
     string m_ManifestPath;
     GameObject m_Rig;
+    GameObject m_MirrorRig;
     bool m_OutputsWritten;
     float m_ProgressDeadline;
+    string m_PreviousSsrRenderer;
+    bool m_HasSsrHistoryBaseline;
+    bool m_PreviousSsrWasPbr;
+    bool m_PreviousSsrHalfResolution;
+    int m_PreviousSsrResetCount;
 
     void Awake()
     {
@@ -152,6 +159,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
 
         m_Report.renderer = manifest.renderer;
         BuildRig();
+        BuildMirrorRig();
         m_RenderDoc = RenderDocApi.Load(m_OutputDirectory, m_Log);
         m_Report.renderDocAvailable = m_RenderDoc != null;
         m_Report.renderDocVersion = m_RenderDoc != null ? m_RenderDoc.Version : "unavailable";
@@ -208,6 +216,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         ApplyVolume(testCase.volume);
         ApplyFeatureSettings(rendererData, testCase.feature);
         ApplyGtaoSettings(rendererData, testCase.gtao);
+        ApplyLayout(testCase.layout);
         var probeFeature = FindFeature<ScreenSpaceLightingBindingProbeFeature>(rendererData);
         if (probeFeature != null)
             probeFeature.probeEnabled = testCase.bindingProbe;
@@ -236,6 +245,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         ReadEffectState(rendererData, result);
         ReadSsgiDispatchStats(testCase, rendererName, result);
         ReadSsrDenoiserStats(testCase, result);
+        ReadSsrDispatchStats(testCase, result);
         ReadSsrDebugViewStats(testCase, result);
         ReadTransparentSsrStats(testCase, result);
         LogStep(result.id + ": warmup done, effect state G=" + result.gtaoIntensity +
@@ -685,6 +695,159 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         return field != null ? field.GetValue(null) as string ?? string.Empty : string.Empty;
     }
 
+    // R1/R6: the player cannot see the editor-only counters, so the pass publishes a per-frame
+    // snapshot of the algorithm, dispatch counts, groups, keywords and PBR history slots.
+    void ReadSsrDispatchStats(SslValidationCase testCase, SslValidationCaseResult result)
+    {
+        var ssr = testCase.volume?.ssr;
+        if (ssr == null || !ssr.enabled)
+            return;
+
+        int issuesBefore = result.issues.Count;
+        var passType = typeof(UniversalRendererData).Assembly.GetType(
+            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
+        var field = passType?.GetField("s_LastDispatchStats",
+            BindingFlags.Static | BindingFlags.NonPublic);
+        var snapshot = field?.GetValue(null);
+        if (snapshot == null)
+        {
+            result.issues.Add("The SSR dispatch stats are unavailable.");
+            return;
+        }
+
+        var stats = new SslSsrDispatchStats
+        {
+            frameIndex = ReadStatInt(snapshot, "frameIndex"),
+            screenWidth = ReadStatInt(snapshot, "screenWidth"),
+            screenHeight = ReadStatInt(snapshot, "screenHeight"),
+            traceWidth = ReadStatInt(snapshot, "traceWidth"),
+            traceHeight = ReadStatInt(snapshot, "traceHeight"),
+            groupsZ = ReadStatInt(snapshot, "groupsZ"),
+            pbr = ReadStatBool(snapshot, "pbr"),
+            halfResolution = ReadStatBool(snapshot, "halfResolution"),
+            approxKeyword = ReadStatBool(snapshot, "approxKeyword"),
+            halfResKeyword = ReadStatBool(snapshot, "halfResKeyword"),
+            normalsOctKeyword = ReadStatBool(snapshot, "normalsOctKeyword"),
+            blueNoiseKeyword = ReadStatBool(snapshot, "blueNoiseKeyword"),
+            xrArrayKeyword = ReadStatBool(snapshot, "xrArrayKeyword"),
+            traceDispatches = ReadStatInt(snapshot, "traceDispatches"),
+            reprojectDispatches = ReadStatInt(snapshot, "reprojectDispatches"),
+            temporalDispatches = ReadStatInt(snapshot, "temporalDispatches"),
+            copyHistoryDispatches = ReadStatInt(snapshot, "copyHistoryDispatches"),
+            bilateralHDispatches = ReadStatInt(snapshot, "bilateralHDispatches"),
+            bilateralVDispatches = ReadStatInt(snapshot, "bilateralVDispatches"),
+            upsampleDispatches = ReadStatInt(snapshot, "upsampleDispatches"),
+            debugDispatches = ReadStatInt(snapshot, "debugDispatches"),
+            traceGroupsX = ReadStatInt(snapshot, "traceGroupsX"),
+            traceGroupsY = ReadStatInt(snapshot, "traceGroupsY"),
+            screenGroupsX = ReadStatInt(snapshot, "screenGroupsX"),
+            screenGroupsY = ReadStatInt(snapshot, "screenGroupsY"),
+            historyValid = ReadStatBool(snapshot, "historyValid"),
+            historyReadSlot = ReadStatInt(snapshot, "historyReadSlot"),
+            historyWriteSlot = ReadStatInt(snapshot, "historyWriteSlot"),
+            historyResetCount = ReadStatInt(snapshot, "historyResetCount"),
+            historyReadSlots = ReadStatIntArray(snapshot, "historyReadSlots"),
+            historyWriteSlots = ReadStatIntArray(snapshot, "historyWriteSlots"),
+        };
+
+        bool pbr = ssr.usedAlgorithm == (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation;
+        bool half = pbr && !ssr.fullResolution;
+        int screenWidth = Screen.width;
+        int screenHeight = Screen.height;
+        int traceWidth = half ? Mathf.Max(1, screenWidth >> 1) : screenWidth;
+        int traceHeight = half ? Mathf.Max(1, screenHeight >> 1) : screenHeight;
+        int tile = 8;
+        bool debugView = testCase.feature != null &&
+                         testCase.feature.debugMode == (int)ScreenSpaceLightingDebugMode.SsrPbrParams;
+        stats.expectedTraceDispatches = 1;
+        stats.expectedReprojectDispatches = 1;
+        stats.expectedTemporalDispatches = pbr ? 1 : 0;
+        stats.expectedCopyHistoryDispatches = pbr ? 1 : 0;
+        stats.expectedBilateralDispatches = pbr ? 1 : 0;
+        stats.expectedUpsampleDispatches = half ? 1 : 0;
+        stats.expectedDebugDispatches = pbr && debugView ? 1 : 0;
+        stats.expectedTraceWidth = traceWidth;
+        stats.expectedTraceHeight = traceHeight;
+        stats.expectedTraceGroupsX = (traceWidth + tile - 1) / tile;
+        stats.expectedTraceGroupsY = (traceHeight + tile - 1) / tile;
+        stats.expectedScreenGroupsX = (screenWidth + tile - 1) / tile;
+        stats.expectedScreenGroupsY = (screenHeight + tile - 1) / tile;
+
+        if (stats.frameIndex < 0 || Time.frameCount - stats.frameIndex > 3)
+            result.issues.Add($"SSR dispatch stat is stale: frame {stats.frameIndex}, current {Time.frameCount}.");
+        CheckSsrStat(result, "SSR trace dispatches", stats.traceDispatches, stats.expectedTraceDispatches);
+        CheckSsrStat(result, "SSR reproject dispatches", stats.reprojectDispatches, stats.expectedReprojectDispatches);
+        CheckSsrStat(result, "SSR temporal dispatches", stats.temporalDispatches, stats.expectedTemporalDispatches);
+        CheckSsrStat(result, "SSR copyHistory dispatches", stats.copyHistoryDispatches, stats.expectedCopyHistoryDispatches);
+        CheckSsrStat(result, "SSR bilateralH dispatches", stats.bilateralHDispatches, stats.expectedBilateralDispatches);
+        CheckSsrStat(result, "SSR bilateralV dispatches", stats.bilateralVDispatches, stats.expectedBilateralDispatches);
+        CheckSsrStat(result, "SSR upsample dispatches", stats.upsampleDispatches, stats.expectedUpsampleDispatches);
+        CheckSsrStat(result, "SSR debug dispatches", stats.debugDispatches, stats.expectedDebugDispatches);
+        CheckSsrStat(result, "SSR trace width", stats.traceWidth, stats.expectedTraceWidth);
+        CheckSsrStat(result, "SSR trace height", stats.traceHeight, stats.expectedTraceHeight);
+        CheckSsrStat(result, "SSR trace groups X", stats.traceGroupsX, stats.expectedTraceGroupsX);
+        CheckSsrStat(result, "SSR trace groups Y", stats.traceGroupsY, stats.expectedTraceGroupsY);
+        CheckSsrStat(result, "SSR screen groups X", stats.screenGroupsX, stats.expectedScreenGroupsX);
+        CheckSsrStat(result, "SSR screen groups Y", stats.screenGroupsY, stats.expectedScreenGroupsY);
+        CheckSsrStat(result, "SSR groups Z", stats.groupsZ, 1);
+
+        if (stats.pbr != pbr)
+            result.issues.Add($"SSR algorithm mismatch: stats {(stats.pbr ? "PBR" : "Approximation")}.");
+        if (stats.halfResolution != half)
+            result.issues.Add($"SSR half resolution mismatch: stats {stats.halfResolution}.");
+        if (stats.approxKeyword != !pbr)
+            result.issues.Add($"SSR_APPROX keyword {stats.approxKeyword} for {(pbr ? "PBR" : "Approximation")}.");
+        if (stats.halfResKeyword != half)
+            result.issues.Add($"SSR_HALF_RES keyword {stats.halfResKeyword} for half={half}.");
+        if (stats.blueNoiseKeyword != true)
+            result.issues.Add("SSGI_BLUE_NOISE is not enabled on the opaque SSR trace.");
+        if (stats.xrArrayKeyword)
+            result.issues.Add("SSL_XR_ARRAY is enabled for a non-XR camera.");
+
+        int previousWriter = -1;
+        if (stats.historyReadSlots != null && stats.historyWriteSlots != null)
+        {
+            for (int i = 0; i < stats.historyReadSlots.Length; i++)
+            {
+                int read = stats.historyReadSlots[i];
+                int write = stats.historyWriteSlots[i];
+                if (read < 0 || write < 0)
+                    continue;
+                if (read == write)
+                    result.issues.Add($"SSR history slot {i} reads and writes {read}.");
+                if (previousWriter >= 0 && read != previousWriter)
+                    result.issues.Add($"SSR history slot {i} reads {read}, previous frame wrote {previousWriter}.");
+                previousWriter = write;
+            }
+        }
+
+        if (pbr)
+        {
+            if (!stats.historyValid)
+                result.issues.Add("PBR SSR reports no valid history after warmup.");
+            if (stats.historyReadSlot < 0 || stats.historyReadSlot == stats.historyWriteSlot)
+                result.issues.Add(
+                    $"PBR SSR history slots are invalid: read {stats.historyReadSlot}, write {stats.historyWriteSlot}.");
+
+            bool switchedConfiguration = m_HasSsrHistoryBaseline &&
+                                         string.Equals(m_PreviousSsrRenderer, result.renderer, StringComparison.Ordinal) &&
+                                         (!m_PreviousSsrWasPbr || m_PreviousSsrHalfResolution != half);
+            if (switchedConfiguration && stats.historyResetCount <= m_PreviousSsrResetCount)
+                result.issues.Add(
+                    $"PBR SSR history was not reset after a configuration switch " +
+                    $"(reset {stats.historyResetCount}, previous {m_PreviousSsrResetCount}).");
+        }
+
+        m_PreviousSsrRenderer = result.renderer;
+        m_HasSsrHistoryBaseline = true;
+        m_PreviousSsrWasPbr = pbr;
+        m_PreviousSsrHalfResolution = half;
+        m_PreviousSsrResetCount = stats.historyResetCount;
+
+        stats.passed = result.issues.Count == issuesBefore;
+        result.ssrDispatch = stats;
+    }
+
     // F-04: the SsrPbrParams debug kernel must write its private texture, and the SSR pass must still
     // run the PBR chain so the material-facing texture keeps real radiance while the view is selected.
     void ReadSsrDebugViewStats(SslValidationCase testCase, SslValidationCaseResult result)
@@ -766,12 +929,23 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
             depthSeedYFlip = ReadStaticBool(seedType, "s_LastDepthSeedYFlip"),
             depthSeedSourceFlipped = ReadStaticBool(seedType, "s_LastDepthSeedSourceFlipped"),
             depthSeedDestinationFlipped = ReadStaticBool(seedType, "s_LastDepthSeedDestinationFlipped"),
+            dispatchFrameIndex = ReadStaticInt(keywordType, "s_LastDispatchFrame"),
+            traceDispatches = ReadStaticInt(keywordType, "s_LastTraceDispatchCount"),
+            reprojectDispatches = ReadStaticInt(keywordType, "s_LastReprojectDispatchCount"),
+            screenWidth = ReadStaticInt(keywordType, "s_LastScreenWidth"),
+            screenHeight = ReadStaticInt(keywordType, "s_LastScreenHeight"),
+            groupsX = ReadStaticInt(keywordType, "s_LastGroupsX"),
+            groupsY = ReadStaticInt(keywordType, "s_LastGroupsY"),
         };
+        stats.expectedGroupsX = (Screen.width + 7) / 8;
+        stats.expectedGroupsY = (Screen.height + 7) / 8;
         stats.depthSeedYFlipExpected = stats.depthSeedSourceFlipped != stats.depthSeedDestinationFlipped;
         stats.passed = !stats.halfResKeyword && !stats.normalsOctKeyword && stats.approxKeyword &&
                        stats.isolatedCompute &&
                        stats.blueNoiseKeyword == stats.blueNoiseTexturesBound &&
-                       stats.depthSeedYFlip == stats.depthSeedYFlipExpected;
+                       stats.depthSeedYFlip == stats.depthSeedYFlipExpected &&
+                       stats.traceDispatches == 1 && stats.reprojectDispatches == 1 &&
+                       stats.groupsX == stats.expectedGroupsX && stats.groupsY == stats.expectedGroupsY;
 
         if (stats.keywordFrameIndex < 0 || Time.frameCount - stats.keywordFrameIndex > 3)
             result.issues.Add($"Transparent SSR keyword stat is stale: frame {stats.keywordFrameIndex}.");
@@ -791,6 +965,16 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
             result.issues.Add(
                 $"Transparent depth seed yflip {stats.depthSeedYFlip} != expected {stats.depthSeedYFlipExpected} " +
                 $"(source {stats.depthSeedSourceFlipped}, destination {stats.depthSeedDestinationFlipped}).");
+        if (stats.dispatchFrameIndex < 0 || Time.frameCount - stats.dispatchFrameIndex > 3)
+            result.issues.Add($"Transparent SSR dispatch stat is stale: frame {stats.dispatchFrameIndex}.");
+        if (stats.traceDispatches != 1)
+            result.issues.Add($"Transparent SSR trace dispatches {stats.traceDispatches} != 1.");
+        if (stats.reprojectDispatches != 1)
+            result.issues.Add($"Transparent SSR reproject dispatches {stats.reprojectDispatches} != 1.");
+        if (stats.groupsX != stats.expectedGroupsX || stats.groupsY != stats.expectedGroupsY)
+            result.issues.Add(
+                $"Transparent SSR groups {stats.groupsX}x{stats.groupsY} != " +
+                $"{stats.expectedGroupsX}x{stats.expectedGroupsY}.");
 
         result.transparentSsr = stats;
     }
@@ -798,6 +982,12 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     static void CheckCount(SslValidationCaseResult result, string label, int actual, int expected)
     {        if (actual != expected)
             result.issues.Add($"SSGI {label} dispatches {actual} != expected {expected}.");
+    }
+
+    static void CheckSsrStat(SslValidationCaseResult result, string label, int actual, int expected)
+    {
+        if (actual != expected)
+            result.issues.Add($"{label} {actual} != expected {expected}.");
     }
 
     static void CheckGroups(SslValidationCaseResult result, string label, int x, int y, int expectedX, int expectedY)
@@ -1036,8 +1226,11 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         gradient.transform.localScale = new Vector3(14f, 8f, 1f);
         gradient.GetComponent<Renderer>().sharedMaterial = gradientMaterial;
 
-        AddBox(m_Rig.transform, transparentSsrMaterial, "Transparent SSR Panel",
+        var transparentPanel = AddBox(m_Rig.transform, transparentSsrMaterial, "Transparent SSR Panel",
             new Vector3(0f, 1.5f, 1.2f), new Vector3(3.2f, 2.2f, 0.05f));
+        // A panel facing the camera reflects the empty space behind it, so tilt it down until the
+        // reflected rays land on the visible floor; otherwise every transparent ray misses.
+        transparentPanel.transform.localRotation = Quaternion.Euler(-45f, 0f, 0f);
 
         AddSphere(m_Rig.transform, glassMaterial, "Glass Sphere", new Vector3(-5.5f, 1.4f, 2.8f), 2.8f);
 
@@ -1066,6 +1259,39 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
             probe.clearFlags = ReflectionProbeClearFlags.Skybox;
             probe.RenderProbe();
         }
+    }
+
+    // Analytic reflection measurements need an uncluttered floor: a single emissive target for the
+    // centroid test and a gradient target for the vertical band order.
+    void BuildMirrorRig()
+    {
+        m_MirrorRig = new GameObject("SSL Mirror Calibration Rig");
+
+        AddBox(m_MirrorRig.transform, mirrorMaterial, "Mirror Floor",
+            new Vector3(0f, -0.05f, 4f), new Vector3(16f, 0.1f, 16f));
+
+        AddSphere(m_MirrorRig.transform, emissiveMaterial, "Emissive Mirror Target",
+            new Vector3(-1.6f, 1.2f, 2f), 0.5f);
+
+        var gradient = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        gradient.name = "Gradient Mirror Target";
+        gradient.transform.SetParent(m_MirrorRig.transform, false);
+        gradient.transform.position = new Vector3(1.6f, 1.5f, 2f);
+        // The built-in quad's front face looks down -Z, toward the validation camera.
+        gradient.transform.rotation = Quaternion.identity;
+        gradient.transform.localScale = new Vector3(2f, 1.5f, 1f);
+        gradient.GetComponent<Renderer>().sharedMaterial = gradientMaterial;
+
+        m_MirrorRig.SetActive(false);
+    }
+
+    void ApplyLayout(string layout)
+    {
+        bool mirror = string.Equals(layout, "ssrMirror", StringComparison.OrdinalIgnoreCase);
+        if (m_Rig != null)
+            m_Rig.SetActive(!mirror);
+        if (m_MirrorRig != null)
+            m_MirrorRig.SetActive(mirror);
     }
 
     static GameObject AddBox(Transform parent, Material material, string name, Vector3 position, Vector3 scale)
@@ -1255,6 +1481,9 @@ public sealed class SslValidationCase
     public string id;
     public string renderer;
     public string effect;
+    // "default" builds the full scene; "ssrMirror" builds a clean mirror floor with an emissive
+    // target and a gradient target for analytic reflection measurements.
+    public string layout;
     public SslCameraCase camera = new SslCameraCase();
     public int captureAfterFrames;
     public bool capture = true;
@@ -1402,6 +1631,7 @@ public sealed class SslValidationCaseResult
     public List<string> bindingProbeFailures;
     public SslSsgiDispatchStats ssgiDispatch;
     public SslSsrDenoiserStats ssrDenoiser;
+    public SslSsrDispatchStats ssrDispatch;
     public SslSsrDebugViewStats ssrDebugView;
     public SslTransparentSsrStats transparentSsr;
     public bool passed;
@@ -1419,6 +1649,56 @@ public sealed class SslSsrDenoiserStats
     public int expectedTraceWidth;
     public int expectedTraceHeight;
     public bool ssgiActive;
+    public bool passed;
+}
+
+[Serializable]
+public sealed class SslSsrDispatchStats
+{
+    public int frameIndex;
+    public int screenWidth;
+    public int screenHeight;
+    public int traceWidth;
+    public int traceHeight;
+    public int groupsZ;
+    public bool pbr;
+    public bool halfResolution;
+    public bool approxKeyword;
+    public bool halfResKeyword;
+    public bool normalsOctKeyword;
+    public bool blueNoiseKeyword;
+    public bool xrArrayKeyword;
+    public int traceDispatches;
+    public int reprojectDispatches;
+    public int temporalDispatches;
+    public int copyHistoryDispatches;
+    public int bilateralHDispatches;
+    public int bilateralVDispatches;
+    public int upsampleDispatches;
+    public int debugDispatches;
+    public int traceGroupsX;
+    public int traceGroupsY;
+    public int screenGroupsX;
+    public int screenGroupsY;
+    public bool historyValid;
+    public int historyReadSlot;
+    public int historyWriteSlot;
+    public int historyResetCount;
+    public int[] historyReadSlots;
+    public int[] historyWriteSlots;
+    public int expectedTraceDispatches;
+    public int expectedReprojectDispatches;
+    public int expectedTemporalDispatches;
+    public int expectedCopyHistoryDispatches;
+    public int expectedBilateralDispatches;
+    public int expectedUpsampleDispatches;
+    public int expectedDebugDispatches;
+    public int expectedTraceWidth;
+    public int expectedTraceHeight;
+    public int expectedTraceGroupsX;
+    public int expectedTraceGroupsY;
+    public int expectedScreenGroupsX;
+    public int expectedScreenGroupsY;
     public bool passed;
 }
 
@@ -1450,6 +1730,15 @@ public sealed class SslTransparentSsrStats
     public bool depthSeedYFlipExpected;
     public bool depthSeedSourceFlipped;
     public bool depthSeedDestinationFlipped;
+    public int dispatchFrameIndex;
+    public int traceDispatches;
+    public int reprojectDispatches;
+    public int screenWidth;
+    public int screenHeight;
+    public int groupsX;
+    public int groupsY;
+    public int expectedGroupsX;
+    public int expectedGroupsY;
     public bool passed;
 }
 

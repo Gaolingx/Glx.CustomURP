@@ -67,6 +67,14 @@ namespace UnityEngine.Rendering.Universal
         internal static bool s_LastApproxKeyword;
         internal static bool s_LastBlueNoiseTexturesBound;
         internal static bool s_LastIsolatedCompute;
+        // R1 transparent +2: the transparent path traces and reprojects once each, at full resolution.
+        internal static int s_LastDispatchFrame = -1;
+        internal static int s_LastTraceDispatchCount;
+        internal static int s_LastReprojectDispatchCount;
+        internal static int s_LastScreenWidth;
+        internal static int s_LastScreenHeight;
+        internal static int s_LastGroupsX;
+        internal static int s_LastGroupsY;
 #endif
 
         internal bool producedOutput => m_ProducedOutput;
@@ -161,6 +169,8 @@ namespace UnityEngine.Rendering.Universal
                 // not inherit the half resolution / LUT state the opaque pass left on the shader.
                 SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, false);
                 SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
+                int groupsX = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenWidth, k_TileSize);
+                int groupsY = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenHeight, k_TileSize);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 s_LastKeywordFrame = Time.frameCount;
                 s_LastHalfResKeyword = compute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsrHalfResKeyword);
@@ -169,6 +179,13 @@ namespace UnityEngine.Rendering.Universal
                 s_LastApproxKeyword = compute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsrApproxKeyword);
                 s_LastBlueNoiseTexturesBound = m_Resources.hasSsrBlueNoise;
                 s_LastIsolatedCompute = !ReferenceEquals(compute, m_Resources.ssrCompute);
+                s_LastDispatchFrame = Time.frameCount;
+                s_LastTraceDispatchCount = 0;
+                s_LastReprojectDispatchCount = 0;
+                s_LastScreenWidth = screenWidth;
+                s_LastScreenHeight = screenHeight;
+                s_LastGroupsX = groupsX;
+                s_LastGroupsY = groupsY;
 #endif
 
                 if (useTextureArray)
@@ -184,9 +201,6 @@ namespace UnityEngine.Rendering.Universal
                         m_XrCameraPositionScratch);
                 }
 
-                int groupsX = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenWidth, k_TileSize);
-                int groupsY = ScreenSpaceLightingRenderUtils.DivideRoundUp(screenHeight, k_TileSize);
-
                 var cb = CreateShaderVariables(ref cameraData, settings, screenWidth, screenHeight);
                 PushShaderVariables(cmd, compute, cb);
 
@@ -198,6 +212,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeBufferParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramidMipLevelOffsets, m_History.depthPyramidOffsets);
                 cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW, m_History.ssrTransparentHitPoint);
                 cmd.DispatchCompute(compute, traceKernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                s_LastTraceDispatchCount++;
+#endif
 #if UNITY_EDITOR
                 s_EditorTraceDispatchCount++;
 #endif
@@ -210,6 +227,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, m_History.transparentDepth);
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW, m_History.ssrTransparentOutput);
                 cmd.DispatchCompute(compute, reprojectKernel, groupsX, groupsY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                s_LastReprojectDispatchCount++;
+#endif
 #if UNITY_EDITOR
                 s_EditorReprojectDispatchCount++;
 #endif

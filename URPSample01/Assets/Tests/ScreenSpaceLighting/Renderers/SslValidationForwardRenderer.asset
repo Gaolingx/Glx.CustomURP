@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-2631783934782898488
+--- !u!114 &-698257801215120438
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -9,14 +9,34 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4569184ad03d4f340892a03abedcaa72, type: 3}
-  m_Name: SslValidationForwardRendererprobe
+  m_Script: {fileID: 11500000, guid: 57884ca0e1cb5a23c84fc6ed22f7259b, type: 3}
+  m_Name: SslValidationForwardRendererssl
   m_EditorClassIdentifier: 
   m_Active: 1
-  probeCompute: {fileID: 7200000, guid: ff4399db7e03b3d469cd51911ab79349, type: 3}
-  lightingFeature: {fileID: 9022383031012894305}
-  ambientOcclusionFeature: {fileID: 2003719837572566898}
-  probeEnabled: 0
+  m_Settings:
+    maxCachedCameras: 8
+    maxUnusedFrames: 120
+    publishProbeAtlas: 0
+    debugMode: 0
+    debugMip: 0
+    resources:
+      depthPyramidCompute: {fileID: 7200000, guid: e0af0549a8ee5484f995fb60630c4558,
+        type: 3}
+      colorPyramidShader: {fileID: 4800000, guid: 7b327ed01b2f9854e8ffc7878ce15451,
+        type: 3}
+      debugShader: {fileID: 4800000, guid: d7bd22840c9b5494da695cf0dfc610b0, type: 3}
+      ssgiCompute: {fileID: 7200000, guid: 04db38f0a389e37498cf805d6efc4752, type: 3}
+      ssgiTemporalFilterCompute: {fileID: 7200000, guid: b8a402648397c674dbbd7463e092d035,
+        type: 3}
+      ssgiDiffuseDenoiserCompute: {fileID: 7200000, guid: dfcec09b0dd0bd3458766f867f8d7883,
+        type: 3}
+      bilateralUpsampleCompute: {fileID: 7200000, guid: d5ac01cf82505cd4595b75fe9fc6d47c,
+        type: 3}
+      ssrCompute: {fileID: 7200000, guid: 59711e8917f84109b7ac2fabf506e63a, type: 3}
+      ssrReflectionDenoiserCompute: {fileID: 7200000, guid: a8d9875c25ad428ca9f259609d3ca696,
+        type: 3}
+      transparentDepthCopyShader: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220,
+        type: 3}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34,10 +54,10 @@ MonoBehaviour:
       type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
-  - {fileID: 2003719837572566898}
-  - {fileID: 9022383031012894305}
-  - {fileID: -2631783934782898488}
-  m_RendererFeatureMap: 728fea7b93a4ce1b6126096790f1357dc87eaf8174067adb
+  - {fileID: 3992371893473320270}
+  - {fileID: -698257801215120438}
+  - {fileID: 7682110013717139501}
+  m_RendererFeatureMap: 4e1dbba915c16737ca6bedb43a4a4ff62dd0141d5b569c6a
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -86,7 +106,7 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
---- !u!114 &2003719837572566898
+--- !u!114 &3992371893473320270
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -129,7 +149,7 @@ MonoBehaviour:
       depthPyramidCompute: {fileID: 7200000, guid: e0af0549a8ee5484f995fb60630c4558,
         type: 3}
       debugShader: {fileID: 4800000, guid: c98c3e6b641ab544abb57ed80a4fdf37, type: 3}
---- !u!114 &9022383031012894305
+--- !u!114 &7682110013717139501
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -138,31 +158,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57884ca0e1cb5a23c84fc6ed22f7259b, type: 3}
-  m_Name: SslValidationForwardRendererssl
+  m_Script: {fileID: 11500000, guid: 4569184ad03d4f340892a03abedcaa72, type: 3}
+  m_Name: SslValidationForwardRendererprobe
   m_EditorClassIdentifier: 
   m_Active: 1
-  m_Settings:
-    maxCachedCameras: 8
-    maxUnusedFrames: 120
-    publishProbeAtlas: 0
-    debugMode: 0
-    debugMip: 0
-    resources:
-      depthPyramidCompute: {fileID: 7200000, guid: e0af0549a8ee5484f995fb60630c4558,
-        type: 3}
-      colorPyramidShader: {fileID: 4800000, guid: 7b327ed01b2f9854e8ffc7878ce15451,
-        type: 3}
-      debugShader: {fileID: 4800000, guid: d7bd22840c9b5494da695cf0dfc610b0, type: 3}
-      ssgiCompute: {fileID: 7200000, guid: 04db38f0a389e37498cf805d6efc4752, type: 3}
-      ssgiTemporalFilterCompute: {fileID: 7200000, guid: b8a402648397c674dbbd7463e092d035,
-        type: 3}
-      ssgiDiffuseDenoiserCompute: {fileID: 7200000, guid: dfcec09b0dd0bd3458766f867f8d7883,
-        type: 3}
-      bilateralUpsampleCompute: {fileID: 7200000, guid: d5ac01cf82505cd4595b75fe9fc6d47c,
-        type: 3}
-      ssrCompute: {fileID: 7200000, guid: 59711e8917f84109b7ac2fabf506e63a, type: 3}
-      ssrReflectionDenoiserCompute: {fileID: 7200000, guid: a8d9875c25ad428ca9f259609d3ca696,
-        type: 3}
-      transparentDepthCopyShader: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220,
-        type: 3}
+  probeCompute: {fileID: 7200000, guid: ff4399db7e03b3d469cd51911ab79349, type: 3}
+  lightingFeature: {fileID: -698257801215120438}
+  ambientOcclusionFeature: {fileID: 3992371893473320270}
+  probeEnabled: 0

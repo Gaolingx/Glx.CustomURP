@@ -95,6 +95,7 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         verification.metal40Material = materials.metal40;
         verification.emissiveMaterial = materials.emissive;
         verification.transparentSsrMaterial = materials.transparentSsr;
+        verification.mirrorMaterial = materials.mirror;
         verification.gradientMaterial = materials.gradient;
         verification.glassMaterial = materials.glass;
 
@@ -318,6 +319,7 @@ public static class ScreenSpaceLightingValidationPlayerSetup
             emissive = EnsureEmissiveMaterial("SslValidationEmissive", new Color(2.2f, 1.2f, 0.35f)),
             transparentSsr = EnsureTransparentSsrMaterial(),
             gradient = EnsureGradientMaterial(),
+            mirror = EnsureLitMaterial("SslValidationMirror", new Color(0.02f, 0.02f, 0.02f), 1f, 0.9f),
             glass = AssetDatabase.LoadAssetAtPath<Material>(MaterialRoot + "/T11RefractionBox.mat"),
         };
     }
@@ -448,6 +450,7 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         public Material emissive;
         public Material transparentSsr;
         public Material gradient;
+        public Material mirror;
         public Material glass;
     }
 }
