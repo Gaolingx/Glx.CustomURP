@@ -1,9 +1,9 @@
 # Screen Space Lighting 逐轮验收（对照 git，2026-11-17）
 
 > 验收对象：`PLAN/Done/01-ScreenSpaceLighting` … `06-ValidationAllRDC`
-> HEAD：`f85952c`；验收时工作区干净。
+> 验收基线：`f85952c`；整改提交：`fa67325`、`f6f754e`、`726e57b`（本文件在其后提交）。工作区干净。
 > 方法：每轮的 HANDOFF/计划声称 → git commit/diff → `validation/` 证据 → HEAD 代码。
-> 结论：**所有轮次的代码交付均可在 HEAD 验证，未发现代码回归；主要问题集中在证据卫生与文档同步。** 06 的 `P6-2` 判 **FAIL**（提交了 52 个 `.rdc`、963.9 MiB，超出本轮自定预算 150 MB/12 个）；03 判 **PARTIAL**（Frame Debugger 未完成、T1 视觉验收缺失）；其余轮次为 PASS，但带文档/证据债。
+> 结论：**所有轮次的代码交付均可在 HEAD 验证，未发现代码回归。** 初次验收发现 06 的捕获预算/路径漂移与若干文档矛盾；仓库所有者决定把 06 预算提高到 1 GB，并完成路径/文档整改（见 §11）。整改后 06 为 **PASS\***（`P6-2` 不再 FAIL），03 仍为 **PARTIAL**（Frame Debugger/T1 视觉证据缺失），其余轮次为 PASS\*。
 
 ## 0. 验收口径
 
@@ -22,12 +22,12 @@
 
 | 轮次 | 结论 | 任务统计 | 首要缺口 |
 |---|---|---|---|
-| 01-ScreenSpaceLighting | ✅* | 12 PASS、1 PARTIAL、1 SUPERSEDED、3 PASS* | T8 证据/harness 已被 02 替代但 HANDOFF 未标注；HANDOFF 仍有“Hi-Z 不合并”与“17 个必需资源”两处过时表述 |
-| 02-SSRImprove | ✅* | 7 PASS、1 PASS* | 16 个 `.log` 证据被归档提交删除且 `.gitignore` 排除，证据链不可从 git 复现；“416 baseline / ShaderUtil 0 消息”无 artifact |
-| 03-SSRImprove2 | ◐ PARTIAL | 2 PASS、1 PARTIAL（T1）、1 PARTIAL（T4）、1 PARTIAL（T5） | Frame Debugger `completed=false`；无 shader 编译检查；T1 的 A/B 与 missing-LUT fallback 无证据 |
-| 04-SSGIFallbackImprove | ✅* | 6 PASS、1 PARTIAL（P3）、1 PASS*（P4） | 运行时开关未真正跨帧验证（06 F-07 才修复）；1/4/32 探针的截图是同一文件；性能 0.153 ms 依赖“配对中位数”估计器 |
-| 05-ScreenSpaceRefractionImprove | ✅* | 3 PASS、2 PARTIAL、6 ACCEPTED | 汇总 `Report.json`/`Cleanup.md` 仍是 11-16 快照，与 §16–§18 矛盾；433/434 EditMode 无日志；P0-1/P0-3 的探针回退辐射未被区分 |
-| 06-ValidationAllRDC | ◐ PARTIAL | 24 PASS、3 PARTIAL、2 ACCEPTED、1 FAIL | **P6-2 FAIL**：52 个 `.rdc`/963.9 MiB 被提交（预算 150 MB/12）；61 个证据文件仍引用已删除的 `PLAN/TODO` 路径 |
+| 01-ScreenSpaceLighting | ✅* | 9 PASS、7 PASS*、1 PARTIAL、1 SUPERSEDED | T8 supersession、Hi-Z 共享与 22-resource 已在 `726e57b` 修正；剩余为历史证据格式（T13 无 criteria、T12 FD 无顶层 passed） |
+| 02-SSRImprove | ✅* | 5 PASS、3 PASS* | 16 个 `.log` 证据被归档提交删除且 `.gitignore` 排除；已在 §4.5 标注 log 本地-only，入库 XML/JSON/txt 为权威证据 |
+| 03-SSRImprove2 | ◐ PARTIAL | 2 PASS、1 PASS*、3 PARTIAL | Frame Debugger `completed=false`；无 shader 编译检查；T1 的 A/B 与 missing-LUT fallback 无证据（已在 §6.1 明确标注） |
+| 04-SSGIFallbackImprove | ✅* | 4 PASS、3 PASS*、1 PARTIAL | 运行时开关未真正跨帧验证（06 F-07 才修复）；1/4/32 探针的截图是同一文件；性能 0.153 ms 依赖“配对中位数”估计器（已在 `726e57b` 标注） |
+| 05-ScreenSpaceRefractionImprove | ✅* | 1 PASS、1 PASS*、2 PARTIAL、8 ACCEPTED | 汇总 `Report.json`/`Cleanup.md` 的旧快照已在 `726e57b` 修正；433/434 EditMode 仍无日志；P0-1/P0-3 的探针回退辐射未被区分 |
+| 06-ValidationAllRDC | ✅* | 21 PASS、2 PASS*、3 PARTIAL、1 ACCEPTED | 初次验收 `P6-2` 为 FAIL（52 个/963.9 MiB vs 150 MB/12）；所有者决定把预算提高到 1 GB，`.gitignore`/4 份报告已同步（`fa67325`），61 个路径已修正（`f6f754e`/`726e57b`）；P0-4/P2-3 仍为 PARTIAL |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -140,44 +140,48 @@
 | P5 差异文档 | ✅ | `59ae531`；`KnownDifferences.md` | 四分类 + F-01..F-12 状态 |
 | P6-0 回归 | ✅ | `abec5df`、`84dd666`；`P6/Results.json` | EditMode 455/455、PlayMode 6/6（首跑 3 失败，修后 6/6） |
 | P6-1 汇总 | ✅ | `84dd666`；`P6/Results.json exitCriteriaMet=true` | 文件在 `P6/` 而非根 |
-| P6-2 清理 | ❌ FAIL | `2983f08`、`84dd666` | 52 个 `.rdc`、963.9 MiB 仍被提交；预算 150 MB/12；48 个是 force-add 的 ignored 文件；4 份报告声称“不入库/本地保留” |
+| P6-2 清理 | ✅* | `2983f08`、`84dd666`、`fa67325` | 初次验收超预算（52 个/963.9 MiB vs 150 MB/12）；所有者决定把预算提高到 1 GB，`.gitignore` 与 4 份报告已同步 |
 | P6-3 归档 | ✅ | `84dd666`、`bcd399c`、`729fc50`、`f85952c` | `PLAN/TODO`→`PLAN/Done`；T12 34/34/35 回放通过 |
 
-**轮次结论：PARTIAL（代码 PASS、证据 FAIL）。** F-01..F-12 全部在 HEAD 可验证；P1–P5 的数值与 JSON 一致。P6-2 是唯一硬失败：捕获体积/数量严重超预算，且与四份报告的陈述相反；另有 61 个证据文件仍引用已删除的 `PLAN/TODO` 路径。
+**轮次结论：PASS\*（代码 PASS；初次验收证据 FAIL，整改后预算/路径/文档已对齐）。** F-01..F-12 全部在 HEAD 可验证；P1–P5 的数值与 JSON 一致。P6-2 初次验收为硬失败（52 个/963.9 MiB vs 150 MB/12），所有者决定把预算提高到 1 GB 后关闭；61 个路径引用已修正。
 
 ## 8. 跨轮问题
 
-### 8.1 捕获预算与证据卫生（最高优先级）
+### 8.1 捕获预算与证据卫生（初次验收 FAIL，已按所有者决定整改）
 
-- 06 提交了 **52 个 `.rdc`、963.9 MiB**；HEAD 全仓库 **58 个、1,048,717,328 B**。
-- HANDOFF §7.5 冻结预算 **≤150 MB / ≤12 个**；P6-2 仍标“完成”。
-- `git ls-files -i -c --exclude-standard '*.rdc'` 显示 **48 个**是“已跟踪但命中 `.gitignore`”的文件；`783a913` 明确写了 captures stay local。
-- 受影响的报告：`P1-1/Report.md`、`P1-GTAO/Report.md`、`P2-SSGI/Report.md`、`P3-SSR/Report.md` 均声称不入库或“在预算内”。
+- 初次验收：06 提交了 **52 个 `.rdc`、963.9 MiB**；HEAD 全仓库 **58 个、1,048,717,328 B**；HANDOFF §7.5 冻结预算 **≤150 MB / ≤12 个**，P6-2 仍标“完成”；`git ls-files -i -c --exclude-standard '*.rdc'` 显示 48 个“已跟踪但命中 `.gitignore`”的文件。
+- 整改（`fa67325`）：所有者决定把预算提高到 **1 GB**，保留全部抓帧；移除 06 的 `.gitignore` 捕获规则；更新 §7.5/§8.4、P6-2 行与 4 份报告。
+- 整改后：`git ls-files '*.rdc'` = 58（06 52 个），`git ls-files -i -c --exclude-standard '*.rdc'` = **0**，总量 1,048,717,328 B（06 约 963.9 MiB），在 1 GB 内。
+- 初次验收的 FAIL 结论保留为历史记录；**最终状态为 PASS\***（预算策略与仓库事实一致）。
 
 ### 8.2 路径漂移
 
-- 06 的 **61 个文件**仍含 `PLAN/TODO/06-ValidationAllRDC/...`；`84dd666` 归档后该路径不存在。`f85952c` 只修了 harness/脚本/链接，没有修归档证据里的 `capture` 字段与日志。
-- 05 的 `P13PlayerReport.json`/`P13PlayerBuildSummary.json` 也仍嵌 `PLAN/TODO/05-...`。
+- 初次验收：06 的 **61 个文件**含 `PLAN/TODO/06-ValidationAllRDC/...`；05 的 `P13PlayerReport.json`/`P13PlayerBuildSummary.json` 也嵌 `PLAN/TODO/05-...`。
+- 整改（`f6f754e`/`726e57b`）：25 个 JSON + 05/06 的文档引用改为 `PLAN/Done`。剩余 3 个非日志引用是**历史说明/快照**：`05/HANDOFF.md:521,610`、`05/validation/Cleanup.md` 的归档前 git status 快照、`06/HANDOFF.md:706,717`；均在文中注明不代表当前路径。
+- 83 个 `.log` 保留抓帧时的绝对路径，未改写；05/06 文档已注明“日志为历史记录，JSON/MD 指向 PLAN/Done”。
 
 ### 8.3 过时/矛盾文档
 
-| 位置 | 问题 |
-|---|---|
-| `01/HANDOFF.md:206` | 仍称“GTAO Hi-Z 与 SSL Hi-Z 不合并”，被 `770777a` 推翻；06 已作废该结论 |
-| `01/HANDOFF.md` T8 | 18 个累积 kernel 已被 02 替换，T8 证据未标 SUPERSEDED |
-| `01/HANDOFF.md` T7 | 仍引用 `2b38091` 前的权重均值 |
-| `01/HANDOFF.md:31` | “17 个必需资源”，实测 22 个 |
-| `05/validation/Report.json`、`Report.md:81` | `exitCriteriaMet=false`，blocker 说 P1-3/P2 未开始，与 §16–§18 矛盾 |
-| `05/validation/Cleanup.md` | 说“未创建 Player/未留 GPU 捕获”，同目录有 6 个 `.rdc` |
-| `06/HANDOFF.md:65` | 仍说 T12/性能/10×/XR“仍未完成”，与状态段和 P6 矛盾 |
-| `06/HANDOFF.md:106` | 证据路径写成 `validation/06-ValidationAllRDC/`（不存在） |
-| `04/P0/Contract.md` | `rayMiss=Sky` 的“before”描述错误（当时已是 ambient SH） |
+| 位置 | 问题 | 状态 |
+|---|---|---|
+| `01/HANDOFF.md:206` | 仍称“GTAO Hi-Z 与 SSL Hi-Z 不合并” | 已修正 `726e57b` |
+| `01/HANDOFF.md` T8 | T8 证据未标 SUPERSEDED | 已修正 `726e57b` |
+| `01/HANDOFF.md` T7 | 仍引用 `2b38091` 前的权重均值 | 已修正 `726e57b` |
+| `01/HANDOFF.md:31` | “17 个必需资源”，实测 22 | 已修正 `726e57b` |
+| `05/validation/Report.json`、`Report.md:81` | blocker 说 P1-3/P2 未开始 | 已修正 `f6f754e`/`726e57b` |
+| `05/validation/Cleanup.md` | 说“未创建 Player/未留 GPU 捕获” | 已修正 `726e57b`，并注明 git status 为归档前快照 |
+| `06/HANDOFF.md:65` | 说 T12/性能/10×/XR“仍未完成” | 已修正 `fa67325` |
+| `06/HANDOFF.md:106` | 证据路径写成 `validation/06-ValidationAllRDC/` | 已修正 `fa67325` |
+| `06/HANDOFF.md` §7.4 | 根 schema 与交付不一致 | 已加说明 `726e57b` |
+| `04/P0/Contract.md` | `rayMiss=Sky` 的“before”描述错误 | 已修正 `726e57b` |
+| `04/HANDOFF.md` 压力/性能 | 1/4/32 截图相同；0.153 ms 单估计器 | 已加注记 `726e57b` |
+| `02/03/06` 证据缺口 | 未标明哪些是叙事/本地证据 | 已加注记 `726e57b` |
 
 ### 8.4 未被 git 跟踪的证据
 
-- `02`：归档提交 `894e49d` **删除 16 个 `.log`**，`.gitignore:13` 又排除 `*.log`；HANDOFF §4.4 仍把它们列为证据。
-- `03`：`T4/*.log` 全部本地 only；`UnityImport.log` 与“唯一告警是缺尾换行”的叙述不一致。
-- `04`：`P2/SslShaderCheck.txt` 是手跑 artifact，没有 committed producer；P3 XML 与 P1 是同一组测试。
+- `02`：归档提交 `894e49d` **删除 16 个 `.log`**，`.gitignore:13` 又排除 `*.log`；已在 §4.5 标注 log 本地-only。
+- `03`：`T4/*.log` 全部本地 only；`UnityImport.log` 与“唯一告警是缺尾换行”的叙述不一致；已在 §6.1 标注证据缺口。
+- `04`：`P2/SslShaderCheck.txt` 是手跑 artifact，没有 committed producer；P3 XML 与 P1 是同一组测试，已按 PARTIAL 记录。
 
 ### 8.5 测试数量漂移
 
@@ -193,20 +197,35 @@ EditMode 153（T14）→ 418/419（02）→ 426（04）→ 455/456（06）是**�
 - `ScriptableRenderer.cs:1461-1483` 每相机重置；`SsgiPass.cs:905-927` stamp；
 - `DiffuseDenoiser.compute:108-110` tap 翻转；死代码删除已生效。
 
-## 9. 整改清单
+## 9. 整改清单与状态
 
-| ID | 优先级 | 动作 | 影响 |
+| ID | 优先级 | 动作 | 状态 |
 |---|---|---|---|
-| R1 | P0 | **06 捕获预算**：保留 ≤12 个代表抓帧（建议 P0 5 个、P1 2 个、P2 2 个、P3 3 个），其余移到本地 `validation-local/` 并从 git 移除；同步修正 4 份报告 | 预计从 963.9 MiB 降到 ≤150 MB；恢复 §7.5 契约 |
-| R2 | P1 | **路径漂移**：把 06 证据中的 `PLAN/TODO/06-ValidationAllRDC` 批量改为 `PLAN/Done/06-ValidationAllRDC`；日志可加一行注记而非改写 | 61 个文件；恢复“证据可复现” |
-| R3 | P1 | **过时文档**：修正 01:206、01 T7/T8、01:31（17→22）、05 汇总 Report/Cleanup、06:65/106、04 P0 before 单元格 | 读者从任一入口进入不会再得到相反结论 |
-| R4 | P2 | **补证据或降级声明**：03 shader 检查/FD、05 433/434、06 P2-3 tap 计数、04 多探针压力图 | 未补的项必须在报告里标 “narrative only” |
-| R5 | P3 | 归档规则：在 `PLAN/README` 或 HANDOFF 增加“历史证据按当时有效，superseded 项需标注”的约定 | 防止后续轮次再次产生 T8 式歧义 |
+| R1 | P0 | 06 捕获预算：所有者决定提高到 1 GB，保留全部 52 个抓帧；移除 `.gitignore` 冲突规则；同步 HANDOFF 与 4 份报告 | ✅ 完成 `fa67325` |
+| R2 | P1 | 路径漂移：25 个 JSON + 文档引用改为 `PLAN/Done`；日志保留原路径并注明 | ✅ 完成 `f6f754e`/`726e57b` |
+| R3 | P1 | 过时文档：01 T7/T8/Hi-Z/22、04 P0/压力/性能、05 汇总/Cleanup、06 §7.4/65/106 | ✅ 完成 `726e57b` |
+| R4 | P2 | 补证据或降级声明：03 FD/T1、05 433/434、06 P2-3 tap、04 多探针 | ◐ 部分：已加 “narrative only” 注记；证据本身未补 |
+| R5 | P3 | 归档规则：历史证据按当时有效，superseded 项需标注 | ○ 建议保留；06 已加历史路径说明，未建 `PLAN/README` |
 
-> R1 涉及删除/移动已提交的 `.rdc`，属破坏性操作，需要仓库所有者确认后再执行。本验收未删除任何文件。
+> 本轮**没有删除任何 `.rdc`**；R1 改为提高预算，而不是清理捕获。
 
 ## 10. 结论
 
 - **代码交付：全部通过。** 01–06 声称的功能、修复、共享绑定与材质消费在 HEAD 均可验证，没有发现回归。
-- **证据完整性：06 不通过，03 部分通过，其余通过但带债。** 06 的捕获预算/P6-2 是唯一的硬失败；03 的 FD 与 T1 视觉验收缺失；01/02/04/05 的问题是文档同步、日志未跟踪或过期快照，不影响当时的结论，但影响“从 git 复现”的承诺。
-- **建议**：先做 R1–R3，再宣称整个 Screen Space Lighting 工作“public-review clean”。R4 可以按“补证据或降级声明”二选一。
+- **证据完整性：06 在 1 GB 预算与路径整改后 PASS\*；03 仍 PARTIAL；01/02/04/05 为 PASS\*。** 剩余问题是历史日志未入库、个别验收项缺失或计数未机器化，不影响当时的代码结论，但影响“从 git 逐项复现”的承诺。
+- **建议**：R4 的开放项（03 FD/T1、05 433/434、06 P2-3 tap JSON）要么补证据，要么保持 “narrative only” 标注；除此之外可宣称 public-review clean。
+
+## 11. 整改记录（2026-11-17）
+
+| Commit | 内容 |
+|---|---|
+| `fa67325` | 06 预算提高到 1 GB；移除 `.gitignore` 捕获规则；同步 HANDOFF 与 4 份报告 |
+| `f6f754e` | 25 个证据 JSON 的 `PLAN/TODO` 路径改为 `PLAN/Done`；05 roll-up blockers 更新 |
+| `726e57b` | 01/02/03/04/05/06 的过时/矛盾文档与证据缺口注记 |
+
+验证：
+
+- `git ls-files '*.rdc'` = 58（06 = 52），总量 1,048,717,328 B；`git ls-files -i -c --exclude-standard '*.rdc'` = 0。
+- 非日志 `PLAN/TODO` 引用 = 3 个历史说明/快照；83 个 `.log` 保留抓帧时路径并已注明。
+- `git status --short` 为空；未修改任何运行时代码。
+- 未删除任何 `.rdc`。
