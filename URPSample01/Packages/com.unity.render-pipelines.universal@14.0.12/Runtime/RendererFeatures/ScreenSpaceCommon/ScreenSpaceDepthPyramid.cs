@@ -35,10 +35,6 @@ namespace UnityEngine.Rendering.Universal
             m_Height = Mathf.Max(1, height);
         }
 
-        public void SwapBuffers()
-        {
-        }
-
         internal void Prepare(int width, int height, int viewCount, TextureDimension dimension)
         {
             m_Width = Mathf.Max(1, width);

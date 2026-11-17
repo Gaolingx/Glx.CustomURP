@@ -38,7 +38,6 @@ namespace UnityEngine.Rendering.Universal
         internal PackedMipChainInfo depthPyramidInfo => depthPyramidSource != null ? depthPyramidSource.info : default;
         internal RTHandle depthPyramid => depthPyramidSource?.texture;
         internal ComputeBuffer depthPyramidOffsets => depthPyramidSource?.offsets;
-        internal int depthPyramidMipCount => depthPyramidSource?.mipCount ?? 0;
 
         internal RTHandle packedData { get; private set; }
         internal RTHandle packedBlurred { get; private set; }

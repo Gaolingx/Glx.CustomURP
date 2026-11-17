@@ -261,7 +261,6 @@ namespace UnityEngine.Rendering.Universal
                 var candidate = m_ProbeCandidates[i];
                 m_ProbeMin[i] = new Vector4(candidate.bounds.min.x, candidate.bounds.min.y, candidate.bounds.min.z, 0f);
                 m_ProbeMax[i] = new Vector4(candidate.bounds.max.x, candidate.bounds.max.y, candidate.bounds.max.z, 0f);
-                // y is reserved for a per-probe rendering layer mask; URP 14 exposes none.
                 m_ProbeParams[i] = new Vector4(candidate.importance, 0f, (float)ProxyMode.Box, 0f);
             }
 

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEngine.Rendering.Universal
 {
     // GTAO dispatch group: horizon search, spatial denoise, temporal accumulation and upsample.
-    // Runs after the private depth pyramid (203) and before Deferred GBuffer (210) or Forward opaque
+    // Runs after the shared depth pyramid (203) and before Deferred GBuffer (210) or Forward opaque
     // geometry (250) so the AO is available when materials and DeferredLights consume it.
     internal sealed class GroundTruthAmbientOcclusionPass : ScriptableRenderPass
     {
@@ -444,7 +444,7 @@ namespace UnityEngine.Rendering.Universal
 
             cb = default;
             cb._GtaoBufferSize = new Vector4(aoWidth, aoHeight, 1f / aoWidth, 1f / aoHeight);
-            cb._GtaoScreenSize = new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight);
+            cb._GtaoScreenSize = new Vector4(screenWidth, screenHeight, 0f, 0f);
             cb._GtaoParams0 = new Vector4(
                 // Full resolution is a compile-time FULL_RES keyword, so no resolution lane is uploaded.
                 0f,

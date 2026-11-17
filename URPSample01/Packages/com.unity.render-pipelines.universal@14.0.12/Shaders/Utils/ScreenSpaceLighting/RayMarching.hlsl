@@ -7,7 +7,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
 
-// Private packed depth pyramid of this feature, built by ScreenSpaceLightingDepthPyramidPass.
+// SSGI constant set and the packed depth pyramid shared by every screen-space consumer.
 SSGI_TEXTURE2D_FLOAT(_SsgiDepthPyramid);
 StructuredBuffer<int2> _SsgiDepthPyramidMipLevelOffsets;
 

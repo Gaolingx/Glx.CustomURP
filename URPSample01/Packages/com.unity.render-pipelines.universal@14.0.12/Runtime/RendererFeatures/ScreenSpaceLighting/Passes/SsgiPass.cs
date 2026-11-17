@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Rendering.Universal
 {
     // Screen Space Global Illumination dispatch group: trace, reproject, temporal validation and
-    // accumulation, bilateral diffuse denoise and bilateral upsample. Runs after the private depth
+    // accumulation, bilateral diffuse denoise and bilateral upsample. Runs after the shared depth
     // pyramid (203) and before the Deferred GBuffer (210) or Forward opaque geometry (250).
     //
     // The HDRP probe/sky fallback hierarchy is replaced by an explicit weight: a miss stores weight 0
@@ -353,13 +353,13 @@ namespace UnityEngine.Rendering.Universal
 
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiHalfResKeyword, halfRes);
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
-            SetKeyword(temporalCompute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
-            SetKeyword(denoiserCompute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
+            SetKeyword(temporalCompute, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
+            SetKeyword(denoiserCompute, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
             // Normal decoding is shared by the validation and denoiser kernels.
             SetKeyword(temporalCompute, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
             SetKeyword(denoiserCompute, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
-            SetKeyword(upsampleCompute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
-            SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
+            SetKeyword(upsampleCompute, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
+            SetKeyword(ssgiCompute, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
 
             // HDRP's blue-noise distributed sequence when the package LUTs are available.
             bool blueNoise = m_Resources.hasSsgiBlueNoise;
@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.Universal
             stats.probeAtlasKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SslProbeAtlasKeyword);
             stats.probeListKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SslProbeListKeyword);
             stats.normalsOctKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword);
-            stats.xrArrayKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.XrArrayKeyword);
+            stats.xrArrayKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceShaderIDs.XrArrayKeyword);
 #endif
 
             if (useTextureArray)
@@ -720,7 +720,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, output);
             cmd.SetComputeBufferParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.PointDistribution, m_History.ssgiPointDistribution);
             cmd.SetComputeFloatParam(denoiserCompute, ScreenSpaceLightingShaderIDs.DenoiserFilterRadius, filterRadius);
-            cmd.SetComputeFloatParam(denoiserCompute, ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent, m_ShaderVariables._SsgiDenoiserParams.x);
             cmd.SetComputeIntParam(denoiserCompute, ScreenSpaceLightingShaderIDs.JitterFramePeriod, jitterFramePeriod);
             cmd.SetComputeIntParam(denoiserCompute, ScreenSpaceLightingShaderIDs.HalfResolutionFilter, halfResolutionFilter ? 1 : 0);
             DispatchCompute(cmd, denoiserCompute, kernel, DivideRoundUp(traceWidth, k_TileSize), DivideRoundUp(traceHeight, k_TileSize), viewCount);
@@ -879,8 +878,8 @@ namespace UnityEngine.Rendering.Universal
             m_ShaderVariables._SsgiRayMarchingParams2 = new Vector4(invLowResPercentage, frameIndex, historyValidity, 0.0f);
             m_ShaderVariables._SsgiZBufferParams = ScreenSpaceLightingRenderUtils.ComputeZBufferParams(cameraData.camera.nearClipPlane, cameraData.camera.farClipPlane);
             m_ShaderVariables._SsgiColorPyramidScaleAndLimitPrev = new Vector4(1f, 1f, 1f, 1f);
-            m_ShaderVariables._SsgiTemporalParams = new Vector4(lowResPercentage, 1.0f / lowResPercentage, 0.2f, 0.0f);
-            m_ShaderVariables._SsgiDenoiserParams = new Vector4(pixelSpreadTangent, -1.0f, 0.0f, 0.0f);
+            m_ShaderVariables._SsgiTemporalParams = new Vector4(lowResPercentage, 1.0f / lowResPercentage, 0.0f, 0.0f);
+            m_ShaderVariables._SsgiDenoiserParams = new Vector4(pixelSpreadTangent, 0.0f, 0.0f, 0.0f);
             m_ShaderVariables._SsgiCameraPositionWS = cameraPosition;
             m_ShaderVariables._SsgiPrevInvViewProj = previousInvViewProj;
         }

@@ -11,12 +11,7 @@ namespace UnityEngine.Rendering.Universal
         internal const string k_ProfilingSamplerName = "Depth Pyramid";
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
-        static readonly int s_CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
-        static readonly int s_SrcOffsetAndLimit = Shader.PropertyToID("_SslSrcOffsetAndLimit");
-        static readonly int s_DstOffset = Shader.PropertyToID("_SslDstOffset");
         static readonly int s_DstSize = Shader.PropertyToID("_SslDstSize");
-        static readonly int s_DepthMipChain = Shader.PropertyToID("_SslDepthMipChain");
-        static readonly string s_XrArrayKeyword = "SSL_XR_ARRAY";
 
         ScreenSpaceDepthPyramid m_Pyramid;
         ComputeShader m_Compute;
@@ -64,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
             var info = m_Pyramid.info;
             int viewCount = m_Pyramid.viewCount;
             bool useTextureArray = m_Pyramid.dimension == TextureDimension.Tex2DArray;
-            SetKeyword(compute, s_XrArrayKeyword, useTextureArray);
+            SetKeyword(compute, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
 
             int copyKernel = compute.FindKernel("KDepthPyramidCopy");
             int downsampleKernel = compute.FindKernel("KDepthPyramidDownsample");
@@ -72,9 +67,9 @@ namespace UnityEngine.Rendering.Universal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
-                cmd.SetComputeTextureParam(compute, copyKernel, s_CameraDepthTexture, depthTexture);
-                cmd.SetComputeTextureParam(compute, copyKernel, s_DepthMipChain, m_Pyramid.texture);
-                cmd.SetComputeTextureParam(compute, downsampleKernel, s_DepthMipChain, m_Pyramid.texture);
+                cmd.SetComputeTextureParam(compute, copyKernel, ScreenSpaceShaderIDs.CameraDepthTexture, depthTexture);
+                cmd.SetComputeTextureParam(compute, copyKernel, ScreenSpaceShaderIDs.DepthMipChain, m_Pyramid.texture);
+                cmd.SetComputeTextureParam(compute, downsampleKernel, ScreenSpaceShaderIDs.DepthMipChain, m_Pyramid.texture);
 
                 var mip0Size = info.mipLevelSizes[0];
                 var mip0Offset = info.mipLevelOffsets[0];
@@ -125,8 +120,8 @@ namespace UnityEngine.Rendering.Universal
             m_DstSize[0] = dstSize.x;
             m_DstSize[1] = dstSize.y;
 
-            cmd.SetComputeIntParams(compute, s_SrcOffsetAndLimit, m_SrcOffsetAndLimit);
-            cmd.SetComputeIntParams(compute, s_DstOffset, m_DstOffset);
+            cmd.SetComputeIntParams(compute, ScreenSpaceShaderIDs.SrcOffsetAndLimit, m_SrcOffsetAndLimit);
+            cmd.SetComputeIntParams(compute, ScreenSpaceShaderIDs.DstOffset, m_DstOffset);
             cmd.SetComputeIntParams(compute, s_DstSize, m_DstSize);
         }
 

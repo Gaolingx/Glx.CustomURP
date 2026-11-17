@@ -296,7 +296,6 @@ namespace UnityEngine.Rendering.Universal
             m_OutputTexture = pbr && !halfResolution
                 ? m_History.ssrPbrOriginal
                 : m_History.ssrOutput;
-            m_History.MarkSsrOutputProduced();
             m_ProducedOutput = true;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastMaterialOutputTarget = m_OutputTexture != null ? m_OutputTexture.name : string.Empty;
@@ -330,12 +329,12 @@ namespace UnityEngine.Rendering.Universal
         {
             var compute = m_Resources.ssrCompute;
             var denoiser = m_Resources.ssrReflectionDenoiserCompute;
-            SetKeyword(compute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
+            SetKeyword(compute, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, !pbr);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, halfResolution);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
-            SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
+            SetKeyword(denoiser, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
 
             if (useTextureArray)
@@ -624,7 +623,7 @@ namespace UnityEngine.Rendering.Universal
             bool useTextureArray)
         {
             var upsample = m_Resources.bilateralUpsampleCompute;
-            SetKeyword(upsample, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
+            SetKeyword(upsample, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
 
             var screenSize = new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight);
             var traceSize = new Vector4(traceWidth, traceHeight, 1f / traceWidth, 1f / traceHeight);
@@ -684,7 +683,7 @@ namespace UnityEngine.Rendering.Universal
                 edgeFadeRcpLength);
             cb._SsrPyramidParams = new Vector4(
                 Mathf.Max(0, m_History.colorPyramidMipCount - 1),
-                Mathf.Max(0, m_History.depthPyramidMipCount - 1),
+                0f,
                 0f,
                 0f);
             // No render scale or dynamic resolution offset is applied to the SSL history in this

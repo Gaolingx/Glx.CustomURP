@@ -56,7 +56,6 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.IsTrue(m_History.hasValidHistory);
             Assert.AreEqual(1, m_History.readSlot);
             Assert.AreEqual(0, m_History.writeSlot);
-            Assert.AreEqual(1, m_History.validFrameCount);
             Assert.AreNotEqual(m_History.readSlot, m_History.writeSlot);
         }
 
@@ -70,8 +69,6 @@ namespace UnityEditor.Rendering.Universal.Tests
                 Assert.IsFalse(m_History.sameFrameConflict);
                 m_History.SwapBuffers();
             }
-
-            Assert.AreEqual(6, m_History.validFrameCount);
         }
 
         [Test]
@@ -86,26 +83,22 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.AreEqual(0, m_History.bufferIndex);
             Assert.AreEqual(2, m_History.resetCount);
             Assert.AreEqual(2, m_History.lastResetFrame);
-            Assert.AreEqual(0, m_History.validFrameCount);
         }
 
         [Test]
         public void SameSizeKeepsResourcesAndSizeChangeReallocates()
         {
             m_History.EnsureResources(320, 180, 1, TextureDimension.Tex2D, ScreenSpaceLightingRenderUtils.k_ColorFormat);
-            int generation = m_History.resourceGeneration;
             var colorPyramid = m_History.currentColorPyramid;
 
             m_History.EnsureResources(320, 180, 1, TextureDimension.Tex2D, ScreenSpaceLightingRenderUtils.k_ColorFormat);
 
-            Assert.AreEqual(generation, m_History.resourceGeneration);
             Assert.AreSame(colorPyramid, m_History.currentColorPyramid);
 
             // The depth mip chain belongs to the shared ScreenSpaceDepthPyramidSystem, so only the
             // color history reallocates when the viewport size changes.
             m_History.EnsureResources(640, 360, 1, TextureDimension.Tex2D, ScreenSpaceLightingRenderUtils.k_ColorFormat);
 
-            Assert.AreEqual(generation + 1, m_History.resourceGeneration);
             Assert.AreNotSame(colorPyramid, m_History.currentColorPyramid);
             Assert.AreEqual(640, m_History.currentColorPyramid.rt.width);
             Assert.AreEqual(360, m_History.currentColorPyramid.rt.height);
@@ -124,8 +117,6 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.AreEqual(2, m_History.slices);
             Assert.AreEqual(TextureDimension.Tex2DArray, m_History.dimension);
             Assert.AreEqual(2, m_History.currentColorPyramid.rt.volumeDepth);
-            Assert.AreEqual(2, m_History.historyColorPyramidCount);
-            Assert.AreEqual(2, m_History.previousDepthCount);
             Assert.AreEqual(ScreenSpaceLightingHistory.ComputeColorPyramidMipCount(320, 180), m_History.colorPyramidMipCount);
         }
 

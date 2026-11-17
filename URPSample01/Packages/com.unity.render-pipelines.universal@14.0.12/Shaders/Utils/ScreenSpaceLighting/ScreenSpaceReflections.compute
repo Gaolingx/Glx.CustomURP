@@ -492,5 +492,5 @@ void DebugSsrParams(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (dispatchThreadId.x >= (uint)_SsrScreenSize.x || dispatchThreadId.y >= (uint)_SsrScreenSize.y)
         return;
 
-    SSGI_STORE(_SsrOutputTextureRW, dispatchThreadId.xy, float4(_SsrPbrParams.xyz, _SsrPbrFlags.y));
+    SSGI_STORE(_SsrOutputTextureRW, dispatchThreadId.xy, float4(0.0, _SsrPbrParams.y, 0.0, _SsrPbrFlags.y));
 }

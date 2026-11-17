@@ -4,7 +4,8 @@ namespace UnityEngine.Rendering.Universal
 {
     internal static class GroundTruthAmbientOcclusionShaderIDs
     {
-        // Private GTAO resources. They never alias the Screen Space Lighting pyramid or history.
+        // GTAO-owned resources. DepthPyramid binds the packed chain shared with the other
+        // screen-space consumers; the remaining textures are private to this effect.
         internal static readonly int DepthPyramid = Shader.PropertyToID("_GtaoDepthPyramid");
         internal static readonly int NormalTexture = Shader.PropertyToID("_GtaoNormalTexture");
         internal static readonly int MotionTexture = Shader.PropertyToID("_GtaoMotionTexture");
@@ -17,8 +18,6 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int OutputTexture = Shader.PropertyToID("_GtaoOutputTexture");
 
         internal static readonly int DebugTexture = Shader.PropertyToID("_GtaoDebugTexture");
-        internal static readonly int DebugMode = Shader.PropertyToID("_GtaoDebugMode");
-        internal static readonly int DebugMip = Shader.PropertyToID("_GtaoDebugMip");
         internal static readonly int DebugUvScaleOffset = Shader.PropertyToID("_GtaoDebugUvScaleOffset");
         internal static readonly int DebugUnpack = Shader.PropertyToID("_GtaoDebugUnpack");
         internal static readonly int DebugUseGlobal = Shader.PropertyToID("_GtaoDebugUseGlobal");

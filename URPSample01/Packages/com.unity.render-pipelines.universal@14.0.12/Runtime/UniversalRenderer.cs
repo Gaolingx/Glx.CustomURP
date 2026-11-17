@@ -166,7 +166,6 @@ namespace UnityEngine.Rendering.Universal
         bool m_DepthPrimingRecommended;
         StencilState m_DefaultStencilState;
         LightCookieManager m_LightCookieManager;
-        bool m_PublishSslProbeAtlas;
         IntermediateTextureMode m_IntermediateTextureMode;
         bool m_VulkanEnablePreTransform;
 
@@ -1402,11 +1401,10 @@ namespace UnityEngine.Rendering.Universal
         // reference the plugin types. Forward+ ignores it because clustering already needs the atlas.
         internal void SetProbeAtlasPublishing(bool enabled)
         {
-            m_PublishSslProbeAtlas = enabled;
             m_ForwardLights.SetProbeAtlasEnabled(enabled);
         }
 
-        internal bool publishSslProbeAtlas => m_PublishSslProbeAtlas;
+        internal bool publishSslProbeAtlas => m_ForwardLights.publishProbeAtlas;
 
         /// <inheritdoc />
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,

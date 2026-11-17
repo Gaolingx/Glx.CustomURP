@@ -7,9 +7,6 @@ namespace UnityEngine.Rendering.Universal
     {
         // Called when the entry is created, resized or invalidated by a camera reset.
         void Reset(int width, int height, int frameIndex);
-
-        // Called after a frame wrote the current buffer so the next frame can read it as history.
-        void SwapBuffers();
     }
 
     // Per-camera (and per-XR-eye) history ownership. Effect parameters stay in the owning feature;

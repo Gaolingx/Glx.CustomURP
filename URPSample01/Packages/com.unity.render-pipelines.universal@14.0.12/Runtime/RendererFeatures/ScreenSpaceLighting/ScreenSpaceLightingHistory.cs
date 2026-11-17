@@ -19,9 +19,7 @@ namespace UnityEngine.Rendering.Universal
         internal int frameSerial { get; private set; }
         public int bufferIndex { get; private set; }
         public bool hasValidHistory { get; private set; }
-        public int validFrameCount { get; private set; }
 
-        internal int resourceGeneration { get; private set; }
         internal int readSlot { get; private set; }
         internal int writeSlot { get; private set; }
         internal bool sameFrameConflict => hasValidHistory && readSlot == writeSlot;
@@ -36,7 +34,6 @@ namespace UnityEngine.Rendering.Universal
         internal PackedMipChainInfo depthPyramidInfo => depthPyramidSource != null ? depthPyramidSource.info : default;
         internal RTHandle depthPyramid => depthPyramidSource?.texture;
         internal ComputeBuffer depthPyramidOffsets => depthPyramidSource?.offsets;
-        internal int depthPyramidMipCount => depthPyramidSource?.mipCount ?? 0;
 
         internal RTHandle currentColorPyramid { get; private set; }
         internal int colorPyramidMipCount { get; private set; }
@@ -242,9 +239,7 @@ namespace UnityEngine.Rendering.Universal
         internal int ssrWidth { get; private set; }
         internal int ssrHeight { get; private set; }
         internal int ssrResourceGeneration { get; private set; }
-        internal bool ssrOutputProduced { get; private set; }
         internal bool ssrResourcesAllocated => ssrHitPoint != null && ssrOutput != null;
-        internal bool ssrHasValidHistory => hasValidHistory && readColorPyramid != null;
 
         internal void EnsureSsrResources(int width, int height, int viewCount, TextureDimension resourceDimension)
         {
@@ -672,8 +667,6 @@ namespace UnityEngine.Rendering.Universal
             return slot >= 0 && slot < k_HistoryBufferCount ? m_PreviousNormals[slot] : null;
         }
 
-        internal int historyColorPyramidCount => m_HistoryColorPyramids.Length;
-        internal int previousDepthCount => m_PreviousDepths.Length;
         internal bool resourcesAllocated => depthPyramid != null && currentColorPyramid != null;
 
         public void BeginFrame()
@@ -684,14 +677,7 @@ namespace UnityEngine.Rendering.Universal
             readColorPyramid = readSlot >= 0 ? m_HistoryColorPyramids[readSlot] : null;
             readPreviousDepth = readSlot >= 0 ? m_PreviousDepths[readSlot] : null;
             readPreviousNormals = readSlot >= 0 ? m_PreviousNormals[readSlot] : null;
-            ssrOutputProduced = false;
             ssrTransparentOutputProduced = false;
-        }
-
-        // Called by ScreenSpaceLightingSsrPass once both kernels dispatched for this camera.
-        internal void MarkSsrOutputProduced()
-        {
-            ssrOutputProduced = true;
         }
 
         // Called by ScreenSpaceLightingTransparentSsrPass; the transparent result is never reused
@@ -730,13 +716,11 @@ namespace UnityEngine.Rendering.Universal
             resetCount++;
             bufferIndex = 0;
             hasValidHistory = false;
-            validFrameCount = 0;
             readSlot = -1;
             writeSlot = bufferIndex ^ 1;
             readColorPyramid = null;
             readPreviousDepth = null;
             readPreviousNormals = null;
-            ssrOutputProduced = false;
             ssrTransparentOutputProduced = false;
             ResetSsgiHistory();
             ResetSsrPbrHistory();
@@ -750,7 +734,6 @@ namespace UnityEngine.Rendering.Universal
         {
             bufferIndex = writeSlot;
             hasValidHistory = true;
-            validFrameCount++;
         }
 
         internal void EnsureResources(int viewportWidth, int viewportHeight, int viewCount, TextureDimension resourceDimension, GraphicsFormat resourceColorFormat)
@@ -821,8 +804,6 @@ namespace UnityEngine.Rendering.Universal
             m_TempDownsample = AllocTempColor(tempWidth, tempHeight, colorFormat, dimension, slices, "SslColorPyramidDownsample");
             m_TempBlur = AllocTempColor(tempWidth, tempHeight, colorFormat, dimension, slices, "SslColorPyramidBlur");
 
-            resourceGeneration++;
-
             // The release invalidated this frame's read handles. Treat the frame as history-less so
             // no pass binds a released texture; the next captured frame becomes valid again.
             hasValidHistory = false;
@@ -831,7 +812,6 @@ namespace UnityEngine.Rendering.Universal
             readColorPyramid = null;
             readPreviousDepth = null;
             readPreviousNormals = null;
-            ssrOutputProduced = false;
         }
 
         internal RTHandle tempDownsample => m_TempDownsample;
@@ -897,7 +877,6 @@ namespace UnityEngine.Rendering.Universal
             height = 0;
             bufferIndex = 0;
             hasValidHistory = false;
-            validFrameCount = 0;
             readSlot = -1;
             writeSlot = 0;
             readColorPyramid = null;
@@ -970,7 +949,6 @@ namespace UnityEngine.Rendering.Universal
             m_SsrDebugWidth = 0;
             m_SsrDebugHeight = 0;
             m_SsrDebugSlices = 0;
-            ssrOutputProduced = false;
             ReleaseSsrPbrResources();
         }
 

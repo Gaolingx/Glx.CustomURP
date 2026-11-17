@@ -33,12 +33,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Blend weight of the opaque SSR result. Black means the material keeps the reflection probe.</summary>
         SsrWeight = 12,
         /// <summary>PBR diagnostics: GGX sample bias and accumulation history validity.</summary>
-        SsrPbrParams = 14,
+        SsrPbrParams = 13,
         /// <summary>Private transparent depth written by the transparent prepass, initialized from opaque depth.</summary>
-        TransparentDepth = 15,
+        TransparentDepth = 14,
         /// <summary>Transparent SSR radiance reprojected from the previous color pyramid.</summary>
-        SsrTransparentRaw = 16,
+        SsrTransparentRaw = 15,
         /// <summary>Blend weight of the transparent SSR result. Black means the material keeps the reflection probe.</summary>
-        SsrTransparentWeight = 17,
+        SsrTransparentWeight = 16,
     }
 }

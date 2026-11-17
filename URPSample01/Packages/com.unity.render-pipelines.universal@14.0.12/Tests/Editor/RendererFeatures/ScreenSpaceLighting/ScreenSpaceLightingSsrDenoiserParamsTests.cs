@@ -42,19 +42,19 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void TemporalFilterDeadSpreadAngleWritesAreRemoved()
+        public void StandaloneSpreadAngleFloatWritesAreRemoved()
         {
             string temporal = ReadPackageFile("Shaders/Utils/Denoising/TemporalFilter.compute");
             StringAssert.Contains("#define _PixelSpreadAngleTangent _SsgiDenoiserParams.x", temporal);
 
-            // The diffuse denoiser declares a real uniform, so its float write stays; the temporal
-            // compute writes are dead because the macro shadows the name.
+            // No kernel declares a standalone _PixelSpreadAngleTangent uniform, so every float write
+            // to it is shadowed by the macro and never reaches a shader.
             string ssgi = ReadPackageFile(
                 "Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsgiPass.cs");
             Assert.AreEqual(
-                1,
-                CountOccurrences(ssgi, "ScreenSpaceLightingShaderIDs.PixelSpreadAngleTangent"),
-                "Only the DiffuseDenoiser float write should remain.");
+                0,
+                CountOccurrences(ssgi, "PixelSpreadAngleTangent"),
+                "The dead standalone float write must stay removed.");
         }
 
         static int CountOccurrences(string source, string value)

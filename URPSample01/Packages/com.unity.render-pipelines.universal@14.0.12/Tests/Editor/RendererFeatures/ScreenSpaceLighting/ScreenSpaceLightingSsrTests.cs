@@ -63,8 +63,6 @@ namespace UnityEditor.Rendering.Universal.Tests
             m_History.EnsureSsrResources(320, 180, 1, TextureDimension.Tex2D);
 
             Assert.IsNull(m_History.readColorPyramid);
-            Assert.IsFalse(m_History.ssrHasValidHistory);
-            Assert.IsFalse(m_History.ssrOutputProduced);
             Assert.IsTrue(m_History.ssrResourcesAllocated);
             Assert.IsNotNull(m_History.ssrOutput);
             Assert.IsNotNull(m_History.ssrHitPoint);
@@ -83,20 +81,6 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.AreEqual(generation + 1, m_History.ssrResourceGeneration);
             Assert.AreEqual(640, m_History.ssrWidth);
             Assert.AreEqual(360, m_History.ssrHeight);
-        }
-
-        [Test]
-        public void SsrOutputIsMarkedProducedOnlyAfterAFrame()
-        {
-            m_History.EnsureSsrResources(320, 180, 1, TextureDimension.Tex2D);
-            m_History.BeginFrame();
-            Assert.IsFalse(m_History.ssrOutputProduced);
-
-            m_History.MarkSsrOutputProduced();
-            Assert.IsTrue(m_History.ssrOutputProduced);
-
-            m_History.BeginFrame();
-            Assert.IsFalse(m_History.ssrOutputProduced, "the output of the previous frame must not be reused");
         }
 
         [Test]

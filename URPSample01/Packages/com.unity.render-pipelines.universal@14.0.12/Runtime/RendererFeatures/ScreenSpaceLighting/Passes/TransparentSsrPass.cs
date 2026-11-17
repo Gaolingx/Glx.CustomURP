@@ -78,7 +78,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         internal bool producedOutput => m_ProducedOutput;
-        internal bool usingPbrAccumulation => false;
         internal RTHandle outputTexture => m_ProducedOutput ? m_OutputTexture : null;
 
         internal ScreenSpaceLightingTransparentSsrPass()
@@ -160,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
 
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
-                SetKeyword(compute, ScreenSpaceLightingShaderIDs.XrArrayKeyword, useTextureArray);
+                SetKeyword(compute, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
                 // The private normal target uses the forward DepthNormals encoding, never the
                 // deferred octahedral GBuffer layout.
                 SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, false);
@@ -300,7 +299,7 @@ namespace UnityEngine.Rendering.Universal
                 edgeFadeRcpLength);
             cb._SsrPyramidParams = new Vector4(
                 Mathf.Max(0, m_History.colorPyramidMipCount - 1),
-                Mathf.Max(0, m_History.depthPyramidMipCount - 1),
+                0f,
                 0f,
                 0f);
             cb._SsrColorPyramidScaleAndLimitPrev = new Vector4(1f, 1f, 1f, 1f);

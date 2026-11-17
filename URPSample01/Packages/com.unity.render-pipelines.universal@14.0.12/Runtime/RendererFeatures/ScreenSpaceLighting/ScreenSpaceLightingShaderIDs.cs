@@ -4,10 +4,6 @@ namespace UnityEngine.Rendering.Universal
 {
     internal static class ScreenSpaceLightingShaderIDs
     {
-        internal static readonly int DepthMipChain = Shader.PropertyToID("_SslDepthMipChain");
-        internal static readonly int SrcOffsetAndLimit = Shader.PropertyToID("_SslSrcOffsetAndLimit");
-        internal static readonly int DstOffset = Shader.PropertyToID("_SslDstOffset");
-
         internal static readonly int Source = Shader.PropertyToID("_SslSource");
         internal static readonly int SrcScaleBias = Shader.PropertyToID("_SslSrcScaleBias");
         internal static readonly int SrcUvLimits = Shader.PropertyToID("_SslSrcUvLimits");
@@ -17,8 +13,6 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int DebugUvScaleOffset = Shader.PropertyToID("_SslDebugUvScaleOffset");
         internal static readonly int DebugMip = Shader.PropertyToID("_SslDebugMip");
         internal static readonly int DebugOutput = Shader.PropertyToID("_SslDebugOutput");
-
-        internal static readonly string XrArrayKeyword = "SSL_XR_ARRAY";
 
         // Per-view matrices and eye centres. Only bound for single-pass instanced XR, where the
         // kernels pick the view with the dispatch slice.
@@ -69,7 +63,6 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int DenoiserFilterRadius = Shader.PropertyToID("_DenoiserFilterRadius");
         internal static readonly int JitterFramePeriod = Shader.PropertyToID("_JitterFramePeriod");
         internal static readonly int HalfResolutionFilter = Shader.PropertyToID("_HalfResolutionFilter");
-        internal static readonly int PixelSpreadAngleTangent = Shader.PropertyToID("_PixelSpreadAngleTangent");
         internal static readonly int ReceiverMotionRejection = Shader.PropertyToID("_ReceiverMotionRejection");
         internal static readonly int OccluderMotionRejection = Shader.PropertyToID("_OccluderMotionRejection");
         internal static readonly int EnableExposureControl = Shader.PropertyToID("_EnableExposureControl");
@@ -181,9 +174,8 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int RefractionColorPyramidScaleAndLimit = Shader.PropertyToID("_SslRefractionColorPyramidScaleAndLimit");
         internal static readonly int RefractionParams = Shader.PropertyToID("_SslRefractionParams");
 
-        // Per-object proxy table. Each entry is a world AABB plus (importance, reserved layer mask,
-        // proxy mode); the last entry is always the infinite fallback. URP 14 does not expose
-        // per-probe rendering layer masks, so the layer mask slot stays unused.
+        // Per-object proxy table. Each entry is a world AABB plus (importance, unused, proxy mode);
+        // the last entry is always the infinite fallback.
         internal static readonly int RefractionProbeMin = Shader.PropertyToID("_SslRefractionProbeMin");
         internal static readonly int RefractionProbeMax = Shader.PropertyToID("_SslRefractionProbeMax");
         internal static readonly int RefractionProbeParams = Shader.PropertyToID("_SslRefractionProbeParams");

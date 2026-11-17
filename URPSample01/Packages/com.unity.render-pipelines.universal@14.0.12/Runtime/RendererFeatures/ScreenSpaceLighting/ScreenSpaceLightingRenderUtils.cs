@@ -8,7 +8,6 @@ namespace UnityEngine.Rendering.Universal
         // Scene-linear HDR history. The camera target can be R11G11B10 or LDR; a fixed floating
         // point format keeps the Gaussian chain and the temporal history comparable.
         internal static readonly GraphicsFormat k_ColorFormat = GraphicsFormat.R16G16B16A16_SFloat;
-        static readonly int s_CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
 
         internal static int DivideRoundUp(int value, int divisor)
         {
@@ -157,9 +156,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             if (useTextureArray)
-                compute.EnableKeyword(ScreenSpaceLightingShaderIDs.XrArrayKeyword);
+                compute.EnableKeyword(ScreenSpaceShaderIDs.XrArrayKeyword);
             else
-                compute.DisableKeyword(ScreenSpaceLightingShaderIDs.XrArrayKeyword);
+                compute.DisableKeyword(ScreenSpaceShaderIDs.XrArrayKeyword);
 
             int kernel = compute.FindKernel("KDepthPyramidCopy");
             int limitX = Mathf.Max(0, width - 1);
@@ -173,10 +172,10 @@ namespace UnityEngine.Rendering.Universal
             dstOffset[2] = 0;
             dstOffset[3] = 0;
 
-            cmd.SetComputeTextureParam(compute, kernel, s_CameraDepthTexture, depthTexture);
-            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceLightingShaderIDs.DepthMipChain, destination);
-            cmd.SetComputeIntParams(compute, ScreenSpaceLightingShaderIDs.SrcOffsetAndLimit, srcOffsetAndLimit);
-            cmd.SetComputeIntParams(compute, ScreenSpaceLightingShaderIDs.DstOffset, dstOffset);
+            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceShaderIDs.CameraDepthTexture, depthTexture);
+            cmd.SetComputeTextureParam(compute, kernel, ScreenSpaceShaderIDs.DepthMipChain, destination);
+            cmd.SetComputeIntParams(compute, ScreenSpaceShaderIDs.SrcOffsetAndLimit, srcOffsetAndLimit);
+            cmd.SetComputeIntParams(compute, ScreenSpaceShaderIDs.DstOffset, dstOffset);
             cmd.DispatchCompute(compute, kernel, DivideRoundUp(width, 8), DivideRoundUp(height, 8), viewCount);
         }
 
@@ -196,9 +195,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             if (useTextureArray)
-                compute.EnableKeyword(ScreenSpaceLightingShaderIDs.XrArrayKeyword);
+                compute.EnableKeyword(ScreenSpaceShaderIDs.XrArrayKeyword);
             else
-                compute.DisableKeyword(ScreenSpaceLightingShaderIDs.XrArrayKeyword);
+                compute.DisableKeyword(ScreenSpaceShaderIDs.XrArrayKeyword);
 
             int kernel = compute.FindKernel("CopyHistoryNormals");
             int[] copySize = { Mathf.Max(0, width), Mathf.Max(0, height), 0, 0 };

@@ -18,8 +18,8 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _SsgiRayMarchingParams2;              // inverse low resolution percentage, frame index, history validity, unused
         public Vector4 _SsgiZBufferParams;                   // Unity linear depth parameters
         public Vector4 _SsgiColorPyramidScaleAndLimitPrev;   // previous color pyramid uv scale xy, uv limit zw
-        public Vector4 _SsgiTemporalParams;                  // trace resolution multiplier, inverse, denoise filter radius, second pass flag
-        public Vector4 _SsgiDenoiserParams;                  // pixel spread tangent, jitter frame period, half resolution filter, unused
+        public Vector4 _SsgiTemporalParams;                  // trace resolution multiplier, inverse, unused, unused
+        public Vector4 _SsgiDenoiserParams;                  // pixel spread tangent, unused, unused, unused
         public Vector4 _SsgiCameraPositionWS;                // current camera world space position
         public Matrix4x4 _SsgiPrevInvViewProj;               // previous inverse non-jittered view projection
     }
@@ -34,10 +34,10 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _SsrTraceSize;                        // trace size xy, reciprocal zw (half the screen in the half resolution path)
         public Vector4 _SsrRayMarchingParams;                // step limit, thickness scale, thickness bias, reflects sky
         public Vector4 _SsrRoughnessFadeParams;              // roughness fade rcp length, fade end times rcp length, fade end, edge fade rcp length
-        public Vector4 _SsrPyramidParams;                    // color pyramid max mip, depth pyramid max mip, unused, unused
+        public Vector4 _SsrPyramidParams;                    // color pyramid max mip, unused, unused, unused
         public Vector4 _SsrColorPyramidScaleAndLimitPrev;    // previous color pyramid uv scale xy, uv limit zw
         public Vector4 _SsrCameraPositionWS;                 // current camera world space position
-        public Vector4 _SsrPbrParams;                        // accumulation amount, sample bias, speed rejection, speed scaler squared
+        public Vector4 _SsrPbrParams;                        // unused, sample bias, unused, unused
         public Vector4 _SsrPbrFlags;                         // frame index, valid accumulation history, unused, unused
     }
 }

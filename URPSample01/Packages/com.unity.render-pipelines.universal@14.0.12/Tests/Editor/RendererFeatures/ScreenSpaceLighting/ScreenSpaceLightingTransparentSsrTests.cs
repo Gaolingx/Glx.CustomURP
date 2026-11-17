@@ -117,10 +117,9 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void TransparentResultNeverUsesPbrAccumulation()
+        public void TransparentResultIsNotExposedBeforeThePassProducesOne()
         {
             var pass = new ScreenSpaceLightingTransparentSsrPass();
-            Assert.IsFalse(pass.usingPbrAccumulation);
             Assert.IsNull(pass.outputTexture, "no result is exposed before the pass produced one.");
         }
 
