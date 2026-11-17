@@ -420,3 +420,27 @@ for f in [".../P6/EditMode/UnityEditModeFull.xml", ".../P6/PlayMode/UnityPlayMod
     print(f, ET.parse(f).getroot().attrib)
 PY
 ```
+## 13. 07-EditorMVPass（2026-11-18）
+
+> 范围：Editor 下无 `UniversalAdditionalCameraData` 相机的 GTAO 时间重投影（Scene View 拖影）与共享深度金字塔的同帧姿态复用。
+> 计划：[PLAN/TODO/07-EditorMVPass/HANDOFF.md](TODO/07-EditorMVPass/HANDOFF.md)（AC-9 通过后移入 `Done/`）
+> 结论：**✅\* PASS（自动验收）**；AC-9 真实 Scene View 人工拖拽待仓库所有者确认。
+
+| 交付 | Commit | 证据 | 结论 |
+|---|---|---|---|
+| Editor 相机 MV pass + shader + gating + 单测 | `0bbce70` | `GroundTruthAmbientOcclusionEditorMotionPass.cs`；E2E `meanAbs vs 原生 = 0` | ✅ |
+| 深度金字塔按姿态重建 + 单测 | `3761adc` | `ScreenSpaceDepthPyramid.cs`；同帧同姿态仍只 build 一次 | ✅ |
+| E2E / T12 回归 / 报告 | 本轮第三提交 | [Report.md](TODO/07-EditorMVPass/Report.md)、`validation/EditorMotion/`、`validation/T12/` | ✅ |
+
+| 项 | 结果 |
+|---|---|
+| EditMode | 173/173（`ScreenSpaceDepthPyramidSharingTests` 已加入 T14 过滤器） |
+| PlayMode | 6/6 |
+| T12 | Forward 34/34、Forward+ 34/34、Deferred 35/35 |
+| E2E（3 模式） | 无 ACD vs 原生 MV：逐帧 `meanAbs = 0`、`pixels>0.02 = 0`；抑制基线 vs 修复：`0.01021`、8.8% 像素超阈值；静止相机：完全一致 |
+| 设置恢复 | 4 份 `*SettingsRestoration.json` 全部 `true`，Unity exit 0 |
+| T12 哈希差异 | 12 张，全部在 `RenderScale75`/`TargetResize`/`CameraCut`/`MotionBlur`；`SameFrameDoubleRender` 对照不变；逐张数值见 `T12/HashDiff.json` |
+
+**口径修订**：计划的 AC-3 使用“与 12 帧收敛参考的差值 ≤ 0.002”。实测 URP 原生 MV 路径同样偏离该参考约 `0.035`（时间累积的固定反馈延迟），该指标无法区分重投影错误。验收改为“与原生 MV 路径逐帧一致（`meanAbs ≤ 0.001`） + 抑制后显著劣化”，并在 `Report.md` §5.1 记录原因与原始数据。
+
+**限制**：Editor 下不补物体运动；同姿态物体移动 + 同帧重渲染仍复用金字塔；SSL-only Scene View 与 XR 不在本轮范围。见 `KnownDifferences.md`。

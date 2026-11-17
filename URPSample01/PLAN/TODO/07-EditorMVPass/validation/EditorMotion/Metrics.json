@@ -1,0 +1,189 @@
+{
+  "completed": true,
+  "passed": true,
+  "modes": [
+    {
+      "name": "Forward",
+      "cases": [
+        {
+          "name": "NoAdditionalCameraData", "passed": true,
+          "meanAbsVsReference": 0.035434248327211308,
+          "maxAbsVsReference": 0.9254902,
+          "pixelsOver02": 160453,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 0,
+          "motionMeanAbsX": 0.036419358104467392,
+          "motionMeanAbsY": 0.0060807834379374981,
+          "editorMotionDraws": 22,
+          "editorMotionFirstFrameSkips": 2
+        },
+        {
+          "name": "AdditionalCameraData", "passed": true,
+          "meanAbsVsReference": 0.035497088734361262,
+          "maxAbsVsReference": 0.9254902,
+          "pixelsOver02": 160631,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 0,
+          "motionMeanAbsX": 0.036419358104467392,
+          "motionMeanAbsY": 0.0060807834379374981,
+          "editorMotionDraws": 0,
+          "editorMotionFirstFrameSkips": 0
+        },
+        {
+          "name": "NoAdditionalCameraDataBaseline", "passed": true,
+          "meanAbsVsReference": 0.030657359898347447,
+          "maxAbsVsReference": 0.9254902,
+          "pixelsOver02": 143225,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0.010214098868810752,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 81108,
+          "motionMeanAbsX": 0,
+          "motionMeanAbsY": 0,
+          "editorMotionDraws": 0,
+          "editorMotionFirstFrameSkips": 0
+        },
+        {
+          "name": "StaticNoAdditionalCameraData", "passed": true,
+          "meanAbsVsReference": 0,
+          "maxAbsVsReference": 0,
+          "pixelsOver02": 0,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 0,
+          "motionMeanAbsX": 0,
+          "motionMeanAbsY": 0,
+          "editorMotionDraws": 22,
+          "editorMotionFirstFrameSkips": 2
+        }
+      ]
+    },
+    {
+      "name": "ForwardPlus",
+      "cases": [
+        {
+          "name": "NoAdditionalCameraData", "passed": true,
+          "meanAbsVsReference": 0.035434248327211308,
+          "maxAbsVsReference": 0.9254902,
+          "pixelsOver02": 160453,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 0,
+          "motionMeanAbsX": 0.036419358104467392,
+          "motionMeanAbsY": 0.0060807834379374981,
+          "editorMotionDraws": 22,
+          "editorMotionFirstFrameSkips": 2
+        },
+        {
+          "name": "AdditionalCameraData", "passed": true,
+          "meanAbsVsReference": 0.035497088734361262,
+          "maxAbsVsReference": 0.9254902,
+          "pixelsOver02": 160631,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 0,
+          "motionMeanAbsX": 0.036419358104467392,
+          "motionMeanAbsY": 0.0060807834379374981,
+          "editorMotionDraws": 0,
+          "editorMotionFirstFrameSkips": 0
+        },
+        {
+          "name": "NoAdditionalCameraDataBaseline", "passed": true,
+          "meanAbsVsReference": 0.030657359898347447,
+          "maxAbsVsReference": 0.9254902,
+          "pixelsOver02": 143225,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0.010214098868810752,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 81108,
+          "motionMeanAbsX": 0,
+          "motionMeanAbsY": 0,
+          "editorMotionDraws": 0,
+          "editorMotionFirstFrameSkips": 0
+        },
+        {
+          "name": "StaticNoAdditionalCameraData", "passed": true,
+          "meanAbsVsReference": 0,
+          "maxAbsVsReference": 0,
+          "pixelsOver02": 0,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 0,
+          "motionMeanAbsX": 0,
+          "motionMeanAbsY": 0,
+          "editorMotionDraws": 22,
+          "editorMotionFirstFrameSkips": 2
+        }
+      ]
+    },
+    {
+      "name": "Deferred",
+      "cases": [
+        {
+          "name": "NoAdditionalCameraData", "passed": true,
+          "meanAbsVsReference": 0.035434248327211308,
+          "maxAbsVsReference": 0.9254902,
+          "pixelsOver02": 160453,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 0,
+          "motionMeanAbsX": 0.036419358104467392,
+          "motionMeanAbsY": 0.0060807834379374981,
+          "editorMotionDraws": 22,
+          "editorMotionFirstFrameSkips": 2
+        },
+        {
+          "name": "AdditionalCameraData", "passed": true,
+          "meanAbsVsReference": 0.035497088734361262,
+          "maxAbsVsReference": 0.9254902,
+          "pixelsOver02": 160631,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 0,
+          "motionMeanAbsX": 0.036419358104467392,
+          "motionMeanAbsY": 0.0060807834379374981,
+          "editorMotionDraws": 0,
+          "editorMotionFirstFrameSkips": 0
+        },
+        {
+          "name": "NoAdditionalCameraDataBaseline", "passed": true,
+          "meanAbsVsReference": 0.030657359898347447,
+          "maxAbsVsReference": 0.9254902,
+          "pixelsOver02": 143225,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0.010214098868810752,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 81108,
+          "motionMeanAbsX": 0,
+          "motionMeanAbsY": 0,
+          "editorMotionDraws": 0,
+          "editorMotionFirstFrameSkips": 0
+        },
+        {
+          "name": "StaticNoAdditionalCameraData", "passed": true,
+          "meanAbsVsReference": 0,
+          "maxAbsVsReference": 0,
+          "pixelsOver02": 0,
+          "meanAbsVsAcd": 0,
+          "meanAbsVsBaseline": 0,
+          "pixelsOver02VsAcd": 0,
+          "pixelsOver02VsBaseline": 0,
+          "motionMeanAbsX": 0,
+          "motionMeanAbsY": 0,
+          "editorMotionDraws": 22,
+          "editorMotionFirstFrameSkips": 2
+        }
+      ]
+    }
+  ]
+}

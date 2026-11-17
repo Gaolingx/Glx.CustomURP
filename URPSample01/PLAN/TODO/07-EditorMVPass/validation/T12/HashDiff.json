@@ -1,0 +1,126 @@
+{
+  "sourceBaseline": "PLAN/Done/06-ValidationAllRDC/validation/P6/T12",
+  "changedCases": [
+    {
+      "mode": "Forward",
+      "case": "RenderScale75",
+      "oldSha256": "438A248F70942B19F199B02CF12298338FCF4FC550881567979C9DB159B3D334",
+      "newSha256": "BBA6731047EBFD9069ECE4C019F935CC6A67A38CA408AF2149CA2C4244AE1F88",
+      "meanAbs": 0.043972,
+      "maxAbs": 0.984314,
+      "pixelsOver5of255Percent": 40.638,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "Forward",
+      "case": "TargetResize",
+      "oldSha256": "04AE8D128E3A50FC7E44063FE67E1D7D60851FCC73FEA41EDB53F387B556B333",
+      "newSha256": "A859E3AC2CABD89B69C3B1A7C47656D99CC99C695920241B8BBA3448AD9B2B82",
+      "meanAbs": 0.029803,
+      "maxAbs": 0.854902,
+      "pixelsOver5of255Percent": 31.069,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "Forward",
+      "case": "CameraCut",
+      "oldSha256": "F4079F0FB40B649A855D4D8E416DE0A7FAC317AFB04A673061C99B04F92ECAA6",
+      "newSha256": "8DE0ABC64A8B9BE3E73CBA0F53DE4B098E122A1138EA304DB250F4D79741475C",
+      "meanAbs": 0.000847,
+      "maxAbs": 0.133333,
+      "pixelsOver5of255Percent": 1.401,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "Forward",
+      "case": "MotionBlur",
+      "oldSha256": "135276C2796500C52E184AA48CE938086B241B30F4B2AF1A18063EC2485868F6",
+      "newSha256": "76664A8BC9AB545ECF5B8A53CBC0C979CF98FDE9B20B5CF59EDA7FA63E534DBD",
+      "meanAbs": 0.046037,
+      "maxAbs": 0.996078,
+      "pixelsOver5of255Percent": 28.818,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "ForwardPlus",
+      "case": "RenderScale75",
+      "oldSha256": "AADBDBCFA3C7EBC011B6C0D82E5B5593C822768175633CE9EFFF13B588647263",
+      "newSha256": "B4F02EF0666ECA86650F40FB177EC1F8D4AC2C22DAEC9FC792F505882801E179",
+      "meanAbs": 0.020396,
+      "maxAbs": 0.984314,
+      "pixelsOver5of255Percent": 39.242,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "ForwardPlus",
+      "case": "TargetResize",
+      "oldSha256": "963E89594AEF408827FF424CB7C29B686FC5F4D3231E5AF33FD531F0DF760A9B",
+      "newSha256": "6DFB3E275B7F3ADBFD0E7B3E8735777198677813545151F5A5491A2EF32D9826",
+      "meanAbs": 0.015685,
+      "maxAbs": 0.854902,
+      "pixelsOver5of255Percent": 28.618,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "ForwardPlus",
+      "case": "CameraCut",
+      "oldSha256": "F4079F0FB40B649A855D4D8E416DE0A7FAC317AFB04A673061C99B04F92ECAA6",
+      "newSha256": "8DE0ABC64A8B9BE3E73CBA0F53DE4B098E122A1138EA304DB250F4D79741475C",
+      "meanAbs": 0.000847,
+      "maxAbs": 0.133333,
+      "pixelsOver5of255Percent": 1.401,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "ForwardPlus",
+      "case": "MotionBlur",
+      "oldSha256": "8DAD983B4F3A42989FDDEE474F5A31D4E8350F56A35CFE55FE8A11BC57AD499D",
+      "newSha256": "1C0F42FB227A4272F8CB930EB8D5B03592A59C50C64F229C3EAA4DCF788D3C54",
+      "meanAbs": 0.021075,
+      "maxAbs": 0.996078,
+      "pixelsOver5of255Percent": 26.574,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "Deferred",
+      "case": "RenderScale75",
+      "oldSha256": "E8DE2CCC8968B8CDDFC1C254A86A9FAF129D7FAB85B7DA909840580A1DEDA555",
+      "newSha256": "AE9200F1F11122C690B5E561539BCFC1515B13B117E5D730A0B7BAAED2C70474",
+      "meanAbs": 0.063541,
+      "maxAbs": 0.984314,
+      "pixelsOver5of255Percent": 57.096,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "Deferred",
+      "case": "TargetResize",
+      "oldSha256": "69F8207153A53BEA8112C6F55EF41B7D757DA9FEA1567D2D38887D7308702DAA",
+      "newSha256": "336B287A7CC20C37FF7F4E746BAE3BB0F4F8B8F4F3143349E2C665B47F491F23",
+      "meanAbs": 0.053506,
+      "maxAbs": 0.956863,
+      "pixelsOver5of255Percent": 54.213,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "Deferred",
+      "case": "CameraCut",
+      "oldSha256": "987DF71358CD55ED18D1AF23C968EE196A37CFCF0AB26F00288199601797AA2B",
+      "newSha256": "F367AEA8FC15422619B09F65A97E8B479EF75D3133937B54A7B847C02F20A2FE",
+      "meanAbs": 0.001201,
+      "maxAbs": 0.219608,
+      "pixelsOver5of255Percent": 1.953,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    },
+    {
+      "mode": "Deferred",
+      "case": "MotionBlur",
+      "oldSha256": "E2DEBC78264111D3A9E7D00E2105A975885EEAEFFAF84EEF21AE55A5D4617F5D",
+      "newSha256": "6D98F17A7FA7F0F1C426324C33BD753EA6A8546DB877EBA05B6812D5E3D531F7",
+      "meanAbs": 0.047456,
+      "maxAbs": 0.996078,
+      "pixelsOver5of255Percent": 30.776,
+      "reason": "Same-frame pose/resolution change previously reused the depth pyramid built for the earlier state; the pose-aware build token rebuilds it."
+    }
+  ],
+  "unchangedControl": "SameFrameDoubleRender keeps one build because the pose does not change (hash identical)."
+}

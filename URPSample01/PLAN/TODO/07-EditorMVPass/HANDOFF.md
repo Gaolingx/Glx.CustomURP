@@ -1,8 +1,9 @@
 # 07-EditorMVPass 交接：Editor 运动矢量补齐（GTAO 相机拖影）
 
-> 状态：**调研完成 / 待实施**
-> 建立：2026-11-18
-> 基线：`3cee823`（工作区干净，仅本文件新增）
+> 状态：**实施完成 / 自动验收 PASS\***（AC-9 真实 Scene View 人工确认待仓库所有者）
+> 建立：2026-11-18；实施与验证：2026-11-18
+> 基线：`2291aa0`（调研文档提交）
+> 结果入口：[Report.md](Report.md)、[KnownDifferences.md](KnownDifferences.md)、`validation/`
 > 关联：`PLAN/Done/01-ScreenSpaceLighting`（GTAO / SSL 实现）、`PLAN/Done/06-ValidationAllRDC`（差异与证据规范）
 > 外部参考：`E:\GitHub\UnitySSGIURP`（SSGI URP，v1.0.2 起自带 Editor MV 修复）
 > 本文中的代码行号基于 `3cee823`，改动后以符号名为准。
@@ -22,6 +23,22 @@
 修复方案（参考 `UnitySSGIURP` 已验证的做法）：**Editor 下为“没有运动矢量来源”的相机补一个专用 MV pass，写回 URP 的 motion RT**，让 GTAO 时间累积拿到真实相机速度。不做“Scene View 丢弃 temporal”的降级（会让静置 Scene View 永久变噪）。
 
 附带加固（用户原始怀疑点）：共享深度金字塔按 `Time.frameCount` 去重（`ScreenSpaceDepthPyramid.cs:85-93`），同一帧内重渲染会复用旧姿态深度。它与 MV 缺失是两条独立的残影来源，本轮一并处理（是否阻塞主修复取决于 T0.2 的实测结论）。
+
+### 实施结果（2026-11-18）
+
+| 项 | 结果 |
+|---|---|
+| T1 Editor MV pass | 新增 `GroundTruthAmbientOcclusionEditorMotionPass.cs`，事件 203，每相机 prev VP 存 history |
+| T2 Shader | `GTAODebug.shader` 追加 pass 1，复刻 URP `CameraMotionVectors.shader` |
+| T3 Gating | 仅无 ACD 相机入队；新增 `s_EditorSuppressEditorMotionPass` 测试钩子 |
+| T4 金字塔 | `ShouldBuild(frame, viewProjection)`；Reset/Dispose 清 token |
+| E2E | 3 模式全部通过；无 ACD 与原生 MV 逐帧 `meanAbs = 0`；抑制基线 `0.01021` / 8.8% 像素劣化 |
+| 回归 | EditMode 173/173、PlayMode 6/6、T12 34/34/34/35 |
+| T12 差异 | 12 张，全部在 `RenderScale75`/`TargetResize`/`CameraCut`/`MotionBlur`，逐张解释见 `Report.md` §5.3 |
+| T0.2 | 同帧多姿态**确实存在**（T12 MotionBlur 紧循环、E2E 首版 frameCount 重复）；T4 为必要修复 |
+| AC-9 | 待人工拖拽确认；步骤见 §7.3 |
+
+AC-3 的判定口径已调整：不再用“与 12 帧收敛参考的差值”作为主判据，因为 URP 原生 MV 路径同样偏离该参考（时间反馈延迟）；改为“与原生 MV 路径逐帧一致 + 抑制后显著劣化”。详见 `Report.md` §5.1。
 
 ---
 
@@ -170,6 +187,8 @@
 
 - **存在同帧多姿态渲染** → T4 是主修复之一，必须与 T1–T3 同轮交付；E2E 测试允许用 tight loop。
 - **不存在（每次重绘都推进 frameCount）** → 用户残影由 MV 缺失单独解释；T4 降级为防御性改动（覆盖暂停态/手动 `Camera.Render()`），可拆成独立提交，不阻塞主修复；E2E 测试必须用“每个 editor tick 渲染一步”的异步 harness。
+
+**实测结论（2026-11-18）**：存在。T12 `MotionBlur` 用例在同一 `Time.frameCount` 内 8 次 `camera.Render()` 并逐次旋转相机；E2E 第一版也记录到同一帧号下 2–3 次渲染。T4 按“主修复之一”交付。E2E 最终采用“每渲染等待 frameCount 前进”的异步 harness，以同时对齐 URP 原生 MV 的按帧节流。
 
 ### T0.3 参考实现的可用性映射（已完成，待实施复核）
 
@@ -480,7 +499,7 @@ PLAN/Done/07-EditorMVPass/
 
 ## 11. 开放问题（实施时关闭）
 
-1. 真实 Scene View 每次重绘是否推进 `Time.frameCount`（T0.2）——决定 T4 的定位。
-2. GTAO 的 Debug 视图是否足以作为 E2E 指标（AO debug 输出为单通道，比对稳定性最高）。
-3. T5 pipeline 的 renderer index 0 是否在所有三路径都含 GTAO（已确认 Forward/Forward+/Deferred 各有独立 pipeline，需在脚本中校验并断言）。
-4. 是否需要把“无 ACD 相机”的判定抽成 `ScreenSpaceCommon` 的共享 helper（当前只给 GTAO 用，避免过早抽象）。
+1. ~~真实 Scene View 每次重绘是否推进 `Time.frameCount`~~ → **同帧多姿态确实存在**（T12 MotionBlur 紧循环；E2E 首版 frameCount 重复）。T4 与本轮一起交付。
+2. ~~GTAO Debug 视图是否足以作为 E2E 指标~~ → 足以。`AmbientOcclusion` 视图为单通道，静止相机两路逐像素一致；运动帧与原生 MV 路径逐帧一致。
+3. ~~T5 pipeline renderer 是否含 GTAO~~ → 三模式均含；E2E 断言 `gtaoFound = true`、`temporalAccumulation = true`。
+4. 无 ACD 判定是否抽到 `ScreenSpaceCommon` → 暂不抽。当前只有 GTAO 需要；SSL-only 场景留待后续轮次（见 KnownDifferences）。

@@ -581,3 +581,16 @@ python "PLAN/Done/01-ScreenSpaceLighting/validation/T1/Analyze-T1Evidence.py" --
 - 构建设置恢复：[BuildSettingsRestoration.json](validation/T1/BuildSettingsRestoration.json)
 - Frame Debugger 设置恢复：[FrameDebuggerSettingsRestoration.json](validation/T1/FrameDebuggerSettingsRestoration.json)
 - 量化预算：[PerformanceBudget.json](validation/T1/PerformanceBudget.json)
+
+## 后续缺陷修复（2026-11-18）：Editor MV pass
+
+**现象**：Edit Mode 下开启 GTAO temporal，拖动 Scene View 留下 AO 拖影；Player 正常。
+
+**根因**：Scene View 相机没有 `UniversalAdditionalCameraData`，URP `MotionVectorRenderPass` 提前返回，motion 纹理保持清黑；GTAO 的时间降噪因此原地混合历史。共享深度金字塔又只按 `Time.frameCount` 去重，同一帧内的多次渲染（暂停态、脚本 `Camera.Render()` 循环）会复用旧姿态深度。
+
+**修复**：
+
+- `0bbce70`：新增 editor-only 相机 MV pass（事件 203），仅对无 ACD 相机写入，prev VP 存 per-camera history；shader 复刻 URP `CameraMotionVectors.shader`。
+- `3761adc`：深度金字塔构建 token 增加非抖动 VP；同帧同姿态仍共享一次构建。
+
+**验证**：E2E 三模式下无 ACD 与原生 MV 逐帧完全一致；抑制基线复现 8.8% 像素劣化；EditMode 173/173、PlayMode 6/6、T12 34/34/35（12 张差异均为姿态化金字塔纠正）。详见 `PLAN/TODO/07-EditorMVPass/Report.md`。

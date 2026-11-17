@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Passed" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:53Z" duration="1.5117523">
+  <test-suite type="TestSuite" id="1525" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="463" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:53Z" duration="1.511752" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="2038" name="Unity.RenderPipelines.Universal.Editor.Tests.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll" runstate="Runnable" testcasecount="463" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:53Z" duration="1.487082" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="55212" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="2040" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="222" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:53Z" duration="1.479135" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2041" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="222" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:53Z" duration="1.474901" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2042" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="222" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:53Z" duration="1.467402" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="2043" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="222" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:53Z" duration="1.461391" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1827" name="ScreenSpaceDepthPyramidSharingTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:53Z" duration="1.451297" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1831" name="BothFeaturesBindTheSameAttachment" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.BothFeaturesBindTheSameAttachment" methodname="BothFeaturesBindTheSameAttachment" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="1676682673" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:52Z" duration="0.285850" asserts="0">
+                  <properties />
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1830" name="BothFeaturesEnqueueThePyramidOnce" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.BothFeaturesEnqueueThePyramidOnce" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:53Z" duration="0.412457" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1828" name="BothFeaturesEnqueueThePyramidOnce(True)" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.BothFeaturesEnqueueThePyramidOnce(True)" methodname="BothFeaturesEnqueueThePyramidOnce" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="115314368" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:52Z" duration="0.198007" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1829" name="BothFeaturesEnqueueThePyramidOnce(False)" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.BothFeaturesEnqueueThePyramidOnce(False)" methodname="BothFeaturesEnqueueThePyramidOnce" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="43696981" result="Passed" start-time="2026-11-17 22:02:52Z" end-time="2026-11-17 22:02:53Z" duration="0.209838" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-case id="1833" name="BuildTokenCombinesFrameAndViewProjection" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.BuildTokenCombinesFrameAndViewProjection" methodname="BuildTokenCombinesFrameAndViewProjection" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="1092195925" result="Passed" start-time="2026-11-17 22:02:53Z" end-time="2026-11-17 22:02:53Z" duration="0.229046" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1832" name="CameraPoseChangeRebuildsTheSharedPyramidInTheSameFrame" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.CameraPoseChangeRebuildsTheSharedPyramidInTheSameFrame" methodname="CameraPoseChangeRebuildsTheSharedPyramidInTheSameFrame" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="1080268243" result="Passed" start-time="2026-11-17 22:02:53Z" end-time="2026-11-17 22:02:53Z" duration="0.209424" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1834" name="IdleSslDoesNotAffectTheGtaoPyramid" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.IdleSslDoesNotAffectTheGtaoPyramid" methodname="IdleSslDoesNotAffectTheGtaoPyramid" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="1168681486" result="Passed" start-time="2026-11-17 22:02:53Z" end-time="2026-11-17 22:02:53Z" duration="0.142863" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1835" name="SslStillBuildsThePyramidWithoutGtao" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.SslStillBuildsThePyramidWithoutGtao" methodname="SslStillBuildsThePyramidWithoutGtao" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="2023659578" result="Passed" start-time="2026-11-17 22:02:53Z" end-time="2026-11-17 22:02:53Z" duration="0.153474" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
