@@ -118,7 +118,7 @@ Command:
 | Color-pyramid mips | 9 | 9 | 9 |
 | Transparent prepass executions | 1 | 1 | 1 |
 
-Evidence: [T12Verification.json](T12/T12Verification.json), [log](T12/UnityT12.log), 103 PNGs. All effect cases (reference/all-on/all-off/SSGI-only/SSR-only/refraction, Volume states, MSAA, decals, depth priming, motion blur, TAA, camera types) passed with zero non-finite and zero magenta pixels.
+Evidence: [T12Verification.json](T12/T12Verification.json), [log](T12/UnityT12.log), 85 PNGs (103 cases; structural cases do not capture an image). All effect cases (reference/all-on/all-off/SSGI-only/SSR-only/refraction, Volume states, MSAA, decals, depth priming, motion blur, TAA, camera types) passed with zero non-finite and zero magenta pixels.
 
 Known instrumentation gap: `depthPyramidDispatches` reads **0 on all three renderers** even though the pyramid is present (12 mips, 5.5 MB) and the Forward mode's pass-execution assertions pass. The DEV copy/downsample counters are not incremented for the harness's second render of the frame. `costQuantified` does not assert this field, so it does not affect the replay result; it is recorded here rather than silently ignored.
 
