@@ -102,6 +102,8 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         verification.simpleLitMaterial = materials.simpleLit;
         verification.bakedLitMaterial = materials.bakedLit;
         verification.unlitMaterial = materials.unlit;
+        verification.shaderGraphLitMaterial = materials.shaderGraphLit;
+        verification.roomFloorMaterial = materials.roomFloor;
         verification.terrainMaterial = materials.terrain;
         verification.coverageTerrainData = EnsureCoverageTerrainData(materials.terrainAlbedo);
 
@@ -335,6 +337,8 @@ public static class ScreenSpaceLightingValidationPlayerSetup
                 new Color(0.75f, 0.5f, 0.4f), 0f, 0.3f),
             unlit = EnsureShaderMaterial("SslValidationUnlit", "Universal Render Pipeline/Unlit",
                 new Color(0.8f, 0.6f, 0.2f), 0f, 0.3f),
+            shaderGraphLit = AssetDatabase.LoadAssetAtPath<Material>(MaterialRoot + "/SslT9LitT14.mat"),
+            roomFloor = EnsureLitMaterial("SslValidationRoomFloor", new Color(0.7f, 0.7f, 0.7f), 0f, 0.05f),
             terrain = EnsureTerrainMaterial(),
             terrainAlbedo = EnsureTerrainAlbedo(),
         };
@@ -615,6 +619,8 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         public Material simpleLit;
         public Material bakedLit;
         public Material unlit;
+        public Material shaderGraphLit;
+        public Material roomFloor;
         public Material terrain;
         public Texture2D terrainAlbedo;
     }

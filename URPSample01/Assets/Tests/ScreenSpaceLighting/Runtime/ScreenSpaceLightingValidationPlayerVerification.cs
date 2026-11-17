@@ -55,6 +55,8 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     public Material simpleLitMaterial;
     public Material bakedLitMaterial;
     public Material unlitMaterial;
+    public Material shaderGraphLitMaterial;
+    public Material roomFloorMaterial;
     public Material terrainMaterial;
     public TerrainData coverageTerrainData;
 
@@ -75,6 +77,10 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     GameObject m_MirrorRig;
     GameObject m_OrthoRig;
     GameObject m_CoverageRig;
+    GameObject m_SsgiCoverageRig;
+    GameObject m_SsgiRoomRig;
+    GameObject m_ProbeRig;
+    readonly List<ReflectionProbe> m_ProbeRigProbes = new List<ReflectionProbe>();
     Light m_DirectionalLight;
     bool m_OutputsWritten;
     float m_ProgressDeadline;
@@ -83,12 +89,16 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     bool m_PreviousSsrWasPbr;
     bool m_PreviousSsrHalfResolution;
     int m_PreviousSsrResetCount;
+    bool m_ProbesDisabled;
+    AmbientMode m_AmbientMode = AmbientMode.Skybox;
+    float m_AmbientIntensity = -1f;
 
     void Awake()
     {
         m_OutputDirectory = GetArgument("-ssl-validation-out") ?? Path.Combine(Application.persistentDataPath, "SSLValidation");
         m_ManifestPath = GetArgument("-ssl-validation-manifest");
         Directory.CreateDirectory(m_OutputDirectory);
+        Application.runInBackground = true;
         Screen.SetResolution(RenderWidth, RenderHeight, FullScreenMode.Windowed);
 
         m_Camera = Camera.main != null ? Camera.main : FindObjectOfType<Camera>();
@@ -182,6 +192,9 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         BuildMirrorRig();
         BuildOrthoRig();
         BuildCoverageRig();
+        BuildSsgiCoverageRig();
+        BuildSsgiRoomRig();
+        BuildProbeRig();
         m_RenderDoc = RenderDocApi.Load(m_OutputDirectory, m_Log);
         m_Report.renderDocAvailable = m_RenderDoc != null;
         m_Report.renderDocVersion = m_RenderDoc != null ? m_RenderDoc.Version : "unavailable";
@@ -213,7 +226,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
 
     IEnumerator RunCase(SslValidationManifest manifest, SslValidationCase testCase, SslValidationCaseResult result)
     {
-        m_ProgressDeadline = Time.realtimeSinceStartup + 120f;
+        m_ProgressDeadline = Time.realtimeSinceStartup + 300f;
         var rendererName = string.IsNullOrEmpty(testCase.renderer) ? manifest.renderer : testCase.renderer;
         LogStep(testCase.id + ": start renderer=" + rendererName);
         var pipeline = ResolvePipeline(rendererName);
@@ -239,8 +252,45 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         ApplyVolume(testCase.volume);
         ApplyFeatureSettings(rendererData, testCase.feature);
         ApplyGtaoSettings(rendererData, testCase.gtao);
+        // The ambient SH probe only follows RenderSettings after an explicit environment rebuild. A flat
+        // ambient term gives the S2 gain test a controlled, non-zero baseline; the default cases keep
+        // the skybox ambient unchanged.
+        if (testCase.ambientIntensity >= 0f)
+        {
+            if (m_AmbientMode != AmbientMode.Flat || !Mathf.Approximately(m_AmbientIntensity, testCase.ambientIntensity))
+            {
+                RenderSettings.ambientMode = AmbientMode.Flat;
+                RenderSettings.ambientLight = new Color(1f, 1f, 1f) * testCase.ambientIntensity;
+                DynamicGI.UpdateEnvironment();
+                m_AmbientMode = AmbientMode.Flat;
+                m_AmbientIntensity = testCase.ambientIntensity;
+            }
+        }
+        else if (m_AmbientMode != AmbientMode.Skybox)
+        {
+            RenderSettings.ambientMode = AmbientMode.Skybox;
+            DynamicGI.UpdateEnvironment();
+            m_AmbientMode = AmbientMode.Skybox;
+            m_AmbientIntensity = -1f;
+        }
+        bool probeStateChanged = ApplyProbes(testCase.disableReflectionProbes);
         ApplyLayout(testCase.layout);
         ApplyLight(testCase.light);
+        if (probeStateChanged)
+            yield return WaitFrames(3, 0f);
+        if (string.Equals(testCase.layout, "ssgiProbes", StringComparison.OrdinalIgnoreCase) &&
+            !testCase.disableReflectionProbes)
+        {
+            // A probe that was inactive loses its cubemap; the re-render only takes effect after the
+            // reactivation frame, so render the solid colour cubes one frame later.
+            yield return null;
+            foreach (var probe in m_ProbeRigProbes)
+            {
+                if (probe.enabled)
+                    probe.RenderProbe();
+            }
+            yield return null;
+        }
         var probeFeature = FindFeature<ScreenSpaceLightingBindingProbeFeature>(rendererData);
         if (probeFeature != null)
             probeFeature.probeEnabled = testCase.bindingProbe;
@@ -274,6 +324,9 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
 
         if (testCase.switchFeatureAfterWarmup || testCase.switchVolumeAfterWarmup)
             yield return ApplySettingsSwitch(rendererData, testCase, result);
+        if (testCase.cameraCutAfterWarmup)
+            yield return ApplyCameraCut(testCase, result);
+        LogProbeState();
 
         result.frameIndex = Time.frameCount;
         result.cameraPosition = m_Camera.transform.position;
@@ -300,7 +353,14 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         yield return WaitFrames(1, camera.panPixelsPerFrame);
 
         if (testCase.screenshot)
-            CaptureScreenshot(result, testCase.id);
+            CaptureScreenshot(result, testCase.id, false);
+        if (testCase.screenshotAfterFrames > 0)
+        {
+            // S3: a second screenshot from the same uninterrupted history run measures how much the
+            // accumulated result still moves after the warmup has converged.
+            yield return WaitFrames(testCase.screenshotAfterFrames, camera.panPixelsPerFrame);
+            CaptureScreenshot(result, testCase.id + "_later", true);
+        }
         LogStep(result.id + ": screenshot done");
 
         // A failed capture or a broken probe fail the case; the numerical acceptance lives in the
@@ -373,6 +433,56 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
                 $"resets {evidence.beforeResetCount}->{evidence.afterResetCount}, " +
                 $"stamp {evidence.beforeStamp}->{evidence.afterStamp}, " +
                 $"frames {evidence.beforeFrameIndex}->{evidence.afterFrameIndex}, expected reset={evidence.expectReset}.");
+        }
+    }
+
+    // S3: a camera cut resets every history buffer. The SSGI pass publishes the history validity it
+    // used for the frame, so the reset frame can be asserted directly instead of inferred from pixels.
+    IEnumerator ApplyCameraCut(SslValidationCase testCase, SslValidationCaseResult result)
+    {
+        var evidence = new SslSsgiSwitchStats { expectReset = true, cameraCut = true };
+        result.ssgiSwitch = evidence;
+
+        var stats = ReadSsgiStatsObject();
+        if (stats == null)
+        {
+            result.issues.Add("SSGI dispatch stats are unavailable; build the player with development mode.");
+            yield break;
+        }
+
+        evidence.beforeFrameIndex = ReadStatInt(stats, "frameIndex");
+        evidence.beforeHistoryValid = ReadStatBool(stats, "historyValid");
+        evidence.beforeResetCount = ReadStatInt(stats, "settingsResetCount");
+        evidence.beforeStamp = ReadStatInt(stats, "settingsStamp");
+
+        if (testCase.cameraCut != null)
+            ApplyPose(testCase.cameraCut);
+        m_CameraData.resetHistory = true;
+
+        // The reset is consumed by the next rendered frame. Poll until the snapshot advances so the
+        // assertion lands on that frame instead of racing the coroutine resume point.
+        for (var i = 0; i < 5; i++)
+        {
+            yield return new WaitForEndOfFrame();
+            stats = ReadSsgiStatsObject();
+            evidence.afterFrameIndex = ReadStatInt(stats, "frameIndex");
+            if (evidence.afterFrameIndex > evidence.beforeFrameIndex)
+                break;
+        }
+        evidence.afterHistoryValid = ReadStatBool(stats, "historyValid");
+        evidence.afterResetCount = ReadStatInt(stats, "settingsResetCount");
+        evidence.afterStamp = ReadStatInt(stats, "settingsStamp");
+
+        // The reset counter tracks settings-stamp changes; a camera cut invalidates the same history
+        // without changing the configuration, so only the validity drop is asserted here.
+        bool frameAdvanced = evidence.afterFrameIndex > evidence.beforeFrameIndex;
+        evidence.passed = frameAdvanced && evidence.beforeHistoryValid && !evidence.afterHistoryValid;
+        if (!evidence.passed)
+        {
+            result.issues.Add(
+                $"SSGI camera-cut evidence failed: valid {evidence.beforeHistoryValid}->{evidence.afterHistoryValid}, " +
+                $"resets {evidence.beforeResetCount}->{evidence.afterResetCount}, " +
+                $"frames {evidence.beforeFrameIndex}->{evidence.afterFrameIndex}.");
         }
     }
 
@@ -1366,7 +1476,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         Debug.Log($"[SSL-VAL] capture {caseId}: succeeded={result.captureSucceeded} path={result.capture}");
     }
 
-    void CaptureScreenshot(SslValidationCaseResult result, string caseId)
+    void CaptureScreenshot(SslValidationCaseResult result, string caseId, bool later)
     {
         Debug.Log("[SSL-VAL] " + caseId + ": screenshot capture");
         var texture = ScreenCapture.CaptureScreenshotAsTexture();
@@ -1380,11 +1490,17 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         {
             var fileName = SafeName(caseId) + ".png";
             File.WriteAllBytes(Path.Combine(m_OutputDirectory, fileName), texture.EncodeToPNG());
-            result.screenshot = fileName;
-
-            var pixels = texture.GetPixels();
-            result.nonFinitePixels = CountNonFinite(pixels);
-            result.meanLuminance = MeanLuminance(pixels);
+            if (later)
+            {
+                result.screenshotLater = fileName;
+            }
+            else
+            {
+                result.screenshot = fileName;
+                var pixels = texture.GetPixels();
+                result.nonFinitePixels = CountNonFinite(pixels);
+                result.meanLuminance = MeanLuminance(pixels);
+            }
         }
         finally
         {
@@ -1598,19 +1714,164 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         m_CoverageRig.SetActive(false);
     }
 
+    // S2 layout: a closed room so most cosine rays from the floor actually hit the back wall or the
+// ceiling instead of leaving the screen. The emissive panel sits on the back wall, which is what the
+// floor bounce has to pick up.
+    void BuildSsgiRoomRig()
+    {
+        m_SsgiRoomRig = new GameObject("SSL SSGI Room Rig");
+
+        AddBox(m_SsgiRoomRig.transform, roomFloorMaterial != null ? roomFloorMaterial : floorMaterial,
+            "Room Floor", new Vector3(0f, -0.05f, 6f), new Vector3(24f, 0.1f, 32f));
+        AddBox(m_SsgiRoomRig.transform, floorMaterial, "Room Back Wall", new Vector3(0f, 3f, 12f), new Vector3(24f, 6.2f, 0.4f));
+        AddBox(m_SsgiRoomRig.transform, floorMaterial, "Room Ceiling", new Vector3(0f, 6.1f, 6f), new Vector3(24f, 0.2f, 32f));
+        AddBox(m_SsgiRoomRig.transform, floorMaterial, "Room Left Wall", new Vector3(-12f, 3f, 6f), new Vector3(0.4f, 6.2f, 32f));
+        AddBox(m_SsgiRoomRig.transform, floorMaterial, "Room Right Wall", new Vector3(12f, 3f, 6f), new Vector3(0.4f, 6.2f, 32f));
+
+        AddBox(m_SsgiRoomRig.transform, emissiveMaterial, "Room Emitter",
+            new Vector3(0f, 2.4f, 11.7f), new Vector3(14f, 4.2f, 0.1f));
+
+        m_SsgiRoomRig.SetActive(false);
+    }
+
+    // S6 layout: the GTAO coverage fins plus a ShaderGraph Lit fin and an emissive strip between the
+    // camera and the fins. SSGI can only change Lit / ComplexLit / ShaderGraph Lit, so the other four
+    // materials double as the "must stay byte-identical" control.
+    void BuildSsgiCoverageRig()
+    {
+        m_SsgiCoverageRig = new GameObject("SSL SSGI Coverage Rig");
+
+        AddBox(m_SsgiCoverageRig.transform, floorMaterial, "SSGI Coverage Floor",
+            new Vector3(0f, -0.05f, 4f), new Vector3(40f, 0.1f, 30f));
+
+        var fins = new[]
+        {
+            (name: "SSGI Lit Fin", x: -10f, material: floorMaterial),
+            (name: "SSGI ComplexLit Fin", x: -6.5f, material: complexLitMaterial),
+            (name: "SSGI SimpleLit Fin", x: -3f, material: simpleLitMaterial),
+            (name: "SSGI BakedLit Fin", x: 0.5f, material: bakedLitMaterial),
+            (name: "SSGI Unlit Fin", x: 4f, material: unlitMaterial),
+            (name: "SSGI ShaderGraph Lit Fin", x: 7.5f, material: shaderGraphLitMaterial),
+        };
+        foreach (var fin in fins)
+        {
+            if (fin.material != null)
+                AddBox(m_SsgiCoverageRig.transform, fin.material, fin.name,
+                    new Vector3(fin.x, 1.2f, 4f), new Vector3(1.6f, 2.4f, 0.4f));
+        }
+
+        // Rays from the camera-facing fins sample the cosine hemisphere around -Z and land on this
+        // strip, so its radiance is what screen-space GI has to bring back onto the fins.
+        AddBox(m_SsgiCoverageRig.transform, emissiveMaterial, "SSGI Coverage Emitter",
+            new Vector3(-2f, 0.03f, 0.5f), new Vector3(22f, 0.06f, 4f));
+
+        if (coverageTerrainData != null)
+        {
+            var terrainObject = Terrain.CreateTerrainGameObject(coverageTerrainData);
+            terrainObject.name = "SSGI Coverage Terrain";
+            terrainObject.transform.SetParent(m_SsgiCoverageRig.transform, false);
+            terrainObject.transform.position = new Vector3(10.5f, 0.01f, 0f);
+            var terrain = terrainObject.GetComponent<Terrain>();
+            terrain.drawInstanced = false;
+            if (terrainMaterial != null)
+                terrain.materialTemplate = terrainMaterial;
+        }
+
+        m_SsgiCoverageRig.SetActive(false);
+    }
+
+    // S4 layout: four non-overlapping reflection probe boxes with solid background colours. The SSGI
+    // miss path samples either the probe atlas (atlas publishing on, or Forward+ clusters) or the
+    // default reflection cubemap (Forward / Deferred with publishing off), so the floor tint is a
+    // direct readout of which fallback the frame used.
+    void BuildProbeRig()
+    {
+        m_ProbeRig = new GameObject("SSL SSGI Probe Rig");
+
+        AddBox(m_ProbeRig.transform, floorMaterial, "Probe Floor",
+            new Vector3(0f, -0.05f, 6f), new Vector3(60f, 0.1f, 40f));
+
+        var centers = new[] { new Vector3(-9f, 1f, 6f), new Vector3(-3f, 1f, 6f), new Vector3(3f, 1f, 6f), new Vector3(9f, 1f, 6f) };
+        var colors = new[]
+        {
+            new Color(1f, 0.02f, 0.02f),
+            new Color(0.02f, 1f, 0.02f),
+            new Color(0.02f, 0.02f, 1f),
+            new Color(1f, 1f, 0.02f),
+        };
+        for (var i = 0; i < centers.Length; i++)
+        {
+            var probeObject = new GameObject("SSGI Probe " + i);
+            probeObject.transform.SetParent(m_ProbeRig.transform, false);
+            probeObject.transform.position = centers[i];
+            var probe = probeObject.AddComponent<ReflectionProbe>();
+            probe.mode = ReflectionProbeMode.Realtime;
+            probe.refreshMode = ReflectionProbeRefreshMode.ViaScripting;
+            probe.timeSlicingMode = ReflectionProbeTimeSlicingMode.NoTimeSlicing;
+            probe.size = new Vector3(5.5f, 6f, 5.5f);
+            probe.center = Vector3.zero;
+            probe.blendDistance = 2.75f;
+            probe.boxProjection = true;
+            probe.importance = i;
+            probe.resolution = 128;
+            probe.hdr = true;
+            probe.clearFlags = ReflectionProbeClearFlags.SolidColor;
+            probe.backgroundColor = colors[i];
+            probe.RenderProbe();
+            m_ProbeRigProbes.Add(probe);
+        }
+
+        // Unity releases a realtime probe's cubemap when its GameObject is deactivated and never
+        // recreates it through RenderProbe. Keep the rig active and park it below the world while
+        // another layout is in use instead of toggling SetActive.
+        m_ProbeRig.transform.position = new Vector3(0f, -500f, 0f);
+    }
+
+    // Enabling/disabling every probe gives the S4 "zero probes" control case. Returns true when the
+    // state changed so the caller can wait for the probe manager to rebuild the atlas.
+    void LogProbeState()
+    {
+        var probes = m_ProbeRigProbes;
+        var parts = probes.Select(p =>
+            $"{p.name} active={p.isActiveAndEnabled} enabled={p.enabled} " +
+            $"tex={(p.texture != null ? p.texture.width + "x" + p.texture.height : "null")} " +
+            $"mode={p.mode} refresh={p.refreshMode} bounds={p.bounds}");
+        LogStep("probe state: " + string.Join(" | ", parts));
+    }
+
+    bool ApplyProbes(bool disable)
+    {
+        if (m_ProbesDisabled == disable)
+            return false;
+        m_ProbesDisabled = disable;
+        return true;
+    }
+
     void ApplyLayout(string layout)
     {
         bool mirror = string.Equals(layout, "ssrMirror", StringComparison.OrdinalIgnoreCase);
         bool ortho = string.Equals(layout, "gtaoOrtho", StringComparison.OrdinalIgnoreCase);
         bool coverage = string.Equals(layout, "gtaoCoverage", StringComparison.OrdinalIgnoreCase);
+        bool ssgiCoverage = string.Equals(layout, "ssgiCoverage", StringComparison.OrdinalIgnoreCase);
+        bool ssgiRoom = string.Equals(layout, "ssgiRoom", StringComparison.OrdinalIgnoreCase);
+        bool probes = string.Equals(layout, "ssgiProbes", StringComparison.OrdinalIgnoreCase);
+        bool custom = mirror || ortho || coverage || ssgiCoverage || ssgiRoom || probes;
         if (m_Rig != null)
-            m_Rig.SetActive(!mirror && !ortho && !coverage);
+            m_Rig.SetActive(!custom);
         if (m_MirrorRig != null)
             m_MirrorRig.SetActive(mirror);
         if (m_OrthoRig != null)
             m_OrthoRig.SetActive(ortho);
         if (m_CoverageRig != null)
             m_CoverageRig.SetActive(coverage);
+        if (m_SsgiCoverageRig != null)
+            m_SsgiCoverageRig.SetActive(ssgiCoverage);
+        if (m_SsgiRoomRig != null)
+            m_SsgiRoomRig.SetActive(ssgiRoom);
+        if (m_ProbeRig != null)
+            m_ProbeRig.transform.position = probes && !m_ProbesDisabled
+                ? Vector3.zero
+                : new Vector3(0f, -500f, 0f);
     }
 
     static GameObject AddBox(Transform parent, Material material, string name, Vector3 position, Vector3 scale)
@@ -1822,6 +2083,15 @@ public sealed class SslValidationCase
     public bool switchFeatureAfterWarmup;
     public SslFeatureCase featureSwitch = new SslFeatureCase();
     public bool expectHistoryReset = true;
+    // S3: reset history with a camera cut after the warmup established a valid history.
+    public bool cameraCutAfterWarmup;
+    public SslCameraCase cameraCut;
+    // S3: capture a second screenshot this many frames after the first one.
+    public int screenshotAfterFrames;
+    // S4: disable every reflection probe for the zero-probe control.
+    public bool disableReflectionProbes;
+    // S2: dim the ambient term so the emitter bounce is the only indirect light on the floor.
+    public float ambientIntensity = -1f;
 }
 
 [Serializable]
@@ -2001,6 +2271,7 @@ public sealed class SslValidationCaseResult
     public int captureCountAfter;
     public string capture;
     public string screenshot;
+    public string screenshotLater;
     public float meanLuminance;
     public int nonFinitePixels;
     public bool ssgiActive;
@@ -2132,6 +2403,7 @@ public sealed class SslTransparentSsrStats
 public sealed class SslSsgiSwitchStats
 {
     public bool expectReset;
+    public bool cameraCut;
     public int beforeFrameIndex;
     public bool beforeHistoryValid;
     public int beforeResetCount;
