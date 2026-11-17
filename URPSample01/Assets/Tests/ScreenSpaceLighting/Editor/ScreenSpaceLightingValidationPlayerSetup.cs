@@ -98,6 +98,12 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         verification.mirrorMaterial = materials.mirror;
         verification.gradientMaterial = materials.gradient;
         verification.glassMaterial = materials.glass;
+        verification.complexLitMaterial = materials.complexLit;
+        verification.simpleLitMaterial = materials.simpleLit;
+        verification.bakedLitMaterial = materials.bakedLit;
+        verification.unlitMaterial = materials.unlit;
+        verification.terrainMaterial = materials.terrain;
+        verification.coverageTerrainData = EnsureCoverageTerrainData(materials.terrainAlbedo);
 
         Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
         EditorSceneManager.SaveScene(scene, ScenePath);
@@ -321,7 +327,71 @@ public static class ScreenSpaceLightingValidationPlayerSetup
             gradient = EnsureGradientMaterial(),
             mirror = EnsureLitMaterial("SslValidationMirror", new Color(0.02f, 0.02f, 0.02f), 1f, 0.9f),
             glass = AssetDatabase.LoadAssetAtPath<Material>(MaterialRoot + "/T11RefractionBox.mat"),
+            complexLit = EnsureShaderMaterial("SslValidationComplexLit", "Universal Render Pipeline/Complex Lit",
+                new Color(0.4f, 0.55f, 0.75f), 0f, 0.3f),
+            simpleLit = EnsureShaderMaterial("SslValidationSimpleLit", "Universal Render Pipeline/Simple Lit",
+                new Color(0.45f, 0.7f, 0.45f), 0f, 0.3f),
+            bakedLit = EnsureShaderMaterial("SslValidationBakedLit", "Universal Render Pipeline/Baked Lit",
+                new Color(0.75f, 0.5f, 0.4f), 0f, 0.3f),
+            unlit = EnsureShaderMaterial("SslValidationUnlit", "Universal Render Pipeline/Unlit",
+                new Color(0.8f, 0.6f, 0.2f), 0f, 0.3f),
+            terrain = EnsureTerrainMaterial(),
+            terrainAlbedo = EnsureTerrainAlbedo(),
         };
+    }
+
+    // Materials that GTAO coverage must distinguish by shader family (P1-4/G6). The colors only
+    // make the regions identifiable in the screenshots; AO is measured as an on/off ratio.
+    static Material EnsureShaderMaterial(string name, string shaderName, Color color, float metallic, float smoothness)
+    {
+        var path = MaterialRoot + "/" + name + ".mat";
+        var shader = Shader.Find(shaderName);
+        if (shader == null)
+            throw new FileNotFoundException("Missing shader.", shaderName);
+
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(shader) { name = name };
+            AssetDatabase.CreateAsset(material, path);
+        }
+        else if (material.shader != shader)
+        {
+            material.shader = shader;
+        }
+
+        material.SetColor("_BaseColor", color);
+        if (material.HasProperty("_Metallic"))
+            material.SetFloat("_Metallic", metallic);
+        if (material.HasProperty("_Smoothness"))
+            material.SetFloat("_Smoothness", smoothness);
+        material.SetFloat("_Surface", 0f);
+        material.SetFloat("_ZWrite", 1f);
+        material.renderQueue = (int)RenderQueue.Geometry;
+        EditorUtility.SetDirty(material);
+        return material;
+    }
+
+    static Material EnsureTerrainMaterial()
+    {
+        var path = MaterialRoot + "/SslValidationTerrain.mat";
+        var shader = Shader.Find("Universal Render Pipeline/Terrain/Lit");
+        if (shader == null)
+            throw new FileNotFoundException("Missing shader.", "Universal Render Pipeline/Terrain/Lit");
+
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(shader) { name = "SslValidationTerrain" };
+            AssetDatabase.CreateAsset(material, path);
+        }
+        else if (material.shader != shader)
+        {
+            material.shader = shader;
+        }
+
+        EditorUtility.SetDirty(material);
+        return material;
     }
 
     static Material EnsureLitMaterial(string name, Color color, float metallic, float smoothness)
@@ -393,8 +463,7 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         return material;
     }
 
-    static void EnsureGradientTexture()
-    {
+    static void EnsureGradientTexture()    {
         var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
         var absolutePath = Path.Combine(projectRoot, GradientTexturePath);
         if (!File.Exists(absolutePath))
@@ -440,6 +509,96 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         importer.SaveAndReimport();
     }
 
+    // Solid mid-grey albedo for the flat terrain patch. The value only needs to be non-black so the
+    // GTAO on/off ratio on TerrainLit is measurable.
+    static Texture2D EnsureTerrainAlbedo()
+    {
+        var assetPath = MaterialRoot + "/SslValidationTerrainAlbedo.png";
+        var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+        var absolutePath = Path.Combine(projectRoot, assetPath);
+        if (!File.Exists(absolutePath))
+        {
+            var texture = new Texture2D(16, 16, TextureFormat.RGBA32, false, false);
+            try
+            {
+                var pixels = new Color32[16 * 16];
+                for (var i = 0; i < pixels.Length; i++)
+                    pixels[i] = new Color32(128, 128, 128, 255);
+                texture.SetPixels32(pixels);
+                texture.Apply(false, false);
+                Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
+                File.WriteAllBytes(absolutePath, texture.EncodeToPNG());
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+
+            AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+        }
+
+        var importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+        if (importer != null)
+        {
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.wrapMode = TextureWrapMode.Repeat;
+            importer.sRGBTexture = true;
+            importer.mipmapEnabled = true;
+            importer.SaveAndReimport();
+        }
+
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+    }
+
+    // Flat 8x8 terrain: the surface is the TerrainLit coverage sample, and the box the runtime rig
+    // places on it supplies the contact occlusion.
+    static TerrainData EnsureCoverageTerrainData(Texture2D albedo)
+    {
+        var layerPath = MaterialRoot + "/SslValidationTerrainLayer.terrainlayer";
+        var layer = AssetDatabase.LoadAssetAtPath<TerrainLayer>(layerPath);
+        if (layer == null)
+        {
+            layer = new TerrainLayer();
+            AssetDatabase.CreateAsset(layer, layerPath);
+        }
+
+        layer.diffuseTexture = albedo;
+        layer.tileSize = new Vector2(8f, 8f);
+        layer.tileOffset = Vector2.zero;
+        EditorUtility.SetDirty(layer);
+
+        var path = MaterialRoot + "/SslValidationTerrain.asset";
+        var data = AssetDatabase.LoadAssetAtPath<TerrainData>(path);
+        if (data == null)
+        {
+            data = new TerrainData();
+            data.heightmapResolution = 33;
+            data.size = new Vector3(8f, 1f, 8f);
+            data.SetHeights(0, 0, new float[33, 33]);
+            AssetDatabase.CreateAsset(data, path);
+        }
+
+        // A single layer still needs an explicit all-one alphamap; without it the splat weight is
+        // zero and TerrainLit renders black.
+        data.alphamapResolution = 16;
+        var weights = new float[16, 16, 1];
+        for (var y = 0; y < 16; y++)
+            for (var x = 0; x < 16; x++)
+                weights[y, x, 0] = 1f;
+        data.SetAlphamaps(0, 0, weights);
+
+        if (data.terrainLayers == null || data.terrainLayers.Length == 0 ||
+            data.terrainLayers[0] != layer)
+        {
+            data.terrainLayers = new[] { layer };
+            EditorUtility.SetDirty(data);
+        }
+
+        EditorUtility.SetDirty(layer);
+        EditorUtility.SetDirty(data);
+        return data;
+    }
+
     sealed class MaterialSet
     {
         public Material floor;
@@ -452,6 +611,12 @@ public static class ScreenSpaceLightingValidationPlayerSetup
         public Material gradient;
         public Material mirror;
         public Material glass;
+        public Material complexLit;
+        public Material simpleLit;
+        public Material bakedLit;
+        public Material unlit;
+        public Material terrain;
+        public Texture2D terrainAlbedo;
     }
 }
 

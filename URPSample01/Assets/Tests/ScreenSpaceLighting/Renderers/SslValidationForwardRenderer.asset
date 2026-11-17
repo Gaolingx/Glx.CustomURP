@@ -1,6 +1,23 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-698257801215120438
+--- !u!114 &-5250421316793329882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4569184ad03d4f340892a03abedcaa72, type: 3}
+  m_Name: SslValidationForwardRendererprobe
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  probeCompute: {fileID: 7200000, guid: ff4399db7e03b3d469cd51911ab79349, type: 3}
+  lightingFeature: {fileID: -3103313970286982093}
+  ambientOcclusionFeature: {fileID: 5388390761670696530}
+  probeEnabled: 0
+--- !u!114 &-3103313970286982093
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -54,10 +71,10 @@ MonoBehaviour:
       type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
-  - {fileID: 3992371893473320270}
-  - {fileID: -698257801215120438}
-  - {fileID: 7682110013717139501}
-  m_RendererFeatureMap: 4e1dbba915c16737ca6bedb43a4a4ff62dd0141d5b569c6a
+  - {fileID: 5388390761670696530}
+  - {fileID: -3103313970286982093}
+  - {fileID: -5250421316793329882}
+  m_RendererFeatureMap: 52de604cd968c74a338c89d662d0eed42617655ba1c122b7
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -106,7 +123,7 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
---- !u!114 &3992371893473320270
+--- !u!114 &5388390761670696530
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -149,20 +166,3 @@ MonoBehaviour:
       depthPyramidCompute: {fileID: 7200000, guid: e0af0549a8ee5484f995fb60630c4558,
         type: 3}
       debugShader: {fileID: 4800000, guid: c98c3e6b641ab544abb57ed80a4fdf37, type: 3}
---- !u!114 &7682110013717139501
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4569184ad03d4f340892a03abedcaa72, type: 3}
-  m_Name: SslValidationForwardRendererprobe
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  probeCompute: {fileID: 7200000, guid: ff4399db7e03b3d469cd51911ab79349, type: 3}
-  lightingFeature: {fileID: -698257801215120438}
-  ambientOcclusionFeature: {fileID: 3992371893473320270}
-  probeEnabled: 0

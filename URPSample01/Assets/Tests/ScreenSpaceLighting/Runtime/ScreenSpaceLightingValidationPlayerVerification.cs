@@ -50,6 +50,14 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     public Material glassMaterial;
     public Material mirrorMaterial;
 
+    [Header("Coverage materials")]
+    public Material complexLitMaterial;
+    public Material simpleLitMaterial;
+    public Material bakedLitMaterial;
+    public Material unlitMaterial;
+    public Material terrainMaterial;
+    public TerrainData coverageTerrainData;
+
     readonly SslValidationReport m_Report = new SslValidationReport();
     readonly StringBuilder m_Log = new StringBuilder();
 
@@ -66,6 +74,8 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
     GameObject m_Rig;
     GameObject m_MirrorRig;
     GameObject m_OrthoRig;
+    GameObject m_CoverageRig;
+    Light m_DirectionalLight;
     bool m_OutputsWritten;
     float m_ProgressDeadline;
     string m_PreviousSsrRenderer;
@@ -103,6 +113,15 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         m_Refraction = m_ProfileInstance.components.OfType<ScreenSpaceRefraction>().FirstOrDefault();
         m_Volume.isGlobal = true;
         m_Volume.sharedProfile = m_ProfileInstance;
+
+        foreach (var light in FindObjectsOfType<Light>())
+        {
+            if (light.type == LightType.Directional)
+            {
+                m_DirectionalLight = light;
+                break;
+            }
+        }
 
         DynamicGI.UpdateEnvironment();
     }
@@ -162,6 +181,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         BuildRig();
         BuildMirrorRig();
         BuildOrthoRig();
+        BuildCoverageRig();
         m_RenderDoc = RenderDocApi.Load(m_OutputDirectory, m_Log);
         m_Report.renderDocAvailable = m_RenderDoc != null;
         m_Report.renderDocVersion = m_RenderDoc != null ? m_RenderDoc.Version : "unavailable";
@@ -207,6 +227,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
 
         result.renderer = rendererName;
         result.pipeline = pipeline.name;
+        result.layout = string.IsNullOrEmpty(testCase.layout) ? "default" : testCase.layout;
         if (QualitySettings.renderPipeline != pipeline || GraphicsSettings.defaultRenderPipeline != pipeline)
         {
             QualitySettings.renderPipeline = pipeline;
@@ -219,6 +240,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         ApplyFeatureSettings(rendererData, testCase.feature);
         ApplyGtaoSettings(rendererData, testCase.gtao);
         ApplyLayout(testCase.layout);
+        ApplyLight(testCase.light);
         var probeFeature = FindFeature<ScreenSpaceLightingBindingProbeFeature>(rendererData);
         if (probeFeature != null)
             probeFeature.probeEnabled = testCase.bindingProbe;
@@ -255,6 +277,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         result.cameraRotation = m_Camera.transform.rotation.eulerAngles;
         result.cameraOrthographic = m_Camera.orthographic;
         result.cameraOrthographicSize = m_Camera.orthographicSize;
+        result.directionalLight = m_DirectionalLight != null && m_DirectionalLight.enabled;
         ReadEffectState(rendererData, result);
         ReadGtaoDispatchStats(testCase, result);
         ReadSsgiDispatchStats(testCase, rendererName, result);
@@ -431,6 +454,19 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         var field = target?.GetType().GetField(name, InstanceFlags);
         if (field != null)
             field.SetValue(target, Enum.ToObject(field.FieldType, value));
+    }
+
+    // Deferred has two AO paths: the first directional light applies it, and a scene without any
+    // directional light uses the fullscreen AmbientOcclusionOnly pass. The cases toggle the same
+    // light so both paths can be measured against a common background.
+    void ApplyLight(SslLightCase lightCase)
+    {
+        if (m_DirectionalLight == null)
+            return;
+        m_DirectionalLight.enabled = lightCase == null || !lightCase.noDirectionalLight;
+        m_DirectionalLight.shadows = lightCase != null && lightCase.noShadows
+            ? LightShadows.None
+            : LightShadows.Soft;
     }
 
     void ApplyPose(SslCameraCase camera)
@@ -1439,16 +1475,72 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         m_OrthoRig.SetActive(false);
     }
 
+    // G6 coverage rig: one floor with a fin per material family, a TerrainLit patch with a contact
+    // box, and a transparent panel against the sky (so its background never receives AO). The fins
+    // stand on the floor; AO is read on each fin face, at the floor contact, and on the terrain.
+    void BuildCoverageRig()
+    {
+        m_CoverageRig = new GameObject("SSL GTAO Coverage Rig");
+
+        AddBox(m_CoverageRig.transform, floorMaterial, "Coverage Floor",
+            new Vector3(0f, -0.05f, 4f), new Vector3(40f, 0.1f, 30f));
+
+        var fins = new[]
+        {
+            (name: "Lit Fin", x: -10f, material: floorMaterial),
+            (name: "ComplexLit Fin", x: -6.5f, material: complexLitMaterial),
+            (name: "SimpleLit Fin", x: -3f, material: simpleLitMaterial),
+            (name: "BakedLit Fin", x: 0.5f, material: bakedLitMaterial),
+            (name: "Unlit Fin", x: 4f, material: unlitMaterial),
+        };
+        foreach (var fin in fins)
+        {
+            if (fin.material != null)
+                AddBox(m_CoverageRig.transform, fin.material, fin.name,
+                    new Vector3(fin.x, 1.2f, 4f), new Vector3(1.6f, 2.4f, 0.4f));
+        }
+
+        if (coverageTerrainData != null)
+        {
+            var terrainObject = Terrain.CreateTerrainGameObject(coverageTerrainData);
+            terrainObject.name = "Coverage Terrain";
+            terrainObject.transform.SetParent(m_CoverageRig.transform, false);
+            // Terrain position is the corner, not the centre: the 8x8 patch must span x 5.5..13.5
+            // and z 0..8 so the contact box in the middle sits on TerrainLit.
+            terrainObject.transform.position = new Vector3(5.5f, 0.01f, 0f);
+            var terrain = terrainObject.GetComponent<Terrain>();
+            terrain.drawInstanced = false;
+            if (terrainMaterial != null)
+                terrain.materialTemplate = terrainMaterial;
+
+            AddBox(m_CoverageRig.transform, metal65Material, "Terrain Contact Box",
+                new Vector3(9.5f, 0.81f, 4f), new Vector3(1.2f, 1.6f, 1.2f));
+        }
+
+        var transparentPanel = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        transparentPanel.name = "Coverage Transparent Panel";
+        transparentPanel.transform.SetParent(m_CoverageRig.transform, false);
+        transparentPanel.transform.position = new Vector3(0f, 5.2f, 12f);
+        transparentPanel.transform.rotation = Quaternion.identity;
+        transparentPanel.transform.localScale = new Vector3(6f, 2.5f, 1f);
+        transparentPanel.GetComponent<Renderer>().sharedMaterial = transparentSsrMaterial;
+
+        m_CoverageRig.SetActive(false);
+    }
+
     void ApplyLayout(string layout)
     {
         bool mirror = string.Equals(layout, "ssrMirror", StringComparison.OrdinalIgnoreCase);
         bool ortho = string.Equals(layout, "gtaoOrtho", StringComparison.OrdinalIgnoreCase);
+        bool coverage = string.Equals(layout, "gtaoCoverage", StringComparison.OrdinalIgnoreCase);
         if (m_Rig != null)
-            m_Rig.SetActive(!mirror && !ortho);
+            m_Rig.SetActive(!mirror && !ortho && !coverage);
         if (m_MirrorRig != null)
             m_MirrorRig.SetActive(mirror);
         if (m_OrthoRig != null)
             m_OrthoRig.SetActive(ortho);
+        if (m_CoverageRig != null)
+            m_CoverageRig.SetActive(coverage);
     }
 
     static GameObject AddBox(Transform parent, Material material, string name, Vector3 position, Vector3 scale)
@@ -1652,6 +1744,15 @@ public sealed class SslValidationCase
     public SslVolumeCase volume = new SslVolumeCase();
     public SslGtaoCase gtao = new SslGtaoCase();
     public SslFeatureCase feature = new SslFeatureCase();
+    public SslLightCase light = new SslLightCase();
+}
+
+[Serializable]
+public sealed class SslLightCase
+{
+    // Off by default so manifests written before the light toggle stay lit.
+    public bool noDirectionalLight;
+    public bool noShadows;
 }
 
 [Serializable]
@@ -1810,10 +1911,12 @@ public sealed class SslValidationCaseResult
     public string renderer;
     public string effect;
     public string pipeline;
+    public string layout;
     public Vector3 cameraPosition;
     public Vector3 cameraRotation;
     public bool cameraOrthographic;
     public float cameraOrthographicSize;
+    public bool directionalLight;
     public int frameIndex;
     public bool captureTriggered;
     public bool captureSucceeded;
