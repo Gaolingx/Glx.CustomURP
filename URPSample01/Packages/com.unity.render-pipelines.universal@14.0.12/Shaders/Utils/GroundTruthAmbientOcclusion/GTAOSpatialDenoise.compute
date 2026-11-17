@@ -3,6 +3,7 @@
 
 #pragma multi_compile _ TO_TEMPORAL
 #pragma multi_compile _ GTAO_XR_ARRAY
+#pragma multi_compile _ GTAO_ORTHO
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl"
 
@@ -13,7 +14,7 @@ GTAO_RW_TEXTURE2D_FLOAT(_GtaoOcclusionTexture);
 
 float BilateralWeight(float sampleDepth, float linearCentralDepth)
 {
-    float linearSample = LinearEyeDepth(sampleDepth, _GtaoZBufferParams);
+    float linearSample = GTAOLinearDepth(sampleDepth);
     float delta = abs(linearSample - linearCentralDepth);
     float w = saturate(1.0f - (_GtaoSpatialBilateralAggressiveness * delta + BILATERAL_EPSILON));
 
@@ -31,7 +32,7 @@ float Blur(uint2 centralPos, out float centralDepth, out float centralAO)
 
     float packedCentral = GTAO_LOAD(_GtaoPackedData, central);
     GTAOUnpackData(packedCentral, centralAO, centralDepth);
-    float linearCentralDepth = LinearEyeDepth(centralDepth, _GtaoZBufferParams);
+    float linearCentralDepth = GTAOLinearDepth(centralDepth);
 
     float total = centralAO;
     float totalWeight = 1.0;

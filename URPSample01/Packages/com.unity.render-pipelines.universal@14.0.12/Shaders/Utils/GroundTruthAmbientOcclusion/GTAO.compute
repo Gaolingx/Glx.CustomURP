@@ -140,7 +140,13 @@ void GTAOMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     const int dirCount = (int)_GtaoDirectionCount;
 #endif
 
+#ifdef GTAO_ORTHO
+    // Parallel projection: every view ray points straight back along the view axis, so the view
+    // direction does not depend on the screen position (F-03).
+    float3 V = float3(0.0, 0.0, -1.0);
+#else
     float3 V = normalize(-positionVS);
+#endif
 #ifdef GTAO_ORTHO
     // Orthographic projection has no perspective divide: a world-space radius always covers the same
     // number of AO pixels regardless of depth.

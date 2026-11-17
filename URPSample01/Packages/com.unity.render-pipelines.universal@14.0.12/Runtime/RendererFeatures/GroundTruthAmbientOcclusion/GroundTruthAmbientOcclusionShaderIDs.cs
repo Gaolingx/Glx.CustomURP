@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int DepthToViewParams = Shader.PropertyToID("_GtaoDepthToViewParams");
         internal static readonly int ZBufferParams = Shader.PropertyToID("_GtaoZBufferParams");
         internal static readonly int OrthoHalfSize = Shader.PropertyToID("_GtaoOrthoHalfSize");
+        internal static readonly int OrthoDepthParams = Shader.PropertyToID("_GtaoOrthoDepthParams");
         internal static readonly int ViewRow0 = Shader.PropertyToID("_GtaoViewRow0");
         internal static readonly int ViewRow1 = Shader.PropertyToID("_GtaoViewRow1");
         internal static readonly int ViewRow2 = Shader.PropertyToID("_GtaoViewRow2");

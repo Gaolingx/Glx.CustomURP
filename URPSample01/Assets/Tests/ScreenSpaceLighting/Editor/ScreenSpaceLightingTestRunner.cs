@@ -50,7 +50,8 @@ public static class ScreenSpaceLightingTestRunner
                 "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests",
                 "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests",
                 "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests",
-                "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionFullResolutionTests"
+                "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionFullResolutionTests",
+                "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionOrthographicTests"
             }
         }));
     }

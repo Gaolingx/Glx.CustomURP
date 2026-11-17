@@ -105,9 +105,21 @@ float GTAOGetDepthSample(float2 positionSS, bool lowerRes)
 #endif
 }
 
+// Eye distance for a window depth sample. Perspective depth is non-linear and needs the Unity
+// _ZBufferParams mapping; orthographic window depth is already linear, so a scale/bias pair is used
+// instead (F-03).
+float GTAOLinearDepth(float rawDepth)
+{
+#ifdef GTAO_ORTHO
+    return rawDepth * _GtaoOrthoDepthParams.x + _GtaoOrthoDepthParams.y;
+#else
+    return LinearEyeDepth(rawDepth, _GtaoZBufferParams);
+#endif
+}
+
 float3 GTAOGetPositionVS(float2 positionSS, float rawDepth)
 {
-    float linearDepth = LinearEyeDepth(rawDepth, _GtaoZBufferParams);
+    float linearDepth = GTAOLinearDepth(rawDepth);
 #ifdef GTAO_ORTHO
     float2 ndc = positionSS * _GtaoBufferSize.zw * 2.0 - 1.0;
     return float3(ndc.x * _GtaoOrthoHalfSize.x, ndc.y * _GtaoOrthoHalfSize.y, linearDepth);

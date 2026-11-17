@@ -19,8 +19,9 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _GtaoParams4;                // directionCount, upperNudge, lowerNudge, spatialBilateralAggressiveness
         public Vector4 _GtaoFirstTwoDepthMipOffsets; // packed depth pyramid mip1 xy, mip2 zw
         public Vector4 _GtaoDepthToViewParams;      // perspective screen position to view position
-        public Vector4 _GtaoZBufferParams;          // Unity linear depth parameters
+        public Vector4 _GtaoZBufferParams;          // Unity perspective linear depth parameters
         public Vector4 _GtaoOrthoHalfSize;          // orthographic camera half extents
+        public Vector4 _GtaoOrthoDepthParams;       // orthographic window depth scale, bias, unused, unused
         public Vector4 _GtaoViewRow0;               // world to view matrix rows (rotation part only)
         public Vector4 _GtaoViewRow1;
         public Vector4 _GtaoViewRow2;

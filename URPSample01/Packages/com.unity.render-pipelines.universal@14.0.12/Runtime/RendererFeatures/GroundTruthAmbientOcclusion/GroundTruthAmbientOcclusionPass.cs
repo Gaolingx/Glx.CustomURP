@@ -21,6 +21,64 @@ namespace UnityEngine.Rendering.Universal
         readonly Vector4[] m_XrViewRow1 = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
         readonly Vector4[] m_XrViewRow2 = new Vector4[ScreenSpaceLightingXr.k_MaxViews];
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // DEV-only snapshot of the last executed frame. The validation player reads it to assert the
+        // dispatch chain, the resolution keywords and whether the material facing state was published.
+        internal sealed class GtaoDispatchStats
+        {
+            public int frameIndex = -1;
+            public int screenWidth;
+            public int screenHeight;
+            public int aoWidth;
+            public int aoHeight;
+            public int groupsX;
+            public int groupsY;
+            public int groupsZ = 1;
+            public bool fullResolution;
+            public bool temporal;
+            public bool orthographic;
+            public bool spatialRuns;
+            public bool historyReady;
+            public bool produced;
+            public int historyReadSlot = -1;
+            public int historyWriteSlot = -1;
+            public int mainDispatches;
+            public int spatialDispatches;
+            public int copyHistoryDispatches;
+            public int temporalDispatches;
+            public int blurUpsampleDispatches;
+            public int upsampleDispatches;
+
+            public void Reset(int frame)
+            {
+                frameIndex = frame;
+                screenWidth = 0;
+                screenHeight = 0;
+                aoWidth = 0;
+                aoHeight = 0;
+                groupsX = 0;
+                groupsY = 0;
+                groupsZ = 1;
+                fullResolution = false;
+                temporal = false;
+                orthographic = false;
+                spatialRuns = false;
+                historyReady = false;
+                produced = false;
+                historyReadSlot = -1;
+                historyWriteSlot = -1;
+                mainDispatches = 0;
+                spatialDispatches = 0;
+                copyHistoryDispatches = 0;
+                temporalDispatches = 0;
+                blurUpsampleDispatches = 0;
+                upsampleDispatches = 0;
+            }
+        }
+
+        internal static readonly GtaoDispatchStats s_LastDispatchStats = new GtaoDispatchStats();
+#endif
+
 #if UNITY_EDITOR
         internal static int s_EditorExecuteCount;
         internal static int s_EditorMainDispatchCount;
@@ -56,6 +114,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
             if (m_History == null || m_Settings == null || m_Resources == null)
                 return;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.Reset(Time.frameCount);
+#endif
 
             ref var cameraData = ref renderingData.cameraData;
             var descriptor = cameraData.cameraTargetDescriptor;
@@ -96,10 +158,27 @@ namespace UnityEngine.Rendering.Universal
                 FillXrViewRows(ref cameraData, viewCount);
 
             var cmd = renderingData.commandBuffer;
+            bool producedOutput;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
-                Dispatch(cmd, cb, temporal, octNormals, motionTexture, normalTexture, viewCount, useTextureArray);
+                producedOutput = Dispatch(cmd, cb, temporal, octNormals, motionTexture, normalTexture, viewCount, useTextureArray);
             }
+
+            if (!producedOutput)
+            {
+                // F-10: the material facing state must never advertise AO that this frame did not
+                // write, otherwise the opaque passes sample last frame's texture (or an undefined one
+                // on the first frame after a reset).
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
+                cmd.SetGlobalVector(
+                    GroundTruthAmbientOcclusionShaderIDs.AmbientOcclusionParam,
+                    new Vector4(1f, 0f, 0f, 0f));
+                return;
+            }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.produced = true;
+#endif
 
             m_History.AdvanceEffectFrame();
             if (temporal)
@@ -112,7 +191,7 @@ namespace UnityEngine.Rendering.Universal
                 new Vector4(1f, 0f, 0f, m_Settings.directLightingStrength));
         }
 
-        void Dispatch(
+        bool Dispatch(
             CommandBuffer cmd,
             in GroundTruthAmbientOcclusionShaderVariables cb,
             bool temporal,
@@ -139,6 +218,23 @@ namespace UnityEngine.Rendering.Universal
             int groupCountX = DivideRoundUp(aoWidth, 8);
             int groupCountY = DivideRoundUp(aoHeight, 8);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var stats = s_LastDispatchStats;
+            stats.screenWidth = m_History.width;
+            stats.screenHeight = m_History.height;
+            stats.aoWidth = aoWidth;
+            stats.aoHeight = aoHeight;
+            stats.groupsX = groupCountX;
+            stats.groupsY = groupCountY;
+            stats.groupsZ = viewCount;
+            stats.fullResolution = fullResolution;
+            stats.temporal = temporal;
+            stats.orthographic = m_Orthographic;
+            stats.spatialRuns = spatialRuns;
+            stats.historyReadSlot = m_History.readSlot;
+            stats.historyWriteSlot = m_History.writeSlot;
+#endif
+
             SetKeyword(gtao, GroundTruthAmbientOcclusionShaderIDs.FullResKeyword, fullResolution);
             SetKeyword(gtao, GroundTruthAmbientOcclusionShaderIDs.HalfResKeyword, !fullResolution);
             SetKeyword(gtao, GroundTruthAmbientOcclusionShaderIDs.TemporalKeyword, temporal);
@@ -158,6 +254,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(gtao, gtaoKernel, GroundTruthAmbientOcclusionShaderIDs.DepthPyramid, m_History.depthPyramid);
             cmd.SetComputeTextureParam(gtao, gtaoKernel, GroundTruthAmbientOcclusionShaderIDs.PackedData, m_History.packedData);
             cmd.DispatchCompute(gtao, gtaoKernel, groupCountX, groupCountY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.mainDispatches++;
+#endif
 #if UNITY_EDITOR
             s_EditorMainDispatchCount++;
 #endif
@@ -166,6 +265,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetKeyword(spatial, GroundTruthAmbientOcclusionShaderIDs.ToTemporalKeyword, packSpatialOutput);
                 SetKeyword(spatial, GroundTruthAmbientOcclusionShaderIDs.XrArrayKeyword, useTextureArray);
+                SetKeyword(spatial, GroundTruthAmbientOcclusionShaderIDs.OrthographicKeyword, m_Orthographic);
                 int spatialKernel = spatial.FindKernel("SpatialDenoise");
                 PushShaderVariables(cmd, spatial, cb);
                 cmd.SetComputeTextureParam(spatial, spatialKernel, GroundTruthAmbientOcclusionShaderIDs.PackedData, m_History.packedData);
@@ -175,6 +275,9 @@ namespace UnityEngine.Rendering.Universal
                     GroundTruthAmbientOcclusionShaderIDs.OcclusionTexture,
                     packSpatialOutput ? m_History.packedBlurred : m_History.occlusionTexture);
                 cmd.DispatchCompute(spatial, spatialKernel, groupCountX, groupCountY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                s_LastDispatchStats.spatialDispatches++;
+#endif
 #if UNITY_EDITOR
                 s_EditorSpatialDispatchCount++;
 #endif
@@ -189,7 +292,7 @@ namespace UnityEngine.Rendering.Universal
                     DispatchBlurUpsample(cmd, upsample, cb, m_History.packedData, viewCount, useTextureArray, groupCountX, groupCountY);
                 }
 
-                return;
+                return true;
             }
 
             // Temporal accumulation. The first frame after a reset has no readable history, so the
@@ -199,8 +302,11 @@ namespace UnityEngine.Rendering.Universal
                 ? m_History.GetHistory(m_History.readSlot)
                 : m_History.GetHistory(m_History.writeSlot ^ 1);
             RTHandle historyOutput = m_History.GetHistory(m_History.writeSlot);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.historyReady = historyReady;
+#endif
             if (historyInput == null || historyOutput == null)
-                return;
+                return false;
 
             if (!historyReady)
             {
@@ -209,6 +315,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(copyHistory, copyKernel, GroundTruthAmbientOcclusionShaderIDs.InputTexture, m_History.packedBlurred);
                 cmd.SetComputeTextureParam(copyHistory, copyKernel, GroundTruthAmbientOcclusionShaderIDs.OutputTexture, historyInput);
                 cmd.DispatchCompute(copyHistory, copyKernel, groupCountX, groupCountY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                s_LastDispatchStats.copyHistoryDispatches++;
+#endif
 #if UNITY_EDITOR
                 s_EditorCopyHistoryDispatchCount++;
 #endif
@@ -226,14 +335,18 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(temporalCompute, temporalKernel, GroundTruthAmbientOcclusionShaderIDs.MotionTexture, motionTexture);
             cmd.SetComputeTextureParam(temporalCompute, temporalKernel, GroundTruthAmbientOcclusionShaderIDs.OcclusionTexture, temporalOutput);
             cmd.DispatchCompute(temporalCompute, temporalKernel, groupCountX, groupCountY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.temporalDispatches++;
+#endif
 #if UNITY_EDITOR
             s_EditorTemporalDispatchCount++;
 #endif
 
             if (fullResolution)
-                return;
+                return true;
 
             DispatchUpsample(cmd, upsample, cb, temporalOutput, viewCount, useTextureArray, groupCountX, groupCountY);
+            return true;
         }
 
         void DispatchBlurUpsample(
@@ -253,6 +366,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(upsample, kernel, GroundTruthAmbientOcclusionShaderIDs.OcclusionTexture, m_History.occlusionTexture);
             cmd.SetComputeTextureParam(upsample, kernel, GroundTruthAmbientOcclusionShaderIDs.DepthPyramid, m_History.depthPyramid);
             cmd.DispatchCompute(upsample, kernel, groupCountX, groupCountY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.blurUpsampleDispatches++;
+#endif
 #if UNITY_EDITOR
             s_EditorUpsampleDispatchCount++;
 #endif
@@ -275,6 +391,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(upsample, upsampleKernel, GroundTruthAmbientOcclusionShaderIDs.OcclusionTexture, m_History.occlusionTexture);
             cmd.SetComputeTextureParam(upsample, upsampleKernel, GroundTruthAmbientOcclusionShaderIDs.DepthPyramid, m_History.depthPyramid);
             cmd.DispatchCompute(upsample, upsampleKernel, groupCountX, groupCountY, viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_LastDispatchStats.upsampleDispatches++;
+#endif
 #if UNITY_EDITOR
             s_EditorUpsampleDispatchCount++;
 #endif
@@ -355,6 +474,8 @@ namespace UnityEngine.Rendering.Universal
                 1f / (invHalfTanFOV * aspect),
                 1f / invHalfTanFOV);
             cb._GtaoZBufferParams = ComputeZBufferParams(camera.nearClipPlane, camera.farClipPlane);
+            cb._GtaoOrthoDepthParams = ComputeOrthoDepthParams(
+                camera.nearClipPlane, camera.farClipPlane, SystemInfo.usesReversedZBuffer);
             float halfHeight = camera.orthographicSize;
             cb._GtaoOrthoHalfSize = new Vector4(halfHeight * camera.aspect, halfHeight, 0f, 0f);
             var worldToView = camera.worldToCameraMatrix;
@@ -403,6 +524,19 @@ namespace UnityEngine.Rendering.Universal
             return new Vector4(xn, yn, xn / farPlane, 1f / nearPlane);
         }
 
+        // Orthographic window depth is linear in the eye distance, so it needs a scale/bias pair
+        // instead of the perspective _ZBufferParams. Reversed-Z puts the near plane at 1, everything
+        // else at 0.
+        internal static Vector4 ComputeOrthoDepthParams(float nearPlane, float farPlane, bool reversedZ)
+        {
+            nearPlane = Mathf.Max(1e-5f, nearPlane);
+            farPlane = Mathf.Max(nearPlane + 1e-4f, farPlane);
+            float range = farPlane - nearPlane;
+            return reversedZ
+                ? new Vector4(-range, farPlane, 0f, 0f)
+                : new Vector4(range, nearPlane, 0f, 0f);
+        }
+
         static RTHandle GetNormalTexture(ScriptableRenderer renderer)
         {
             if (renderer is UniversalRenderer universalRenderer)
@@ -435,6 +569,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.DepthToViewParams, cb._GtaoDepthToViewParams);
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.ZBufferParams, cb._GtaoZBufferParams);
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.OrthoHalfSize, cb._GtaoOrthoHalfSize);
+            cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.OrthoDepthParams, cb._GtaoOrthoDepthParams);
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.ViewRow0, cb._GtaoViewRow0);
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.ViewRow1, cb._GtaoViewRow1);
             cmd.SetComputeVectorParam(compute, GroundTruthAmbientOcclusionShaderIDs.ViewRow2, cb._GtaoViewRow2);

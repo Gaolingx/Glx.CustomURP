@@ -20,6 +20,7 @@ CBUFFER_START(GroundTruthAmbientOcclusionShaderVariables)
     float4 _GtaoDepthToViewParams;
     float4 _GtaoZBufferParams;
     float4 _GtaoOrthoHalfSize;
+    float4 _GtaoOrthoDepthParams;
     float4 _GtaoViewRow0;
     float4 _GtaoViewRow1;
     float4 _GtaoViewRow2;
