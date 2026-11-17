@@ -1,0 +1,10 @@
+{
+    "result": "Succeeded",
+    "totalErrors": 0,
+    "totalWarnings": 4001,
+    "totalSizeBytes": 121694299,
+    "totalTimeSeconds": 21.108193399999999,
+    "executablePath": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\Builds/SslValidationPlayer\\SslValidationPlayer.exe",
+    "graphicsDeviceType": "Direct3D11",
+    "unityVersion": "2022.3.62f1"
+}
