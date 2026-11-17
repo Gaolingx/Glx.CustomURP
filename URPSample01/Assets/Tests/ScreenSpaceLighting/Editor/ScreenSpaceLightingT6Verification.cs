@@ -913,7 +913,7 @@ public static class ScreenSpaceLightingT6Verification
             width = ReadInt(history, "width"),
             height = ReadInt(history, "height"),
             resetCount = ReadInt(history, "resetCount"),
-            validFrameCount = ReadInt(history, "validFrameCount"),
+            frameSerial = ReadInt(history, "frameSerial"),
             readSlot = ReadInt(history, "readSlot"),
             writeSlot = ReadInt(history, "writeSlot"),
             ssgiReadSlot = ReadInt(history, "ssgiReadSlot"),
@@ -1277,7 +1277,7 @@ public static class ScreenSpaceLightingT6Verification
         public int width;
         public int height;
         public int resetCount;
-        public int validFrameCount;
+        public int frameSerial;
         public int readSlot;
         public int writeSlot;
         public int ssgiReadSlot;

@@ -814,12 +814,13 @@ public static class ScreenSpaceLightingT12Verification
         context.result.sslPrivateBytes = SumResourceBytes(sslHistory);
         context.result.gtaoPrivateBytes = SumResourceBytes(gtaoHistory);
         context.result.sslColorPyramidMips = ReadInt(sslHistory, "colorPyramidMipCount");
-        context.result.sslDepthPyramidMips = ReadInt(sslHistory, "depthPyramidMipCount");
+        context.result.sslDepthPyramidMips = 0;
 
         var info = sslHistory?.GetType().GetProperty("depthPyramidInfo", InstanceFlags)?.GetValue(sslHistory);
         if (info != null)
         {
             var textureSize = (Vector2Int)info.GetType().GetField("textureSize").GetValue(info);
+            context.result.sslDepthPyramidMips = (int)info.GetType().GetField("mipLevelCount").GetValue(info);
             context.result.sslDepthPyramidBytes = (long)textureSize.x * textureSize.y * 4;
         }
 

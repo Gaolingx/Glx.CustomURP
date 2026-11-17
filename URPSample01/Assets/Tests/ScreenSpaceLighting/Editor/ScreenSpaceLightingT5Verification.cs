@@ -1016,7 +1016,7 @@ public static class ScreenSpaceLightingT5Verification
             writeSlot = ReadInt(history, "writeSlot"),
             resourceGeneration = ReadInt(history, "resourceGeneration"),
             slices = ReadInt(history, "slices"),
-            depthPyramidMipCount = ReadInt(history, "depthPyramidMipCount"),
+            depthPyramidMipCount = ReadDepthPyramidMipCount(history),
             depthPyramidWidth = ReadRenderTextureDimension(history, "depthPyramid", true),
             depthPyramidHeight = ReadRenderTextureDimension(history, "depthPyramid", false),
             hasValidHistory = ReadBool(history, "hasValidHistory"),
@@ -1031,6 +1031,14 @@ public static class ScreenSpaceLightingT5Verification
         if (rt == null)
             return 0;
         return width ? rt.width : rt.height;
+    }
+
+    static int ReadDepthPyramidMipCount(object history)
+    {
+        var info = history?.GetType().GetProperty("depthPyramidInfo", InstanceFlags)?.GetValue(history);
+        if (info == null)
+            return 0;
+        return (int)info.GetType().GetField("mipLevelCount").GetValue(info);
     }
 
     static long ReadDepthPyramidBytes(object history)

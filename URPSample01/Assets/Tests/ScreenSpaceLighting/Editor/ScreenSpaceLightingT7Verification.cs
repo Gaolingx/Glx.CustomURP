@@ -994,7 +994,7 @@ public static class ScreenSpaceLightingT7Verification
             width = ReadInt(history, "width"),
             height = ReadInt(history, "height"),
             resetCount = ReadInt(history, "resetCount"),
-            validFrameCount = ReadInt(history, "validFrameCount"),
+            frameSerial = ReadInt(history, "frameSerial"),
             readSlot = ReadInt(history, "readSlot"),
             writeSlot = ReadInt(history, "writeSlot"),
             ssrWidth = ReadInt(history, "ssrWidth"),
@@ -1372,7 +1372,7 @@ public static class ScreenSpaceLightingT7Verification
         public int width;
         public int height;
         public int resetCount;
-        public int validFrameCount;
+        public int frameSerial;
         public int readSlot;
         public int writeSlot;
         public int ssrWidth;

@@ -229,8 +229,8 @@ public static class ScreenSpaceLightingT4Verification
                 result.issues.Add($"PyramidsBuilt_DebugOff: history is {ReadInt(history, "width")}x{ReadInt(history, "height")}, expected {ImageWidth}x{ImageHeight}");
             if (ReadInt(history, "colorPyramidMipCount") != 9)
                 result.issues.Add($"PyramidsBuilt_DebugOff: color pyramid has {ReadInt(history, "colorPyramidMipCount")} mips, expected 9");
-            if (ReadInt(history, "depthPyramidMipCount") != 12)
-                result.issues.Add($"PyramidsBuilt_DebugOff: depth pyramid has {ReadInt(history, "depthPyramidMipCount")} mips, expected 12");
+            if (ReadDepthPyramidMipCount(history) != 12)
+                result.issues.Add($"PyramidsBuilt_DebugOff: depth pyramid has {ReadDepthPyramidMipCount(history)} mips, expected 12");
         }
 
         if (result.depthPyramidExecutions <= 0)
@@ -283,6 +283,7 @@ public static class ScreenSpaceLightingT4Verification
         }
 
         int resetBefore = ReadInt(history, "resetCount");
+        int serialBefore = ReadInt(history, "frameSerial");
         for (int frame = 1; frame <= 6; frame++)
         {
             var samples = RenderAndCapture(camera, imageTarget, 1);
@@ -295,7 +296,7 @@ public static class ScreenSpaceLightingT4Verification
                     result.issues.Add(prefix + ": the first render after the cut did not bump the reset generation");
                 if (snapshot.readSlot != -1)
                     result.issues.Add(prefix + ": first frame read history instead of starting empty");
-                if (!snapshot.hasValidHistory || snapshot.validFrameCount != 1)
+                if (!snapshot.hasValidHistory || snapshot.frameSerial != serialBefore + 1)
                     result.issues.Add(prefix + ": first frame did not capture exactly one valid frame");
             }
             else if (frame > 3)
@@ -306,7 +307,7 @@ public static class ScreenSpaceLightingT4Verification
                 if (snapshot.readSlot == snapshot.writeSlot)
                     result.issues.Add(prefix + $": frame {frame} read and wrote the same history slot");
                 var previous = result.historyChecks[result.historyChecks.Count - 2];
-                if (snapshot.validFrameCount != previous.validFrameCount + 1)
+                if (snapshot.frameSerial != previous.frameSerial + 1)
                     result.issues.Add(prefix + $": frame {frame} did not accumulate exactly one history frame");
                 if (snapshot.resetCount != previous.resetCount)
                     result.issues.Add(prefix + $": frame {frame} unexpectedly reset the history again");
@@ -332,7 +333,6 @@ public static class ScreenSpaceLightingT4Verification
             return;
 
         int resetBefore = ReadInt(history, "resetCount");
-        int generationBefore = ReadInt(history, "resourceGeneration");
         SetTarget(camera, smallTarget);
         RenderAndCapture(camera, smallTarget, 2);
         var smallSnapshot = SnapshotHistory("SizeChange640x360", history);
@@ -341,8 +341,8 @@ public static class ScreenSpaceLightingT4Verification
             result.issues.Add($"SizeChange640x360: history is {smallSnapshot.width}x{smallSnapshot.height}, expected 640x360");
         if (smallSnapshot.resetCount <= resetBefore)
             result.issues.Add("SizeChange640x360: size change did not reset the history generation");
-        if (smallSnapshot.resourceGeneration <= generationBefore)
-            result.issues.Add("SizeChange640x360: size change did not reallocate the private resources");
+        if (smallSnapshot.colorPyramidMipCount != 8)
+            result.issues.Add($"SizeChange640x360: color pyramid has {smallSnapshot.colorPyramidMipCount} mips, expected 8");
         var smallSamples = ReadPixels(smallTarget);
         WriteImage(smallTarget, outputDirectory, "T4_" + result.name + "_SizeChange640x360.png");
         result.states.Add(DescribeState("SizeChange640x360", smallSamples, null));
@@ -439,8 +439,8 @@ public static class ScreenSpaceLightingT4Verification
                 result.historyChecks.Add(settled);
                 if (settled.readSlot == settled.writeSlot)
                     result.issues.Add("CameraIsolation: the temporary camera read and wrote the same slot");
-                if (settled.validFrameCount != 4)
-                    result.issues.Add($"CameraIsolation: the temporary camera accumulated {settled.validFrameCount} frames, expected 4");
+                if (settled.frameSerial != 4)
+                    result.issues.Add($"CameraIsolation: the temporary camera accumulated {settled.frameSerial} frames, expected 4");
             }
 
             RenderAndCapture(camera, imageTarget, 2);
@@ -606,19 +606,26 @@ public static class ScreenSpaceLightingT4Verification
             width = ReadInt(history, "width"),
             height = ReadInt(history, "height"),
             resetCount = ReadInt(history, "resetCount"),
-            validFrameCount = ReadInt(history, "validFrameCount"),
+            frameSerial = ReadInt(history, "frameSerial"),
             bufferIndex = ReadInt(history, "bufferIndex"),
             readSlot = ReadInt(history, "readSlot"),
             writeSlot = ReadInt(history, "writeSlot"),
-            resourceGeneration = ReadInt(history, "resourceGeneration"),
             slices = ReadInt(history, "slices"),
             colorPyramidMipCount = ReadInt(history, "colorPyramidMipCount"),
-            depthPyramidMipCount = ReadInt(history, "depthPyramidMipCount"),
+            depthPyramidMipCount = ReadDepthPyramidMipCount(history),
             hasValidHistory = ReadBool(history, "hasValidHistory"),
             resourcesAllocated = ReadBool(history, "resourcesAllocated"),
             depthPyramidWidth = ReadDepthPyramidDimension(history, "width"),
             depthPyramidHeight = ReadDepthPyramidDimension(history, "height"),
         };
+    }
+
+    static int ReadDepthPyramidMipCount(object history)
+    {
+        var info = history?.GetType().GetProperty("depthPyramidInfo", InstanceFlags)?.GetValue(history);
+        if (info == null)
+            return 0;
+        return (int)info.GetType().GetField("mipLevelCount").GetValue(info);
     }
 
     static int ReadDepthPyramidDimension(object history, string dimension)
@@ -1048,11 +1055,10 @@ public static class ScreenSpaceLightingT4Verification
         public int width;
         public int height;
         public int resetCount;
-        public int validFrameCount;
+        public int frameSerial;
         public int bufferIndex;
         public int readSlot;
         public int writeSlot;
-        public int resourceGeneration;
         public int slices;
         public int colorPyramidMipCount;
         public int depthPyramidMipCount;
