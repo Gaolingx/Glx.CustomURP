@@ -1416,6 +1416,13 @@ namespace UnityEngine.Rendering.Universal
 
         static readonly int s_AmbientOcclusionParamID = Shader.PropertyToID("_AmbientOcclusionParam");
 
+        // Refraction material bindings live on the same globals as the packet owned by the binding
+        // pass in Runtime/RendererFeatures. Keep these names in sync with that pass.
+        static readonly int s_RefractionParamsID = Shader.PropertyToID("_SslRefractionParams");
+        static readonly int s_RefractionProbeCountID = Shader.PropertyToID("_SslRefractionProbeCount");
+        static readonly int s_RefractionColorPyramidID = Shader.PropertyToID("_SslRefractionColorPyramid");
+        static readonly int s_RefractionDepthTextureID = Shader.PropertyToID("_SslRefractionDepthTexture");
+
         static void ClearRenderingState(CommandBuffer cmd)
         {
             using var profScope = new ProfilingScope(null, Profiling.clearRenderingState);
@@ -1444,6 +1451,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceGI);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceSSR);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ScreenSpaceTransparentSSR);
+            // Refraction also binds the previous camera's color pyramid and proxy table; reset the
+            // whole material-facing set, not only the keyword, for cameras that never run the pass.
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.RefractionKeyword);
+            cmd.SetGlobalVector(s_RefractionParamsID, Vector4.zero);
+            cmd.SetGlobalInt(s_RefractionProbeCountID, 0);
+            cmd.SetGlobalTexture(s_RefractionColorPyramidID, Texture2D.blackTexture);
+            cmd.SetGlobalTexture(s_RefractionDepthTextureID, Texture2D.blackTexture);
             cmd.SetGlobalVector(s_AmbientOcclusionParamID, Vector4.zero);
         }
 

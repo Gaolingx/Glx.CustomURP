@@ -160,6 +160,8 @@ namespace UnityEngine.Rendering.Universal
             DisableMaterialBinding(cmd);
         }
 
+        // The per-camera clear in ScriptableRenderer resets the same globals for cameras that never
+        // reach this pass; keep both lists in sync.
         static void DisableMaterialBinding(CommandBuffer cmd)
         {
             if (cmd == null)
