@@ -1,6 +1,6 @@
 # 07-EditorMVPass 交接：Editor 运动矢量补齐（GTAO 相机拖影）
 
-> 状态：**实施完成 / 自动验收 PASS\***（AC-9 真实 Scene View 人工确认待仓库所有者）
+> 状态：**第一阶段 PASS（AC-9 已由仓库所有者确认）**；第二阶段（SSL-only 共享 Editor MV）实施中
 > 建立：2026-11-18；实施与验证：2026-11-18
 > 基线：`2291aa0`（调研文档提交）
 > 结果入口：[Report.md](Report.md)、[KnownDifferences.md](KnownDifferences.md)、`validation/`
@@ -425,6 +425,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/Done/01-ScreenSpac
 
 ### 7.3 人工 Scene View 验收（最终闸门）
 
+**结果：2026-11-18 仓库所有者确认通过。** 真实 Scene View 中拖拽/滚轮缩放，GTAO 的 AO 轮廓跟随几何，无旧姿态拖影；关闭 temporal 后画面变噪但同样无拖影。GTAO 侧 AC-9 闭环。
+
+同一次验收发现：只开 SSGI/SSR、不开 GTAO 时，SSR 反射仍滞后；该问题转入第二阶段（见 §12）。
+
+原始步骤保留如下：
+
 1. T3 场景 + 含 GTAO 的 renderer，`Temporal Accumulation = on`；
 2. 按住右键旋转、滚轮缩放 5–10 秒：球体接触处与地面不得出现 AO 拖影；
 3. 对照：关闭 temporal 后图像变噪但同样不得有拖影；
@@ -481,7 +487,7 @@ PLAN/Done/07-EditorMVPass/
 | 首帧零 motion | 域重载后 1 帧无累积 | 首帧只记录 VP；GTAO 首帧本来也是 CopyHistory，无可见影响 |
 | 相机 cut（F 聚焦） | 历史采样越界被 clamp | 现有 `motionVecWeighting/velWeight` 在大运动时拒绝历史（`GTAOTemporalDenoise.compute:99-118`），需在 E2E 增加一条 cut 用例确认 |
 | Editor 下无物体运动 | 动画/移动物体 AO 滞后 | KnownDifferences 明确；本轮非目标 |
-| 只开 SSL 的 Scene View | SSGI/SSR 仍有同类问题 | 本轮不修；可在后续把 MV pass 抽到 `ScreenSpaceCommon` 共享，需要每渲染去重与 per-camera 状态 |
+| 只开 SSL 的 Scene View | 第一阶段未修；第二阶段把 MV pass 抽到 `ScreenSpaceCommon` 共享，由 SSL feature 自己入队 | 由 07 第二阶段处理；见 §12 |
 | XR | Editor pass 未按眼处理 | 仅在 `viewCount == 1` 时执行；Scene View 不启用 XR |
 
 ---
@@ -492,7 +498,7 @@ PLAN/Done/07-EditorMVPass/
 2. AC-1…AC-9 全部有证据并通过（AC-9 由仓库所有者确认）；
 3. `Report.md` 包含：根因、参考实现差异、A/B 数据、T12 差异说明、限制；
 4. `PLAN/ACCEPTANCE.md` 与 `01/HANDOFF.md` 已更新；
-5. 目录移动到 `PLAN/Done/07-EditorMVPass`，状态行更新为 PASS/PASS*；
+5. ~~目录移动到 `PLAN/Done/07-EditorMVPass`~~ → 等第二阶段完成后一并移动；第一阶段 AC-9 已确认。
 6. 工作区干净，`.rdc` 预算与设置恢复报告无异常。
 
 ---
@@ -502,4 +508,41 @@ PLAN/Done/07-EditorMVPass/
 1. ~~真实 Scene View 每次重绘是否推进 `Time.frameCount`~~ → **同帧多姿态确实存在**（T12 MotionBlur 紧循环；E2E 首版 frameCount 重复）。T4 与本轮一起交付。
 2. ~~GTAO Debug 视图是否足以作为 E2E 指标~~ → 足以。`AmbientOcclusion` 视图为单通道，静止相机两路逐像素一致；运动帧与原生 MV 路径逐帧一致。
 3. ~~T5 pipeline renderer 是否含 GTAO~~ → 三模式均含；E2E 断言 `gtaoFound = true`、`temporalAccumulation = true`。
-4. 无 ACD 判定是否抽到 `ScreenSpaceCommon` → 暂不抽。当前只有 GTAO 需要；SSL-only 场景留待后续轮次（见 KnownDifferences）。
+4. ~~无 ACD 判定是否抽到 `ScreenSpaceCommon`~~ → 第二阶段抽取：共享 `ScreenSpaceEditorCameraMotionPass`，由 GTAO 与 SSL 各自入队。
+
+---
+
+## 12. 第二阶段：SSL-only Scene View 的共享 Editor MV
+
+### 12.1 现象与根因
+
+用户报告：SSR 开启（Approximation）后在 Scene View 滚轮缩放，反射滞后 1~N 帧。
+
+- URP 只为带 `UniversalAdditionalCameraData` 的相机写 motion；Scene View 的 `MotionVectorRenderPass` 直接返回，目标保持清黑（`MotionVectorRenderPass.cs:79-89`）。
+- 第一阶段的补写 pass 由 GTAO feature 入队，且 GTAO 在 `URP-HighFidelity-Renderer.asset` 中 `m_Active: 0`；T3 Profile 只有 SSGI/SSR/Refraction，所以 pass 不执行。
+- SSR Approximation 用命中像素 motion 把上一帧颜色金字塔重投影到当前帧（`ScreenSpaceReflections.compute:182-202`）；motion 为 0 时等价于按当前 UV 直接取上一帧，相机移动导致反射“贴在屏幕上”。
+
+### 12.2 方案
+
+| 文件 | 变更 |
+|---|---|
+| `Runtime/RendererFeatures/ScreenSpaceCommon/ScreenSpaceEditorCameraMotionPass.cs` | 新增（从 GTAO 迁移）；事件 203；per-camera `CameraHistoryStore`；首帧只记录；`#if UNITY_EDITOR` |
+| `Shaders/Utils/ScreenSpaceCommon/EditorCameraMotion.shader` | 新增；pass 逻辑从 `GTAODebug.shader` 的 pass 1 迁移 |
+| `Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingRendererFeature.cs` | SSGI 或 SSR 启用且无 ACD 时入队共享 pass |
+| `Runtime/RendererFeatures/GroundTruthAmbientOcclusion/GroundTruthAmbientOcclusionRendererFeature.cs` | 改用共享 pass；删除 GTAO history 的 editor-motion 字段 |
+| `Shaders/Utils/GroundTruthAmbientOcclusion/GTAODebug.shader` | 删除已迁移的 motion pass |
+| 测试 / E2E | 迁移 GTAO 用例；新增 SSL-only enqueue/gating 用例；E2E 反射类型改为新 pass |
+
+关键取舍：
+
+- 不照搬 UnitySSReflectionURP 的“SceneView 关闭 temporal”：本项目的反射本身依赖上一帧颜色金字塔，关历史等于没有反射。
+- 不把 prev VP 放在 pass 实例字段：每相机历史仍在 `CameraHistoryStore`。
+- GTAO 与 SSL 同时启用时各自持有一个 pass 实例，允许重复一次全屏绘制；两次输出相同，避免引入需要“渲染边界”的静态去重状态。
+
+### 12.3 验收
+
+- SSL-only + 无 ACD：共享 pass 入队；motion 均值 > 0；SSR 反射在滚轮/推拉序列中跟随几何。
+- 有 ACD：不入队，原生相机+物体 MV 保留。
+- GTAO-only：第一阶段 E2E 结果不变。
+- Player：不受影响（全部 `#if UNITY_EDITOR`）。
+- 结果与证据在 `Report.md` §8 与 `validation/` 更新。

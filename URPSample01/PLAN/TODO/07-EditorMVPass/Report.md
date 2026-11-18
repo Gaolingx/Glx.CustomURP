@@ -3,7 +3,7 @@
 > 日期：2026-11-18
 > 基线：`2291aa0` 之后的工作区（本报告与代码同次提交）
 > 环境：Unity 2022.3.62f1 / URP 14.0.12（fork）/ D3D11 / NVIDIA GeForce RTX 5060 Ti
-> 状态：**自动验收通过（PASS*）**；AC-9（真实 Scene View 人工拖拽）待仓库所有者确认。
+> 状态：**自动验收与人工 Scene View 验收均通过（PASS）**。AC-9 由仓库所有者于 2026-11-18 确认：GTAO 的 Scene View 拖影已消除。
 
 ---
 
@@ -137,7 +137,13 @@ E2E 设计要点：
 
 逐张数值（meanAbs / maxAbs / >5/255 像素比例）与新旧 SHA-256 均在 `T12/HashDiff.json`。T12 自身判定全部通过，未放宽任何阈值。
 
-### 5.4 T0.2：同帧多姿态是否真实存在
+### 5.4 人工 Scene View 验收（AC-9）
+
+2026-11-18 仓库所有者确认：在真实 Scene View 中拖拽、滚轮缩放，GTAO 的 AO 不再残留旧姿态的拖影；关掉 temporal 后画面变噪但同样无残影。GTAO 侧的 07 轮验收闭环。
+
+同一次验收暴露了下一项独立缺陷：**只开 SSL（SSGI/SSR）、不开 GTAO 时，Scene View 仍无运动矢量，SSR 在滚轮缩放时反射滞后**。该问题已登记为本轮第二阶段（见 §8），修复仍复用同一个 Editor MV pass。
+
+### 5.5 T0.2：同帧多姿态是否真实存在
 
 - **存在**：T12 `MotionBlur` 用例就是一个真实路径——同一 `Time.frameCount` 内 8 次手动 `Render()` 并逐次旋转相机；E2E 第一版也观测到 `frameCount` 重复（2 次、3 次同帧渲染）。
 - 真实 Scene View 拖拽通常每次重绘推进一个 editor frame，但暂停态、脚本/工具手动渲染、以及同一帧内多次重绘都会命中。
@@ -157,7 +163,7 @@ E2E 设计要点：
 | AC-6 无回归 | ✅ | EditMode 173/173、PlayMode 6/6、T12 34/34/35；12 张差异逐条解释 |
 | AC-7 金字塔 | ✅ | 单测覆盖同帧同姿态/姿态变化；T12 静态用例哈希不变 |
 | AC-8 工程卫生 | ✅ | 设置恢复 true、exit 0；工作区只含预期文件；无新增编译错误 |
-| AC-9 人工验收 | ⏳ 待所有者 | 需在真实 Scene View 拖拽确认；命令与观察点见 HANDOFF §7.3 |
+| AC-9 人工验收 | ✅ | 仓库所有者 2026-11-18 确认：真实 Scene View 拖拽/滚轮缩放无 GTAO 残影；观察点见 HANDOFF §7.3 |
 
 ---
 
@@ -170,3 +176,27 @@ E2E 设计要点：
 - 只开 SSL（不开 GTAO）的 Scene View 仍没有 MV；本轮只修 GTAO。
 - XR 多视图不补。
 - 若 AC-9 在真实 Scene View 中仍出现残影，先检查 renderer 是否实际启用了 GTAO temporal 与本 pass（`s_EditorExecuteCount/DrawCount`），再按 HANDOFF §8 的回退路径处理。
+
+---
+
+## 8. 第二阶段：SSL-only Scene View 的共享 Editor MV（实施中）
+
+AC-9 的人工验收同时确认了 `KnownDifferences.md` 第 3 条的独立问题：GTAO feature 关闭、只开 SSGI/SSR 时，Scene View 仍然没有 motion，SSR（Approximation 与 PBR）用零 motion 采样上一帧颜色金字塔，滚轮缩放时反射拖尾。
+
+本阶段的修复原则与 07 第一阶段一致——**补 MV，不关 temporal**：
+
+| 项 | 方案 |
+|---|---|
+| 共享 pass | 把 `GroundTruthAmbientOcclusionEditorMotionPass` 抽到 `ScreenSpaceCommon/ScreenSpaceEditorCameraMotionPass`，事件仍为 203 |
+| 状态 | pass 自己持有 per-camera `Matrix4x4` 历史（`CameraHistoryStore`），不再依赖 GTAO history |
+| 入队 | SSL feature 在 SSGI 或 SSR 启用、且相机无 `UniversalAdditionalCameraData` 时入队；GTAO 继续按自身开关入队 |
+| 重复绘制 | 两个 feature 同时启用时允许各画一次；两次写出的相机 MV 相同，开销为一次全屏 depth 采样（editor-only） |
+| Shader | 新增 `ScreenSpaceCommon/EditorCameraMotion.shader`，逻辑照搬已验证的 GTAO pass 1；不引入资产序列化 churn |
+| PBR 附加 | 相机 MV 修好后，PBR 的历史 UV 重投影正确；`SSL_PREV_INV_VIEW_PROJ` 仍走“无 ACD 退回当前 VP”，作为后续项记录 |
+
+验收口径：
+
+- SSL-only + 无 ACD：motion 纹理均值 > 0，SSR Approximation 在滚轮/推拉序列中反射跟随几何；
+- 有 ACD 相机：不入队共享 pass，URP 原生相机+物体 MV 不被覆盖；
+- GTAO-only 与 GTAO+SSL：GTAO 的 E2E 结果保持不变（逐帧 `meanAbs = 0` vs 原生 MV）；
+- Player 行为不变（所有新增代码在 `#if UNITY_EDITOR`）。
