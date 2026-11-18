@@ -46,14 +46,15 @@ GrassVertexDepthNormalOutput DepthNormalOnlyVertex(GrassVertexDepthNormalInput v
 half4 DepthNormalOnlyFragment(GrassVertexDepthNormalOutput input) : SV_TARGET
 {
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);
+    // Both encodings must carry the same billboard normal: the finite-difference normal of the view
+    // direction is the geometric quad normal, while input.normal is the source mesh normal.
+    half3 normalWS = half3(normalize(cross(ddy(input.viewDirWS), ddx(input.viewDirWS))));
     #if defined(_GBUFFER_NORMALS_OCT)
-        float3 normalWS = normalize(input.normal);
         float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on Nintendo Switch.
         float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
         half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
         return half4(packedNormalWS, 0.0);
     #else
-        half3 normalWS = half3(normalize(cross(ddy(input.viewDirWS), ddx(input.viewDirWS))));
         return half4(normalWS, 0.0);
     #endif
 }

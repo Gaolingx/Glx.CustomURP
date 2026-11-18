@@ -448,18 +448,19 @@ PY
 
 **限制**：Editor 下不补物体运动；同姿态物体移动 + 同帧重渲染仍复用金字塔；SSL-only Scene View 与 XR 不在本轮范围。见 `KnownDifferences.md`。
 
-## 14. 08-AccurateNormalsFixed（2026-11-19，计划阶段）
+## 14. 08-AccurateNormalsFixed（2026-11-19）
 
 > 范围：Deferred + `Accurate G-buffer normals` 下屏幕空间光照（GTAO / SSGI / SSR）的噪点与闪烁；octahedron 法线路径首次进入验证矩阵。
-> 计划：[PLAN/TODO/08-Accurate_normals_fixed/HANDOFF.md](TODO/08-Accurate_normals_fixed/HANDOFF.md)
-> 结论：**计划中**（问题描述、落地方案、验收标准已提交；T0 归因未开始）。
+> 计划与结果：[PLAN/TODO/08-Accurate_normals_fixed/HANDOFF.md](TODO/08-Accurate_normals_fixed/HANDOFF.md)、[Report.md](TODO/08-Accurate_normals_fixed/Report.md)
+> 结论：**根因已确认并修复，自动验收通过**。
 
-| 项 | 状态 | 证据 |
+| 交付 | 结果 | 证据 |
 |---|---|---|
-| 现象与图像量化 | 已定稿 | `HANDOFF.md` §1.2（背景逐像素一致；地面高频能量 0 → 6–11/255；均值 −9…−16/255） |
-| 覆盖缺口 | 已确认 | 全部 renderer asset `m_AccurateGbufferNormals: 0`；P3-SSR `normalsOctKeyword=false` |
-| T0 复现资产 / 归因 | 待执行 | — |
-| T1 修复 | 待执行 | — |
-| T2 回归覆盖 / T3 证据 | 待执行 | — |
+| 根因 | 不透明 `DepthNormals` pass 缺少 `_GBUFFER_NORMALS_OCT`，prepass 写 signed 法线、SSL/GTAO 按 oct 解码 | `Attribution.before.json`；`SsgiRaw`/`GtaoAO` 调试图 |
+| 修复 | 14 个 shader/HLSL 补齐 oct 关键字/编码（Lit、SimpleLit、Particles、Terrain、SpeedTree、WavingGrass） | 本轮提交 diff |
+| AC-1/2/3 | oct vs signed 亮度差 ≤ 1e-5、地面高频差 1.2e-4、帧间差 ≤ 8e-6；`passed=true` | `validation/Attribution/Attribution.json` |
+| AC-4 | 三个 oct 关键字全部启用 + 关键字/解码契约测试 | `validation/Attribution/Attribution.json`、`AccurateGbufferNormalsTests` |
+| AC-5 | EditMode 182/182；T12 回放见 `validation/T12/` | `validation/EditMode/UnityEditModeTests.xml` |
+| AC-6 | 性能回归未测（只加变体，无额外 pass），列为 follow-up | `Report.md` §6 |
 
-**当前判定**：现象**不属于** accurate normals 的预期表现；在 T0 归因完成前不修改 `Accurate G-buffer normals` 的现有行为，也不以关闭效果规避。
+**判定**：现象不属于 accurate normals 的预期表现；修复不触碰 signed 路径的算法，透明 prepass 按原设计保持 signed。

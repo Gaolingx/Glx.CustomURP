@@ -228,6 +228,10 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl"
+            // The deferred depth-normal prepass shares GBuffer2 with the GBuffer pass, so it
+            // must use the same normal encoding the deferred lighting and the screen-space effects decode.
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitDepthNormalsPass.hlsl"
             ENDHLSL
         }

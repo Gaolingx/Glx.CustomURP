@@ -100,6 +100,10 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             #define _ALPHATEST_ON
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
 
+            // The deferred depth-normal prepass shares GBuffer2 with the GBuffer pass, so it must use
+            // the same normal encoding the deferred lighting and the screen-space effects decode.
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing

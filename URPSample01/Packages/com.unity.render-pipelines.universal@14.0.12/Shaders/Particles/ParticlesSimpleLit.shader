@@ -314,6 +314,9 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
 
             // -------------------------------------
             // Unity defined keywords
+            // The deferred depth-normal prepass shares GBuffer2 with the GBuffer pass, so it must use
+            // the same normal encoding the deferred lighting and the screen-space effects decode.
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"

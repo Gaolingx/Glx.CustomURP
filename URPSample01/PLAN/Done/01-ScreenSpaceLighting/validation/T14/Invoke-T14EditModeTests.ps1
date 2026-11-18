@@ -30,7 +30,8 @@ $filters = @(
     "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests",
     "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests",
     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests",
-    "UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests"
+    "UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests",
+    "UnityEditor.Rendering.Universal.Tests.AccurateGbufferNormalsTests"
 )
 
 & $wrapper `

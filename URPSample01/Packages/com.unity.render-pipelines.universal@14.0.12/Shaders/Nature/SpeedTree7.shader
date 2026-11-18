@@ -220,6 +220,9 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma shader_feature_local EFFECT_BUMP
 
             #define ENABLE_WIND
+            // The deferred depth-normal prepass shares GBuffer2 with the GBuffer pass, so it
+            // must use the same normal encoding the deferred lighting and the screen-space effects decode.
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"

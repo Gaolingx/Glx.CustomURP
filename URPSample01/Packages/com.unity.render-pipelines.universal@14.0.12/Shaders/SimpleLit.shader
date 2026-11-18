@@ -334,6 +334,9 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             // -------------------------------------
             // Unity defined keywords
+            // The deferred depth-normal prepass shares GBuffer2 with the GBuffer pass, so it must use
+            // the same normal encoding the deferred lighting and the screen-space effects decode.
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 
             // Universal Pipeline keywords

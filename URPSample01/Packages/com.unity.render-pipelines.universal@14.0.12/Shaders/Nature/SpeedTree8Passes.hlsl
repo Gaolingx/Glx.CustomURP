@@ -582,10 +582,18 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     #endif
 
     #if defined(EFFECT_BUMP)
-        float3 normalWS = TransformTangentToWorld(normalTs, half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz));
-        return half4(NormalizeNormalPerPixel(normalWS), 0.0h);
+        float3 bumpNormalWS = TransformTangentToWorld(normalTs, half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz));
+        half3 normalWS = NormalizeNormalPerPixel(bumpNormalWS);
     #else
-        return half4(NormalizeNormalPerPixel(input.interpolated.normalWS), 0.0h);
+        half3 normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS);
+    #endif
+
+    #if defined(_GBUFFER_NORMALS_OCT)
+        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
+        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
+        return half4(PackFloat2To888(remappedOctNormalWS), 0.0);          // values between [ 0,  1]
+    #else
+        return half4(normalWS, 0.0);
     #endif
 }
 

@@ -1,0 +1,630 @@
+{
+    "utcTimestamp": "2026-11-18T18:05:47.8068168Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "rendererPath": "Assets/Tests/ScreenSpaceLighting/Renderers/SslT5DeferredRenderer.asset",
+    "scenePath": "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity",
+    "runtimeAccurateNormals": false,
+    "completed": true,
+    "passed": true,
+    "settingsRestored": true,
+    "luminanceTolerance": 0.003921568859368563,
+    "highFrequencyTolerance": 0.0019607844296842815,
+    "frameDeltaTolerance": 0.0019607844296842815,
+    "error": "",
+    "runs": [
+        {
+            "name": "Gtao_Signed",
+            "gtao": true,
+            "volume": false,
+            "accurateNormals": false,
+            "accurateNormalsRuntime": false,
+            "sha256": "392fe909a7116fc0151cec9b7412d4f528a957aa5bc05e43f3ab998a255de5f1",
+            "meanLuminance": 0.2576238214969635,
+            "highFrequency": 0.00180240988265723,
+            "highFrequencyBottomHalf": 0.0023305451031774284,
+            "frameDelta": 0.000002179780267397291,
+            "luminanceDeltaVsCounterpart": 0.000006139278411865234,
+            "highFrequencyDeltaVsCounterpart": 0.00012234016321599483,
+            "images": [
+                "Attribution_Gtao_Signed.png",
+                "Attribution_Gtao_Signed_GtaoAO.png",
+                "Attribution_Gtao_Signed_GtaoRaw.png"
+            ],
+            "keywords": [
+                {
+                    "asset": "GTAO",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOSpatialDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOTemporalDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOCopyHistory",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOBlurAndUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceGlobalIllumination",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "TemporalFilter",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DiffuseDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "BilateralUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceReflections",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ReflectionDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                }
+            ],
+            "issues": []
+        },
+        {
+            "name": "Gtao_Oct",
+            "gtao": true,
+            "volume": false,
+            "accurateNormals": true,
+            "accurateNormalsRuntime": true,
+            "sha256": "c093017f8f1b6c766b4dcf88ec2f9c24d4a14dd208e424966356cc03e14ece6e",
+            "meanLuminance": 0.25762996077537539,
+            "highFrequency": 0.0017667507054284216,
+            "highFrequencyBottomHalf": 0.0022082049399614336,
+            "frameDelta": 0.0000021185155674174895,
+            "luminanceDeltaVsCounterpart": 0.000006139278411865234,
+            "highFrequencyDeltaVsCounterpart": 0.00012234016321599483,
+            "images": [
+                "Attribution_Gtao_Oct.png",
+                "Attribution_Gtao_Oct_GtaoAO.png",
+                "Attribution_Gtao_Oct_GtaoRaw.png"
+            ],
+            "keywords": [
+                {
+                    "asset": "GTAO",
+                    "gtaoOct": true,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOSpatialDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOTemporalDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOCopyHistory",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOBlurAndUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceGlobalIllumination",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "TemporalFilter",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DiffuseDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "BilateralUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceReflections",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ReflectionDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                }
+            ],
+            "issues": []
+        },
+        {
+            "name": "Ssl_Signed",
+            "gtao": false,
+            "volume": true,
+            "accurateNormals": false,
+            "accurateNormalsRuntime": false,
+            "sha256": "74215895db14076917a6cb9e0a54ff4f03e57fe6dbbe47bb6309b1cf0d711d85",
+            "meanLuminance": 0.28306177258491518,
+            "highFrequency": 0.002117408672347665,
+            "highFrequencyBottomHalf": 0.002522143069654703,
+            "frameDelta": 2.2348247341597017e-7,
+            "luminanceDeltaVsCounterpart": 0.00000432133674621582,
+            "highFrequencyDeltaVsCounterpart": 0.00012243748642504215,
+            "images": [
+                "Attribution_Ssl_Signed.png",
+                "Attribution_Ssl_Signed_SsgiRaw.png",
+                "Attribution_Ssl_Signed_SsgiDenoised.png",
+                "Attribution_Ssl_Signed_SsrRaw.png",
+                "Attribution_Ssl_Signed_SsrWeight.png"
+            ],
+            "keywords": [
+                {
+                    "asset": "GTAO",
+                    "gtaoOct": true,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOSpatialDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOTemporalDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOCopyHistory",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOBlurAndUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceGlobalIllumination",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "TemporalFilter",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DiffuseDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "BilateralUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceReflections",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ReflectionDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                }
+            ],
+            "issues": []
+        },
+        {
+            "name": "Ssl_Oct",
+            "gtao": false,
+            "volume": true,
+            "accurateNormals": true,
+            "accurateNormalsRuntime": true,
+            "sha256": "b76cc49629ec16ec040576a242367581a10bf73eaab4eeddf8005f870681c268",
+            "meanLuminance": 0.2830660939216614,
+            "highFrequency": 0.0020828687120229007,
+            "highFrequencyBottomHalf": 0.002399705583229661,
+            "frameDelta": 2.2798400323154056e-7,
+            "luminanceDeltaVsCounterpart": 0.00000432133674621582,
+            "highFrequencyDeltaVsCounterpart": 0.00012243748642504215,
+            "images": [
+                "Attribution_Ssl_Oct.png",
+                "Attribution_Ssl_Oct_SsgiRaw.png",
+                "Attribution_Ssl_Oct_SsgiDenoised.png",
+                "Attribution_Ssl_Oct_SsrRaw.png",
+                "Attribution_Ssl_Oct_SsrWeight.png"
+            ],
+            "keywords": [
+                {
+                    "asset": "GTAO",
+                    "gtaoOct": true,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOSpatialDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOTemporalDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOCopyHistory",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOBlurAndUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceGlobalIllumination",
+                    "gtaoOct": false,
+                    "ssgiOct": true,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "TemporalFilter",
+                    "gtaoOct": false,
+                    "ssgiOct": true,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DiffuseDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": true,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "BilateralUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceReflections",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": true
+                },
+                {
+                    "asset": "ReflectionDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": true,
+                    "ssrOct": false
+                }
+            ],
+            "issues": []
+        },
+        {
+            "name": "Both_Signed",
+            "gtao": true,
+            "volume": true,
+            "accurateNormals": false,
+            "accurateNormalsRuntime": false,
+            "sha256": "6c425a086566b1185533fa2585a992f604721d6674b9a53b8bd0f03d8bc62980",
+            "meanLuminance": 0.28127843141555788,
+            "highFrequency": 0.0020709990058094265,
+            "highFrequencyBottomHalf": 0.0024811173789203169,
+            "frameDelta": 0.00000836082108435221,
+            "luminanceDeltaVsCounterpart": 0.000009745359420776367,
+            "highFrequencyDeltaVsCounterpart": 0.00012331991456449032,
+            "images": [
+                "Attribution_Both_Signed.png",
+                "Attribution_Both_Signed_GtaoAO.png",
+                "Attribution_Both_Signed_GtaoRaw.png",
+                "Attribution_Both_Signed_SsgiRaw.png",
+                "Attribution_Both_Signed_SsgiDenoised.png",
+                "Attribution_Both_Signed_SsrRaw.png",
+                "Attribution_Both_Signed_SsrWeight.png"
+            ],
+            "keywords": [
+                {
+                    "asset": "GTAO",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOSpatialDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOTemporalDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOCopyHistory",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOBlurAndUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceGlobalIllumination",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "TemporalFilter",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DiffuseDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "BilateralUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceReflections",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ReflectionDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                }
+            ],
+            "issues": []
+        },
+        {
+            "name": "Both_Oct",
+            "gtao": true,
+            "volume": true,
+            "accurateNormals": true,
+            "accurateNormalsRuntime": true,
+            "sha256": "db7950788b1e346c3b9059f78faec06f88e5795b55b6466872eec6a59feea7fd",
+            "meanLuminance": 0.28128817677497866,
+            "highFrequency": 0.002038220874965191,
+            "highFrequencyBottomHalf": 0.0023577974643558265,
+            "frameDelta": 0.00000808075401437236,
+            "luminanceDeltaVsCounterpart": 0.000009745359420776367,
+            "highFrequencyDeltaVsCounterpart": 0.00012331991456449032,
+            "images": [
+                "Attribution_Both_Oct.png",
+                "Attribution_Both_Oct_GtaoAO.png",
+                "Attribution_Both_Oct_GtaoRaw.png",
+                "Attribution_Both_Oct_SsgiRaw.png",
+                "Attribution_Both_Oct_SsgiDenoised.png",
+                "Attribution_Both_Oct_SsrRaw.png",
+                "Attribution_Both_Oct_SsrWeight.png"
+            ],
+            "keywords": [
+                {
+                    "asset": "GTAO",
+                    "gtaoOct": true,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOSpatialDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOTemporalDenoise",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOCopyHistory",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "GTAOBlurAndUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DepthPyramid",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceGlobalIllumination",
+                    "gtaoOct": false,
+                    "ssgiOct": true,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "TemporalFilter",
+                    "gtaoOct": false,
+                    "ssgiOct": true,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "DiffuseDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": true,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "BilateralUpsample",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": false
+                },
+                {
+                    "asset": "ScreenSpaceReflections",
+                    "gtaoOct": false,
+                    "ssgiOct": false,
+                    "ssrOct": true
+                },
+                {
+                    "asset": "ReflectionDenoiser",
+                    "gtaoOct": false,
+                    "ssgiOct": true,
+                    "ssrOct": false
+                }
+            ],
+            "issues": []
+        }
+    ]
+}

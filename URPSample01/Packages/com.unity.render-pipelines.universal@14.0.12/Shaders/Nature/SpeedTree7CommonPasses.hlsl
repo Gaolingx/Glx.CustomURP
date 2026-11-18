@@ -269,7 +269,15 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
         half3 normalWS = input.normalWS.xyz;
     #endif
 
-    return half4(NormalizeNormalPerPixel(normalWS), 0.0);
+    normalWS = NormalizeNormalPerPixel(normalWS);
+
+    #if defined(_GBUFFER_NORMALS_OCT)
+        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
+        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
+        return half4(PackFloat2To888(remappedOctNormalWS), 0.0);          // values between [ 0,  1]
+    #else
+        return half4(normalWS, 0.0);
+    #endif
 }
 
 #endif

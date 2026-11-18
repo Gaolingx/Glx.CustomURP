@@ -253,6 +253,9 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
 
             #define ENABLE_WIND
             #define EFFECT_BACKSIDE_NORMALS
+            // The deferred depth-normal prepass shares GBuffer2 with the GBuffer pass, so it
+            // must use the same normal encoding the deferred lighting and the screen-space effects decode.
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"
