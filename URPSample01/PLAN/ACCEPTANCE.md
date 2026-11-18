@@ -447,3 +447,19 @@ PY
 **口径修订**：计划的 AC-3 使用“与 12 帧收敛参考的差值 ≤ 0.002”。实测 URP 原生 MV 路径同样偏离该参考约 `0.035`（时间累积的固定反馈延迟），该指标无法区分重投影错误。验收改为“与原生 MV 路径逐帧一致（`meanAbs ≤ 0.001`） + 抑制后显著劣化”，并在 `Report.md` §5.1 记录原因与原始数据。
 
 **限制**：Editor 下不补物体运动；同姿态物体移动 + 同帧重渲染仍复用金字塔；SSL-only Scene View 与 XR 不在本轮范围。见 `KnownDifferences.md`。
+
+## 14. 08-AccurateNormalsFixed（2026-11-19，计划阶段）
+
+> 范围：Deferred + `Accurate G-buffer normals` 下屏幕空间光照（GTAO / SSGI / SSR）的噪点与闪烁；octahedron 法线路径首次进入验证矩阵。
+> 计划：[PLAN/TODO/08-Accurate_normals_fixed/HANDOFF.md](TODO/08-Accurate_normals_fixed/HANDOFF.md)
+> 结论：**计划中**（问题描述、落地方案、验收标准已提交；T0 归因未开始）。
+
+| 项 | 状态 | 证据 |
+|---|---|---|
+| 现象与图像量化 | 已定稿 | `HANDOFF.md` §1.2（背景逐像素一致；地面高频能量 0 → 6–11/255；均值 −9…−16/255） |
+| 覆盖缺口 | 已确认 | 全部 renderer asset `m_AccurateGbufferNormals: 0`；P3-SSR `normalsOctKeyword=false` |
+| T0 复现资产 / 归因 | 待执行 | — |
+| T1 修复 | 待执行 | — |
+| T2 回归覆盖 / T3 证据 | 待执行 | — |
+
+**当前判定**：现象**不属于** accurate normals 的预期表现；在 T0 归因完成前不修改 `Accurate G-buffer normals` 的现有行为，也不以关闭效果规避。
