@@ -69,9 +69,10 @@ Deferred + `Accurate G-buffer normals` 的地面噪点/闪烁**不是该开关�
 | 项 | 结果 | 证据 |
 |---|---|---|
 | EditMode | 182/182 passed（含新增 2 个契约测试） | `validation/EditMode/UnityEditModeTests.xml` |
+| PlayMode | 6/6 passed | `validation/PlayMode/UnityPlayModeTests.xml` |
 | T12 矩阵（signed 路径） | Forward 34/34、Forward+ 34/34、Deferred 35/35；`completed=true passed=true`，0 issue | `validation/T12/T12Verification.json` |
 | 归因脚本（AC-1/2/3/4） | `completed=true passed=true settingsRestored=true` | `validation/Attribution/Attribution.json` |
-| 设置恢复 | `allSettingsRestored=true` | `validation/EditMode/UnityEditModeTestsSettingsRestoration.json` |
+| 设置恢复 | `allSettingsRestored=true` | `validation/EditMode/UnityEditModeTestsSettingsRestoration.json`、`validation/PlayMode/UnityPlayModeTestsSettingsRestoration.json` |
 
 ## 6. Known differences / limits
 

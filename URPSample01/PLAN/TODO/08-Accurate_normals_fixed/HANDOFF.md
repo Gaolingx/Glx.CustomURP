@@ -218,4 +218,5 @@
 | 2026-11-19 | T2 回归 | `AccurateGbufferNormalsTests`（2 个测试）加入 T14 过滤器；归因脚本加阈值判定 | `validation/EditMode/` |
 | 2026-11-19 | 修复后复测 | `completed=true passed=true settingsRestored=true`；`dLuma ≤ 1e-5`、`dHfBottom = 1.2e-4`、`frameDelta ≤ 8e-6` | `validation/Attribution/Attribution.json`、`UnityRun.final.log` |
 | 2026-11-19 | EditMode | 182/182 passed | `validation/EditMode/UnityEditModeTests.xml` |
+| 2026-11-19 | PlayMode | 6/6 passed | `validation/PlayMode/UnityPlayModeTests.xml` |
 | 2026-11-19 | T12 回放 | 结果见 `validation/T12/` | `validation/T12/T12Verification.json` |
