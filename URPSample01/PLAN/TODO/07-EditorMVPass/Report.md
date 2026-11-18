@@ -39,6 +39,8 @@ Edit Mode 下无 `UniversalAdditionalCameraData` 的相机（Scene View 及编�
 
 ## 3. 实现
 
+> 第二阶段把 Editor MV pass 迁移到 `ScreenSpaceCommon/ScreenSpaceEditorCameraMotionPass`，并改由 GTAO/SSL 共享；下表保留第一阶段的原始实现记录，见 §8。
+
 | 文件 | 变更 |
 |---|---|
 | `Runtime/RendererFeatures/GroundTruthAmbientOcclusion/GroundTruthAmbientOcclusionEditorMotionPass.cs` | 新增，Editor-only；事件 `AfterRenderingPrePasses + 3 = 203`（晚于 URP 清屏 202，早于 GTAO 204）；每相机记录上一次渲染的 VP；首帧只记录不绘制 |
@@ -179,7 +181,7 @@ E2E 设计要点：
 
 ---
 
-## 8. 第二阶段：SSL-only Scene View 的共享 Editor MV（实施中）
+## 8. 第二阶段：SSL-only Scene View 的共享 Editor MV（自动验收通过，人工 SSR 验收待确认）
 
 AC-9 的人工验收同时确认了 `KnownDifferences.md` 第 3 条的独立问题：GTAO feature 关闭、只开 SSGI/SSR 时，Scene View 仍然没有 motion，SSR（Approximation 与 PBR）用零 motion 采样上一帧颜色金字塔，滚轮缩放时反射拖尾。
 
@@ -200,3 +202,38 @@ AC-9 的人工验收同时确认了 `KnownDifferences.md` 第 3 条的独立问�
 - 有 ACD 相机：不入队共享 pass，URP 原生相机+物体 MV 不被覆盖；
 - GTAO-only 与 GTAO+SSL：GTAO 的 E2E 结果保持不变（逐帧 `meanAbs = 0` vs 原生 MV）；
 - Player 行为不变（所有新增代码在 `#if UNITY_EDITOR`）。
+
+### 8.1 实施结果
+
+| 文件 | 结果 |
+|---|---|
+| `Runtime/RendererFeatures/ScreenSpaceCommon/ScreenSpaceEditorCameraMotionPass.cs` | 从 GTAO 迁移；自带 per-camera `CameraHistoryStore`；事件 203；首帧只记录；`#if UNITY_EDITOR` |
+| `Shaders/Utils/ScreenSpaceCommon/EditorCameraMotion.shader` | 新增；pass 逻辑与第一阶段逐字一致 |
+| `ScreenSpaceLightingRendererFeature.cs` | SSGI 或 SSR 启用且无 ACD 时入队；Refraction-only 不入队 |
+| `GroundTruthAmbientOcclusionRendererFeature.cs` | 改用共享 pass；GTAO history 的 editor-motion 字段删除 |
+| `GTAODebug.shader` | 删除迁移后的 motion pass |
+| 测试 | 新增 `ScreenSpaceEditorCameraMotionPassTests`（4）与 SSL feature 用例（5）；GTAO 用例迁移 |
+
+### 8.2 验证
+
+| 项 | 结果 | 证据 |
+|---|---|---|
+| EditMode | **180/180**（原 173 + 新增 7） | `validation/Phase2/UnityEditModeTests.Run3.xml` |
+| PlayMode | **6/6** | `validation/Phase2/UnityPlayModeTests.xml` |
+| Editor MV E2E（3 模式） | **全部 passed**；无 ACD vs 原生 MV `meanAbs = 0`、`pixels>0.02 = 0`；draws 22 / first-skip 2（与第一阶段一致） | `validation/Phase2/EditorMotion/Metrics.json`、`Report.json` |
+| SSL-only 入队 | SSR/SSGI 启用时入队；Refraction-only 不入队；有 ACD 不入队 | `ScreenSpaceLightingRendererFeatureTests` |
+| T12 | 见 §8.3 | `validation/Phase2/T12/` |
+| 设置恢复 | 3 份 `*SettingsRestoration.json` 全部 `true` | `validation/Phase2/`、`Phase2/T12/` |
+| 人工 SSR SceneView | ⏳ 待仓库所有者：GTAO 关闭、SSR Approximation、滚轮缩放无反射拖尾 | — |
+
+E2E 的 volume 在 harness 中被关闭，因此 GTAO 是唯一消费者；共享 pass 的 22/2 计数与第一阶段完全相同，证明迁移没有改变逐帧输出。SSL-only 的“写入 motion”证据链为：EditMode 证明 SSL 入队 → E2E 证明同一 pass 的输出与 URP 原生 MV 逐帧一致 → SSR compute 已知按命中像素 motion 采样（`ScreenSpaceReflections.compute:182-202`）。
+
+### 8.3 T12 回归
+
+| 模式 | 结果 |
+|---|---|
+| Forward | 34/34 |
+| Forward+ | 34/34 |
+| Deferred | 35/35 |
+
+进一步比对第二阶段与第一阶段 `validation/T12` 的 85 张 PNG：**85/85 SHA-256 完全相同**。说明共享 pass 的迁移与 SSL 入队没有改变 T12 现有输出（T12 相机走 ACD 原生 MV，或移动用例未启用 SSL temporal）。静态/非相机运动用例无回归。

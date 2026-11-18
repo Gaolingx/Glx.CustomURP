@@ -90,6 +90,77 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
+        public void EditorMotionPassIsEnqueuedWhenSsgiOrSsrNeedsIt()
+        {
+            m_Stack.GetComponent<ScreenSpaceReflection>().enabled.Override(true);
+
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+
+            Assert.Contains(m_Feature.editorMotionPass, m_Renderer.queuedPasses);
+            Assert.AreEqual(203, (int)m_Feature.editorMotionPass.renderPassEvent);
+            Assert.Less(
+                (int)m_Feature.editorMotionPass.renderPassEvent,
+                (int)ScreenSpaceLightingSsgiPass.k_RenderPassEvent,
+                "The supplement must run before SSGI samples the motion texture.");
+            Assert.Less(
+                (int)m_Feature.editorMotionPass.renderPassEvent,
+                (int)ScreenSpaceLightingSsrPass.k_RenderPassEvent,
+                "The supplement must run before SSR samples the motion texture.");
+        }
+
+        [Test]
+        public void EditorMotionPassIsNotEnqueuedForRefractionOnly()
+        {
+            m_Stack.GetComponent<ScreenSpaceRefraction>().enabled.Override(true);
+
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+
+            Assert.IsFalse(m_Renderer.queuedPasses.Contains(m_Feature.editorMotionPass),
+                "Refraction alone does not consume temporal history.");
+        }
+
+        [Test]
+        public void EditorMotionPassSkipsCamerasThatUrpAlreadyHandles()
+        {
+            m_Camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
+            m_Stack.GetComponent<ScreenSpaceGlobalIllumination>().enabled.Override(true);
+
+            InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+
+            Assert.IsFalse(m_Renderer.queuedPasses.Contains(m_Feature.editorMotionPass));
+            Assert.Contains(m_Feature.setupPass, m_Renderer.queuedPasses);
+        }
+
+        [Test]
+        public void EditorMotionPassCanBeSuppressedForBaselineRuns()
+        {
+            m_Stack.GetComponent<ScreenSpaceReflection>().enabled.Override(true);
+            ScreenSpaceEditorCameraMotionPass.s_EditorSuppressEditorMotionPass = true;
+            try
+            {
+                InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
+
+                Assert.IsFalse(m_Renderer.queuedPasses.Contains(m_Feature.editorMotionPass));
+                Assert.Contains(m_Feature.setupPass, m_Renderer.queuedPasses);
+            }
+            finally
+            {
+                ScreenSpaceEditorCameraMotionPass.s_EditorSuppressEditorMotionPass = false;
+            }
+        }
+
+        [Test]
+        public void CreateRebuildsTheEditorMotionPass()
+        {
+            var previousPass = m_Feature.editorMotionPass;
+
+            m_Feature.Create();
+
+            Assert.AreNotSame(previousPass, m_Feature.editorMotionPass);
+            Assert.AreEqual(203, (int)m_Feature.editorMotionPass.renderPassEvent);
+        }
+
+        [Test]
         public void PreviewAndOverlayCamerasDoNotEnqueue()
         {
             m_Stack.GetComponent<ScreenSpaceReflection>().enabled.Override(true);

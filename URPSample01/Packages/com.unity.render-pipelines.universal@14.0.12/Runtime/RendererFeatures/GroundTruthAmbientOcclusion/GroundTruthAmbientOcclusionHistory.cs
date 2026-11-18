@@ -32,11 +32,8 @@ namespace UnityEngine.Rendering.Universal
         // across camera cuts, matching HDRP's camera frame counter behaviour.
         internal int effectFrameCount { get; private set; }
 
-        // Editor-only camera motion supplement. URP writes motion only for cameras with a
-        // UniversalAdditionalCameraData, so the last rendered pose is tracked per camera here rather
-        // than on the pass instance, which every camera sharing the renderer also uses.
-        internal bool hasEditorMotionViewProjection { get; private set; }
-        internal Matrix4x4 editorMotionViewProjection { get; private set; }
+        // Editor-only camera motion supplement state now lives in the shared
+        // ScreenSpaceEditorCameraMotionPass, because GTAO and Screen Space Lighting both consume it.
 
         // The packed depth mip chain is shared with Screen Space Lighting. This history only keeps
         // the current frame's view so its consumers keep one binding path.
@@ -80,18 +77,6 @@ namespace UnityEngine.Rendering.Universal
             effectFrameCount++;
         }
 
-        internal void RecordEditorMotionViewProjection(Matrix4x4 viewProjection)
-        {
-            editorMotionViewProjection = viewProjection;
-            hasEditorMotionViewProjection = true;
-        }
-
-        internal void ClearEditorMotionViewProjection()
-        {
-            editorMotionViewProjection = Matrix4x4.identity;
-            hasEditorMotionViewProjection = false;
-        }
-
         public void Reset(int width, int height, int frameIndex)
         {
             this.width = width;
@@ -103,7 +88,6 @@ namespace UnityEngine.Rendering.Universal
             validFrameCount = 0;
             readSlot = -1;
             writeSlot = 1;
-            ClearEditorMotionViewProjection();
         }
 
         // Called after the temporal pass wrote the current slot so the next frame can read it.
@@ -225,7 +209,6 @@ namespace UnityEngine.Rendering.Universal
             readSlot = -1;
             writeSlot = 0;
             effectFrameCount = 0;
-            ClearEditorMotionViewProjection();
         }
 
         void ReleaseResources()

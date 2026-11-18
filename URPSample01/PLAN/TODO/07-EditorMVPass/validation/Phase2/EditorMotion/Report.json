@@ -1,0 +1,783 @@
+{
+    "utcTimestamp": "2026-11-18T14:58:04.5901794Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "scenePath": "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity",
+    "completed": true,
+    "passed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "Forward",
+            "pipelinePath": "Assets/Tests/ScreenSpaceLighting/Renderers/SslT5ForwardPipeline.asset",
+            "gtaoFound": true,
+            "temporalAccumulation": true,
+            "fullResolution": false,
+            "cases": [
+                {
+                    "name": "NoAdditionalCameraData",
+                    "suppressed": false,
+                    "hasAdditionalCameraData": false,
+                    "completed": true,
+                    "editorMotionExecutions": 24,
+                    "editorMotionDraws": 22,
+                    "editorMotionFirstFrameSkips": 2,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 8,
+                            "meanAbsMotionX": 0.03641932085156441,
+                            "meanAbsMotionY": 0.006080774590373039,
+                            "image": "Forward_NoAdditionalCameraData_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 9,
+                            "meanAbsMotionX": 0.03641925007104874,
+                            "meanAbsMotionY": 0.006080778315663338,
+                            "image": "Forward_NoAdditionalCameraData_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 10,
+                            "meanAbsMotionX": 0.03641935810446739,
+                            "meanAbsMotionY": 0.006080783437937498,
+                            "image": "Forward_NoAdditionalCameraData_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 11,
+                            "meanAbsMotionX": 0.03641926497220993,
+                            "meanAbsMotionY": 0.006080774124711752,
+                            "image": "Forward_NoAdditionalCameraData_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.03543424832721131,
+                        "maxAbs": 0.9254902005195618,
+                        "pixelsOverThreshold": 160453,
+                        "pixelsOverThresholdFraction": 0.17410264909267426
+                    },
+                    "noAcdVsAcd": {
+                        "valid": true,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "passed": true,
+                    "issues": []
+                },
+                {
+                    "name": "AdditionalCameraData",
+                    "suppressed": false,
+                    "hasAdditionalCameraData": true,
+                    "completed": true,
+                    "editorMotionExecutions": 0,
+                    "editorMotionDraws": 0,
+                    "editorMotionFirstFrameSkips": 0,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 32,
+                            "meanAbsMotionX": 0.03641932085156441,
+                            "meanAbsMotionY": 0.006080775521695614,
+                            "image": "Forward_AdditionalCameraData_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 33,
+                            "meanAbsMotionX": 0.03641925007104874,
+                            "meanAbsMotionY": 0.006080778781324625,
+                            "image": "Forward_AdditionalCameraData_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 34,
+                            "meanAbsMotionX": 0.03641935810446739,
+                            "meanAbsMotionY": 0.006080783437937498,
+                            "image": "Forward_AdditionalCameraData_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 35,
+                            "meanAbsMotionX": 0.03641926124691963,
+                            "meanAbsMotionY": 0.006080774590373039,
+                            "image": "Forward_AdditionalCameraData_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.03549708873436126,
+                        "maxAbs": 0.9254902005195618,
+                        "pixelsOverThreshold": 160631,
+                        "pixelsOverThresholdFraction": 0.17429578304290772
+                    },
+                    "noAcdVsAcd": {
+                        "valid": true,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "passed": true,
+                    "issues": []
+                },
+                {
+                    "name": "NoAdditionalCameraDataBaseline",
+                    "suppressed": true,
+                    "hasAdditionalCameraData": false,
+                    "completed": true,
+                    "editorMotionExecutions": 0,
+                    "editorMotionDraws": 0,
+                    "editorMotionFirstFrameSkips": 0,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 56,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Forward_NoAdditionalCameraDataBaseline_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 57,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Forward_NoAdditionalCameraDataBaseline_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 58,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Forward_NoAdditionalCameraDataBaseline_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 59,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Forward_NoAdditionalCameraDataBaseline_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.030657359898347448,
+                        "maxAbs": 0.9254902005195618,
+                        "pixelsOverThreshold": 143225,
+                        "pixelsOverThresholdFraction": 0.1554090678691864
+                    },
+                    "noAcdVsAcd": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": true,
+                        "meanAbs": 0.010214098868810752,
+                        "maxAbs": 0.7529411911964417,
+                        "pixelsOverThreshold": 81108,
+                        "pixelsOverThresholdFraction": 0.08800781518220902
+                    },
+                    "passed": true,
+                    "issues": []
+                },
+                {
+                    "name": "StaticNoAdditionalCameraData",
+                    "suppressed": false,
+                    "hasAdditionalCameraData": false,
+                    "completed": true,
+                    "editorMotionExecutions": 24,
+                    "editorMotionDraws": 22,
+                    "editorMotionFirstFrameSkips": 2,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 80,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Forward_StaticNoAdditionalCameraData_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 81,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Forward_StaticNoAdditionalCameraData_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 82,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Forward_StaticNoAdditionalCameraData_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 83,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Forward_StaticNoAdditionalCameraData_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "noAcdVsAcd": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "passed": true,
+                    "issues": []
+                }
+            ]
+        },
+        {
+            "name": "ForwardPlus",
+            "pipelinePath": "Assets/Tests/ScreenSpaceLighting/Renderers/SslT5ForwardPlusPipeline.asset",
+            "gtaoFound": true,
+            "temporalAccumulation": true,
+            "fullResolution": false,
+            "cases": [
+                {
+                    "name": "NoAdditionalCameraData",
+                    "suppressed": false,
+                    "hasAdditionalCameraData": false,
+                    "completed": true,
+                    "editorMotionExecutions": 24,
+                    "editorMotionDraws": 22,
+                    "editorMotionFirstFrameSkips": 2,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 104,
+                            "meanAbsMotionX": 0.03641932085156441,
+                            "meanAbsMotionY": 0.006080774590373039,
+                            "image": "ForwardPlus_NoAdditionalCameraData_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 105,
+                            "meanAbsMotionX": 0.03641925007104874,
+                            "meanAbsMotionY": 0.006080778315663338,
+                            "image": "ForwardPlus_NoAdditionalCameraData_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 106,
+                            "meanAbsMotionX": 0.03641935810446739,
+                            "meanAbsMotionY": 0.006080783437937498,
+                            "image": "ForwardPlus_NoAdditionalCameraData_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 107,
+                            "meanAbsMotionX": 0.03641926497220993,
+                            "meanAbsMotionY": 0.006080774124711752,
+                            "image": "ForwardPlus_NoAdditionalCameraData_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.03543424832721131,
+                        "maxAbs": 0.9254902005195618,
+                        "pixelsOverThreshold": 160453,
+                        "pixelsOverThresholdFraction": 0.17410264909267426
+                    },
+                    "noAcdVsAcd": {
+                        "valid": true,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "passed": true,
+                    "issues": []
+                },
+                {
+                    "name": "AdditionalCameraData",
+                    "suppressed": false,
+                    "hasAdditionalCameraData": true,
+                    "completed": true,
+                    "editorMotionExecutions": 0,
+                    "editorMotionDraws": 0,
+                    "editorMotionFirstFrameSkips": 0,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 128,
+                            "meanAbsMotionX": 0.03641932085156441,
+                            "meanAbsMotionY": 0.006080775521695614,
+                            "image": "ForwardPlus_AdditionalCameraData_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 129,
+                            "meanAbsMotionX": 0.03641925007104874,
+                            "meanAbsMotionY": 0.006080778781324625,
+                            "image": "ForwardPlus_AdditionalCameraData_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 130,
+                            "meanAbsMotionX": 0.03641935810446739,
+                            "meanAbsMotionY": 0.006080783437937498,
+                            "image": "ForwardPlus_AdditionalCameraData_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 131,
+                            "meanAbsMotionX": 0.03641926124691963,
+                            "meanAbsMotionY": 0.006080774590373039,
+                            "image": "ForwardPlus_AdditionalCameraData_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.03549708873436126,
+                        "maxAbs": 0.9254902005195618,
+                        "pixelsOverThreshold": 160631,
+                        "pixelsOverThresholdFraction": 0.17429578304290772
+                    },
+                    "noAcdVsAcd": {
+                        "valid": true,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "passed": true,
+                    "issues": []
+                },
+                {
+                    "name": "NoAdditionalCameraDataBaseline",
+                    "suppressed": true,
+                    "hasAdditionalCameraData": false,
+                    "completed": true,
+                    "editorMotionExecutions": 0,
+                    "editorMotionDraws": 0,
+                    "editorMotionFirstFrameSkips": 0,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 152,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "ForwardPlus_NoAdditionalCameraDataBaseline_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 153,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "ForwardPlus_NoAdditionalCameraDataBaseline_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 154,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "ForwardPlus_NoAdditionalCameraDataBaseline_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 155,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "ForwardPlus_NoAdditionalCameraDataBaseline_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.030657359898347448,
+                        "maxAbs": 0.9254902005195618,
+                        "pixelsOverThreshold": 143225,
+                        "pixelsOverThresholdFraction": 0.1554090678691864
+                    },
+                    "noAcdVsAcd": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": true,
+                        "meanAbs": 0.010214098868810752,
+                        "maxAbs": 0.7529411911964417,
+                        "pixelsOverThreshold": 81108,
+                        "pixelsOverThresholdFraction": 0.08800781518220902
+                    },
+                    "passed": true,
+                    "issues": []
+                },
+                {
+                    "name": "StaticNoAdditionalCameraData",
+                    "suppressed": false,
+                    "hasAdditionalCameraData": false,
+                    "completed": true,
+                    "editorMotionExecutions": 24,
+                    "editorMotionDraws": 22,
+                    "editorMotionFirstFrameSkips": 2,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 176,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "ForwardPlus_StaticNoAdditionalCameraData_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 177,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "ForwardPlus_StaticNoAdditionalCameraData_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 178,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "ForwardPlus_StaticNoAdditionalCameraData_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 179,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "ForwardPlus_StaticNoAdditionalCameraData_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "noAcdVsAcd": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "passed": true,
+                    "issues": []
+                }
+            ]
+        },
+        {
+            "name": "Deferred",
+            "pipelinePath": "Assets/Tests/ScreenSpaceLighting/Renderers/SslT5DeferredPipeline.asset",
+            "gtaoFound": true,
+            "temporalAccumulation": true,
+            "fullResolution": false,
+            "cases": [
+                {
+                    "name": "NoAdditionalCameraData",
+                    "suppressed": false,
+                    "hasAdditionalCameraData": false,
+                    "completed": true,
+                    "editorMotionExecutions": 24,
+                    "editorMotionDraws": 22,
+                    "editorMotionFirstFrameSkips": 2,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 200,
+                            "meanAbsMotionX": 0.03641932085156441,
+                            "meanAbsMotionY": 0.006080774590373039,
+                            "image": "Deferred_NoAdditionalCameraData_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 201,
+                            "meanAbsMotionX": 0.03641925007104874,
+                            "meanAbsMotionY": 0.006080778315663338,
+                            "image": "Deferred_NoAdditionalCameraData_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 202,
+                            "meanAbsMotionX": 0.03641935810446739,
+                            "meanAbsMotionY": 0.006080783437937498,
+                            "image": "Deferred_NoAdditionalCameraData_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 203,
+                            "meanAbsMotionX": 0.03641926497220993,
+                            "meanAbsMotionY": 0.006080774124711752,
+                            "image": "Deferred_NoAdditionalCameraData_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.03543424832721131,
+                        "maxAbs": 0.9254902005195618,
+                        "pixelsOverThreshold": 160453,
+                        "pixelsOverThresholdFraction": 0.17410264909267426
+                    },
+                    "noAcdVsAcd": {
+                        "valid": true,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "passed": true,
+                    "issues": []
+                },
+                {
+                    "name": "AdditionalCameraData",
+                    "suppressed": false,
+                    "hasAdditionalCameraData": true,
+                    "completed": true,
+                    "editorMotionExecutions": 0,
+                    "editorMotionDraws": 0,
+                    "editorMotionFirstFrameSkips": 0,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 224,
+                            "meanAbsMotionX": 0.03641932085156441,
+                            "meanAbsMotionY": 0.006080775521695614,
+                            "image": "Deferred_AdditionalCameraData_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 225,
+                            "meanAbsMotionX": 0.03641925007104874,
+                            "meanAbsMotionY": 0.006080778781324625,
+                            "image": "Deferred_AdditionalCameraData_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 226,
+                            "meanAbsMotionX": 0.03641935810446739,
+                            "meanAbsMotionY": 0.006080783437937498,
+                            "image": "Deferred_AdditionalCameraData_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 227,
+                            "meanAbsMotionX": 0.03641926124691963,
+                            "meanAbsMotionY": 0.006080774590373039,
+                            "image": "Deferred_AdditionalCameraData_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.03549708873436126,
+                        "maxAbs": 0.9254902005195618,
+                        "pixelsOverThreshold": 160631,
+                        "pixelsOverThresholdFraction": 0.17429578304290772
+                    },
+                    "noAcdVsAcd": {
+                        "valid": true,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "passed": true,
+                    "issues": []
+                },
+                {
+                    "name": "NoAdditionalCameraDataBaseline",
+                    "suppressed": true,
+                    "hasAdditionalCameraData": false,
+                    "completed": true,
+                    "editorMotionExecutions": 0,
+                    "editorMotionDraws": 0,
+                    "editorMotionFirstFrameSkips": 0,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 248,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Deferred_NoAdditionalCameraDataBaseline_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 249,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Deferred_NoAdditionalCameraDataBaseline_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 250,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Deferred_NoAdditionalCameraDataBaseline_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 251,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Deferred_NoAdditionalCameraDataBaseline_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.030657359898347448,
+                        "maxAbs": 0.9254902005195618,
+                        "pixelsOverThreshold": 143225,
+                        "pixelsOverThresholdFraction": 0.1554090678691864
+                    },
+                    "noAcdVsAcd": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": true,
+                        "meanAbs": 0.010214098868810752,
+                        "maxAbs": 0.7529411911964417,
+                        "pixelsOverThreshold": 81108,
+                        "pixelsOverThresholdFraction": 0.08800781518220902
+                    },
+                    "passed": true,
+                    "issues": []
+                },
+                {
+                    "name": "StaticNoAdditionalCameraData",
+                    "suppressed": false,
+                    "hasAdditionalCameraData": false,
+                    "completed": true,
+                    "editorMotionExecutions": 24,
+                    "editorMotionDraws": 22,
+                    "editorMotionFirstFrameSkips": 2,
+                    "frames": [
+                        {
+                            "index": 0,
+                            "frameCount": 272,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Deferred_StaticNoAdditionalCameraData_frame0.png"
+                        },
+                        {
+                            "index": 1,
+                            "frameCount": 273,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Deferred_StaticNoAdditionalCameraData_frame1.png"
+                        },
+                        {
+                            "index": 2,
+                            "frameCount": 274,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Deferred_StaticNoAdditionalCameraData_frame2.png"
+                        },
+                        {
+                            "index": 3,
+                            "frameCount": 275,
+                            "meanAbsMotionX": 0.0,
+                            "meanAbsMotionY": 0.0,
+                            "image": "Deferred_StaticNoAdditionalCameraData_frame3.png"
+                        }
+                    ],
+                    "finalVsReference": {
+                        "valid": true,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "noAcdVsAcd": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "fixedVsBaseline": {
+                        "valid": false,
+                        "meanAbs": 0.0,
+                        "maxAbs": 0.0,
+                        "pixelsOverThreshold": 0,
+                        "pixelsOverThresholdFraction": 0.0
+                    },
+                    "passed": true,
+                    "issues": []
+                }
+            ]
+        }
+    ]
+}

@@ -18,8 +18,7 @@ namespace UnityEngine.Rendering.Universal
         CameraHistoryStore<GroundTruthAmbientOcclusionHistory> m_HistoryStore;
         bool m_LoggedMissingResources;
 #if UNITY_EDITOR
-        GroundTruthAmbientOcclusionEditorMotionPass m_EditorMotionPass;
-        internal static bool s_EditorSuppressEditorMotionPass;
+        ScreenSpaceEditorCameraMotionPass m_EditorMotionPass;
 #endif
 
         internal GroundTruthAmbientOcclusionSettings settings => m_Settings;
@@ -28,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
         internal CameraHistoryStore<GroundTruthAmbientOcclusionHistory> historyStore => m_HistoryStore;
         internal bool loggedMissingResources => m_LoggedMissingResources;
 #if UNITY_EDITOR
-        internal GroundTruthAmbientOcclusionEditorMotionPass editorMotionPass => m_EditorMotionPass;
+        internal ScreenSpaceEditorCameraMotionPass editorMotionPass => m_EditorMotionPass;
 #endif
 
         /// <inheritdoc/>
@@ -44,7 +43,7 @@ namespace UnityEngine.Rendering.Universal
             m_Pass = new GroundTruthAmbientOcclusionPass();
             m_DebugPass = new GroundTruthAmbientOcclusionDebugPass();
 #if UNITY_EDITOR
-            m_EditorMotionPass = new GroundTruthAmbientOcclusionEditorMotionPass();
+            m_EditorMotionPass = new ScreenSpaceEditorCameraMotionPass();
 #endif
 
             ScreenSpaceDepthPyramidSystem.RegisterOwner(this);
@@ -111,11 +110,10 @@ namespace UnityEngine.Rendering.Universal
             // UniversalAdditionalCameraData, which is the case for Scene View and other editor-created
             // cameras. Supplement camera motion only for those; cameras with the component keep URP's
             // camera and object motion untouched.
-            if (!s_EditorSuppressEditorMotionPass &&
+            if (!ScreenSpaceEditorCameraMotionPass.s_EditorSuppressEditorMotionPass &&
                 m_EditorMotionPass != null &&
                 !cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out _))
             {
-                m_EditorMotionPass.Setup(history, m_Settings.resources);
                 renderer.EnqueuePass(m_EditorMotionPass);
             }
 #endif

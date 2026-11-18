@@ -180,7 +180,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void EditorMotionPassCanBeSuppressedForBaselineRuns()
         {
-            GroundTruthAmbientOcclusionRendererFeature.s_EditorSuppressEditorMotionPass = true;
+            ScreenSpaceEditorCameraMotionPass.s_EditorSuppressEditorMotionPass = true;
             try
             {
                 InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
@@ -190,33 +190,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             }
             finally
             {
-                GroundTruthAmbientOcclusionRendererFeature.s_EditorSuppressEditorMotionPass = false;
-            }
-        }
-
-        [Test]
-        public void CamerasKeepIndependentEditorMotionPoses()
-        {
-            var secondCamera = ScreenSpaceTestUtils.CreateCamera("GtaoCameraSecond");
-            try
-            {
-                InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(m_Camera));
-                InvokeAddRenderPasses(ScreenSpaceTestUtils.CreateCameraData(secondCamera));
-
-                Assert.IsTrue(m_Feature.historyStore.TryGet(m_Camera, 0, out var firstHistory));
-                Assert.IsTrue(m_Feature.historyStore.TryGet(secondCamera, 0, out var secondHistory));
-                Assert.AreNotSame(firstHistory, secondHistory);
-
-                var firstPose = Matrix4x4.TRS(new Vector3(1f, 2f, 3f), Quaternion.Euler(0f, 15f, 0f), Vector3.one);
-                firstHistory.RecordEditorMotionViewProjection(firstPose);
-
-                Assert.IsFalse(secondHistory.hasEditorMotionViewProjection,
-                    "Recording one camera's pose must not leak into another camera's history.");
-                Assert.AreEqual(firstPose, firstHistory.editorMotionViewProjection);
-            }
-            finally
-            {
-                ScreenSpaceTestUtils.DestroyCamera(secondCamera);
+                ScreenSpaceEditorCameraMotionPass.s_EditorSuppressEditorMotionPass = false;
             }
         }
 

@@ -170,26 +170,6 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void ResetAndDisposeClearTheEditorMotionPose()
-        {
-            var pose = Matrix4x4.TRS(new Vector3(1f, 2f, 3f), Quaternion.Euler(0f, 15f, 0f), Vector3.one);
-            m_History.RecordEditorMotionViewProjection(pose);
-            Assert.IsTrue(m_History.hasEditorMotionViewProjection);
-
-            m_History.Reset(320, 180, 2);
-
-            Assert.IsFalse(m_History.hasEditorMotionViewProjection);
-            Assert.AreEqual(Matrix4x4.identity, m_History.editorMotionViewProjection,
-                "A reset must not reproject from the pose of a previous camera session.");
-
-            m_History.RecordEditorMotionViewProjection(pose);
-            m_History.Dispose();
-
-            Assert.IsFalse(m_History.hasEditorMotionViewProjection);
-            Assert.AreEqual(Matrix4x4.identity, m_History.editorMotionViewProjection);
-        }
-
-        [Test]
         public void DisposeReleasesAllocatedResources()
         {
             m_History.EnsureResources(320, 180, false, 1, TextureDimension.Tex2D);

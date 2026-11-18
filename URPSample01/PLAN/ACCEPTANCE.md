@@ -428,7 +428,7 @@ PY
 
 | 交付 | Commit | 证据 | 结论 |
 |---|---|---|---|
-| Editor 相机 MV pass + shader + gating + 单测 | `0bbce70` | `GroundTruthAmbientOcclusionEditorMotionPass.cs`；E2E `meanAbs vs 原生 = 0` | ✅ |
+| Editor 相机 MV pass + shader + gating + 单测 | `0bbce70` | `GroundTruthAmbientOcclusionEditorMotionPass.cs`（第二阶段迁移至 `ScreenSpaceCommon`）；E2E `meanAbs vs 原生 = 0` | ✅ |
 | 深度金字塔按姿态重建 + 单测 | `3761adc` | `ScreenSpaceDepthPyramid.cs`；同帧同姿态仍只 build 一次 | ✅ |
 | E2E / T12 回归 / 报告 | 本轮第三提交 | [Report.md](TODO/07-EditorMVPass/Report.md)、`validation/EditorMotion/`、`validation/T12/` | ✅ |
 
@@ -441,6 +441,8 @@ PY
 | 设置恢复 | 4 份 `*SettingsRestoration.json` 全部 `true`，Unity exit 0 |
 | T12 哈希差异 | 12 张，全部在 `RenderScale75`/`TargetResize`/`CameraCut`/`MotionBlur`；`SameFrameDoubleRender` 对照不变；逐张数值见 `T12/HashDiff.json` |
 | AC-9 人工验收 | ✅ 仓库所有者 2026-11-18 确认：真实 Scene View 拖拽/滚轮无 GTAO 残影 |
+
+**第二阶段（SSL-only Scene View 共享 Editor MV）**：代码与自动验收已交付——SSL feature 在 SSGI/SSR 启用且相机无 ACD 时入队共享 `ScreenSpaceEditorCameraMotionPass`；EditMode 180/180、PlayMode 6/6；Editor MV E2E 3 模式与原生 MV 逐帧 `meanAbs = 0`；T12 34/34、34/34、35/35 且 85/85 PNG 哈希不变；3 份设置恢复全部 `true`。真实 Scene View 的 SSR 反射目视确认待仓库所有者（AC-14）。
 
 **口径修订**：计划的 AC-3 使用“与 12 帧收敛参考的差值 ≤ 0.002”。实测 URP 原生 MV 路径同样偏离该参考约 `0.035`（时间累积的固定反馈延迟），该指标无法区分重投影错误。验收改为“与原生 MV 路径逐帧一致（`meanAbs ≤ 0.001`） + 抑制后显著劣化”，并在 `Report.md` §5.1 记录原因与原始数据。
 

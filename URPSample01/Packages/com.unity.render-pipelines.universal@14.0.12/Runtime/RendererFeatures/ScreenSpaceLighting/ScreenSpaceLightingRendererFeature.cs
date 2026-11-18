@@ -25,6 +25,9 @@ namespace UnityEngine.Rendering.Universal
         CameraHistoryStore<ScreenSpaceLightingHistory> m_HistoryStore;
         readonly System.Collections.Generic.Dictionary<int, int> m_CameraViews = new System.Collections.Generic.Dictionary<int, int>();
         bool m_LoggedMissingResources;
+#if UNITY_EDITOR
+        ScreenSpaceEditorCameraMotionPass m_EditorMotionPass;
+#endif
 
         internal ScreenSpaceLightingSettings settings => m_Settings;
         internal ScreenSpaceLightingSetupPass setupPass => m_SetupPass;
@@ -38,6 +41,9 @@ namespace UnityEngine.Rendering.Universal
         internal ScreenSpaceLightingColorHistoryCapturePass colorHistoryCapturePass => m_ColorHistoryCapturePass;
         internal ScreenSpaceLightingDebugPass debugPass => m_DebugPass;
         internal CameraHistoryStore<ScreenSpaceLightingHistory> historyStore => m_HistoryStore;
+#if UNITY_EDITOR
+        internal ScreenSpaceEditorCameraMotionPass editorMotionPass => m_EditorMotionPass;
+#endif
 
         internal static bool HasAnyEffectEnabled(VolumeStack stack)
         {
@@ -77,6 +83,9 @@ namespace UnityEngine.Rendering.Universal
             m_CurrentColorPyramidPass = new ScreenSpaceLightingCurrentColorPyramidPass();
             m_ColorHistoryCapturePass = new ScreenSpaceLightingColorHistoryCapturePass();
             m_DebugPass = new ScreenSpaceLightingDebugPass();
+#if UNITY_EDITOR
+            m_EditorMotionPass = new ScreenSpaceEditorCameraMotionPass();
+#endif
 
             ScreenSpaceDepthPyramidSystem.RegisterOwner(this);
         }
@@ -102,10 +111,10 @@ namespace UnityEngine.Rendering.Universal
             if (!ScreenSpaceCapability.EvaluateCamera(cameraData).supported)
                 return;
 
-            bool anyEffectEnabled = HasAnyEffectEnabled(VolumeManager.instance.stack);
+            var stack = VolumeManager.instance.stack;
+            bool anyEffectEnabled = HasAnyEffectEnabled(stack);
             if (!anyEffectEnabled && !m_Settings.debugEnabled)
                 return;
-
             m_Settings.EnsureResources();
             if (!m_Settings.resources.hasRuntimeResources)
             {
@@ -166,6 +175,23 @@ namespace UnityEngine.Rendering.Universal
             m_DebugPass.Setup(history, m_Settings, m_SsgiPass, m_SsrPass,
                 m_TransparentDepthNormalsPass, m_TransparentSsrPass);
 
+#if UNITY_EDITOR
+            // SSGI and SSR both reproject previous history with camera motion. Scene View and other
+            // editor-created cameras have no UniversalAdditionalCameraData, so URP leaves the motion
+            // target cleared and the shared supplement has to run before SSGI (205) and SSR (206).
+            var ssgi = stack != null ? stack.GetComponent<ScreenSpaceGlobalIllumination>() : null;
+            var ssr = stack != null ? stack.GetComponent<ScreenSpaceReflection>() : null;
+            bool needsCameraMotion =
+                (ssgi != null && ssgi.enabled.value) || (ssr != null && ssr.enabled.value);
+            if (needsCameraMotion &&
+                !ScreenSpaceEditorCameraMotionPass.s_EditorSuppressEditorMotionPass &&
+                m_EditorMotionPass != null &&
+                !cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out _))
+            {
+                renderer.EnqueuePass(m_EditorMotionPass);
+            }
+#endif
+
             renderer.EnqueuePass(m_SetupPass);
             renderer.EnqueuePass(m_SsgiPass);
             renderer.EnqueuePass(m_SsrPass);
@@ -200,6 +226,9 @@ namespace UnityEngine.Rendering.Universal
                 m_HistoryStore?.Dispose();
                 m_HistoryStore = null;
                 m_Settings?.resources?.DisposeMaterials();
+#if UNITY_EDITOR
+                m_EditorMotionPass = null;
+#endif
             }
 
             base.Dispose(disposing);

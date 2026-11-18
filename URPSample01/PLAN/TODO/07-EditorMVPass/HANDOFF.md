@@ -1,6 +1,6 @@
 # 07-EditorMVPass 交接：Editor 运动矢量补齐（GTAO 相机拖影）
 
-> 状态：**第一阶段 PASS（AC-9 已由仓库所有者确认）**；第二阶段（SSL-only 共享 Editor MV）实施中
+> 状态：**第一阶段 PASS（AC-9 已由仓库所有者确认）**；第二阶段自动验收通过，人工 SSR Scene View 验收待确认
 > 建立：2026-11-18；实施与验证：2026-11-18
 > 基线：`2291aa0`（调研文档提交）
 > 结果入口：[Report.md](Report.md)、[KnownDifferences.md](KnownDifferences.md)、`validation/`
@@ -541,8 +541,16 @@ PLAN/Done/07-EditorMVPass/
 
 ### 12.3 验收
 
+| ID | 标准 | 结果 | 证据 |
+|---|---|---|---|
+| AC-10 | SSL-only + 无 ACD 时共享 pass 入队；有 ACD / Refraction-only 不入队 | ✅ EditMode | `ScreenSpaceLightingRendererFeatureTests` |
+| AC-11 | 共享 pass 的逐帧输出与第一阶段一致 | ✅ E2E 3 模式，`meanAbs vs ACD = 0`，draws 22 / skips 2 | `validation/Phase2/EditorMotion/Metrics.json` |
+| AC-12 | T12 无新增失败、无非预期图像变化 | ✅ Forward 34/34、Forward+ 34/34、Deferred 35/35；85/85 PNG SHA-256 与第一阶段相同 | `validation/Phase2/T12/` |
+| AC-13 | PlayMode 与设置恢复 | ✅ PlayMode 6/6；3 份 `*SettingsRestoration.json` 全部 `true` | `validation/Phase2/`、`Phase2/T12/` |
+| AC-14 | 真实 Scene View 中 SSR Approximation 滚轮缩放无反射拖尾 | ⏳ 待仓库所有者 | — |
+
 - SSL-only + 无 ACD：共享 pass 入队；motion 均值 > 0；SSR 反射在滚轮/推拉序列中跟随几何。
 - 有 ACD：不入队，原生相机+物体 MV 保留。
-- GTAO-only：第一阶段 E2E 结果不变。
+- GTAO-only：第一阶段 E2E 结果不变（volume 关闭，只有 GTAO 消费共享 pass）。
 - Player：不受影响（全部 `#if UNITY_EDITOR`）。
-- 结果与证据在 `Report.md` §8 与 `validation/` 更新。
+- 结果与证据在 `Report.md` §8 与 `validation/Phase2/`。

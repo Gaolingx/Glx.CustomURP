@@ -811,28 +811,30 @@ static void EvaluateCase(CaseResult result)
     static int ReadEditorMotionCounter(string fieldName)
     {
         var type = typeof(GroundTruthAmbientOcclusionRendererFeature).Assembly
-            .GetType("UnityEngine.Rendering.Universal.GroundTruthAmbientOcclusionEditorMotionPass");
+            .GetType("UnityEngine.Rendering.Universal.ScreenSpaceEditorCameraMotionPass");
         return type == null ? -1 : (int)type.GetField(fieldName, StaticFlags).GetValue(null);
     }
 
     static void ResetEditorMotionCounters()
     {
         var type = typeof(GroundTruthAmbientOcclusionRendererFeature).Assembly
-            .GetType("UnityEngine.Rendering.Universal.GroundTruthAmbientOcclusionEditorMotionPass");
+            .GetType("UnityEngine.Rendering.Universal.ScreenSpaceEditorCameraMotionPass");
         type?.GetMethod("ResetEditorCounters", StaticFlags)?.Invoke(null, null);
     }
 
     static bool GetSuppression()
     {
-        var field = typeof(GroundTruthAmbientOcclusionRendererFeature)
-            .GetField("s_EditorSuppressEditorMotionPass", StaticFlags);
+        var type = typeof(GroundTruthAmbientOcclusionRendererFeature).Assembly
+            .GetType("UnityEngine.Rendering.Universal.ScreenSpaceEditorCameraMotionPass");
+        var field = type?.GetField("s_EditorSuppressEditorMotionPass", StaticFlags);
         return field != null && (bool)field.GetValue(null);
     }
 
     static void SetSuppression(bool value)
     {
-        var field = typeof(GroundTruthAmbientOcclusionRendererFeature)
-            .GetField("s_EditorSuppressEditorMotionPass", StaticFlags);
+        var type = typeof(GroundTruthAmbientOcclusionRendererFeature).Assembly
+            .GetType("UnityEngine.Rendering.Universal.ScreenSpaceEditorCameraMotionPass");
+        var field = type?.GetField("s_EditorSuppressEditorMotionPass", StaticFlags);
         field?.SetValue(null, value);
     }
 
