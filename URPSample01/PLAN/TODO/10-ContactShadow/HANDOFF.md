@@ -36,14 +36,14 @@ Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/C
 |---|---|---|
 | D1 | Feature 代码放在 URP 包内 `Runtime/RendererFeatures/ContactShadows`，Editor 代码放在 `Editor/RendererFeatures/ContactShadows` | 与现有 `ScreenSpaceLighting` / `GroundTruthAmbientOcclusion` 的结构一致；作为 URP 内置 Renderer Feature 交付 |
 | D2 | 复用包内 internal 基础设施：`ScreenSpaceDepthPyramidSystem`、`ScreenSpaceDepthPyramid`、`PackedMipChainInfo`、`CameraHistoryStore`、`ScreenSpaceCapability`、`ScreenSpaceLightingXr`、`ScreenSpaceRenderUtils` | 同属 URP Runtime 程序集，可直接使用；不新增 `InternalsVisibleTo`，不改共享代码 |
-| D3 | 深度源使用共享深度金字塔的 **mip 1（半分辨率）**；不新建私有深度 pyramid | 与 HDRP 的 depth pyramid mip 1 一致；与 SSL/GTAO 复用同一份金字塔；避免重复 downsample |
+| D3 | 深度源使用共享深度金字塔的 **mip 0（全分辨率）+ mip 1（半分辨率）**：像素输入用 mip 0，射线首采 mip 1、命中后同一个 t 读 mip 0 确认；不新建私有深度 pyramid | 与 HDRP 的 depth pyramid 读取方式一致；与 SSL/GTAO 复用同一份金字塔；避免重复 downsample |
 | D4 | 逐灯启用用 Feature 目录内的 `ContactShadowLight` 组件，不修改 `UniversalAdditionalLightData` / 灯 Inspector | 把逐灯配置留在 ContactShadows 功能目录内；已有 URP C# 文件零修改 |
-| D5 | 已有 URP C# 文件 **0 修改**；新增 C# 全部位于 `Runtime/RendererFeatures/ContactShadows`（及对应 Editor 目录） | 边界清晰，可整目录删除回滚 |
+| D5 | 已有 URP C# 文件 **0 修改**；新增**功能 C#** 全部位于 `Runtime/RendererFeatures/ContactShadows`（及对应 Editor 目录）；测试脚本按 §5.3 放在测试目录，不计入功能代码 | 边界清晰，可整目录删除回滚 |
 | D6 | URP 本体 shader 只保留一个接入点：新增 `ShaderLibrary/ContactShadows.hlsl`，并在 `Shadows.hlsl` 的 `MainLightShadow` / `AdditionalLightShadow` 末尾各加一个 `min` 块 | 内置 Lit/SimpleLit/ComplexLit/Particles/Terrain 都经过这两个函数；这是覆盖内置材质的唯一最小钩子 |
 | D7 | 输出全分辨率 `R32_UInt`；低 24 bit 每灯 1 bit，高 8 bit 全局 fade；槽位按参与顺序分配：主光（若参与）优先 `bit 0`，附加光随后；总计最多 24 盏 | 与 HDRP 打包格式一致；URP 主光/附加光分开，但顺序分配可避免无主光时浪费槽位 |
 | D8 | 材质侧不新增 `_CONTACT_SHADOWS` shader 变体；始终声明/采样，禁用时掩码为 0 + 绑定 1×1 中性 `R32_UInt`，`mask==0` 时在 `Load` 前返回 | 与 HDRP `_ContactShadowTexture` 设计一致；关闭时零纹理读取，不给所有 Lit 变体增加关键字 |
 | D9 | 只作用于不透明表面；材质侧用 `_SURFACE_TYPE_TRANSPARENT` 编译期排除；`AfterRenderingOpaques` 后绑定中性纹理并清零掩码 | HDRP 明确“Transparents have no contact shadow information” |
-| D10 | Deferred 附加光的接触阴影只在该帧 `_ADDITIONAL_LIGHT_SHADOWS` 变体实际启用时生效：Asset 开启 Additional Light Shadows，且 Off 变体被 strip 或存在其他投射阴影的附加光。逐灯 `Light.shadows = None` 本身不保证变体启用；主光不受此限制。若必须支持“Asset 级关闭附加光阴影/全 None 时的 Deferred 附加光”，另开 T10（需要改 `DeferredLights.cs` / `StencilDeferred.hlsl`，**不纳入本轮**） | 保持已有 URP C# 零修改；把唯一的 deferred 边界显式记录 |
+| D10 | Deferred 附加光的接触阴影只在该帧 `_ADDITIONAL_LIGHT_SHADOWS` 变体实际启用时生效：Asset 开启 Additional Light Shadows，且 Off 变体被 strip，或**当前这盏附加光**投射阴影（`shadows != None && shadowLightIndex >= 0`）。`shadows=None` 的灯即使同帧其他灯在投影也不会获得接触阴影；主光不受此限制。若要支持 Asset 关闭附加光阴影或 Off 变体未 strip 时的 Deferred 附加光，另开 T10，**不纳入本轮** | 保持已有 URP C# 零修改；显式记录唯一的 deferred 边界 |
 | D11 | 仅支持裁剪空间 z ∈ [0,1] 的 API：D3D11 / D3D12 / Vulkan / Metal；要求 Compute + `R32_UInt` LoadStore。材质侧 `ContactShadows.hlsl` 用 `SHADER_API_*` 宏包裹，其他 API 直接返回 1，避免 GLES/WebGL 变体编译失败 | HDRP 的 NDC 深度比较公式依赖该约定；运行时 gate 与 shader 编译 guard 必须一致 |
 | D12 | **不涉及** raytracing / raygeneration / DXR / RT shadow；不生成 `.raytrace`，不创建 TLAS；默认不新增 `.rdc` | 本轮明确排除 raytracing；证据以 JSON/XML/PNG/Frame Debugger 为主 |
 
@@ -52,9 +52,9 @@ Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/C
 **本版复核修正（相对上一稿）**：
 
 - Feature 位置从项目侧 `Assets/RenderFeatures/ContactShadows` 改为 **URP 包内** `Runtime/RendererFeatures/ContactShadows`，与 SSL/GTAO 一致。
-- 重新允许并采用包内 internal 共享基础设施：共享深度金字塔 mip 1、`CameraHistoryStore`、`ScreenSpaceCapability`、`ScreenSpaceLightingXr`。
-- 删除私有深度 downsample pass / `cameraDepthTargetHandle` 方案；深度直接来自共享金字塔 mip 1。
-- 已有 URP C# 文件仍然零修改；新增 C# 全部位于 ContactShadows 目录。
+- 重新允许并采用包内 internal 共享基础设施：共享深度金字塔（mip 1 首采 + mip 0 确认）、`CameraHistoryStore`、`ScreenSpaceCapability`、`ScreenSpaceLightingXr`。
+- 删除私有深度 downsample pass / `cameraDepthTargetHandle` 方案；深度直接来自共享金字塔 mip 1/mip 0。
+- 已有 URP C# 文件仍然零修改；新增**功能 C#** 位于 ContactShadows 目录；测试脚本按 §5.3 放置，不计入功能代码。
 - 保留上一版已补齐的：Renderer/Volume/灯组件导入验收、无关键字、24 槽位、Deferred 限制、测试/产物/文档善后、任务冲突审计。
 - 明确 raytracing / raygeneration / DXR 不在本轮，也不作为 follow-up 任务。
 
@@ -63,14 +63,15 @@ Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/C
 - 槽位改为“主光优先、附加光随后”的顺序分配；无主光时第一盏附加光可用 `bit 0`，不再固定浪费。
 - `Shadows.hlsl` 增加 `_RECEIVE_SHADOWS_OFF` 与 `lightIndex` 边界保护；Forward/Deferred 的 Receive Shadows 语义统一，并写入 AC-10/KnownDifferences。
 - 明确 Active 帧 ComputePass（208）与 CleanupPass（300）必须成对；ComputePass 负责真实全局绑定，CleanupPass 负责中性/零归零；Inactive/资源缺失状态写入 §4.1 状态表。
-- `_ContactShadowLightBuffer` 固定 32 B 布局：`position.w=type`、`direction.w=asfloat(mask)`；compute 解码同步。
+- `_ContactShadowLightBuffer` 固定 32 B 布局：`float3 position; uint type; float3 direction; uint mask;`；该 buffer 的 `mask` 直接写 `uint`。全局 `_AdditionalLightsContactShadowMasks` 是 float 数组，元素写 `math.asfloat(1u << slot)`，shader 端 `asuint`。
 - `ContactShadowLight` 只查 Light 所在 GameObject；补 `[AddComponentMenu]`、子父/非 Light/Rectangle/disabled 行为。
 - 任务 DAG 改为 T1→T2→T3、T1→T4、T3+T4→T5；新增共享文件串行化（Feature T1→T2→T5→T6、Pass T3→T5、测试资产仅 T7、ACCEPTANCE 仅 T9）。
-- T1 不提交测试资产（临时 fixture `TearDown` 删除）；T7 唯一提交测试资产；T6 只做序列化检查；T8 负责 player/证据；T9 负责 ACCEPTANCE/KnownDifferences/归档。
+- T1 不提交 Pipeline/Renderer/Volume/Scene 测试资产（临时 fixture `TearDown` 删除，只提交 import test 脚本）；T7 唯一提交测试资产；T6 只做序列化检查；T8 负责 player/证据；T9 负责 ACCEPTANCE/KnownDifferences/归档。
 - 依赖重排：T7 验证资产在 T4 后先行，T5 依赖 T3/T4/T7；T7 只提交资产/脚本，矩阵执行归 T8。
 - 测试改动补：PlayMode 新 asmdef、非 Development build、SRP Batcher/变体数量、ReceiveOff/Deferred 限制测试、Frame Debugger 超时兜底。
-- 证据/善后补：PNG ≤80 张/≤50 MB、日志 local-only、`.rdc` 0、BuildSummary、ACCEPTANCE 下一节为 §15、KnownDifferences/report 入库。
+- 证据/善后补：PNG ≤80 张/≤45 MB、`validation/` 总预算 ≤50 MB、日志 local-only、`.rdc` 默认 0（批准时最多 1 个 ≤20 MiB）、BuildSummary、ACCEPTANCE 执行时新增下一节（当前 §14→§15）、KnownDifferences/report 入库。
 - AC-10/11/13/14/15/16 同步收紧；AC-13 的 raytracing grep 限定本轮文件。
+- 复核修补：步骤 5 深度采样按 `tracingHalfRes` 选择 mip 1/mip 0；API guard 片段改为 `Texture2D`/`ContactShadowLoad`/函数在 guard 内、CBUFFER/解包函数在 guard 外；T9 补 `.rdc` 的 `git ls-files` 检查；KnownDifferences 补 `ContactShadowLight` 组件的逐灯启用 UX 差异。
 
 ---
 
@@ -97,7 +98,7 @@ Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/C
 | Forward+ tile / 逐像素灯光列表加速 | v1 每像素循环最多 24 盏接触阴影灯；先保证正确性 | follow-up（性能） |
 | 接触阴影时域累积/降噪 | HDRP 只做 dither，不做时域累积 | 不计划 |
 | 半分辨率输出 + 上采样 | HDRP 输出全分辨率；半分辨率会改变视觉 | follow-up（可选） |
-| Asset 关闭 Additional Light Shadows，或全 None + Off 变体未 strip 时的 Deferred 附加光接触阴影 | 需要改 URP 核心 C#（`DeferredLights`/`StencilDeferred`） | 可选 T10，不纳入本轮 |
+| Asset 关闭 Additional Light Shadows，或当前附加光 `shadows=None` 且 Off 变体未 strip 时的 Deferred 附加光接触阴影 | 需要改 URP 核心 C#（`DeferredLights`/`StencilDeferred`） | 可选 T10，不纳入本轮 |
 | 移动端 / GLES / OpenGL / WebGL | NDC z 约定不同；Compute/格式不保证 | 不在本轮 |
 | ShaderGraph 自定义节点 / 手写 shader 的接触阴影 | 只覆盖经过 URP 阴影函数的内置 Lit 路径 | follow-up |
 
@@ -105,8 +106,8 @@ Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/C
 
 - Feature：能在 Universal Renderer Data 中导入/移除；Volume 组件能添加/开关；灯组件能逐灯开关；player build 不丢资源。
 - 功能：接触暗部方向正确；方向光/点光/聚光均生效；逐灯关闭 shadow map 时仍生效；Deferred 附加光按 D10 限制；Receive Shadows=Off 不生效。
-- 复用：Contact Shadows 与 SSL/GTAO 同时开启时，共享深度金字塔每帧只构建一次；Contact Shadows 使用 mip 1。
-- 边界：已有 URP C# 文件零修改；新增 C# 全在 `Runtime/RendererFeatures/ContactShadows` 与 `Editor/RendererFeatures/ContactShadows`；URP shader 只改 `Shadows.hlsl` + 新增 `ContactShadows.hlsl`。
+- 复用：Contact Shadows 与 SSL/GTAO 同时开启时，共享深度金字塔每个相机每帧只构建一次；Contact Shadows 首采 mip 1、确认读 mip 0。
+- 边界：已有 URP C# 文件零修改；新增**功能 C#** 全在 `Runtime/RendererFeatures/ContactShadows` 与 `Editor/RendererFeatures/ContactShadows`；测试脚本按 §5.3 放在测试目录；URP shader 只改 `Shadows.hlsl` + 新增 `ContactShadows.hlsl`。
 - 正确性：关闭时逐像素一致；无 NaN/闪烁/自阴影痤疮；三模式一致。
 - 工程：D3D11/D3D12 构建零 shader error；既有 EditMode/PlayMode/T12 全绿。
 - 收尾：测试改动、证据留存、产物清理、文档一致性全部完成。
@@ -154,7 +155,7 @@ Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/C
 Depth Prepass / Depth Pyramid (mip 0..N)
 GPULightList (方向光 + 分块点/聚光)
 RenderContactShadows            ← 接触阴影
-  ├─ 读 depth pyramid mip 1（半分辨率）
+  ├─ 读 depth pyramid：射线 mip 1 首采 + mip 0 确认
   ├─ 遍历方向光 + tile 内点/聚光
   └─ 写 ContactShadowsBuffer（R32_UInt，全分辨率）
 LightLoop（deferred/forward）
@@ -258,13 +259,15 @@ while i < sampleCount:
     sample = rayStart + t * rayDir
     if sample.xy outside [0,1]: break
 
-    sampleDepth = 半分辨率深度（mip 1）
+    sampleDepth = tracingHalfRes
+        ? 半分辨率深度（mip 1）
+        : 全分辨率深度（mip 0）
     diff = sampleDepth - sample.z
 
     if diff > 0 && CompareDepth(diff, threshold) && sample.z > 0:
         if tracingHalfRes:
             tracingHalfRes = false
-            continue          // 同一个 t 用全分辨率再采一次；不增加 i、不前进 t
+            continue          // 同一个 t 改读 mip 0（全分辨率）再采一次；不增加 i、不前进 t
         occluded = 1
         break
 
@@ -354,7 +357,7 @@ shadow = min(shadow, allowContactShadow ? GetContactShadow(...) : 1)
 ### 2.6 分辨率与性能
 
 - 计算输出：全分辨率（`numTilesX = ceil(actualWidth / 8)`）。
-- 深度读取：mip 1（半分辨率），坐标 `fullPixel * 0.5 + mip1Offset`。
+- 射线步进的深度读取：首采 mip 1（半分辨率），命中后读 mip 0（全分辨率）确认；mip1 坐标 `fullPixel * 0.5 + mip1Offset`，mip0 坐标 `fullPixel + mip0Offset`。像素输入（初始深度）始终读 mip 0。
 - HDRP 文档给出基础版 PS4 1080p 约 0.5–1.3 ms；桌面 GPU 通常远低于此。
 - 主要成本：每像素 × 参与灯数 × sampleCount 次深度 Load。HDRP 用 tile 灯光列表限制每像素灯数；本 Feature v1 没有等价列表，每像素最多 24 盏（见风险 R5）。
 
@@ -366,7 +369,7 @@ shadow = min(shadow, allowContactShadow ? GetContactShadow(...) : 1)
 | 灯光遍历 | 方向光数组 + FPTL tile 列表 | 每像素循环最多 24 盏接触阴影灯（无 tile 裁剪） |
 | TAA 帧信息 | `_TaaFrameInfo.w` | Feature 显式上传 `frameIndex` 与 `taaEnabled` |
 | Volume 质量 | `VolumeComponentWithQuality` | 直接 `sampleCount` |
-| 深度纹理 | `_CameraDepthTexture` 指向打包金字塔 | 复用 URP 共享 `ScreenSpaceDepthPyramid` 的 mip 1 |
+| 深度纹理 | `_CameraDepthTexture` 指向打包金字塔 | 复用 URP 共享 `ScreenSpaceDepthPyramid`：mip 1 首采、mip 0 确认 |
 | 槽位 | 方向光/附加光统一在 light loop 中分配 | 按参与顺序：主光优先 `bit 0`，附加光随后；总计 24 |
 | 透明物 | 编译期排除 | `_SURFACE_TYPE_TRANSPARENT` 编译期排除；opaques 后绑中性纹理/清零掩码 |
 | API | `#pragma only_renderers d3d11 ...` | 运行时 gate 到 D3D11/D3D12/Vulkan/Metal |
@@ -418,7 +421,7 @@ shadow = min(shadow, allowContactShadow ? GetContactShadow(...) : 1)
 | 需求 | 复用 |
 |---|---|
 | 共享深度金字塔 | `ScreenSpaceDepthPyramidSystem.RegisterOwner/UnregisterOwner/Acquire`；`ScreenSpaceDepthPyramidPass`（+3）；`PackedMipChainInfo` |
-| 半分辨率深度 | `ScreenSpaceDepthPyramid.texture` 的 mip 1（`info.mipLevelOffsets[1]` / `mipLevelSizes[1]`） |
+| 半分辨率深度 | `ScreenSpaceDepthPyramid.texture`：mip 1 首采、mip 0 确认（`mipLevelOffsets[0/1]` / `mipLevelSizes[0/1]`） |
 | 深度来源 | 共享 pass 内部使用 `ScreenSpaceRenderUtils.GetCameraDepthTexture`（forward 用 `m_DepthTexture`，deferred 用 `cameraDepthTargetHandle`），本 Feature 不重复实现 |
 | 每相机资源 | `CameraHistoryStore<T>` + `IScreenSpaceHistoryEntry` |
 | 平台/格式检查 | `ScreenSpaceCapability.EvaluatePlatform/EvaluateCamera`（可加 ContactShadows 自己的 `R32_UInt` 检查） |
@@ -433,23 +436,33 @@ shadow = min(shadow, allowContactShadow ? GetContactShadow(...) : 1)
 新增 `ShaderLibrary/ContactShadows.hlsl`：
 
 ```
-Texture2D<uint> _ContactShadowTexture;              // XR 时用 Texture2DArray<uint>
-float           _ContactShadowOpacity;
-uint            _MainLightContactShadowMask;
-float           _AdditionalLightsContactShadowMasks[MAX_VISIBLE_LIGHTS];
+// CBUFFER 与解包函数必须在 API guard 外，保证未支持 API 的调用点仍能编译。
+CBUFFER_START(ContactShadows)
+float _ContactShadowOpacity;
+uint  _MainLightContactShadowMask;
+float _AdditionalLightsContactShadowMasks[MAX_VISIBLE_LIGHTS];
+CBUFFER_END
 
 uint  ContactShadowUnpackMask(uint packed) { return packed & 0x00FFFFFFu; }
 float ContactShadowUnpackFade(uint packed) { return (packed >> 24) / 255.0; }
 
-float GetContactShadowAttenuation(float3 positionWS, uint mask)
-{
-    if (mask == 0) return 1.0;   // 禁用/未参与的灯：在 Load 之前返回
-    float2 uv = ComputeNormalizedDeviceCoordinates(positionWS, GetWorldToHClipMatrix()).xy;
-    uint2 pixel = (uint2)(saturate(uv) * _ScaledScreenParams.xy);
-    uint packed = ContactShadowLoad(pixel);
-    bool occluded = (ContactShadowUnpackMask(packed) & mask) != 0;
-    return 1.0 - occluded * ContactShadowUnpackFade(packed) * _ContactShadowOpacity;
-}
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || \
+    defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL)
+    Texture2D<uint> _ContactShadowTexture;      // XR 时用 Texture2DArray<uint>
+    #define ContactShadowLoad(pixel) ...        // 按 XR/非 XR 选择 Load 坐标
+
+    float GetContactShadowAttenuation(float3 positionWS, uint mask)
+    {
+        if (mask == 0) return 1.0;   // 禁用/未参与的灯：在 Load 之前返回
+        float2 uv = ComputeNormalizedDeviceCoordinates(positionWS, GetWorldToHClipMatrix()).xy;
+        uint2 pixel = (uint2)(saturate(uv) * _ScaledScreenParams.xy);
+        uint packed = ContactShadowLoad(pixel);
+        bool occluded = (ContactShadowUnpackMask(packed) & mask) != 0;
+        return 1.0 - occluded * ContactShadowUnpackFade(packed) * _ContactShadowOpacity;
+    }
+#else
+    float GetContactShadowAttenuation(float3 positionWS, uint mask) { return 1.0; }
+#endif
 ```
 
 修改 `Shadows.hlsl`：
@@ -472,7 +485,9 @@ float GetContactShadowAttenuation(float3 positionWS, uint mask)
 - `_RECEIVE_SHADOWS_OFF` 与 Deferred 的 `materialReceiveShadowsOff` 语义保持一致：材质关闭 Receive Shadows 时，Forward 与 Deferred 都不应用接触阴影。这是 v1 的明确选择（HDRP 的行为可能不同，见 KnownDifferences）。
 - `lightIndex` 必须做 `[0, MAX_VISIBLE_LIGHTS)` 边界保护；Deferred 主光不走 `AdditionalLightShadow`，`_ShadowLightIndex = -1` 不会进入上述分支。
 - 不新增 `_CONTACT_SHADOWS` 关键字、不改 `Input.hlsl`、不改任何 Lit/SimpleLit/Particles/Terrain shader。
-- **API guard**：`ContactShadows.hlsl` 的 `Texture2D<uint>`/`Load`/函数体用 `#if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL)` 包裹；其他 API 提供 `GetContactShadowAttenuation(...) { return 1.0; }`，保证 URP 的 GLES/WebGL 变体仍能编译。
+- 新数组/常量放**独立 CBUFFER**（如 `ContactShadows`），不要插入现有 `AdditionalLights` CBUFFER，避免改变 URP 现有 UBO 布局/SRP Batcher 兼容性。
+- **API guard**：`Texture2D<uint>` / `ContactShadowLoad` / 函数实现用 `#if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL)` 包裹；其他 API 提供 `GetContactShadowAttenuation(...) { return 1.0; }`，保证 GLES/WebGL 变体编译。
+- **API guard 的声明边界**：`_ContactShadowOpacity`、`_MainLightContactShadowMask`、`_AdditionalLightsContactShadowMasks` 的声明必须放在 `SHADER_API_*` guard **外**；guard 只包 `Texture2D<uint>`、`ContactShadowLoad` 和函数实现。否则未支持 API 的 `MainLightShadow`/`AdditionalLightShadow` 调用点仍会引用这些全局变量而编译失败。
 - 关闭时所有掩码为 0，函数在 `Load` 前返回；Feature 绑定 1×1 中性 `R32_UInt` 纹理，避免未定义绑定。这与 HDRP `LightLoopDef.hlsl:414-416` 的“始终取一次、禁用时绑 1×1 纹理”一致。
 - 头文件内部用 `#if` 定义 XR/非 XR 的 `ContactShadowLoad` 宏（`Texture2D<uint>` 或 `Texture2DArray<uint>`）；`mask==0` 时不执行该宏。
 
@@ -489,17 +504,17 @@ float GetContactShadowAttenuation(float3 positionWS, uint mask)
 Feature 在 `ScreenSpaceContactShadowLights.Build(renderingData.lightData)` 中按**完全相同的顺序**扫描 `visibleLights`、跳过主光，填充：
 
 - `_MainLightContactShadowMask`（主光参与时拿当前 slot；主光未参与则为 0）；
-- `_AdditionalLightsContactShadowMasks`（float 位掩码数组，长度 `MAX_VISIBLE_LIGHTS` = 256 desktop）；
+- `_AdditionalLightsContactShadowMasks`（float 数组，长度 `MAX_VISIBLE_LIGHTS` = 256 desktop；元素为 `math.asfloat(1u << slot)`，shader 端 `asuint`）；
 - `_ContactShadowLightBuffer`（最多 24 条记录：position/type/direction/mask）；
 - `_ContactShadowLightCount`。
 
-每个非主光 `visibleLight` 都消耗一个 additional light index，**无论是否标记**；否则掩码数组与 `_AdditionalLightsPosition`/`_ShadowLightIndex` 错位。每帧先把整个掩码数组清零再填充，避免上一帧/上一相机残留。**不修改 `ForwardLights.cs`。**
+每个非主光 `visibleLight` 都消耗一个 additional light index，**无论是否标记**；否则掩码数组与 `_AdditionalLightsPosition`/`_ShadowLightIndex` 错位。每帧先清零再填充。**不修改 `ForwardLights.cs`。**
 
 ### 3.6 Deferred 的边界
 
 - **主光**：`StencilDeferred.hlsl` 的 `_DEFERRED_MAIN_LIGHT` 分支始终调用 `MainLightShadow`（在 `!materialReceiveShadowsOff` 时），因此主光接触阴影在 Deferred 下**不依赖** shadow map 是否存在。
-- **附加光**：`AdditionalLightShadow` 在 Deferred 的附加光分支被 `_ADDITIONAL_LIGHT_SHADOWS` 包裹。该关键字由 `DeferredLights.SetAdditionalLightsShadowsKeyword` 决定：Asset 开启 Additional Light Shadows，且 Off 变体被 strip 或有其他附加光投射阴影。满足时接触阴影叠加；逐灯 `Light.shadows = None` 只有在关键字启用时才生效。
-- 若 URP Asset **整体关闭 Additional Light Shadows**，或 **Off 变体未 strip 且所有附加光 `shadows=None`**，Deferred 的附加光不会调用阴影函数，接触阴影也不会应用。这是 v1 的已知限制（D10）。
+- **附加光**：`AdditionalLightShadow` 在 Deferred 的附加光分支被 `_ADDITIONAL_LIGHT_SHADOWS` 包裹。`DeferredLights.SetAdditionalLightsShadowsKeyword` 在每盏附加光 draw 前设置该关键字：Asset 开启 Additional Light Shadows，且 Off 变体被 strip，或**当前这盏附加光**投射阴影。满足时接触阴影叠加；`shadows=None` 的灯不会因其他灯投影而获得接触阴影。
+- 若 URP Asset **整体关闭 Additional Light Shadows**，或 **Off 变体未 strip 且该附加光 `shadows=None`**，Deferred 附加光不会调用阴影函数，接触阴影也不应用；这是 v1 的已知限制（D10）。
 - 解除该限制需要改 `DeferredLights.cs` + `StencilDeferred.hlsl`，作为可选 T10，**不纳入本轮**；本轮不把它列入 AC。
 
 ### 3.7 现有缺口
@@ -529,10 +544,9 @@ AfterRenderingOpaques               300   （绑定 1×1 中性纹理 + 清零�
 BeforeRenderingPostProcessing       ...   （可选 debug view）
 ```
 
-- 共享深度金字塔 pass 由第一个 consumer 入队；Contact Shadows 与 SSL/GTAO 同时存在时只构建一次。
+- 共享深度金字塔 pass 由第一个 consumer 入队；Contact Shadows 与 SSL/GTAO 同时存在时每个相机每帧只构建一次。
 - 如果 Volume 未启用、平台不支持、或没有任何 `ContactShadowLight`，Feature 在 `AddRenderPasses` 直接返回：不 Acquire 金字塔、不入队 Compute、不分配 RT、不写全局掩码。
-- **状态生命周期**：Active 帧正常情况下 ComputePass（208）与 CleanupPass（300）成对入队；ComputePass 在 dispatch 后绑定真实 `_ContactShadowTexture` / 掩码 / opacity，CleanupPass 在 opaques 后绑定 1×1 中性纹理 / 零掩码 / opacity 0。若 ComputePass 因资源缺失未入队，CleanupPass 仍必须入队归零。Inactive 帧不入队，依赖上一 Active 帧 Cleanup 的归零状态；首次运行全局默认 0。
-- **资源缺失**：Volume 已开启但 compute/shader/金字塔不可用时，不 dispatch；只要本帧曾被视为 Active，CleanupPass 仍必须入队并绑定中性/零，避免半帧脏状态。
+- **状态生命周期**：Active 帧 ComputePass（208）与 CleanupPass（300）成对入队（资源缺失时不 dispatch，但 Cleanup 仍入队归零）；ComputePass 在 dispatch 后绑定真实 `_ContactShadowTexture` / 掩码 / opacity，CleanupPass 在 opaques 后绑定 1×1 中性纹理 / 零掩码 / opacity 0。Inactive 帧不入队，依赖上一 Active 帧 Cleanup 的归零状态；首次运行全局默认 0。
 
 | 状态 | ComputePass | 全局绑定 | packed RT |
 |---|---|---|---|
@@ -545,10 +559,10 @@ BeforeRenderingPostProcessing       ...   （可选 debug view）
 
 | 资源 | 格式 | 尺寸 | 说明 |
 |---|---|---|---|
-| `ScreenSpaceDepthPyramid` | `R32_SFloat` | 共享打包图集 | 复用；取 mip 1 的半分辨率深度 |
+| `ScreenSpaceDepthPyramid` | `R32_SFloat` | 共享打包图集 | 复用；mip 1 首采（半分辨率），mip 0 确认（全分辨率） |
 | `_ContactShadowTexture` | `R32_UInt` | 全分辨率 × viewCount | packed：低 24 bit 每灯遮挡，高 8 bit 全局 fade |
 | `_ContactShadowNeutralTexture` | `R32_UInt` | 1×1 | 值为 0；禁用时绑定 |
-| `_ContactShadowLightBuffer` | `ComputeBuffer`（24 条） | 24 × 32 B | 每条：`position.xyz + position.w = type(0/1/2)`；`direction.xyz + direction.w = asfloat(mask)` |
+| `_ContactShadowLightBuffer` | `ComputeBuffer`（24 条） | 24 × 32 B | 每条：`float3 position; uint type; float3 direction; uint mask;`（避免 float 位模式在 denormal/FTZ 平台丢 bit） |
 | `_ContactShadowParams*` | CBUFFER | — | length / distanceScaleFactor / fade / bias / thickness / sampleCount / frameIndex / taaEnabled |
 | `_ContactShadowMatrices` | CBUFFER | 每 view | ViewProj / InvViewProj / Projection / CameraPosWS（XR 2 view 数组） |
 
@@ -656,6 +670,7 @@ public sealed class ContactShadowsVolume : VolumeComponent
 ```
 
 - Feature 必须在 Active Renderer Data 上；Volume 是效果的总开关。`AddRenderPasses` 读取 Volume 并把设置缓存进 pass，`Execute` 不再重新读 Volume，避免入队决策与执行设置不一致。
+- Volume/灯组件的运行时变化在**下一帧**生效；T7 的 runtime toggle 测试必须等待一帧再断言。
 - 无 Volume / `enabled=false`：不入队 Compute、不分配 RT、不写全局；状态按 §4.1 的 Inactive 行处理。
 - 不做 HDRP Quality 分级；Inspector 加一句说明。
 
@@ -675,6 +690,7 @@ public sealed class ContactShadowLight : MonoBehaviour
 - 只对 `LightType.Directional / Point / Spot` 生效；Rectangle 忽略。
 - 组件不存在或 `castContactShadows=false` 或 `Behaviour.enabled=false`：该灯不参与。
 - 只检查 **Light 所在 GameObject** 上的组件；不向父/子层级查找。组件挂在非 Light 对象上时忽略并 warning 一次。
+- 灯组件状态在 `AddRenderPasses` 读取并缓存。
 - 这是 Feature 目录内的 opt-in，不修改 URP 的 `UniversalAdditionalLightData` 或灯 Inspector。
 - 用户流程：在灯 GameObject 上 Add Component → Contact Shadow Light。
 
@@ -687,12 +703,15 @@ ContactShadowLight marker = unityLight != null
 bool marked = marker != null
     && marker.isActiveAndEnabled
     && marker.castContactShadows
+    && unityLight.enabled
     && (unityLight.type == LightType.Directional
         || unityLight.type == LightType.Point
         || unityLight.type == LightType.Spot);
 ```
 
 槽位分配（`ScreenSpaceContactShadowLights`）：
+
+compute 的解码约定为 `0=Directional, 1=Point, 2=Spot`，与 Unity `LightType`（`Spot=0, Directional=1, Point=2`）不同，必须显式映射（`EncodeLightType`），不能直接写 `(uint)light.type`。
 
 ```
 slot = 0
@@ -704,7 +723,7 @@ records.Clear()
 if mainLightIndex >= 0 && IsMarked(mainLight):
     mainMask = 1u << slot++
     records.Add(main,
-        type = mainLight.type,                       // 通常 Directional，但按实际类型处理
+        type = EncodeLightType(mainLight.type),     // 0=Directional, 1=Point, 2=Spot
         direction = (Directional ? -forward : 0),
         position  = (Directional ? 0 : mainLightPos))
 
@@ -717,7 +736,7 @@ for i in visibleLights:
     if IsMarked(light) && slot < 24:
         additionalMasks[additionalIndex] = 1u << slot++
         records.Add(light,
-            type = Directional / Point / Spot,
+            type = EncodeLightType(light.type),
             direction = (Directional ? -forward : 0),
             position  = (Directional ? 0 : lightPos))
 
@@ -725,7 +744,8 @@ for i in visibleLights:
 ```
 
 - 主光参与时拿 `slot 0`；主光未参与/未标记时，第一盏附加光拿 `slot 0`。因此总计最多 24 盏，不固定浪费槽位。
-- `record` 布局为 32 B：`position.xyz + position.w = type`；`direction.xyz + direction.w = asfloat(mask)`。
+- `record` 布局为 32 B：`float3 position; uint type; float3 direction; uint mask;`；`type` 取 `EncodeLightType` 的 0/1/2，`mask` 直接放 `uint`。
+- **全局掩码的 float 位模式**：上传用的 `_AdditionalLightsContactShadowMasks` 是 `float[]`，元素必须写 `math.asfloat(1u << slot)`，shader 端 `asuint` 取回（与 URP `_AdditionalLightsLayerMasks` 相同）；直接写 `1.0f` 会使掩码永不命中。`record.mask` 不需要 `asfloat`。
 - **索引一致性**：`additionalIndex` 对每个非主光递增，未标记的灯也会占一个 additional light index；否则 `_AdditionalLightsContactShadowMasks[lightIndex]` 与 shader 的 `lightIndex` 错位。测试必须包含“未标记灯在标记灯之前”的用例。
 
 `additionalLightIndex` 必须与 `ForwardLights.SetupAdditionalLightConstants` 的 `lightIter` 完全一致：按 `visibleLights` 顺序、跳过主光、最多 `UniversalRenderPipeline.maxVisibleAdditionalLights`。这保证 Forward、Forward+、Deferred 三条路径取到同一槽位。
@@ -739,7 +759,7 @@ for i in visibleLights:
 | HDRP | 本 Feature |
 |---|---|
 | `PositionInputs` | 用 `uv + deviceDepth + InvViewProj` 重建 `positionWS`/`linearDepth` |
-| `_CameraDepthTexture`（HDRP 金字塔） | 共享 `ScreenSpaceDepthPyramid.texture` 的 mip 1；绑定 `mipLevelOffsets[1]` / `mipLevelSizes[1]` |
+| `_CameraDepthTexture`（HDRP 金字塔） | 共享 `ScreenSpaceDepthPyramid.texture`：首采 mip 1；命中后同一 t 读 mip 0 确认；绑定 mip0/mip1 的 offsets/sizes |
 | `_ScreenSize` | `_ContactShadowScreenSize` |
 | `_TaaFrameInfo.w` | `_ContactShadowTaaEnabled` |
 | `_FrameCount` | `_ContactShadowFrameIndex` |
@@ -752,7 +772,7 @@ for i in visibleLights:
 ```
 [numthreads(8,8,1)]
 KContactShadow(pixel):
-    depth = depthPyramid.Load(mip1Offset + pixel/2)
+    depth = depthPyramid.Load(mip0Offset + pixel)   // 初始深度必须全分辨率；mip 1 只用于 RayCast 首采
     if background or outside fade range: store 0; return
 
     posWS       = ReconstructWorldPos(pixel, depth)
@@ -761,8 +781,8 @@ KContactShadow(pixel):
     contactMask = 0
     globalFade  = 0
     for each record in [0, lightCount):
-        type = (uint)record.position.w          // 0=Directional, 1=Point, 2=Spot
-        mask = asuint(record.direction.w)
+        type = record.type                      // 0=Directional, 1=Point, 2=Spot
+        mask = record.mask
         if type == 0:
             rayDir = record.direction.xyz
         else:
@@ -777,7 +797,7 @@ KContactShadow(pixel):
     store PackContactShadowData(globalFade, contactMask)
 ```
 
-`RayCast` 内部保留 HDRP 的全部细节：bias、投影、斜率无关阈值、half-res→full-res 两段确认、dither、屏外 vignette、距离 fade。
+`RayCast` 内部保留 HDRP 的全部细节：bias、投影、斜率无关阈值、half-res（mip 1）→ full-res（mip 0）两段确认、dither、屏外 vignette、距离 fade。mip 0 的坐标是 `mip0Offset + fullPixel`，mip 1 的坐标是 `mip1Offset + fullPixel/2`；两者都来自同一张共享图集，不需要额外绑定 `_CameraDepthTexture`。
 
 - XR：复用 `SSL_XR_ARRAY` 关键字与 `ScreenSpaceLightingXr` 的 view 矩阵/资源 dimension；compute 按 view 调度。
 - Compute 只读共享金字塔；不写它。
@@ -804,7 +824,7 @@ KContactShadow(pixel):
 3. `SetGlobalTexture("_ContactShadowTexture", rt)`；
 4. `SetGlobalFloat("_ContactShadowOpacity", volume.opacity)`；
 5. `SetGlobalInt("_MainLightContactShadowMask", mainMask)`；
-6. `SetGlobalFloatArray("_AdditionalLightsContactShadowMasks", masks)`；
+6. `SetGlobalFloatArray("_AdditionalLightsContactShadowMasks", floatMasks)`（元素为 `math.asfloat(mask)`）；
 7. `SetGlobalInt("_ContactShadowLightCount", records.Count)`。
 
 `taaEnabled` 定义为 `cameraData.postProcessEnabled && cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing`；`frameIndex = Time.frameCount`。XR 使用 `ScreenSpaceLightingXr` 的每 view 矩阵与相机位置。
@@ -817,12 +837,12 @@ KContactShadow(pixel):
   - `_AdditionalLightsContactShadowMasks` 全部清零；
   - `_ContactShadowOpacity = 0`；
   - `_ContactShadowLightCount = 0`。
-- **绑定责任**：ComputePass 在 dispatch 后设置真实纹理/掩码/opacity；CleanupPass 是状态归零的唯一责任点。Active 帧即使 ComputePass 因资源缺失早退，CleanupPass 也必须入队。
+- **绑定责任**：ComputePass 在 dispatch 后设置真实纹理/掩码/opacity；CleanupPass 是状态归零的唯一责任点。
 - **多相机**：每个 Active 相机都必须完成 Compute→Cleanup 配对；Inactive 相机依赖上一 Active 相机的 Cleanup 状态。中性 1×1 纹理在 Feature 资源中创建一次，`Dispose` 释放。
 - 与 URP `ScreenSpaceShadows` feature 共存：先算屏幕空间 shadow map，再与接触阴影取 `min`。
 - 与 GTAO/SSGI/SSR：互不影响；接触阴影只改直射光遮挡。
 - 透明物：编译期排除 + opaques 后中性绑定。
-- `ScreenSpaceContactShadowsDebugPass` 持有 packed RT 的句柄，不依赖 cleanup 之后的全局绑定；可以在 `BeforeRenderingPostProcessing` 继续显示 mask/fade。
+- `ScreenSpaceContactShadowsDebugPass` 在 `Execute` 时按当前相机取 per-camera packed RT 句柄（不能缓存上一相机句柄），不依赖 cleanup 之后的全局绑定；可以在 `BeforeRenderingPostProcessing` 继续显示 mask/fade。
 - 关闭 Volume / 移除灯组件 / 移除 Feature：图像逐像素不变；Feature `Dispose` 释放 RT/ComputeBuffer/Material，并 `UnregisterOwner`。
 
 ### 4.10 与 HDRP 的已知差异
@@ -830,12 +850,13 @@ KContactShadow(pixel):
 | 项 | HDRP | 本 Feature v1 | 影响 |
 |---|---|---|---|
 | 每像素灯数 | FPTL tile 列表 | 最多 24 盏接触阴影灯全遍历 | 性能；正确性不变 |
-| 深度金字塔 | 共享 depth pyramid mip 1 | 复用 URP 共享金字塔 mip 1 | 基本一致 |
+| 深度金字塔 | 共享 depth pyramid mip 1 | 复用 URP 共享金字塔（mip 1 首采 + mip 0 确认） | 基本一致 |
 | 共享金字塔输入 | 深度专用 | 现有共享 pass 同时请求 Motion（SSL 需要） | 仅 Contact Shadows 时多一次 motion 准备；follow-up 可拆分输入 |
 | TAA | 内置 `_TaaFrameInfo` | 显式上传 frameIndex/taaEnabled | 视觉一致 |
 | Quality 分级 | Lighting Quality Settings | 直接 sampleCount | UI 不同 |
 | 世界坐标 | camera-relative | 绝对坐标 + 朝相机 bias | 视觉一致；大世界精度略低 |
 | 槽位 | 方向光/附加光统一分配 | 主光优先 `bit 0`，附加光随后；总计 24 | 仅内部索引不同 |
+| 逐灯启用 | Light Inspector 的 Contact Shadows 开关（`HDAdditionalLightData`） | 独立 `ContactShadowLight` 组件 | UX 不同；不修改 `UniversalAdditionalLightData`，按 §4.6 流程添加组件 |
 | 灯不投射 shadow map | 支持 | Forward 支持；Deferred 主光支持；Deferred 附加光仅在 `_ADDITIONAL_LIGHT_SHADOWS` 变体启用时支持（见 D10） | 已知限制（D10） |
 | 透明物 | 不支持 | 不支持 | 一致 |
 | Receive Shadows = Off | 行为可能不同 | v1 跳过（与 URP 语义一致） | 明确差异 |
@@ -852,10 +873,12 @@ KContactShadow(pixel):
 
 | 工作流 | 负责范围 | 主要任务 |
 |---|---|---|
-| W1 Feature Runtime | Feature/Volume/灯组件/History/Pass/Capability | T1、T2、T4、T6 |
-| W2 GPU/Shader | compute、URP shader 钩子 | T3、T5 |
+| W1 Feature Runtime | Feature/Volume/灯组件/History/Pass/Capability/全局绑定 | T1、T2、T4、T5(Feature/绑定)、T6 |
+| W2 GPU/Shader | compute、URP shader 钩子/材质采样 | T3、T5(shader/compute) |
 | W3 测试/证据 | 测试资产、player、矩阵、性能 | T7、T8 |
 | W4 文档/收尾 | 契约、报告、ACCEPTANCE、清理/归档 | T0、T9 |
+
+> T3/T5 是 W1+W2 联合任务：T3 的 Pass 脚手架与 T5 的全局绑定/Feature 编排归 W1，compute 与 `Shadows.hlsl`/`ContactShadows.hlsl` 归 W2。验收时分别要求代码 diff 与 GPU 证据。
 
 ### 5.2 文件级边界
 
@@ -879,7 +902,7 @@ KContactShadow(pixel):
 
 - Runtime C# 直接编译进现有 `Unity.RenderPipelines.Universal.Runtime`；**不新增 runtime asmdef**。
 - Editor C# 直接编译进现有 `Unity.RenderPipelines.Universal.Editor`；**不新增 editor asmdef**。
-- 包内测试沿用 `Tests/Editor` 的现有测试 asmdef 约定；如果该目录需要独立 asmdef，只在 `Tests/Editor/RendererFeatures/ContactShadows` 下新增测试 asmdef。
+- 包内测试先确认现有 `Tests/Editor` asmdef 的覆盖范围：默认**不新增** asmdef，测试文件放在现有 asmdef 覆盖的目录下；仅当现有 asmdef 不覆盖 `Tests/Editor/RendererFeatures/ContactShadows` 时，才在该目录新增局部 asmdef，并在 T0 Contract 记录原因。
 - 项目侧 `Assets/Tests/ContactShadow/Editor` 与 `Runtime` 脚本沿用 SSL 的 Assembly-CSharp-Editor / Assembly-CSharp 约定（无 asmdef）；`Tests/PlayMode` 新增 `Unity.ContactShadow.Tests.PlayMode.asmdef`，引用 URP Runtime/Core、TestRunner、`nunit.framework.dll`、`UNITY_INCLUDE_TESTS`。
 - 不改既有 `Unity.ScreenSpaceLighting.Tests.*.asmdef`；不新增 runtime/editor asmdef；不使用 `InternalsVisibleTo`。
 
@@ -908,13 +931,15 @@ KContactShadow(pixel):
 
 ## 6. 任务清单（T0–T9）
 
+> 提交协议：每个任务单独提交；提交前通过该任务的门禁；任务完成即更新本文件的证据路径与状态；不得把多个任务混在一个提交里。
+
 ### 6.1 依赖图
 
 ```
 T0 契约/基线
  └─> T1 Feature 骨架 + 导入/Volume 发现
       ├─> T2 共享深度金字塔 + 每相机 packed RT ─> T3 Compute raymarch
-      └─> T4 灯组件 + 槽位/掩码
+      └─> T4 灯组件发现 + 槽位/掩码
 T4 ─> T7 验证资产（三模式场景/Renderer/Profile/测试脚本）
 T3 + T4 + T7 ─> T5 URP shader 钩子 + 三模式接入
 T5 ─> T6 Cleanup/UI/Debug/序列化检查
@@ -922,7 +947,7 @@ T6 + T7 ─> T8 矩阵执行/Player/证据/性能/回归
 T8 ─> T9 文档/清理/归档
 ```
 
-- T2 与 T4 可并行：T2 只改 Feature/History/资源，T4 只新增灯组件/灯光构建类，不改 Feature。
+- T2 与 T4 可并行：T2 只改 Feature/History/资源，T4 只完善 T1 的灯组件发现逻辑/新增灯光构建类，不改 Feature。
 - T3 依赖 T2（共享金字塔/History 就绪）；T3 先用临时主光记录打通，不依赖 T4。
 - T4 依赖 T1；T7 依赖 T4（场景需要 `ContactShadowLight` 组件）；T7 可与 T3 并行。
 - T5 依赖 T3/T4/T7：需要 compute、真实灯数据、三模式测试资产才能产出 A/B。
@@ -947,7 +972,8 @@ T8 ─> T9 文档/清理/归档
 
 - **目标**：建立包内 Feature/Volume/灯组件/空 Pass；证明“能从 Renderer Data 导入、能在 Volume Profile 添加、能 Add Component”。
 - **改动**：
-  - `Runtime/RendererFeatures/ContactShadows`：Feature（`public sealed` + `[DisallowMultipleRendererFeature("Screen Space Contact Shadows")]`）、`ContactShadowsVolume`（`public sealed` + `[VolumeComponentMenuForRenderPipeline]`）、`ContactShadowLight`（`[AddComponentMenu]` + `[DisallowMultipleComponent]`）、Settings/Resources/ShaderIDs/Capability 骨架；
+  - `Runtime/RendererFeatures/ContactShadows`：Feature（`public sealed` + `[DisallowMultipleRendererFeature("Screen Space Contact Shadows")]`）、`ContactShadowsVolume`（`public sealed` + `[VolumeComponentMenuForRenderPipeline]`）、`ContactShadowLight`（`[AddComponentMenu]` + `[DisallowMultipleComponent]`）、空 `ScreenSpaceContactShadowsPass`（只实现 Setup/Execute 空壳；T3 填充 compute，T5 填充全局绑定）、Settings/Resources/ShaderIDs/Capability 骨架；
+  - 包内 `ContactShadowVolumeTests` 与项目侧 `ContactShadowFeatureImportTests`（临时 fixture）；
   - **Settings/Resources/ShaderIDs 在 T1 一次性定义全部已知字段/ID（含 debug 字段）**，后续 T2/T3/T4/T6 不互相加字段，也不因新字段重写 T7 资产；
   - `Editor/RendererFeatures/ContactShadows`：Feature Inspector + Assign Defaults；
   - 导入测试使用 EditMode 临时创建 Renderer/Pipeline/Volume Profile，`TearDown` 删除；**不提交测试资产**（Pipeline/Renderer/Volume/Scene）；只提交 `Assets/Tests/ContactShadow/Editor/ContactShadowFeatureImportTests.cs` 测试脚本。
@@ -956,13 +982,13 @@ T8 ─> T9 文档/清理/归档
   - Volume Profile 出现 **Shadowing/Contact Shadows**；灯上能 Add Component → Contact Shadow Light；
   - `AddRenderPasses` 能读到 Volume；关闭时 **Compute 不入队、不分配 RT、不写全局**；状态按 §4.1 的 Inactive 行处理；
   - 无 compute 时不抛异常，只 warning 一次；
-  - 默认 `Assets/Settings/URP-*.asset` 未被修改；T1 只提交 import test 脚本，不提交 Pipeline/Renderer/Volume/Scene 资产。
-- **证据**：临时 Renderer/Pipeline/Volume 的序列化内容；Feature/Volume/Light Inspector 截图；`ContactShadowFeatureImportTests`、`ContactShadowVolumeTests`、`ContactShadowLightTests`。
+  - 默认 `Assets/Settings/URP-*.asset` 未被修改。
+- **证据**：临时 Renderer/Pipeline/Volume 的序列化内容；Feature/Volume/Light Inspector 截图；`ContactShadowFeatureImportTests`、`ContactShadowVolumeTests`。
 - **回滚**：删除新增 Feature 目录 + import test 脚本；没有测试资产需要清理。
 
 #### T2 共享深度金字塔 + 每相机 packed RT
 
-- **目标**：Feature 作为 `ScreenSpaceDepthPyramidSystem` 的 owner；复用 mip 1；每相机/eye 的 packed RT 生命周期正确。
+- **目标**：Feature 作为 `ScreenSpaceDepthPyramidSystem` 的 owner；复用 mip 1/mip 0；每相机/eye 的 packed RT 生命周期正确。
 - **改动**：
   - `ScreenSpaceContactShadowsHistory`；
   - `ScreenSpaceContactShadowsResources.depthPyramidCompute`；
@@ -970,12 +996,12 @@ T8 ─> T9 文档/清理/归档
   - `Acquire` 与 `CameraHistoryStore` 接入；
   - `ScreenSpaceContactShadowsCapability`（复用 `ScreenSpaceCapability` + `R32_UInt` 检查）。
 - **验收**：
-  - Contact + SSL 同时存在时，Depth Pyramid pass 每帧只入队一次；
-  - Contact 使用 mip 1（offset/size 正确）；
+  - Contact + SSL/GTAO 同时存在时，Depth Pyramid pass 每个相机每帧只入队一次；
+  - Contact 使用 mip 1 首采、mip 0 确认（offset/size 正确）；
   - 多相机/尺寸变化/XR layout 变化不泄漏；
   - 不支持 API/格式时 no-op + 一次 warning；
-  - 深度 pyramid 不可用时：Compute 不入队；Cleanup 入队并绑定中性/零（状态按 §4.1 处理）。
-- **证据**：EditMode `ContactShadowHistoryTests`；Frame Debugger 203 pass；金字塔 debug 图。
+  - 深度 pyramid 不可用时：Compute 不入队、packed RT 不分配；归零状态由 T6 的 CleanupPass 验证（T2 只验证 History/RT 不泄漏）。
+- **证据**：EditMode `ContactShadowHistoryTests`、`ContactShadowCapabilityTests`；Frame Debugger 203 pass；金字塔 debug 图。
 - **依赖**：T1。
 
 #### T3 Compute raymarch
@@ -991,29 +1017,30 @@ T8 ─> T9 文档/清理/归档
   - packed RT 在物体背光侧有遮挡 bit、朝光侧无（通过 `AsyncGPUReadback`/临时 debug blit 读取，不依赖最终光照）；
   - bias 默认无 acne（mask 图）；
   - sampleCount 4/10/64 有可测差异（mask/fade）；
-  - 半分辨率命中→全分辨率确认（薄物体 mask 边缘）；
+  - 半分辨率命中→全分辨率确认（mip 1 首采、mip 0 同 t 复采；薄物体 mask 边缘）；
   - 屏外 vignette 与距离 fade 生效（fade 图）；
   - 上下/左右方向正确（非对称场景，不出现 UV 翻转）；
   - 单灯 dispatch 可被 Frame Debugger/计数器观察到。
 - **证据**：`validation/P3/` packed RT 的 mask/fade PNG + 指标 JSON（readback 或临时 debug blit）；**不产出三模式最终 A/B**（那属于 T5）。
 - **依赖**：T2。
 
-#### T4 灯组件 + 槽位/掩码
+#### T4 灯组件发现 + 槽位/掩码
 
-- **目标**：逐灯启用；按参与顺序分配 bit（主光优先 `bit 0`，附加光随后）；总计 24 上限；与 `ForwardLights` 顺序一致。
+- **目标**：在 T1 已落地的 `ContactShadowLight` 上实现发现逻辑；按参与顺序分配 bit（主光优先 `bit 0`，附加光随后）；总计 24 上限；与 `ForwardLights` 顺序一致。
 - **改动**：
-  - `ContactShadowLight`（`[AddComponentMenu]`、`[DisallowMultipleComponent]`）；
+  - 复用/完善 T1 的 `ContactShadowLight`（**不在 T4 重复创建**；只补发现/校验逻辑）；
   - `ScreenSpaceContactShadowLights`：按 §4.6 的发现逻辑构建掩码/32 B 记录；
-  - **只产出数据，不写全局、不改 Feature/Pass**；T5 调用 `Build` 并上传。
+  - **只产出数据，不写全局、不改 Feature/Pass**；T5 调用 `Build` 并上传；`Build` 每次先清零输出数组。
 - **验收**：
   - 0/1/23/24/25 边界（主光存在/不存在两种；主光未标记时第一盏附加光拿 bit 0）；
   - **未标记灯在标记灯之前**时索引不错位（additionalIndex 对每个非主光递增）；
-  - 主光 + 附加光、点/聚光/方向光；
+  - 主光 + 附加光、点/聚光/方向光；记录的 `type` 为 0/1/2（不是 Unity `LightType`）；
   - 关闭单灯只影响该灯；`castContactShadows=false` / `Behaviour.enabled=false` / Rectangle 不参与；
   - 组件只在 Light 所在 GameObject 上生效；子/父/非 Light 对象不生效；
-  - 上一帧/上一相机掩码不残留；
+  - 上传后的全局掩码满足 `asuint(floatMasks[i]) == 1u << slot`；
+  - `Build` 每次先清零 CPU 输出数组；全局掩码的上一帧/上一相机残留由 T5 上传前清零、T6 Cleanup 验证；
   - 组件在 prefab/实例上生效。
-- **证据**：`ContactShadowSlotMappingTests`；slot debug 图。
+- **证据**：`ContactShadowSlotMappingTests`、`ContactShadowLightTests`；slot debug 图。
 - **依赖**：T1；可与 T2 并行。
 
 #### T5 URP shader 钩子 + 三模式接入
@@ -1030,7 +1057,8 @@ T8 ─> T9 文档/清理/归档
   - 关闭时逐像素一致；Compute 不入队；cleanup/中性状态成立或上一 Active 帧已归零；
   - 不新增 shader 关键字/不给 Lit 增加变体；
   - `git diff` 中已有 URP C# 文件修改为 0，已有 shader 修改仅 `Shadows.hlsl`。
-- **证据**：`validation/P5/` 三模式图 + `git diff --stat` + shader 编译检查。
+- **证据**：`validation/P5/` 三模式图 + `git diff --stat` + `ContactShadowGlobalBindingTests`、`ContactShadowShaderCompileTests`。
+- **提交拆分建议**：若单个提交过大，拆成 T5a（`ContactShadows.hlsl` + `Shadows.hlsl` 钩子）与 T5b（Feature 全局绑定/Compute+Cleanup 成对入队）；仍按 §6.1 的共享文件串行化，T5a 先合入。
 - **依赖**：T3/T4/T7（compute、灯数据、三模式资产）。
 
 #### T6 Cleanup、UI、Debug、序列化检查
@@ -1044,7 +1072,7 @@ T8 ─> T9 文档/清理/归档
 - **验收**：
   - opaques 后中性纹理/零掩码/opacity=0/lightCount=0；
   - Active 帧即使 ComputePass 因资源缺失早退，CleanupPass 仍入队并归零；
-  - debug 模式 Mask/Fade/Slot/Raw 可用；
+  - debug 模式 Mask/Fade/Slot/Raw 可用；DebugPass 在 `Execute` 时按当前相机取 per-camera RT 句柄，多相机 debug 图不串帧；
   - 多相机连续渲染不串状态；Inactive 相机依赖上一 Active 相机的 Cleanup；
   - Feature 资产中 compute/shader/depthPyramidCompute 引用均已序列化，Inspector 无 missing。
 - **证据**：`ContactShadowCleanupTests`；debug PNG；Feature 资产序列化检查。
@@ -1076,7 +1104,7 @@ T8 ─> T9 文档/清理/归档
     - MSAA：off/on；动态分辨率（若支持）。
     - 多相机/Scene View；透视/正交相机；XR mock（次级；失败记入 KnownDifferences）。
     - 透明物、`Receive Shadows=Off`、BakedLit、自定义 shader（已知限制验证）。
-    - Deferred 附加光：Asset 开+有投影附加光、Asset 开+全 `shadows=None`（Off 变体未 strip）、Asset 关 三种配置。
+    - Deferred 附加光：Asset 开+当前灯投影、Asset 开+当前灯 `shadows=None` 但另一灯投影（Off 变体未 strip）、Asset 开+全 `shadows=None`（Off 变体未 strip）、Asset 关。
   - D3D11 与 D3D12 各构建一个 Development player + 一个非 Development player；检查 compute/shader 资源未被 strip。
   - A/B 图、差值图、区域亮度指标。
   - Feature 导入/Volume/灯组件证据。
@@ -1094,14 +1122,16 @@ T8 ─> T9 文档/清理/归档
 - **目标**：文档一致、产物清理、移动到 Done；`KnownDifferences.md`/`report.md`/ACCEPTANCE 同步。
 - **检查**：
   - HANDOFF/report/KnownDifferences/ACCEPTANCE/T0 Contract 五处无矛盾；HANDOFF 状态改为完成。
-  - `PLAN/ACCEPTANCE.md` 新增 **下一节（当前应为 §15，不是 §16）**，写总结/证据/已知限制。
-  - `KnownDifferences.md` 至少包含：Deferred 附加光限制（D10，含 Off 变体/全 None 条件）、Receive Shadows=Off、BakedLit/自定义 shader、Vulkan/Metal 未验证、XR/MSAA 结果、性能。
-  - 测试资产保留（`Assets/Tests/ContactShadow`）；T1 临时 fixture、临时场景/材质/GameObject 删除；默认资产未改。
+  - `PLAN/ACCEPTANCE.md` 执行时读取当前最后一节编号，新增下一节（当前最后一节为 §14，因此本次为 §15）；不得预写未来编号。
+  - `KnownDifferences.md` 至少包含：Deferred 附加光限制（D10，含 Off 变体/当前灯 None 条件）、Receive Shadows=Off、BakedLit/自定义 shader、逐灯启用方式（`ContactShadowLight` 组件）、Vulkan/Metal 未验证、XR/MSAA 结果、性能。
+  - 测试资产保留（`Assets/Tests/ContactShadow`）；T1 临时 fixture、T3 临时 readback/debug blit/临时主光记录、临时场景/材质/GameObject 删除；默认资产未改。
   - 日志本地-only；JSON/XML/PNG/txt 入库；无 `Library/`、`Temp/`、`Builds/`、player 二进制；`.rdc` 为 0 或不超预算。
+  - 运行 `git ls-files '*.rdc'` 与 `git ls-files -i -c --exclude-standard '*.rdc'`：前者记录已跟踪捕获数量/字节，后者必须为空（无 ignored-but-tracked），并与预算对照。
   - 证据体积符合 §8.4（PNG 数量/总大小）；无 orphan PNG/metadata。
   - 归档到 `PLAN/Done/10-ContactShadow`；修正相对链接；删除空目录；无重复副本。
   - `git status` 干净；`git diff --stat` 只包含本轮预期文件；AC-12 的边界成立。
 - **验收**：归档提交；AC-16 全项有证据。
+- **停止条件**：AC-1…AC-16 均有 PASS/PARTIAL/ACCEPTED 证据；T10 未启动；归档完成。否则不归档。
 
 ### 6.3 任务冲突/遗漏审计
 
@@ -1118,13 +1148,13 @@ T8 ─> T9 文档/清理/归档
 | T1/T6 都改 Feature/Inspector？ | T1 放骨架与全部字段；T6 在 T5 之后扩展 cleanup/debug/Inspector，串行。 |
 | 是否遗漏 Volume 开启路径？ | T1 验证 Volume 菜单/读取；T7 验证开启/关闭画面。 |
 | 是否遗漏 Renderer Feature 导入路径？ | T1 验证 Add Renderer Feature + 序列化；T7 验证 Pipeline Asset→Renderer List。 |
-| 是否遗漏逐灯开关？ | T4 引入 `ContactShadowLight`；T7 验证单灯/多灯/25 灯/非 Light/子物体。 |
+| 是否遗漏逐灯开关？ | T1 引入 `ContactShadowLight`；T4 实现发现/槽位；T7 验证单灯/多灯/25 灯/非 Light/子物体。 |
 | 是否遗漏共享金字塔只构建一次？ | T2 验证 Contact + SSL/GTAO 的 pass 计数；T8 证据。 |
 | 是否遗漏清理/中性状态？ | T5 成对入队 Compute+Cleanup；T6 CleanupPass；T8 AC；T9 检查。 |
 | 是否遗漏 `Receive Shadows=Off`？ | §3.4 加 `_RECEIVE_SHADOWS_OFF`；T8 矩阵（T7 资产）；AC-10。 |
 | 是否遗漏既有 shader 编译/SRP Batcher 回归？ | T8 显式运行；计数/兼容性变化时记录新基线，不静默改阈值。 |
 | 是否遗漏 raytracing 排除？ | D12 + AC-13 + T8 的 **scoped** grep/code review；不扫既有 DDGI。 |
-| 是否遗漏 deferred 附加光限制？ | D10 + §3.6 + KnownDifferences + AC-5/T7 三种配置（有投影附加光/全 None+Off 未 strip/Asset 关）。 |
+| 是否遗漏 deferred 附加光限制？ | D10 + §3.6 + KnownDifferences + AC-5/T7 配置（当前灯投影/当前灯 None 而其他灯投影/全 None+Off 未 strip/Asset 关）。 |
 | 是否遗漏 XR/MSAA/动态分辨率？ | T8 矩阵（T7 资产）；XR 为次级，失败在 KnownDifferences 标注，不声称通过。 |
 | 是否遗漏文档矛盾？ | T9 五处一致性检查；AC-16。 |
 | 是否遗漏证据预算/复现命令？ | §8.4 预算；T8 每个 AC 带复现命令；T9 检查 orphan/链接。 |
@@ -1140,18 +1170,18 @@ T8 ─> T9 文档/清理/归档
 | AC-2 | Volume Profile 出现 **Shadowing/Contact Shadows**；`enabled=false` 无效果且 Compute 不入队；`enabled=true` 且有灯组件时生效；无 Volume 时无效果 | Volume 资产 + A/B PNG + Frame Debugger |
 | AC-3 | 灯上的 `Contact Shadow Light` 能逐灯开关；主光 + 附加光；点/聚光/方向光 | 单灯/多灯 A/B + EditMode 测试 |
 | AC-4 | 方向/遮挡正确：接触暗部在背光侧；默认 bias 无自阴影痤疮 | 三视角 PNG + 区域亮度 |
-| AC-5 | 逐灯 `Light.shadows=None` 时：Forward 主/附加、Deferred 主光仍生效；Deferred 附加光仅在 `_ADDITIONAL_LIGHT_SHADOWS` 变体启用时生效（Asset 开启 + Off 变体 strip 或有其他投影附加光）；Asset 关闭或全 None+Off 未 strip 的记录为已知限制 | 三模式 A/B + KnownDifferences |
+| AC-5 | 逐灯 `Light.shadows=None` 时：Forward 主/附加、Deferred 主光仍生效；Deferred 附加光仅在该灯 draw 的 `_ADDITIONAL_LIGHT_SHADOWS` 关键字启用时生效（Asset 开启 + Off 变体 strip，或**当前灯**投影）；当前灯 None 且 Off 变体未 strip 时记录为已知限制 | 三模式 A/B + KnownDifferences |
 | AC-6 | 在 shadow map 未遮挡的接触区域：`opacity=0` 无效果；0.5 约一半；1 最大 | 区域亮度表 |
 | AC-7 | 距离 fade：`<minDistance` 为 0；`>maxDistance+fadeDistance` 为 0；中间单调 | 相机距离序列图 |
 | AC-8 | 屏外 fade：边缘无硬切；vignette 单调衰减 | 边缘带差值图 |
 | AC-9 | 24 灯槽位正确（主光存在/不存在两种顺序）；第 25 盏无接触阴影；关闭单灯只影响该灯；掩码无残留 | slot debug + 单灯 A/B + EditMode 测试 |
 | AC-10 | 透明物区域 A/B 差值为 0；`Receive Shadows=Off` 材质 A/B 差值为 0；BakedLit/自定义 shader 不覆盖（已知限制） | 透明/ReceiveOff 场景差值 + KnownDifferences |
-| AC-11 | 固定相机/灯光/深度配置时，同一 Contact compute 产出的 debug mask 在三模式间逐像素一致；如深度 prepass 有 1px 边缘差，非零差异 <1% 且记录原因 | mask PNG 对比 + 差异统计 |
-| AC-12 | 已有 URP C# 文件修改 = 0；新增 C# 全在 `Runtime/RendererFeatures/ContactShadows` 与 `Editor/RendererFeatures/ContactShadows`；已有 shader 修改仅 `Shadows.hlsl`，新增 `ContactShadows.hlsl` | `git diff --stat` + `git status` |
-| AC-13 | 本轮新增/修改文件中无 raytracing/raygeneration/DXR/TLAS；既有 DDGI 不算 | **scoped** `grep`/code review（仅 ContactShadows 目录 + `Shadows.hlsl` diff） |
-| AC-14 | Contact-only 与 Contact+SSL+GTAO 两种配置下，共享 Depth Pyramid pass 每帧只出现一次；Contact 使用 mip 1 | Frame Debugger + 计数器断言 |
+| AC-11 | 固定相机/灯光/深度配置时，同一 Contact compute 产出的 debug mask 在三模式间逐像素一致（只比较 compute mask，不含光照应用差异；D10 不影响 mask）；如深度 prepass 有 1px 边缘差，非零差异 <1% 且记录原因 | mask PNG 对比 + 差异统计 |
+| AC-12 | 已有 URP C# 文件修改 = 0；新增**功能 C#** 全在 `Runtime/RendererFeatures/ContactShadows` 与 `Editor/RendererFeatures/ContactShadows`（测试脚本按 §5.3 放置）；已有 shader 修改仅 `Shadows.hlsl`，新增 `ContactShadows.hlsl` | `git diff --stat` + `git status` |
+| AC-13 | 本轮新增/修改文件中无 raytracing/raygeneration/DXR/TLAS；既有 DDGI 不算 | **scoped** `grep`/code review（仅 ContactShadows 目录 + `ContactShadows.hlsl` + `Shadows.hlsl` diff） |
+| AC-14 | Contact-only 与 Contact+SSL+GTAO 两种配置下，共享 Depth Pyramid pass 每个相机（含 XR eye）每帧只出现一次；Contact 首采 mip 1、确认读 mip 0 | Frame Debugger + 计数器断言 |
 | AC-15 | 既有 EditMode/PlayMode/T12 全绿；新增测试全绿；shader 编译 0 error；MSAA/ReceiveOff/D10/正交相机配置有记录；SRP Batcher/变体数量无未解释回退；性能记录 | XML/日志/性能 JSON |
-| AC-16 | 测试改动、证据留存、产物清理、文档一致性完成；PNG ≤80 张/≤50 MB；日志本地-only；`.rdc` 0；Build 不入库 | `git status` + validation 清单 + ACCEPTANCE |
+| AC-16 | 测试改动、证据留存、产物清理、文档一致性完成；PNG ≤80 张/≤45 MB，`validation/` 总预算 ≤50 MB；日志本地-only；`.rdc` 默认 0（经所有者批准最多 1 个 ≤20 MiB，并记录）；Build 不入库 | `git status` + `git ls-files '*.rdc'`（ignored-but-tracked 为 0）+ validation 清单 + ACCEPTANCE |
 
 > 性能绝对阈值由 T0 在测试机上冻结（建议 1920×1080、4 灯、10 samples 每模式 ≤1.0 ms；超出则记录为 follow-up，不阻塞正确性验收）。
 
@@ -1179,16 +1209,18 @@ T8 ─> T9 文档/清理/归档
 | `ContactShadowVolumeTests` | EditMode（包内） | 默认值/范围/菜单路径/`enabled` |
 | `ContactShadowCapabilityTests` | EditMode（包内） | API/格式 gate；不支持时 no-op |
 | `ContactShadowHistoryTests` | EditMode（包内） | 多相机/尺寸/XR/Dispose；packed RT 生命周期 |
-| `ContactShadowSlotMappingTests` | EditMode（包内） | 0/1/23/24/25；与 ForwardLights 顺序一致；未标记灯在标记灯之前不导致索引错位 |
+| `ContactShadowSlotMappingTests` | EditMode（包内） | 0/1/23/24/25；与 ForwardLights 顺序一致；未标记灯在标记灯之前不导致索引错位；`type` 编码 0/1/2；掩码 `asuint` 位模式 |
 | `ContactShadowShaderCompileTests` | EditMode（包内） | 核心头文件 + Feature shader/compute 0 error |
 | `ContactShadowCleanupTests` | EditMode（包内） | opaques 后中性/零掩码/opacity=0 |
 | `ContactShadowFeatureImportTests` | EditMode（项目侧） | Renderer 资产含 Feature；Pipeline 引用 Renderer；Volume Profile 含组件；reload |
 | `ContactShadowLightTests` | EditMode（包内） | 组件发现/主光/附加光/prefab/关闭/子父物体/非 Light/Rectangle |
 | `ContactShadowReceiveShadowsTests` | PlayMode（项目侧）+ 视觉 | `_RECEIVE_SHADOWS_OFF` / `materialReceiveShadowsOff` 时不应用 |
 | `ContactShadowGlobalBindingTests` | EditMode（包内） | Active 时 208 后绑真实纹理/掩码；300 后绑中性/零；Inactive 时不写 |
-| `ContactShadowDeferredLimitationTests` | PlayMode（项目侧）+ 三模式 A/B | Asset 关或全 None+Off 未 strip：Deferred 附加光按 D10 不生效；Forward/Deferred 主光仍生效；有投影附加光时 Deferred 附加光生效 |
+| `ContactShadowDeferredLimitationTests` | PlayMode（项目侧）+ 三模式 A/B | 当前灯 None 且 Off 变体未 strip：该灯 Deferred 附加光按 D10 不生效，其他投影灯的接触阴影不受影响；Asset 关时全部不生效；Forward/Deferred 主光仍生效 |
 | `ContactShadowPlayerSerializationTests` | Player（T8，由 setup/verification 执行） | 非 Development build 中 compute/shader/depthPyramidCompute 未 strip |
-| `ContactShadowRuntimeToggleTests` | PlayMode（项目侧） | Volume/灯组件/Feature 运行时开关；多相机 |
+| `ContactShadowRuntimeToggleTests` | PlayMode（项目侧） | Volume/灯组件/Feature 运行时开关；次帧生效；多相机 |
+
+**测试归属**：T1 `FeatureImport`/`Volume`；T2 `Capability`/`History`；T4 `Light`/`SlotMapping`；T5 `GlobalBinding`/`ShaderCompile`；T6 `Cleanup`；T7 `ReceiveShadows`/`DeferredLimitation`/`RuntimeToggle`（资产+脚本）；T8 `PlayerSerialization` 与矩阵执行。
 
 ### 8.3 Player 验证
 
@@ -1211,7 +1243,7 @@ T8 ─> T9 文档/清理/归档
 | 测试结果 | `*.xml` | 入库 |
 | 汇总/报告 | `*.json/*.txt`、`report.md` | 入库 |
 | KnownDifferences | `KnownDifferences.md` | 入库，T9 更新 |
-| 图像 | 小尺寸 PNG（A/B/差值/debug） | 入库；**≤80 张、总计 ≤50 MB** |
+| 图像 | 小尺寸 PNG（A/B/差值/debug） | 入库；**≤80 张、≤45 MB** |
 | 日志 | `*.log` | **本地-only**，`.gitignore` 已排除；不入库 |
 | `.rdc` | 默认 0 | 预算 1000.1/1024 MiB；若必须，1 个 ≤20 MiB 1280×720，记录并获批 |
 | Player/Builds | 不入库 | `Builds/`、二进制、`Library/`、`Temp/` 清理；保留 `BuildSummary.json`（路径/大小/结果） |
@@ -1221,12 +1253,12 @@ T8 ─> T9 文档/清理/归档
 
 ### 8.5 归档与清理
 
-1. 删除 T1 临时 fixture、临时场景/材质/GameObject；保留 T7 的 `Assets/Tests/ContactShadow` 专用验证资产。
+1. 删除 T1 临时 fixture、**T3 临时 readback/debug blit/临时主光记录**、临时场景/材质/GameObject；保留 T7 的 `Assets/Tests/ContactShadow` 专用验证资产。测试计数器若保留，必须限定 `UNITY_EDITOR`/`DEVELOPMENT_BUILD` 并在 report 说明用途。
 2. 确认默认 Pipeline/Renderer/场景/GoldenImages 未被修改；如手动测试改过，恢复。
 3. 删除 `Builds/`、player 日志、临时 `.rdc`、`Library/`/`Temp/` 残留；保留 `BuildSummary.json`。
 4. 把 `PLAN/TODO/10-ContactShadow` 移到 `PLAN/Done/10-ContactShadow`；不保留重复副本。
-5. 更新 `PLAN/ACCEPTANCE.md` 的**下一节（当前应为 §15）**，写总结/证据/已知限制；不写 §16。
-6. 更新 `KnownDifferences.md`（D10、Receive Shadows=Off、BakedLit/自定义 shader、Vulkan/Metal 未验证、XR/MSAA、性能）。
+5. 更新 `PLAN/ACCEPTANCE.md`：按执行时的最后一节编号新增下一节（当前 §14 → §15）。
+6. 更新 `KnownDifferences.md`（D10、Receive Shadows=Off、BakedLit/自定义 shader、逐灯启用方式（`ContactShadowLight` 组件）、Vulkan/Metal 未验证、XR/MSAA、性能）。
 7. 修正相对链接；删除空目录；检查 `git status` 干净、`git diff --stat` 只含预期文件。
 8. 确保 `.meta` 随新资产提交；删除资产时对应 `.meta` 一并删除，不留 orphan。
 9. 最终提交只包含计划/代码/测试/证据；不包含日志/构建/大 `.rdc`；确认 T10 未启动。
@@ -1242,8 +1274,7 @@ T8 ─> T9 文档/清理/归档
   - `.rdc`/证据预算；
   - 测试/产物留存。
 - 任何一处改动必须同步其余四处；T9 逐项对照。
-- AC 证据路径必须存在；无死链；未验证的平台/组合写“未验证”，不声称 PASS。
-- 若某项证据缺失，标 PARTIAL/ACCEPTED 并说明，不用推测补齐。
+- AC 证据路径必须存在、无死链；未验证的平台/组合写“未验证”，缺失项标 PARTIAL/ACCEPTED，不声称 PASS、不用推测补齐。
 
 ---
 
@@ -1257,14 +1288,14 @@ T8 ─> T9 文档/清理/归档
 | R4 | Volume 未启用/无灯组件时仍有开销 | `AddRenderPasses` 三重门控（Volume/平台/灯）；T1/T2 验证 Compute 不入队、不分配 RT；状态按 §4.1 处理 |
 | R5 | 24 盏灯全遍历导致 GPU 成本高 | v1 记录性能；默认测试 4 盏；follow-up 用 Forward+ tile |
 | R6 | 共享金字塔当前同时请求 Motion（SSL 需要） | 已知差异；仅 Contact Shadows 时接受一次 motion 准备；follow-up 可拆分输入 |
-| R7 | Deferred 附加光依赖 `_ADDITIONAL_LIGHT_SHADOWS` 变体（Asset 开启 + Off 变体 strip/其他投影附加光） | D10 明确记录；AC-5 限定范围；可选 T10 另行评估 |
+| R7 | Deferred 附加光依赖 `_ADDITIONAL_LIGHT_SHADOWS` 变体（Asset 开启 + Off 变体 strip，或当前灯投影） | D10 明确记录；AC-5 限定范围；可选 T10 另行评估 |
 | R8 | `R32_UInt` LoadStore 不支持 | `ScreenSpaceCapability` + Contact 自己的格式检查；不支持时 no-op + 一次 warning |
 | R9 | GLES/OpenGL NDC z 约定不同 | 运行时 API gate；不支持平台不启用 |
 | R10 | 掩码/纹理泄漏到透明 pass 或下一相机 | Active 帧 Compute+Cleanup 成对；CleanupPass 中性绑定 + 清零；EditMode 清理测试 |
 | R11 | 新增 shader 头文件影响既有 shader 编译计数 | T8 运行既有检查；变化时记录新基线并说明 |
 | R12 | 证据/`.rdc`/日志超预算 | 默认 0 `.rdc`；日志本地-only；PNG 控制尺寸/数量 |
 | R13 | 测试改动污染默认资产 | 专用测试 Pipeline/Renderer；T9 检查 `Assets/Settings` 未改 |
-| R14 | 文档四处不一致 | T9 对照表；AC-16 |
+| R14 | 文档五处不一致 | T9 对照表；AC-16 |
 | R15 | 共享金字塔在编辑器同一帧复用旧深度 | 现有 `ShouldBuild` 按 frame + VP 判断；物体移动/相机变化专项测试 |
 | R16 | 内部 API 耦合（Feature 与 URP 包同版本） | Feature 在包内，跟随包版本；升级 URP 时合并检查；不承诺跨版本可移植 |
 | R17 | `Receive Shadows=Off` 行为与 HDRP 不同 | v1 明确采用 URP 语义；§3.4/AC-10/KnownDifferences 三处一致 |
@@ -1273,12 +1304,13 @@ T8 ─> T9 文档/清理/归档
 | R20 | 证据路径硬编码/不可复现 | wrapper 必须支持 `-OutputRoot`；每个 AC 在 report 写复现命令；T9 检查死链 |
 | R21 | Release build 资源被 strip | T8 增加非 Development build；检查 compute/shader/depthPyramidCompute；失败则阻塞 AC-15 |
 | R22 | Frame Debugger 超时导致证据缺失 | 用 pass 计数器/ProfilingSampler 日志替代，并在 report 标 PARTIAL；不以推测代替 |
+| R23 | `#pragma only_renderers d3d11` 是否覆盖 D3D12，与材质侧 `SHADER_API_*` 分支不一致 | T3/T5 在 D3D11 与 D3D12 两个 player 上编译/运行验证；若 D3D12 不覆盖，调整 pragma 或使用 D3D11/D3D12 共同宏；T0 记录实际宏 |
 
 ---
 
 ## 10. 可选 T10（不纳入本轮）
 
-**仅在所有者要求“Asset 关闭 Additional Light Shadows，或全 None + Off 变体未 strip 时，Deferred 附加光也支持接触阴影”时启动。**
+**仅在所有者要求“Asset 关闭 Additional Light Shadows，或当前附加光 `shadows=None` 且 Off 变体未 strip 时，Deferred 附加光也支持接触阴影”时启动。**
 
 - 需要修改：
   - `Runtime/DeferredLights.cs`：每次附加光 draw 设置 `_ContactShadowLightIndex`（additional light index），不依赖 shadow pass；
