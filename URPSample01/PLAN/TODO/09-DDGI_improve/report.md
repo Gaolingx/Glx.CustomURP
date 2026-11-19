@@ -1,7 +1,7 @@
 # 09-DDGI_improve 主流方案调研报告
 
 > 状态：调研更新（2026-11-19），供 [HANDOFF.md](HANDOFF.md) 决策使用
-> 基线：`0a73b2b`（Record the PlayMode regression for the accurate normals fix）
+> 基线：调研起草于 `0a73b2b`；实施基线按 `720bedd` 重测，见 HANDOFF §2.2
 > 范围：桌面 URP 的 DDGI；参考实现为 `E:\workspace\GitHub\RTXGI-DDGI-URP`
 > 对照：NVIDIA RTXGI 1.x/2.x、RTXDI（ReSTIR）、NRD、UE5 Lumen、HDRP APV + SSGI/RTGI、本仓库 Screen Space Lighting
 > 本报告只做调研与选型论证；模块边界、任务与验收以 HANDOFF 为准。
@@ -373,7 +373,7 @@ color.rgb += indirectLighting;
 | 风险 | 说明 | 处理 |
 |---|---|---|
 | DXR 可用性 | 只有 D3D12 + RT 硬件能跑；D3D11/Vulkan 无回退 | 能力门控 + 明确 warning + baked GI/APV 保留 |
-| TLAS 每帧重建 | 大场景 CPU/GPU 成本高 | 只在有 probe 更新时重建；记录耗时；后续可做 scene-change token |
+| TLAS 每帧重建 | 大场景 CPU/GPU 成本高 | 只在场景/实例变化（scene-change token）时重建；probe 调度不触发重建；记录耗时 |
 | 内置材质 pass 覆盖 | 每个内置 shader 都要加 `DDGIRayTracing` pass；D3D11 编译不得受影响 | 共享 include + 契约测试 + D3D11 构建门禁 |
 | ShaderGraph 不覆盖 | 使用 ShaderGraph 的物体不贡献 GI | v1 明示非目标；debug 视图标记未覆盖材质；后续任务 |
 | probe 漏光/穿墙 | 探针间距、Chebyshev、relocation 都有边界情况 | 参考实现参数 + 测试场景边界用例；记录 KnownDifferences |

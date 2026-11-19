@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "round": "09-DDGI_improve",
+  "head": "720bedd",
+  "measuredAtUtc": "2026-11-19T18:48:30Z",
+  "unityVersion": "2022.3.62f1",
+  "graphicsDeviceType": "Direct3D11",
+  "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+  "editMode": {
+    "total": 184,
+    "passed": 184,
+    "failed": 0,
+    "filter": "T14 21-class list",
+    "xml": "validation/P0/EditMode/UnityEditModeTests.xml",
+    "settingsRestored": true
+  },
+  "playMode": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "xml": "validation/P0/PlayMode/UnityPlayModeTests.xml",
+    "settingsRestored": true
+  },
+  "t12": {
+    "Forward": {"passed": 34, "total": 34},
+    "ForwardPlus": {"passed": 34, "total": 34},
+    "Deferred": {"passed": 35, "total": 35},
+    "verification": "validation/P0/T12/T12Verification.json",
+    "settingsRestored": true,
+    "cases": 103,
+    "pngRetention": "9 representative frames only (Reference/AllOn/AllOffAgain per renderer); all 103 case results with sha256 remain in T12Verification.json"
+  },
+  "rdc": {
+    "files": 58,
+    "bytes": 1048717328,
+    "budgetBytes": 1073741824,
+    "freeBytes": 25024512
+  },
+  "staleBaseline": {
+    "commit": "0a73b2b",
+    "editMode": 182,
+    "reason": "c69d9f2 added 2 SSR EditMode tests (182 -> 184); cedd1bb changed SSR pixels after the planning baseline"
+  },
+  "commands": [
+    "PLAN/Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14EditModeTests.ps1 -LogPath PLAN/TODO/09-DDGI_improve/validation/P0/EditMode/UnityEditModeTests.log -ResultsPath PLAN/TODO/09-DDGI_improve/validation/P0/EditMode/UnityEditModeTests.xml",
+    "PLAN/Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14PlayModeTests.ps1 -LogPath PLAN/TODO/09-DDGI_improve/validation/P0/PlayMode/UnityPlayModeTests.log -ResultsPath PLAN/TODO/09-DDGI_improve/validation/P0/PlayMode/UnityPlayModeTests.xml",
+    "PLAN/Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14GraphicsRegression.ps1 -LogPath PLAN/TODO/09-DDGI_improve/validation/P0/T12/UnityT12.log -OutputRoot PLAN/TODO/09-DDGI_improve/validation/P0/T12"
+  ]
+}
