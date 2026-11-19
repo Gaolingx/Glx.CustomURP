@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _SsrTraceSize;                        // trace size xy, reciprocal zw (half the screen in the half resolution path)
         public Vector4 _SsrRayMarchingParams;                // step limit, thickness scale, thickness bias, reflects sky
         public Vector4 _SsrRoughnessFadeParams;              // roughness fade rcp length, fade end times rcp length, fade end, edge fade rcp length
-        public Vector4 _SsrPyramidParams;                    // color pyramid max mip, unused, unused, unused
+        public Vector4 _SsrPyramidParams;                    // color pyramid max mip, depth pyramid max mip, unused, unused
         public Vector4 _SsrColorPyramidScaleAndLimitPrev;    // previous color pyramid uv scale xy, uv limit zw
         public Vector4 _SsrCameraPositionWS;                 // current camera world space position
         public Vector4 _SsrPbrParams;                        // unused, sample bias, unused, unused

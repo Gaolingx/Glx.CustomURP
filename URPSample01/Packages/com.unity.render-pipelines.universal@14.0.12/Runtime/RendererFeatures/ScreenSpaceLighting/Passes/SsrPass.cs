@@ -681,9 +681,11 @@ namespace UnityEngine.Rendering.Universal
                 fadeEndTimesRcpLength,
                 roughnessFadeEnd,
                 edgeFadeRcpLength);
+            // The trace reads the packed depth chain up to its actual last mip, capped like HDRP's
+            // _SsrDepthPyramidMaxMip. SSGI keeps the shared helper's mip 6 clamp.
             cb._SsrPyramidParams = new Vector4(
                 Mathf.Max(0, m_History.colorPyramidMipCount - 1),
-                0f,
+                ScreenSpaceLightingRenderUtils.ComputeDepthPyramidMaxMip(m_History.depthPyramidInfo.mipLevelCount),
                 0f,
                 0f);
             // No render scale or dynamic resolution offset is applied to the SSL history in this

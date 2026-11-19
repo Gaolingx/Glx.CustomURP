@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
@@ -12,6 +13,35 @@ namespace UnityEditor.Rendering.Universal.Tests
     class ScreenSpaceLightingSsrTests
     {
         ScreenSpaceLightingHistory m_History;
+
+        static string ReadPackageFile(string relativePath)
+        {
+            string packageRoot = Path.Combine(
+                Path.GetDirectoryName(Application.dataPath),
+                "Packages",
+                "com.unity.render-pipelines.universal@14.0.12");
+            string path = Path.Combine(packageRoot, relativePath);
+            Assert.IsTrue(File.Exists(path), $"Expected package file at {path}.");
+            return File.ReadAllText(path);
+        }
+
+        [Test]
+        public void SsrDepthPyramidMaxMipTracksTheBuiltChain()
+        {
+            Assert.AreEqual(0, ScreenSpaceLightingRenderUtils.ComputeDepthPyramidMaxMip(0));
+            Assert.AreEqual(0, ScreenSpaceLightingRenderUtils.ComputeDepthPyramidMaxMip(1));
+            Assert.AreEqual(10, ScreenSpaceLightingRenderUtils.ComputeDepthPyramidMaxMip(11));
+            Assert.AreEqual(14, ScreenSpaceLightingRenderUtils.ComputeDepthPyramidMaxMip(15));
+            Assert.AreEqual(14, ScreenSpaceLightingRenderUtils.ComputeDepthPyramidMaxMip(16));
+        }
+
+        [Test]
+        public void SsrTraceUsesTheUploadedDepthPyramidMaxMip()
+        {
+            string source = ReadPackageFile("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute");
+            StringAssert.Contains("#define _SsrDepthPyramidMaxMip (int)_SsrPyramidParams.y", source);
+            StringAssert.DoesNotContain("SSR_MIP_LEVEL_CLAMP", source);
+        }
 
         [SetUp]
         public void SetUp()

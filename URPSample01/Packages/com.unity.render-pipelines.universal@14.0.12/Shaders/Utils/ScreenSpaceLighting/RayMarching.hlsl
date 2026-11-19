@@ -20,6 +20,8 @@ StructuredBuffer<int2> _SsgiDepthPyramidMipLevelOffsets;
 
 // Shared screen-space Hi-Z marching used by SSGI and opaque SSR. The caller owns the depth pyramid
 // and the marching parameters so the two effects never depend on each other's constant buffer.
+// maxMipLevel must not exceed the caller's packed pyramid mipLevelCount - 1: levels beyond the built
+// chain have a zero offset and would alias mip 0.
 bool SslRayMarch(
     float3 positionWS,
     float3 sampleDir,
@@ -142,8 +144,8 @@ bool SsgiRayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 p
         _SsgiRayMarchingThicknessScale,
         _SsgiRayMarchingThicknessBias,
         _SsgiRayMarchingReflectsSky != 0,
-        // HDRP allows the full pyramid; the URP port stops at mip 6 because the single closest depth
-        // layout makes tracing towards the eye and behind objects linear rather than logarithmic.
+        // HDRP's SSGI helper clamps the same way. Opaque SSR has its own trace parameters and
+        // uploads its actual depth pyramid max mip, so only the SSGI path keeps this clamp.
         6,
         _SsgiScreenSize,
         rayPos);

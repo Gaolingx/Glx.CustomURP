@@ -297,9 +297,10 @@ namespace UnityEngine.Rendering.Universal
                 fadeEndTimesRcpLength,
                 roughnessFadeEnd,
                 edgeFadeRcpLength);
+            // Transparent SSR marches the same opaque depth chain; use its actual last mip.
             cb._SsrPyramidParams = new Vector4(
                 Mathf.Max(0, m_History.colorPyramidMipCount - 1),
-                0f,
+                ScreenSpaceLightingRenderUtils.ComputeDepthPyramidMaxMip(m_History.depthPyramidInfo.mipLevelCount),
                 0f,
                 0f);
             cb._SsrColorPyramidScaleAndLimitPrev = new Vector4(1f, 1f, 1f, 1f);

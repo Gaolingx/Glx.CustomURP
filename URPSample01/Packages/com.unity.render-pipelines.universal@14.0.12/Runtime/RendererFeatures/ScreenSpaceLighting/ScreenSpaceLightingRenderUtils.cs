@@ -14,6 +14,13 @@ namespace UnityEngine.Rendering.Universal
             return (value + divisor - 1) / divisor;
         }
 
+        // SSR traverses the actual packed depth chain. Cap at the chain's last level, like HDRP's
+        // _SsrDepthPyramidMaxMip, so a trace never reads an offset that was not built.
+        internal static int ComputeDepthPyramidMaxMip(int mipLevelCount)
+        {
+            return Mathf.Clamp(mipLevelCount - 1, 0, PackedMipChainInfo.k_MaxMipLevelCount - 1);
+        }
+
         // Previous frame view projection from the motion vector history. The temporal filters use it
         // to reconstruct the world position a reprojected pixel had last frame.
         internal static Matrix4x4 GetPreviousViewProjection(in CameraData cameraData)

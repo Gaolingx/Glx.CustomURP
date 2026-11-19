@@ -12,7 +12,8 @@
 //   radiance * weight; the URP material blend applies lerp(probe, radiance, weight) so the probe
 //   keeps its (1 - weight) share and the BRDF is evaluated exactly once.
 // - The previous frame color pyramid is the SSL private linear HDR history (no pre-exposure).
-// - Ray marching is clamped to mip 6, identical to the shared SSGI Hi-Z helper.
+// - SSR marches the actual packed depth chain: the pass uploads the built mip count (capped at 14)
+//   in _SsrPyramidParams.y. SSGI keeps the shared helper's mip 6 clamp.
 // - Reflection samples come from the same blue-noise distributed Owen scrambled Sobol sequence as
 //   HDRP (1SPP tiles), with the IGN + R2 sequence as the fallback when the LUTs are missing.
 // - SSS sample weights use the world-space normal for the GGX lambda terms; HDRP evaluates the
@@ -35,7 +36,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 
 #define SSR_TILE_SIZE 8
-#define SSR_MIP_LEVEL_CLAMP 6
+#define _SsrDepthPyramidMaxMip (int)_SsrPyramidParams.y
 #define SSR_TRACE_EPS 0.000488281f
 #define SSR_MISS_SENTINEL 99.0
 #define MIN_GGX_ROUGHNESS 0.00001f
@@ -272,7 +273,7 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
             _SsrThicknessScale,
             _SsrThicknessBias,
             _SsrReflectsSky,
-            SSR_MIP_LEVEL_CLAMP,
+            _SsrDepthPyramidMaxMip,
             _SsrScreenSize,
             rayPos);
 
