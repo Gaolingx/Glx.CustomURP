@@ -322,7 +322,7 @@ public sealed class ScreenSpaceLightingBindingProbeFeature : ScriptableRendererF
             return;
 
         bool pbr = settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
-        bool halfResolution = pbr && !settings.fullResolution.value;
+        bool halfResolution = !settings.fullResolution.value;
         int traceWidth = halfResolution ? Mathf.Max(1, width >> 1) : width;
         int traceHeight = halfResolution ? Mathf.Max(1, height >> 1) : height;
         bool historyValid = pbr && ReadBool(history, "ssrPbrHasValidHistory");

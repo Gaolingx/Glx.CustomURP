@@ -92,9 +92,8 @@ float3 SsrReconstructPositionWS(float2 positionSS, float deviceDepth)
 }
 
 // Maps a trace resolution pixel to the full resolution pixel that owns its depth, normal and motion.
-// The PBR half resolution path traces and reprojects at half the screen size; Approximation always
-// runs at full resolution. HDRP's ray traced reflection denoiser reads the top-left pixel of the
-// 2x2 group (coord * 2), so this helper yields 2c in the half resolution path.
+// Both algorithms can trace at half the screen size. HDRP's ray traced reflection denoiser reads the
+// top-left pixel of the 2x2 group (coord * 2), so this helper yields 2c in the half resolution path.
 uint2 SsrGetFullResCoord(uint2 traceCoord)
 {
 #if defined(SSR_HALF_RES)
@@ -296,14 +295,15 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 // - are eligible for SSR themselves, so a rough pixel stays below the fade,
 // - produced their own valid hit.
 // The filled weight is the accepted coverage times the neighbours' fade, so a filled hole stays
-// partial and a region where every ray misses still keeps the reflection probe.
-bool SsrFillMissedPixel(uint2 positionSS, float centerDepth, float3 centerNormalWS, float centerRoughness,
+// partial and a region where every ray misses still keeps the reflection probe. The neighbourhood is
+// walked in trace space; at half resolution one neighbour step equals two full resolution pixels.
+bool SsrFillMissedPixel(uint2 traceCoord, uint2 centerCoord, float centerDepth, float3 centerNormalWS, float centerRoughness,
     out float3 radiance, out float opacity)
 {
     radiance = 0.0;
     opacity = 0.0;
 
-    float3 centerWS = SsrReconstructPositionWS((float2)positionSS, centerDepth);
+    float3 centerWS = SsrReconstructPositionWS((float2)centerCoord, centerDepth);
     float viewDistance = length(centerWS - SSL_SSR_CAMERA_POSITION_WS);
     float positionTolerance = 0.01 * viewDistance;
 
@@ -318,16 +318,20 @@ bool SsrFillMissedPixel(uint2 positionSS, float centerDepth, float3 centerNormal
             if (abs(x) == abs(y) && abs(x) == 1)
                 continue;
 
-            int2 neighbor = int2(positionSS) + int2(x, y);
-            if (neighbor.x < 0 || neighbor.y < 0 ||
-                neighbor.x >= (int)_SsrScreenSize.x || neighbor.y >= (int)_SsrScreenSize.y)
+            // The hit point texture follows the trace resolution, so the neighbourhood is walked in
+            // trace space. A half resolution neighbour maps to the top-left full resolution pixel
+            // of its 2x2 group for the surface acceptance tests.
+            int2 neighborTrace = int2(traceCoord) + int2(x, y);
+            if (neighborTrace.x < 0 || neighborTrace.y < 0 ||
+                neighborTrace.x >= (int)_SsrTraceSize.x || neighborTrace.y >= (int)_SsrTraceSize.y)
                 continue;
 
-            uint2 neighborSS = (uint2)neighbor;
-            float2 neighborHit = SSGI_LOAD(_SsrHitPointTextureRW, neighborSS);
+            uint2 neighborTraceSS = (uint2)neighborTrace;
+            float2 neighborHit = SSGI_LOAD(_SsrHitPointTextureRW, neighborTraceSS);
             if (neighborHit.x > 1.0 || neighborHit.y < 0.0)
                 continue;
 
+            uint2 neighborSS = SsrGetFullResCoord(neighborTraceSS);
             float3 neighborN;
             float neighborRoughness;
             if (!SsrDecodeMaterial(SSGI_LOAD(_SsrNormalTexture, neighborSS), neighborN, neighborRoughness))
@@ -395,7 +399,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
             {
                 float3 filledRadiance;
                 float filledOpacity;
-                if (SsrFillMissedPixel(inputCoord, centerDepth, normalWS, perceptualRoughness,
+                if (SsrFillMissedPixel(traceCoord, inputCoord, centerDepth, normalWS, perceptualRoughness,
                         filledRadiance, filledOpacity))
                 {
                     color = filledRadiance;

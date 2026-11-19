@@ -1469,7 +1469,7 @@ public sealed class ScreenSpaceLightingValidationPlayerVerification : MonoBehavi
         };
 
         bool pbr = ssr.usedAlgorithm == (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation;
-        bool half = pbr && !ssr.fullResolution;
+        bool half = !ssr.fullResolution;
         int screenWidth = ScaledWidth;
         int screenHeight = ScaledHeight;
         CheckTargetSize(result, "SSR", stats.screenWidth, stats.screenHeight);

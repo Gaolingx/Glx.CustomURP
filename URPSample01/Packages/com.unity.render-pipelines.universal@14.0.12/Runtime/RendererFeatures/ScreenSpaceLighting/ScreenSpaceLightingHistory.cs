@@ -236,20 +236,34 @@ namespace UnityEngine.Rendering.Universal
 
         internal RTHandle ssrHitPoint { get; private set; }
         internal RTHandle ssrOutput { get; private set; }
+        // Trace sized intermediate for the half resolution Approximation path. Null while the trace
+        // runs at full resolution, where the reproject writes ssrOutput directly.
+        internal RTHandle ssrApproxOutput { get; private set; }
         internal int ssrWidth { get; private set; }
         internal int ssrHeight { get; private set; }
+        internal int ssrTraceWidth { get; private set; }
+        internal int ssrTraceHeight { get; private set; }
         internal int ssrResourceGeneration { get; private set; }
         internal bool ssrResourcesAllocated => ssrHitPoint != null && ssrOutput != null;
 
         internal void EnsureSsrResources(int width, int height, int viewCount, TextureDimension resourceDimension)
         {
-            width = Mathf.Max(1, width);
-            height = Mathf.Max(1, height);
+            EnsureSsrResources(width, height, width, height, viewCount, resourceDimension);
+        }
+
+        internal void EnsureSsrResources(int screenWidth, int screenHeight, int traceWidth, int traceHeight, int viewCount, TextureDimension resourceDimension)
+        {
+            screenWidth = Mathf.Max(1, screenWidth);
+            screenHeight = Mathf.Max(1, screenHeight);
+            traceWidth = Mathf.Max(1, traceWidth);
+            traceHeight = Mathf.Max(1, traceHeight);
             viewCount = Mathf.Max(1, viewCount);
 
             if (ssrResourcesAllocated &&
-                m_SsrWidth == width &&
-                m_SsrHeight == height &&
+                m_SsrWidth == screenWidth &&
+                m_SsrHeight == screenHeight &&
+                m_SsrTraceWidth == traceWidth &&
+                m_SsrTraceHeight == traceHeight &&
                 m_SsrSlices == viewCount &&
                 m_SsrDimension == resourceDimension)
             {
@@ -258,16 +272,21 @@ namespace UnityEngine.Rendering.Universal
 
             ReleaseSsrResources();
 
-            m_SsrWidth = width;
-            m_SsrHeight = height;
+            m_SsrWidth = screenWidth;
+            m_SsrHeight = screenHeight;
+            m_SsrTraceWidth = traceWidth;
+            m_SsrTraceHeight = traceHeight;
             m_SsrSlices = viewCount;
             m_SsrDimension = resourceDimension;
-            ssrWidth = width;
-            ssrHeight = height;
+            ssrWidth = screenWidth;
+            ssrHeight = screenHeight;
+            ssrTraceWidth = traceWidth;
+            ssrTraceHeight = traceHeight;
 
-            // The hit point holds NDC coordinates and writes 99 for a miss, so it cannot use UNorm.
+            // The hit point follows the trace resolution. The hit point holds NDC coordinates and
+            // writes 99 for a miss, so it cannot use UNorm.
             ssrHitPoint = RTHandles.Alloc(
-                width, height,
+                traceWidth, traceHeight,
                 TextureWrapMode.Clamp, TextureWrapMode.Clamp,
                 slices: viewCount,
                 colorFormat: GraphicsFormat.R16G16_SFloat,
@@ -279,7 +298,7 @@ namespace UnityEngine.Rendering.Universal
                 name: "SslSsrHitPoint");
 
             ssrOutput = RTHandles.Alloc(
-                width, height,
+                screenWidth, screenHeight,
                 TextureWrapMode.Clamp, TextureWrapMode.Clamp,
                 slices: viewCount,
                 colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
@@ -290,11 +309,30 @@ namespace UnityEngine.Rendering.Universal
                 autoGenerateMips: false,
                 name: "SslSsrOutput");
 
+            // A half resolution trace writes here and is upsampled into ssrOutput. A full resolution
+            // trace writes ssrOutput directly, so the extra target is not allocated.
+            if (traceWidth != screenWidth || traceHeight != screenHeight)
+            {
+                ssrApproxOutput = RTHandles.Alloc(
+                    traceWidth, traceHeight,
+                    TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                    slices: viewCount,
+                    colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                    filterMode: FilterMode.Bilinear,
+                    dimension: resourceDimension,
+                    enableRandomWrite: true,
+                    useMipMap: false,
+                    autoGenerateMips: false,
+                    name: "SslSsrApproxOutput");
+            }
+
             ssrResourceGeneration++;
         }
 
         int m_SsrWidth;
         int m_SsrHeight;
+        int m_SsrTraceWidth;
+        int m_SsrTraceHeight;
         int m_SsrSlices;
         TextureDimension m_SsrDimension;
 
@@ -939,12 +977,18 @@ namespace UnityEngine.Rendering.Universal
             ssrHitPoint = null;
             RTHandles.Release(ssrOutput);
             ssrOutput = null;
+            RTHandles.Release(ssrApproxOutput);
+            ssrApproxOutput = null;
             RTHandles.Release(ssrDebugParams);
             ssrDebugParams = null;
             ssrWidth = 0;
             ssrHeight = 0;
+            ssrTraceWidth = 0;
+            ssrTraceHeight = 0;
             m_SsrWidth = 0;
             m_SsrHeight = 0;
+            m_SsrTraceWidth = 0;
+            m_SsrTraceHeight = 0;
             m_SsrSlices = 0;
             m_SsrDebugWidth = 0;
             m_SsrDebugHeight = 0;

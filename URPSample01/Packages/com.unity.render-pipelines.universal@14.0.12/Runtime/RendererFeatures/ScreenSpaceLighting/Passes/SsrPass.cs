@@ -6,7 +6,8 @@ namespace UnityEngine.Rendering.Universal
     // Opaque Screen Space Reflections: Approximation and PBR Accumulation.
     //
     // Approximation: Trace writes the mirror hit, Reproject samples the previous color pyramid and
-    // writes radiance + weight straight to the material-facing texture.
+    // writes radiance + weight. At full resolution that result is the material-facing texture; at
+    // half resolution it is bilaterally upsampled into the full resolution output.
     //
     // PBR Accumulation: Trace samples the GGX visible normal distribution, Reproject gathers the
     // reflected surface and writes the un-accumulated signal, then the reflection denoiser
@@ -252,13 +253,14 @@ namespace UnityEngine.Rendering.Universal
             bool pbr = settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
             m_History.SyncSsrPbrAlgorithm(settings.usedAlgorithm.value);
 
-            // Approximation keeps its full resolution hole filling; only the PBR denoiser can run at
-            // half resolution and upsample.
-            bool halfResolution = pbr && !settings.fullResolution.value;
+            // Approximation and PBR share the volume's resolution switch. A half resolution trace
+            // writes a trace sized color target and is bilaterally upsampled into the full resolution
+            // material-facing output.
+            bool halfResolution = !settings.fullResolution.value;
             int traceWidth = halfResolution ? Mathf.Max(1, screenWidth >> 1) : screenWidth;
             int traceHeight = halfResolution ? Mathf.Max(1, screenHeight >> 1) : screenHeight;
 
-            m_History.EnsureSsrResources(screenWidth, screenHeight, viewCount, dimension);
+            m_History.EnsureSsrResources(screenWidth, screenHeight, traceWidth, traceHeight, viewCount, dimension);
             if (!m_History.ssrResourcesAllocated)
                 return;
 
@@ -291,8 +293,9 @@ namespace UnityEngine.Rendering.Universal
             if (pbr)
                 m_History.SwapSsrPbrBuffers();
 
-            // Full resolution PBR writes the filtered result into its trace sized original texture;
-            // the half resolution path upsamples into the full resolution output instead.
+            // Full resolution PBR writes the filtered result into its trace sized original texture.
+            // Every half resolution path, and the full resolution Approximation path, leaves the
+            // material-facing result in ssrOutput.
             m_OutputTexture = pbr && !halfResolution
                 ? m_History.ssrPbrOriginal
                 : m_History.ssrOutput;
@@ -385,8 +388,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramid, m_History.depthPyramid);
             cmd.SetComputeBufferParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramidMipLevelOffsets, m_History.depthPyramidOffsets);
-            // PBR owns a trace sized hit point so the half resolution path never reads or writes outside its
-            // buffers; Approximation keeps the full resolution one.
+            // Both algorithms trace into a hit point that follows the trace resolution.
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,
                 pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint);
             cmd.DispatchCompute(compute, traceKernel, traceGroupsX, traceGroupsY, viewCount);
@@ -408,7 +410,8 @@ namespace UnityEngine.Rendering.Universal
             if (pbr)
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrReprojectTextureRW, m_History.ssrPbrOriginal);
             else
-                cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW, m_History.ssrOutput);
+                cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
+                    halfResolution && m_History.ssrApproxOutput != null ? m_History.ssrApproxOutput : m_History.ssrOutput);
             cmd.DispatchCompute(compute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_ReprojectDispatchCount++;
@@ -444,6 +447,14 @@ namespace UnityEngine.Rendering.Universal
                         screenWidth, screenHeight, traceWidth, traceHeight, screenGroupsX, screenGroupsY,
                         viewCount, useTextureArray);
                 }
+            }
+            else if (halfResolution && m_History.ssrApproxOutput != null)
+            {
+                // The half resolution Approximation reproject wrote radiance + weight into the trace
+                // sized target; upsample it into the full resolution material-facing output.
+                DispatchUpsample(cmd, depthTexture, m_History.ssrApproxOutput, m_History.ssrOutput,
+                    screenWidth, screenHeight, traceWidth, traceHeight, screenGroupsX, screenGroupsY,
+                    viewCount, useTextureArray);
             }
         }
 
@@ -605,9 +616,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        // Half resolution PBR result -> full resolution material-facing output. Reuses the SSGI bilateral
-// upsample, which is depth weighted so a half resolution texel never borrows radiance across a
-// silhouette. The alpha (blend weight) is filtered with the same weights.
+        // Half resolution SSR result -> full resolution material-facing output. Reuses the SSGI
+        // bilateral upsample, which is depth weighted so a half resolution texel never borrows
+        // radiance across a silhouette. The alpha (blend weight) is filtered with the same weights.
         void DispatchUpsample(
             CommandBuffer cmd,
             RTHandle depthTexture,

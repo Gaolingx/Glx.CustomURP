@@ -61,11 +61,10 @@ namespace UnityEngine.Rendering.Universal
             new ScreenSpaceReflectionAlgorithmParameter(ScreenSpaceReflectionAlgorithm.Approximation);
 
         /// <summary>
-        /// Traces and denoises PBR reflections at full resolution. Disabling it traces at half
-        /// resolution and bilaterally upsamples the result. Approximation always traces at full
-        /// resolution.
+        /// Traces reflections at full resolution. Disabling it traces at half resolution and
+        /// bilaterally upsamples the result. Applies to both Approximation and PBR Accumulation.
         /// </summary>
-        [Tooltip("Trace and denoise PBR reflections at full resolution. Disable for half resolution with an upsample. Approximation always traces at full resolution.")]
+        [Tooltip("Trace reflections at full resolution. Disable for half resolution with an upsample. Applies to both algorithms.")]
         public BoolParameter fullResolution = new BoolParameter(true);
 
         /// <summary>
