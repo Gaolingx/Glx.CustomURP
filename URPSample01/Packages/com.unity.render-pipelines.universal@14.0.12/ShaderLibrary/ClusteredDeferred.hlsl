@@ -77,6 +77,16 @@ float4 _FPParams2;
 StructuredBuffer<uint> URP_ZBins;
 StructuredBuffer<uint> urp_Tiles;
 
+// G3 compact lists (ClusterBuilder.compute: ClusterCellBuild). When the build published a cell for
+// this frame, the iterator reads one header plus a short ascending item list instead of walking the
+// bitmap words. `_CdClusterCellMax` is the cell capacity, or 0 to keep the bitmap path.
+#define CD_CELL_OVERFLOW 0xFFFFFFFFu
+
+StructuredBuffer<uint> _CdCellHeaders;    // count, or CD_CELL_OVERFLOW
+StructuredBuffer<uint> _CdCellItems;      // capacity item indices per cell
+StructuredBuffer<uint2> _CdTileCellInfo;  // x = first zbin, y = span | 0x80000000 when overflow
+uint _CdClusterCellMax;
+
 // ----------------------------------------------------------------------------
 // Light constants. Same cbuffer name and array layout as Input.hlsl so the
 // global SetGlobalVectorArray uploads land here in a compute dispatch too.
@@ -595,6 +605,10 @@ struct CdClusterIterator
     uint zBinOffset;
     uint tileMask;
     uint entityIndexNextMax;
+    uint compactBase;
+    uint compactCount;
+    uint compactCursor;
+    uint compactMode;
 };
 
 CdClusterIterator CdClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS)
@@ -602,25 +616,58 @@ CdClusterIterator CdClusterInit(float2 normalizedScreenSpaceUV, float3 positionW
     CdClusterIterator state = (CdClusterIterator)0;
 
     uint2 tileId = uint2(normalizedScreenSpaceUV * URP_FP_TILE_SCALE);
-    state.tileOffset = (tileId.y * URP_FP_TILE_COUNT_X + tileId.x) * URP_FP_WORDS_PER_TILE;
+    uint tileIndex = tileId.y * URP_FP_TILE_COUNT_X + tileId.x;
+    state.tileOffset = tileIndex * URP_FP_WORDS_PER_TILE;
 
     float3 cameraPositionWS = _CdCameraPositionWS.xyz;
     float3 viewForward = normalize(_CdViewForward.xyz);
     float viewZ = dot(viewForward, positionWS - cameraPositionWS);
     float depthTerm = _CdCameraParams.x > 0.5 ? log2(max(viewZ, 1e-6)) : viewZ;
 
-    uint zBinBaseIndex = (uint)(depthTerm * URP_FP_ZBIN_SCALE + URP_FP_ZBIN_OFFSET);
-    zBinBaseIndex = zBinBaseIndex * (2 + URP_FP_WORDS_PER_TILE);
-    zBinBaseIndex = min(zBinBaseIndex, CD_MAX_ZBIN_WORDS - (2 + URP_FP_WORDS_PER_TILE));
+    uint zBinStride = 2u + URP_FP_WORDS_PER_TILE;
+    uint zBinIndex = (uint)(depthTerm * URP_FP_ZBIN_SCALE + URP_FP_ZBIN_OFFSET);
+    // Same clamp as the original word-base clamp, but kept on the bin index so the compact cell
+    // lookup below uses exactly the zbin the bitmap path would read.
+    zBinIndex = min(zBinIndex, (CD_MAX_ZBIN_WORDS - zBinStride) / zBinStride);
+    state.zBinOffset = zBinIndex * zBinStride + 2;
+    state.entityIndexNextMax = URP_ZBins[zBinIndex * zBinStride];
 
-    uint zBinHeaderIndex = zBinBaseIndex; // header 0 = punctual light list
-    state.zBinOffset = zBinBaseIndex + 2;
-    state.entityIndexNextMax = URP_ZBins[zBinHeaderIndex];
+    // Compact cell: exists only inside the tile's measured depth slice. A zero-count cell is a real
+    // answer (no light reaches this (tile, zbin)); overflow falls back to the bitmap.
+    if (_CdClusterCellMax != 0u)
+    {
+        uint2 info = _CdTileCellInfo[tileIndex];
+        uint lo = info.x;
+        uint span = info.y & 0x7FFFFFFFu;
+        if ((info.y & 0x80000000u) == 0u && zBinIndex >= lo && zBinIndex - lo < span)
+        {
+            uint cell = tileIndex * _CdClusterCellMax + (zBinIndex - lo);
+            uint header = _CdCellHeaders[cell];
+            if (header != CD_CELL_OVERFLOW)
+            {
+                state.compactMode = 1u;
+                state.compactBase = cell * _CdClusterCellMax;
+                state.compactCount = header;
+            }
+        }
+    }
     return state;
 }
 
 bool CdClusterNext(inout CdClusterIterator it, out uint entityIndex)
 {
+    if (it.compactMode != 0u)
+    {
+        if (it.compactCursor < it.compactCount)
+        {
+            entityIndex = _CdCellItems[it.compactBase + it.compactCursor];
+            it.compactCursor++;
+            return true;
+        }
+        entityIndex = 0u;
+        return false;
+    }
+
     uint maxIndex = it.entityIndexNextMax >> 16;
     while (it.tileMask == 0 && (it.entityIndexNextMax & 0xFFFF) <= maxIndex)
     {

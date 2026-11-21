@@ -347,6 +347,60 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
         }
 
+        // G3: the compact list is the same (tile, zbin) intersection the bitmap iterator computes,
+        // so the frame has to be bit-identical to the bitmap path. Overflow cells fall back to the
+        // bitmap inside the kernel, which is covered by the same comparison.
+        [UnityTest]
+        public IEnumerator CompactListsKeepPixelsIdentical()
+        {
+            yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
+            ClusterListGpuBuilder.enabled = true;
+            ClusterListGpuBuilder.compactLists = true;
+            ClusterListGpuBuilder.compactStatsEnabled = true;
+            try
+            {
+                ResetCompactStats();
+                yield return RenderFrames(WarmupFrames);
+                for (int i = 0; i < 30 && ClusterListGpuBuilder.lastCompactEntries <= 0; i++)
+                    yield return RenderFrames(1);
+                int entries = ClusterListGpuBuilder.lastCompactEntries;
+                int cells = ClusterListGpuBuilder.lastCompactCells;
+                int overflowCells = ClusterListGpuBuilder.lastCompactOverflowCells;
+                int overflowTiles = ClusterListGpuBuilder.lastCompactOverflowTiles;
+                int scannedCells = ClusterListGpuBuilder.lastCompactScannedCells;
+                var compact = ReadPixels();
+                Debug.Log($"Compact cells: cells {cells}, entries {entries}, scanned {scannedCells}, " +
+                          $"overflow cells {overflowCells}, overflow tiles {overflowTiles}.");
+
+                ClusterListGpuBuilder.compactLists = false;
+                yield return RenderFrames(2);
+                var bitmap = ReadPixels();
+
+                var diff = Compare(bitmap, compact);
+                Assert.AreEqual(0f, diff.max,
+                    $"The compact list changed pixels (mean {diff.mean:0.####}, max {diff.max:0.####}).");
+                Assert.Greater(entries, 0,
+                    "The compact stats never arrived; the cell build did not run or the readback failed.");
+                Assert.Greater(scannedCells, 0, "The cell build scanned no (tile, zbin) cells.");
+            }
+            finally
+            {
+                ClusterListGpuBuilder.compactLists = false;
+                ClusterListGpuBuilder.compactStatsEnabled = false;
+                ResetCompactStats();
+                TearDownRig();
+            }
+        }
+
+        static void ResetCompactStats()
+        {
+            ClusterListGpuBuilder.lastCompactEntries = 0;
+            ClusterListGpuBuilder.lastCompactCells = 0;
+            ClusterListGpuBuilder.lastCompactOverflowCells = 0;
+            ClusterListGpuBuilder.lastCompactOverflowTiles = 0;
+            ClusterListGpuBuilder.lastCompactScannedCells = 0;
+        }
+
         static int CountProbeItems(ClusterListSnapshot snapshot)
         {
             int probes = 0;

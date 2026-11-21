@@ -54,11 +54,29 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal static int lastPruneKeptBits;
         internal static int lastPruneClearedBits;
 
+        // G3: per-(tile, zbin) compact lists. After GBuffer, one dispatch turns the tile/zbin
+        // bitmap intersection inside each tile's depth slice into ascending item lists; the kernel
+        // reads one header instead of walking bitmap words. Off by default: HANDOFF §5.3 measured
+        // +0.08-0.13 ms at every light count -- the build needs a full-screen depth scan, and at
+        // 1-2 words per tile the bitmap scan is already shorter than the cell lists. Kept as an
+        // A/B path with the bitmap as reference and as the fallback for cells over budget.
+        internal static bool compactLists = false;
+        // Cell capacity per (tile, zbin). Published as `_CdClusterCellMax` to both kernels, so the
+        // buffer stride and the HLSL loops cannot drift.
+        internal static int compactCellMax = 32;
+        internal static bool compactStatsEnabled = false;
+        internal static int lastCompactEntries;
+        internal static int lastCompactCells;
+        internal static int lastCompactOverflowCells;
+        internal static int lastCompactOverflowTiles;
+        internal static int lastCompactScannedCells;
+
         const int k_BoundsThreads = 64;
         const int k_ClearThreads = 256;
         const int k_ScatterThreads = 64;
         const int k_ExpandThreads = 8;
         static readonly uint[] k_ZeroTotals = { 0u, 0u };
+        static readonly uint[] k_ZeroCellTotals = { 0u, 0u, 0u, 0u, 0u };
 
         readonly ComputeShader m_Compute;
         readonly int m_BoundsKernel;
@@ -67,14 +85,21 @@ namespace UnityEngine.Rendering.Universal.Internal
         readonly int m_PackKernel;
         readonly int m_ExpandKernel;
         readonly int m_PruneKernel;
+        readonly int m_CellKernel;
 
         GraphicsBuffer m_Items;
         GraphicsBuffer m_MinMaxZ;
         GraphicsBuffer m_TileRanges;
         GraphicsBuffer m_BinMinMax;
         GraphicsBuffer m_PruneTotals;
+        GraphicsBuffer m_CellHeaders;
+        GraphicsBuffer m_CellItems;
+        GraphicsBuffer m_TileCellInfo;
+        GraphicsBuffer m_CellTotals;
         int m_ItemCapacity;
         int m_BinCapacity;
+        int m_CellCapacity;
+        int m_CellMax;
 
         public ClusterListGpuBuilder(ComputeShader compute)
         {
@@ -88,12 +113,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PackKernel = compute.FindKernel("ClusterZBinPack");
             m_ExpandKernel = compute.FindKernel("ClusterTileExpand");
             m_PruneKernel = compute.FindKernel("ClusterTilePrune");
+            m_CellKernel = compute.FindKernel("ClusterCellBuild");
         }
 
         public bool isCreated => m_Compute != null &&
                                  m_BoundsKernel >= 0 && m_ClearKernel >= 0 && m_ScatterKernel >= 0 &&
                                  m_PackKernel >= 0 && m_ExpandKernel >= 0 &&
-                                 m_PruneKernel >= 0;
+                                 m_PruneKernel >= 0 && m_CellKernel >= 0;
 
         // Records the item upload on the command stream. Kept separate from Dispatch because the
         // async path uploads on the graphics queue (so the data is ready when the async queue
@@ -210,6 +236,81 @@ namespace UnityEngine.Rendering.Universal.Internal
             lastPruneClearedBits = (int)totals[1];
         }
 
+        // G3: publishes the cells the lighting kernel reads. Only called while the feature is on and
+        // the item stream exists; the disabled path binds the host's placeholder instead, so the
+        // default renderer does not pay for ~15 MB of cell buffers.
+        public void BindCompact(CommandBuffer cmd, in ClusterListGpuParams p)
+        {
+            if (!isCreated || p.items == null)
+                return;
+
+            EnsureCellCapacity(p.tileCount.x * p.tileCount.y);
+            cmd.SetGlobalBuffer("_CdCellHeaders", m_CellHeaders);
+            cmd.SetGlobalBuffer("_CdCellItems", m_CellItems);
+            cmd.SetGlobalBuffer("_CdTileCellInfo", m_TileCellInfo);
+            cmd.SetGlobalInt("_CdClusterCellMax", compactCellMax);
+        }
+
+        // G3: runs on the graphics queue after the GBuffer depth copy and after the bitmap build
+        // fence, before the lighting dispatch. One 8x8 group per tile measures the tile's depth
+        // slice, maps it to a zbin range and fills one cell per (tile, zbin) with the item indices
+        // present in both bitmaps. Tiles/cells over the capacity keep the bitmap path.
+        public bool BuildCells(CommandBuffer cmd, in ClusterListGpuParams p, RenderTargetIdentifier depthTexture,
+            Vector4 zBufferParams, GraphicsBuffer zbins, GraphicsBuffer tiles)
+        {
+            if (!isCreated || !compactLists || p.items == null)
+                return false;
+
+            EnsureCellCapacity(p.tileCount.x * p.tileCount.y);
+
+            cmd.SetComputeVectorParam(m_Compute, "_FPParams0", new Vector4(p.zBinScale, p.zBinOffset, 0f, 0f));
+            cmd.SetComputeVectorParam(m_Compute, "_FPParams1", new Vector4(0f, 0f, 0f, p.wordsPerTile));
+            cmd.SetComputeIntParam(m_Compute, "_CdClusterItemCount", p.itemCount);
+            cmd.SetComputeIntParam(m_Compute, "_CdClusterBinCount", p.binCount);
+            cmd.SetComputeIntParams(m_Compute, "_CdClusterTileCount", p.tileCount.x, p.tileCount.y);
+            cmd.SetComputeIntParam(m_Compute, "_CdClusterTileWidth", p.tileWidth);
+            cmd.SetComputeIntParam(m_Compute, "_CdClusterCellMax", compactCellMax);
+            cmd.SetComputeVectorParam(m_Compute, "_CdClusterScreenSize",
+                new Vector4(p.screenResolution.x, p.screenResolution.y,
+                    1f / math.max(1, p.screenResolution.x), 1f / math.max(1, p.screenResolution.y)));
+            cmd.SetComputeVectorParam(m_Compute, "_CdClusterTileScale", new Vector4(p.tileScale.x, p.tileScale.y, 0f, 0f));
+            cmd.SetComputeVectorParam(m_Compute, "_CdClusterViewToViewportScaleBias", p.viewToViewportScaleBias);
+            cmd.SetComputeMatrixParam(m_Compute, "_CdClusterWorldToView", p.worldToView);
+            cmd.SetComputeVectorParam(m_Compute, "_CdClusterZBufferParams", zBufferParams);
+            cmd.SetComputeIntParam(m_Compute, "_CdClusterOrthographic", p.orthographic ? 1 : 0);
+            cmd.SetComputeIntParam(m_Compute, "_CdClusterPruneSidePlanes", pruneSidePlanes ? 1 : 0);
+
+            cmd.SetComputeTextureParam(m_Compute, m_CellKernel, "_CdClusterDepthTexture", depthTexture);
+            cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "URP_ZBins", zbins);
+            cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "urp_Tiles", tiles);
+            cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "_CdClusterItems", m_Items);
+            cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "_CdCellHeaders", m_CellHeaders);
+            cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "_CdCellItems", m_CellItems);
+            cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "_CdTileCellInfo", m_TileCellInfo);
+            cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "_CdCellTotals", m_CellTotals);
+
+            cmd.SetBufferData(m_CellTotals, k_ZeroCellTotals);
+            cmd.DispatchCompute(m_Compute, m_CellKernel, p.tileCount.x, p.tileCount.y, 1);
+
+            if (compactStatsEnabled)
+                cmd.RequestAsyncReadback(m_CellTotals, OnCellStatsReadback);
+
+            return true;
+        }
+
+        static void OnCellStatsReadback(AsyncGPUReadbackRequest request)
+        {
+            if (request.hasError)
+                return;
+
+            var totals = request.GetData<uint>();
+            lastCompactEntries = (int)totals[0];
+            lastCompactCells = (int)totals[1];
+            lastCompactOverflowCells = (int)totals[2];
+            lastCompactOverflowTiles = (int)totals[3];
+            lastCompactScannedCells = (int)totals[4];
+        }
+
         static int Groups(int count, int threads) => math.max(1, (count + threads - 1) / threads);
 
         void EnsureCapacity(int itemCount, int binCount)
@@ -237,6 +338,25 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_PruneTotals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, 4) { name = "CD Cluster Prune Totals" };
         }
 
+        void EnsureCellCapacity(int tileCount)
+        {
+            if (m_CellTotals == null)
+                m_CellTotals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, k_ZeroCellTotals.Length, 4) { name = "CD Cell Totals" };
+
+            if (m_CellHeaders != null && m_CellCapacity >= tileCount && m_CellMax == compactCellMax)
+                return;
+
+            m_CellHeaders?.Dispose();
+            m_CellItems?.Dispose();
+            m_TileCellInfo?.Dispose();
+            m_CellCapacity = math.max(tileCount, 16);
+            m_CellMax = compactCellMax;
+            int cellCount = m_CellCapacity * compactCellMax;
+            m_CellHeaders = new GraphicsBuffer(GraphicsBuffer.Target.Structured, cellCount, 4) { name = "CD Cell Headers" };
+            m_CellItems = new GraphicsBuffer(GraphicsBuffer.Target.Structured, cellCount * compactCellMax, 4) { name = "CD Cell Items" };
+            m_TileCellInfo = new GraphicsBuffer(GraphicsBuffer.Target.Structured, m_CellCapacity, 8) { name = "CD Tile Cell Info" };
+        }
+
         public void Dispose()
         {
             m_Items?.Dispose();
@@ -244,13 +364,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_TileRanges?.Dispose();
             m_BinMinMax?.Dispose();
             m_PruneTotals?.Dispose();
+            m_CellHeaders?.Dispose();
+            m_CellItems?.Dispose();
+            m_TileCellInfo?.Dispose();
+            m_CellTotals?.Dispose();
             m_Items = null;
             m_MinMaxZ = null;
             m_TileRanges = null;
             m_BinMinMax = null;
             m_PruneTotals = null;
+            m_CellHeaders = null;
+            m_CellItems = null;
+            m_TileCellInfo = null;
+            m_CellTotals = null;
             m_ItemCapacity = 0;
             m_BinCapacity = 0;
+            m_CellCapacity = 0;
+            m_CellMax = 0;
         }
     }
 }

@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingSamplerFPUpload = new ProfilingSampler("Forward+ Upload");
         private static readonly ProfilingSampler m_ProfilingSamplerFPGpuBuild = new ProfilingSampler("Cluster List GPU");
         private static readonly ProfilingSampler m_ProfilingSamplerFPGpuPrune = new ProfilingSampler("Cluster List Prune");
+        private static readonly ProfilingSampler m_ProfilingSamplerFPGpuCells = new ProfilingSampler("Cluster List Cells");
         MixedLightingSetup m_MixedLightingSetup;
 
         Vector4[] m_AdditionalLightPositions;
@@ -79,6 +80,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // G1: when set, the two bitmaps are built by ClusterBuilder.compute instead of the CPU jobs.
         ClusterListGpuBuilder m_ClusterBuilder;
+        GraphicsBuffer m_EmptyCellBuffer;
         bool m_GpuClusterList;
         CommandBuffer m_ClusterAsyncCmd;
         GraphicsFence m_ClusterFence;
@@ -503,12 +505,47 @@ namespace UnityEngine.Rendering.Universal.Internal
         // list is refined; the CPU fallback and Forward+ keep their exact/conservative bitmaps.
         internal void PruneClusterList(CommandBuffer cmd, RenderTargetIdentifier depthTexture, Vector4 zBufferParams)
         {
+            // G3 cells already resolve depth per (tile, zbin); refining the bitmap would only add a
+            // second full-screen depth scan before the cell build reads it.
             if (!m_GpuClusterList || m_ClusterBuilder == null || m_TileMasksBuffer == null ||
-                !ClusterListGpuBuilder.pruneByDepth)
+                !ClusterListGpuBuilder.pruneByDepth || ClusterListGpuBuilder.compactLists)
                 return;
 
             using (new ProfilingScope(cmd, m_ProfilingSamplerFPGpuPrune))
                 m_ClusterBuilder.Prune(cmd, m_ClusterGpuParams, depthTexture, zBufferParams, m_TileMasksBuffer);
+        }
+
+        // The lighting kernel declares the G3 cell SRVs unconditionally; with no GPU builder (CPU
+        // jobs or a device without compute) it still needs a binding, so a minimal placeholder is
+        // used together with the disabled switch. With a builder, the switch decides whether cells
+        // or bitmaps are read this frame.
+        void PublishCompactCellBindings(CommandBuffer cmd, in ClusterListGpuParams p, bool enableCells)
+        {
+            if (enableCells && p.items != null && m_ClusterBuilder != null && m_ClusterBuilder.isCreated)
+            {
+                m_ClusterBuilder.BindCompact(cmd, p);
+                return;
+            }
+
+            if (m_EmptyCellBuffer == null)
+                m_EmptyCellBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 4, 4) { name = "CD Empty Cell Buffer" };
+            cmd.SetGlobalBuffer("_CdCellHeaders", m_EmptyCellBuffer);
+            cmd.SetGlobalBuffer("_CdCellItems", m_EmptyCellBuffer);
+            cmd.SetGlobalBuffer("_CdTileCellInfo", m_EmptyCellBuffer);
+            cmd.SetGlobalInt("_CdClusterCellMax", 0);
+        }
+
+        // G3: builds the per-(tile, zbin) compact lists from the published bitmaps and the GBuffer
+        // depth copy. Runs after the build fence and before the lighting dispatch.
+        internal void BuildClusterCells(CommandBuffer cmd, RenderTargetIdentifier depthTexture, Vector4 zBufferParams)
+        {
+            if (!m_GpuClusterList || m_ClusterBuilder == null || m_TileMasksBuffer == null ||
+                !ClusterListGpuBuilder.compactLists)
+                return;
+
+            using (new ProfilingScope(cmd, m_ProfilingSamplerFPGpuCells))
+                m_ClusterBuilder.BuildCells(cmd, m_ClusterGpuParams, depthTexture, zBufferParams,
+                    m_ZBinsBuffer, m_TileMasksBuffer);
         }
 
         /// <summary>
@@ -598,6 +635,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 cmd.SetGlobalBuffer("URP_ZBins", m_ZBinsBuffer);
                                 cmd.SetGlobalBuffer("urp_Tiles", m_TileMasksBuffer);
                             }
+
+                            // G3: the cell buffers and their enable switch are read by the lighting
+                            // compute. Bound here so the later ClusteredDeferredPass dispatch does not
+                            // depend on per-pass state; the cells themselves are filled after GBuffer.
+                            PublishCompactCellBindings(cmd, gpuParams, ClusterListGpuBuilder.compactLists);
                         }
                     }
                     else
@@ -628,6 +670,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 cmd.SetGlobalBuffer("URP_ZBins", m_ZBinsBuffer);
                                 cmd.SetGlobalBuffer("urp_Tiles", m_TileMasksBuffer);
                             }
+
+                            // CPU jobs never publish cells; bind the placeholders and clear the switch
+                            // so a frame that flipped off the GPU list cannot read stale cells.
+                            PublishCompactCellBindings(cmd, m_ClusterGpuParams, false);
                             ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.clusterUpload);
                         }
                     }
@@ -736,6 +782,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_ClusterAsyncCmd = null;
                 m_ClusterFencePending = false;
                 m_ClusterBuilder?.Dispose();
+                m_EmptyCellBuffer?.Dispose();
+                m_EmptyCellBuffer = null;
             }
 
             // The manager is shared by Forward+ and the non-clustered atlas path; release it

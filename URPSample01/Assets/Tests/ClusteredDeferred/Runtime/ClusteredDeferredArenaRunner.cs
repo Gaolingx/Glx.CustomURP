@@ -97,6 +97,12 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             clusterAccess.pruneSidePlanes = false;
         if (clusterAccess != null && HasArgument("--cd-prune-stats"))
             clusterAccess.pruneStatsEnabled = true;
+        if (clusterAccess != null && HasArgument("--cd-compact-on"))
+            clusterAccess.compactLists = true;
+        if (clusterAccess != null && HasArgument("--cd-compact-off"))
+            clusterAccess.compactLists = false;
+        if (clusterAccess != null && HasArgument("--cd-compact-stats"))
+            clusterAccess.compactStatsEnabled = true;
 
         if (HasArgument("--cd-parity"))
         {
@@ -231,6 +237,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             supportsAsyncCompute = SystemInfo.supportsAsyncCompute,
             clusterListAsync = clusterAccess != null && clusterAccess.asyncCompute,
             clusterListPrune = clusterAccess != null && clusterAccess.pruneByDepth,
+            clusterListCompact = clusterAccess != null && clusterAccess.compactLists,
             width = width,
             height = height,
             warmupFrames = warmupFrames,
@@ -635,6 +642,15 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                     m_ClusterAccess.pruneClearedBits = -1;
                 }
 
+                if (m_ClusterAccess != null && m_ClusterAccess.compactStatsEnabled)
+                {
+                    m_ClusterAccess.compactEntries = -1;
+                    m_ClusterAccess.compactCells = -1;
+                    m_ClusterAccess.compactOverflowCells = -1;
+                    m_ClusterAccess.compactOverflowTiles = -1;
+                    m_ClusterAccess.compactScannedCells = -1;
+                }
+
                 for (var frame = 0; frame < sampleFrames; frame++)
                 {
                     FrameTimingManager.CaptureFrameTimings();
@@ -673,6 +689,16 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                 {
                     sample.pruneKeptBits = m_ClusterAccess.pruneKeptBits;
                     sample.pruneClearedBits = m_ClusterAccess.pruneClearedBits;
+                }
+
+                if (m_ClusterAccess != null && m_ClusterAccess.compactStatsEnabled &&
+                    mode.name == ClusteredMode)
+                {
+                    sample.compactEntries = m_ClusterAccess.compactEntries;
+                    sample.compactCells = m_ClusterAccess.compactCells;
+                    sample.compactOverflowCells = m_ClusterAccess.compactOverflowCells;
+                    sample.compactOverflowTiles = m_ClusterAccess.compactOverflowTiles;
+                    sample.compactScannedCells = m_ClusterAccess.compactScannedCells;
                 }
 
                 modeReport.samples.Add(sample);
@@ -1301,6 +1327,13 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         readonly FieldInfo m_PruneStats;
         readonly FieldInfo m_PruneKept;
         readonly FieldInfo m_PruneCleared;
+        readonly FieldInfo m_Compact;
+        readonly FieldInfo m_CompactStats;
+        readonly FieldInfo m_CompactEntries;
+        readonly FieldInfo m_CompactCells;
+        readonly FieldInfo m_CompactOverflowCells;
+        readonly FieldInfo m_CompactOverflowTiles;
+        readonly FieldInfo m_CompactScannedCells;
         readonly FieldInfo m_CaptureEnabled;
         readonly FieldInfo m_Last;
         readonly FieldInfo m_LastGpu;
@@ -1331,6 +1364,13 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             m_PruneStats = builder.GetField("pruneStatsEnabled", k_Static);
             m_PruneKept = builder.GetField("lastPruneKeptBits", k_Static);
             m_PruneCleared = builder.GetField("lastPruneClearedBits", k_Static);
+            m_Compact = builder.GetField("compactLists", k_Static);
+            m_CompactStats = builder.GetField("compactStatsEnabled", k_Static);
+            m_CompactEntries = builder.GetField("lastCompactEntries", k_Static);
+            m_CompactCells = builder.GetField("lastCompactCells", k_Static);
+            m_CompactOverflowCells = builder.GetField("lastCompactOverflowCells", k_Static);
+            m_CompactOverflowTiles = builder.GetField("lastCompactOverflowTiles", k_Static);
+            m_CompactScannedCells = builder.GetField("lastCompactScannedCells", k_Static);
             m_CaptureEnabled = capture.GetField("enabled", k_Static);
             m_Last = capture.GetField("last", k_Static);
             m_LastGpu = capture.GetField("lastGpu", k_Static);
@@ -1390,6 +1430,48 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         {
             get => (int)m_PruneCleared.GetValue(null);
             set => m_PruneCleared.SetValue(null, value);
+        }
+
+        public bool compactLists
+        {
+            get => (bool)m_Compact.GetValue(null);
+            set => m_Compact.SetValue(null, value);
+        }
+
+        public bool compactStatsEnabled
+        {
+            get => (bool)m_CompactStats.GetValue(null);
+            set => m_CompactStats.SetValue(null, value);
+        }
+
+        public int compactEntries
+        {
+            get => (int)m_CompactEntries.GetValue(null);
+            set => m_CompactEntries.SetValue(null, value);
+        }
+
+        public int compactCells
+        {
+            get => (int)m_CompactCells.GetValue(null);
+            set => m_CompactCells.SetValue(null, value);
+        }
+
+        public int compactOverflowCells
+        {
+            get => (int)m_CompactOverflowCells.GetValue(null);
+            set => m_CompactOverflowCells.SetValue(null, value);
+        }
+
+        public int compactOverflowTiles
+        {
+            get => (int)m_CompactOverflowTiles.GetValue(null);
+            set => m_CompactOverflowTiles.SetValue(null, value);
+        }
+
+        public int compactScannedCells
+        {
+            get => (int)m_CompactScannedCells.GetValue(null);
+            set => m_CompactScannedCells.SetValue(null, value);
         }
 
         public bool captureEnabled
@@ -1503,6 +1585,12 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         // G2 diagnostic (--cd-prune-stats): conservative tile bits kept/cleared in the last frame.
         public int pruneKeptBits;
         public int pruneClearedBits;
+        // G3 diagnostic (--cd-compact-stats): cell list size/overflow of the last frame.
+        public int compactEntries;
+        public int compactCells;
+        public int compactOverflowCells;
+        public int compactOverflowTiles;
+        public int compactScannedCells;
     }
 
     [Serializable]
@@ -1580,6 +1668,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public bool supportsAsyncCompute;
         public bool clusterListAsync;
         public bool clusterListPrune;
+        public bool clusterListCompact;
         public int width;
         public int height;
         public int warmupFrames;

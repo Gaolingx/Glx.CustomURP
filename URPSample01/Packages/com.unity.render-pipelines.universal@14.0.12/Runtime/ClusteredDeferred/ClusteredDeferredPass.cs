@@ -177,6 +177,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var zBufferParams = ComputeZBufferParams(camera.nearClipPlane, camera.farClipPlane);
                 m_ForwardLights.PruneClusterList(cmd, (RenderTargetIdentifier)depthCopy, zBufferParams);
 
+                // G3: compact per-(tile, zbin) lists. Skipped while the feature is off or on the CPU
+                // fallback; the kernel then keeps reading the bitmaps.
+                m_ForwardLights.BuildClusterCells(cmd, (RenderTargetIdentifier)depthCopy, zBufferParams);
+
                 cmd.DispatchCompute(m_Compute, m_Kernel,
                     (width + k_ThreadGroupSize - 1) / k_ThreadGroupSize,
                     (height + k_ThreadGroupSize - 1) / k_ThreadGroupSize,

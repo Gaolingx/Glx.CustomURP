@@ -26,11 +26,17 @@
 #pragma kernel ClusterZBinPack
 #pragma kernel ClusterTileExpand
 #pragma kernel ClusterTilePrune
+#pragma kernel ClusterCellBuild
 
 #define CD_ITEM_LIGHT 0u
 #define CD_ITEM_PROBE 1u
 #define CD_LIGHTTYPE_SPOT 0
 #define CD_PI 3.14159265358979323846
+
+// G3: fixed per-cell capacity. It is a uniform (`_CdClusterCellMax`) so the CPU buffer stride and
+// the kernel cannot drift. Lists longer than this (or tiles whose depth slice spans more zbins)
+// set the overflow flag and fall back to the bitmap intersection for that cell/tile.
+#define CD_CELL_OVERFLOW 0xFFFFFFFFu
 
 struct CdClusterItem
 {
@@ -76,6 +82,16 @@ float4 _CdClusterScreenSize; // width, height, 1/width, 1/height
 uint _CdClusterTileWidth;
 RWStructuredBuffer<uint> _CdClusterPruneTotals; // [0] kept bits, [1] cleared bits
 uint _CdClusterPruneSidePlanes;
+
+// G3 compact lists. One cell per (tile, zbin) inside the tile's own depth slice, so the pixel
+// reads one header and a short ascending item list instead of walking bitmap words. Cells and
+// tiles that exceed the budget stay on the bitmap path (the kernel checks the same flags).
+RWStructuredBuffer<uint> _CdCellHeaders;    // count, or CD_CELL_OVERFLOW
+RWStructuredBuffer<uint> _CdCellItems;      // CD_CELL_MAX ascending item indices per cell
+RWStructuredBuffer<uint2> _CdTileCellInfo;  // x = first zbin, y = span | 0x80000000 when overflow
+RWStructuredBuffer<uint> _CdCellTotals;     // [0] entries, [1] non-empty cells, [2] overflow cells,
+                                            // [3] overflow tiles, [4] scanned cells
+uint _CdClusterCellMax;
 
 // Signed per-axis sign for corner i (x = bit 0, y = bit 1, z = bit 2). Keep the arithmetic in
 // float: the uint form ((i << 1) & 2) - 1 wraps to 0xFFFFFFFF and converts to +4.29e9, which put
@@ -409,4 +425,186 @@ void ClusterTilePrune(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThrea
 
     InterlockedAdd(_CdClusterPruneTotals[0], kept);
     InterlockedAdd(_CdClusterPruneTotals[1], cleared);
+}
+
+// ----------------------------------------------------------------------------
+// G3: per-(tile, zbin) compact lists
+// ----------------------------------------------------------------------------
+
+groupshared uint CdCellMinZ;
+groupshared uint CdCellMaxZ;
+groupshared uint CdCellValid;
+groupshared int CdCellBinLo;
+groupshared uint CdCellSpan;
+
+// Same bin expression as the lighting kernel's CdClusterInit (perspective: log2 of the linear view
+// depth; orthographic: linear). Floor keeps the mapping monotone in z like the truncating cast.
+int CdCellDepthBin(float z)
+{
+    float term = _CdClusterOrthographic != 0u ? z : log2(max(z, 1e-6));
+    return (int)floor(term * _FPParams0.x + _FPParams0.y);
+}
+
+// One 8x8 group per tile. The group measures the tile's depth slice from the same depth copy the
+// lighting kernel reads, maps it to a zbin range (padded one bin each side so the pixel's own
+// truncation can never fall outside), and fills one cell per zbin with the ascending item indices
+// present in both bitmaps. Nothing here touches URP_ZBins/urp_Tiles, so the bitmap path stays the
+// reference: cells the budget cannot hold keep the overflow flag and the pixel uses the bitmap.
+[numthreads(8, 8, 1)]
+void ClusterCellBuild(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
+{
+    uint2 tile = groupId.xy;
+    if (tile.x >= _CdClusterTileCount.x || tile.y >= _CdClusterTileCount.y)
+        return;
+
+    uint linearThread = threadId.y * 8u + threadId.x;
+    uint tileIndex = tile.y * _CdClusterTileCount.x + tile.x;
+    uint tileCellBase = tileIndex * _CdClusterCellMax;
+
+    if (linearThread == 0u)
+    {
+        CdCellMinZ = 0xFFFFFFFFu;
+        CdCellMaxZ = 0u;
+        CdCellValid = 0u;
+        CdCellBinLo = 0;
+        CdCellSpan = 0u;
+    }
+
+    // Clear this tile's headers while the group starts the depth scan; stale item slots are harmless
+    // because a reader stops at the count.
+    for (uint slot = linearThread; slot < _CdClusterCellMax; slot += 64u)
+        _CdCellHeaders[tileCellBase + slot] = 0u;
+
+    uint2 screen = max((uint2)_CdClusterScreenSize.xy, uint2(1u, 1u));
+    uint2 tileBase = tile * _CdClusterTileWidth;
+    float zMin = 3.402823466e+38;
+    float zMax = -3.402823466e+38;
+    uint valid = 0u;
+
+    [loop] for (uint y = threadId.y; y < _CdClusterTileWidth; y += 8u)
+    {
+        [loop] for (uint x = threadId.x; x < _CdClusterTileWidth; x += 8u)
+        {
+            uint2 pixel = min(tileBase + uint2(x, y), screen - 1u);
+            float rawDepth = LOAD_TEXTURE2D(_CdClusterDepthTexture, pixel).x;
+            if (rawDepth == UNITY_RAW_FAR_CLIP_VALUE)
+                continue;
+
+            float z = 1.0 / (_CdClusterZBufferParams.z * rawDepth + _CdClusterZBufferParams.w);
+            zMin = min(zMin, z);
+            zMax = max(zMax, z);
+            valid++;
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if (valid != 0u)
+    {
+        InterlockedMin(CdCellMinZ, asuint(zMin));
+        InterlockedMax(CdCellMaxZ, asuint(zMax));
+    }
+    InterlockedAdd(CdCellValid, valid);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (linearThread == 0u)
+    {
+        if (CdCellValid == 0u)
+        {
+            // Empty tile: the lighting kernel returns on the far-depth test before touching cells.
+            // No early return here: every thread must reach the group barrier below.
+            _CdTileCellInfo[tileIndex] = uint2(0u, 0u);
+            CdCellSpan = 0u;
+        }
+        else
+        {
+            int last = (int)_CdClusterBinCount - 1;
+            int binLo = clamp(CdCellDepthBin(asfloat(CdCellMinZ)) - 1, 0, last);
+            int binHi = clamp(CdCellDepthBin(asfloat(CdCellMaxZ)) + 1, 0, last);
+            uint span = (uint)(binHi - binLo + 1);
+            InterlockedAdd(_CdCellTotals[4], span);
+
+            if (span > _CdClusterCellMax)
+            {
+                _CdTileCellInfo[tileIndex] = uint2((uint)binLo, 0x80000000u);
+                InterlockedAdd(_CdCellTotals[3], 1u);
+                CdCellSpan = 0u;
+            }
+            else
+            {
+                CdCellBinLo = binLo;
+                CdCellSpan = span;
+                _CdTileCellInfo[tileIndex] = uint2((uint)binLo, span);
+            }
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    uint span = CdCellSpan;
+    if (linearThread >= span)
+        return;
+
+    uint bin = (uint)CdCellBinLo + linearThread;
+    uint wordsPerTile = (uint)_FPParams1.w;
+    uint stride = 2u + wordsPerTile;
+    uint tileWordBase = tileIndex * wordsPerTile;
+    uint zBinWordBase = bin * stride + 2u;
+    uint cell = tileCellBase + linearThread;
+    uint itemBase = cell * _CdClusterCellMax;
+
+    float2 tileLo = (float2(tile) / _CdClusterTileScale - _CdClusterViewToViewportScaleBias.zw) / _CdClusterViewToViewportScaleBias.xy;
+    float2 tileHi = (float2(tile + 1u) / _CdClusterTileScale - _CdClusterViewToViewportScaleBias.zw) / _CdClusterViewToViewportScaleBias.xy;
+
+    uint count = 0u;
+    bool overflow = false;
+
+    [loop] for (uint word = 0u; word < wordsPerTile && !overflow; word++)
+    {
+        uint bits = urp_Tiles[tileWordBase + word] & URP_ZBins[zBinWordBase + word];
+        [loop] while (bits != 0u)
+        {
+            uint bit = firstbitlow(bits);
+            bits &= bits - 1u;
+            uint item = word * 32u + bit;
+            if (item >= _CdClusterItemCount)
+                continue;
+
+            // The zbin already resolves depth; the slice test only drops candidates whose 2D AABB
+            // reaches this tile while the volume itself lies in a neighbouring x/y slice.
+            if (_CdClusterPruneSidePlanes != 0u)
+            {
+                CdClusterItem itemData = _CdClusterItems[item];
+                float3 centerVS = mul(_CdClusterWorldToView, float4(itemData.positionRange.xyz, 1.0)).xyz;
+                centerVS.z *= -1.0;
+                float radius = itemData.itemType == CD_ITEM_PROBE
+                    ? length(itemData.directionExtent.xyz)
+                    : itemData.positionRange.w;
+                if (!CdSphereIntersectsTileSlice(centerVS, radius * 1.0001 + 1e-4, tileLo, tileHi))
+                    continue;
+            }
+
+            if (count >= _CdClusterCellMax)
+            {
+                overflow = true;
+                break;
+            }
+
+            _CdCellItems[itemBase + count] = item;
+            count++;
+        }
+    }
+
+    if (overflow)
+    {
+        _CdCellHeaders[cell] = CD_CELL_OVERFLOW;
+        InterlockedAdd(_CdCellTotals[2], 1u);
+    }
+    else
+    {
+        _CdCellHeaders[cell] = count;
+        if (count != 0u)
+            InterlockedAdd(_CdCellTotals[1], 1u);
+    }
+    InterlockedAdd(_CdCellTotals[0], count);
 }
