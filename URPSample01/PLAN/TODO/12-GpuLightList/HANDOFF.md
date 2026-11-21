@@ -1,6 +1,6 @@
 # 12-GpuLightList：GPU 光表与异步两段式（计划）
 
-> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1–G3 待执行**。
+> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1a（灯记录布局 + parity 骨架）已落地；G1b（Stage A/B compute）待执行**。
 > 建立：2026-11-22；前置轮次：[`PLAN/Done/11-LightCulling`](../../Done/11-LightCulling/HANDOFF.md)（Clustered Deferred v1，已归档）。
 > 善后清单：[clean.md](clean.md)（C1 已落地；C2–C8 仍为规划）。
 > 基线：C1 提交后的 HEAD（见 `git log`）；C1 证据在 `validation/C1/`。
@@ -127,6 +127,44 @@ ClusteredDeferred.compute（不改一行）
 
 `validation/G1/`：`G1BufferParity.json`（逐位）、`T4-shadows/`、`T5-runtime/`、`CdCpuBreakdown.json`、`.rdc` + RenderDoc 摘要、EditMode/PlayMode XML。
 
+### 3.4 G1a（已落地）：灯记录布局冻结 + parity 骨架
+
+**为什么先冻结**：G1 的验收是“GPU 与 CPU jobs 逐位相等”。如果灯记录和比较规则后写，Stage B 的每个浮点分支都会变成一次语义重构；先把 GPU 要读的输入、位图比较规则、以及“已用前缀”的边界固定下来，compute 才只是实现问题。
+
+**`ClusterItemRecord`（48 字节，`[StructLayout(Sequential)]`）**：`Runtime/ClusteredDeferred/ClusterItemRecord.cs`
+
+| offset | 字段 | 类型 | 灯 | 反射探针 |
+|---:|---|---|---|---|
+| 0 | `positionRange` | float4 | `localToWorld` c3，w = range | `bounds.center`，w = 0 |
+| 16 | `directionExtent` | float4 | `localToWorld` c2，w = spotAngle（度，point 为 0） | `bounds.extents`，w = 0 |
+| 32 | `itemType` | uint | 0 = Light | 1 = Probe |
+| 36 | `lightType` | int | 原始 `LightType`；Directional 不进流 | `Point`（占位） |
+| 40 | `layerMask` | uint | `RenderingLayerUtils.ToValidRenderingLayers` | 0 |
+| 44 | `sourceIndex` | uint | `visibleLights` 下标 | `visibleReflectionProbes` 下标 |
+
+- **顺序**：跳过前导方向光后的 `visibleLights`，随后是 `PreSetup` 已按 importance/size 排好序、且落在 `maxVisibleReflectionProbes` 内的探针。与 `itemsPerTile` 的 item 下标空间一一对应。
+- **存原始输入而非 `_AdditionalLights*` 打包值**：CPU job 从 `spotAngle` 现算 `cos(radians(θ/2))`、从 `range` 现算 `sqrt(range² - coneHeight²)`；GPU 必须从同一原始值出发才可能逐位相等。反向从 `attenuation.x` 反解 range 是损失性的，禁止。
+- 唯一构造点 `ClusterItemStream.Build`（与 `PreSetup` 共用 `m_LightOffset`，不再重算方向光前缀）；只在 parity 捕获开启时运行。
+- 未进记录：cookie/阴影索引、`innerSpotAngle`、颜色。GPU 需要时从同一 `VisibleLight` 追加，且必须同步本表、HLSL 镜像与布局测试。
+
+**parity 协议**：`Runtime/ClusteredDeferred/ClusterListParity.cs`
+
+- 快照 = 两张位图 + 12 个 `_FPParams*` + `wordsPerTile/binCount/tileWidth/tile 分辨率/lightCount/directionalLightCount/viewCount` + item 流。二进制带 `CDLP` 魔数与 `FormatVersion`，用于落盘 golden 与跨进程（player）比较。
+- 比较顺序：先比参数（float **按位**，NaN/-0 不豁免），再逐 word 比已用前缀：
+  - zbin：`binCount * (2 + wordsPerTile) * viewCount`（`ZBinningJob.headerLength = 2`）；
+  - tile：`tileW * tileH * wordsPerTile * viewCount`。
+- 前缀内任何 word 不等即 `Exact = false`，报告不同 word 数、XOR bit 数、前 8 个 word 下标；前缀外的差异只计数（kernel 不能索引），不判失败。
+- 捕获开关 `ClusterListParityCapture.enabled` 默认关闭；`ForwardLights.Setup` 里只有一次 bool 检查，开启时在 `m_CullingHandle.Complete()` 与上传之后复制缓冲，取到的正是本帧发布的 `URP_ZBinBuffer`/`urp_TileBuffer`。
+
+**本步验证**（证据 `validation/G1/`）：
+
+| 项 | 结果 |
+|---|---|
+| EditMode 全量 | **490/490**（485 基线 + 5 个新 parity 用例） |
+| PlayMode 全量 | **37/37**（36 基线 + 1 个渲染捕捉用例） |
+| 新用例 | 布局 size/offset 冻结；快照落盘往返；植入 1 bit 差异能被定位到 word；前缀外差异不判失败；参数 1 ulp 漂移判失败；真实 clustered 相机连续两帧位图逐位相等且 item 流与 `_FPParams*` 自洽 |
+| 未证明 | GPU 逐位 parity（Stage A/B 未写）、player/arena 运行、CPU 下降与帧时间 |
+
 ---
 
 ## 4. G2：FPTL 精剪
@@ -189,6 +227,7 @@ ClusteredDeferred.compute（不改一行）
 
 **立即下一步**：
 
-1. 用 C1 的 `CdCpuBreakdown.json` 填 §2.3，并对照 §0 的 Go/No-Go 闸门决定 G1 是否以“省 CPU”立项。
-2. 冻结 G1 的灯记录布局（与 `_AdditionalLights*` 常量数组同源，避免两份数据漂移）。
-3. 先写 parity 测试骨架（CPU 输出落盘 → GPU 输出比较），再写 compute；不先调性能。
+1. ~~用 C1 的 `CdCpuBreakdown.json` 填 §2.3，并对照 §0 的 Go/No-Go 闸门决定 G1 是否以“省 CPU”立项。~~（C1 结论：0.173 ms/帧、约 14%；G1 以“异步重叠 + 扩展性”立项，验收须同时报告 CPU 下降与端到端帧时间。）
+2. ~~冻结 G1 的灯记录布局（与 `_AdditionalLights*` 常量数组同源，避免两份数据漂移）。~~（§3.4，已落地。）
+3. ~~先写 parity 测试骨架（CPU 输出落盘 → GPU 输出比较），再写 compute；不先调性能。~~（§3.4，已落地；golden 落盘与比较库就绪。）
+4. **G1b**：写 Stage A/B compute（不改 kernel 与布局），先过 parity 再谈异步；第一版可同队列串行，异步只加调度。

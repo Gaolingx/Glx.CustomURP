@@ -70,6 +70,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         float m_ZBinOffset;
         int m_LightCount;
         int m_BinCount;
+        // PreSetup state the parity capture needs to describe the item stream; the jobs do not read it.
+        int m_LightOffset;
+        int m_ViewCount;
+        int m_ReflectionProbeCount;
 
         internal struct InitParams
         {
@@ -253,6 +257,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #else
                 var viewCount = 1;
 #endif
+                m_ViewCount = viewCount;
 
                 m_LightCount = renderingData.lightData.visibleLights.Length;
                 var lightOffset = 0;
@@ -261,6 +266,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     lightOffset++;
                 }
                 m_LightCount -= lightOffset;
+                m_LightOffset = lightOffset;
 
                 m_DirectionalLightCount = lightOffset;
                 if (renderingData.lightData.mainLightIndex != -1 && m_DirectionalLightCount != 0) m_DirectionalLightCount -= 1;
@@ -268,6 +274,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var visibleLights = renderingData.lightData.visibleLights.GetSubArray(lightOffset, m_LightCount);
                 var reflectionProbes = renderingData.cullResults.visibleReflectionProbes;
                 var reflectionProbeCount = math.min(reflectionProbes.Length, UniversalRenderPipeline.maxVisibleReflectionProbes);
+                m_ReflectionProbeCount = reflectionProbeCount;
                 var itemsPerTile = visibleLights.Length + reflectionProbeCount;
                 m_WordsPerTile = (itemsPerTile + 31) / 32;
 
@@ -449,9 +456,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                         ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.clusterUpload);
                     }
 
-                    cmd.SetGlobalVector("_FPParams0", math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount));
-                    cmd.SetGlobalVector("_FPParams1", math.float4(renderingData.cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile));
-                    cmd.SetGlobalVector("_FPParams2", math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0));
+                    var fp0 = math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount);
+                    var fp1 = math.float4(renderingData.cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile);
+                    var fp2 = math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0);
+                    cmd.SetGlobalVector("_FPParams0", fp0);
+                    cmd.SetGlobalVector("_FPParams1", fp1);
+                    cmd.SetGlobalVector("_FPParams2", fp2);
+
+                    if (ClusterListParityCapture.enabled)
+                        CaptureClusterList(ref renderingData, fp0, fp1, fp2);
                 }
 
                 long constantsStart = ClusteredDeferredCpuProbe.Begin();
@@ -497,6 +510,27 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
+        }
+
+        // Copies the just-built bitmaps and the item stream they index. Runs after the jobs are
+        // complete and before the next PreSetup clears the buffers, so the snapshot is exactly what
+        // this frame published to URP_ZBinBuffer/urp_TileBuffer.
+        void CaptureClusterList(ref RenderingData renderingData, float4 fp0, float4 fp1, float4 fp2)
+        {
+            var snapshot = ClusterListSnapshot.Create(m_ZBins, m_TileMasks);
+            snapshot.zBinScale = m_ZBinScale;
+            snapshot.zBinOffset = m_ZBinOffset;
+            snapshot.wordsPerTile = m_WordsPerTile;
+            snapshot.binCount = m_BinCount;
+            snapshot.lightCount = m_LightCount;
+            snapshot.directionalLightCount = m_DirectionalLightCount;
+            snapshot.viewCount = m_ViewCount;
+            snapshot.tileWidth = m_ActualTileWidth;
+            snapshot.tileResolution = new Vector2Int(m_TileResolution.x, m_TileResolution.y);
+            snapshot.screenResolution = new Vector2Int(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
+            snapshot.fpParams = new[] { fp0.x, fp0.y, fp0.z, fp0.w, fp1.x, fp1.y, fp1.z, fp1.w, fp2.x, fp2.y, fp2.z, fp2.w };
+            snapshot.items = ClusterItemStream.Build(ref renderingData, m_LightOffset, m_LightCount, m_ReflectionProbeCount);
+            ClusterListParityCapture.Capture(snapshot);
         }
 
         internal void Cleanup()

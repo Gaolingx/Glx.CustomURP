@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.TestTools;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -189,6 +190,79 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             {
                 TearDownRig();
             }
+        }
+
+        // G1's parity gate compares the GPU builder against these two bitmaps, so the CPU list has to
+        // be stable frame to frame and the item stream has to describe exactly what the bits index.
+        [UnityTest]
+        public IEnumerator ClusterListSnapshotIsDeterministicAndDescribesTheItemStream()
+        {
+            yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
+            ClusterListParityCapture.enabled = true;
+            try
+            {
+                yield return RenderFrames(WarmupFrames);
+                var first = ClusterListParityCapture.last;
+                yield return RenderFrames(2);
+                var second = ClusterListParityCapture.last;
+
+                Assert.IsNotNull(first.zBins, "The parity capture never ran; no eligible clustered camera reached Setup.");
+                Assert.IsNotNull(second.zBins);
+
+                var diff = ClusterListSnapshot.Diff(first, second);
+                Assert.IsTrue(diff.Exact,
+                    "Consecutive frames disagree, so the CPU list cannot serve as the parity reference. " + diff);
+
+                Assert.Greater(CountSetBits(first.tileMasks, first.TileUsedWords), 0,
+                    "The tile bitmap is empty; parity would pass trivially.");
+                Assert.Greater(CountSetBits(first.zBins, first.ZBinUsedWords), 0,
+                    "The zbin bitmap is empty; parity would pass trivially.");
+
+                Assert.AreEqual(m_Lights.Count, first.lightCount, "Every rig point light should reach the item stream.");
+                Assert.AreEqual(first.lightCount, first.items.Length - CountProbeItems(first),
+                    "The light items must be the leading block; probes trail them.");
+                for (int i = 0; i < first.lightCount; i++)
+                {
+                    Assert.AreEqual(ClusterItemType.Light, first.items[i].itemType, "Item " + i);
+                    Assert.AreNotEqual(LightType.Directional, first.items[i].lightType,
+                        "Directional lights are shaded outside the cluster list and must not be items.");
+                }
+
+                var fp0 = Shader.GetGlobalVector("_FPParams0");
+                var fp1 = Shader.GetGlobalVector("_FPParams1");
+                Assert.AreEqual(fp0.x, first.fpParams[0], 0f, "zBinScale drifted from _FPParams0.");
+                Assert.AreEqual(fp1.x, first.fpParams[4], 0f, "tileScale drifted from _FPParams1.");
+                Assert.AreEqual(fp1.z, first.fpParams[6], 0f, "wordsPerTile drifted from _FPParams1.");
+                Assert.AreEqual(Mathf.RoundToInt(640f / fp1.x), first.tileWidth,
+                    "The captured tile width disagrees with the published _FPParams1.");
+            }
+            finally
+            {
+                ClusterListParityCapture.Reset();
+                TearDownRig();
+            }
+        }
+
+        static int CountProbeItems(ClusterListSnapshot snapshot)
+        {
+            int probes = 0;
+            for (int i = snapshot.lightCount; i < snapshot.items.Length; i++)
+            {
+                Assert.AreEqual(ClusterItemType.Probe, snapshot.items[i].itemType, "Item " + i);
+                probes++;
+            }
+            return probes;
+        }
+
+        static int CountSetBits(uint[] words, int count)
+        {
+            int bits = 0;
+            for (int i = 0; i < count; i++)
+            {
+                for (uint word = words[i]; word != 0; word &= word - 1)
+                    bits++;
+            }
+            return bits;
         }
 
         // ---------------------------------------------------------------------------------------------
