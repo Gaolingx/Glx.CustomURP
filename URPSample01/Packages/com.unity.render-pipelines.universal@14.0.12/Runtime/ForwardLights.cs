@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingSamplerFPComplete = new ProfilingSampler("Forward+ Complete");
         private static readonly ProfilingSampler m_ProfilingSamplerFPUpload = new ProfilingSampler("Forward+ Upload");
         private static readonly ProfilingSampler m_ProfilingSamplerFPGpuBuild = new ProfilingSampler("Cluster List GPU");
+        private static readonly ProfilingSampler m_ProfilingSamplerFPGpuPrune = new ProfilingSampler("Cluster List Prune");
         MixedLightingSetup m_MixedLightingSetup;
 
         Vector4[] m_AdditionalLightPositions;
@@ -83,6 +84,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         GraphicsFence m_ClusterFence;
         bool m_ClusterFencePending;
         ClusterItemRecord[] m_ClusterItems = Array.Empty<ClusterItemRecord>();
+        ClusterListGpuParams m_ClusterGpuParams;
         float4x4 m_ClusterWorldToView;
         float4 m_ClusterViewToViewportScaleBias;
         float2 m_ClusterTileScale;
@@ -496,6 +498,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ClusterFencePending = false;
         }
 
+        // G2: narrow the published tile bitmap with the tile depth slice. Must run after the build
+        // fence (reads the built bitmap) and after GBuffer (reads its depth). Only the GPU-built
+        // list is refined; the CPU fallback and Forward+ keep their exact/conservative bitmaps.
+        internal void PruneClusterList(CommandBuffer cmd, RenderTargetIdentifier depthTexture, Vector4 zBufferParams)
+        {
+            if (!m_GpuClusterList || m_ClusterBuilder == null || m_TileMasksBuffer == null ||
+                !ClusterListGpuBuilder.pruneByDepth)
+                return;
+
+            using (new ProfilingScope(cmd, m_ProfilingSamplerFPGpuPrune))
+                m_ClusterBuilder.Prune(cmd, m_ClusterGpuParams, depthTexture, zBufferParams, m_TileMasksBuffer);
+        }
+
         /// <summary>
         /// Sets up the keywords and data for forward lighting.
         /// </summary>
@@ -549,12 +564,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 zBinWordCount = m_ZBins.Length,
                                 tileWordCount = m_TileMasks.Length,
                                 tileCount = m_TileResolution,
+                                tileWidth = m_ActualTileWidth,
+                                screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight),
                                 tileScale = m_ClusterTileScale,
                                 viewToViewportScaleBias = (Vector4)m_ClusterViewToViewportScaleBias,
                                 worldToView = m_ClusterWorldToView,
                                 near = m_ClusterNear,
                                 orthographic = m_ClusterOrthographic,
                             };
+                            m_ClusterGpuParams = gpuParams;
 
                             if (ShouldRunClusterListAsync())
                             {

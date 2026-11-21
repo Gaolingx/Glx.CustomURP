@@ -171,6 +171,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // The G1c async build runs after GBuffer; waiting at the compute stage here lets the
                 // mask draws above overlap whatever is left of it instead of stalling all GPU work.
                 m_ForwardLights.WaitForClusterList(cmd);
+
+                // G2: narrow the conservative tile bits against each tile's visible depth slice.
+                // _ZBufferParams is derived from the same near/far pair the zbin scale uses.
+                var zBufferParams = ComputeZBufferParams(camera.nearClipPlane, camera.farClipPlane);
+                m_ForwardLights.PruneClusterList(cmd, (RenderTargetIdentifier)depthCopy, zBufferParams);
+
                 cmd.DispatchCompute(m_Compute, m_Kernel,
                     (width + k_ThreadGroupSize - 1) / k_ThreadGroupSize,
                     (height + k_ThreadGroupSize - 1) / k_ThreadGroupSize,
@@ -182,6 +188,25 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetRenderTarget(lightingTarget, depthTarget);
                 cmd.DrawProcedural(Matrix4x4.identity, m_ResolveMaterial, 0, MeshTopology.Triangles, 3);
             }
+        }
+
+        // Unity's linear-depth parameters for the platform's depth convention, matching the global
+        // _ZBufferParams the shaders get. Kept local because core runtime sources may not reference
+        // the screen-space lighting plugin utilities (PluginIsolationTests).
+        static Vector4 ComputeZBufferParams(float nearPlane, float farPlane)
+        {
+            nearPlane = Mathf.Max(1e-5f, nearPlane);
+            farPlane = Mathf.Max(nearPlane + 1e-4f, farPlane);
+
+            if (SystemInfo.usesReversedZBuffer)
+            {
+                float x = -1f + farPlane / nearPlane;
+                return new Vector4(x, 1f, x / farPlane, 1f / farPlane);
+            }
+
+            float xn = 1f - farPlane / nearPlane;
+            float yn = farPlane / nearPlane;
+            return new Vector4(xn, yn, xn / farPlane, 1f / nearPlane);
         }
 
         void EnsureTargets(int width, int height)

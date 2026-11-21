@@ -15,6 +15,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public int zBinWordCount;
         public int tileWordCount;
         public int2 tileCount;
+        public int tileWidth;
+        public int2 screenResolution;
         public float2 tileScale;
         public Vector4 viewToViewportScaleBias;
         public Matrix4x4 worldToView;
@@ -38,10 +40,25 @@ namespace UnityEngine.Rendering.Universal.Internal
         // takes ~0.05 ms, so sync wins until a scene is heavy enough to hide the hand-off.
         internal static bool asyncCompute = false;
 
+        // G2 depth refine: after GBuffer, the tile bitmap is narrowed to the volumes that actually
+        // intersect each tile's depth slice. Off by default: the measurement (HANDOFF §4.2) shows
+        // it clears ~65% of the conservative tile bits but leaves per-pixel work unchanged --
+        // the pixel's zbin already rejects those lights -- so it only adds a dispatch. Kept as an
+        // A/B path; a real per-pixel win needs the compact per-(tile, zbin) list of G3.
+        internal static bool pruneByDepth = false;
+        // Isolation switch: depth-only keeps bits whose z range overlaps but whose volume misses
+        // the tile slice. Used by the A/B harness to separate the two rejection reasons.
+        internal static bool pruneSidePlanes = true;
+        // Diagnostic readback of the kept/cleared bit counts; off in normal runs.
+        internal static bool pruneStatsEnabled = false;
+        internal static int lastPruneKeptBits;
+        internal static int lastPruneClearedBits;
+
         const int k_BoundsThreads = 64;
         const int k_ClearThreads = 256;
         const int k_ScatterThreads = 64;
         const int k_ExpandThreads = 8;
+        static readonly uint[] k_ZeroTotals = { 0u, 0u };
 
         readonly ComputeShader m_Compute;
         readonly int m_BoundsKernel;
@@ -49,11 +66,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         readonly int m_ScatterKernel;
         readonly int m_PackKernel;
         readonly int m_ExpandKernel;
+        readonly int m_PruneKernel;
 
         GraphicsBuffer m_Items;
         GraphicsBuffer m_MinMaxZ;
         GraphicsBuffer m_TileRanges;
         GraphicsBuffer m_BinMinMax;
+        GraphicsBuffer m_PruneTotals;
         int m_ItemCapacity;
         int m_BinCapacity;
 
@@ -68,11 +87,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ScatterKernel = compute.FindKernel("ClusterZBinScatter");
             m_PackKernel = compute.FindKernel("ClusterZBinPack");
             m_ExpandKernel = compute.FindKernel("ClusterTileExpand");
+            m_PruneKernel = compute.FindKernel("ClusterTilePrune");
         }
 
         public bool isCreated => m_Compute != null &&
                                  m_BoundsKernel >= 0 && m_ClearKernel >= 0 && m_ScatterKernel >= 0 &&
-                                 m_PackKernel >= 0 && m_ExpandKernel >= 0;
+                                 m_PackKernel >= 0 && m_ExpandKernel >= 0 &&
+                                 m_PruneKernel >= 0;
 
         // Records the item upload on the command stream. Kept separate from Dispatch because the
         // async path uploads on the graphics queue (so the data is ready when the async queue
@@ -138,6 +159,57 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Groups(p.tileCount.x, k_ExpandThreads), Groups(p.tileCount.y, k_ExpandThreads), 1);
         }
 
+        // G2: runs on the graphics queue after the GBuffer depth is available and after the GPU
+        // build fence, before the lighting dispatch. It narrows the published tile bitmap in place;
+        // the zbin bitmap and every layout/param the kernel reads stay untouched.
+        public bool Prune(CommandBuffer cmd, in ClusterListGpuParams p, RenderTargetIdentifier depthTexture,
+            Vector4 zBufferParams, GraphicsBuffer tiles)
+        {
+            if (!isCreated || !pruneByDepth || p.items == null)
+                return false;
+
+            EnsureCapacity(p.itemCount, p.binCount);
+
+            cmd.SetComputeIntParam(m_Compute, "_CdClusterItemCount", p.itemCount);
+            cmd.SetComputeIntParams(m_Compute, "_CdClusterTileCount", p.tileCount.x, p.tileCount.y);
+            cmd.SetComputeIntParam(m_Compute, "_CdClusterTileWidth", p.tileWidth);
+            cmd.SetComputeVectorParam(m_Compute, "_CdClusterScreenSize",
+                new Vector4(p.screenResolution.x, p.screenResolution.y,
+                    1f / math.max(1, p.screenResolution.x), 1f / math.max(1, p.screenResolution.y)));
+            cmd.SetComputeVectorParam(m_Compute, "_CdClusterTileScale", new Vector4(p.tileScale.x, p.tileScale.y, 0f, 0f));
+            cmd.SetComputeVectorParam(m_Compute, "_CdClusterViewToViewportScaleBias", p.viewToViewportScaleBias);
+            cmd.SetComputeMatrixParam(m_Compute, "_CdClusterWorldToView", p.worldToView);
+            cmd.SetComputeVectorParam(m_Compute, "_CdClusterZBufferParams", zBufferParams);
+            cmd.SetComputeIntParam(m_Compute, "_CdClusterOrthographic", p.orthographic ? 1 : 0);
+            cmd.SetComputeIntParam(m_Compute, "_CdClusterPruneSidePlanes", pruneSidePlanes ? 1 : 0);
+            cmd.SetComputeVectorParam(m_Compute, "_FPParams1", new Vector4(0f, 0f, 0f, p.wordsPerTile));
+
+            cmd.SetComputeTextureParam(m_Compute, m_PruneKernel, "_CdClusterDepthTexture", depthTexture);
+
+            cmd.SetComputeBufferParam(m_Compute, m_PruneKernel, "_CdClusterItems", m_Items);
+            cmd.SetComputeBufferParam(m_Compute, m_PruneKernel, "_CdClusterMinMaxZ", m_MinMaxZ);
+            cmd.SetComputeBufferParam(m_Compute, m_PruneKernel, "_CdClusterPruneTotals", m_PruneTotals);
+            cmd.SetComputeBufferParam(m_Compute, m_PruneKernel, "urp_Tiles", tiles);
+
+            cmd.SetBufferData(m_PruneTotals, k_ZeroTotals);
+            cmd.DispatchCompute(m_Compute, m_PruneKernel, p.tileCount.x, p.tileCount.y, 1);
+
+            if (pruneStatsEnabled)
+                cmd.RequestAsyncReadback(m_PruneTotals, OnPruneStatsReadback);
+
+            return true;
+        }
+
+        static void OnPruneStatsReadback(AsyncGPUReadbackRequest request)
+        {
+            if (request.hasError)
+                return;
+
+            var totals = request.GetData<uint>();
+            lastPruneKeptBits = (int)totals[0];
+            lastPruneClearedBits = (int)totals[1];
+        }
+
         static int Groups(int count, int threads) => math.max(1, (count + threads - 1) / threads);
 
         void EnsureCapacity(int itemCount, int binCount)
@@ -159,6 +231,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_BinCapacity = math.max(binCount, 256);
                 m_BinMinMax = new GraphicsBuffer(GraphicsBuffer.Target.Structured, m_BinCapacity * 4, 4) { name = "CD Cluster Bin Headers" };
             }
+
+            // Two counters, kept for the whole builder lifetime so the readback target never moves.
+            if (m_PruneTotals == null)
+                m_PruneTotals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, 4) { name = "CD Cluster Prune Totals" };
         }
 
         public void Dispose()
@@ -167,10 +243,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MinMaxZ?.Dispose();
             m_TileRanges?.Dispose();
             m_BinMinMax?.Dispose();
+            m_PruneTotals?.Dispose();
             m_Items = null;
             m_MinMaxZ = null;
             m_TileRanges = null;
             m_BinMinMax = null;
+            m_PruneTotals = null;
             m_ItemCapacity = 0;
             m_BinCapacity = 0;
         }

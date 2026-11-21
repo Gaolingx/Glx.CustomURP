@@ -67,6 +67,9 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     readonly List<Material> m_ReceiverMaterials = new List<Material>();
     readonly List<ModeReport> m_Modes = new List<ModeReport>();
     readonly Dictionary<string, Texture2D> m_Screenshots = new Dictionary<string, Texture2D>();
+#if !UNITY_EDITOR
+    ClusterListAccess m_ClusterAccess;
+#endif
 
     IEnumerator Start()
     {
@@ -81,10 +84,19 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         Directory.CreateDirectory(outputRoot);
 
         var clusterAccess = ClusterListAccess.Create();
+        m_ClusterAccess = clusterAccess;
         if (clusterAccess != null && HasArgument("--cd-cluster-sync"))
             clusterAccess.asyncCompute = false;
         if (clusterAccess != null && HasArgument("--cd-cluster-async"))
             clusterAccess.asyncCompute = true;
+        if (clusterAccess != null && HasArgument("--cd-prune-on"))
+            clusterAccess.pruneByDepth = true;
+        if (clusterAccess != null && HasArgument("--cd-prune-off"))
+            clusterAccess.pruneByDepth = false;
+        if (clusterAccess != null && HasArgument("--cd-prune-zonly"))
+            clusterAccess.pruneSidePlanes = false;
+        if (clusterAccess != null && HasArgument("--cd-prune-stats"))
+            clusterAccess.pruneStatsEnabled = true;
 
         if (HasArgument("--cd-parity"))
         {
@@ -218,6 +230,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             supportsComputeShaders = SystemInfo.supportsComputeShaders,
             supportsAsyncCompute = SystemInfo.supportsAsyncCompute,
             clusterListAsync = clusterAccess != null && clusterAccess.asyncCompute,
+            clusterListPrune = clusterAccess != null && clusterAccess.pruneByDepth,
             width = width,
             height = height,
             warmupFrames = warmupFrames,
@@ -616,6 +629,12 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                 var timings = new FrameTiming[1];
                 var screenshotRequested = lightCount == screenshotLightCount;
 
+                if (m_ClusterAccess != null && m_ClusterAccess.pruneStatsEnabled)
+                {
+                    m_ClusterAccess.pruneKeptBits = -1;
+                    m_ClusterAccess.pruneClearedBits = -1;
+                }
+
                 for (var frame = 0; frame < sampleFrames; frame++)
                 {
                     FrameTimingManager.CaptureFrameTimings();
@@ -647,6 +666,13 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                     File.WriteAllBytes(Path.Combine(outputRoot, fileName), texture.EncodeToPNG());
                     sample.screenshotFile = fileName;
                     sample.magentaPixelFraction = MagentaFraction(texture.GetPixels32());
+                }
+
+                if (m_ClusterAccess != null && m_ClusterAccess.pruneStatsEnabled &&
+                    mode.name == ClusteredMode)
+                {
+                    sample.pruneKeptBits = m_ClusterAccess.pruneKeptBits;
+                    sample.pruneClearedBits = m_ClusterAccess.pruneClearedBits;
                 }
 
                 modeReport.samples.Add(sample);
@@ -1270,6 +1296,11 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
 
         readonly FieldInfo m_Enabled;
         readonly FieldInfo m_Async;
+        readonly FieldInfo m_Prune;
+        readonly FieldInfo m_PruneSidePlanes;
+        readonly FieldInfo m_PruneStats;
+        readonly FieldInfo m_PruneKept;
+        readonly FieldInfo m_PruneCleared;
         readonly FieldInfo m_CaptureEnabled;
         readonly FieldInfo m_Last;
         readonly FieldInfo m_LastGpu;
@@ -1295,6 +1326,11 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         {
             m_Enabled = builder.GetField("enabled", k_Static);
             m_Async = builder.GetField("asyncCompute", k_Static);
+            m_Prune = builder.GetField("pruneByDepth", k_Static);
+            m_PruneSidePlanes = builder.GetField("pruneSidePlanes", k_Static);
+            m_PruneStats = builder.GetField("pruneStatsEnabled", k_Static);
+            m_PruneKept = builder.GetField("lastPruneKeptBits", k_Static);
+            m_PruneCleared = builder.GetField("lastPruneClearedBits", k_Static);
             m_CaptureEnabled = capture.GetField("enabled", k_Static);
             m_Last = capture.GetField("last", k_Static);
             m_LastGpu = capture.GetField("lastGpu", k_Static);
@@ -1324,6 +1360,36 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         {
             get => (bool)m_Async.GetValue(null);
             set => m_Async.SetValue(null, value);
+        }
+
+        public bool pruneByDepth
+        {
+            get => (bool)m_Prune.GetValue(null);
+            set => m_Prune.SetValue(null, value);
+        }
+
+        public bool pruneStatsEnabled
+        {
+            get => (bool)m_PruneStats.GetValue(null);
+            set => m_PruneStats.SetValue(null, value);
+        }
+
+        public bool pruneSidePlanes
+        {
+            get => (bool)m_PruneSidePlanes.GetValue(null);
+            set => m_PruneSidePlanes.SetValue(null, value);
+        }
+
+        public int pruneKeptBits
+        {
+            get => (int)m_PruneKept.GetValue(null);
+            set => m_PruneKept.SetValue(null, value);
+        }
+
+        public int pruneClearedBits
+        {
+            get => (int)m_PruneCleared.GetValue(null);
+            set => m_PruneCleared.SetValue(null, value);
         }
 
         public bool captureEnabled
@@ -1434,6 +1500,9 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public double gpuP95Ms;
         public string screenshotFile;
         public float magentaPixelFraction;
+        // G2 diagnostic (--cd-prune-stats): conservative tile bits kept/cleared in the last frame.
+        public int pruneKeptBits;
+        public int pruneClearedBits;
     }
 
     [Serializable]
@@ -1510,6 +1579,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public bool supportsComputeShaders;
         public bool supportsAsyncCompute;
         public bool clusterListAsync;
+        public bool clusterListPrune;
         public int width;
         public int height;
         public int warmupFrames;

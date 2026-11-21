@@ -302,6 +302,51 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
                 yield return null;
         }
 
+        // G2: the pruned bitmap may only drop candidates that are attenuated to zero, so the frame
+        // has to be bit-identical to the unpruned list. The stats readback proves the prune pass
+        // actually ran on this rig (kept + cleared covers the conservative tile bits).
+        [UnityTest]
+        public IEnumerator DepthPruneKeepsPixelsIdentical()
+        {
+            yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
+            ClusterListGpuBuilder.enabled = true;
+            ClusterListGpuBuilder.pruneByDepth = true;
+            ClusterListGpuBuilder.pruneStatsEnabled = true;
+            try
+            {
+                ClusterListGpuBuilder.lastPruneKeptBits = 0;
+                ClusterListGpuBuilder.lastPruneClearedBits = 0;
+                yield return RenderFrames(WarmupFrames);
+                // The stats arrive through an async readback; give it a few frames instead of
+                // guessing how deep the graphics queue is at this point in the suite.
+                for (int i = 0; i < 30 &&
+                     ClusterListGpuBuilder.lastPruneKeptBits + ClusterListGpuBuilder.lastPruneClearedBits == 0; i++)
+                    yield return RenderFrames(1);
+                int kept = ClusterListGpuBuilder.lastPruneKeptBits;
+                int cleared = ClusterListGpuBuilder.lastPruneClearedBits;
+                var pruned = ReadPixels();
+                Debug.Log($"Depth prune bits: kept {kept}, cleared {cleared}.");
+
+                ClusterListGpuBuilder.pruneByDepth = false;
+                yield return RenderFrames(2);
+                var unpruned = ReadPixels();
+
+                var diff = Compare(pruned, unpruned);
+                Assert.AreEqual(0f, diff.max,
+                    $"The depth prune changed pixels (mean {diff.mean:0.####}, max {diff.max:0.####}).");
+                Assert.Greater(kept + cleared, 0,
+                    "The prune readback never arrived; the pass did not run or the capture is disabled.");
+            }
+            finally
+            {
+                ClusterListGpuBuilder.pruneByDepth = false;
+                ClusterListGpuBuilder.pruneStatsEnabled = false;
+                ClusterListGpuBuilder.lastPruneKeptBits = 0;
+                ClusterListGpuBuilder.lastPruneClearedBits = 0;
+                TearDownRig();
+            }
+        }
+
         static int CountProbeItems(ClusterListSnapshot snapshot)
         {
             int probes = 0;

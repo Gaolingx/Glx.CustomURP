@@ -1,6 +1,6 @@
 # 12-GpuLightList：GPU 光表与异步两段式（计划）
 
-> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1a/G1b/G1c 已落地（G1 完成：GPU 光表、异步调度与 parity、结构化绑定 .rdc；异步实测净亏，默认同步）；G2/G3 未开始**。
+> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1a/G1b/G1c 已落地（G1 完成：GPU 光表、异步调度与 parity、结构化绑定 .rdc；异步实测净亏，默认同步）；G2 已落地并验收为 NO-GO（细剪默认关闭，保留 A/B）；G3 未开始**。
 > 建立：2026-11-22；前置轮次：[`PLAN/Done/11-LightCulling`](../../Done/11-LightCulling/HANDOFF.md)（Clustered Deferred v1，已归档）。
 > 善后清单：[clean.md](clean.md)（C1 已落地；C2–C8 仍为规划）。
 > 基线：C1 提交后的 HEAD（见 `git log`）；C1 证据在 `validation/C1/`。
@@ -239,12 +239,42 @@ ClusteredDeferred.compute（不改一行）
 - **tile AABB 修复带来的真实收益**：arena 的 tile 位图从“每个 item 整屏”降到 229% CPU，D3D11 64 灯 clustered GPU 0.524→0.362 ms（同机跨轮，GPU 时间有 ~10% 波动，只作趋势）；D3D11 T5 的 64 灯聚簇路径也随之下探到 0.36 ms。
 - 仍不覆盖：透明/forward-only、XR、GLES、MSAA、`useStructuredBuffer=true`、GPU 灯注册表；异步收益只在 D3D12 单卡 720p 上量化过。
 
-## 4. G2：FPTL 精剪
+## 4. G2：FPTL 精剪（已实施，验收 NO-GO）
 
 - 构建时读 tile 深度 min/max（复用 `_CameraDepthTexture`，或在 D-G3 复核后新增 prepass），把与 tile 深度区间不相交的 zbin 位清掉；可选每 tile 灯数上限与按类别（点/聚光/方向/探针）排序。
 - **输出必须仍是 kernel 能读的布局**：优先只清位（位图语义不变）；若改紧凑列表，必须在同一提交里改 kernel + HLSL + 契约文档，并重取全部 A/B 基线。
 - 退出条件：同一场景灯数下平均每像素灯循环次数下降且 A/B 不变；`_FPParams*` 语义与 tile 宽度不变；T4/T5 全绿。
 - 证据：每像素灯数分布（屏幕空间热图 + 直方图）、GPU 时间、A/B。
+
+### 4.1 实现（只清位，不改布局）
+
+- kernel：`ClusterBuilder.compute` 的 `ClusterTilePrune`，每个 tile 一个 8×8 group。先由 group 协作把 `_CdClusterDepthTexture`（与光照 kernel 加载的同一份深度拷贝）归约为该 tile 的线性视空间 z 区间（`_CdClusterZBufferParams` 线性化，与像素 kernel 的 zbin 深度空间一致），再由 thread 0 遍历该 tile 的 item 位：
+  - tile 无几何（天空/空 tile）→ 清空该 tile 全部位；
+  - item 的 z 区间与 tile 的 `[minZ,maxZ]`（±1e-3·max(1,zFar) padding）不相交 → 清位；
+  - `pruneSidePlanes` 时再做包围球 vs tile 视锥切片（x/z、y/z 边界由 `_CdClusterViewToViewportScaleBias` 反推；穿近平面的球保留）。
+- 只原地改写 `urp_Tiles`；`URP_ZBins`、word 布局、`_FPParams*`、tile 宽度全部不变。
+- 宿主：`ClusterListGpuBuilder.Prune` 在 `ClusteredDeferredPass` 的 `WaitForClusterList` 之后、光照 dispatch 之前派发一次；`ForwardLights.PruneClusterList` 在 `pruneByDepth=false`（默认）时直接返回。
+- 开关：`pruneByDepth`（默认 false）、`pruneSidePlanes`（默认 true）、`pruneStatsEnabled`（回读 kept/cleared）；arena 侧 `--cd-prune-on/--cd-prune-off/--cd-prune-zonly/--cd-prune-stats`。
+- pass 内用本地 `ComputeZBufferParams`（与全局 `_ZBufferParams` 同式）；核心 runtime 源码不允许引用 ScreenSpaceLighting 插件工具（`PluginIsolationTests`）。
+- 迭代中修掉的问题：用 `camera.projectionMatrix` 反推的世界空间深度与像素 kernel 的 `_ZBufferParams` 深度空间不一致，48 灯时过剪 84 px；改为直接线性化深度拷贝后 A/B 通过。逐 tile 深度/清位回读属于诊断脚手架，已删除。
+
+### 4.2 验证（1280×720，RTX 5060 Ti；同一 D3D11 player 跑 on/off）
+
+| 项 | 结果 | 证据 |
+|---|---|---|
+| 清位比例（D3D11，48 灯） | 保守位 135,270 → kept 46,763 / cleared 88,507（**65.4%** 清掉）；64 灯 105,287/161,974（65.0%）、32 灯 63.3%、16 灯 61.4%、8 灯 60.7% | `T5-runtime/player-d3d11-g2-prune/CdPerf.json` |
+| 深度 vs 侧平面 | 仅深度（`--cd-prune-zonly`，64 灯）kept 65,890 / cleared 96,084（59.3%），侧平面只多剪 ~6–9% 的位 | `T5-runtime/player-d3d11-g2-zonly/CdPerf.json` |
+| GPU 时间（D3D11，同 exe） | 0 灯 **0.230 vs 0.157 ms**（细剪 dispatch 固定成本 ≈ **+0.07 ms**，全屏深度扫描）；48 灯 0.390 vs 0.299（+0.091）；64 灯 0.438 vs 0.343（+0.095）；光照时间没有下降 | 同目录 `CdPerf.json` |
+| A/B（48 灯） | prune on：mean **0.796/255**、max **9**、>8 差 8 px；off：mean 0.795、max 9、6 px；两者 `passed=true` | 同上 |
+| 像素 prune on vs off | **逐位一致**（640×360 rig，24 灯：kept 32,182 / cleared 54,218，diff max 0） | `tests/G2PlayMode.xml`（`DepthPruneKeepsPixelsIdentical`）、`logs/G2PlayMode.log` |
+| T5 D3D12 默认路径（prune off） | A/B mean 0.790、max 9、>8 差 1 px，pass；64 灯 clustered **0.444 ms**（G1 同机 0.449） | `T5-runtime/player-d3d12-g2-default/CdPerf.json` |
+| EditMode / PlayMode | **490/490**、**39/39**（新增细剪用例） | `tests/G2EditMode.xml`、`tests/G2PlayMode.xml` |
+
+**结论**
+
+- 退出条件未达成：A/B 不变，但**每像素灯循环次数与 GPU 时间都没有下降**，细剪多付 ~0.07–0.10 ms。
+- 机制：按 tile 深度区间清掉的位，像素 kernel 本来就会被自己的 zbin 拒掉——tile 的 `[minZ,maxZ]` 覆盖了 tile 内所有像素的深度，item 的 z 区间与它不相交时，tile 内任何像素的 zbin 都不会包含该 item；空 tile 则根本没有 deferred 像素。侧平面判定能多清 6–9% 的位（保守 AABB 的角落错配），但量太小，抵不过一次全屏深度扫描。
+- **决策**：G2 判 NO-GO。实现保留为 A/B 路径（开关默认关），因为测量可复现且是 G3 的前置数据；真正能把“清掉的位”变成收益的是 G3 的按 (tile, zbin) 紧凑列表（位图里省下的位 = 列表长度的缩短），届时用这份 tile 深度区间直接生成列表即可。
 
 ## 5. G3：variant / 间接派发
 
@@ -266,7 +296,7 @@ ClusteredDeferred.compute（不改一行）
 | T5 A/B + 交叉点 | player | stencil vs clustered，0/8/16/32/48/64 灯；A/B 阈值 mean ≤ 2/255、max ≤ 24/255 |
 | CPU 分解 | player | `--cd-cpu`：PreSetup 归零、Stage A/B 时间、其他 slice 不回归 |
 | 异步 / 同步一致性 | player | 两模式缓冲逐位相等（G1c：`parity/player-d3d12/G1BufferParity.json`，0 word / 0 bit）；帧序证据见 `rdc/Report.json` |
-| EditMode/PlayMode 全量 | editor | 既有 485/36 基线不下降 |
+| EditMode/PlayMode 全量 | editor | 既有基线不下降（G1c 490/38；G2 细剪新增 1 条 PlayMode 用例后 490/490、39/39） |
 
 **能力边界（本轮仍不覆盖）**：透明/forward-only 灯路径（D-G4）、XR/foveated、GLES、MSAA、native render pass、`useStructuredBuffer=true`、GPU 灯注册表（C8）、mixed lighting-shadowmask 的 baked A/B（11 轮遗留 PARTIAL）。
 
@@ -305,4 +335,5 @@ ClusteredDeferred.compute（不改一行）
 4. ~~**G1b**：写 Stage A/B compute（不改 kernel 与布局），先过 parity 再谈异步；第一版可同队列串行，异步只加调度。~~（§3.5，已落地。）
 5. ~~**G1c**：异步重叠 —— `CommandBufferExecutionFlags.AsyncCompute` + fence，与 GBuffer 并行；同步/异步两种模式的位图必须逐位一致。同时在 D3D12 复跑 T5/T4，并补 1 个 `.rdc`（structured 绑定后的新结构）。~~（§3.6，已落地；异步逐位一致但在本机净亏 ~0.11–0.13 ms，默认关闭。）
 6. ~~**G1 性能收尾**：item 构建与 dispatch 提交合计约 0.084 ms，先量化能否用缓存的 item 缓冲与更少的 `SetCompute*` 调用压到 0.05 ms 以下；再决定 G2 是否值得做。~~（§3.6：列表 CPU 降到 ~0.061–0.064 ms；G2 的收益需另测，见下一条。）
-7. **G2**：FPTL 细剪。构建时读 tile 深度 min/max，优先复用 GBuffer 后的 `_CameraDepthTexture`（D-G3），只清位不改布局；先量 tile 内灯循环次数与 GPU 时间，再谈紧凑列表。
+7. ~~**G2**：FPTL 细剪。构建时读 tile 深度 min/max，优先复用 GBuffer 后的 `_CameraDepthTexture`（D-G3），只清位不改布局；先量 tile 内灯循环次数与 GPU 时间，再谈紧凑列表。~~（§4：已落地并验收为 **NO-GO**——清 65% 的位、A/B 不变，但循环次数与 GPU 时间不降，dispatch 固定成本 ~0.07 ms；默认关，保留 A/B。）
+8. **G3**：在 §4.2 的测量之上做 variant / 间接派发。优先把清位换成按 (tile, zbin) 的紧凑列表（位图省下的位即列表长度），再用空 tile 计数做 `DispatchComputeIndirect`；验收前先复跑本轮的 prune on/off 作为对照。

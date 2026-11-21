@@ -11,12 +11,21 @@
 // 8 corners, or the full screen when the box crosses the near plane. It can set extra tiles the
 // CPU TilingJob would not set (those are then shaded and attenuated to zero), but it never clears
 // a bit the CPU sets. Parity is checked as CPU ⊆ GPU for tiles, word-for-word for zbins.
+//
+// G2 refines the tile bitmap after GBuffer with the FPTL depth backplane: ClusterTilePrune reduces
+// the depth buffer to a per-tile linear view-z range and, in the same dispatch, clears the bits of
+// items whose actual volume misses that tile's frustum slice. Depth alone would prune almost
+// nothing -- the zbin grid already resolves depth in ~1% steps -- but the slice test removes the
+// "z overlaps, x/y belongs to another depth" candidates the 2D AABB keeps.
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
 #pragma kernel ClusterItemBounds
 #pragma kernel ClusterZBinClear
 #pragma kernel ClusterZBinScatter
 #pragma kernel ClusterZBinPack
 #pragma kernel ClusterTileExpand
+#pragma kernel ClusterTilePrune
 
 #define CD_ITEM_LIGHT 0u
 #define CD_ITEM_PROBE 1u
@@ -56,6 +65,17 @@ float4 _CdClusterViewToViewportScaleBias;
 float4x4 _CdClusterWorldToView;
 float _CdClusterNear;
 uint _CdClusterOrthographic;
+
+// G2 depth refinement. The depth texture is the same copy the lighting kernel loads, so the
+// per-tile z range is measured on exactly the pixels that will be shaded. Linearizing with
+// _ZBufferParams puts the range in the same view-forward-depth space the pixel kernel uses for
+// its zbin (dot(viewForward, positionWS - cameraWS)), without another view-projection round trip.
+TEXTURE2D(_CdClusterDepthTexture);
+float4 _CdClusterZBufferParams;
+float4 _CdClusterScreenSize; // width, height, 1/width, 1/height
+uint _CdClusterTileWidth;
+RWStructuredBuffer<uint> _CdClusterPruneTotals; // [0] kept bits, [1] cleared bits
+uint _CdClusterPruneSidePlanes;
 
 // Signed per-axis sign for corner i (x = bit 0, y = bit 1, z = bit 2). Keep the arithmetic in
 // float: the uint form ((i << 1) & 2) - 1 wraps to 0xFFFFFFFF and converts to +4.29e9, which put
@@ -245,4 +265,148 @@ void ClusterTileExpand(uint3 id : SV_DispatchThreadID)
             urp_Tiles[wordBase + (item >> 5)] |= 1u << (item & 31u);
         }
     }
+}
+
+// ----------------------------------------------------------------------------
+// G2: depth backplane + frustum-slice prune
+// ----------------------------------------------------------------------------
+
+// Conservative sphere-vs-frustum-slice test. tileLo/tileHi are the tile's lower/upper x/z
+// (perspective) or view x/y (orthographic) bounds. A sphere touching the camera plane keeps its
+// AABB: its projection is unbounded.
+bool CdSphereIntersectsTileSlice(float3 centerVS, float radius, float2 tileLo, float2 tileHi)
+{
+    if (_CdClusterOrthographic == 0u && centerVS.z - radius <= 1e-6)
+        return true;
+
+    if (_CdClusterOrthographic != 0u)
+    {
+        if (centerVS.x + radius < tileLo.x || centerVS.x - radius > tileHi.x)
+            return false;
+        if (centerVS.y + radius < tileLo.y || centerVS.y - radius > tileHi.y)
+            return false;
+        return true;
+    }
+
+    float z = max(centerVS.z, 1e-6);
+    float2 lo = float2(centerVS.x - tileLo.x * z, centerVS.y - tileLo.y * z) * rsqrt(1.0 + tileLo * tileLo);
+    float2 hi = float2(tileHi.x * z - centerVS.x, tileHi.y * z - centerVS.y) * rsqrt(1.0 + tileHi * tileHi);
+    return lo.x + radius >= 0.0 && lo.y + radius >= 0.0 &&
+           hi.x + radius >= 0.0 && hi.y + radius >= 0.0;
+}
+
+// One 8x8 group per tile: threads cooperatively measure the tile's depth slice from the same
+// depth copy the lighting kernel reads, then thread 0 clears the bits whose volume misses it.
+// Range and prune share the tile/params in one dispatch, so they cannot disagree about the grid.
+groupshared uint CdTileMinZ;
+groupshared uint CdTileMaxZ;
+groupshared uint CdTileValid;
+
+[numthreads(8, 8, 1)]
+void ClusterTilePrune(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
+{
+    uint2 tile = groupId.xy;
+    if (tile.x >= _CdClusterTileCount.x || tile.y >= _CdClusterTileCount.y)
+        return;
+
+    if (threadId.x == 0u && threadId.y == 0u)
+    {
+        CdTileMinZ = 0xFFFFFFFFu;
+        CdTileMaxZ = 0u;
+        CdTileValid = 0u;
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    uint tileIndex = tile.y * _CdClusterTileCount.x + tile.x;
+    uint wordsPerTile = (uint)_FPParams1.w;
+    uint wordBase = tileIndex * wordsPerTile;
+
+    uint2 screen = max((uint2)_CdClusterScreenSize.xy, uint2(1u, 1u));
+    uint2 tileBase = tile * _CdClusterTileWidth;
+    float zMin = 3.402823466e+38;
+    float zMax = -3.402823466e+38;
+    uint valid = 0u;
+
+    [loop] for (uint y = threadId.y; y < _CdClusterTileWidth; y += 8u)
+    {
+        [loop] for (uint x = threadId.x; x < _CdClusterTileWidth; x += 8u)
+        {
+            uint2 pixel = min(tileBase + uint2(x, y), screen - 1u);
+            float rawDepth = LOAD_TEXTURE2D(_CdClusterDepthTexture, pixel).x;
+            if (rawDepth == UNITY_RAW_FAR_CLIP_VALUE)
+                continue;
+
+            float z = 1.0 / (_CdClusterZBufferParams.z * rawDepth + _CdClusterZBufferParams.w);
+            zMin = min(zMin, z);
+            zMax = max(zMax, z);
+            valid++;
+        }
+    }
+
+    // Empty threads must not contribute: -FLT_MAX asuint is 0xFF7FFFFF, which outranks every
+    // positive float in the uint-ordered InterlockedMax and would collapse the tile's far bound.
+    if (valid != 0u)
+    {
+        InterlockedMin(CdTileMinZ, asuint(zMin));
+        InterlockedMax(CdTileMaxZ, asuint(zMax));
+    }
+    InterlockedAdd(CdTileValid, valid);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (threadId.x != 0u || threadId.y != 0u)
+        return;
+
+    float2 depthRange = CdTileValid == 0u
+        ? float2(3.402823466e+38, -3.402823466e+38)
+        : float2(asfloat(CdTileMinZ), asfloat(CdTileMaxZ));
+    bool hasGeometry = CdTileValid != 0u;
+
+    float2 tileLo = (float2(tile) / _CdClusterTileScale - _CdClusterViewToViewportScaleBias.zw) / _CdClusterViewToViewportScaleBias.xy;
+    float2 tileHi = (float2(tile + 1u) / _CdClusterTileScale - _CdClusterViewToViewportScaleBias.zw) / _CdClusterViewToViewportScaleBias.xy;
+
+    // Never clear an item a pixel in this tile could still reach.
+    float depthPad = 1e-3 * max(1.0, abs(depthRange.y));
+
+    uint kept = 0u;
+    uint cleared = 0u;
+
+    [loop] for (uint item = 0u; item < _CdClusterItemCount; item++)
+    {
+        uint word = item >> 5;
+        uint mask = 1u << (item & 31u);
+        uint current = urp_Tiles[wordBase + word];
+        if ((current & mask) == 0u)
+            continue;
+
+        bool keep = hasGeometry;
+        if (keep)
+        {
+            float2 itemDepth = _CdClusterMinMaxZ[item];
+            keep = itemDepth.y >= depthRange.x - depthPad && itemDepth.x <= depthRange.y + depthPad;
+        }
+
+        if (keep && _CdClusterPruneSidePlanes != 0u)
+        {
+            CdClusterItem itemData = _CdClusterItems[item];
+            float3 centerVS = mul(_CdClusterWorldToView, float4(itemData.positionRange.xyz, 1.0)).xyz;
+            centerVS.z *= -1.0;
+            float radius = itemData.itemType == CD_ITEM_PROBE
+                ? length(itemData.directionExtent.xyz)
+                : itemData.positionRange.w;
+            keep = CdSphereIntersectsTileSlice(centerVS, radius * 1.0001 + 1e-4, tileLo, tileHi);
+        }
+
+        if (keep)
+        {
+            kept++;
+        }
+        else
+        {
+            urp_Tiles[wordBase + word] = current & ~mask;
+            cleared++;
+        }
+    }
+
+    InterlockedAdd(_CdClusterPruneTotals[0], kept);
+    InterlockedAdd(_CdClusterPruneTotals[1], cleared);
 }
