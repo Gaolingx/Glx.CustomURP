@@ -30,6 +30,7 @@
 | 04-SSGIFallbackImprove | ✅* | 4 PASS、3 PASS*、1 PARTIAL | 运行时开关未真正跨帧验证（06 F-07 才修复）；1/4/32 探针的截图是同一文件；性能 0.153 ms 依赖“配对中位数”估计器（已在 `726e57b` 标注） |
 | 05-ScreenSpaceRefractionImprove | ✅* | 1 PASS、1 PASS*、2 PARTIAL、8 ACCEPTED | 汇总 `Report.json`/`Cleanup.md` 的旧快照已在 `726e57b` 修正；433/434 EditMode 仍无日志；P0-1/P0-3 的探针回退辐射未被区分 |
 | 06-ValidationAllRDC | ✅* | 21 PASS、2 PASS*、3 PARTIAL、1 ACCEPTED | 初次验收 `P6-2` 为 FAIL（52 个/963.9 MiB vs 150 MB/12）；所有者决定把预算提高到 1 GB，`.gitignore`/4 份报告已同步（`fa67325`），61 个路径已修正（`f6f754e`/`726e57b`）；P0-4/P2-3 仍为 PARTIAL |
+| 11-LightCulling | ✅* | 5 PASS、2 PASS*、1 PARTIAL、1 ACCEPTED | mixed lighting-shadowmask 为 PARTIAL（无 baked shadowmask 数据）；T2/T3 的逐元素 parity JSON 未单列，由 T4/T5/PlayMode A/B 覆盖；T6 可选未补 GBuffer |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -464,3 +465,34 @@ PY
 | AC-6 | 性能回归未测（只加变体，无额外 pass），列为 follow-up | `Report.md` §6 |
 
 **判定**：现象不属于 accurate normals 的预期表现；修复不触碰 signed 路径的算法，透明 prepass 按原设计保持 signed。
+
+## 15. 11-LightCulling（2026-11-22）
+
+> 范围：Deferred 模式下用 compute 消费 URP 的 tile/zbin 光列表与既有 GBuffer/BRDF/阴影/cookie/layers/GTAO 语义，新增 `UniversalRendererData.clusteredDeferredLighting` 开关；与 stencil deferred 逐像素 A/B、可运行时回退。
+> 计划/结果：[PLAN/Done/11-LightCulling/HANDOFF.md](Done/11-LightCulling/HANDOFF.md)、[report.md](Done/11-LightCulling/report.md)、[KnownDifferences.md](Done/11-LightCulling/KnownDifferences.md)
+> 结论：**验收通过（mixed lighting-shadowmask PARTIAL）**。
+
+| 任务 | 结论 | Git / 证据 | 说明 |
+|---|---|---|---|
+| T0 冻结决策 | ✅ | HANDOFF §0（D1–D16） | 本轮范围与 HDRP 能力对齐解耦 |
+| T1 构建解耦/灯上限/isForwardPlus | ✅ | `3131b6e`；`T5-runtime/player-d3d11/CdPerf.json`；`T7EditModeClustered.xml::StencilDeferredKeepsLegacyCullingCaps` | 关闭开关时 stencil 行为不变；Deferred 可见灯上限收紧到 256 |
+| T2 compute-safe include | ✅* | `0505f10`；`T7EditModeClustered.xml::ComputeKernelAndMaskResolveShadersCompile` | `T2IterParity.json` 未单列；逐像素灯集合由 T4/T5/PlayMode A/B 间接覆盖 |
+| T3 kernel v1 | ✅* | `3131b6e`；`T7PlayModeClustered.xml::StencilMatchesClusteredAcrossMaterialTypes` | `T3LightingDiff.json` 未单列；A/B 与材质分流由 PlayMode 覆盖 |
+| T4 阴影/cookie/layers/mixed/AO | ◐ PARTIAL | `f98cb53`、`0bc4e02`、`0505f10`、`bca237b`；`T4-shadows/` | 7 项在 D3D11/D3D12 通过；mixed lighting-shadowmask 无 baked 数据，运行时 A/B 不可得 |
+| T5 集成/边界/平台 gate | ✅ | `0505f10`；`T5-runtime/`；`T7/T5ModeGateTests.xml`、`T7/T5VariantCount.json` | native RP 构造期关闭并告警；运行时开关、Preview/Overlay/GLES/structured-buffer 回退 |
+| T6 可选 GBuffer 覆盖 | ACCEPTED | `T6-preflight/T6Coverage.json` | 8 场景/39 材质（11 Lit、1 ComplexLit 跳过、无 forward-only）；D16 后不作正确性前置，不补 GBuffer |
+| T7 测试/证据/性能 | ✅ | `9702d4f`；`T7/T7EditModeAll.xml`、`T7/T7PlayModeAll.xml`、`T7/T7Perf.json`、`T7/T7PlayerSummary.json` | EditMode 484/484、PlayMode 36/36；tile 8/16/32/64 实测；交叉点 8–32 灯 |
+| T8 文档/验收/归档 | ✅ | 本提交 | 五处文档一致；TODO→Done |
+
+| 验收项 | 结果 |
+|---|---|
+| AC-1/2 开关关闭 | stencil 路径与基线一致（EditMode culling 断言 + 既有管线未改） |
+| AC-4/5/6 | 无阴影/阴影/cookie/layers/AO A/B `passed=true`；mixed PARTIAL |
+| AC-7 | 天空不写、无 NaN；alpha = 间接 AO 取消系数 |
+| AC-9/10 | 1280 变体；D3D11/D3D12 0 compute error；MSAA/XR/GLES/Preview/Overlay 回退；tile 8/16/32/64 |
+| AC-11 | D3D11 720p 交叉点：32 灯 0.212 vs 0.344 ms；64 灯 0.254 vs 0.709 ms |
+| AC-12 | 1 个 D3D12 `.rdc`（14.2 MiB ≤ 20 MiB）；dispatch 80×45；A/B diff 见 CdPerf |
+| AC-13 | EditMode 484/484、PlayMode 36/36 |
+| AC-15 | 运行时开关、临时 RT 释放、forward-only mask 均在 PlayMode 验证 |
+
+**测试暴露的集成缺陷**：PreSetup 的 cluster jobs 与同帧 `ResolveMixedLightingMode` 争用 culling 灯数组，编辑器 Job safety 失败并级联。修复为在 deferred setup 读取灯数组前完成 jobs（`9702d4f`）；PlayMode 由 0/7 → 7/7；GPU 输入不变。

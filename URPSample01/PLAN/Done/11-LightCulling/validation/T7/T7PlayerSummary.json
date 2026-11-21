@@ -1,0 +1,85 @@
+{
+  "utcTimestamp": "2026-11-21T17:32:58Z",
+  "builds": [
+    {
+      "api": "Direct3D11",
+      "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+      "result": "Succeeded",
+      "errors": 0,
+      "sizeBytes": 112916583,
+      "source": "validation/T5-runtime/CdArenaBuildSummary-Direct3D11.json"
+    },
+    {
+      "api": "Direct3D12",
+      "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+      "result": "Succeeded",
+      "errors": 0,
+      "sizeBytes": 112916583,
+      "source": "validation/T5-runtime/CdArenaBuildSummary-Direct3D12.json"
+    },
+    {
+      "api": "Direct3D11",
+      "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+      "result": "Succeeded",
+      "errors": 0,
+      "sizeBytes": 137934016,
+      "source": "validation/T4-shadows/CdArenaT4BuildSummary-Direct3D11.json",
+      "note": "T4 feature/shadow pipeline set"
+    },
+    {
+      "api": "Direct3D12",
+      "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+      "result": "Succeeded",
+      "errors": 0,
+      "sizeBytes": 137934012,
+      "source": "validation/T4-shadows/CdArenaT4BuildSummary-Direct3D12.json",
+      "note": "T4 feature/shadow pipeline set"
+    }
+  ],
+  "ab": {
+    "lightCount": 48,
+    "resolution": "1280x720",
+    "api": "Direct3D11",
+    "diff": {
+      "lightCount": 48,
+      "pixels": 921600,
+      "meanChannelDiff": 0.784931640625,
+      "meanChannelDiffNormalized": 0.0030781632965686274,
+      "maxChannelDiff": 9,
+      "pixelsOverThreshold": 5,
+      "pixelsOverThresholdFraction": 5.4253472222222224e-06,
+      "passed": true
+    },
+    "thresholds": {
+      "meanMax": 2.0,
+      "maxMax": 24.0
+    },
+    "source": "validation/T5-runtime/player-d3d11/CdPerf.json"
+  },
+  "featureMatrix": {
+    "cases": 7,
+    "apis": 2,
+    "allPassed": true,
+    "source": "validation/T4-shadows/player-d3d11/T4FeatureMatrix.json and validation/T4-shadows/player-d3d12/T4FeatureMatrix.json",
+    "status": "cookie/light layers/GTAO direct+indirect AO PASS; mixed lighting-shadowmask PARTIAL (no baked shadowmask data)"
+  },
+  "renderdoc": {
+    "api": "D3D12",
+    "resolution": "1280x720",
+    "sizeBytes": 14879629,
+    "renderer": "CdClusteredDeferredRenderer",
+    "events": [
+      "ScriptableRenderer.Execute: CdClusteredDeferredRenderer",
+      "Render GBuffer",
+      "CopyDepth",
+      "Clustered Deferred",
+      "Render Opaques Forward Only",
+      "DrawTransparentObjects",
+      "FinalBlit"
+    ],
+    "dispatchGroups": "80 x 45 x 1 (16x16 threads, 1280x720)",
+    "source": "validation/T5-runtime/renderdoc-clustered-deferred-d3d12.json"
+  },
+  "console": "Player runs completed without missing shader/resource errors; T4/T5 logs record zero compute shader errors.",
+  "coverage": "Development players only. Non-development stripping validated indirectly by the same keyword set; Vulkan/Metal unverified."
+}

@@ -780,6 +780,33 @@ clustered 从约 24 盏灯起低于 stencil deferred（16 灯已略低，32 灯�
 - EditMode 全量 **474/474**（`T4EditMode.xml`）。
 - 证据 `validation/T4-shadows/` 共 56 张 720p PNG + 2 份 `T4FeatureMatrix.json` + 构建摘要，约 24 MB；`.rdc` 0 个（本轮无抓帧）。产物：`player-d3d11/`、`player-d3d12/`。
 
+### 7.5.4 T5/T7 集成门控、测试与性能矩阵（2026-11-22）
+
+**范围**：收尾 T5（运行时开关、native RP/预览门控、变体计数）与 T7（回归测试、A/B、tile 宽度、性能与 RenderDoc 汇总）。T6 保持“可选优化”：`T6Coverage.json` 已落盘（8 场景 / 39 个不透明材质；11 Lit、1 ComplexLit 跳过、无 forward-only），D16 之后不再作为正确性前置，本轮不补 GBuffer。
+
+**新增/修改代码**（均在 T5 允许的文件内）：
+
+- `Runtime/UniversalRenderer.cs:262-268`：`Deferred + clusteredDeferredLighting + data.useNativeRenderPass` 时在构造期把 `useRenderPassEnabled` 置 false 并输出一次告警（AC-10），删除原先每帧修改 `DeferredLights.UseRenderPass` 的块——该状态是渲染器级的，逐帧只会留下“首帧后再也回不到 native RP”的隐患。
+- `Runtime/ForwardLights.cs:196` 新增 `CompleteClusterJobs()`；`Runtime/UniversalRenderer.cs:706-710` 在 `DeferredLights.ResolveMixedLightingMode` 之前完成 PreSetup 调度的 cluster jobs。
+- **根因（PlayMode 首版 7/7 失败）**：PreSetup 在 `Setup` 早期调度的 Tiling/ZBinning jobs 持有 `visibleLights`/`visibleReflectionProbes`，而同一 `Setup` 后半段 `ResolveMixedLightingMode` 用 `UnsafeElementAtMutable` 取得可变访问；编辑器 Job safety 因此抛 `InvalidOperationException`，该帧中断后下一帧 `PreSetup` 的 MemClear 又撞上未完成的 ZBinningJob，形成级联。Player 关闭 safety 检查，且该方法只读，故既有 player 证据不受影响；GPU 输入不变（上传仍在完成之后）。修复后 PlayMode 7/7。
+- 新增测试：包内 `Tests/Editor/ClusteredDeferred/ClusteredDeferredEditorTests.cs`（10 个测试：compute/mask/resolve 编译、1280 变体矩阵、无 structured-buffer 分支、设备/相机门控、渲染器开关只对 Deferred 生效、culling 上限与 probe 排序、重复 Dispose）；项目侧 `Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs` + `Unity.ClusteredDeferred.Tests.PlayMode.asmdef`（7 个测试）。
+
+**测试结果**：
+
+| 套件 | 结果 | 证据 |
+|---|---|---|
+| EditMode（仅 ClusteredDeferred） | 10/10 | `T7EditModeClustered.xml` |
+| EditMode（全量） | **484/484** | `T7EditModeAll.xml` |
+| PlayMode（仅 ClusteredDeferred） | 7/7 | `T7PlayModeClustered.xml` |
+| PlayMode（全量） | **36/36** | `T7PlayModeAll.xml` |
+| `ClusteredDeferredModeGateTests` 单跑 | 3/3 | `T5ModeGateTests.xml` |
+
+PlayMode 覆盖：Lit + SimpleLit + Unlit + ComplexLit 混合场景、24 盏附加灯的 stencil/clustered A/B（阈值 mean ≤ 2/255、max ≤ 24/255）、运行时 `clusteredDeferredLighting` off→stencil 等价 / on→clustered 复现、临时 mask/lighting RT 在切换渲染器后释放、tile 宽度 8/16/32/64（由 `_FPParams1` 实测：640×360/8 灯→8，1280×720/48 灯→16，1920×1080/65 灯→32，3840×2160/65 灯→64）。
+
+**变体与性能**：`T5VariantCount.json` 记录 8 个关键字组（2·4·2·5·2·2·2·2 = 1280）；`T7Perf.json` 从 `T5-runtime/player-d3d11/CdPerf.json` 汇总交叉点（首个更低的附加灯数 8；32 灯 GPU 比值 0.616；64 灯 0.254 vs 0.709 ms）；`T7PlayerSummary.json` 汇总 4 次 player 构建、48 灯 A/B（mean 0.785/255、max 9、>8 仅 5 px）与 RenderDoc 抓帧（80×45 dispatch）。
+
+**边界**：player 证据产生于 `0505f10`/`bca237b`，早于 §7.5.4 的 job 完成顺序修复；该修复不改变 GPU 输入。开关的运行时验证在编辑器 PlayMode 完成，未在 player 内切换。mixed lighting-shadowmask 仍为 PARTIAL（见 §7.5.3）。Vulkan/Metal 未验证。详见 `report.md` 与 `KnownDifferences.md`。
+
 ### 7.6 归档与清理
 
 1. 删除 T1–T6 的临时 fixture、临时 readback/调试 blit、临时场景/材质/GameObject、临时 Renderer/Pipeline 资产；保留 T7 的 `Assets/Tests/ClusteredDeferred` 专用资产。

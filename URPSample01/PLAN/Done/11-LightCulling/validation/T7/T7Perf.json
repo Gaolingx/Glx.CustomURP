@@ -1,0 +1,160 @@
+{
+  "utcTimestamp": "2026-11-21T17:32:58Z",
+  "source": "validation/T5-runtime/player-d3d11/CdPerf.json (same scene/runner, 1280x720, 40 warmup + 150 sample frames)",
+  "environment": {
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "graphicsDeviceVersion": "Direct3D 11.0 [level 11.1]",
+    "resolution": "1280x720"
+  },
+  "rows": [
+    {
+      "lightCount": 0,
+      "stencilDeferred": {
+        "gpuMeanMs": 0.1914,
+        "gpuP95Ms": 0.5294,
+        "cpuMeanMs": 0.7555,
+        "cpuP95Ms": 1.1415
+      },
+      "clusteredDeferred": {
+        "gpuMeanMs": 0.1858,
+        "gpuP95Ms": 0.2102,
+        "cpuMeanMs": 0.9781,
+        "cpuP95Ms": 1.3508
+      },
+      "forwardPlus": {
+        "gpuMeanMs": 0.2547,
+        "gpuP95Ms": 0.2678,
+        "cpuMeanMs": 0.8561,
+        "cpuP95Ms": 1.092
+      },
+      "clusteredVsStencilRatio": 0.971,
+      "clusteredVsForwardPlusRatio": 0.73
+    },
+    {
+      "lightCount": 8,
+      "stencilDeferred": {
+        "gpuMeanMs": 0.212,
+        "gpuP95Ms": 0.5187,
+        "cpuMeanMs": 0.7385,
+        "cpuP95Ms": 1.0525
+      },
+      "clusteredDeferred": {
+        "gpuMeanMs": 0.1968,
+        "gpuP95Ms": 0.1846,
+        "cpuMeanMs": 0.9056,
+        "cpuP95Ms": 1.2015
+      },
+      "forwardPlus": {
+        "gpuMeanMs": 0.2667,
+        "gpuP95Ms": 0.2998,
+        "cpuMeanMs": 0.9291,
+        "cpuP95Ms": 1.1734
+      },
+      "clusteredVsStencilRatio": 0.928,
+      "clusteredVsForwardPlusRatio": 0.738
+    },
+    {
+      "lightCount": 16,
+      "stencilDeferred": {
+        "gpuMeanMs": 0.2302,
+        "gpuP95Ms": 0.3023,
+        "cpuMeanMs": 0.9781,
+        "cpuP95Ms": 1.1672
+      },
+      "clusteredDeferred": {
+        "gpuMeanMs": 0.1922,
+        "gpuP95Ms": 0.193,
+        "cpuMeanMs": 0.9864,
+        "cpuP95Ms": 1.2292
+      },
+      "forwardPlus": {
+        "gpuMeanMs": 0.2798,
+        "gpuP95Ms": 0.2988,
+        "cpuMeanMs": 0.9834,
+        "cpuP95Ms": 1.1897
+      },
+      "clusteredVsStencilRatio": 0.835,
+      "clusteredVsForwardPlusRatio": 0.687
+    },
+    {
+      "lightCount": 32,
+      "stencilDeferred": {
+        "gpuMeanMs": 0.3437,
+        "gpuP95Ms": 0.4989,
+        "cpuMeanMs": 0.9967,
+        "cpuP95Ms": 1.3719
+      },
+      "clusteredDeferred": {
+        "gpuMeanMs": 0.2124,
+        "gpuP95Ms": 0.214,
+        "cpuMeanMs": 1.0615,
+        "cpuP95Ms": 1.3028
+      },
+      "forwardPlus": {
+        "gpuMeanMs": 0.3122,
+        "gpuP95Ms": 0.3336,
+        "cpuMeanMs": 1.0514,
+        "cpuP95Ms": 1.2975
+      },
+      "clusteredVsStencilRatio": 0.618,
+      "clusteredVsForwardPlusRatio": 0.68
+    },
+    {
+      "lightCount": 48,
+      "stencilDeferred": {
+        "gpuMeanMs": 0.4838,
+        "gpuP95Ms": 0.9108,
+        "cpuMeanMs": 1.1324,
+        "cpuP95Ms": 1.5217
+      },
+      "clusteredDeferred": {
+        "gpuMeanMs": 0.2415,
+        "gpuP95Ms": 0.236,
+        "cpuMeanMs": 1.0908,
+        "cpuP95Ms": 1.3547
+      },
+      "forwardPlus": {
+        "gpuMeanMs": 0.3631,
+        "gpuP95Ms": 0.4682,
+        "cpuMeanMs": 1.1254,
+        "cpuP95Ms": 1.4359
+      },
+      "clusteredVsStencilRatio": 0.499,
+      "clusteredVsForwardPlusRatio": 0.665
+    },
+    {
+      "lightCount": 64,
+      "stencilDeferred": {
+        "gpuMeanMs": 0.7089,
+        "gpuP95Ms": 1.132,
+        "cpuMeanMs": 1.5918,
+        "cpuP95Ms": 1.938
+      },
+      "clusteredDeferred": {
+        "gpuMeanMs": 0.2543,
+        "gpuP95Ms": 0.2609,
+        "cpuMeanMs": 1.1321,
+        "cpuP95Ms": 1.4286
+      },
+      "forwardPlus": {
+        "gpuMeanMs": 0.4195,
+        "gpuP95Ms": 0.5496,
+        "cpuMeanMs": 1.3392,
+        "cpuP95Ms": 1.7265
+      },
+      "clusteredVsStencilRatio": 0.359,
+      "clusteredVsForwardPlusRatio": 0.606
+    }
+  ],
+  "crossover": {
+    "firstAdditionalLightCountWhereClusteredIsFaster": 8,
+    "clusteredAt32Ratio": 0.618,
+    "clusteredAt64GpuMs": 0.2543,
+    "stencilAt64GpuMs": 0.7089,
+    "note": "Ratios < 1 mean clustered deferred is faster. 8-16 lights are within noise; the margin is >1.5x from 32 lights on. Forward+ stays above clustered in this scene."
+  },
+  "cpuNote": "CPU frame time includes the URP burst cluster build in both clustered and stencil runs; stencil grows mainly with per-light draw/dispatch setup (0.755 -> 1.592 ms, 0 -> 64 lights), clustered stays near 1.1 ms.",
+  "coverage": "Direct3D11 only. D3D12 was used for correctness and RenderDoc capture, not timing. Vulkan/Metal not verified on this host."
+}
