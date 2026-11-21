@@ -1,7 +1,7 @@
 # 11-LightCulling 交接：HDRP 光列表调研与 URP Clustered Deferred（URP BRDF）实施计划
 
-> 状态：**计划已修订（D15/D16）；T1/T5 运行时接入完成并在 D3D11/D3D12 player 验证；多灯 A/B（mean 0.78/255）与性能交叉点已取得；T3 kernel 与 T6 preflight 已产出；已与 HDRP 14.0.12 对照定稿**
-> 修订：2026-11-21（T5 运行时接入、cluster 缓冲释放、设备/XR gate、arena A/B、D3D12 光源抓帧）
+> 状态：**计划已修订（D15/D16）；T1/T5 运行时接入完成并在 D3D11/D3D12 player 验证；多灯 A/B（mean 0.78/255）与性能交叉点已取得；T3 kernel 与 T6 preflight 已产出；T4 阴影子集（主光 cascade / screen-space / 附加光 atlas）已实现并在 D3D11/D3D12 player A/B 通过；已与 HDRP 14.0.12 对照定稿**
+> 修订：2026-11-21（T5 运行时接入、cluster 缓冲释放、设备/XR gate、arena A/B、D3D12 光源抓帧；T4 阴影子集与 feature matrix）
 > 建立：2026-11-21
 > 基线：`c37b9dd`（Record the DDGI plan revision commit）
 > 结果入口：本文件；实施后追加 `report.md` 与 `validation/`
@@ -686,6 +686,46 @@ clustered 从约 24 盏灯起低于 stencil deferred（16 灯已略低，32 灯�
 **D3D12 抓帧**：`T5-runtime/clustered-deferred-d3d12-lighting_frame172.rdc`（1 个，14.2 MiB，预算内）。结构：GBuffer（54 draws）→ CopyDepth → **Clustered Deferred**（mask clear、2 个全屏 mask draw、1 次 dispatch、1 个 resolve）→ Forward Only（0）→ FinalBlit，**没有 stencil 灯体积**。mask 为 R8_UINT（场景全 Lit，max=1）；compute 绑定 5 张 SRV + 1 个 RGBA16F UAV + `URP_ZBinBuffer`(16 KB)/`urp_TileBuffer`(64 KB)；UAV 在 670 写入、677 被 resolve 读取；`debug_thread` 证明 dispatch 覆盖 (1279,719)，Lit 像素线程执行 728 步；`assert_clean` 无 ≥high 消息。详见 `T5-runtime/renderdoc-clustered-deferred-d3d12.json`。
 
 **本轮未覆盖**：v1 无阴影/cookie/light layers/mixed/AO（T4）；legacy fog 仍由 stencil deferred 的 fog pass 绘制，clustered 路径未绘制（列入 KnownDifferences）；AC-15 的运行时开关切换、变体计数、Preview/Overlay 门控测试与 `T5ModeGateTests.xml` 留待 T7。设备/XR gate 已实现：不支持 compute、`useStructuredBuffer=true` 或 GLES 时回退 stencil deferred 并告警；XR 相机不启用。
+
+### 7.5.2 T4 阴影子集证据（2026-11-21）
+
+**范围**：T4 的阴影子集——主光 cascade、screen-space shadow、附加光 atlas，以及按 GBuffer 材质 flag 的 `_RECEIVE_SHADOWS_OFF` 跳采样。**未包含** cookie / light layers / mixed lighting-shadowmask / GTAO 直接光 AO（仍在 T4 待办）。
+
+**实现**（只改 kernel/include，符合文件锁）：
+
+- `ShaderLibrary/ClusteredDeferred.hlsl`：追加 `Shadows.hlsl` 的 compute-safe 子集——`LightShadows` cbuffer（字段与顺序和 `Shadows.hlsl:64-89` 一致）、主光/附加光 PCF（low/medium/high 与 `_SHADOWS_SOFT` 逐灯质量）、cascade 索引、screen-space shadow 采样、阴影 fade。fade 使用 `_CdCameraPositionWS`（compute 无 `_WorldSpaceCameraPos`）。
+- `Shaders/Utils/ClusteredDeferred.compute`：新增 `_MAIN_LIGHT_SHADOWS/_CASCADE/_SCREEN`、`_ADDITIONAL_LIGHT_SHADOWS`、`_SHADOWS_SOFT{,_LOW,_MEDIUM,_HIGH}` 变量（连同 `_GBUFFER_NORMALS_OCT` 共 80 个变体）；主光与附加光在 `receiveShadowsOff` 为假时填 `shadowAttenuation`。
+- 两个 compute 特有修正：
+  1. 主光 shadow coord 的 `w == 0`，必须按 `Shadows.hlsl` 的 `isPerspectiveProjection=false` 不除 w（附加光才除）；
+  2. screen-space shadow 纹理在 compute 里必须用 `SAMPLE_TEXTURE2D_LOD(..., 0)`；`SAMPLE_TEXTURE2D` 在 D3D11 映射为隐式 LOD 的 `Sample()`，所有 20 个 `_MAIN_LIGHT_SHADOWS_SCREEN` 变体在 player 构建时报 `cannot map expression to cs_5_0`。
+- 混合光照暂用 `shadowMask = 1`、无 baked 项（`_DEFERRED_MIXED_LIGHTING` 留到 mixed 子集）。
+
+**测试资产**（仍只写在 `Assets/Tests/ClusteredDeferred`）：
+
+- 新增 shadow 管线对 `CdShadow{Stencil,Clustered}DeferredPipeline`（4 cascade、软阴影 Medium、附加光 shadows、2048 atlas）与 screen-space 管线对 `CdScreenShadow{Stencil,Clustered}DeferredPipeline`（1 cascade；renderer 通过反射加入 URP 内部 `ScreenSpaceShadows` feature，并序列化其 shader 引用）。除 `clusteredDeferredLighting` 外 stencil/clustered 资产一致。
+- `ClusteredDeferredArenaRunner --cd-t4`：逐特性“单开关”——Off/On × stencil/clustered 各截一张 720p 图，计算 `stencil_vs_clustered_{on,off}` 与该特性在两种路径下的 `feature_effect`。用例：主光 cascade、`_RECEIVE_SHADOWS_OFF`（材质 + 半数量接收体）、主光 screen-space、附加光 atlas。附加光用例把 6 盏 spot 移到接地球体上方并关闭其余灯，避免 64 灯互相冲淡；新增材质资产 `Materials/CdReceiveShadowsOff.mat` 保证该 Lit GBuffer 变体进入 player。
+- 构建入口 `ClusteredDeferredArenaBuild.BuildT4D3D11AndExit / BuildT4D3D12AndExit`；T4 构建把 3 个 shadow 管线停在 quality level 上，并将默认 pipeline 设为 screen-shadow 资产（URP prefiltering 以默认 pipeline 的 renderer features 为准）。
+
+**A/B 结果**（阈值沿用 mean ≤ 2/255、max ≤ 24/255；`feature_effect` 只要求可测变化）：
+
+| 特性 | API | stencil vs clustered（on） | feature effect（clustered on-off） |
+|---|---|---|---|
+| 主光 cascade（4 级、软阴影） | D3D11 | mean 0.948 / max 10、>8 差 4 px | mean 0.445，>8 差 22904 px |
+| 主光 cascade | D3D12 | mean 0.972 / max 9、>8 差 6 px | mean 0.445，>8 差 22904 px |
+| `_RECEIVE_SHADOWS_OFF` 材质（半数量接收体） | D3D11 | mean 0.951 / max 10、>8 差 4 px | mean 0.383 / max 240，>8 差 5541 px |
+| `_RECEIVE_SHADOWS_OFF` 材质 | D3D12 | mean 0.975 / max 9、>8 差 6 px | mean 0.383 / max 240，>8 差 5541 px |
+| 主光 screen-space | D3D11 | mean 0.950 / max 10、>8 差 4 px | mean 0.390，>8 差 19899 px |
+| 主光 screen-space | D3D12 | mean 0.974 / max 9、>8 差 6 px | mean 0.390，>8 差 19899 px |
+| 附加光 atlas（6 spot） | D3D11 | mean 0.020 / max 3、>8 差 0 px | mean 0.962，>8 差 25261 px |
+| 附加光 atlas | D3D12 | mean 0.020 / max 3、>8 差 0 px | mean 0.962，>8 差 25261 px |
+
+四项 `passed=true`；两种 API 的逐像素差分与 feature effect 像素数一致（仅少量浮点排序差：>8 阈值像素 4 vs 6）。`_RECEIVE_SHADOWS_OFF` 用例只能用材质资产（编辑期复制 .mat 后开启关键字）验证：运行时改 `Renderer.receiveShadows` 在 SRP 下没有产生该关键字，stencil 与 clustered 都看不到变化；且不能用 `new Material(source)`（会补默认属性、改变外观，污染 A/B）。证据：`validation/T4-shadows/player-d3d11/`、`player-d3d12/`（`T4FeatureMatrix.json` + 每个状态 1 张 PNG，共 32 张）。
+
+**编译/回归**：
+
+- 两个 D3D11/D3D12 T4 player 构建日志中 `Shader error in 'ClusteredDeferred'` 均为 0；构建摘要 `CdArenaT4BuildSummary-{Direct3D11,Direct3D12}.json`。
+- **工具缺陷记录**：`ClusteredDeferredShaderCheck`（`ShaderUtil.GetComputeShaderMessageCount`）在 `SAMPLE_TEXTURE2D` 那版仍报 0 消息，而 player 构建拒绝了全部 20 个 screen 变体。compute 变体的权威编译检查是 player 构建日志；T7 的 shader 检查需改为“player 构建 + 日志计数”，不能只看编辑器 `ShaderUtil`。
+- EditMode 全量 **474/474 通过**：`validation/T4-shadows/T4EditMode.xml`。
 
 ### 7.6 归档与清理
 

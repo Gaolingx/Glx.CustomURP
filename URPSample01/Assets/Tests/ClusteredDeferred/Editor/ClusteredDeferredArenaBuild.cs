@@ -11,16 +11,26 @@ public static class ClusteredDeferredArenaBuild
 {
     const string ScenePath = "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity";
     const string ValidationRoot = "PLAN/TODO/11-LightCulling/validation/T5-runtime";
-    const string ExecutableName = "CdArena.exe";
+    const string T4ValidationRoot = "PLAN/TODO/11-LightCulling/validation/T4-shadows";
 
     public static void BuildD3D11AndExit()
     {
-        Exit(Build(GraphicsDeviceType.Direct3D11));
+        Exit(Build(GraphicsDeviceType.Direct3D11, false));
     }
 
     public static void BuildD3D12AndExit()
     {
-        Exit(Build(GraphicsDeviceType.Direct3D12));
+        Exit(Build(GraphicsDeviceType.Direct3D12, false));
+    }
+
+    public static void BuildT4D3D11AndExit()
+    {
+        Exit(Build(GraphicsDeviceType.Direct3D11, true));
+    }
+
+    public static void BuildT4D3D12AndExit()
+    {
+        Exit(Build(GraphicsDeviceType.Direct3D12, true));
     }
 
     static void Exit(bool ok)
@@ -28,17 +38,20 @@ public static class ClusteredDeferredArenaBuild
         EditorApplication.Exit(ok ? 0 : 1);
     }
 
-    public static bool Build(GraphicsDeviceType api)
+    public static bool Build(GraphicsDeviceType api, bool t4)
     {
         if (!ClusteredDeferredTestAssetSetup.CreateAll())
             return false;
 
         var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
         var apiName = api.ToString();
-        var outputDirectory = Path.Combine(projectRoot, "Builds", "ClusteredDeferredArena", apiName);
+        var buildRoot = t4 ? "ClusteredDeferredArenaT4" : "ClusteredDeferredArena";
+        var executableName = t4 ? "CdArenaT4.exe" : "CdArena.exe";
+        var outputDirectory = Path.Combine(projectRoot, "Builds", buildRoot, apiName);
         Directory.CreateDirectory(outputDirectory);
-        var executablePath = Path.Combine(outputDirectory, ExecutableName);
+        var executablePath = Path.Combine(outputDirectory, executableName);
 
+        var previousUseDefaultApis = PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.StandaloneWindows64);
         var previousApis = PlayerSettings.GetGraphicsAPIs(BuildTarget.StandaloneWindows64);
         var previousFullScreenMode = PlayerSettings.fullScreenMode;
         var previousWidth = PlayerSettings.defaultScreenWidth;
@@ -67,18 +80,29 @@ public static class ClusteredDeferredArenaBuild
             PlayerSettings.runInBackground = true;
 
             // ShaderBuildPreprocessor only collects features from pipelines parked on quality
-            // levels; without this the player loses the deferred and Forward+ variants.
-            var pipelines = new[]
+            // levels; without this the player loses the deferred and Forward+ variants. The T4
+            // build parks the shadow pipelines instead so their keywords (cascade, soft, atlas,
+            // screen space) survive stripping.
+            var pipelinePaths = t4
+                ? new[]
+                {
+                    "Assets/Tests/ClusteredDeferred/Renderers/CdShadowStencilDeferredPipeline.asset",
+                    "Assets/Tests/ClusteredDeferred/Renderers/CdShadowClusteredDeferredPipeline.asset",
+                    "Assets/Tests/ClusteredDeferred/Renderers/CdScreenShadowStencilDeferredPipeline.asset",
+                }
+                : new[]
+                {
+                    "Assets/Tests/ClusteredDeferred/Renderers/CdStencilDeferredPipeline.asset",
+                    "Assets/Tests/ClusteredDeferred/Renderers/CdClusteredDeferredPipeline.asset",
+                    "Assets/Tests/ClusteredDeferred/Renderers/CdForwardPlusPipeline.asset",
+                };
+            var pipelines = new RenderPipelineAsset[pipelinePaths.Length];
+            for (var i = 0; i < pipelinePaths.Length; i++)
             {
-                AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(
-                    "Assets/Tests/ClusteredDeferred/Renderers/CdStencilDeferredPipeline.asset"),
-                AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(
-                    "Assets/Tests/ClusteredDeferred/Renderers/CdClusteredDeferredPipeline.asset"),
-                AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(
-                    "Assets/Tests/ClusteredDeferred/Renderers/CdForwardPlusPipeline.asset"),
-            };
-            if (pipelines[0] == null || pipelines[1] == null || pipelines[2] == null)
-                throw new FileNotFoundException("Missing one of the clustered deferred test pipelines.");
+                pipelines[i] = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(pipelinePaths[i]);
+                if (pipelines[i] == null)
+                    throw new FileNotFoundException("Missing test pipeline " + pipelinePaths[i]);
+            }
 
             for (var i = 0; i < qualityLevelCount; i++)
             {
@@ -87,7 +111,10 @@ public static class ClusteredDeferredArenaBuild
             }
 
             QualitySettings.SetQualityLevel(previousQualityLevel, true);
-            GraphicsSettings.defaultRenderPipeline = pipelines[0];
+            // URP's shader prefiltering is driven by the active (default) pipeline asset and its
+            // renderer features. The T4 build needs the screen-space shadow feature to keep the
+            // _MAIN_LIGHT_SHADOWS_SCREEN variant, so the screen pipeline is the active asset.
+            GraphicsSettings.defaultRenderPipeline = t4 ? pipelines[2] : pipelines[0];
 
             report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {
@@ -100,7 +127,10 @@ public static class ClusteredDeferredArenaBuild
         }
         finally
         {
-            PlayerSettings.SetGraphicsAPIs(BuildTarget.StandaloneWindows64, previousApis);
+            if (previousUseDefaultApis)
+                PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.StandaloneWindows64, true);
+            else
+                PlayerSettings.SetGraphicsAPIs(BuildTarget.StandaloneWindows64, previousApis);
             PlayerSettings.fullScreenMode = previousFullScreenMode;
             PlayerSettings.defaultScreenWidth = previousWidth;
             PlayerSettings.defaultScreenHeight = previousHeight;
@@ -115,7 +145,7 @@ public static class ClusteredDeferredArenaBuild
             QualitySettings.SetQualityLevel(previousQualityLevel, true);
         }
 
-        var summaryDirectory = Path.Combine(projectRoot, ValidationRoot);
+        var summaryDirectory = Path.Combine(projectRoot, t4 ? T4ValidationRoot : ValidationRoot);
         Directory.CreateDirectory(summaryDirectory);
         var summary = new BuildSummary
         {
@@ -128,8 +158,8 @@ public static class ClusteredDeferredArenaBuild
             totalSizeBytes = (long)report.summary.totalSize,
             totalTimeSeconds = report.summary.totalTime.TotalSeconds,
         };
-        File.WriteAllText(Path.Combine(summaryDirectory, "CdArenaBuildSummary-" + apiName + ".json"),
-            JsonUtility.ToJson(summary, true));
+        var summaryName = (t4 ? "CdArenaT4BuildSummary-" : "CdArenaBuildSummary-") + apiName + ".json";
+        File.WriteAllText(Path.Combine(summaryDirectory, summaryName), JsonUtility.ToJson(summary, true));
 
         Debug.Log("Clustered deferred " + apiName + " player: " + report.summary.result + " -> " + executablePath);
         return report.summary.result == BuildResult.Succeeded;

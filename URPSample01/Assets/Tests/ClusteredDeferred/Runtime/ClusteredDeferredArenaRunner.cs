@@ -21,9 +21,18 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     public UniversalRenderPipelineAsset stencilDeferredPipeline;
     public UniversalRenderPipelineAsset clusteredDeferredPipeline;
     public UniversalRenderPipelineAsset forwardPlusPipeline;
+
+    // T4 shadow subset: same renderer pair, different pipeline shadow settings.
+    public UniversalRenderPipelineAsset shadowStencilPipeline;
+    public UniversalRenderPipelineAsset shadowClusteredPipeline;
+    public UniversalRenderPipelineAsset screenShadowStencilPipeline;
+    public UniversalRenderPipelineAsset screenShadowClusteredPipeline;
+    public Light arenaMainLight;
+
     public Camera arenaCamera;
     public Material sphereMaterial;
     public Material metalMaterial;
+    public Material receiveShadowsOffMaterial;
 
     public int warmupFrames = 40;
     public int lightCountChangeWarmupFrames = 15;
@@ -39,6 +48,9 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     const string ForwardPlusMode = "ForwardPlus";
 
     readonly List<Light> m_Lights = new List<Light>();
+    readonly List<float> m_LightIntensities = new List<float>();
+    readonly List<Renderer> m_ReceiverRenderers = new List<Renderer>();
+    readonly List<Material> m_ReceiverMaterials = new List<Material>();
     readonly List<ModeReport> m_Modes = new List<ModeReport>();
     readonly Dictionary<string, Texture2D> m_Screenshots = new Dictionary<string, Texture2D>();
 
@@ -53,6 +65,23 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         if (string.IsNullOrEmpty(outputRoot))
             outputRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "ClusteredDeferredOutput"));
         Directory.CreateDirectory(outputRoot);
+
+        if (HasArgument("--cd-t4"))
+        {
+            var featureReport = new FeatureMatrixReport
+            {
+                utcTimestamp = DateTime.UtcNow.ToString("O"),
+                unityVersion = Application.unityVersion,
+                graphicsDeviceName = SystemInfo.graphicsDeviceName,
+                graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString(),
+                graphicsDeviceVersion = SystemInfo.graphicsDeviceVersion,
+                entries = new List<FeatureEntry>(),
+            };
+
+            yield return RunFeatureMatrix(outputRoot, featureReport);
+            Application.Quit(ReportHadFailure(featureReport) ? 2 : 0);
+            yield break;
+        }
 
         var captureOnly = HasArgument("--cd-capture");
         var report = new PerfReport
@@ -204,6 +233,196 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         Application.Quit(0);
     }
 
+    IEnumerator RunFeatureMatrix(string outputRoot, FeatureMatrixReport report)
+    {
+        SetupArena();
+        SetLightCount(totalLights);
+        // The sweep keeps the default +Z spot orientation; the shadow A/B tilts the spots down so
+        // their shadow slices land on the receivers instead of behind them.
+        for (var i = 0; i < m_Lights.Count; i++)
+        {
+            if (m_Lights[i].type == LightType.Spot)
+                m_Lights[i].transform.rotation = Quaternion.Euler(55f, 0f, 0f);
+        }
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = 0;
+        Screen.SetResolution(width, height, false);
+        yield return SetPipeline(stencilDeferredPipeline);
+        yield return WaitFrames(warmupFrames);
+
+        yield return RunFeatureCase(outputRoot, report, "MainShadowCascade",
+            shadowStencilPipeline, shadowClusteredPipeline, ApplyMainLightShadows);
+        yield return RunFeatureCase(outputRoot, report, "ReceiveShadowsOff",
+            shadowStencilPipeline, shadowClusteredPipeline, ApplyReceiveShadowsOff);
+        yield return RunFeatureCase(outputRoot, report, "MainShadowScreen",
+            screenShadowStencilPipeline, screenShadowClusteredPipeline, ApplyMainLightShadows);
+        // Last: this case moves six spot lights above the receiver row.
+        yield return RunFeatureCase(outputRoot, report, "AdditionalShadowAtlas",
+            shadowStencilPipeline, shadowClusteredPipeline, ApplyAdditionalLightShadows);
+
+        WriteFeatureMatrix(outputRoot, report);
+    }
+
+    // One feature at a time: reset every shadow switch, toggle only the feature under test,
+    // capture stencil and clustered with the feature off and on.
+    IEnumerator RunFeatureCase(string outputRoot, FeatureMatrixReport report, string feature,
+        UniversalRenderPipelineAsset stencil, UniversalRenderPipelineAsset clustered, Action<bool> applyFeature)
+    {
+        if (stencil == null || clustered == null)
+            throw new InvalidOperationException("Missing T4 shadow pipeline for " + feature);
+
+        var entry = new FeatureEntry
+        {
+            feature = feature,
+            states = new List<FeatureState>(),
+            comparisons = new List<FeatureComparison>(),
+        };
+        report.entries.Add(entry);
+
+        var shots = new Dictionary<string, Texture2D>();
+        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "StencilOff", stencil, applyFeature, false);
+        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "ClusteredOff", clustered, applyFeature, false);
+        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "StencilOn", stencil, applyFeature, true);
+        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "ClusteredOn", clustered, applyFeature, true);
+
+        entry.comparisons.Add(CompareFeature("stencil_vs_clustered_on",
+            shots[feature + "_StencilOn"], shots[feature + "_ClusteredOn"]));
+        entry.comparisons.Add(CompareFeature("stencil_vs_clustered_off",
+            shots[feature + "_StencilOff"], shots[feature + "_ClusteredOff"]));
+        entry.comparisons.Add(CompareFeature("clustered_feature_effect",
+            shots[feature + "_ClusteredOff"], shots[feature + "_ClusteredOn"]));
+        entry.comparisons.Add(CompareFeature("stencil_feature_effect",
+            shots[feature + "_StencilOff"], shots[feature + "_StencilOn"]));
+
+        var noMagenta = true;
+        foreach (var state in entry.states)
+            noMagenta &= state.magentaPixelFraction < 0.001f;
+
+        // Liveness: the feature must move at least some pixels beyond the 8/255 noise band.
+        entry.featureActive = entry.comparisons[2].pixelsOverThreshold > 0 ||
+            entry.comparisons[2].meanChannelDiff > 0.05;
+        entry.passed = noMagenta && entry.featureActive &&
+            entry.comparisons[0].passed && entry.comparisons[1].passed;
+
+        foreach (var pair in shots)
+            UnityEngine.Object.Destroy(pair.Value);
+        shots.Clear();
+
+        WriteFeatureMatrix(outputRoot, report);
+        yield return null;
+    }
+
+    IEnumerator CaptureFeatureState(string outputRoot, FeatureEntry entry, Dictionary<string, Texture2D> shots,
+        string feature, string state, UniversalRenderPipelineAsset pipeline, Action<bool> applyFeature, bool on)
+    {
+        ResetLightState();
+        applyFeature(on);
+        yield return SetPipeline(pipeline);
+        yield return WaitFrames(Mathf.Max(warmupFrames, 30));
+        yield return new WaitForEndOfFrame();
+
+        var texture = ScreenCapture.CaptureScreenshotAsTexture();
+        var key = feature + "_" + state;
+        shots[key] = texture;
+        File.WriteAllBytes(Path.Combine(outputRoot, key + ".png"), texture.EncodeToPNG());
+        entry.states.Add(new FeatureState
+        {
+            name = state,
+            file = key + ".png",
+            magentaPixelFraction = MagentaFraction(texture.GetPixels32()),
+        });
+    }
+
+    void ResetLightState()
+    {
+        if (arenaMainLight != null)
+            arenaMainLight.shadows = LightShadows.None;
+        for (var i = 0; i < m_Lights.Count; i++)
+        {
+            m_Lights[i].enabled = i < totalLights;
+            m_Lights[i].intensity = m_LightIntensities[i];
+            m_Lights[i].shadows = LightShadows.None;
+        }
+        for (var i = 0; i < m_ReceiverRenderers.Count; i++)
+            m_ReceiverRenderers[i].sharedMaterial = m_ReceiverMaterials[i];
+    }
+
+    void ApplyMainLightShadows(bool on)
+    {
+        if (arenaMainLight != null)
+            arenaMainLight.shadows = on ? LightShadows.Soft : LightShadows.None;
+    }
+
+    // Main-light shadows stay on; half the receivers get the _RECEIVE_SHADOWS_OFF material. The
+    // GBuffer material flag must make the kernel skip shadow sampling for those pixels.
+    void ApplyReceiveShadowsOff(bool off)
+    {
+        ApplyMainLightShadows(true);
+        if (receiveShadowsOffMaterial == null)
+            return;
+        for (var i = 0; i < m_ReceiverRenderers.Count; i++)
+            m_ReceiverRenderers[i].sharedMaterial = off && i % 2 == 0 ? receiveShadowsOffMaterial : m_ReceiverMaterials[i];
+    }
+
+    // Point-light shadows need six atlas slices each; keep the subset to spots so the 2048 atlas
+    // holds every slice. The six casters are moved above the front receiver row and the other
+    // punctual lights are turned off: among 64 overlapping lights their shadows would be invisible.
+    void ApplyAdditionalLightShadows(bool on)
+    {
+        var shadowCasters = 0;
+        for (var i = 0; i < m_Lights.Count; i++)
+        {
+            var light = m_Lights[i];
+            if (light.type != LightType.Spot || shadowCasters >= 6)
+            {
+                light.enabled = false;
+                light.shadows = LightShadows.None;
+                continue;
+            }
+
+            light.transform.SetPositionAndRotation(
+                new Vector3(-12f + shadowCasters * 5f, 5.5f, -5f), Quaternion.Euler(90f, 0f, 0f));
+            light.range = 20f;
+            light.spotAngle = 50f;
+            light.innerSpotAngle = 30f;
+            light.intensity = 40f;
+            light.shadows = on ? LightShadows.Soft : LightShadows.None;
+            shadowCasters++;
+        }
+    }
+
+    static FeatureComparison CompareFeature(string name, Texture2D reference, Texture2D candidate)
+    {
+        var diff = Compare(0, reference, candidate);
+        return new FeatureComparison
+        {
+            name = name,
+            pixels = diff.pixels,
+            meanChannelDiff = diff.meanChannelDiff,
+            meanChannelDiffNormalized = diff.meanChannelDiffNormalized,
+            maxChannelDiff = diff.maxChannelDiff,
+            pixelsOverThreshold = diff.pixelsOverThreshold,
+            pixelsOverThresholdFraction = diff.pixelsOverThresholdFraction,
+            passed = diff.passed,
+        };
+    }
+
+    static bool ReportHadFailure(FeatureMatrixReport report)
+    {
+        for (var i = 0; i < report.entries.Count; i++)
+        {
+            if (!report.entries[i].passed)
+                return true;
+        }
+
+        return false;
+    }
+
+    static void WriteFeatureMatrix(string outputRoot, FeatureMatrixReport report)
+    {
+        File.WriteAllText(Path.Combine(outputRoot, "T4FeatureMatrix.json"), JsonUtility.ToJson(report, true));
+    }
+
     IEnumerator SetPipeline(UniversalRenderPipelineAsset pipeline)
     {
         GraphicsSettings.defaultRenderPipeline = pipeline;
@@ -252,6 +471,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             light.color = Color.HSVToRGB((i * 0.61803398875f) % 1f, 0.55f, 1f);
             colors[i] = light.color;
             m_Lights.Add(light);
+            m_LightIntensities.Add(light.intensity);
 
             // Each light gets a small emissive-looking sphere so the field is visible from the
             // camera; the spheres are Lit geometry that receives the same direct lighting.
@@ -278,6 +498,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             sphere.transform.localScale = Vector3.one * (1.2f + (i % 3) * 0.5f);
             UnityEngine.Object.Destroy(sphere.GetComponent<Collider>());
             sphere.GetComponent<Renderer>().sharedMaterial = i % 3 == 0 && metalMaterial != null ? metalMaterial : sphereMaterial;
+            m_ReceiverRenderers.Add(sphere.GetComponent<Renderer>());
+            m_ReceiverMaterials.Add(sphere.GetComponent<Renderer>().sharedMaterial);
         }
 
         for (var i = 0; i < 4; i++)
@@ -289,6 +511,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             box.transform.localScale = new Vector3(1.6f, 4.4f, 1.6f);
             UnityEngine.Object.Destroy(box.GetComponent<Collider>());
             box.GetComponent<Renderer>().sharedMaterial = sphereMaterial;
+            m_ReceiverRenderers.Add(box.GetComponent<Renderer>());
+            m_ReceiverMaterials.Add(box.GetComponent<Renderer>().sharedMaterial);
         }
 
         SetLightCount(0);
@@ -486,6 +710,48 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public int pixelsOverThreshold;
         public double pixelsOverThresholdFraction;
         public bool passed;
+    }
+
+    [Serializable]
+    public sealed class FeatureState
+    {
+        public string name;
+        public string file;
+        public float magentaPixelFraction;
+    }
+
+    [Serializable]
+    public sealed class FeatureComparison
+    {
+        public string name;
+        public int pixels;
+        public double meanChannelDiff;
+        public double meanChannelDiffNormalized;
+        public int maxChannelDiff;
+        public int pixelsOverThreshold;
+        public double pixelsOverThresholdFraction;
+        public bool passed;
+    }
+
+    [Serializable]
+    public sealed class FeatureEntry
+    {
+        public string feature;
+        public bool featureActive;
+        public bool passed;
+        public List<FeatureState> states;
+        public List<FeatureComparison> comparisons;
+    }
+
+    [Serializable]
+    public sealed class FeatureMatrixReport
+    {
+        public string utcTimestamp;
+        public string unityVersion;
+        public string graphicsDeviceName;
+        public string graphicsDeviceType;
+        public string graphicsDeviceVersion;
+        public List<FeatureEntry> entries;
     }
 
     [Serializable]

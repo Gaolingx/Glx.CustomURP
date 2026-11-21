@@ -1,0 +1,32 @@
+{
+    "utcTimestamp": "2026-11-21T13:07:00Z",
+    "unityVersion": "2022.3.62f1",
+    "computeShader": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ClusteredDeferred.compute",
+    "computeVariants": 80,
+    "keywordGroups": [
+        "_GBUFFER_NORMALS_OCT",
+        "_MAIN_LIGHT_SHADOWS | _MAIN_LIGHT_SHADOWS_CASCADE | _MAIN_LIGHT_SHADOWS_SCREEN",
+        "_ADDITIONAL_LIGHT_SHADOWS",
+        "_SHADOWS_SOFT | _SHADOWS_SOFT_LOW | _SHADOWS_SOFT_MEDIUM | _SHADOWS_SOFT_HIGH"
+    ],
+    "builds": [
+        {
+            "graphicsApi": "Direct3D11",
+            "result": "Succeeded",
+            "shaderErrors": 0,
+            "compiledClusteredDeferredVariants": 80,
+            "buildSeconds": 48.9655376,
+            "summary": "CdArenaT4BuildSummary-Direct3D11.json"
+        },
+        {
+            "graphicsApi": "Direct3D12",
+            "result": "Succeeded",
+            "shaderErrors": 0,
+            "compiledClusteredDeferredVariants": 80,
+            "buildSeconds": 10.6618647,
+            "summary": "CdArenaT4BuildSummary-Direct3D12.json"
+        }
+    ],
+    "knownToolGap": "ClusteredDeferredShaderCheck (ShaderUtil.GetComputeShaderMessageCount) reported 0 messages for a variant set that the Direct3D11 player build rejected with 'cannot map expression to cs_5_0 instruction set' (implicit-LOD Sample() in the screen-space shadow branch). Player build logs are the authoritative compute compile check; T7 must count errors there instead of relying on ShaderUtil.",
+    "unverifiedApis": "Vulkan and Metal players were not built on this Windows host; report them as unverified in KnownDifferences."
+}

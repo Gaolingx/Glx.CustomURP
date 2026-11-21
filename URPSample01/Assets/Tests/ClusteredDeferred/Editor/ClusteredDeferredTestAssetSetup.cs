@@ -25,10 +25,21 @@ public static class ClusteredDeferredTestAssetSetup
     const string ClusteredPipelinePath = RendererFolder + "/CdClusteredDeferredPipeline.asset";
     const string ForwardPlusPipelinePath = RendererFolder + "/CdForwardPlusPipeline.asset";
 
+    // T4 shadow subset: same renderer pair, pipelines with main/additional shadows enabled.
+    const string ShadowStencilRendererPath = RendererFolder + "/CdShadowStencilDeferredRenderer.asset";
+    const string ShadowClusteredRendererPath = RendererFolder + "/CdShadowClusteredDeferredRenderer.asset";
+    const string ShadowStencilPipelinePath = RendererFolder + "/CdShadowStencilDeferredPipeline.asset";
+    const string ShadowClusteredPipelinePath = RendererFolder + "/CdShadowClusteredDeferredPipeline.asset";
+    const string ScreenShadowStencilRendererPath = RendererFolder + "/CdScreenShadowStencilDeferredRenderer.asset";
+    const string ScreenShadowClusteredRendererPath = RendererFolder + "/CdScreenShadowClusteredDeferredRenderer.asset";
+    const string ScreenShadowStencilPipelinePath = RendererFolder + "/CdScreenShadowStencilDeferredPipeline.asset";
+    const string ScreenShadowClusteredPipelinePath = RendererFolder + "/CdScreenShadowClusteredDeferredPipeline.asset";
+
     const string SourceDeferredRenderer = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationDeferredRenderer.asset";
     const string SourceDeferredPipeline = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationDeferredPipeline.asset";
     const string SourceForwardPlusRenderer = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationForwardPlusRenderer.asset";
     const string SourceForwardPlusPipeline = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationForwardPlusPipeline.asset";
+    const string ReceiveShadowsOffMaterialPath = Root + "/Materials/CdReceiveShadowsOff.mat";
     const string FloorMaterial = "Assets/Tests/ScreenSpaceLighting/Materials/Ground.mat";
     const string SphereMaterial = "Assets/Tests/ScreenSpaceLighting/Materials/SmoothDielectric.mat";
     const string MetalMaterial = "Assets/Tests/ScreenSpaceLighting/Materials/RoughMetal.mat";
@@ -60,6 +71,7 @@ public static class ClusteredDeferredTestAssetSetup
         EnsureFolder("Assets/Tests", "ClusteredDeferred");
         EnsureFolder(Root, "Scenes");
         EnsureFolder(Root, "Renderers");
+        EnsureFolder(Root, "Materials");
 
         var deferredRenderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(SourceDeferredRenderer);
         var deferredPipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(SourceDeferredPipeline);
@@ -68,13 +80,25 @@ public static class ClusteredDeferredTestAssetSetup
         if (deferredRenderer == null || deferredPipeline == null || forwardPlusRenderer == null || forwardPlusPipeline == null)
             throw new FileNotFoundException("Missing one of the SSL validation renderer/pipeline assets.");
 
-        var stencilRenderer = CreateRendererCopy(deferredRenderer, StencilRendererPath, false);
-        var clusteredRenderer = CreateRendererCopy(deferredRenderer, ClusteredRendererPath, true);
+        var stencilRenderer = CreateRendererCopy(deferredRenderer, StencilRendererPath, false, false);
+        var clusteredRenderer = CreateRendererCopy(deferredRenderer, ClusteredRendererPath, true, false);
         var stencilPipeline = CreatePipelineCopy(deferredPipeline, StencilPipelinePath, stencilRenderer);
         var clusteredPipeline = CreatePipelineCopy(deferredPipeline, ClusteredPipelinePath, clusteredRenderer);
         var forwardPipeline = CreatePipelineCopy(forwardPlusPipeline, ForwardPlusPipelinePath, forwardPlusRenderer);
 
-        CreateScene(stencilPipeline, clusteredPipeline, forwardPipeline);
+        var shadowStencilRenderer = CreateRendererCopy(deferredRenderer, ShadowStencilRendererPath, false, false);
+        var shadowClusteredRenderer = CreateRendererCopy(deferredRenderer, ShadowClusteredRendererPath, true, false);
+        var shadowStencilPipeline = CreateShadowPipeline(deferredPipeline, ShadowStencilPipelinePath, shadowStencilRenderer, 4);
+        var shadowClusteredPipeline = CreateShadowPipeline(deferredPipeline, ShadowClusteredPipelinePath, shadowClusteredRenderer, 4);
+
+        var screenShadowStencilRenderer = CreateRendererCopy(deferredRenderer, ScreenShadowStencilRendererPath, false, true);
+        var screenShadowClusteredRenderer = CreateRendererCopy(deferredRenderer, ScreenShadowClusteredRendererPath, true, true);
+        var screenShadowStencilPipeline = CreateShadowPipeline(deferredPipeline, ScreenShadowStencilPipelinePath, screenShadowStencilRenderer, 1);
+        var screenShadowClusteredPipeline = CreateShadowPipeline(deferredPipeline, ScreenShadowClusteredPipelinePath, screenShadowClusteredRenderer, 1);
+
+        CreateScene(stencilPipeline, clusteredPipeline, forwardPipeline,
+            shadowStencilPipeline, shadowClusteredPipeline,
+            screenShadowStencilPipeline, screenShadowClusteredPipeline);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -82,7 +106,8 @@ public static class ClusteredDeferredTestAssetSetup
         return true;
     }
 
-    static UniversalRendererData CreateRendererCopy(UniversalRendererData source, string path, bool clustered)
+    static UniversalRendererData CreateRendererCopy(UniversalRendererData source, string path, bool clustered,
+        bool screenSpaceShadows)
     {
         AssetDatabase.DeleteAsset(path);
         var renderer = ScriptableObject.CreateInstance<UniversalRendererData>();
@@ -108,7 +133,66 @@ public static class ClusteredDeferredTestAssetSetup
         if (saved.clusteredDeferredLighting != clustered)
             throw new InvalidOperationException("The clustered toggle did not persist on " + path);
 
+        if (screenSpaceShadows)
+            AddScreenSpaceShadowsFeature(saved);
+
         return saved;
+    }
+
+    // ScreenSpaceShadows is internal to the URP runtime assembly, so the test asset is created
+    // through reflection. The serialized shader reference keeps the shader in the player build.
+    static void AddScreenSpaceShadowsFeature(UniversalRendererData renderer)
+    {
+        var featureType = Type.GetType(
+            "UnityEngine.Rendering.Universal.ScreenSpaceShadows, Unity.RenderPipelines.Universal.Runtime");
+        if (featureType == null)
+            throw new TypeLoadException("ScreenSpaceShadows could not be resolved from the URP runtime assembly.");
+
+        var feature = ScriptableObject.CreateInstance(featureType);
+        feature.name = "Screen Space Shadows";
+        feature.hideFlags = HideFlags.HideInHierarchy;
+
+        var serializedFeature = new SerializedObject(feature);
+        var shaderProperty = serializedFeature.FindProperty("m_Shader");
+        if (shaderProperty != null)
+            shaderProperty.objectReferenceValue = Shader.Find("Hidden/Universal Render Pipeline/ScreenSpaceShadows");
+        serializedFeature.ApplyModifiedPropertiesWithoutUndo();
+
+        AssetDatabase.AddObjectToAsset(feature, renderer);
+
+        var serialized = new SerializedObject(renderer);
+        var features = serialized.FindProperty("m_RendererFeatures");
+        features.arraySize = 1;
+        features.GetArrayElementAtIndex(0).objectReferenceValue = feature;
+        var featureMap = serialized.FindProperty("m_RendererFeatureMap");
+        featureMap.arraySize = 1;
+        featureMap.GetArrayElementAtIndex(0).longValue = 0;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        EditorUtility.SetDirty(renderer);
+        EditorUtility.SetDirty(feature);
+        AssetDatabase.SaveAssets();
+    }
+
+    static UniversalRenderPipelineAsset CreateShadowPipeline(UniversalRenderPipelineAsset source, string path,
+        UniversalRendererData renderer, int cascadeCount)
+    {
+        var pipeline = CreatePipelineCopy(source, path, renderer);
+        var serialized = new SerializedObject(pipeline);
+        serialized.FindProperty("m_MainLightShadowsSupported").boolValue = true;
+        serialized.FindProperty("m_MainLightShadowmapResolution").intValue = 2048;
+        serialized.FindProperty("m_ShadowDistance").floatValue = 60f;
+        serialized.FindProperty("m_ShadowCascadeCount").intValue = cascadeCount;
+        serialized.FindProperty("m_ShadowDepthBias").floatValue = 1f;
+        serialized.FindProperty("m_ShadowNormalBias").floatValue = 1f;
+        serialized.FindProperty("m_SoftShadowsSupported").boolValue = true;
+        serialized.FindProperty("m_SoftShadowQuality").intValue = 2; // Medium: 5x5 tent
+        serialized.FindProperty("m_AdditionalLightShadowsSupported").boolValue = true;
+        serialized.FindProperty("m_AdditionalLightsShadowmapResolution").intValue = 2048;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(pipeline);
+        AssetDatabase.SaveAssets();
+        return AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(path);
     }
 
     static UniversalRenderPipelineAsset CreatePipelineCopy(UniversalRenderPipelineAsset source, string path,
@@ -131,13 +215,17 @@ public static class ClusteredDeferredTestAssetSetup
     }
 
     static void CreateScene(UniversalRenderPipelineAsset stencil, UniversalRenderPipelineAsset clustered,
-        UniversalRenderPipelineAsset forwardPlus)
+        UniversalRenderPipelineAsset forwardPlus,
+        UniversalRenderPipelineAsset shadowStencil, UniversalRenderPipelineAsset shadowClustered,
+        UniversalRenderPipelineAsset screenShadowStencil, UniversalRenderPipelineAsset screenShadowClustered)
     {
         var floor = AssetDatabase.LoadAssetAtPath<Material>(FloorMaterial);
         var sphere = AssetDatabase.LoadAssetAtPath<Material>(SphereMaterial);
         var metal = AssetDatabase.LoadAssetAtPath<Material>(MetalMaterial);
         if (floor == null || sphere == null || metal == null)
             throw new FileNotFoundException("Missing one of the arena materials.");
+
+        var receiveShadowsOff = CreateReceiveShadowsOffMaterial(sphere);
 
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -184,13 +272,37 @@ public static class ClusteredDeferredTestAssetSetup
         runner.stencilDeferredPipeline = stencil;
         runner.clusteredDeferredPipeline = clustered;
         runner.forwardPlusPipeline = forwardPlus;
+        runner.shadowStencilPipeline = shadowStencil;
+        runner.shadowClusteredPipeline = shadowClustered;
+        runner.screenShadowStencilPipeline = screenShadowStencil;
+        runner.screenShadowClusteredPipeline = screenShadowClustered;
+        runner.arenaMainLight = mainLight;
         runner.arenaCamera = camera;
         runner.sphereMaterial = sphere;
         runner.metalMaterial = metal;
+        runner.receiveShadowsOffMaterial = receiveShadowsOff;
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene, ScenePath);
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+    }
+
+    // A material asset that carries _RECEIVE_SHADOWS_OFF so the Lit GBuffer variant is part of the
+    // player build; the runner swaps it onto half the receivers for the flag A/B. CopyAsset keeps
+    // the serialized properties byte-identical to the source (a new Material() would fill in
+    // defaults the source asset does not have, which changes the rendered result).
+    static Material CreateReceiveShadowsOffMaterial(Material source)
+    {
+        AssetDatabase.DeleteAsset(ReceiveShadowsOffMaterialPath);
+        var sourcePath = AssetDatabase.GetAssetPath(source);
+        if (!AssetDatabase.CopyAsset(sourcePath, ReceiveShadowsOffMaterialPath))
+            throw new InvalidOperationException("Unable to copy " + sourcePath);
+
+        var material = AssetDatabase.LoadAssetAtPath<Material>(ReceiveShadowsOffMaterialPath);
+        material.EnableKeyword("_RECEIVE_SHADOWS_OFF");
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssets();
+        return material;
     }
 
     static void EnsureFolder(string parent, string name)
