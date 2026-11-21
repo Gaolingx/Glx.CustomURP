@@ -1,0 +1,110 @@
+{
+  "capture": "PLAN/TODO/12-GpuLightList/validation/G1/rdc/cluster-list-d3d12_frame203.rdc",
+  "sizeBytes": 14435281,
+  "api": "D3D12",
+  "resolution": "1280x720",
+  "frame": 203,
+  "renderer": "CdClusteredDeferredRenderer",
+  "pipeline": "CdClusteredDeferredPipeline",
+  "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+  "captureMode": "Player launched as --cd-capture --cd-cluster-async --cd-hold (clustered renderer, 64 field lights, 60 warmup frames); renderdoc-mcp capture_frame, delayFrames=120, captured frame 203.",
+  "playerBuild": "Direct3D12, Development, Builds/ClusteredDeferredArena/Direct3D12/CdArena.exe",
+  "structure": [
+    { "eventId": 39, "name": "ScriptableRenderer.Execute: CdClusteredDeferredRenderer" },
+    {
+      "eventId": 93,
+      "name": "CD Cluster List (Async)",
+      "queue": "async compute command list (Baked Command List 1480)",
+      "children": [
+        { "eventId": 94, "name": "Copy (cmd.SetBufferData: 64 x 48B cluster items to CD Cluster Items)" },
+        { "eventId": 102, "name": "Dispatch ClusterBuilder.ClusterItemBounds" },
+        { "eventId": 107, "name": "Dispatch ClusterBuilder.ClusterZBinClear" },
+        { "eventId": 112, "name": "Dispatch ClusterBuilder.ClusterZBinScatter" },
+        { "eventId": 118, "name": "Dispatch ClusterBuilder.ClusterZBinPack" },
+        { "eventId": 123, "name": "Dispatch ClusterBuilder.ClusterTileExpand" }
+      ]
+    },
+    { "eventId": 142, "name": "Render GBuffer", "note": "Runs on the graphics queue while the cluster list is in flight." },
+    { "eventId": 643, "name": "CopyDepth" },
+    {
+      "eventId": 654,
+      "name": "Clustered Deferred",
+      "children": [
+        { "eventId": 657, "name": "Clear material-type mask" },
+        { "eventId": 661, "name": "Mask draw: Lit stencil" },
+        { "eventId": 664, "name": "Mask draw: SimpleLit stencil" },
+        { "eventId": 681, "name": "Dispatch ClusteredDeferred", "groups": "80 x 45 x 1 (16x16 threads, 1280x720)" },
+        { "eventId": 692, "name": "Resolve: Blend One One into GBuffer3" }
+      ]
+    },
+    { "eventId": 707, "name": "FinalBlit", "artifact": "renderdoc-mcp-export/rt_707_0.png" },
+    { "eventId": 735, "name": "Present" }
+  ],
+  "asyncHandoff": {
+    "computeQueue": "Compute Queue 0/1/2 present; the async command list carries a completion GraphicsFence (AsyncQueueSynchronisation, ComputeProcessing).",
+    "wait": "The graphics command list waits on the fence immediately before the ClusteredDeferred dispatch (event 681), after the two mask draws; the mask draws can overlap the tail of the async build.",
+    "bufferUsage": {
+      "URP Z-Bin Buffer (ResourceId::793, 16384 bytes = 4096 uints)": [
+        { "eventId": 107, "usage": "CS_RWResource" },
+        { "eventId": 112, "usage": "CS_RWResource" },
+        { "eventId": 118, "usage": "CS_RWResource" },
+        { "eventId": 669, "usage": "Barrier" },
+        { "eventId": 681, "usage": "CS_Resource (structured SRV)" }
+      ],
+      "URP Tile Buffer (ResourceId::794, 65536 bytes = 16384 uints)": [
+        { "eventId": 107, "usage": "CS_RWResource" },
+        { "eventId": 123, "usage": "CS_RWResource" },
+        { "eventId": 669, "usage": "Barrier" },
+        { "eventId": 681, "usage": "CS_Resource (structured SRV)" }
+      ]
+    }
+  },
+  "lightingDispatch": {
+    "eventId": 681,
+    "shader": "ClusteredDeferred.ClusteredDeferred",
+    "bindings": {
+      "constantBuffers": [
+        { "slot": 0, "byteSize": 224, "note": "loose globals: _ScreenSize, _CdCamera*, _FPParams0-2, _MainLight*" },
+        { "slot": 1, "byteSize": 16384, "note": "additional-light constants" },
+        { "slot": 2, "byteSize": 448, "note": "deferred/shadow globals" }
+      ],
+      "readOnlyResources": {
+        "textures": ["_MaterialTypeMask", "_CameraDepthTexture", "_GBuffer0", "_GBuffer1", "_GBuffer2"],
+        "structuredBuffers": ["URP_ZBins (bindPoint 5)", "urp_Tiles (bindPoint 6)"],
+        "extraTexture": "bindPoint 7 (shadow-mask / light-layers slot absent in this scene)"
+      },
+      "uav": ["_CdLightingTextureRW"],
+      "note": "No 65536-byte constant buffer is bound: the tile bitmap is read through the structured SRV (G1b binding change), and the zbin buffer likewise."
+    }
+  },
+  "clusterListContents": {
+    "items": 64,
+    "tileRanges": {
+      "resource": "CD Cluster Tile Ranges (ResourceId::809, 1024 bytes = 64 x int4)",
+      "fullScreenItems": 22,
+      "sample": {
+        "0": [9, 44, 41, 79],
+        "1": [0, 44, 0, 79],
+        "2": [4, 44, 31, 79],
+        "5": [0, 44, 46, 79],
+        "6": [0, 44, 0, 38]
+      },
+      "artifact": "renderdoc-mcp-export/buf_ResourceId__809.bin"
+    },
+    "tileBitmap": {
+      "resource": "URP Tile Buffer (ResourceId::794)",
+      "usedWords": 7200,
+      "setBits": 161974,
+      "artifact": "renderdoc-mcp-export/buf_ResourceId__794.bin",
+      "note": "Matches G1BufferParity.json gpuTileBits (161974) captured in the same build/run configuration; CPU reference sets 70624 bits."
+    }
+  },
+  "validation": {
+    "renderdocMessages": "none at severity >= high (assert_clean pass)",
+    "developmentConsole": "no in-game error overlay; the async command buffer carries CommandBufferExecutionFlags.AsyncCompute (re-asserted after Clear())."
+  },
+  "controlledRun": {
+    "asyncVsSync": "G1BufferParity.json: async and sync schedules are word-identical (0 mismatch words/bits for both bitmaps).",
+    "cpuCoverage": "CPU bits are a subset of the GPU bits: zbin exact (0 missing / 0 extra), tile missing 0, extra 91350."
+  }
+}

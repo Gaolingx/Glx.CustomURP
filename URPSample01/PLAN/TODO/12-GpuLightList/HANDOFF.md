@@ -1,6 +1,6 @@
 # 12-GpuLightList：GPU 光表与异步两段式（计划）
 
-> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1a 已落地；G1b 已实施（同步队列，D3D11 证据完整；D3D12 / RDC / 异步待补）**。
+> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1a/G1b/G1c 已落地（G1 完成：GPU 光表、异步调度与 parity、结构化绑定 .rdc；异步实测净亏，默认同步）；G2/G3 未开始**。
 > 建立：2026-11-22；前置轮次：[`PLAN/Done/11-LightCulling`](../../Done/11-LightCulling/HANDOFF.md)（Clustered Deferred v1，已归档）。
 > 善后清单：[clean.md](clean.md)（C1 已落地；C2–C8 仍为规划）。
 > 基线：C1 提交后的 HEAD（见 `git log`）；C1 证据在 `validation/C1/`。
@@ -125,11 +125,13 @@ ClusteredDeferred.compute（不改一行）
 4. CPU 侧 `PreSetup` 归零（或只剩参数计算）；GPU 新增两次 dispatch 的时间被记录，且重叠模式下端到端帧时间不升。
 5. 1 个 D3D12 或 D3D11 `.rdc`（≤20 MiB）证明 dispatch 次序/尺寸与缓冲绑定；异步路径另有 fence 证据。
 
-> **G1b 实测修订**：第 1 条按缓冲类型拆分执行 —— zbin 逐位相等（已达成）；tile 因 Stage A 按 §3.1 使用保守 AABB，闸门改为 `CoversCpuBits`（CPU ⊆ GPU、无漏位）+ 像素逐位一致。第 2 条因绑定方式修订（§3.1 注）改为“word 布局与 `_FPParams*` 不变、kernel 只允许读取点变化”。第 5 条的 `.rdc` 与第 4 条的异步重叠仍待补。
+> **G1b 实测修订**：第 1 条按缓冲类型拆分执行 —— zbin 逐位相等（已达成）；tile 因 Stage A 按 §3.1 使用保守 AABB，闸门改为 `CoversCpuBits`（CPU ⊆ GPU、无漏位）+ 像素逐位一致。第 2 条因绑定方式修订（§3.1 注）改为“word 布局与 `_FPParams*` 不变、kernel 只允许读取点变化”。第 5 条的 `.rdc` 与第 4 条的异步重叠由 G1c 补齐（§3.6）。
+
+> **G1c 修订（tile AABB）**：G1b 的 `CdCornerSign` 用 `uint` 运算再隐式转 float（`0u - 1u` 得到 `+4.29e9` 而不是 `-1`），8 个角点全部被推到远平面之外，`cornerVS.z < near` 对每个 item 都成立，tile 位图在所有场景中**饱和为整屏**。zbin 不受影响（灯分支只用中心 z），探针的 z 区间会用角点、因此同样有错（测试场景无探针，G1b 未暴露）。G1c 改为 float 符号函数后，arena 64 灯只有 22 个 range 真的因包围盒穿过近平面而整屏，其余是局部范围；tile 置位从“整屏饱和”降到 161,974 bit（CPU 70,624 的 229%），CPU ⊆ GPU 仍成立。
 
 ### 3.3 证据
 
-`validation/G1/`：`tests/G1EditMode.xml`、`tests/G1PlayMode.xml`（含 GPU parity 用例）、`T5-runtime/player-d3d11/`、`T4-shadows/player-d3d11/`、`cpu/CdCpuBreakdown.json`、本目录 `README.md`。`.rdc` 仍待补（绑定从 constant 改为 structured，旧抓帧不再是当前结构参考）。
+`validation/G1/`：`tests/G1cEditMode.xml`、`tests/G1cPlayMode.xml`（含 GPU parity 用例）、`T5-runtime/player-{d3d11,d3d12,d3d12-async,d3d12-sync}/`、`T4-shadows/player-{d3d11,d3d12,d3d12-sync,d3d12-async}/`、`parity/player-d3d12/G1BufferParity.json`、`cpu/{d3d11,d3d12,d3d12-async}/`、`rdc/cluster-list-d3d12_frame203.rdc` 与 `rdc/Report.json`、本目录 `README.md`。G1b 的 `cpu/CdCpuBreakdown.json` 保留为同步 CPU jobs 的历史基线。
 
 ### 3.4 G1a（已落地）：灯记录布局冻结 + parity 骨架
 
@@ -199,9 +201,43 @@ ClusteredDeferred.compute（不改一行）
 **结论**
 
 - 逐位 parity 的边界：zbin 只做 `log2` 量化，GPU 与 Burst 输出一致；tile 若逐行移植 `TilingJob` 也不可能逐位（`FloatMode.Fast` 与 HLSL 的三角/开方差 1 ulp 就翻位），因此采用 §3.1 本就写明的“包围球 → tile AABB”保守超集，闸门为 `CoversCpuBits` + 像素逐位一致。
-- CPU 收益约 0.09 ms/帧：0.173 ms 的构图换成约 0.084 ms（item 构建 + SetData + dispatch 提交）。真正的收益要等 G1c 异步重叠与 256+ 灯扩展性。
+- **上表 tile 的两个数字事后看是饱和值**：PlayMode rig 的 24 盏灯距相机 4–7、range 5，立方体全部穿过近平面，本来就该整屏；同时 `CdCornerSign` 的 uint→float bug（§3.2 注）让 arena 这类“并非全部近平面”的场景也整屏。G1b 的 114.3% 因此只证明了 CPU ⊆ GPU，没有验证 AABB 的收紧程度。G1c 修复后以 arena 64 灯（161,974 / 70,624 = 229%）作为新的密度参考。
+- CPU 收益约 0.09 ms/帧：0.173 ms 的构图换成约 0.084 ms（item 构建 + SetData + dispatch 提交）。G1c 把提交降到 ~0.06 ms（§3.6），异步重叠在本机不划算。
 
-- CPU 收益约 0.09 ms/帧：0.173 ms 的构图换成约 0.084 ms（item 构建 + SetData + dispatch 提交）。真正的收益要等 G1c 异步重叠与 256+ 灯扩展性。
+---
+
+### 3.6 G1c（已实施）：异步调度、tile AABB 修复与提交开销
+
+**实现**
+
+- 调度：`ClusterListGpuBuilder.asyncCompute`（默认 **false**）+ `SystemInfo.supportsAsyncCompute` 决定是否走异步。异步时 item 上传（`cmd.SetBufferData`）与 5 次 dispatch 一起录进 `CD Cluster List (Async)`，标记 `CommandBufferExecutionFlags.AsyncCompute`（`Clear()` 会清掉 flag，必须每帧重设），`context.ExecuteCommandBufferAsync(..., ComputeQueueType.Background)` 提交，末尾 `CreateGraphicsFence(AsyncQueueSynchronisation, ComputeProcessing)`。
+- 同步点在 `ClusteredDeferredPass` 的**光照 dispatch 之前**（不是 pass 开头），`WaitOnAsyncGraphicsFence(..., ComputeProcessing)` 只约束 compute，两次 mask draw 可与异步构建的尾部重叠；同步队列上 `WaitForClusterList` 是空操作。
+- 异步命令缓冲自包含（上传、参数、dispatch 同队列），因此没有“graphics 上传 → async 等待”的跨队列 fence，也不需要 Setup 中途 flush。
+- 提交开销：item 数组跨帧复用；parity 关闭时不再逐灯 `GetUniversalAdditionalLightData` 取 layerMask（kernel 不读该字段）；GPU 路径不再 MemClear 两张 CPU NativeArray；上传由 `GraphicsBuffer.SetData` 改为 `cmd.SetBufferData`。
+- 顺带修复：`CdCornerSign`（§3.2 注）；构建脚本在 `SetGraphicsAPIs` 前补 `SetUseDefaultGraphicsAPIs(false)`（否则 D3D12 player 会静默跑在 D3D11）；异步 flag 每帧重设（否则 Development Console 弹出错误浮层，污染 T4 截图）。
+
+**验证（1280×720，RTX 5060 Ti；D3D11 同步 / D3D12 同步+异步）**
+
+| 项 | 结果 | 证据 |
+|---|---|---|
+| async vs sync 位图 | **逐位相同**（zbin 0 word / 0 bit；tile 0 word / 0 bit） | `parity/player-d3d12/G1BufferParity.json` |
+| CPU ⊆ GPU | zbin 逐位（0 缺 / 0 多）；tile 0 漏位、多 91,350 bit；GPU 161,974 vs CPU 70,624（**229%**），22/64 item 整屏 | 同上 |
+| T5 A/B D3D11（48 灯） | mean **0.8119**、max **9**、>8 差 7 px，pass | `T5-runtime/player-d3d11/CdPerf.json` |
+| T5 A/B D3D12 默认同步（48 灯） | mean **0.8156**、max **9**、>8 差 5 px，pass | `T5-runtime/player-d3d12/CdPerf.json` |
+| T5 A/B D3D12 异步（48 灯） | mean **0.8281**、max **9**、>8 差 3 px，pass | `T5-runtime/player-d3d12-async/CdPerf.json` |
+| T4 特性矩阵 D3D11 | **7/7** | `T4-shadows/player-d3d11/T4FeatureMatrix.json` |
+| T4 特性矩阵 D3D12 同步 / 异步 | **7/7** / **7/7** | `T4-shadows/player-d3d12{,-sync}/`、`player-d3d12-async/` |
+| 64 灯 GPU 时间 | D3D11 stencil 0.634 / clustered **0.362 ms**；D3D12 同步 stencil 1.106 / clustered **0.410 ms**；异步 clustered **0.582 ms** | 对应 `CdPerf.json` |
+| CPU 分解（64 灯） | D3D11 `preSetup` 0.008 + `setupLights` 0.137（灯常量 0.079 + deferred 0.006）→ 列表 ≈ **0.061 ms**；D3D12 同步 ≈ **0.064 ms**；D3D12 异步 ≈ **0.079 ms** | `cpu/d3d11/`、`cpu/d3d12/`、`cpu/d3d12-async/` |
+| EditMode / PlayMode | **490/490**、**38/38** | `tests/G1cEditMode.xml`、`tests/G1cPlayMode.xml` |
+| `.rdc` | D3D12 frame 203（**14.4 MB**）：异步命令列表含上传 + 5 次 dispatch，GBuffer 之后光照 dispatch 经 fence 读结构化 SRV；无校验消息 | `rdc/cluster-list-d3d12_frame203.rdc`、`rdc/Report.json` |
+
+**结论**
+
+- **异步是正确的但在这台 GPU 上是净亏**：同一 player、同一场景，强制 async 对 sync 的 clustered GPU frame time 在 0/8/16/32/48/64 灯全档都高约 **0.11–0.13 ms**（64 灯 0.582 vs 0.449；0 灯 0.341 vs 0.249），CPU 也多约 0.02 ms（fence + 提交）。整张列表本身只有 ~0.05 ms，隐藏不了队列交接成本。因此 `asyncCompute` 默认关闭，保留为可选开关和 parity 证据；256+ 灯若让列表变重，应重新测这个开关。
+- **提交开销**：64 灯列表的 CPU 从 G1b 的 0.173 ms（CPU jobs）/ 0.084 ms（GPU 提交）降到 **~0.061 ms**（D3D11）与 **~0.064 ms**（D3D12 同步），构成是 item 构建 + 5 次 dispatch + 一次上传。
+- **tile AABB 修复带来的真实收益**：arena 的 tile 位图从“每个 item 整屏”降到 229% CPU，D3D11 64 灯 clustered GPU 0.524→0.362 ms（同机跨轮，GPU 时间有 ~10% 波动，只作趋势）；D3D11 T5 的 64 灯聚簇路径也随之下探到 0.36 ms。
+- 仍不覆盖：透明/forward-only、XR、GLES、MSAA、`useStructuredBuffer=true`、GPU 灯注册表；异步收益只在 D3D12 单卡 720p 上量化过。
 
 ## 4. G2：FPTL 精剪
 
@@ -229,7 +265,7 @@ ClusteredDeferred.compute（不改一行）
 | T4 特性矩阵 | player | 主光 cascade / screen shadow / 附加光 atlas / `_RECEIVE_SHADOWS_OFF` / cookie / layers / GTAO 直接光 AO |
 | T5 A/B + 交叉点 | player | stencil vs clustered，0/8/16/32/48/64 灯；A/B 阈值 mean ≤ 2/255、max ≤ 24/255 |
 | CPU 分解 | player | `--cd-cpu`：PreSetup 归零、Stage A/B 时间、其他 slice 不回归 |
-| 异步 / 同步一致性 | player | 两模式缓冲逐位相等；帧序证据 |
+| 异步 / 同步一致性 | player | 两模式缓冲逐位相等（G1c：`parity/player-d3d12/G1BufferParity.json`，0 word / 0 bit）；帧序证据见 `rdc/Report.json` |
 | EditMode/PlayMode 全量 | editor | 既有 485/36 基线不下降 |
 
 **能力边界（本轮仍不覆盖）**：透明/forward-only 灯路径（D-G4）、XR/foveated、GLES、MSAA、native render pass、`useStructuredBuffer=true`、GPU 灯注册表（C8）、mixed lighting-shadowmask 的 baked A/B（11 轮遗留 PARTIAL）。
@@ -267,5 +303,6 @@ ClusteredDeferred.compute（不改一行）
 2. ~~冻结 G1 的灯记录布局（与 `_AdditionalLights*` 常量数组同源，避免两份数据漂移）。~~（§3.4，已落地。）
 3. ~~先写 parity 测试骨架（CPU 输出落盘 → GPU 输出比较），再写 compute；不先调性能。~~（§3.4，已落地；golden 落盘与比较库就绪。）
 4. ~~**G1b**：写 Stage A/B compute（不改 kernel 与布局），先过 parity 再谈异步；第一版可同队列串行，异步只加调度。~~（§3.5，已落地。）
-5. **G1c**：异步重叠 —— `CommandBufferExecutionFlags.AsyncCompute` + fence，与 GBuffer 并行；同步/异步两种模式的位图必须逐位一致。同时在 D3D12 复跑 T5/T4，并补 1 个 `.rdc`（structured 绑定后的新结构）。
-6. **G1 性能收尾**：item 构建（每帧数组 + `GetUniversalAdditionalLightData`）与 dispatch 提交合计约 0.084 ms，先量化能否用缓存的 item 缓冲与更少的 `SetCompute*` 调用压到 0.05 ms 以下；再决定 G2 是否值得做。
+5. ~~**G1c**：异步重叠 —— `CommandBufferExecutionFlags.AsyncCompute` + fence，与 GBuffer 并行；同步/异步两种模式的位图必须逐位一致。同时在 D3D12 复跑 T5/T4，并补 1 个 `.rdc`（structured 绑定后的新结构）。~~（§3.6，已落地；异步逐位一致但在本机净亏 ~0.11–0.13 ms，默认关闭。）
+6. ~~**G1 性能收尾**：item 构建与 dispatch 提交合计约 0.084 ms，先量化能否用缓存的 item 缓冲与更少的 `SetCompute*` 调用压到 0.05 ms 以下；再决定 G2 是否值得做。~~（§3.6：列表 CPU 降到 ~0.061–0.064 ms；G2 的收益需另测，见下一条。）
+7. **G2**：FPTL 细剪。构建时读 tile 深度 min/max，优先复用 GBuffer 后的 `_CameraDepthTexture`（D-G3），只清位不改布局；先量 tile 内灯循环次数与 GPU 时间，再谈紧凑列表。

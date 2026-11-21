@@ -1,0 +1,44 @@
+{
+    "utcTimestamp": "2026-11-21T19:45:48.0320872Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "lightCount": 64,
+    "width": 1280,
+    "height": 720,
+    "sampleFrames": 120,
+    "supportsAsyncCompute": false,
+    "clusterListAsync": false,
+    "completed": true,
+    "error": "",
+    "modes": [
+        {
+            "mode": "StencilDeferred",
+            "frames": 120,
+            "frameCpuMeanMs": 1.8552866666666659,
+            "preSetupMs": 0.00022583333333333334,
+            "setupLightsMs": 0.14305083333333333,
+            "clusterJobsCompleteMs": 0.0,
+            "clusterUploadMs": 0.0,
+            "lightConstantsMs": 0.10442666666666667,
+            "resolveMixedLightingMs": 0.015059999999999999,
+            "deferredSetupLightsMs": 0.011074166666666667,
+            "precomputeLightsMs": 0.0038050000000000004,
+            "otherMs": 1.7120099999999992
+        },
+        {
+            "mode": "ClusteredDeferred",
+            "frames": 120,
+            "frameCpuMeanMs": 0.9757483333333333,
+            "preSetupMs": 0.008369166666666667,
+            "setupLightsMs": 0.13665249999999999,
+            "clusterJobsCompleteMs": 0.00011166666666666667,
+            "clusterUploadMs": 0.0,
+            "lightConstantsMs": 0.07862083333333334,
+            "resolveMixedLightingMs": 0.011316666666666668,
+            "deferredSetupLightsMs": 0.005485833333333333,
+            "precomputeLightsMs": 0.00007166666666666667,
+            "otherMs": 0.8307266666666667
+        }
+    ]
+}
