@@ -1,8 +1,10 @@
 // Resolves the clustered deferred lighting UAV into GBuffer3.
 //
 // A compute dispatch cannot use fixed-function blending, so the kernel writes direct lighting to
-// _CdLightingTexture and this fullscreen pass adds it to the lighting attachment with
-// Blend One One, Zero One (same semantics as the stencil deferred punctual pass).
+// _CdLightingTexture and this fullscreen pass adds it to the lighting attachment. The blend is
+// Blend One SrcAlpha, Zero One: the kernel's alpha is the SrcAlpha factor the stencil deferred
+// path applies to the baked indirect lighting on its first light pass (StencilDeferred.hlsl:286-295),
+// and it is 1 unless screen-space AO needs to cancel baked occlusion.
 Shader "Hidden/Universal/ClusteredDeferredResolve"
 {
     SubShader
@@ -16,7 +18,7 @@ Shader "Hidden/Universal/ClusteredDeferredResolve"
             ZTest Always
             ZWrite Off
             Cull Off
-            Blend One One, Zero One
+            Blend One SrcAlpha, Zero One
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -41,7 +43,7 @@ Shader "Hidden/Universal/ClusteredDeferredResolve"
             half4 Frag(Varyings input) : SV_Target
             {
                 uint2 pixel = (uint2)input.positionCS.xy;
-                return half4(LOAD_TEXTURE2D(_CdLightingTexture, pixel).rgb, 0.0);
+                return LOAD_TEXTURE2D(_CdLightingTexture, pixel);
             }
             ENDHLSL
         }

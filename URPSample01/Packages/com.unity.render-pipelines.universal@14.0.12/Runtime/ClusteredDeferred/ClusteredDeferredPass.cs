@@ -21,6 +21,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int GBuffer0 = Shader.PropertyToID("_GBuffer0");
             public static readonly int GBuffer1 = Shader.PropertyToID("_GBuffer1");
             public static readonly int GBuffer2 = Shader.PropertyToID("_GBuffer2");
+            public static readonly int ShadowMaskTexture = Shader.PropertyToID("_CdShadowMaskTexture");
+            public static readonly int LightLayersTexture = Shader.PropertyToID("_CdLightLayersTexture");
+            public static readonly int BakedShadowMixMode = Shader.PropertyToID("_CdBakedShadowMixMode");
             public static readonly int ScreenSize = Shader.PropertyToID("_ScreenSize");
             public static readonly int CameraPositionWS = Shader.PropertyToID("_CdCameraPositionWS");
             public static readonly int ViewForward = Shader.PropertyToID("_CdViewForward");
@@ -126,6 +129,30 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer1, (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[1]);
                 cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer2, (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[2]);
 
+                // Optional GBuffer slots. The kernel samples them under the same keywords the
+                // deferred path uses (_DEFERRED_MIXED_LIGHTING / _LIGHT_LAYERS); those globals are
+                // enabled by DeferredLights.Setup before this pass, except the mixed-lighting
+                // keyword, which the stencil path sets around ExecuteDeferredPass.
+                var shadowMaskIndex = m_DeferredLights.GBufferShadowMask;
+                if (shadowMaskIndex >= 0)
+                    cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.ShadowMaskTexture,
+                        (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[shadowMaskIndex]);
+                var lightLayersIndex = m_DeferredLights.GBufferRenderingLayers;
+                if (lightLayersIndex >= 0)
+                    cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.LightLayersTexture,
+                        (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[lightLayersIndex]);
+
+                // Shadows.hlsl picks min-lerp for subtractive and "shadowmask always" mode and a
+                // plain fade lerp for distance shadowmask; the kernel has no per-material keyword,
+                // so the mode is a uniform.
+                var mixedSetup = m_DeferredLights.MixedLightingSetup;
+                var mixMode = mixedSetup == MixedLightingSetup.Subtractive ||
+                    (mixedSetup == MixedLightingSetup.ShadowMask &&
+                     QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask)
+                    ? 1.0f
+                    : 0.0f;
+                cmd.SetComputeFloatParam(m_Compute, ShaderIDs.BakedShadowMixMode, mixMode);
+
                 var camera = cameraData.camera;
                 cmd.SetComputeVectorParam(m_Compute, ShaderIDs.ScreenSize,
                     new Vector4(width, height, 1.0f / width, 1.0f / height));
@@ -134,10 +161,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetComputeVectorParam(m_Compute, ShaderIDs.CameraParams,
                     new Vector4(camera.orthographic ? 0.0f : 1.0f, 0.0f, 0.0f, 0.0f));
 
+                // The stencil path enables this around ExecuteDeferredPass (DeferredLights.cs:581);
+                // the clustered path replaces that pass, so it must set the same keyword itself.
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, m_DeferredLights.UseShadowMask);
                 cmd.DispatchCompute(m_Compute, m_Kernel,
                     (width + k_ThreadGroupSize - 1) / k_ThreadGroupSize,
                     (height + k_ThreadGroupSize - 1) / k_ThreadGroupSize,
                     1);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, false);
 
                 // 3) Add the direct lighting into GBuffer3.
                 cmd.SetGlobalTexture(ShaderIDs.LightingTexture, m_LightingTexture);

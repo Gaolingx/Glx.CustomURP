@@ -7,13 +7,17 @@
 //
 // Shadows are the T4 shadow subset: main light (cascade or screen space) and additional-light
 // atlas shadows, disabled per pixel by the GBuffer receive-shadows-off flag. Cookies, light
-// layers, mixed lighting/shadowmask and screen-space AO are not wired up yet.
+// layers, mixed lighting/shadowmask and screen-space AO are the rest of T4.
 #pragma kernel ClusteredDeferred
 
 #pragma multi_compile _ _GBUFFER_NORMALS_OCT
 #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
 #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
 #pragma multi_compile _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+#pragma multi_compile _ _LIGHT_COOKIES
+#pragma multi_compile _ _LIGHT_LAYERS
+#pragma multi_compile _ _SCREEN_SPACE_OCCLUSION
+#pragma multi_compile _ _DEFERRED_MIXED_LIGHTING
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ClusteredDeferred.hlsl"
 
@@ -52,18 +56,36 @@ void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     uint materialFlags = CdUnpackMaterialFlags(gbuffer0.a);
     bool receiveShadowsOff = (materialFlags & CD_FLAG_RECEIVE_SHADOWS_OFF) != 0;
-    // Mixed lighting/shadowmask is not part of the shadow subset yet.
-    const half4 shadowMask = half4(1.0, 1.0, 1.0, 1.0);
+    // Subtractive-mixed geometry is already lit by the bake; stencil deferred skips mixed lights
+    // for it (StencilDeferred.hlsl:256-260). The flag can only be set when mixed lighting is on.
+    bool subtractiveMaterial = (materialFlags & CD_FLAG_SUBTRACTIVE_MIXED_LIGHTING) != 0;
+
+    // GBuffer shadowmask/probes-occlusion slot, written when the deferred path runs mixed lighting.
+    half4 shadowMask = half4(1.0, 1.0, 1.0, 1.0);
+#if defined(_DEFERRED_MIXED_LIGHTING)
+    shadowMask = LOAD_TEXTURE2D(_CdShadowMaskTexture, pixel);
+#endif
+
+#if defined(_LIGHT_LAYERS)
+    uint meshRenderingLayers = CdDecodeMeshRenderingLayer(LOAD_TEXTURE2D(_CdLightLayersTexture, pixel).r);
+#endif
 
     half3 color = 0.0.xxx;
 
-    CdLight mainLight = CdMainLight();
-    if (!receiveShadowsOff)
+    CdLight mainLight = CdMainLight(positionWS);
+    bool mainLightCulled = mainLight.subtractiveMixed && subtractiveMaterial;
+#if defined(_LIGHT_LAYERS)
+    mainLightCulled = mainLightCulled || !IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers);
+#endif
+    if (!mainLightCulled)
     {
-        float4 shadowCoord = CdTransformWorldToShadowCoord(positionWS, uv);
-        mainLight.shadowAttenuation = CdMainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
+        if (!receiveShadowsOff)
+        {
+            float4 shadowCoord = CdTransformWorldToShadowCoord(positionWS, uv);
+            mainLight.shadowAttenuation = CdMainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
+        }
+        color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, mainLight, inputData);
     }
-    color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, mainLight, inputData);
 
     // Additional directional lights are not part of the cluster list; Forward+ loops them first
     // (Lighting.hlsl:463-483) and the cluster indices are offset by their count.
@@ -72,6 +94,13 @@ void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
         directionalIndex++)
     {
         CdLight light = CdGetAdditionalLight(directionalIndex, positionWS);
+        bool culled = light.subtractiveMixed && subtractiveMaterial;
+#if defined(_LIGHT_LAYERS)
+        culled = culled || !IsMatchingLightLayer(light.layerMask, meshRenderingLayers);
+#endif
+        if (culled)
+            continue;
+
         if (!receiveShadowsOff)
             light.shadowAttenuation = CdAdditionalLightShadow(directionalIndex, positionWS, light.direction, shadowMask, _AdditionalLightsOcclusionProbes[directionalIndex]);
         color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, light, inputData);
@@ -86,10 +115,22 @@ void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
             continue;
 
         CdLight light = CdGetAdditionalLight(lightIndex, positionWS);
+        bool culled = light.subtractiveMixed && subtractiveMaterial;
+#if defined(_LIGHT_LAYERS)
+        culled = culled || !IsMatchingLightLayer(light.layerMask, meshRenderingLayers);
+#endif
+        if (culled)
+            continue;
+
         if (!receiveShadowsOff)
             light.shadowAttenuation = CdAdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, _AdditionalLightsOcclusionProbes[lightIndex]);
         color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, light, inputData);
     }
 
-    _CdLightingTextureRW[pixel] = float4(color, 1.0);
+    // GTAO darkens direct lighting only (StencilDeferred.hlsl:286-288). It is a single per-pixel
+    // factor, so applying it to the accumulated sum is the same as per-light multiplication.
+    color *= CdDirectAmbientOcclusion(uv);
+
+    // Alpha carries the SrcAlpha factor the resolve applies to the baked indirect in GBuffer3.
+    _CdLightingTextureRW[pixel] = float4(color, CdIndirectAmbientOcclusionCancel(uv, gbuffer1.a));
 }

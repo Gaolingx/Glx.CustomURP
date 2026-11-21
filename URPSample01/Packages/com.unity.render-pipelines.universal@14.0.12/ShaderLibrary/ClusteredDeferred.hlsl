@@ -97,9 +97,26 @@ CBUFFER_START(AdditionalLights)
 CBUFFER_END
 
 float4 _MainLightPosition;
-half4 _MainLightColor;
+half4 _MainLightColor;   // .w: 0 when the main light uses subtractive mixed lighting
 uint _MainLightLayerMask;
 half4 _MainLightOcclusionProbes;
+
+// ----------------------------------------------------------------------------
+// Optional per-pixel inputs. The pass binds the layer/shadowmask targets only when
+// the matching URP feature is active; keywords keep the samples out of other variants.
+// ----------------------------------------------------------------------------
+
+TEXTURE2D(_CdLightLayersTexture);    // GBuffer rendering-layer slot, _LIGHT_LAYERS
+TEXTURE2D(_CdShadowMaskTexture);     // GBuffer shadowmask/probes slot, _DEFERRED_MIXED_LIGHTING
+
+TEXTURE2D(_ScreenSpaceOcclusionTexture);
+SAMPLER(sampler_ScreenSpaceOcclusionTexture);
+float4 _AmbientOcclusionParam;       // x: intensity, w: direct-lighting strength
+float _CdBakedShadowMixMode;         // 0 = distance shadowmask lerp, 1 = LIGHTMAP_SHADOW_MIXING min-lerp
+
+// RenderingLayerUtils.SetupProperties globals (Input.hlsl:114).
+uint _RenderingLayerMaxInt;
+float _RenderingLayerRcpMaxInt;
 
 // ----------------------------------------------------------------------------
 // Shadows (Shadows.hlsl subset). The layout must match the globals URP uploads;
@@ -380,16 +397,33 @@ half CdAdditionalLightShadowFade(float3 positionWS)
 #endif
 }
 
+// Shadowmask mixing. The deferred path turns baked shadows on with _DEFERRED_MIXED_LIGHTING
+// (Shadows.hlsl derives CALCULATE_BAKED_SHADOWS from LIGHTMAP_SHADOW_MIXING/SHADOWS_SHADOWMASK,
+// which C# always enables together with the deferred keyword). Distance shadowmask lerps to the
+// baked value with the fade; "shadowmask always" and subtractive use Shadows.hlsl's min-lerp.
+half CdBakedShadow(half4 shadowMask, half4 occlusionProbeChannels)
+{
+    return half(1.0) + dot(shadowMask - half(1.0), occlusionProbeChannels);
+}
+
 half CdMixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shadowFade)
 {
+#if defined(_DEFERRED_MIXED_LIGHTING)
+    UNITY_BRANCH
+    if (_CdBakedShadowMixMode > 0.5)
+        return min(lerp(realtimeShadow, half(1.0), shadowFade), bakedShadow);
+#endif
     return lerp(realtimeShadow, bakedShadow, shadowFade);
 }
 
 half CdMainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)
 {
     half realtimeShadow = CdMainLightRealtimeShadow(shadowCoord);
-    // Mixed lighting/shadowmask is not part of the shadow subset yet: baked term stays white.
-    const half bakedShadow = half(1.0);
+#if defined(_DEFERRED_MIXED_LIGHTING)
+    half bakedShadow = CdBakedShadow(shadowMask, occlusionProbeChannels);
+#else
+    half bakedShadow = half(1.0);
+#endif
 #ifdef CD_MAIN_LIGHT_CALCULATE_SHADOWS
     half shadowFade = CdMainLightShadowFade(positionWS);
 #else
@@ -401,13 +435,157 @@ half CdMainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, 
 half CdAdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels)
 {
     half realtimeShadow = CdAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection);
-    const half bakedShadow = half(1.0);
+#if defined(_DEFERRED_MIXED_LIGHTING)
+    half bakedShadow = CdBakedShadow(shadowMask, occlusionProbeChannels);
+#else
+    half bakedShadow = half(1.0);
+#endif
 #ifdef CD_ADDITIONAL_LIGHT_CALCULATE_SHADOWS
     half shadowFade = CdAdditionalLightShadowFade(positionWS);
 #else
     half shadowFade = half(1.0);
 #endif
     return CdMixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
+}
+
+// ----------------------------------------------------------------------------
+// Light cookies (LightCookie.hlsl subset). LightCookie.hlsl itself includes Input.hlsl;
+// these are the same functions with the compute-safe texture declarations above and
+// explicit LOD 0 samples (implicit-LOD Sample() does not map to compute).
+// ----------------------------------------------------------------------------
+
+#if defined(_LIGHT_COOKIES)
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookieTypes.hlsl"
+
+TEXTURE2D(_MainLightCookieTexture);
+TEXTURE2D(_AdditionalLightsCookieAtlasTexture);
+SAMPLER(sampler_MainLightCookieTexture);
+
+CBUFFER_START(LightCookies)
+    float4x4 _MainLightWorldToLight;
+    float _AdditionalLightsCookieEnableBits[(CD_MAX_VISIBLE_LIGHTS + 31) / 32];
+    float _MainLightCookieTextureFormat;
+    float _AdditionalLightsCookieAtlasTextureFormat;
+    float4x4 _AdditionalLightsWorldToLights[CD_MAX_VISIBLE_LIGHTS];
+    float4 _AdditionalLightsCookieAtlasUVRects[CD_MAX_VISIBLE_LIGHTS];
+    float _AdditionalLightsLightTypes[CD_MAX_VISIBLE_LIGHTS];
+CBUFFER_END
+
+float2 CdComputeLightCookieUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect, uint2 uvWrap)
+{
+    float2 positionLS = mul(worldToLight, float4(samplePositionWS, 1)).xy;
+    float2 positionUV = positionLS * 0.5 + 0.5;
+
+    positionUV.x = (uvWrap.x == URP_TEXTURE_WRAP_MODE_REPEAT) ? frac(positionUV.x) : positionUV.x;
+    positionUV.y = (uvWrap.y == URP_TEXTURE_WRAP_MODE_REPEAT) ? frac(positionUV.y) : positionUV.y;
+    positionUV.x = (uvWrap.x == URP_TEXTURE_WRAP_MODE_CLAMP) ? saturate(positionUV.x) : positionUV.x;
+    positionUV.y = (uvWrap.y == URP_TEXTURE_WRAP_MODE_CLAMP) ? saturate(positionUV.y) : positionUV.y;
+
+    return atlasUVRect.xy * positionUV + atlasUVRect.zw;
+}
+
+float2 CdComputeLightCookieUVSpot(float4x4 worldToLightPerspective, float3 samplePositionWS, float4 atlasUVRect)
+{
+    float4 positionCS = mul(worldToLightPerspective, float4(samplePositionWS, 1));
+    float2 positionNDC = positionCS.xy / positionCS.w;
+    float2 positionUV = saturate(positionNDC * 0.5 + 0.5);
+    return atlasUVRect.xy * positionUV + atlasUVRect.zw;
+}
+
+float2 CdComputeLightCookieUVPoint(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect)
+{
+    float4 positionLS = mul(worldToLight, float4(samplePositionWS, 1));
+    float3 sampleDirLS = normalize(positionLS.xyz / positionLS.w);
+    float2 positionUV = saturate(PackNormalOctQuadEncode(sampleDirLS) * 0.5 + 0.5);
+    return atlasUVRect.xy * positionUV + atlasUVRect.zw;
+}
+
+bool CdIsMainLightCookieEnabled()
+{
+    return _MainLightCookieTextureFormat != URP_LIGHT_COOKIE_FORMAT_NONE;
+}
+
+bool CdIsAdditionalLightCookieEnabled(uint lightIndex)
+{
+    uint elemIndex = lightIndex >> 5;
+    uint bitOffset = lightIndex & 31u;
+    return (asuint(_AdditionalLightsCookieEnableBits[elemIndex]) & (1u << bitOffset)) != 0u;
+}
+
+real3 CdSampleMainLightCookie(float3 samplePositionWS)
+{
+    if (!CdIsMainLightCookieEnabled())
+        return real3(1.0, 1.0, 1.0);
+
+    float2 uv = CdComputeLightCookieUVDirectional(_MainLightWorldToLight, samplePositionWS,
+        float4(1, 1, 0, 0), uint2(URP_TEXTURE_WRAP_MODE_NONE, URP_TEXTURE_WRAP_MODE_NONE));
+    real4 color = SAMPLE_TEXTURE2D_LOD(_MainLightCookieTexture, sampler_MainLightCookieTexture, uv, 0);
+
+    return _MainLightCookieTextureFormat == URP_LIGHT_COOKIE_FORMAT_RGB ? color.rgb
+         : _MainLightCookieTextureFormat == URP_LIGHT_COOKIE_FORMAT_ALPHA ? color.aaa
+         : color.rrr;
+}
+
+real3 CdSampleAdditionalLightCookie(uint lightIndex, float3 samplePositionWS)
+{
+    if (!CdIsAdditionalLightCookieEnabled(lightIndex))
+        return real3(1.0, 1.0, 1.0);
+
+    int lightType = (int)_AdditionalLightsLightTypes[lightIndex];
+    float4x4 worldToLight = _AdditionalLightsWorldToLights[lightIndex];
+    float4 uvRect = _AdditionalLightsCookieAtlasUVRects[lightIndex];
+
+    float2 uv;
+    if (lightType == URP_LIGHT_TYPE_SPOT)
+        uv = CdComputeLightCookieUVSpot(worldToLight, samplePositionWS, uvRect);
+    else if (lightType == URP_LIGHT_TYPE_DIRECTIONAL)
+        uv = CdComputeLightCookieUVDirectional(worldToLight, samplePositionWS, uvRect,
+            uint2(URP_TEXTURE_WRAP_MODE_REPEAT, URP_TEXTURE_WRAP_MODE_REPEAT));
+    else
+        uv = CdComputeLightCookieUVPoint(worldToLight, samplePositionWS, uvRect);
+
+    real4 color = SAMPLE_TEXTURE2D_LOD(_AdditionalLightsCookieAtlasTexture, sampler_LinearClamp, uv, 0);
+
+    return _AdditionalLightsCookieAtlasTextureFormat == URP_LIGHT_COOKIE_FORMAT_RGB ? color.rgb
+         : _AdditionalLightsCookieAtlasTextureFormat == URP_LIGHT_COOKIE_FORMAT_ALPHA ? color.aaa
+         : color.rrr;
+}
+#endif // _LIGHT_COOKIES
+
+// ----------------------------------------------------------------------------
+// Rendering layers and screen-space AO.
+// ----------------------------------------------------------------------------
+
+uint CdDecodeMeshRenderingLayer(float renderingLayer)
+{
+    return (uint)(renderingLayer * _RenderingLayerMaxInt + 0.5);
+}
+
+half CdDirectAmbientOcclusion(float2 normalizedScreenSpaceUV)
+{
+#if defined(_SCREEN_SPACE_OCCLUSION)
+    float ssao = saturate(SAMPLE_TEXTURE2D_LOD(_ScreenSpaceOcclusionTexture, sampler_ScreenSpaceOcclusionTexture,
+        normalizedScreenSpaceUV, 0).x + (1.0 - _AmbientOcclusionParam.x));
+    return half(lerp(half(1.0), half(ssao), _AmbientOcclusionParam.w));
+#else
+    return half(1.0);
+#endif
+}
+
+// The stencil path does not apply AO to indirect lighting directly; it cancels the baked
+// occlusion the GBuffer already applied and substitutes the min(baked, screen-space) value
+// with SrcAlpha blending on the first light pass (StencilDeferred.hlsl:286-295). The clustered
+// resolve reproduces the same multiply on GBuffer3, so the kernel only has to emit the factor.
+half CdIndirectAmbientOcclusionCancel(float2 normalizedScreenSpaceUV, half surfaceOcclusion)
+{
+#if defined(_SCREEN_SPACE_OCCLUSION)
+    float ssao = saturate(SAMPLE_TEXTURE2D_LOD(_ScreenSpaceOcclusionTexture, sampler_ScreenSpaceOcclusionTexture,
+        normalizedScreenSpaceUV, 0).x + (1.0 - _AmbientOcclusionParam.x));
+    // rcp is guarded by the comparison: surfaceOcclusion == 0 takes the else branch.
+    return ssao < surfaceOcclusion ? half(ssao * rcp(surfaceOcclusion)) : half(1.0);
+#else
+    return half(1.0);
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -567,6 +745,7 @@ struct CdLight
     float distanceAttenuation;
     half shadowAttenuation;
     uint layerMask;
+    bool subtractiveMixed; // light is baked-mixed/subtractive; stencil deferred skips it on subtractive materials
 };
 
 float CdDistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
@@ -589,7 +768,8 @@ half CdAngleAttenuation(half3 spotDirection, half3 lightDirection, half2 spotAtt
 CdLight CdGetAdditionalLight(uint lightIndex, float3 positionWS)
 {
     float4 lightPositionWS = _AdditionalLightsPosition[lightIndex];
-    half3 color = _AdditionalLightsColor[lightIndex].rgb;
+    half4 lightColor = _AdditionalLightsColor[lightIndex];
+    half3 color = lightColor.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[lightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[lightIndex];
     uint lightLayerMask = asuint(_AdditionalLightsLayerMasks[lightIndex]);
@@ -602,16 +782,22 @@ CdLight CdGetAdditionalLight(uint lightIndex, float3 positionWS)
     float attenuation = CdDistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) *
                         CdAngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
 
+#if defined(_LIGHT_COOKIES)
+    color *= half3(CdSampleAdditionalLightCookie(lightIndex, positionWS));
+#endif
+
     CdLight light;
     light.direction = lightDirection;
     light.distanceAttenuation = attenuation;
     light.shadowAttenuation = 1.0;
     light.color = color;
     light.layerMask = lightLayerMask;
+    // ForwardLights writes the subtractive flag into the color alpha (1 = subtractive light).
+    light.subtractiveMixed = lightColor.w > 0.5;
     return light;
 }
 
-CdLight CdMainLight()
+CdLight CdMainLight(float3 positionWS)
 {
     CdLight light;
     light.direction = half3(_MainLightPosition.xyz);
@@ -619,6 +805,11 @@ CdLight CdMainLight()
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
     light.layerMask = _MainLightLayerMask;
+    // ForwardLights writes 0 into the main-light color alpha for subtractive mixed lighting.
+    light.subtractiveMixed = _MainLightColor.w < 0.5;
+#if defined(_LIGHT_COOKIES)
+    light.color *= half3(CdSampleMainLightCookie(positionWS));
+#endif
     return light;
 }
 
