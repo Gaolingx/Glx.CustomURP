@@ -1,0 +1,287 @@
+{
+    "utcTimestamp": "2026-11-21T19:05:14.0532831Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D12",
+    "graphicsDeviceVersion": "Direct3D 12 [level 12.1]",
+    "supportsComputeShaders": true,
+    "width": 1280,
+    "height": 720,
+    "warmupFrames": 40,
+    "sampleFrames": 150,
+    "lightCounts": [
+        0,
+        8,
+        16,
+        32,
+        48,
+        64
+    ],
+    "screenshotLightCount": 48,
+    "captureOnly": false,
+    "completed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "StencilDeferred",
+            "samples": [
+                {
+                    "lightCount": 0,
+                    "cpuSamples": 150,
+                    "gpuSamples": 121,
+                    "cpuMeanMs": 0.9327379999999997,
+                    "cpuMedianMs": 0.887,
+                    "cpuP95Ms": 1.2914,
+                    "gpuMeanMs": 0.287644561983471,
+                    "gpuMedianMs": 0.253184,
+                    "gpuP95Ms": 0.50944,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 8,
+                    "cpuSamples": 150,
+                    "gpuSamples": 117,
+                    "cpuMeanMs": 0.9991766666666674,
+                    "cpuMedianMs": 0.9922,
+                    "cpuP95Ms": 1.396,
+                    "gpuMeanMs": 0.3527242393162393,
+                    "gpuMedianMs": 0.32256,
+                    "gpuP95Ms": 0.56192,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 16,
+                    "cpuSamples": 150,
+                    "gpuSamples": 131,
+                    "cpuMeanMs": 1.2301353333333334,
+                    "cpuMedianMs": 1.1858,
+                    "cpuP95Ms": 1.6611,
+                    "gpuMeanMs": 0.4847682442748089,
+                    "gpuMedianMs": 0.460288,
+                    "gpuP95Ms": 0.683264,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 32,
+                    "cpuSamples": 150,
+                    "gpuSamples": 137,
+                    "cpuMeanMs": 1.447815333333333,
+                    "cpuMedianMs": 1.3914,
+                    "cpuP95Ms": 1.9932,
+                    "gpuMeanMs": 0.7357178394160581,
+                    "gpuMedianMs": 0.700416,
+                    "gpuP95Ms": 1.037312,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 48,
+                    "cpuSamples": 150,
+                    "gpuSamples": 141,
+                    "cpuMeanMs": 1.8544500000000007,
+                    "cpuMedianMs": 1.8036,
+                    "cpuP95Ms": 2.5177,
+                    "gpuMeanMs": 1.0207754893617019,
+                    "gpuMedianMs": 0.98944,
+                    "gpuP95Ms": 1.38624,
+                    "screenshotFile": "StencilDeferred_L48.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 64,
+                    "cpuSamples": 150,
+                    "gpuSamples": 148,
+                    "cpuMeanMs": 2.0106713333333334,
+                    "cpuMedianMs": 1.9832,
+                    "cpuP95Ms": 2.7529,
+                    "gpuMeanMs": 1.2173734054054053,
+                    "gpuMedianMs": 1.171968,
+                    "gpuP95Ms": 1.657088,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                }
+            ]
+        },
+        {
+            "name": "ClusteredDeferred",
+            "samples": [
+                {
+                    "lightCount": 0,
+                    "cpuSamples": 150,
+                    "gpuSamples": 120,
+                    "cpuMeanMs": 0.8917220000000001,
+                    "cpuMedianMs": 0.8834,
+                    "cpuP95Ms": 1.1188,
+                    "gpuMeanMs": 0.3175744000000001,
+                    "gpuMedianMs": 0.289792,
+                    "gpuP95Ms": 0.524288,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 8,
+                    "cpuSamples": 150,
+                    "gpuSamples": 119,
+                    "cpuMeanMs": 1.0303540000000003,
+                    "cpuMedianMs": 0.9982,
+                    "cpuP95Ms": 1.3553,
+                    "gpuMeanMs": 0.35233989915966376,
+                    "gpuMedianMs": 0.322816,
+                    "gpuP95Ms": 0.546816,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 16,
+                    "cpuSamples": 150,
+                    "gpuSamples": 120,
+                    "cpuMeanMs": 1.0138946666666669,
+                    "cpuMedianMs": 0.992,
+                    "cpuP95Ms": 1.3412,
+                    "gpuMeanMs": 0.3687424000000001,
+                    "gpuMedianMs": 0.350464,
+                    "gpuP95Ms": 0.528128,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 32,
+                    "cpuSamples": 150,
+                    "gpuSamples": 122,
+                    "cpuMeanMs": 1.0915193333333336,
+                    "cpuMedianMs": 1.0576,
+                    "cpuP95Ms": 1.527,
+                    "gpuMeanMs": 0.4257909508196722,
+                    "gpuMedianMs": 0.419328,
+                    "gpuP95Ms": 0.558592,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 48,
+                    "cpuSamples": 150,
+                    "gpuSamples": 123,
+                    "cpuMeanMs": 1.1323673333333333,
+                    "cpuMedianMs": 1.1125,
+                    "cpuP95Ms": 1.5939,
+                    "gpuMeanMs": 0.49815518699187019,
+                    "gpuMedianMs": 0.478464,
+                    "gpuP95Ms": 0.747008,
+                    "screenshotFile": "ClusteredDeferred_L48.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 64,
+                    "cpuSamples": 150,
+                    "gpuSamples": 119,
+                    "cpuMeanMs": 1.133311333333334,
+                    "cpuMedianMs": 1.1194,
+                    "cpuP95Ms": 1.555,
+                    "gpuMeanMs": 0.549365243697479,
+                    "gpuMedianMs": 0.541184,
+                    "gpuP95Ms": 0.701696,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                }
+            ]
+        },
+        {
+            "name": "ForwardPlus",
+            "samples": [
+                {
+                    "lightCount": 0,
+                    "cpuSamples": 150,
+                    "gpuSamples": 117,
+                    "cpuMeanMs": 1.2902813333333332,
+                    "cpuMedianMs": 1.2122,
+                    "cpuP95Ms": 2.0117,
+                    "gpuMeanMs": 0.5156233846153844,
+                    "gpuMedianMs": 0.431104,
+                    "gpuP95Ms": 1.001984,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 8,
+                    "cpuSamples": 150,
+                    "gpuSamples": 125,
+                    "cpuMeanMs": 1.1505660000000003,
+                    "cpuMedianMs": 1.1025,
+                    "cpuP95Ms": 1.6252,
+                    "gpuMeanMs": 0.49886617599999996,
+                    "gpuMedianMs": 0.42752,
+                    "gpuP95Ms": 0.938496,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 16,
+                    "cpuSamples": 150,
+                    "gpuSamples": 129,
+                    "cpuMeanMs": 1.4083359999999999,
+                    "cpuMedianMs": 1.3976,
+                    "cpuP95Ms": 1.8694,
+                    "gpuMeanMs": 0.49393513178294559,
+                    "gpuMedianMs": 0.453888,
+                    "gpuP95Ms": 0.779776,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 32,
+                    "cpuSamples": 150,
+                    "gpuSamples": 123,
+                    "cpuMeanMs": 1.5533679999999999,
+                    "cpuMedianMs": 1.5119,
+                    "cpuP95Ms": 2.0049,
+                    "gpuMeanMs": 0.5495674796747968,
+                    "gpuMedianMs": 0.49664,
+                    "gpuP95Ms": 0.914176,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 48,
+                    "cpuSamples": 150,
+                    "gpuSamples": 131,
+                    "cpuMeanMs": 1.3650986666666667,
+                    "cpuMedianMs": 1.3266,
+                    "cpuP95Ms": 1.7835,
+                    "gpuMeanMs": 0.5415904732824426,
+                    "gpuMedianMs": 0.485632,
+                    "gpuP95Ms": 0.886016,
+                    "screenshotFile": "ForwardPlus_L48.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "lightCount": 64,
+                    "cpuSamples": 150,
+                    "gpuSamples": 127,
+                    "cpuMeanMs": 1.515441333333333,
+                    "cpuMedianMs": 1.4697,
+                    "cpuP95Ms": 1.9942,
+                    "gpuMeanMs": 0.5873506771653544,
+                    "gpuMedianMs": 0.5312,
+                    "gpuP95Ms": 0.920832,
+                    "screenshotFile": "",
+                    "magentaPixelFraction": 0.0
+                }
+            ]
+        }
+    ],
+    "diffs": [
+        {
+            "lightCount": 48,
+            "pixels": 921600,
+            "meanChannelDiff": 0.8256094473379629,
+            "meanChannelDiffNormalized": 0.003237684107207698,
+            "maxChannelDiff": 9,
+            "pixelsOverThreshold": 11,
+            "pixelsOverThresholdFraction": 0.00001193576388888889,
+            "passed": true
+        }
+    ]
+}

@@ -192,6 +192,7 @@ ClusteredDeferred.compute（不改一行）
 | 像素 | GPU 列表帧与 CPU 列表帧 **逐位相同**（max diff 0） |
 | T5 A/B（48 灯） | mean **0.7989/255**、max **9**、>8 差 11 px，`passed=true` |
 | T4 特性矩阵 | **7/7 passed**（stencil vs clustered on：mean 0.020–0.969、max 3–10） |
+| D3D12 T5 A/B | mean **0.8256/255**、max **9**、>8 差 11 px，`passed=true`；64 灯 stencil 2.011/1.217 ms、clustered **1.133/0.549 ms**（CPU/GPU） |
 | CPU 分解（64 灯） | `preSetup` 0.051→**0.015**、jobs complete 0.110→**0.000**、上传 0.012→**0.000**、`setupLights` 0.148→**0.232**（新增 item 构建 + 5 次 dispatch 提交）；净省约 **0.09 ms/帧** |
 | EditMode / PlayMode | **490/490**、**38/38**（新增 GPU parity 用例） |
 

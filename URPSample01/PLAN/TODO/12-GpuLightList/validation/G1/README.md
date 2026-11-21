@@ -88,6 +88,7 @@ OUT="$P/PLAN/TODO/12-GpuLightList/validation/G1"
 | 像素 | GPU 列表帧 vs CPU 列表帧 **max diff 0** | 同上 |
 | T5 A/B（48 灯） | mean **0.7989/255**、max **9**、>8 差 11 px，`passed=true` | `T5-runtime/player-d3d11/CdPerf.json` |
 | T4 特性矩阵 | **7/7 passed** | `T4-shadows/player-d3d11/T4FeatureMatrix.json` |
+| D3D12 T5 A/B（48 灯） | mean **0.8256/255**、max **9**、>8 差 11 px，`passed=true`；64 灯 stencil 2.011/1.217 ms、clustered 1.133/0.549 ms | `T5-runtime/player-d3d12/CdPerf.json` |
 | CPU 分解（64 灯） | `preSetup` 0.051→**0.015**、jobs 0.110→**0.000**、上传 0.012→**0.000**、`setupLights` 0.148→**0.232** | `cpu/CdCpuBreakdown.json` |
 | EditMode / PlayMode | **490/490**、**38/38** | `tests/G1EditMode.xml`、`tests/G1PlayMode.xml` |
 
@@ -95,7 +96,8 @@ T5 64 灯（D3D11）：stencil CPU 1.665 / GPU 0.765 ms；clustered CPU 1.175 / 
 
 ### B.4 未证明
 
-- D3D12 的 T5/T4 复跑；异步 compute 与 GBuffer 重叠（G1c）及其 fence 证据。
+- D3D12 的 T4 特性矩阵；parity 用例只在编辑器内跑（player 内的 CPU/GPU 位图对拍尚未接入 runner）。
+- 异步 compute 与 GBuffer 重叠（G1c）及其 fence 证据。
 - 1 个新的 `.rdc`：绑定已从 constant 改为 structured，旧抓帧不再是当前结构参考。
 - 端到端帧时间不升的正式 A/B（同一 player 内 GPU 列表 vs CPU 列表的帧时间对比）；当前只有 CPU 分解与 GPU 时间。
 - CPU 侧 item 构建 + dispatch 提交约 0.084 ms，尚未优化。
