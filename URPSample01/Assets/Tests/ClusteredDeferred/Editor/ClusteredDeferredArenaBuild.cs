@@ -89,6 +89,7 @@ public static class ClusteredDeferredArenaBuild
                     "Assets/Tests/ClusteredDeferred/Renderers/CdShadowStencilDeferredPipeline.asset",
                     "Assets/Tests/ClusteredDeferred/Renderers/CdShadowClusteredDeferredPipeline.asset",
                     "Assets/Tests/ClusteredDeferred/Renderers/CdScreenShadowStencilDeferredPipeline.asset",
+                    "Assets/Tests/ClusteredDeferred/Renderers/CdFeatureStencilDeferredPipeline.asset",
                 }
                 : new[]
                 {
@@ -112,9 +113,9 @@ public static class ClusteredDeferredArenaBuild
 
             QualitySettings.SetQualityLevel(previousQualityLevel, true);
             // URP's shader prefiltering is driven by the active (default) pipeline asset and its
-            // renderer features. The T4 build needs the screen-space shadow feature to keep the
-            // _MAIN_LIGHT_SHADOWS_SCREEN variant, so the screen pipeline is the active asset.
-            GraphicsSettings.defaultRenderPipeline = t4 ? pipelines[2] : pipelines[0];
+            // renderer features. The T4 build needs the screen-space shadow, GTAO and light-layer
+            // variants, so the feature pipeline (both features attached) is the active asset.
+            GraphicsSettings.defaultRenderPipeline = t4 ? pipelines[pipelines.Length - 1] : pipelines[0];
 
             report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {

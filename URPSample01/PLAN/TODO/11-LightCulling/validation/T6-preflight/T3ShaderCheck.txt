@@ -1,5 +1,5 @@
 Clustered deferred shader check
-utc: 2026-11-21T10:42:02.5301372Z
+utc: 2026-11-21T16:50:23.4447849Z
 unity: 2022.3.62f1
 graphics API: Direct3D11
 

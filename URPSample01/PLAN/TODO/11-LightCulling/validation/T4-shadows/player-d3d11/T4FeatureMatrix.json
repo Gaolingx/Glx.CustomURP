@@ -1,9 +1,10 @@
 {
-    "utcTimestamp": "2026-11-21T14:04:28.1657537Z",
+    "utcTimestamp": "2026-11-21T16:52:58.4500682Z",
     "unityVersion": "2022.3.62f1",
     "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
     "graphicsDeviceType": "Direct3D11",
     "graphicsDeviceVersion": "Direct3D 11.0 [level 11.1]",
+    "error": "",
     "entries": [
         {
             "feature": "MainShadowCascade",
@@ -35,28 +36,28 @@
                 {
                     "name": "stencil_vs_clustered_on",
                     "pixels": 921600,
-                    "meanChannelDiff": 0.9479586226851852,
-                    "meanChannelDiffNormalized": 0.0037174847948438637,
-                    "maxChannelDiff": 10,
-                    "pixelsOverThreshold": 4,
-                    "pixelsOverThresholdFraction": 0.000004340277777777778,
+                    "meanChannelDiff": 0.9396827980324074,
+                    "meanChannelDiffNormalized": 0.003685030580519245,
+                    "maxChannelDiff": 8,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
                     "passed": true
                 },
                 {
                     "name": "stencil_vs_clustered_off",
                     "pixels": 921600,
-                    "meanChannelDiff": 0.9619864004629629,
-                    "meanChannelDiffNormalized": 0.0037724956880900507,
-                    "maxChannelDiff": 10,
-                    "pixelsOverThreshold": 4,
-                    "pixelsOverThresholdFraction": 0.000004340277777777778,
+                    "meanChannelDiff": 0.9532298900462963,
+                    "meanChannelDiffNormalized": 0.003738156431554103,
+                    "maxChannelDiff": 8,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
                     "passed": true
                 },
                 {
                     "name": "clustered_feature_effect",
                     "pixels": 921600,
-                    "meanChannelDiff": 0.4451396122685185,
-                    "meanChannelDiffNormalized": 0.0017456455383079158,
+                    "meanChannelDiff": 0.44513888888888888,
+                    "meanChannelDiffNormalized": 0.0017456427015250544,
                     "maxChannelDiff": 41,
                     "pixelsOverThreshold": 22904,
                     "pixelsOverThresholdFraction": 0.024852430555555556,
@@ -65,11 +66,11 @@
                 {
                     "name": "stencil_feature_effect",
                     "pixels": 921600,
-                    "meanChannelDiff": 0.43111183449074078,
-                    "meanChannelDiffNormalized": 0.0016906346450617286,
+                    "meanChannelDiff": 0.431591796875,
+                    "meanChannelDiffNormalized": 0.001692516850490196,
                     "maxChannelDiff": 42,
-                    "pixelsOverThreshold": 22849,
-                    "pixelsOverThresholdFraction": 0.02479275173611111,
+                    "pixelsOverThreshold": 22823,
+                    "pixelsOverThresholdFraction": 0.024764539930555556,
                     "passed": false
                 }
             ]
@@ -104,21 +105,21 @@
                 {
                     "name": "stencil_vs_clustered_on",
                     "pixels": 921600,
-                    "meanChannelDiff": 0.9508022280092593,
-                    "meanChannelDiffNormalized": 0.003728636188271605,
-                    "maxChannelDiff": 10,
-                    "pixelsOverThreshold": 4,
-                    "pixelsOverThresholdFraction": 0.000004340277777777778,
+                    "meanChannelDiff": 0.9425567853009259,
+                    "meanChannelDiffNormalized": 0.0036963011188271604,
+                    "maxChannelDiff": 8,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
                     "passed": true
                 },
                 {
                     "name": "stencil_vs_clustered_off",
                     "pixels": 921600,
-                    "meanChannelDiff": 0.9479586226851852,
-                    "meanChannelDiffNormalized": 0.0037174847948438637,
-                    "maxChannelDiff": 10,
-                    "pixelsOverThreshold": 4,
-                    "pixelsOverThresholdFraction": 0.000004340277777777778,
+                    "meanChannelDiff": 0.9396827980324074,
+                    "meanChannelDiffNormalized": 0.003685030580519245,
+                    "maxChannelDiff": 8,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
                     "passed": true
                 },
                 {
@@ -134,11 +135,11 @@
                 {
                     "name": "stencil_feature_effect",
                     "pixels": 921600,
-                    "meanChannelDiff": 0.378492115162037,
-                    "meanChannelDiffNormalized": 0.001484282804557008,
+                    "meanChannelDiff": 0.37862594039351857,
+                    "meanChannelDiffNormalized": 0.0014848076093863473,
                     "maxChannelDiff": 240,
-                    "pixelsOverThreshold": 5539,
-                    "pixelsOverThresholdFraction": 0.006010199652777778,
+                    "pixelsOverThreshold": 5542,
+                    "pixelsOverThresholdFraction": 0.006013454861111111,
                     "passed": false
                 }
             ]
@@ -173,21 +174,21 @@
                 {
                     "name": "stencil_vs_clustered_on",
                     "pixels": 921600,
-                    "meanChannelDiff": 0.9500698061342593,
-                    "meanChannelDiffNormalized": 0.003725763945624546,
-                    "maxChannelDiff": 10,
-                    "pixelsOverThreshold": 4,
-                    "pixelsOverThresholdFraction": 0.000004340277777777778,
+                    "meanChannelDiff": 0.9417267071759259,
+                    "meanChannelDiffNormalized": 0.003693045910493827,
+                    "maxChannelDiff": 8,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
                     "passed": true
                 },
                 {
                     "name": "stencil_vs_clustered_off",
                     "pixels": 921600,
-                    "meanChannelDiff": 0.9619864004629629,
-                    "meanChannelDiffNormalized": 0.0037724956880900507,
-                    "maxChannelDiff": 10,
-                    "pixelsOverThreshold": 4,
-                    "pixelsOverThresholdFraction": 0.000004340277777777778,
+                    "meanChannelDiff": 0.9532298900462963,
+                    "meanChannelDiffNormalized": 0.003738156431554103,
+                    "maxChannelDiff": 8,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
                     "passed": true
                 },
                 {
@@ -203,11 +204,11 @@
                 {
                     "name": "stencil_feature_effect",
                     "pixels": 921600,
-                    "meanChannelDiff": 0.37826859085648148,
-                    "meanChannelDiffNormalized": 0.0014834062386528686,
+                    "meanChannelDiff": 0.3786820023148148,
+                    "meanChannelDiffNormalized": 0.0014850274600580972,
                     "maxChannelDiff": 42,
-                    "pixelsOverThreshold": 19850,
-                    "pixelsOverThresholdFraction": 0.021538628472222225,
+                    "pixelsOverThreshold": 19827,
+                    "pixelsOverThresholdFraction": 0.021513671875,
                     "passed": false
                 }
             ]
@@ -277,6 +278,213 @@
                     "maxChannelDiff": 68,
                     "pixelsOverThreshold": 25262,
                     "pixelsOverThresholdFraction": 0.027411024305555557,
+                    "passed": false
+                }
+            ]
+        },
+        {
+            "feature": "LightCookie",
+            "featureActive": true,
+            "passed": true,
+            "states": [
+                {
+                    "name": "StencilOff",
+                    "file": "LightCookie_StencilOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOff",
+                    "file": "LightCookie_ClusteredOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "StencilOn",
+                    "file": "LightCookie_StencilOn.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOn",
+                    "file": "LightCookie_ClusteredOn.png",
+                    "magentaPixelFraction": 0.0
+                }
+            ],
+            "comparisons": [
+                {
+                    "name": "stencil_vs_clustered_on",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.04440574363425926,
+                    "meanChannelDiffNormalized": 0.0001741401711147422,
+                    "maxChannelDiff": 3,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
+                    "passed": true
+                },
+                {
+                    "name": "stencil_vs_clustered_off",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.05784866898148148,
+                    "meanChannelDiffNormalized": 0.00022685752541757443,
+                    "maxChannelDiff": 3,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
+                    "passed": true
+                },
+                {
+                    "name": "clustered_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 3.02412109375,
+                    "meanChannelDiffNormalized": 0.011859298406862744,
+                    "maxChannelDiff": 186,
+                    "pixelsOverThreshold": 187682,
+                    "pixelsOverThresholdFraction": 0.20364800347222224,
+                    "passed": false
+                },
+                {
+                    "name": "stencil_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 3.0107078269675928,
+                    "meanChannelDiffNormalized": 0.011806697360657226,
+                    "maxChannelDiff": 186,
+                    "pixelsOverThreshold": 187456,
+                    "pixelsOverThresholdFraction": 0.20340277777777777,
+                    "passed": false
+                }
+            ]
+        },
+        {
+            "feature": "LightLayers",
+            "featureActive": true,
+            "passed": true,
+            "states": [
+                {
+                    "name": "StencilOff",
+                    "file": "LightLayers_StencilOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOff",
+                    "file": "LightLayers_ClusteredOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "StencilOn",
+                    "file": "LightLayers_StencilOn.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOn",
+                    "file": "LightLayers_ClusteredOn.png",
+                    "magentaPixelFraction": 0.0
+                }
+            ],
+            "comparisons": [
+                {
+                    "name": "stencil_vs_clustered_on",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.08329716435185185,
+                    "meanChannelDiffNormalized": 0.00032665554647785035,
+                    "maxChannelDiff": 4,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
+                    "passed": true
+                },
+                {
+                    "name": "stencil_vs_clustered_off",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.1595258246527778,
+                    "meanChannelDiffNormalized": 0.0006255914692265796,
+                    "maxChannelDiff": 5,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
+                    "passed": true
+                },
+                {
+                    "name": "clustered_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 2.8713545283564816,
+                    "meanChannelDiffNormalized": 0.011260213836692084,
+                    "maxChannelDiff": 245,
+                    "pixelsOverThreshold": 136281,
+                    "pixelsOverThresholdFraction": 0.14787434895833335,
+                    "passed": false
+                },
+                {
+                    "name": "stencil_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 2.795070167824074,
+                    "meanChannelDiffNormalized": 0.010961059481663037,
+                    "maxChannelDiff": 245,
+                    "pixelsOverThreshold": 134203,
+                    "pixelsOverThresholdFraction": 0.14561957465277779,
+                    "passed": false
+                }
+            ]
+        },
+        {
+            "feature": "ScreenSpaceAO",
+            "featureActive": true,
+            "passed": true,
+            "states": [
+                {
+                    "name": "StencilOff",
+                    "file": "ScreenSpaceAO_StencilOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOff",
+                    "file": "ScreenSpaceAO_ClusteredOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "StencilOn",
+                    "file": "ScreenSpaceAO_StencilOn.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOn",
+                    "file": "ScreenSpaceAO_ClusteredOn.png",
+                    "magentaPixelFraction": 0.0
+                }
+            ],
+            "comparisons": [
+                {
+                    "name": "stencil_vs_clustered_on",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.949216941550926,
+                    "meanChannelDiffNormalized": 0.003722419378631082,
+                    "maxChannelDiff": 8,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
+                    "passed": true
+                },
+                {
+                    "name": "stencil_vs_clustered_off",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.9532374855324074,
+                    "meanChannelDiffNormalized": 0.0037381862177741467,
+                    "maxChannelDiff": 8,
+                    "pixelsOverThreshold": 0,
+                    "pixelsOverThresholdFraction": 0.0,
+                    "passed": true
+                },
+                {
+                    "name": "clustered_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.47664930555555559,
+                    "meanChannelDiffNormalized": 0.001869212962962963,
+                    "maxChannelDiff": 203,
+                    "pixelsOverThreshold": 18635,
+                    "pixelsOverThresholdFraction": 0.020220269097222224,
+                    "passed": false
+                },
+                {
+                    "name": "stencil_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.4726294849537037,
+                    "meanChannelDiffNormalized": 0.0018534489606027597,
+                    "maxChannelDiff": 203,
+                    "pixelsOverThreshold": 18762,
+                    "pixelsOverThresholdFraction": 0.020358072916666669,
                     "passed": false
                 }
             ]

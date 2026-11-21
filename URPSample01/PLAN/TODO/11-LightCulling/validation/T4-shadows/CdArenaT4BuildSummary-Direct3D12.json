@@ -5,6 +5,6 @@
     "graphicsApis": "Direct3D12",
     "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
     "unityVersion": "2022.3.62f1",
-    "totalSizeBytes": 118918436,
-    "totalTimeSeconds": 10.661864699999999
+    "totalSizeBytes": 137934012,
+    "totalTimeSeconds": 11.311583899999999
 }

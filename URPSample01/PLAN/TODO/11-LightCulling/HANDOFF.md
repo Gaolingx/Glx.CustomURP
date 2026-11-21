@@ -1,6 +1,7 @@
 # 11-LightCulling 交接：HDRP 光列表调研与 URP Clustered Deferred（URP BRDF）实施计划
 
-> 状态：**计划已修订（D15/D16）；T1/T5 运行时接入完成并在 D3D11/D3D12 player 验证；多灯 A/B（mean 0.78/255）与性能交叉点已取得；T3 kernel 与 T6 preflight 已产出；T4 阴影子集（主光 cascade / screen-space / 附加光 atlas）已实现并在 D3D11/D3D12 player A/B 通过；已与 HDRP 14.0.12 对照定稿**
+> 状态：**计划已修订（D15/D16）；T1/T5 运行时接入完成并在 D3D11/D3D12 player 验证；多灯 A/B（mean 0.78/255）与性能交叉点已取得；T3 kernel 与 T6 preflight 已产出；T4 阴影子集与 cookie / light layers / GTAO 直接光 AO 已在 D3D11/D3D12 player A/B 通过，mixed lighting-shadowmask 实现完成但无 baked 数据、运行时 A/B 标 PARTIAL；已与 HDRP 14.0.12 对照定稿**
+> 修订：2026-11-22（T4 cookie / light layers / mixed / GTAO 直接光 AO；间接 AO 取消分支；feature matrix 两个 API 重跑）
 > 修订：2026-11-21（T5 运行时接入、cluster 缓冲释放、设备/XR gate、arena A/B、D3D12 光源抓帧；T4 阴影子集与 feature matrix）
 > 建立：2026-11-21
 > 基线：`c37b9dd`（Record the DDGI plan revision commit）
@@ -689,7 +690,7 @@ clustered 从约 24 盏灯起低于 stencil deferred（16 灯已略低，32 灯�
 
 ### 7.5.2 T4 阴影子集证据（2026-11-21）
 
-**范围**：T4 的阴影子集——主光 cascade、screen-space shadow、附加光 atlas，以及按 GBuffer 材质 flag 的 `_RECEIVE_SHADOWS_OFF` 跳采样。**未包含** cookie / light layers / mixed lighting-shadowmask / GTAO 直接光 AO（仍在 T4 待办）。
+**范围**：T4 的阴影子集——主光 cascade、screen-space shadow、附加光 atlas，以及按 GBuffer 材质 flag 的 `_RECEIVE_SHADOWS_OFF` 跳采样。cookie / light layers / GTAO 直接光 AO 见 §7.5.3；mixed lighting-shadowmask 在 §7.5.3 标 PARTIAL。
 
 **实现**（只改 kernel/include，符合文件锁）：
 
@@ -710,22 +711,74 @@ clustered 从约 24 盏灯起低于 stencil deferred（16 灯已略低，32 灯�
 
 | 特性 | API | stencil vs clustered（on） | feature effect（clustered on-off） |
 |---|---|---|---|
-| 主光 cascade（4 级、软阴影） | D3D11 | mean 0.948 / max 10、>8 差 4 px | mean 0.445，>8 差 22904 px |
-| 主光 cascade | D3D12 | mean 0.972 / max 9、>8 差 6 px | mean 0.445，>8 差 22904 px |
-| `_RECEIVE_SHADOWS_OFF` 材质（半数量接收体） | D3D11 | mean 0.951 / max 10、>8 差 4 px | mean 0.383 / max 240，>8 差 5541 px |
-| `_RECEIVE_SHADOWS_OFF` 材质 | D3D12 | mean 0.975 / max 9、>8 差 6 px | mean 0.383 / max 240，>8 差 5541 px |
-| 主光 screen-space | D3D11 | mean 0.950 / max 10、>8 差 4 px | mean 0.390，>8 差 19899 px |
-| 主光 screen-space | D3D12 | mean 0.974 / max 9、>8 差 6 px | mean 0.390，>8 差 19899 px |
+| 主光 cascade（4 级、软阴影） | D3D11 | mean 0.940 / max 8、>8 差 0 px | mean 0.445，>8 差 22904 px |
+| 主光 cascade | D3D12 | mean 0.972 / max 8、>8 差 0 px | mean 0.445，>8 差 22904 px |
+| `_RECEIVE_SHADOWS_OFF` 材质（半数量接收体） | D3D11 | mean 0.943 / max 8、>8 差 0 px | mean 0.383 / max 240，>8 差 5541 px |
+| `_RECEIVE_SHADOWS_OFF` 材质 | D3D12 | mean 0.975 / max 8、>8 差 0 px | mean 0.383 / max 240，>8 差 5541 px |
+| 主光 screen-space | D3D11 | mean 0.942 / max 8、>8 差 0 px | mean 0.390，>8 差 19899 px |
+| 主光 screen-space | D3D12 | mean 0.974 / max 8、>8 差 0 px | mean 0.390，>8 差 19899 px |
 | 附加光 atlas（6 spot） | D3D11 | mean 0.020 / max 3、>8 差 0 px | mean 0.962，>8 差 25261 px |
 | 附加光 atlas | D3D12 | mean 0.020 / max 3、>8 差 0 px | mean 0.962，>8 差 25261 px |
 
-四项 `passed=true`；两种 API 的逐像素差分与 feature effect 像素数一致（仅少量浮点排序差：>8 阈值像素 4 vs 6）。`_RECEIVE_SHADOWS_OFF` 用例只能用材质资产（编辑期复制 .mat 后开启关键字）验证：运行时改 `Renderer.receiveShadows` 在 SRP 下没有产生该关键字，stencil 与 clustered 都看不到变化；且不能用 `new Material(source)`（会补默认属性、改变外观，污染 A/B）。证据：`validation/T4-shadows/player-d3d11/`、`player-d3d12/`（`T4FeatureMatrix.json` + 每个状态 1 张 PNG，共 32 张）。
+四项 `passed=true`；两种 API 的逐像素差分一致（>8 阈值像素均为 0，mean 相差 ≤ 0.03，来自浮点/驱动排序）。`_RECEIVE_SHADOWS_OFF` 用例只能用材质资产（编辑期复制 .mat 后开启关键字）验证：运行时改 `Renderer.receiveShadows` 在 SRP 下没有产生该关键字，stencil 与 clustered 都看不到变化；且不能用 `new Material(source)`（会补默认属性、改变外观，污染 A/B）。证据：`validation/T4-shadows/player-d3d11/`、`player-d3d12/`（`T4FeatureMatrix.json` + 每个状态 1 张 PNG，共 32 张）。
 
 **编译/回归**：
 
 - 两个 D3D11/D3D12 T4 player 构建日志中 `Shader error in 'ClusteredDeferred'` 均为 0；构建摘要 `CdArenaT4BuildSummary-{Direct3D11,Direct3D12}.json`。
 - **工具缺陷记录**：`ClusteredDeferredShaderCheck`（`ShaderUtil.GetComputeShaderMessageCount`）在 `SAMPLE_TEXTURE2D` 那版仍报 0 消息，而 player 构建拒绝了全部 20 个 screen 变体。compute 变体的权威编译检查是 player 构建日志；T7 的 shader 检查需改为“player 构建 + 日志计数”，不能只看编辑器 `ShaderUtil`。
 - EditMode 全量 **474/474 通过**：`validation/T4-shadows/T4EditMode.xml`。
+
+### 7.5.3 T4 特性子集：cookie / light layers / GTAO 直接光 AO（2026-11-22）
+
+**范围**：T4 剩余四项。附加光 cookie、light layers、GTAO 直接光 AO 在 D3D11/D3D12 player A/B 通过；mixed lighting-shadowmask 的 kernel/绑定已实现，但场景没有 baked shadowmask/probe 数据，运行时 A/B 不可得，标 **PARTIAL**（原因见下）。
+
+**实现**（kernel/include + 消费侧接线）：
+
+- `ShaderLibrary/ClusteredDeferred.hlsl`：
+  - `LightCookie.hlsl` 的 compute-safe 子集：`LightCookies` cbuffer（数组长度与 `Input.hlsl` 的 `MAX_VISIBLE_LIGHTS` 一致）、directional / spot / point（octahedral）UV、enable-bit 判定、`SAMPLE_TEXTURE2D_LOD(...,0)` 采样；`_LIGHT_COOKIES` 下把 cookie 颜色乘进 `CdMainLight` / `CdGetAdditionalLight`。
+  - 混合光照：`CdBakedShadow`（`1 + dot(mask-1, occlusionProbeChannels)`）、`CdMixRealtimeAndBakedShadows`（`LIGHTMAP_SHADOW_MIXING` → min-lerp，否则 fade-lerp；模式由 `_CdBakedShadowMixMode` 传入，因为 compute 没有逐材质关键字）；`CdLight.subtractiveMixed` 对应 stencil 的 `_LightFlags & kMaterialFlagSubtractiveMixedLighting` 早退。
+  - light layers：`CdDecodeMeshRenderingLayer` + `IsMatchingLightLayer`，主光/附加方向光/cluster 光三处统一 culling。
+  - GTAO：`CdDirectAmbientOcclusion`（直接光系数）与 `CdIndirectAmbientOcclusionCancel`（间接光取消系数，见“根因”）。
+- `Shaders/Utils/ClusteredDeferred.compute`：新增 `_LIGHT_COOKIES`、`_LIGHT_LAYERS`、`_SCREEN_SPACE_OCCLUSION`、`_DEFERRED_MIXED_LIGHTING` 四个关键字，变体 80 → 1280；shadowmask / rendering layer 从绑定槽按像素 `LOAD_TEXTURE2D`；末尾 `color *= CdDirectAmbientOcclusion(uv)`，UAV 的 alpha 写间接 AO 取消系数（非 Lit / sky 像素写 1）。
+- `Runtime/ClusteredDeferred/ClusteredDeferredPass.cs`：当 `GBufferShadowMask` / `GBufferRenderingLayers` 存在时绑定 `_CdShadowMaskTexture` / `_CdLightLayersTexture`；由 `MixedLightingSetup` + `QualitySettings.shadowmaskMode` 计算 `_CdBakedShadowMixMode`（与 `DeferredLights.Setup` 的 `LIGHTMAP_SHADOW_MIXING` 推导一致）；dispatch 前后设置/清除 `_DEFERRED_MIXED_LIGHTING`（stencil 在 `DeferredLights.cs:581` 做同样的事）。
+- `Shaders/Utils/ClusteredDeferredResolve.shader`：`Blend One One` → `Blend One SrcAlpha, Zero One`，alpha 从 UAV 透传。
+
+**根因（首版两项失败）**：首版 A/B 中 `LightCookie` / `ScreenSpaceAO` 的 max 均为 32/255（`>8` 约 300 / 492 px），均值却只有 0.07 / 1.03。逐像素定位后**全部落在最后一列 x=1279**：GTAO 在该列写出 AO=0；stencil 路径把 SSAO 用于间接光的方式不是“乘 AO”，而是用 `_DEFERRED_FIRST_LIGHT` 的 `Blend One SrcAlpha` **取消 GBuffer 已烘焙的 occlusion，再代入 min(baked, ssao)**（`StencilDeferred.hlsl:286-295`）。clustered 只实现了直接光 AO，间接光原样保留，于是该列出现 0 vs (1,7,32) 的差。补上 `CdIndirectAmbientOcclusionCancel` 后两项通过；cookie 用例中原本判定为“spot cone 边缘”的 1–4 级环状差也一并消失——同一根因。**结论**：T4 的 AO 必须是“直接光系数 + 间接光取消系数”两段，缺一不可。
+
+**测试资产**（仍只在 `Assets/Tests/ClusteredDeferred`）：
+
+- `CdFeature{Stencil,Clustered}Deferred{Renderer,Pipeline}.asset`：renderer 打开 light layers 并挂 GTAO feature（indirect AO 常开，direct strength 由 runner 反射设置；`temporalAccumulation=false`，否则两次截图的帧相位噪声会污染 A/B）。
+- `CreateShadowPipeline` 给所有 shadow 管线打开 `m_SupportsLightLayers`：URP 的 shader prefiltering 只收集停在 quality level 上的管线，否则 `_LIGHT_LAYERS` / `_WRITE_RENDERING_LAYERS` 变体被剥离——首版 feature 管线输出全黑即此原因（mask 读取的 layer 恒 0，所有灯被 cull）。
+- `Textures/CdSpotCookie.png`（64×64、径向 × 8 px 棋盘、无压缩、clamp、无 mip）。
+- runner 新增三个用例：`LightCookie`（6 盏 spot 移到接收体上方并挂 cookie）、`LightLayers`（8 盏灯、一半放到 layer 2，接收体都在 layer 1）、`ScreenSpaceAO`（两条管线同时切 `directLightingStrength`）。matrix 的异常现在会写 `CdError.txt` 并以非零码退出（首版输出文件被外部 mmap 时会挂起）。
+- 用例间状态隔离：`ResetLightState` 每次截图前恢复灯的位置、朝向、intensity、range、spotAngle、innerSpotAngle、cookie、rendering layer 与接收体材质/层；spot 的 55° 下压写入记录基线（否则会被重置回 +Z）。首版 cookie 用例改过的 range/angle 会泄漏到后续用例，导致 layers/AO 用例不是默认灯场——证据已按修复后的运行重取。
+
+**A/B 结果**（阈值 mean ≤ 2/255、max ≤ 24/255）：
+
+| 特性 | API | stencil vs clustered（on） | stencil vs clustered（off） | feature effect（clustered on-off） |
+|---|---|---|---|---|
+| 附加光 spot cookie（6 spot） | D3D11 | mean 0.044 / max 3、>8 差 0 px | mean 0.058 / max 3、>8 差 0 px | mean 3.024 / max 186、>8 差 187682 px（stencil 3.011） |
+| 附加光 spot cookie | D3D12 | mean 0.044 / max 3、>8 差 0 px | mean 0.058 / max 3、>8 差 0 px | mean 3.024 / max 186、>8 差 187682 px（stencil 3.011） |
+| light layers（一半灯在 layer 2） | D3D11 | mean 0.083 / max 4、>8 差 0 px | mean 0.160 / max 5、>8 差 0 px | mean 2.871 / max 245、>8 差 136281 px（stencil 2.795） |
+| light layers | D3D12 | mean 0.084 / max 4、>8 差 0 px | mean 0.163 / max 5、>8 差 0 px | mean 2.871 / max 245、>8 差 136281 px（stencil 2.792） |
+| GTAO 直接光 AO | D3D11 | mean 0.949 / max 8、>8 差 0 px | mean 0.953 / max 8、>8 差 0 px | mean 0.477 / max 203、>8 差 18635 px（stencil 0.473） |
+| GTAO 直接光 AO | D3D12 | mean 0.981 / max 9、>8 差 1 px | mean 0.986 / max 8、>8 差 0 px | mean 0.477 / max 203、>8 差 18635 px（stencil 0.472） |
+
+七项（含 §7.5.2 四项）在两种 API 均 `passed=true`。AO 用例残留的逐像素差来自 GTAO 空间去噪噪声（两条路径采样同一张 AO 纹理，但 stencil 用插值 `screenUV`、clustered 用 dispatch 像素中心；`temporalAccumulation=false` 保证逐帧确定），max ≤ 9/255、>8 至多 1 px；cookie / layers 用例的两种路径差 ≤ 5/255。
+
+**mixed lighting-shadowmask：PARTIAL**
+
+- 已实现并静态对照：kernel 的 baked shadow 混合与 min-lerp/lerp 选择、subtractive 早退、`GBufferShadowMask` 槽绑定、mix-mode uniform；`_DEFERRED_MIXED_LIGHTING` 变体已编译进 player（构建日志 0 error）。
+- 未做运行时 A/B，原因可复现：deferred 的 mixed 模式检测读 `Light.bakingOutput.lightmapBakeType`；编辑器探针显示运行时设 `Light.lightmapBakeType = Mixed` 后 `bakingOutput` 仍为 `Realtime`，而 `m_BakingOutput.isBaked = false` 无法在没有 GI bake 时伪造。场景没有 baked lightmap/probe 数据，shadowmask 恒为白，min-lerp 与 fade-lerp 数值上不可区分。要覆盖需新增烘焙场景 + lightmap 资产，并重做全部 T4/T5 基线（列入 KnownDifferences，T8 决定是否补）。
+- 附注：本项目 `QualitySettings.shadowmaskMode` 默认 `DistanceShadowmask`，即 `_CdBakedShadowMixMode = 0` 的 fade-lerp 分支。
+
+**覆盖边界**：cookie 只端到端验证了 spot（透视）路径；point（octahedral）与 directional（主光/附加方向光）UV 是 `LightCookie.hlsl` 的逐行移植并随全部 `_LIGHT_COOKIES` 变体编译，但运行时未触发。mixed 的 sub-1 shadowmask 数值与 subtractive 早退同样只有编译级覆盖。
+
+**编译/回归与预算**：
+
+- 两个 API 的 T4 player 构建 0 `Shader error in 'ClusteredDeferred'`；`T4ShaderBuild.json` 记录 8 个关键字组、声明组合 1280。
+- EditMode 全量 **474/474**（`T4EditMode.xml`）。
+- 证据 `validation/T4-shadows/` 共 56 张 720p PNG + 2 份 `T4FeatureMatrix.json` + 构建摘要，约 24 MB；`.rdc` 0 个（本轮无抓帧）。产物：`player-d3d11/`、`player-d3d12/`。
 
 ### 7.6 归档与清理
 

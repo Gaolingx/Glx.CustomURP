@@ -18,6 +18,7 @@ public static class ClusteredDeferredTestAssetSetup
     const string Root = "Assets/Tests/ClusteredDeferred";
     const string SceneFolder = Root + "/Scenes";
     const string RendererFolder = Root + "/Renderers";
+    const string TextureFolder = Root + "/Textures";
     const string ScenePath = SceneFolder + "/ClusteredDeferredArena.unity";
     const string StencilRendererPath = RendererFolder + "/CdStencilDeferredRenderer.asset";
     const string ClusteredRendererPath = RendererFolder + "/CdClusteredDeferredRenderer.asset";
@@ -35,11 +36,19 @@ public static class ClusteredDeferredTestAssetSetup
     const string ScreenShadowStencilPipelinePath = RendererFolder + "/CdScreenShadowStencilDeferredPipeline.asset";
     const string ScreenShadowClusteredPipelinePath = RendererFolder + "/CdScreenShadowClusteredDeferredPipeline.asset";
 
+    // T4 feature subset (cookie / light layers / GTAO direct AO): one renderer pair with light
+    // layers enabled and a GTAO feature whose direct-lighting strength the runner toggles.
+    const string FeatureStencilRendererPath = RendererFolder + "/CdFeatureStencilDeferredRenderer.asset";
+    const string FeatureClusteredRendererPath = RendererFolder + "/CdFeatureClusteredDeferredRenderer.asset";
+    const string FeatureStencilPipelinePath = RendererFolder + "/CdFeatureStencilDeferredPipeline.asset";
+    const string FeatureClusteredPipelinePath = RendererFolder + "/CdFeatureClusteredDeferredPipeline.asset";
+
     const string SourceDeferredRenderer = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationDeferredRenderer.asset";
     const string SourceDeferredPipeline = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationDeferredPipeline.asset";
     const string SourceForwardPlusRenderer = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationForwardPlusRenderer.asset";
     const string SourceForwardPlusPipeline = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationForwardPlusPipeline.asset";
     const string ReceiveShadowsOffMaterialPath = Root + "/Materials/CdReceiveShadowsOff.mat";
+    const string CookieTexturePath = TextureFolder + "/CdSpotCookie.png";
     const string FloorMaterial = "Assets/Tests/ScreenSpaceLighting/Materials/Ground.mat";
     const string SphereMaterial = "Assets/Tests/ScreenSpaceLighting/Materials/SmoothDielectric.mat";
     const string MetalMaterial = "Assets/Tests/ScreenSpaceLighting/Materials/RoughMetal.mat";
@@ -72,6 +81,7 @@ public static class ClusteredDeferredTestAssetSetup
         EnsureFolder(Root, "Scenes");
         EnsureFolder(Root, "Renderers");
         EnsureFolder(Root, "Materials");
+        EnsureFolder(Root, "Textures");
 
         var deferredRenderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(SourceDeferredRenderer);
         var deferredPipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(SourceDeferredPipeline);
@@ -96,9 +106,17 @@ public static class ClusteredDeferredTestAssetSetup
         var screenShadowStencilPipeline = CreateShadowPipeline(deferredPipeline, ScreenShadowStencilPipelinePath, screenShadowStencilRenderer, 1);
         var screenShadowClusteredPipeline = CreateShadowPipeline(deferredPipeline, ScreenShadowClusteredPipelinePath, screenShadowClusteredRenderer, 1);
 
+        var featureStencilRenderer = CreateRendererCopy(deferredRenderer, FeatureStencilRendererPath, false, true, true);
+        var featureClusteredRenderer = CreateRendererCopy(deferredRenderer, FeatureClusteredRendererPath, true, true, true);
+        var featureStencilPipeline = CreateFeaturePipeline(deferredPipeline, FeatureStencilPipelinePath, featureStencilRenderer);
+        var featureClusteredPipeline = CreateFeaturePipeline(deferredPipeline, FeatureClusteredPipelinePath, featureClusteredRenderer);
+        var cookieTexture = CreateCookieTexture();
+
         CreateScene(stencilPipeline, clusteredPipeline, forwardPipeline,
             shadowStencilPipeline, shadowClusteredPipeline,
-            screenShadowStencilPipeline, screenShadowClusteredPipeline);
+            screenShadowStencilPipeline, screenShadowClusteredPipeline,
+            featureStencilPipeline, featureClusteredPipeline,
+            cookieTexture);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -107,7 +125,7 @@ public static class ClusteredDeferredTestAssetSetup
     }
 
     static UniversalRendererData CreateRendererCopy(UniversalRendererData source, string path, bool clustered,
-        bool screenSpaceShadows)
+        bool screenSpaceShadows, bool gtao = false)
     {
         AssetDatabase.DeleteAsset(path);
         var renderer = ScriptableObject.CreateInstance<UniversalRendererData>();
@@ -135,8 +153,51 @@ public static class ClusteredDeferredTestAssetSetup
 
         if (screenSpaceShadows)
             AddScreenSpaceShadowsFeature(saved);
+        if (gtao)
+            AddGtaoFeature(saved);
 
         return saved;
+    }
+
+    // GTAO is a public renderer feature in this fork. Create() resolves the package compute
+    // shaders through the editor-only resource locator so the player build keeps them.
+    static void AddGtaoFeature(UniversalRendererData renderer)
+    {
+        var feature = ScriptableObject.CreateInstance<GroundTruthAmbientOcclusionRendererFeature>();
+        feature.name = "Ground Truth Ambient Occlusion";
+        feature.hideFlags = HideFlags.HideInHierarchy;
+        feature.Create();
+
+        var serializedFeature = new SerializedObject(feature);
+        var settings = serializedFeature.FindProperty("m_Settings");
+        settings.FindPropertyRelative("intensity").floatValue = 1f;
+        // Indirect AO stays on for every case; the AO case toggles direct-light AO at runtime.
+        settings.FindPropertyRelative("directLightingStrength").floatValue = 0f;
+        // Temporal accumulation depends on the frame phase, so two pipelines captured at
+        // different frame counts would compare different AO noise. Spatial-only AO is
+        // deterministic and makes the stencil/clustered A/B meaningful.
+        settings.FindPropertyRelative("temporalAccumulation").boolValue = false;
+        serializedFeature.ApplyModifiedPropertiesWithoutUndo();
+
+        AssetDatabase.AddObjectToAsset(feature, renderer);
+        AppendRendererFeature(renderer, feature, 2);
+    }
+
+    static void AppendRendererFeature(UniversalRendererData renderer, ScriptableRendererFeature feature, long mapValue)
+    {
+        var serialized = new SerializedObject(renderer);
+        var features = serialized.FindProperty("m_RendererFeatures");
+        var count = features.arraySize;
+        features.arraySize = count + 1;
+        features.GetArrayElementAtIndex(count).objectReferenceValue = feature;
+        var featureMap = serialized.FindProperty("m_RendererFeatureMap");
+        featureMap.arraySize = count + 1;
+        featureMap.GetArrayElementAtIndex(count).longValue = mapValue;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        EditorUtility.SetDirty(renderer);
+        EditorUtility.SetDirty(feature);
+        AssetDatabase.SaveAssets();
     }
 
     // ScreenSpaceShadows is internal to the URP runtime assembly, so the test asset is created
@@ -148,7 +209,7 @@ public static class ClusteredDeferredTestAssetSetup
         if (featureType == null)
             throw new TypeLoadException("ScreenSpaceShadows could not be resolved from the URP runtime assembly.");
 
-        var feature = ScriptableObject.CreateInstance(featureType);
+        var feature = (ScriptableRendererFeature)ScriptableObject.CreateInstance(featureType);
         feature.name = "Screen Space Shadows";
         feature.hideFlags = HideFlags.HideInHierarchy;
 
@@ -159,24 +220,69 @@ public static class ClusteredDeferredTestAssetSetup
         serializedFeature.ApplyModifiedPropertiesWithoutUndo();
 
         AssetDatabase.AddObjectToAsset(feature, renderer);
+        AppendRendererFeature(renderer, feature, 1);
+    }
 
-        var serialized = new SerializedObject(renderer);
-        var features = serialized.FindProperty("m_RendererFeatures");
-        features.arraySize = 1;
-        features.GetArrayElementAtIndex(0).objectReferenceValue = feature;
-        var featureMap = serialized.FindProperty("m_RendererFeatureMap");
-        featureMap.arraySize = 1;
-        featureMap.GetArrayElementAtIndex(0).longValue = 0;
+    // Light layers need the pipeline flag: it decides whether the deferred GBuffer allocates the
+    // rendering-layer slot and whether DeferredLights enables the _LIGHT_LAYERS keyword.
+    static UniversalRenderPipelineAsset CreateFeaturePipeline(UniversalRenderPipelineAsset source, string path,
+        UniversalRendererData renderer)
+    {
+        var pipeline = CreateShadowPipeline(source, path, renderer, 2);
+        var serialized = new SerializedObject(pipeline);
+        serialized.FindProperty("m_SupportsLightLayers").boolValue = true;
+        serialized.FindProperty("m_SupportsLightCookies").boolValue = true;
         serialized.ApplyModifiedPropertiesWithoutUndo();
-
-        EditorUtility.SetDirty(renderer);
-        EditorUtility.SetDirty(feature);
+        EditorUtility.SetDirty(pipeline);
         AssetDatabase.SaveAssets();
+        return pipeline;
+    }
+
+    // Spot cookie: soft radial falloff with an 8-px checker so the pattern is unambiguous at 720p.
+    static Texture2D CreateCookieTexture()
+    {
+        const int size = 64;
+        var texture = new Texture2D(size, size, TextureFormat.RGBA32, false, false);
+        var pixels = new Color32[size * size];
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var dx = (x + 0.5f) / size * 2f - 1f;
+                var dy = (y + 0.5f) / size * 2f - 1f;
+                var radial = Mathf.Clamp01(1f - Mathf.Sqrt(dx * dx + dy * dy));
+                var checker = ((x / 8 + y / 8) & 1) == 0 ? 1f : 0.3f;
+                var value = (byte)Mathf.RoundToInt(255f * radial * checker);
+                pixels[y * size + x] = new Color32(value, value, value, 255);
+            }
+        }
+
+        texture.SetPixels32(pixels);
+        texture.Apply(false, false);
+
+        var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+        Directory.CreateDirectory(Path.Combine(projectRoot, TextureFolder));
+        File.WriteAllBytes(Path.Combine(projectRoot, CookieTexturePath), texture.EncodeToPNG());
+        UnityEngine.Object.DestroyImmediate(texture);
+
+        AssetDatabase.ImportAsset(CookieTexturePath, ImportAssetOptions.ForceUpdate);
+        var importer = (TextureImporter)AssetImporter.GetAtPath(CookieTexturePath);
+        importer.textureType = TextureImporterType.Default;
+        importer.sRGBTexture = true;
+        importer.mipmapEnabled = false;
+        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.alphaIsTransparency = false;
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
+        importer.SaveAndReimport();
+
+        var cookie = AssetDatabase.LoadAssetAtPath<Texture2D>(CookieTexturePath);
+        if (cookie == null)
+            throw new InvalidOperationException("Unable to import the cookie texture at " + CookieTexturePath);
+        return cookie;
     }
 
     static UniversalRenderPipelineAsset CreateShadowPipeline(UniversalRenderPipelineAsset source, string path,
-        UniversalRendererData renderer, int cascadeCount)
-    {
+        UniversalRendererData renderer, int cascadeCount)    {
         var pipeline = CreatePipelineCopy(source, path, renderer);
         var serialized = new SerializedObject(pipeline);
         serialized.FindProperty("m_MainLightShadowsSupported").boolValue = true;
@@ -189,6 +295,11 @@ public static class ClusteredDeferredTestAssetSetup
         serialized.FindProperty("m_SoftShadowQuality").intValue = 2; // Medium: 5x5 tent
         serialized.FindProperty("m_AdditionalLightShadowsSupported").boolValue = true;
         serialized.FindProperty("m_AdditionalLightsShadowmapResolution").intValue = 2048;
+        // URP's build prefiltering collects the pipeline assets parked on quality levels; only as
+        // many as there are quality levels. Every T4 pipeline therefore advertises light layers,
+        // otherwise the _LIGHT_LAYERS/_WRITE_RENDERING_LAYERS variants are stripped from the player
+        // and the deferred layer slot stays empty.
+        serialized.FindProperty("m_SupportsLightLayers").boolValue = true;
         serialized.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(pipeline);
         AssetDatabase.SaveAssets();
@@ -217,7 +328,9 @@ public static class ClusteredDeferredTestAssetSetup
     static void CreateScene(UniversalRenderPipelineAsset stencil, UniversalRenderPipelineAsset clustered,
         UniversalRenderPipelineAsset forwardPlus,
         UniversalRenderPipelineAsset shadowStencil, UniversalRenderPipelineAsset shadowClustered,
-        UniversalRenderPipelineAsset screenShadowStencil, UniversalRenderPipelineAsset screenShadowClustered)
+        UniversalRenderPipelineAsset screenShadowStencil, UniversalRenderPipelineAsset screenShadowClustered,
+        UniversalRenderPipelineAsset featureStencil, UniversalRenderPipelineAsset featureClustered,
+        Texture2D cookieTexture)
     {
         var floor = AssetDatabase.LoadAssetAtPath<Material>(FloorMaterial);
         var sphere = AssetDatabase.LoadAssetAtPath<Material>(SphereMaterial);
@@ -276,6 +389,9 @@ public static class ClusteredDeferredTestAssetSetup
         runner.shadowClusteredPipeline = shadowClustered;
         runner.screenShadowStencilPipeline = screenShadowStencil;
         runner.screenShadowClusteredPipeline = screenShadowClustered;
+        runner.featureStencilPipeline = featureStencil;
+        runner.featureClusteredPipeline = featureClustered;
+        runner.cookieTexture = cookieTexture;
         runner.arenaMainLight = mainLight;
         runner.arenaCamera = camera;
         runner.sphereMaterial = sphere;

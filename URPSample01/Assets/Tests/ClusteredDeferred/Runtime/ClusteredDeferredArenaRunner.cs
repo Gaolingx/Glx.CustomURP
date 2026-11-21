@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
@@ -27,6 +28,12 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     public UniversalRenderPipelineAsset shadowClusteredPipeline;
     public UniversalRenderPipelineAsset screenShadowStencilPipeline;
     public UniversalRenderPipelineAsset screenShadowClusteredPipeline;
+
+    // T4 feature subset: the renderer pair has light layers enabled and a GTAO feature
+    // (indirect AO always on, direct-light AO toggled by the runner).
+    public UniversalRenderPipelineAsset featureStencilPipeline;
+    public UniversalRenderPipelineAsset featureClusteredPipeline;
+    public Texture2D cookieTexture;
     public Light arenaMainLight;
 
     public Camera arenaCamera;
@@ -46,9 +53,15 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     const string StencilMode = "StencilDeferred";
     const string ClusteredMode = "ClusteredDeferred";
     const string ForwardPlusMode = "ForwardPlus";
+    const uint kDefaultRenderingLayer = 1u;
 
     readonly List<Light> m_Lights = new List<Light>();
     readonly List<float> m_LightIntensities = new List<float>();
+    readonly List<float> m_LightRanges = new List<float>();
+    readonly List<float> m_LightSpotAngles = new List<float>();
+    readonly List<float> m_LightInnerSpotAngles = new List<float>();
+    readonly List<Vector3> m_LightPositions = new List<Vector3>();
+    readonly List<Quaternion> m_LightRotations = new List<Quaternion>();
     readonly List<Renderer> m_ReceiverRenderers = new List<Renderer>();
     readonly List<Material> m_ReceiverMaterials = new List<Material>();
     readonly List<ModeReport> m_Modes = new List<ModeReport>();
@@ -78,7 +91,30 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                 entries = new List<FeatureEntry>(),
             };
 
-            yield return RunFeatureMatrix(outputRoot, featureReport);
+            // A failing case (for example a locked output file) must end the run; an unhandled
+            // coroutine exception stops the routine but leaves the player rendering forever.
+            var featureRoutine = RunFeatureMatrix(outputRoot, featureReport);
+            while (true)
+            {
+                bool moveNext;
+                try
+                {
+                    moveNext = featureRoutine.MoveNext();
+                }
+                catch (Exception exception)
+                {
+                    featureReport.error = exception.ToString();
+                    WriteFeatureMatrix(outputRoot, featureReport);
+                    File.WriteAllText(Path.Combine(outputRoot, "CdError.txt"), exception.ToString());
+                    Application.Quit(2);
+                    yield break;
+                }
+
+                if (!moveNext)
+                    break;
+                yield return featureRoutine.Current;
+            }
+
             Application.Quit(ReportHadFailure(featureReport) ? 2 : 0);
             yield break;
         }
@@ -238,11 +274,15 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         SetupArena();
         SetLightCount(totalLights);
         // The sweep keeps the default +Z spot orientation; the shadow A/B tilts the spots down so
-        // their shadow slices land on the receivers instead of behind them.
+        // their shadow slices land on the receivers instead of behind them. ResetLightState runs
+        // before every capture, so the tilted orientation has to become the recorded baseline.
         for (var i = 0; i < m_Lights.Count; i++)
         {
             if (m_Lights[i].type == LightType.Spot)
+            {
                 m_Lights[i].transform.rotation = Quaternion.Euler(55f, 0f, 0f);
+                m_LightRotations[i] = m_Lights[i].transform.rotation;
+            }
         }
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 0;
@@ -260,6 +300,13 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         yield return RunFeatureCase(outputRoot, report, "AdditionalShadowAtlas",
             shadowStencilPipeline, shadowClusteredPipeline, ApplyAdditionalLightShadows);
 
+        yield return RunFeatureCase(outputRoot, report, "LightCookie",
+            featureStencilPipeline, featureClusteredPipeline, ApplyLightCookies);
+        yield return RunFeatureCase(outputRoot, report, "LightLayers",
+            featureStencilPipeline, featureClusteredPipeline, ApplyLightLayers);
+        yield return RunFeatureCase(outputRoot, report, "ScreenSpaceAO",
+            featureStencilPipeline, featureClusteredPipeline, ApplyDirectAmbientOcclusion);
+
         WriteFeatureMatrix(outputRoot, report);
     }
 
@@ -269,7 +316,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         UniversalRenderPipelineAsset stencil, UniversalRenderPipelineAsset clustered, Action<bool> applyFeature)
     {
         if (stencil == null || clustered == null)
-            throw new InvalidOperationException("Missing T4 shadow pipeline for " + feature);
+            throw new InvalidOperationException("Missing T4 pipeline for " + feature);
 
         var entry = new FeatureEntry
         {
@@ -336,15 +383,104 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     void ResetLightState()
     {
         if (arenaMainLight != null)
+        {
             arenaMainLight.shadows = LightShadows.None;
+            arenaMainLight.cookie = null;
+            arenaMainLight.GetUniversalAdditionalLightData().renderingLayers = kDefaultRenderingLayer;
+        }
         for (var i = 0; i < m_Lights.Count; i++)
         {
-            m_Lights[i].enabled = i < totalLights;
-            m_Lights[i].intensity = m_LightIntensities[i];
-            m_Lights[i].shadows = LightShadows.None;
+            var light = m_Lights[i];
+            light.enabled = i < totalLights;
+            light.intensity = m_LightIntensities[i];
+            light.range = m_LightRanges[i];
+            light.spotAngle = m_LightSpotAngles[i];
+            light.innerSpotAngle = m_LightInnerSpotAngles[i];
+            light.shadows = LightShadows.None;
+            light.cookie = null;
+            light.GetUniversalAdditionalLightData().renderingLayers = kDefaultRenderingLayer;
+            light.transform.SetPositionAndRotation(m_LightPositions[i], m_LightRotations[i]);
         }
         for (var i = 0; i < m_ReceiverRenderers.Count; i++)
+        {
             m_ReceiverRenderers[i].sharedMaterial = m_ReceiverMaterials[i];
+            m_ReceiverRenderers[i].renderingLayerMask = kDefaultRenderingLayer;
+        }
+        // The AO case owns direct-light AO; every other case renders with it off.
+        SetDirectAoStrength(featureStencilPipeline, 0f);
+        SetDirectAoStrength(featureClusteredPipeline, 0f);
+    }
+
+    // Spot cookies: isolate six spot lights above the receiver row (the 64-light field dilutes
+    // the pattern) and attach the radial checker texture on the "on" side.
+    void ApplyLightCookies(bool on)
+    {
+        var cookieLights = 0;
+        for (var i = 0; i < m_Lights.Count; i++)
+        {
+            var light = m_Lights[i];
+            if (light.type != LightType.Spot || cookieLights >= 6)
+            {
+                light.enabled = false;
+                continue;
+            }
+
+            light.transform.SetPositionAndRotation(
+                new Vector3(-12f + cookieLights * 5f, 6.5f, -5f), Quaternion.Euler(90f, 0f, 0f));
+            light.range = 22f;
+            light.spotAngle = 60f;
+            light.innerSpotAngle = 40f;
+            light.intensity = 25f;
+            light.cookie = on ? cookieTexture : null;
+            cookieLights++;
+        }
+    }
+
+    // Light layers: receivers all sit on layer 1. With the feature on, half the lights move to
+    // layer 2 and are culled per pixel; off, every light is on layer 1.
+    void ApplyLightLayers(bool on)
+    {
+        for (var i = 0; i < m_Lights.Count; i++)
+        {
+            var light = m_Lights[i];
+            light.enabled = i < 8;
+            light.GetUniversalAdditionalLightData().renderingLayers = on && (i & 1) == 1 ? 2u : kDefaultRenderingLayer;
+        }
+    }
+
+    // GTAO direct-light AO is a per-camera feature setting; both feature pipelines get the same
+    // strength so the A/B only compares the deferred lighting path.
+    void ApplyDirectAmbientOcclusion(bool on)
+    {
+        SetDirectAoStrength(featureStencilPipeline, on ? 1f : 0f);
+        SetDirectAoStrength(featureClusteredPipeline, on ? 1f : 0f);
+    }
+
+    // The feature settings class and field are internal to URP; reflection keeps this test asset
+    // script independent from the package internals.
+    static void SetDirectAoStrength(UniversalRenderPipelineAsset pipeline, float strength)
+    {
+        if (pipeline == null)
+            return;
+
+        var rendererListField = pipeline.GetType().GetField("m_RendererDataList",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        var rendererList = rendererListField?.GetValue(pipeline) as ScriptableRendererData[];
+        if (rendererList == null || rendererList.Length == 0 || rendererList[0] == null)
+            return;
+
+        foreach (var feature in rendererList[0].rendererFeatures)
+        {
+            if (feature == null || feature.GetType().Name != "GroundTruthAmbientOcclusionRendererFeature")
+                continue;
+
+            var settingsField = feature.GetType().GetField("m_Settings",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var settings = settingsField?.GetValue(feature);
+            var strengthField = settings?.GetType().GetField("directLightingStrength",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            strengthField?.SetValue(settings, strength);
+        }
     }
 
     void ApplyMainLightShadows(bool on)
@@ -472,6 +608,11 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             colors[i] = light.color;
             m_Lights.Add(light);
             m_LightIntensities.Add(light.intensity);
+            m_LightRanges.Add(light.range);
+            m_LightSpotAngles.Add(light.spotAngle);
+            m_LightInnerSpotAngles.Add(light.innerSpotAngle);
+            m_LightPositions.Add(position);
+            m_LightRotations.Add(light.transform.rotation);
 
             // Each light gets a small emissive-looking sphere so the field is visible from the
             // camera; the spheres are Lit geometry that receives the same direct lighting.
@@ -751,6 +892,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public string graphicsDeviceName;
         public string graphicsDeviceType;
         public string graphicsDeviceVersion;
+        public string error;
         public List<FeatureEntry> entries;
     }
 
