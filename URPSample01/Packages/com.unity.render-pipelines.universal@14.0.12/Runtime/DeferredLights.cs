@@ -264,25 +264,49 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LightCookieManager = initParams.lightCookieManager;
         }
 
-        internal void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        // The stencil volume path is the only consumer of the per-type stencil light arrays. The
+        // clustered pass replaces it, so building the lists there is dead work; preview/overlay/XR
+        // cameras still fall back to stencil deferred and must keep building them.
+        internal static bool ShouldPrecomputeStencilLights(bool clusteredDeferredLighting, ref CameraData cameraData)
+        {
+            return !(clusteredDeferredLighting && ClusteredDeferredPass.IsEligibleCamera(ref cameraData));
+        }
+
+        internal void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData, bool precomputeStencilLights = true)
         {
             Profiler.BeginSample(k_SetupLights);
+
+            long probeStart = ClusteredDeferredCpuProbe.Begin();
+            ClusteredDeferredCpuProbe.CountFrame();
 
             Camera camera = renderingData.cameraData.camera;
             // Support for dynamic resolution.
             this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * renderingData.cameraData.cameraTargetDescriptor.width) : renderingData.cameraData.cameraTargetDescriptor.width;
             this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * renderingData.cameraData.cameraTargetDescriptor.height) : renderingData.cameraData.cameraTargetDescriptor.height;
 
-            // inspect lights in renderingData.lightData.visibleLights and convert them to entries in m_stencilVisLights
-            PrecomputeLights(
-                out m_stencilVisLights,
-                out m_stencilVisLightOffsets,
-                ref renderingData.lightData.visibleLights,
-                renderingData.lightData.additionalLightsCount != 0 || renderingData.lightData.mainLightIndex >= 0,
-                renderingData.cameraData.camera.worldToCameraMatrix,
-                renderingData.cameraData.camera.orthographic,
-                renderingData.cameraData.camera.nearClipPlane
-            );
+            long precomputeStart = ClusteredDeferredCpuProbe.Begin();
+            if (precomputeStencilLights)
+            {
+                // inspect lights in renderingData.lightData.visibleLights and convert them to entries in m_stencilVisLights
+                PrecomputeLights(
+                    out m_stencilVisLights,
+                    out m_stencilVisLightOffsets,
+                    ref renderingData.lightData.visibleLights,
+                    renderingData.lightData.additionalLightsCount != 0 || renderingData.lightData.mainLightIndex >= 0,
+                    renderingData.cameraData.camera.worldToCameraMatrix,
+                    renderingData.cameraData.camera.orthographic,
+                    renderingData.cameraData.camera.nearClipPlane
+                );
+            }
+            else
+            {
+                // The lists are Temp allocations invalidated at the end of the frame; drop the
+                // handles so a later stencil fallback rebuilds them instead of disposing stale
+                // memory.
+                m_stencilVisLights = default;
+                m_stencilVisLightOffsets = default;
+            }
+            ClusteredDeferredCpuProbe.End(precomputeStart, ref ClusteredDeferredCpuProbe.precomputeLights);
 
             {
                 var cmd = renderingData.commandBuffer;
@@ -318,6 +342,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.Clear();
             }
 
+            ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.deferredSetupLights);
             Profiler.EndSample();
         }
 

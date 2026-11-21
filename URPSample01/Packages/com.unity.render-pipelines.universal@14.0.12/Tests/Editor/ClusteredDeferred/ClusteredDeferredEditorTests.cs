@@ -160,6 +160,24 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
+        public void StencilLightPrecomputeIsSkippedOnlyForEligibleClusteredCameras()
+        {
+            var gameBase = new CameraData { cameraType = CameraType.Game, renderType = CameraRenderType.Base, xr = XRSystem.emptyPass };
+            Assert.IsFalse(DeferredLights.ShouldPrecomputeStencilLights(true, ref gameBase),
+                "Clustered base game cameras never rasterize stencil light volumes.");
+            Assert.IsTrue(DeferredLights.ShouldPrecomputeStencilLights(false, ref gameBase),
+                "The stencil path still needs the per-type light lists.");
+
+            var overlay = new CameraData { cameraType = CameraType.Game, renderType = CameraRenderType.Overlay, xr = XRSystem.emptyPass };
+            Assert.IsTrue(DeferredLights.ShouldPrecomputeStencilLights(true, ref overlay),
+                "Overlay cameras fall back to stencil deferred and need the lists.");
+
+            var preview = new CameraData { cameraType = CameraType.Preview, renderType = CameraRenderType.Base, xr = XRSystem.emptyPass };
+            Assert.IsTrue(DeferredLights.ShouldPrecomputeStencilLights(true, ref preview),
+                "Preview cameras fall back to stencil deferred and need the lists.");
+        }
+
+        [Test]
         public void RendererAssetsAgreeExceptForTheClusteredSwitch()
         {
             var stencil = ClusteredDeferredAssets.StencilRenderer;

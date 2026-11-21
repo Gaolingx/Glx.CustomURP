@@ -44,6 +44,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     public int warmupFrames = 40;
     public int lightCountChangeWarmupFrames = 15;
     public int sampleFrames = 150;
+    public int cpuBreakdownFrames = 120;
     public int[] lightCounts = { 0, 8, 16, 32, 48, 64 };
     public int totalLights = 64;
     public int screenshotLightCount = 48;
@@ -119,6 +120,47 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             yield break;
         }
 
+        if (HasArgument("--cd-cpu"))
+        {
+            var cpuReport = new CpuBreakdownReport
+            {
+                utcTimestamp = DateTime.UtcNow.ToString("O"),
+                unityVersion = Application.unityVersion,
+                graphicsDeviceName = SystemInfo.graphicsDeviceName,
+                graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString(),
+                lightCount = totalLights,
+                width = width,
+                height = height,
+                sampleFrames = cpuBreakdownFrames,
+                modes = new List<CpuModeBreakdown>(),
+            };
+
+            var cpuRoutine = RunCpuBreakdown(outputRoot, cpuReport);
+            while (true)
+            {
+                bool moveNext;
+                try
+                {
+                    moveNext = cpuRoutine.MoveNext();
+                }
+                catch (Exception exception)
+                {
+                    cpuReport.error = exception.ToString();
+                    WriteCpuBreakdown(outputRoot, cpuReport);
+                    File.WriteAllText(Path.Combine(outputRoot, "CdError.txt"), exception.ToString());
+                    Application.Quit(2);
+                    yield break;
+                }
+
+                if (!moveNext)
+                    break;
+                yield return cpuRoutine.Current;
+            }
+
+            Application.Quit(string.IsNullOrEmpty(cpuReport.error) ? 0 : 2);
+            yield break;
+        }
+
         var captureOnly = HasArgument("--cd-capture");
         var report = new PerfReport
         {
@@ -179,6 +221,59 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         report.height = Screen.height;
         report.completed = true;
         WriteReport(outputRoot, report);
+        Application.Quit(0);
+    }
+
+    // CPU decomposition for the deferred light path: PreSetup (cluster job scheduling),
+    // SetupLights (job completion, list upload, light constants, stencil light precompute) and
+    // everything else in the frame. Stencil and clustered modes share the scene and light count,
+    // so the PrecomputeLights delta is a direct measurement of the C1 saving.
+    IEnumerator RunCpuBreakdown(string outputRoot, CpuBreakdownReport report)
+    {
+        SetupArena();
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = 0;
+        Screen.SetResolution(width, height, false);
+        SetLightCount(totalLights);
+
+        var probe = CpuProbeAccess.Create();
+        if (probe == null)
+            throw new InvalidOperationException("ClusteredDeferredCpuProbe is missing from the URP runtime assembly.");
+
+        var modes = new[]
+        {
+            new ModePipelines { name = StencilMode, pipeline = stencilDeferredPipeline },
+            new ModePipelines { name = ClusteredMode, pipeline = clusteredDeferredPipeline },
+        };
+
+        for (var modeIndex = 0; modeIndex < modes.Length; modeIndex++)
+        {
+            var mode = modes[modeIndex];
+            if (mode.pipeline == null)
+                throw new InvalidOperationException("Missing pipeline for " + mode.name);
+
+            yield return SetPipeline(mode.pipeline);
+            yield return WaitFrames(warmupFrames);
+
+            probe.SetEnabled(true);
+            probe.Reset();
+            var frameCpu = new List<double>(cpuBreakdownFrames);
+            var timings = new FrameTiming[1];
+            for (var frame = 0; frame < cpuBreakdownFrames; frame++)
+            {
+                FrameTimingManager.CaptureFrameTimings();
+                yield return new WaitForEndOfFrame();
+                if (FrameTimingManager.GetLatestTimings(1, timings) != 0 && timings[0].cpuFrameTime > 0)
+                    frameCpu.Add(timings[0].cpuFrameTime);
+            }
+
+            report.modes.Add(probe.Snapshot(mode.name, Mean(frameCpu)));
+            probe.SetEnabled(false);
+            WriteCpuBreakdown(outputRoot, report);
+        }
+
+        report.completed = true;
+        WriteCpuBreakdown(outputRoot, report);
         Application.Quit(0);
     }
 
@@ -780,6 +875,84 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         File.WriteAllText(Path.Combine(outputRoot, "CdPerf.json"), json);
     }
 
+    static void WriteCpuBreakdown(string outputRoot, CpuBreakdownReport report)
+    {
+        var json = JsonUtility.ToJson(report, true);
+        File.WriteAllText(Path.Combine(outputRoot, "CdCpuBreakdown.json"), json);
+    }
+
+    // The probe type is internal to URP; reflection keeps this test asset script independent from
+    // package internals (same approach as the GTAO settings above).
+    sealed class CpuProbeAccess
+    {
+        const string TypeName = "UnityEngine.Rendering.Universal.Internal.ClusteredDeferredCpuProbe";
+        static readonly string[] k_Slices =
+        {
+            "preSetup", "setupLights", "clusterJobsComplete", "clusterUpload", "lightConstants",
+            "resolveMixedLighting", "deferredSetupLights", "precomputeLights",
+        };
+
+        readonly Dictionary<string, FieldInfo> m_Fields = new Dictionary<string, FieldInfo>();
+        readonly FieldInfo m_Enabled;
+        readonly FieldInfo m_Frames;
+        readonly MethodInfo m_Reset;
+
+        public static CpuProbeAccess Create()
+        {
+            var type = typeof(UniversalRenderPipeline).Assembly.GetType(TypeName);
+            return type == null ? null : new CpuProbeAccess(type);
+        }
+
+        CpuProbeAccess(Type type)
+        {
+            m_Enabled = type.GetField("enabled", BindingFlags.Public | BindingFlags.Static);
+            m_Frames = type.GetField("frames", BindingFlags.Public | BindingFlags.Static);
+            m_Reset = type.GetMethod("Reset", BindingFlags.Public | BindingFlags.Static);
+            foreach (var slice in k_Slices)
+                m_Fields[slice] = type.GetField(slice, BindingFlags.Public | BindingFlags.Static);
+        }
+
+        public void SetEnabled(bool value)
+        {
+            m_Enabled.SetValue(null, value);
+        }
+
+        public void Reset()
+        {
+            m_Reset.Invoke(null, null);
+        }
+
+        public CpuModeBreakdown Snapshot(string mode, double frameCpuMeanMs)
+        {
+            var frames = (int)m_Frames.GetValue(null);
+            return new CpuModeBreakdown
+            {
+                mode = mode,
+                frames = frames,
+                frameCpuMeanMs = frameCpuMeanMs,
+                preSetupMs = PerFrameMs("preSetup", frames),
+                setupLightsMs = PerFrameMs("setupLights", frames),
+                clusterJobsCompleteMs = PerFrameMs("clusterJobsComplete", frames),
+                clusterUploadMs = PerFrameMs("clusterUpload", frames),
+                lightConstantsMs = PerFrameMs("lightConstants", frames),
+                resolveMixedLightingMs = PerFrameMs("resolveMixedLighting", frames),
+                deferredSetupLightsMs = PerFrameMs("deferredSetupLights", frames),
+                precomputeLightsMs = PerFrameMs("precomputeLights", frames),
+                otherMs = frames > 0
+                    ? Math.Max(0.0, frameCpuMeanMs - PerFrameMs("preSetup", frames) - PerFrameMs("setupLights", frames))
+                    : 0.0,
+            };
+        }
+
+        double PerFrameMs(string slice, int frames)
+        {
+            if (frames <= 0 || !m_Fields.TryGetValue(slice, out var field))
+                return 0.0;
+            var ticks = (long)field.GetValue(null);
+            return ticks * 1000.0 / System.Diagnostics.Stopwatch.Frequency / frames;
+        }
+    }
+
     static void WriteCsv(string outputRoot, PerfReport report)
     {
         using (var writer = new StreamWriter(Path.Combine(outputRoot, "CdPerf.csv")))
@@ -916,5 +1089,38 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public string error;
         public List<ModeReport> modes;
         public List<DiffReport> diffs;
+    }
+
+    [Serializable]
+    public sealed class CpuModeBreakdown
+    {
+        public string mode;
+        public int frames;
+        public double frameCpuMeanMs;
+        public double preSetupMs;
+        public double setupLightsMs;
+        public double clusterJobsCompleteMs;
+        public double clusterUploadMs;
+        public double lightConstantsMs;
+        public double resolveMixedLightingMs;
+        public double deferredSetupLightsMs;
+        public double precomputeLightsMs;
+        public double otherMs;
+    }
+
+    [Serializable]
+    public sealed class CpuBreakdownReport
+    {
+        public string utcTimestamp;
+        public string unityVersion;
+        public string graphicsDeviceName;
+        public string graphicsDeviceType;
+        public int lightCount;
+        public int width;
+        public int height;
+        public int sampleFrames;
+        public bool completed;
+        public string error;
+        public List<CpuModeBreakdown> modes;
     }
 }

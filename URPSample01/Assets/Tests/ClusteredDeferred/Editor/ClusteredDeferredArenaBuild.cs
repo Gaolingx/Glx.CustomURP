@@ -10,8 +10,8 @@ using UnityEngine.Rendering;
 public static class ClusteredDeferredArenaBuild
 {
     const string ScenePath = "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity";
-    const string ValidationRoot = "PLAN/TODO/11-LightCulling/validation/T5-runtime";
-    const string T4ValidationRoot = "PLAN/TODO/11-LightCulling/validation/T4-shadows";
+    const string ValidationRoot = "PLAN/TODO/12-GpuLightList/validation/C1/T5-runtime";
+    const string T4ValidationRoot = "PLAN/TODO/12-GpuLightList/validation/C1/T4-shadows";
 
     public static void BuildD3D11AndExit()
     {

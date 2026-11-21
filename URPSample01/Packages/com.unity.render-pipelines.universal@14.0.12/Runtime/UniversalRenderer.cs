@@ -707,9 +707,15 @@ namespace UnityEngine.Rendering.Universal
                 // ResolveMixedLightingMode takes mutable access to them. Finish the jobs first; the
                 // GPU upload still happens later in ForwardLights.Setup.
                 if (m_ClusteredDeferredLighting && ClusteredDeferredPass.IsEligibleCamera(ref cameraData))
+                {
+                    long probeStart = ClusteredDeferredCpuProbe.Begin();
                     m_ForwardLights.CompleteClusterJobs();
+                    ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.clusterJobsComplete);
+                }
 
+                long resolveStart = ClusteredDeferredCpuProbe.Begin();
                 m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
+                ClusteredDeferredCpuProbe.End(resolveStart, ref ClusteredDeferredCpuProbe.resolveMixedLighting);
                 m_DeferredLights.IsOverlay = cameraData.renderType == CameraRenderType.Overlay;
                 if (m_DeferredLights.UseRenderPass)
                 {
@@ -1426,10 +1432,16 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            long probeStart = ClusteredDeferredCpuProbe.Begin();
             m_ForwardLights.Setup(context, ref renderingData);
 
             if (this.renderingModeActual == RenderingMode.Deferred)
-                m_DeferredLights.SetupLights(context, ref renderingData);
+            {
+                bool precomputeStencilLights = DeferredLights.ShouldPrecomputeStencilLights(
+                    m_ClusteredDeferredLighting, ref renderingData.cameraData);
+                m_DeferredLights.SetupLights(context, ref renderingData, precomputeStencilLights);
+            }
+            ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.setupLights);
         }
 
         // Pushed by the Screen Space Lighting feature before SetupLights, so core URP does not

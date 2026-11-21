@@ -217,6 +217,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void PreSetup(ref RenderingData renderingData)
         {
+            long probeStart = ClusteredDeferredCpuProbe.Begin();
             if (ShouldBuildClusters(ref renderingData.cameraData))
             {
                 using var _ = new ProfilingScope(null, m_ProfilingSamplerFPSetup);
@@ -400,6 +401,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 JobHandle.ScheduleBatchedJobs();
             }
+            ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.preSetup);
         }
 
         /// <summary>
@@ -432,15 +434,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     using (new ProfilingScope(null, m_ProfilingSamplerFPComplete))
                     {
+                        long probeStart = ClusteredDeferredCpuProbe.Begin();
                         m_CullingHandle.Complete();
+                        ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.clusterJobsComplete);
                     }
 
                     using (new ProfilingScope(null, m_ProfilingSamplerFPUpload))
                     {
+                        long probeStart = ClusteredDeferredCpuProbe.Begin();
                         m_ZBinsBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
                         m_TileMasksBuffer.SetData(m_TileMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
                         cmd.SetGlobalConstantBuffer(m_ZBinsBuffer, "URP_ZBinBuffer", 0, UniversalRenderPipeline.maxZBinWords * 4);
                         cmd.SetGlobalConstantBuffer(m_TileMasksBuffer, "urp_TileBuffer", 0, UniversalRenderPipeline.maxTileWords * 4);
+                        ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.clusterUpload);
                     }
 
                     cmd.SetGlobalVector("_FPParams0", math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount));
@@ -448,7 +454,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector("_FPParams2", math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0));
                 }
 
+                long constantsStart = ClusteredDeferredCpuProbe.Begin();
                 SetupShaderLightConstants(cmd, ref renderingData);
+                ClusteredDeferredCpuProbe.End(constantsStart, ref ClusteredDeferredCpuProbe.lightConstants);
 
                 bool lightCountCheck = (renderingData.cameraData.renderer.stripAdditionalLightOffVariants && renderingData.lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
