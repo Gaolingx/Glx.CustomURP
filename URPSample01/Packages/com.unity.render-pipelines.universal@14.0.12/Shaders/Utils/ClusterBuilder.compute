@@ -1,0 +1,243 @@
+// G1 Stage A/B: builds the cluster bitmaps on the GPU with the CPU jobs' word layout, headers and
+// tile/zbin index formulas (HANDOFF §3.4). Only the writer changes; the lighting kernel reads the
+// same words through a structured buffer instead of a constant buffer.
+//
+// Stage A (ClusterItemBounds) computes, per item, the view-space z range and a *conservative*
+// screen-space tile AABB. Stage B reproduces ZBinningJob + TileRangeExpansionJob: the zbin scatter
+// ORs bit words and takes the per-bin header range with atomics (then a pack pass writes the two
+// header words), and the tile expansion owns one (row, tile) thread, so it needs no atomics.
+//
+// Conservative on purpose: the tile AABB is the item's world bounding box projected through the
+// 8 corners, or the full screen when the box crosses the near plane. It can set extra tiles the
+// CPU TilingJob would not set (those are then shaded and attenuated to zero), but it never clears
+// a bit the CPU sets. Parity is checked as CPU ⊆ GPU for tiles, word-for-word for zbins.
+
+#pragma kernel ClusterItemBounds
+#pragma kernel ClusterZBinClear
+#pragma kernel ClusterZBinScatter
+#pragma kernel ClusterZBinPack
+#pragma kernel ClusterTileExpand
+
+#define CD_ITEM_LIGHT 0u
+#define CD_ITEM_PROBE 1u
+#define CD_LIGHTTYPE_SPOT 0
+#define CD_PI 3.14159265358979323846
+
+struct CdClusterItem
+{
+    float4 positionRange;    // light: world pos, w = range | probe: bounds center
+    float4 directionExtent;  // light: world forward, w = spotAngle | probe: bounds extents
+    uint itemType;
+    int lightType;
+    uint layerMask;
+    uint sourceIndex;
+};
+
+StructuredBuffer<CdClusterItem> _CdClusterItems;
+RWStructuredBuffer<float2> _CdClusterMinMaxZ;
+RWStructuredBuffer<int4> _CdClusterTileRanges;  // x/y = row range, z/w = column range; empty: y < x
+RWStructuredBuffer<uint> _CdClusterBinMinMax;   // 4 per bin: min/max for header 0 (lights) and 1 (probes)
+
+RWStructuredBuffer<uint> URP_ZBins;
+RWStructuredBuffer<uint> urp_Tiles;
+
+float4 _FPParams0;
+float4 _FPParams1;
+float4 _FPParams2;
+
+uint _CdClusterItemCount;
+uint _CdClusterLightCount;
+uint _CdClusterBinCount;
+uint2 _CdClusterTileCount;
+uint _CdClusterZBinWordCount;
+uint _CdClusterTileWordCount;
+float2 _CdClusterTileScale;
+float4 _CdClusterViewToViewportScaleBias;
+float4x4 _CdClusterWorldToView;
+float _CdClusterNear;
+uint _CdClusterOrthographic;
+
+float3 CdCornerSign(uint i)
+{
+    return float3(((i << 1) & 2) - 1, (i & 2) - 1, ((i >> 1) & 2) - 1);
+}
+
+float2 CdViewToTile(float3 positionVS)
+{
+    float2 projected = _CdClusterOrthographic != 0u ? positionVS.xy : positionVS.xy / max(positionVS.z, 1e-6);
+    return (projected * _CdClusterViewToViewportScaleBias.xy + _CdClusterViewToViewportScaleBias.zw) * _CdClusterTileScale;
+}
+
+// Mirrors LightMinMaxZJob / ReflectionProbeMinMaxZJob. The spot branch is ported verbatim (including
+// the cone-height and projected-radius terms) so the zbin bits can line up with the CPU output.
+float2 CdItemMinMaxZ(CdClusterItem item, float3 centerWS, float3 centerVS)
+{
+    if (item.itemType == CD_ITEM_PROBE)
+    {
+        float3 extents = item.directionExtent.xyz;
+        float2 minMax = float2(3.402823466e+38, -3.402823466e+38);
+        [unroll] for (uint i = 0u; i < 8u; i++)
+        {
+            float3 cornerWS = centerWS + extents * CdCornerSign(i);
+            float3 cornerVS = mul(_CdClusterWorldToView, float4(cornerWS, 1.0)).xyz;
+            cornerVS.z *= -1.0;
+            minMax.x = min(minMax.x, cornerVS.z);
+            minMax.y = max(minMax.y, cornerVS.z);
+        }
+        return minMax;
+    }
+
+    float range = item.positionRange.w;
+    float2 minMax = float2(centerVS.z - range, centerVS.z + range);
+
+    if (item.lightType == CD_LIGHTTYPE_SPOT)
+    {
+        float angleA = radians(item.directionExtent.w) * 0.5;
+        float cosAngleA = cos(angleA);
+        float coneHeight = range * cosAngleA;
+        float3 endPointWS = centerWS + item.directionExtent.xyz * coneHeight;
+        float3 endPointVS = mul(_CdClusterWorldToView, float4(endPointWS, 1.0)).xyz;
+        endPointVS.z *= -1.0;
+        float angleB = CD_PI * 0.5 - angleA;
+        float coneRadius = range * cosAngleA * sin(angleA) / sin(angleB);
+        float3 a = endPointVS - centerVS;
+        float e = sqrt(1.0 - a.z * a.z / dot(a, a));
+
+        if (-a.z < coneHeight * cosAngleA) minMax.x = min(centerVS.z, endPointVS.z - e * coneRadius);
+        if (a.z < coneHeight * cosAngleA) minMax.y = max(centerVS.z, endPointVS.z + e * coneRadius);
+    }
+
+    // Only lights clamp to the camera plane; ReflectionProbeMinMaxZJob keeps raw corner depths.
+    return max(minMax, float2(0.0, 0.0));
+}
+
+int4 CdTileRange(CdClusterItem item, float3 centerWS, float3 boxExtents)
+{
+    float2 tsMin = float2(3.402823466e+38, 3.402823466e+38);
+    float2 tsMax = float2(-3.402823466e+38, -3.402823466e+38);
+
+    [unroll] for (uint i = 0u; i < 8u; i++)
+    {
+        float3 cornerWS = centerWS + boxExtents * CdCornerSign(i);
+        float3 cornerVS = mul(_CdClusterWorldToView, float4(cornerWS, 1.0)).xyz;
+        cornerVS.z *= -1.0;
+
+        // A box crossing the near plane has no bounded projection; the safe answer is the screen.
+        if (cornerVS.z < _CdClusterNear)
+            return int4(0, (int)_CdClusterTileCount.y - 1, 0, (int)_CdClusterTileCount.x - 1);
+
+        float2 tile = CdViewToTile(cornerVS);
+        tsMin = min(tsMin, tile);
+        tsMax = max(tsMax, tile);
+    }
+
+    if (tsMax.x < 0.0 || tsMax.y < 0.0)
+        return int4(1, 0, 0, 0);
+    if (tsMin.x > (float)(_CdClusterTileCount.x - 1) || tsMin.y > (float)(_CdClusterTileCount.y - 1))
+        return int4(1, 0, 0, 0);
+
+    int2 tileMin = clamp((int2)floor(tsMin), int2(0, 0), (int2)_CdClusterTileCount - 1);
+    int2 tileMax = clamp((int2)floor(tsMax), int2(0, 0), (int2)_CdClusterTileCount - 1);
+    return int4(tileMin.y, tileMax.y, tileMin.x, tileMax.x);
+}
+
+[numthreads(64, 1, 1)]
+void ClusterItemBounds(uint3 id : SV_DispatchThreadID)
+{
+    uint itemIndex = id.x;
+    if (itemIndex >= _CdClusterItemCount)
+        return;
+
+    CdClusterItem item = _CdClusterItems[itemIndex];
+    float3 centerWS = item.positionRange.xyz;
+    float3 centerVS = mul(_CdClusterWorldToView, float4(centerWS, 1.0)).xyz;
+    centerVS.z *= -1.0;
+
+    float2 minMax = CdItemMinMaxZ(item, centerWS, centerVS);
+    _CdClusterMinMaxZ[itemIndex] = minMax;
+
+    // The z range uses the exact sphere the CPU uses; the tile box uses the same sphere for lights
+    // (a superset for spots) and the probe's own box.
+    float3 boxExtents = item.itemType == CD_ITEM_PROBE
+        ? abs(item.directionExtent.xyz)
+        : item.positionRange.w * float3(1.0, 1.0, 1.0);
+    _CdClusterTileRanges[itemIndex] = CdTileRange(item, centerWS, boxExtents);
+}
+
+[numthreads(256, 1, 1)]
+void ClusterZBinClear(uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x;
+    if (index < _CdClusterZBinWordCount)
+        URP_ZBins[index] = 0u;
+    if (index < _CdClusterTileWordCount)
+        urp_Tiles[index] = 0u;
+    if (index < _CdClusterBinCount * 4u)
+        _CdClusterBinMinMax[index] = (index & 1u) == 0u ? 0xFFFFu : 0u;
+}
+
+[numthreads(64, 1, 1)]
+void ClusterZBinScatter(uint3 id : SV_DispatchThreadID)
+{
+    uint bin = id.x;
+    uint item = id.y;
+    if (bin >= _CdClusterBinCount || item >= _CdClusterItemCount)
+        return;
+
+    float2 minMax = _CdClusterMinMaxZ[item];
+    float scale = _FPParams0.x;
+    float offset = _FPParams0.y;
+    float lo = _CdClusterOrthographic != 0u ? minMax.x : log2(max(minMax.x, 1e-6));
+    float hi = _CdClusterOrthographic != 0u ? minMax.y : log2(max(minMax.y, 1e-6));
+    float lastBin = (float)(_CdClusterBinCount - 1);
+
+    int minBin = (int)clamp(lo * scale + offset, 0.0, lastBin);
+    int maxBin = (int)clamp(hi * scale + offset, 0.0, lastBin);
+    if ((int)bin < minBin || (int)bin > maxBin)
+        return;
+
+    uint wordsPerTile = (uint)_FPParams1.w;
+    uint words = bin * (2u + wordsPerTile);
+    InterlockedOr(URP_ZBins[words + 2u + (item >> 5)], 1u << (item & 31u));
+
+    // Header 0 is the punctual light range, header 1 the reflection probe range; both index the
+    // combined item stream, which is what ZBinningJob writes.
+    uint slot = bin * 4u + (item < _CdClusterLightCount ? 0u : 2u);
+    InterlockedMin(_CdClusterBinMinMax[slot], item);
+    InterlockedMax(_CdClusterBinMinMax[slot + 1u], item);
+}
+
+[numthreads(64, 1, 1)]
+void ClusterZBinPack(uint3 id : SV_DispatchThreadID)
+{
+    uint bin = id.x;
+    if (bin >= _CdClusterBinCount)
+        return;
+
+    uint words = bin * (2u + (uint)_FPParams1.w);
+    uint slot = bin * 4u;
+    URP_ZBins[words + 0u] = (_CdClusterBinMinMax[slot + 0u] & 0xFFFFu) | ((_CdClusterBinMinMax[slot + 1u] & 0xFFFFu) << 16u);
+    URP_ZBins[words + 1u] = (_CdClusterBinMinMax[slot + 2u] & 0xFFFFu) | ((_CdClusterBinMinMax[slot + 3u] & 0xFFFFu) << 16u);
+}
+
+[numthreads(8, 8, 1)]
+void ClusterTileExpand(uint3 id : SV_DispatchThreadID)
+{
+    uint tileX = id.x;
+    uint tileY = id.y;
+    if (tileX >= _CdClusterTileCount.x || tileY >= _CdClusterTileCount.y)
+        return;
+
+    uint wordsPerTile = (uint)_FPParams1.w;
+    uint wordBase = (tileY * _CdClusterTileCount.x + tileX) * wordsPerTile;
+
+    [loop] for (uint item = 0u; item < _CdClusterItemCount; item++)
+    {
+        int4 range = _CdClusterTileRanges[item];
+        if ((int)tileY >= range.x && (int)tileY <= range.y &&
+            (int)tileX >= range.z && (int)tileX <= range.w)
+        {
+            urp_Tiles[wordBase + (item >> 5)] |= 1u << (item & 31u);
+        }
+    }
+}

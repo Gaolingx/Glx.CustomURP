@@ -91,6 +91,12 @@ namespace UnityEngine.Rendering.Universal
             public ComputeShader clusteredDeferredCS;
 
             /// <summary>
+            /// Cluster list builder compute (G1). Optional: when missing, the CPU jobs build the list.
+            /// </summary>
+            [Reload("Shaders/Utils/ClusterBuilder.compute")]
+            public ComputeShader clusterBuilderCS;
+
+            /// <summary>
             /// Material type mask shader used by clustered deferred.
             /// </summary>
             [Reload("Shaders/Utils/ClusteredDeferredMask.shader")]

@@ -1,6 +1,6 @@
 # 12-GpuLightList：GPU 光表与异步两段式（计划）
 
-> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1a（灯记录布局 + parity 骨架）已落地；G1b（Stage A/B compute）待执行**。
+> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1a 已落地；G1b 已实施（同步队列，D3D11 证据完整；D3D12 / RDC / 异步待补）**。
 > 建立：2026-11-22；前置轮次：[`PLAN/Done/11-LightCulling`](../../Done/11-LightCulling/HANDOFF.md)（Clustered Deferred v1，已归档）。
 > 善后清单：[clean.md](clean.md)（C1 已落地；C2–C8 仍为规划）。
 > 基线：C1 提交后的 HEAD（见 `git log`）；C1 证据在 `validation/C1/`。
@@ -115,6 +115,8 @@ ClusteredDeferred.compute（不改一行）
 - Stage B 的原子/合并策略必须与 CPU 的位图语义一致：同一 light 对同一 word 的重复写入是幂等的（置位），不依赖写入顺序。
 - `_FPParams*` 继续由 CPU 在 `ForwardLights.Setup` 设置：tile 宽度、zbin scale/offset、方向光数量与灯数都沿用现有推导，GPU 只负责填充两张位图。
 
+> **G1b 修订（绑定方式）**：上面“kernel 不改一行”在 D3D11 上不可实现 —— constant buffer 不能同时带 `UNORDERED_ACCESS`，`Graphics.CopyBuffer` 也不允许 constant↔structured。经确认后改为：clustered 路径的两张位图以 `StructuredBuffer<uint>` 读写（word 布局、header、索引公式不变），kernel 只改 3 处读取点（`CdSelect4` 换直接下标）；forward+ 的 `Input.hlsl` 常量绑定与 CPU jobs 保持原样。
+
 ### 3.2 退出条件
 
 1. 同场景/相机/灯集下，GPU 与 CPU jobs 的 `URP_ZBinBuffer`/`urp_TileBuffer` **逐位相等**；若 z 量化存在浮点差，必须证明它不改变任何置位（parity 测试按位比较，不做容差）。
@@ -123,9 +125,11 @@ ClusteredDeferred.compute（不改一行）
 4. CPU 侧 `PreSetup` 归零（或只剩参数计算）；GPU 新增两次 dispatch 的时间被记录，且重叠模式下端到端帧时间不升。
 5. 1 个 D3D12 或 D3D11 `.rdc`（≤20 MiB）证明 dispatch 次序/尺寸与缓冲绑定；异步路径另有 fence 证据。
 
+> **G1b 实测修订**：第 1 条按缓冲类型拆分执行 —— zbin 逐位相等（已达成）；tile 因 Stage A 按 §3.1 使用保守 AABB，闸门改为 `CoversCpuBits`（CPU ⊆ GPU、无漏位）+ 像素逐位一致。第 2 条因绑定方式修订（§3.1 注）改为“word 布局与 `_FPParams*` 不变、kernel 只允许读取点变化”。第 5 条的 `.rdc` 与第 4 条的异步重叠仍待补。
+
 ### 3.3 证据
 
-`validation/G1/`：`G1BufferParity.json`（逐位）、`T4-shadows/`、`T5-runtime/`、`CdCpuBreakdown.json`、`.rdc` + RenderDoc 摘要、EditMode/PlayMode XML。
+`validation/G1/`：`tests/G1EditMode.xml`、`tests/G1PlayMode.xml`（含 GPU parity 用例）、`T5-runtime/player-d3d11/`、`T4-shadows/player-d3d11/`、`cpu/CdCpuBreakdown.json`、本目录 `README.md`。`.rdc` 仍待补（绑定从 constant 改为 structured，旧抓帧不再是当前结构参考）。
 
 ### 3.4 G1a（已落地）：灯记录布局冻结 + parity 骨架
 
@@ -166,6 +170,37 @@ ClusteredDeferred.compute（不改一行）
 | 未证明 | GPU 逐位 parity（Stage A/B 未写）、player/arena 运行、CPU 下降与帧时间 |
 
 ---
+
+### 3.5 G1b（已实施）：Stage A/B + 同队列派发
+
+**实现**
+
+- `Shaders/Utils/ClusterBuilder.compute` 五个 kernel：
+  - `ClusterItemBounds`（1 thread/item）：复刻 `LightMinMaxZJob` / `ReflectionProbeMinMaxZJob` 的 z 区间（spot 分支逐行移植，仅灯夹到 0），并算保守 tile AABB —— 世界包围盒 8 角点投影，任一角点越过近平面则整屏。
+  - `ClusterZBinClear`（整缓冲清零含 header 临时槽）、`ClusterZBinScatter`（bin×item，`InterlockedOr` 置位，`InterlockedMin/Max` 维护灯/探针两个 header）、`ClusterZBinPack`（写回 `min | max<<16` 两个字）、`ClusterTileExpand`（row×tile 独占线程，无原子）。
+- `ClusterListGpuBuilder` 持有 item / minMaxZ / tileRanges / binHeader 临时缓冲；`ForwardLights.PreSetup` 在 GPU 路径跳过四个 CPU job，`Setup` 按 `_FPParams* → 5 dispatch → bind` 提交。item 上传每帧一次 `SetData`（≤320×48 B）。
+- 回退：`ClusterListGpuBuilder.enabled`（默认 true）+ compute 缺失 / `viewCount != 1` / forward+ 时走 CPU jobs；回退同样写 structured 缓冲，像素路径不变。
+- clustered 模式两张位图为 `Target.Structured`（4 B/word）；forward+ 仍为 constant buffer，CPU jobs 原样。
+- parity 读回用 `CommandBuffer.RequestAsyncReadback`（与 dispatch 同队列排序），避免读到上一帧。
+
+**验证（D3D11 player，1280×720，RTX 5060 Ti）**
+
+| 项 | 结果 |
+|---|---|
+| zbin 位图 | **逐位相等**（720p/48 灯场景 0 word / 0 bit 差异） |
+| tile 位图 | CPU ⊆ GPU；640×360/24 灯：CPU 75,590 bit → GPU 86,400 bit（**114.3%**，多 10,810 bit），无漏位 |
+| 像素 | GPU 列表帧与 CPU 列表帧 **逐位相同**（max diff 0） |
+| T5 A/B（48 灯） | mean **0.7989/255**、max **9**、>8 差 11 px，`passed=true` |
+| T4 特性矩阵 | **7/7 passed**（stencil vs clustered on：mean 0.020–0.969、max 3–10） |
+| CPU 分解（64 灯） | `preSetup` 0.051→**0.015**、jobs complete 0.110→**0.000**、上传 0.012→**0.000**、`setupLights` 0.148→**0.232**（新增 item 构建 + 5 次 dispatch 提交）；净省约 **0.09 ms/帧** |
+| EditMode / PlayMode | **490/490**、**38/38**（新增 GPU parity 用例） |
+
+**结论**
+
+- 逐位 parity 的边界：zbin 只做 `log2` 量化，GPU 与 Burst 输出一致；tile 若逐行移植 `TilingJob` 也不可能逐位（`FloatMode.Fast` 与 HLSL 的三角/开方差 1 ulp 就翻位），因此采用 §3.1 本就写明的“包围球 → tile AABB”保守超集，闸门为 `CoversCpuBits` + 像素逐位一致。
+- CPU 收益约 0.09 ms/帧：0.173 ms 的构图换成约 0.084 ms（item 构建 + SetData + dispatch 提交）。真正的收益要等 G1c 异步重叠与 256+ 灯扩展性。
+
+- CPU 收益约 0.09 ms/帧：0.173 ms 的构图换成约 0.084 ms（item 构建 + SetData + dispatch 提交）。真正的收益要等 G1c 异步重叠与 256+ 灯扩展性。
 
 ## 4. G2：FPTL 精剪
 
@@ -230,4 +265,6 @@ ClusteredDeferred.compute（不改一行）
 1. ~~用 C1 的 `CdCpuBreakdown.json` 填 §2.3，并对照 §0 的 Go/No-Go 闸门决定 G1 是否以“省 CPU”立项。~~（C1 结论：0.173 ms/帧、约 14%；G1 以“异步重叠 + 扩展性”立项，验收须同时报告 CPU 下降与端到端帧时间。）
 2. ~~冻结 G1 的灯记录布局（与 `_AdditionalLights*` 常量数组同源，避免两份数据漂移）。~~（§3.4，已落地。）
 3. ~~先写 parity 测试骨架（CPU 输出落盘 → GPU 输出比较），再写 compute；不先调性能。~~（§3.4，已落地；golden 落盘与比较库就绪。）
-4. **G1b**：写 Stage A/B compute（不改 kernel 与布局），先过 parity 再谈异步；第一版可同队列串行，异步只加调度。
+4. ~~**G1b**：写 Stage A/B compute（不改 kernel 与布局），先过 parity 再谈异步；第一版可同队列串行，异步只加调度。~~（§3.5，已落地。）
+5. **G1c**：异步重叠 —— `CommandBufferExecutionFlags.AsyncCompute` + fence，与 GBuffer 并行；同步/异步两种模式的位图必须逐位一致。同时在 D3D12 复跑 T5/T4，并补 1 个 `.rdc`（structured 绑定后的新结构）。
+6. **G1 性能收尾**：item 构建（每帧数组 + `GetUniversalAdditionalLightData`）与 dispatch 提交合计约 0.084 ms，先量化能否用缓存的 item 缓冲与更少的 `SetCompute*` 调用压到 0.05 ms 以下；再决定 G2 是否值得做。

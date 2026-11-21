@@ -29,6 +29,7 @@ MonoBehaviour:
     stencilDeferredPS: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
     clusteredDeferredCS: {fileID: 7200000, guid: 1caad89c94e90944caea5a3a60906c2e,
       type: 3}
+    clusterBuilderCS: {fileID: 7200000, guid: 577378dd0df1dae4fbdd8a7ea0701609, type: 3}
     clusteredDeferredMaskPS: {fileID: 4800000, guid: a6c47f0a7dad2e3429cc7f1b5f9e1b13,
       type: 3}
     clusteredDeferredResolvePS: {fileID: 4800000, guid: 6a7640db64d1ed34bbf113c0e2445cfd,

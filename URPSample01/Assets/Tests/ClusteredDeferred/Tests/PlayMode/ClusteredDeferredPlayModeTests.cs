@@ -192,12 +192,14 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
         }
 
-        // G1's parity gate compares the GPU builder against these two bitmaps, so the CPU list has to
-        // be stable frame to frame and the item stream has to describe exactly what the bits index.
+        // The CPU list is the parity reference for the GPU builder, so it must be stable frame to
+        // frame and its item stream must describe exactly what the bits index. Pinned to the CPU
+        // writer: the GPU path has its own test below.
         [UnityTest]
         public IEnumerator ClusterListSnapshotIsDeterministicAndDescribesTheItemStream()
         {
             yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
+            ClusterListGpuBuilder.enabled = false;
             ClusterListParityCapture.enabled = true;
             try
             {
@@ -238,9 +240,66 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
             finally
             {
+                ClusterListGpuBuilder.enabled = true;
                 ClusterListParityCapture.Reset();
                 TearDownRig();
             }
+        }
+
+        // G1b gate: the GPU builder must cover every bit the CPU jobs set (target/zbin bits are
+        // compared), with the conservative tile AABB allowed to add candidates the CPU rejects.
+        [UnityTest]
+        public IEnumerator GpuClusterListCoversTheCpuList()
+        {
+            yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
+            ClusterListParityCapture.enabled = true;
+            ClusterListGpuBuilder.enabled = true;
+            try
+            {
+                yield return RenderFrames(WarmupFrames);
+                yield return WaitForGpuSnapshot();
+                var gpu = ClusterListParityCapture.lastGpu;
+                Assert.IsNotNull(gpu.zBins, "The GPU builder never published a snapshot (readback failed or the CPU path ran).");
+                Assert.IsNotNull(gpu.tileMasks);
+                var gpuImage = ReadPixels();
+
+                ClusterListGpuBuilder.enabled = false;
+                ClusterListParityCapture.lastGpu = default;
+                yield return null;
+                yield return RenderFrames(2);
+                var cpu = ClusterListParityCapture.last;
+                Assert.IsNotNull(cpu.zBins, "The CPU fallback did not capture its bitmap.");
+                var cpuImage = ReadPixels();
+
+                var diff = ClusterListSnapshot.Diff(cpu, gpu);
+                int cpuBits = CountSetBits(cpu.tileMasks, cpu.TileUsedWords);
+                int gpuBits = CountSetBits(gpu.tileMasks, gpu.TileUsedWords);
+                Debug.Log($"Tile bits: cpu {cpuBits}, gpu {gpuBits}, extra {diff.tileMaskExtraBits} " +
+                          $"({100f * gpuBits / Mathf.Max(1, cpuBits):0.#}% of CPU). " + diff);
+                Assert.IsTrue(diff.CoversCpuBits, "The GPU list drops bits the CPU sets: " + diff);
+                Assert.AreEqual(0, diff.zBinMismatchBits,
+                    "The zbin path is the exact one and must match the CPU word for word: " + diff);
+                Assert.LessOrEqual(gpuBits, cpuBits * 4,
+                    "The conservative tile AABB is far looser than the hand-checked bound.");
+
+                // Extra candidates are only useful if they cost nothing visually: the lights they add
+                // are attenuated to zero, so the image must be bit-identical.
+                var imageDiff = Compare(cpuImage, gpuImage);
+                Assert.AreEqual(0f, imageDiff.max,
+                    $"The GPU list changed pixels (mean {imageDiff.mean:0.####}, max {imageDiff.max:0.####}).");
+            }
+            finally
+            {
+                ClusterListGpuBuilder.enabled = true;
+                ClusterListParityCapture.Reset();
+                TearDownRig();
+            }
+        }
+
+        static IEnumerator WaitForGpuSnapshot()
+        {
+            for (int i = 0; i < 10 && ClusterListParityCapture.lastGpu.zBins == null; i++)
+                yield return null;
         }
 
         static int CountProbeItems(ClusterListSnapshot snapshot)

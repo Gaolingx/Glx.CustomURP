@@ -37,16 +37,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public int TileUsedWords => tileResolution.x * tileResolution.y * wordsPerTile * viewCount;
 
-        public static ClusterListSnapshot Create(NativeArray<uint> zBins, NativeArray<uint> tileMasks)
+        public void CopyBitmapsFrom(NativeArray<uint> zBins, NativeArray<uint> tileMasks)
         {
-            var snapshot = new ClusterListSnapshot
-            {
-                zBins = new uint[zBins.Length],
-                tileMasks = new uint[tileMasks.Length],
-            };
-            zBins.CopyTo(snapshot.zBins);
-            tileMasks.CopyTo(snapshot.tileMasks);
-            return snapshot;
+            this.zBins = new uint[zBins.Length];
+            this.tileMasks = new uint[tileMasks.Length];
+            zBins.CopyTo(this.zBins);
+            tileMasks.CopyTo(this.tileMasks);
         }
 
         public void WriteFile(string path)
@@ -180,15 +176,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CompareFloat("_FPParams[" + i + "]", expectedParams[i], actualParams[i], diff.parameterMismatches);
 
             CompareWords(expected.zBins, actual.zBins, expected.ZBinUsedWords,
-                ref diff.zBinMismatchWords, ref diff.zBinMismatchBits, ref diff.zBinOutsideUsed, diff.zBinExamples);
+                ref diff.zBinMismatchWords, ref diff.zBinMismatchBits, ref diff.zBinOutsideUsed,
+                ref diff.zBinMissingBits, ref diff.zBinExtraBits, diff.zBinExamples);
             CompareWords(expected.tileMasks, actual.tileMasks, expected.TileUsedWords,
-                ref diff.tileMaskMismatchWords, ref diff.tileMaskMismatchBits, ref diff.tileMaskOutsideUsed, diff.tileMaskExamples);
+                ref diff.tileMaskMismatchWords, ref diff.tileMaskMismatchBits, ref diff.tileMaskOutsideUsed,
+                ref diff.tileMaskMissingBits, ref diff.tileMaskExtraBits, diff.tileMaskExamples);
 
             return diff;
         }
 
         static void CompareWords(uint[] expected, uint[] actual, int usedWords,
-            ref int mismatchWords, ref int mismatchBits, ref int outsideUsed, List<int> examples)
+            ref int mismatchWords, ref int mismatchBits, ref int outsideUsed,
+            ref int missingBits, ref int extraBits, List<int> examples)
         {
             if (expected == null || actual == null)
                 return;
@@ -206,7 +205,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 mismatchWords++;
-                mismatchBits += math.countbits(expected[i] ^ actual[i]);
+                var xor = expected[i] ^ actual[i];
+                mismatchBits += math.countbits(xor);
+                missingBits += math.countbits(expected[i] & ~actual[i]);
+                extraBits += math.countbits(actual[i] & ~expected[i]);
                 if (examples.Count < k_MaxExamples)
                     examples.Add(i);
             }
@@ -252,6 +254,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         public int tileMaskMismatchBits;
         public int zBinOutsideUsed;
         public int tileMaskOutsideUsed;
+        // Bits the GPU sets but the CPU does not (expected for the conservative tile AABB) and bits
+        // the CPU sets that the GPU misses (never acceptable: those lights would stop being shaded).
+        public int zBinMissingBits;
+        public int zBinExtraBits;
+        public int tileMaskMissingBits;
+        public int tileMaskExtraBits;
         public List<string> parameterMismatches;
         public List<int> zBinExamples;
         public List<int> tileMaskExamples;
@@ -260,6 +268,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                              tileMaskMismatchWords == 0 &&
                              (parameterMismatches == null || parameterMismatches.Count == 0);
 
+        // The G1 tile gate: every CPU bit must be present, extra bits are allowed and counted.
+        public bool CoversCpuBits => zBinMissingBits == 0 &&
+                                     tileMaskMissingBits == 0 &&
+                                     (parameterMismatches == null || parameterMismatches.Count == 0);
+
         public override string ToString()
         {
             var builder = new StringBuilder();
@@ -267,6 +280,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             builder.Append(Exact ? "exact" : "MISMATCH");
             builder.Append($"; zBins {zBinMismatchWords} words/{zBinMismatchBits} bits");
             builder.Append($"; tileMasks {tileMaskMismatchWords} words/{tileMaskMismatchBits} bits");
+            if (zBinMissingBits != 0 || tileMaskMissingBits != 0)
+                builder.Append($"; CPU bits missing on GPU: zBins {zBinMissingBits}, tileMasks {tileMaskMissingBits}");
+            if (zBinExtraBits != 0 || tileMaskExtraBits != 0)
+                builder.Append($"; extra GPU bits: zBins {zBinExtraBits}, tileMasks {tileMaskExtraBits}");
             if (zBinOutsideUsed != 0 || tileMaskOutsideUsed != 0)
                 builder.Append($"; outside used region: zBins {zBinOutsideUsed}, tileMasks {tileMaskOutsideUsed}");
             if (zBinExamples != null && zBinExamples.Count != 0)
@@ -285,13 +302,60 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         public static bool enabled;
         public static ClusterListSnapshot last;
+        // Filled asynchronously by the ordered readback, so tests have to wait a frame for it.
+        public static ClusterListSnapshot lastGpu;
 
         public static void Capture(ClusterListSnapshot snapshot) => last = snapshot;
+
+        // CommandBuffer.RequestAsyncReadback is ordered after the dispatch, unlike
+        // AsyncGPUReadback.Request, which would read the previous frame's buffer contents.
+        public static void RequestGpuCapture(CommandBuffer cmd, ClusterListSnapshot metadata, GraphicsBuffer zbins, GraphicsBuffer tiles)
+        {
+            if (cmd == null || zbins == null || tiles == null)
+                return;
+
+            var pending = new PendingCapture { snapshot = metadata, remaining = 2 };
+            // Read the sizes now: the buffers can be disposed before the callback fires.
+            int zBinCount = zbins.count;
+            int tileCount = tiles.count;
+            cmd.RequestAsyncReadback(zbins, request => OnReadback(request, pending, zBinCount, true));
+            cmd.RequestAsyncReadback(tiles, request => OnReadback(request, pending, tileCount, false));
+        }
+
+        sealed class PendingCapture
+        {
+            public ClusterListSnapshot snapshot;
+            public int remaining;
+        }
+
+        static void OnReadback(AsyncGPUReadbackRequest request, PendingCapture pending, int wordCount, bool isZBin)
+        {
+            if (pending.remaining <= 0)
+                return;
+
+            if (request.hasError)
+            {
+                pending.remaining = 0;
+                Debug.LogWarning("Cluster list GPU parity readback failed.");
+                return;
+            }
+
+            var words = new uint[wordCount];
+            request.GetData<uint>().CopyTo(words);
+            if (isZBin)
+                pending.snapshot.zBins = words;
+            else
+                pending.snapshot.tileMasks = words;
+
+            if (--pending.remaining == 0)
+                lastGpu = pending.snapshot;
+        }
 
         public static void Reset()
         {
             enabled = false;
             last = default;
+            lastGpu = default;
         }
     }
 }

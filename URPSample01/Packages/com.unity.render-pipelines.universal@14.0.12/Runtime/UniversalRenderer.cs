@@ -268,6 +268,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             forwardInitParams.clusteredDeferred = m_ClusteredDeferredLighting;
+            forwardInitParams.clusterBuilder = m_ClusteredDeferredLighting ? data.shaders.clusterBuilderCS : null;
             m_Clustering = data.renderingMode == RenderingMode.ForwardPlus || m_ClusteredDeferredLighting;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;

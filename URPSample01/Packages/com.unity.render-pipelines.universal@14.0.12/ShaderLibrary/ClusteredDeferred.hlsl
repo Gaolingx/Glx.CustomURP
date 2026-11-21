@@ -30,12 +30,8 @@
     #define CD_MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHT_COUNT_DESKTOP
 #endif
 
-#define CD_MAX_ZBIN_VEC4S 1024
-#if CD_MAX_VISIBLE_LIGHTS <= 32
-    #define CD_MAX_TILE_VEC4S 1024
-#else
-    #define CD_MAX_TILE_VEC4S 4096
-#endif
+// Mirrors UniversalRenderPipeline.maxZBinWords; the iterator clamps the bin base against it.
+#define CD_MAX_ZBIN_WORDS 4096
 
 // ----------------------------------------------------------------------------
 // Globals uploaded by ClusteredDeferredPass (compute has no per-draw state).
@@ -75,12 +71,11 @@ float4 _FPParams2;
 #define URP_FP_ZBIN_COUNT ((uint)_FPParams2.x)
 #define URP_FP_TILE_COUNT ((uint)_FPParams2.y)
 
-CBUFFER_START(URP_ZBinBuffer)
-    float4 URP_ZBins[CD_MAX_ZBIN_VEC4S];
-CBUFFER_END
-CBUFFER_START(urp_TileBuffer)
-    float4 urp_Tiles[CD_MAX_TILE_VEC4S];
-CBUFFER_END
+// G1: the bitmaps are UAV-writable structured buffers so the list can be built on the GPU.
+// D3D11 cannot bind a constant buffer as a UAV, which the CPU-only path could hide. The word
+// layout, headers and index formulas are the constant-buffer ones; only the binding type moved.
+StructuredBuffer<uint> URP_ZBins;
+StructuredBuffer<uint> urp_Tiles;
 
 // ----------------------------------------------------------------------------
 // Light constants. Same cbuffer name and array layout as Input.hlsl so the
@@ -594,14 +589,6 @@ half CdIndirectAmbientOcclusionCancel(float2 normalizedScreenSpaceUV, half surfa
 // next word index and the max index into the zbin header.
 // ----------------------------------------------------------------------------
 
-uint CdSelect4(uint4 v, uint i)
-{
-    uint mask0 = uint(int(i << 31) >> 31);
-    uint mask1 = uint(int(i << 30) >> 31);
-    return (((v.w & mask0) | (v.z & ~mask0)) & mask1) |
-           (((v.y & mask0) | (v.x & ~mask0)) & ~mask1);
-}
-
 struct CdClusterIterator
 {
     uint tileOffset;
@@ -624,11 +611,11 @@ CdClusterIterator CdClusterInit(float2 normalizedScreenSpaceUV, float3 positionW
 
     uint zBinBaseIndex = (uint)(depthTerm * URP_FP_ZBIN_SCALE + URP_FP_ZBIN_OFFSET);
     zBinBaseIndex = zBinBaseIndex * (2 + URP_FP_WORDS_PER_TILE);
-    zBinBaseIndex = min(zBinBaseIndex, 4 * CD_MAX_ZBIN_VEC4S - (2 + URP_FP_WORDS_PER_TILE));
+    zBinBaseIndex = min(zBinBaseIndex, CD_MAX_ZBIN_WORDS - (2 + URP_FP_WORDS_PER_TILE));
 
     uint zBinHeaderIndex = zBinBaseIndex; // header 0 = punctual light list
     state.zBinOffset = zBinBaseIndex + 2;
-    state.entityIndexNextMax = CdSelect4(asuint(URP_ZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
+    state.entityIndexNextMax = URP_ZBins[zBinHeaderIndex];
     return state;
 }
 
@@ -641,8 +628,8 @@ bool CdClusterNext(inout CdClusterIterator it, out uint entityIndex)
         uint tileIndex = it.tileOffset + wordIndex;
         uint zBinIndex = it.zBinOffset + wordIndex;
         it.tileMask =
-            CdSelect4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
-            CdSelect4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4) &
+            urp_Tiles[tileIndex] &
+            URP_ZBins[zBinIndex] &
             (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) &
             (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));
         it.entityIndexNextMax = (it.entityIndexNextMax + 32) & ~31;

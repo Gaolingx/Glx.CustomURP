@@ -27,6 +27,13 @@ MonoBehaviour:
     screenSpaceShadowPS: {fileID: 0}
     samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
     stencilDeferredPS: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
+    clusteredDeferredCS: {fileID: 7200000, guid: 1caad89c94e90944caea5a3a60906c2e,
+      type: 3}
+    clusterBuilderCS: {fileID: 7200000, guid: 577378dd0df1dae4fbdd8a7ea0701609, type: 3}
+    clusteredDeferredMaskPS: {fileID: 4800000, guid: a6c47f0a7dad2e3429cc7f1b5f9e1b13,
+      type: 3}
+    clusteredDeferredResolvePS: {fileID: 4800000, guid: 6a7640db64d1ed34bbf113c0e2445cfd,
+      type: 3}
     fallbackErrorPS: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
     fallbackLoadingPS: {fileID: 4800000, guid: 7f888aff2ac86494babad1c2c5daeee2, type: 3}
     materialErrorPS: {fileID: 4800000, guid: 5fd9a8feb75a4b5894c241777f519d4e, type: 3}
@@ -62,6 +69,7 @@ MonoBehaviour:
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 0
+  m_ClusteredDeferredLighting: 0
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
