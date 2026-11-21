@@ -190,6 +190,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             return ClusteredDeferredPass.IsEligibleCamera(ref cameraData);
         }
 
+        // Completes the cluster jobs scheduled by PreSetup. Clustered deferred calls this before
+        // the deferred setup reads the culling light/probe arrays; upstream Forward+ waits until
+        // Setup because nothing else touches those arrays in between.
+        internal void CompleteClusterJobs()
+        {
+            m_CullingHandle.Complete();
+        }
+
         // Calculate view planes and viewToViewportScaleBias. This handles projection center in case the projection is off-centered
         void GetViewParams(Camera camera, float4x4 viewToClip, out float viewPlaneBot, out float viewPlaneTop, out float4 viewToViewportScaleBias)
         {

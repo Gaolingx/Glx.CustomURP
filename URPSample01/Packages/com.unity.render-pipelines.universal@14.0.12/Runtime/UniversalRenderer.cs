@@ -257,6 +257,16 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogWarning("Clustered deferred lighting needs compute shaders and the constant light array; falling back to stencil deferred.");
             }
 
+            // Clustered deferred binds the mask/compute/resolve targets directly, so the native
+            // render pass path is never available for this renderer. Decide once here instead of
+            // mutating DeferredLights.UseRenderPass per camera, which would leave the GBuffer slice
+            // layout in the non-native configuration for later cameras.
+            if (m_ClusteredDeferredLighting && data.useNativeRenderPass)
+            {
+                useRenderPassEnabled = false;
+                Debug.LogWarning("Clustered deferred lighting does not support native render passes; native render pass is disabled for this renderer.");
+            }
+
             forwardInitParams.clusteredDeferred = m_ClusteredDeferredLighting;
             m_Clustering = data.renderingMode == RenderingMode.ForwardPlus || m_ClusteredDeferredLighting;
             m_ForwardLights = new ForwardLights(forwardInitParams);
@@ -583,16 +593,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // Clustered deferred requires plain render-target binding (the mask pass reads stencil and
-            // the compute/resolve need explicit textures). Force native RP off for this frame.
-            if (m_ClusteredDeferredLighting && renderingModeActual == RenderingMode.Deferred &&
-                ClusteredDeferredPass.IsEligibleCamera(ref renderingData.cameraData))
-            {
-                useRenderPassEnabled = false;
-                if (m_DeferredLights != null)
-                    m_DeferredLights.UseRenderPass = false;
-            }
-
             m_ForwardLights.PreSetup(ref renderingData);
 
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -702,6 +702,12 @@ namespace UnityEngine.Rendering.Universal
 
                 // TODO: This needs to be setup early, otherwise gbuffer attachments will be allocated with wrong size
                 m_DeferredLights.HasNormalPrepass = renderPassInputs.requiresNormalsTexture;
+
+                // The cluster jobs scheduled in PreSetup hold the culling light/probe arrays, and
+                // ResolveMixedLightingMode takes mutable access to them. Finish the jobs first; the
+                // GPU upload still happens later in ForwardLights.Setup.
+                if (m_ClusteredDeferredLighting && ClusteredDeferredPass.IsEligibleCamera(ref cameraData))
+                    m_ForwardLights.CompleteClusterJobs();
 
                 m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
                 m_DeferredLights.IsOverlay = cameraData.renderType == CameraRenderType.Overlay;
