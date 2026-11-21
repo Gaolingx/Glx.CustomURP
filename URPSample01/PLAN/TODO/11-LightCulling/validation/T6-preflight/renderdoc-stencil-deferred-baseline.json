@@ -1,0 +1,51 @@
+{
+  "capture": "PLAN/Done/06-ValidationAllRDC/validation/P0/Smoke/deferred_ssgi_full_frame12818.rdc",
+  "api": "D3D11",
+  "resolution": "1280x720",
+  "capturedBy": "renderdoc-mcp (open_capture/list_events/list_draws/get_pipeline_state)",
+  "note": "Existing tracked capture reused as the stencil deferred baseline; no new .rdc was produced for this preflight.",
+  "structure": [
+    { "eventId": 544, "name": "Render GBuffer", "draws": [577, 583, 591, 613, 648, 678, 684] },
+    { "eventId": 694, "name": "Clear" },
+    { "eventId": 695, "name": "CopyDepth", "draws": [710] },
+    {
+      "eventId": 715,
+      "name": "Deferred Pass",
+      "children": [
+        {
+          "eventId": 716,
+          "name": "Deferred Shading (Stencil)",
+          "draws": [735, 750],
+          "note": "One fullscreen triangle per light (2 draws = 2 lights in this scene)."
+        },
+        {
+          "eventId": 754,
+          "name": "Render Opaques Forward Only",
+          "draws": [776],
+          "note": "Executes after deferred lighting and writes into the same lighting attachment."
+        }
+      ]
+    },
+    { "eventId": 788, "name": "Camera.RenderSkybox", "draws": [806] }
+  ],
+  "deferredLightingDraw": {
+    "eventId": 735,
+    "topology": "fullscreen triangle (3 indices)",
+    "renderTarget": "_CameraColorAttachmentA B10G11R11_UFloatPack32 1280x720",
+    "depthTarget": "_CameraDepthAttachment D32S8 1280x720",
+    "pipeline": "stencil deferred Lit punctual/directional pass",
+    "note": "Writes directly to the lighting attachment through fixed-function blending. A compute dispatch cannot do that, hence the RGBA16F UAV plus fullscreen resolve (D8)."
+  },
+  "forwardOnlyDraw": {
+    "eventId": 776,
+    "renderTarget": "_CameraColorAttachmentA B10G11R11_UFloatPack32 1280x720",
+    "depthTarget": "_CameraDepthAttachment D32S8 1280x720",
+    "pipeline": "UniversalForwardOnly pass",
+    "note": "Kept in clustered mode (D16); the material type mask leaves these pixels at 0 so the compute does not double-light them."
+  },
+  "implications": [
+    "Stencil deferred cost scales with light count (one fullscreen draw per light); the clustered compute is one dispatch.",
+    "Forward-only opaque is a real path in this scene; D9 would have removed draw 776 and its object.",
+    "The lighting attachment is R11G11B10; the clustered resolve must keep the same blend semantics (One One, Zero One)."
+  ]
+}

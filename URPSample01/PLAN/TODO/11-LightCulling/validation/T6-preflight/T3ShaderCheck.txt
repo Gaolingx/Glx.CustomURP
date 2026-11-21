@@ -1,0 +1,11 @@
+Clustered deferred shader check
+utc: 2026-11-21T10:42:02.5301372Z
+unity: 2022.3.62f1
+graphics API: Direct3D11
+
+[compute] Packages/com.unity.render-pipelines.universal/Shaders/Utils/ClusteredDeferred.compute messages=0
+
+[shader] Packages/com.unity.render-pipelines.universal/Shaders/Utils/ClusteredDeferredMask.shader messages=0
+
+[shader] Packages/com.unity.render-pipelines.universal/Shaders/Utils/ClusteredDeferredResolve.shader messages=0
+

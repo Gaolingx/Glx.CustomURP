@@ -1,6 +1,7 @@
 # 11-LightCulling 交接：HDRP 光列表调研与 URP Clustered Deferred（URP BRDF）实施计划
 
-> 状态：**调研完成，范围与决策冻结，未实施**
+> 状态：**计划已修订（D15/D16）；T3 kernel 与 T6 preflight 已产出（编译通过，未运行时接入）**
+> 修订：2026-11-21（tile 像素并行、材质类型 mask、compute UAV+resolve、native RP 强制关闭）
 > 建立：2026-11-21
 > 基线：`c37b9dd`（Record the DDGI plan revision commit）
 > 结果入口：本文件；实施后追加 `report.md` 与 `validation/`
@@ -41,14 +42,16 @@
 | D4 | 光列表复用 URP Forward+ 的 cluster 构建与缓冲布局（`URP_ZBins`/`urp_Tiles`/`_FPParams*`）；不移植 HDRP FPTL；**只扩展“何时构建”**，不打开 `_FORWARD_PLUS` 全局关键字 | 关闭时透明/forward-only 的逐物体灯数据完全不变，回归面最小；compute 只消费列表 |
 | D5 | 光照求值复用 `BRDFDataFromGbuffer` / `LightingPhysicallyBased` / `InputDataFromGbufferAndWorldPosition`；不重写 BRDF | `StencilDeferred.hlsl` 已验证同一套函数；与 forward 结果一致 |
 | D6 | 阴影复用 URP 现有主光 cascade / screen-space shadow 与 `AdditionalLightShadow(lightIndex)`；v1 只支持常量数组灯数据（本 fork `RenderingUtils.useStructuredBuffer == false`） | `RenderingUtils.cs:74-87` 硬编码返回 false；Forward+ 已证明“全局灯索引 → 阴影采样”这条链可用 |
-| D7 | kernel 每 tile 一个线程组（16×16 像素，1 像素/线程），一次写 lighting attachment；不使用 light-shape stencil、不做每灯全屏 pass | tile 内 wave 全同 tile，无 forward PS 的 tile 分歧；stencil 灯体积整套不移植 |
-| D8 | kernel 只算直接光，`Blend One One, Zero One` additive 写 GBuffer3；间接光保持在 GBuffer pass | GBuffer3 已含 GI/emission；与 stencil deferred 的混合语义一致（`StencilDeferred.shader:158`） |
-| D9 | v1 要求所有参与 deferred 的 opaque 材质都有 `UniversalGBuffer` pass；本模式下不启用 forward-only opaque | 避免“deferred 与 forward-only 像素分类”需要读 stencil；透明仍在 deferred 之后走现有 forward（不受影响） |
-| D10 | 平台：D3D11/D3D12/Vulkan/Metal，要求 Compute + 可读 GBuffer/depth；GLES/WebGL 不支持；v1 不支持 native render pass（`_RENDER_PASS_ENABLED`）与 MSAA（deferred 本身已禁 MSAA，`UniversalRenderer.cs:367`）；XR/foveated 不在 v1 | 与 HDRP deferred 的 API 前提一致；减少分支与变体 |
+| D7 | kernel 采用**视口像素并行** dispatch：`ceil(viewport/16)` 个 16×16 线程组、1 像素/线程；tile id 由每像素 UV × `_FPParams1.xy` 推导，不依赖 CPU 选出的 tile 宽度；一次写 lighting attachment；不使用 light-shape stencil、不做每灯全屏 pass | compute 没有 per-draw scalarization；zbin header 本就逐像素不同，“组=tile”只换来 tile mask 同址；像素并行同时支持 CPU 会选的 8/16/32/64 |
+| D8 | kernel 只算直接光，写 `RGBA16F` lighting UAV；再由一个全屏 resolve pass 以 `Blend One One, Zero One` 加进 GBuffer3；间接光保持在 GBuffer pass | **compute dispatch 没有固定功能混合**，不能直接“Blend 写 GBuffer3”；resolve 与 stencil deferred 的混合语义一致（`StencilDeferred.shader:158`） |
+| D9 | **已废止，由 D16 取代**：不再要求所有 opaque 都有 `UniversalGBuffer`；保留 `m_RenderOpaqueForwardOnlyPass`（其在 deferred lighting 之后执行） | 计算 pass 通过材质类型 mask 跳过 forward-only 像素，forward-only 仍由原 forward 路径着色；避免“缺 pass 的物体静默消失”和 T6 的线性成本 |
+| D10 | 平台：D3D11/D3D12/Vulkan/Metal，要求 Compute + 可读 GBuffer/depth；GLES/WebGL 不支持；v1 **不使用** native render pass（`_RENDER_PASS_ENABLED`）与 MSAA（deferred 本身已禁 MSAA，`UniversalRenderer.cs:367`）；若 renderer 资产开了 native RP，则本帧强制 `useRenderPassEnabled = false` + `m_DeferredLights.UseRenderPass = false` 并输出一次告警；XR/foveated 不在 v1 | 仓库内所有 renderer 资产 `m_UseNativeRenderPass: 0`，且 D3D12 被硬排除（`ScriptableRenderer.cs:647`）；强制关闭与 URP 自身 validation 失败降级路径一致 |
 | D11 | 构图仍在 CPU（URP Burst jobs）；GPU FPTL 为 follow-up，仅在 profiler 证明 CPU 构图成为瓶颈时做，且缓冲布局保持不变 | 先拿到最大收益/最小风险的一步；“lightlistbuild 移植”不是本轮前置 |
 | D12 | 性能与 A/B 必须使用多灯重叠场景；`HDRPSample01/Assets/OutdoorsScene`（1 盏平行光）不作为结论依据 | 单灯场景下 tile 循环必然不如现有路径，会得出误导结论 |
 | D13 | 代码边界：新增 kernel/include/pass 放 URP 包内独立目录；核心修改限于接入点（`ForwardLights`、`UniversalRenderer`、`UniversalRendererData` 及 Editor），逐项列入 §4.6 并审计 | 可整目录回滚；不让 HDRP 代码扩散进 URP 本体 |
 | D14 | 不做 HDRP 的 7 张 GBuffer、material feature、面积光、体积雾、物理曝光、SSS、StackLit/Hair/Fabric、HD 阴影 atlas、HD 曝光/Volume | 本轮是“光照架构 + 光列表”，不是“渲染能力对齐” |
+| D15 | tile 宽度**不设 gate**：支持 CPU 实际会选择的 8/16/32/64；删除“tile != 16 禁用特性”的支持矩阵行、测试项与风险项 | `maxTileWords=16384`；4K 下 tile16 = 32400 tiles，CPU 必选 32；原 gate 会让特性在 4K 永久关闭 |
+| D16 | 新增 **Material Type Mask** 全屏 pass：用 stencil（`MaterialMask`，`Equal` `MaterialLit`/`MaterialSimpleLit`）向 `R8_UInt` 写 0/1/2；compute 读 mask 分流 Lit / SimpleLit / 跳过，不直接读 stencil，不改 GBuffer 布局 | D3D11 不能为 depth-stencil 建 SRV；stencil deferred 的 `_LIT`/`_SIMPLELIT`/跳过 分层必须在 compute 里换成可读表示 |
 
 **与上一轮口头估算的差异**：
 
@@ -64,9 +67,18 @@
 - **补 `isForwardPlus` 审计**。`UniversalRenderPipeline.InitializeRenderingData` 用 `isForwardPlus` 决定附加光阴影是否启用（`:1356`、`:1380`、`:1465`）以及是否生成逐物体灯数据（`:1384`、`:1598-1609`）。Deferred + clustered 下 `isForwardPlus` 为 false：阴影启用需要改用 `ForwardPlus || clusteredDeferred`，而逐物体灯数据必须保持开启（透明仍走 forward）。原计划漏了这一项。
 - **本 URP 14.0.12 没有 RenderGraph 版 `UniversalRenderer` 路径**：deferred 只在 `Execute`/`EnqueueDeferred` 里 `EnqueuePass`（`UniversalRenderer.cs:1122`、`:1463-1494`）。删除“RenderGraph 版本”的表述；新 pass 只需 `Configure`/`Execute`。
 - **`DeferredPass.cs` 不修改**；pass 二选一发生在 `EnqueueDeferred`。原 §4.6 把它列在“修改”表里但写“不改”，已修正。
-- **v1 必须在 clustered 模式跳过 `m_RenderOpaqueForwardOnlyPass`**（`EnqueueDeferred` 末尾），并强制 `!m_DeferredLights.UseRenderPass`；否则 D9（opaque 全覆盖 GBuffer）与 native RP 不支持这两条无法成立。
+- ~~**v1 必须在 clustered 模式跳过 `m_RenderOpaqueForwardOnlyPass`**~~（已被 D16 取代）：保留该 pass，由材质类型 mask 保证 compute 不重复处理；仍强制 `!m_DeferredLights.UseRenderPass`（D10）。
 - **验证/测试/清理补全**：原 §7 只有场景与预算；已扩为既有测试、新增测试、player 验证、证据 schema、清理归档、文档一致性六节。
 - **估算统一**：核心 6–10 人周；按 30–50% 验收上浮为 **9–15 人周**（原 8–14 与上浮比例不符）。
+
+**本版修订（2026-11-21，第二遍：像素并行 + 材质分类）**：
+
+- **tile 宽度边界（D15）**：按 fork 实际参数，`MAX_VISIBLE_LIGHTS = 256`（桌面）→ `maxTileWords = 4096*4 = 16384`；tile 宽度从 8 起倍增，直到 `tileX*tileY*wordsPerTile <= 16384`（`ForwardLights.cs:247-253`）。实测边界：1080p 且 items（灯+探针）≤64（≤2 words）→ 16；1080p 3+ words → 32；**4K 即使只有 1 盏附加光也必然选 32**（32400 tiles > 16384）；0 盏附加光 → 8。因此“tile 必须 16”是分辨率相关的误关闭，删除该 gate，kernel 改为像素并行 dispatch。
+- **材质类型分类（D16）**：stencil deferred 用 stencil bits[5,6] 选择 `_LIT` / `_SIMPLELIT`，并把 Unlit 与 ComplexLit 统一写为 `MaterialUnlit` 后跳过（`GBufferPass.cs:58-61`）。D3D11 无法在 compute 里读 stencil，因此新增一个全屏 stencil-tested mask pass：mask=1（Lit）、2（SimpleLit）、0（Unlit/ComplexLit/forward-only/天空）。
+- **D9 废止**：有了 mask，forward-only 像素在 compute 中 mask=0 被跳过，仍由原 `m_RenderOpaqueForwardOnlyPass`（event `BeforeRenderingOpaques`，实际在 deferred lighting 之后）着色；不会重复受光，也没有“缺 pass 就消失”的内容风险。T6 从“必须补齐 GBuffer”降为“可选优化”。
+- **附加方向光遗漏**：Forward+ 的 `LIGHT_LOOP_BEGIN` 在 cluster 索引上加 `URP_FP_DIRECTIONAL_LIGHTS_COUNT`，并在进入 cluster 前**单独循环** 0..`URP_FP_DIRECTIONAL_LIGHTS_COUNT-1` 的附加方向光（`Lighting.hlsl:463-483`）。原 kernel 伪代码只处理主光 + cluster，漏了附加方向光；T3 必须补。
+- **SimpleLit 分支**：mask=2 的像素走 `SurfaceDataFromGbuffer` + `LightingLambert`/`LightingSpecular`（与 `StencilDeferred.hlsl:309-318` 一致）；Unlit/ComplexLit 在 stencil deferred 中本就不参与直接光，mask=0 跳过是行为对齐，不是缺失。
+- **preflight 产物（2026-11-21）**：`validation/T6-preflight/T6Coverage.json`（8 场景 / 39 个不透明材质；引用中 11 Lit、1 ComplexLit 跳过、无 forward-only）、`T3ShaderCheck.txt`（D3D11 下 compute + mask + resolve 均 0 消息）、`renderdoc-stencil-deferred-baseline.json`（既有 `deferred_ssgi_full_frame12818.rdc` 的 pass 结构：stencil deferred 为每灯一个全屏 draw，forward-only 在 deferred 之后单独 draw）。
 
 **验收摘要**：AC-1…AC-16（§6）。核心：开关关闭逐像素一致；点/聚光/方向光与 stencil deferred 一致；阴影/cookie/layers/mixed/AO 各单项一致；天空不写、无 NaN；forward/透明路径零回归；GBuffer 覆盖清单落盘；compute 在四个桌面 API 编译 0 错误；性能交叉点有数据；`.rdc` 遵守预算。
 
@@ -236,7 +248,8 @@
 
 - **不需要 light-shape stencil**；
 - GBuffer 的材质位继续写（成本不变，兼容其他特性）；
-- v1 要求 opaque 全覆盖 GBuffer（D9），因此不需要“deferred/forward-only 像素分类”，也不需要读 stencil。
+- v1 **需要读材质类型**（Lit / SimpleLit / 跳过），但不能在 compute 里读 stencil（D3D11 不能为 depth-stencil 建 SRV）。改为在 GBuffer 之后跑一个全屏 stencil-tested mask pass：`ReadMask=MaterialMask`、`Comp=Equal`、`Ref=MaterialLit`（写 1）/`Ref=MaterialSimpleLit`（写 2），目标 `R8_UInt` 先清 0；`WriteMask=0` 不改 stencil。Unlit/ComplexLit 写的是 `MaterialUnlit`（`GBufferPass.cs:61`），forward-only 的 ref 也含 `MaterialUnlit`，两者都保持 0，与 stencil deferred 的跳过语义一致。
+- mask pass 机制已有先例：`DeferredLights.ClearStencilPartial` 就是用全屏 mesh + stencil 状态操作 depth-stencil（`DeferredLights.cs:555-563`）。
 
 ### 3.7 deferred 的既有前提与约束
 
@@ -261,10 +274,11 @@
   - `m_DeferredLights.Setup(...)` 照常执行；
   - `m_GBufferPass` → `m_GBufferCopyDepthPass` 照常；
   - 在 `EnqueuePass(m_DeferredPass)` 处二选一：clustered 时 `EnqueuePass(m_ClusteredDeferredPass)`；
-  - **clustered 时跳过 `EnqueuePass(m_RenderOpaqueForwardOnlyPass)`**（D9）；
+  - 在 GBuffer 之后、compute 之前 enqueue **Material Type Mask** pass（新）；
+  - **保留 `EnqueuePass(m_RenderOpaqueForwardOnlyPass)`**（D9 已废止）；其像素 mask=0，compute 不处理；
   - 关闭开关时完全走原 `DeferredPass`，逐像素一致（AC-1）。
 - 关键字：**不设置 `_FORWARD_PLUS`**（`ForwardLights.cs:429` 仍只由 `m_UseForwardPlus` 控制）；透明/forward-only 继续使用逐物体灯索引（`SetupPerObjectLightIndices` 仍执行，`ForwardLights.cs:630+`）。compute 只复用 cluster 缓冲与数据布局。
-- native render pass：`m_DeferredLights.UseRenderPass` 必须为 `false`；若为 `true`，本特性在该相机上禁用并输出一次告警（D10）。D3D11 默认不满足 native RP 条件，风险主要在 Vulkan/Metal。
+- native render pass：本帧强制 `useRenderPassEnabled = false` 且 `m_DeferredLights.UseRenderPass = false`，并输出一次告警（D10）。仓库内 renderer 资产当前全部为 `m_UseNativeRenderPass: 0`，D3D12 也被硬排除；Vulkan/Metal 只有在资产显式开启时才命中该路径，强制关闭后功能仍可用。
 
 ### 4.2 帧序（新增部分）
 
@@ -273,88 +287,101 @@ GBuffer Pass（写 GBuffer0-2、GBuffer3=GI+emission、depth、材质 stencil �
   ↓
 CopyDepth / DeferredLights 绑定 _GBuffer0..2、_CameraDepthTexture
   ↓
+Material Type Mask（新）：2 个全屏 stencil-tested draw → R8_UInt（0=跳过，1=Lit，2=SimpleLit）
+  ↓
 Clustered Deferred Compute（新）：
-  每 tile 一个 16×16 线程组 → 读 depth/GBuffer → 主光 → cluster 列表 → 直接光累加
-  → Blend One One, Zero One 写 GBuffer3
+  视口像素并行 dispatch（ceil(viewport/16)）→ 读 depth/GBuffer/mask → 主光 + 附加方向光 + cluster 列表 → 直接光写 RGBA16F UAV
+  ↓
+Clustered Deferred Resolve（新）：全屏 pass，Blend One One, Zero One 把 lighting UAV 加进 GBuffer3
   ↓
 （原有下游：copy lighting 到 camera color / fog / 透明 forward / 后处理）
+  ↓
+Forward-only opaque（原有 m_RenderOpaqueForwardOnlyPass，保留；event BeforeRenderingOpaques，实际排在 deferred lighting 之后）
 ```
 
 补充：
 
 - 这是本版本 `UniversalRenderer` 的实际执行路径（legacy `ScriptableRenderPass`/`EnqueuePass`；无 RenderGraph 版本）。`m_DeferredLights.Setup(...)` 仍必须调用，否则 `_GBuffer0..2` 与附件绑定不成立。
-- 原 `m_RenderOpaqueForwardOnlyPass` 的 event 是 `BeforeRenderingOpaques`，实际排在 deferred lighting 之后；本模式直接**不 enqueue**，不是靠 stencil 跳过。
+- 原 `m_RenderOpaqueForwardOnlyPass` 的 event 是 `BeforeRenderingOpaques`，实际排在 deferred lighting 之后；本模式**保留 enqueue**，其像素在材质类型 mask 中为 0，compute 不处理，避免重复受光与“缺 GBuffer 就消失”。
 - `_CameraDepthTexture` 的创建条件包含 `renderingMode == Deferred && !useRenderPassEnabled`（`UniversalRenderer.cs:790-791`）；v1 强制 `!UseRenderPass`，因此该纹理可用。
 - 透明：在 deferred 之后照常走 forward，灯数据仍是逐物体（因为 `_FORWARD_PLUS` 未开）。
 
 ### 4.3 附件、混合与 alpha 语义
 
 - 目标：与 `DeferredPass.Configure` 相同——lighting attachment（`GBuffer3`）+ depth（`Runtime/Passes/DeferredPass.cs:33-42`）。
-- 混合：`Blend One One, Zero One`，与 stencil deferred 的 punctual pass 一致（`Shaders/Utils/StencilDeferred.shader:158`）；alpha 不被 kernel 改写。
+- **compute 不能混合**：kernel 写 `_CdLightingTextureRW`（`RGBA16F` UAV，每像素都写，mask/sky 写 0，无需单独 clear）；随后 `ClusteredDeferredResolve` 全屏 pass 采样该纹理，以 `Blend One One, Zero One` 加到 GBuffer3，与 stencil deferred 的 punctual pass 一致（`Shaders/Utils/StencilDeferred.shader:158`）；alpha 不被 resolve 改写。
 - 不写 stencil；不改变材质位。
-- 天空/背景：depth 达到 far 的像素直接 `return`，不写 lighting attachment（与 `DeferredShading` 的 early-out 语义一致，见 `StencilDeferred.hlsl:256-260` 的 subtractive 早退）。
+- 天空/背景与 mask=0：depth 达到 far 或材质类型为 0 的像素写 0，不产生光照（与 `DeferredShading` 的 early-out 语义一致，见 `StencilDeferred.hlsl:256-260` 的 subtractive 早退）。
 
 ### 4.4 kernel 伪代码
 
 ```
-[numthreads(16,16,1)] // 一个线程组 = 一个 16×16 tile
-void CSMain(uint3 groupID, uint3 threadID) {
-    uint2 pixel = groupID.xy * 16 + threadID.xy;
-    if (any(pixel >= _ScreenSize.xy)) return;
+// T3 形状：无阴影/cookie/layer/AO；T4 在此基础上给 CdMainLight/CdGetAdditionalLight/CdShade
+// 加 shadowMask、ao、meshLayers 参数。
+[numthreads(16,16,1)] // 视口像素并行：一个线程组 = 16×16 像素，不绑定 tile
+void CSMain(uint3 id : SV_DispatchThreadID) {
+    uint2 pixel = id.xy;                         // dispatch = ceil(viewport/16)
+    if (any(pixel >= (uint2)_ScreenSize.xy)) return;
 
-    float rawDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixel).x;
-    if (rawDepth >= farValue) return; // sky
+    uint materialType = LOAD_TEXTURE2D(_MaterialTypeMask, pixel).r; // 0=skip 1=Lit 2=SimpleLit
+    if (materialType == 0) { _CdLightingTextureRW[pixel] = 0; return; }
+
+    float rawDepth = LOAD_TEXTURE2D(_CameraDepthTexture, pixel).x;
+    if (rawDepth >= farValue) { _CdLightingTextureRW[pixel] = 0; return; } // sky
 
     float2 uv = (pixel + 0.5) * _ScreenSize.zw;
-    float3 posWS = ComputeWorldSpacePosition(uv, rawDepth, UNITY_MATRIX_I_VP);
+    float3 posWS = ComputeWorldSpacePosition(uv, rawDepth, unity_MatrixInvVP);
 
-    half4 g0 = LOAD_TEXTURE2D_X(_GBuffer0, pixel);
-    half4 g1 = LOAD_TEXTURE2D_X(_GBuffer1, pixel);
-    half4 g2 = LOAD_TEXTURE2D_X(_GBuffer2, pixel);
+    half4 g0 = LOAD_TEXTURE2D(_GBuffer0, pixel);
+    half4 g1 = LOAD_TEXTURE2D(_GBuffer1, pixel);
+    half4 g2 = LOAD_TEXTURE2D(_GBuffer2, pixel);
     half4 shadowMask = LOAD_SHADOWMASK(pixel);          // 仅 mixed lighting
     uint meshLayers  = LOAD_RENDERING_LAYERS(pixel);    // 仅 _LIGHT_LAYERS
 
-    InputData inputData = InputDataFromGbufferAndWorldPosition(g2, posWS); // compute-safe 副本
+    CdInputData inputData = CdInputDataFromGbufferAndWorldPosition(g2, posWS);
     inputData.normalizedScreenSpaceUV = uv;
-    BRDFData brdf = BRDFDataFromGbuffer(g0, g1, g2);
-    uint materialFlags = UnpackMaterialFlags(g0.a);
-    bool specularOff = materialFlags & kMaterialFlagSpecularHighlightsOff;
 
     half3 color = 0;
-    // 1) 主光（方向光 + cascade/screen-space shadow）
-    Light mainLight = GetMainLightCompute(shadowMask, ao);
-    if (IsMatchingLightLayer(mainLight.layerMask, meshLayers))
-        color += LightingPhysicallyBased(brdf, mainLight, inputData.normalWS, inputData.viewDirectionWS, specularOff);
+    // 1) 主光
+    CdLight mainLight = CdMainLight();
+    color += CdShade(materialType, g0, g1, g2, mainLight, inputData);
 
-    // 2) 附加光：cluster 位图（header 0），方向光已由 URP_FP_DIRECTIONAL_LIGHTS_COUNT 先行
-    CdClusterIterator it = CdClusterInit(uv, posWS);   // header 0
+    // 2) 附加方向光：Forward+ 在 cluster 之前单独循环（Lighting.hlsl:463-483）
+    for (uint i = 0; i < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, CD_MAX_VISIBLE_LIGHTS); i++) {
+        CdLight l = CdGetAdditionalLight(i, posWS);
+        color += CdShade(materialType, g0, g1, g2, l, inputData);
+    }
+
+    // 3) cluster 列表（header 0）；cluster 索引从 punctual 段开始，需加方向光数量
+    CdClusterIterator it = CdClusterInit(uv, posWS);
     uint idx;
     while (CdClusterNext(it, idx)) {
         idx += URP_FP_DIRECTIONAL_LIGHTS_COUNT;
-        Light l = CdGetAdditionalLight(idx, inputData.positionWS, shadowMask, ao); // 全局索引
-        if (IsMatchingLightLayer(l.layerMask, meshLayers))
-            color += LightingPhysicallyBased(brdf, l, inputData.normalWS, inputData.viewDirectionWS, specularOff);
+        CdLight l = CdGetAdditionalLight(idx, posWS);
+        color += CdShade(materialType, g0, g1, g2, l, inputData);
     }
 
-    // 3) 只输出直接光；由 Blend One One 与 GBuffer3 中原有 GI 相加
-    return half4(color, 0);
+    // 4) 只写直接光到 UAV；resolve pass 再与 GBuffer3 中原有 GI 相加
+    _CdLightingTextureRW[pixel] = float4(color, 1.0);
 }
 ```
 
 说明：
 
-- 线程组 16×16 与 tile 绑定，wave 内 tile 索引一致；不需要 HDRP forward 的 scalarization。
-- 屏幕尺寸、深度参数与相机矩阵由 C# 显式上传；不要假设 compute 里存在 per-draw 视图常量（`ReflectionProbeFallback.hlsl:9-20`）。v1 非 XR，用 `LOAD_TEXTURE2D` 而非 `LOAD_TEXTURE2D_X`。
-- 输出由 render target 的 `Blend One One, Zero One` 完成累加；kernel 不读 lighting attachment，避免与“GI 已在 GBuffer3”冲突。
-- tile 尺寸与 tile 数量从 `_FPParams1.xy`（pixelRect.size / tileWidth）与 `_FPParams2.y` 读取；16 是 gate 后的实际值，不是硬编码常量。
-- 深度转换复用 URP 的 `_ZBufferParams`/`LinearEyeDepth`/`ComputeWorldSpacePosition`，保留 reversed-Z 与正交分支；不要自己假设 `[0,1]` NDC。
-- `URP_FP_DIRECTIONAL_LIGHTS_COUNT` 来自 `_FPParams0.w`（`Input.hlsl:131`）；header 0 的最大实体索引是 `URP_FP_PROBES_BEGIN - 1`，而 `URP_FP_PROBES_BEGIN == _FPParams0.z`（`Input.hlsl:128`、`Clustering.hlsl:75`）。偏移与 off-by-one 由 T2 的 parity 测试锁定。
+- **像素并行**：`pixel = SV_DispatchThreadID`，dispatch 组数 = `ceil(viewport/16)`；tile id 由 `ClusterInit` 用每像素 UV × `_FPParams1.xy`（tile 计数）自行推导。tile 宽度 8/16/32/64 都不需要 kernel 感知，因此没有 tile 宽度 gate。
+- 16×16 block 在 tile ≥16 时必然整体落在一个 tile 内（tile mask 读取同址）；tile=8 只在 0 盏附加光时出现，mask 全 0、kernel 不产生光照。
+- **材质类型**：`_MaterialTypeMask` 为 `R8_UInt`；`CdShade` 按 1/2 分支：1 走 `BRDFDataFromGbuffer` + `LightingPhysicallyBased`，2 走 `SurfaceDataFromGbuffer` + `LightingLambert`/`LightingSpecular`（对齐 `StencilDeferred.hlsl:300-318`）。0 直接返回，不改写 lighting。
+- **附加方向光**：必须单独循环 0..`URP_FP_DIRECTIONAL_LIGHTS_COUNT-1`；cluster 迭代返回的是 punctual 段的相对索引，取值前加 `URP_FP_DIRECTIONAL_LIGHTS_COUNT`。漏掉任一步都会与 Forward+ 不一致。
+- 屏幕尺寸用全局 `_ScreenSize`（`ScriptableRenderer.cs:267` 上传）；`unity_MatrixInvVP` 在 compute 中可用（SSL 已这么做，`ScreenSpaceLightingCommon.hlsl:89`）；v1 非 XR，用 `LOAD_TEXTURE2D` 而非 `_X`。
+- 输出写 `_CdLightingTextureRW`（`RGBA16F` UAV）；resolve 全屏 pass 完成加法；kernel 不读 lighting attachment。
+- 深度转换复用 `ComputeWorldSpacePosition` + `_ZBufferParams`/`LinearEyeDepth`，保留 reversed-Z 与正交分支。
+- `URP_FP_DIRECTIONAL_LIGHTS_COUNT` 来自 `_FPParams0.w`；header 0 的最大实体索引是 `URP_FP_PROBES_BEGIN - 1`。偏移与 off-by-one 由 T2 的 parity 测试锁定。
 - 材质 flag 与 stencil deferred 对齐：`kMaterialFlagSpecularHighlightsOff`（`:305`）、`kMaterialFlagReceiveShadowsOff`（`:137`）、`kMaterialFlagSubtractiveMixedLighting`（`:256-260` 的早退）。
 - 关键字集合收敛为：`_MAIN_LIGHT_SHADOWS*`、`_ADDITIONAL_LIGHT_SHADOWS`、`_SHADOWS_SOFT*`、`_LIGHT_LAYERS`、`_LIGHT_COOKIES`、`_SCREEN_SPACE_OCCLUSION`、`_DEFERRED_MIXED_LIGHTING`、`SHADOWS_SHADOWMASK`、`_GBUFFER_NORMALS_OCT`；不编 `_ADDITIONAL_LIGHTS_VERTEX`、`_SURFACE_TYPE_TRANSPARENT`、foveated 组合。
 - AO 只乘到直接光；不实现 `_DEFERRED_FIRST_LIGHT` 的 alpha 技巧（该技巧只服务 stencil deferred 的 baked occlusion 抵消）。
 - 每 tile 循环上限以 `MAX_LIGHTS_PER_TILE` 与位图容量为准；不要用固定 `for(i<32)` 假设。
-- `InputDataFromGbufferAndWorldPosition` 不填 `normalizedScreenSpaceUV`（`UnityGBuffer.hlsl:263-279`），必须手工补。
-- 若 tile 尺寸被 CPU 选为 8/32，本路径按 D10 的 gate 关闭并告警，不尝试适配。
+- `CdInputDataFromGbufferAndWorldPosition` 与 `InputDataFromGbufferAndWorldPosition` 同构，但不依赖 `Input.hlsl` 的 `InputData`；`normalizedScreenSpaceUV` 必须手工补。
+- **不做** tile 宽度 gate；若未来 CPU 选到 8（0 灯）或 64（极多灯/高分辨率），kernel 行为不变。
 
 ### 4.5 compute-safe include 边界
 
@@ -363,11 +390,13 @@ void CSMain(uint3 groupID, uint3 threadID) {
 - `URP_ZBins`/`urp_Tiles`/`_FPParams*` 的 cbuffer 声明与 `CdClusterInit/Next`；容量常量与 `Input.hlsl` 一致（`MAX_ZBIN_VEC4S=1024`；`MAX_TILE_VEC4S` 按 `MAX_VISIBLE_LIGHTS<=32` 取 1024/4096）；
 - `_AdditionalLights*` 常量数组（长度 `MAX_VISIBLE_LIGHTS`）、`DistanceAttenuation`/`AngleAttenuation`、`CdGetAdditionalLight`；
 - `URP_FP_ZBIN_SCALE/OFFSET`、`URP_FP_TILE_SCALE/COUNT`、`URP_FP_WORDS_PER_TILE`、`URP_FP_DIRECTIONAL_LIGHTS_COUNT` 的宏（值来自 `_FPParams0/1/2`，与 `Input.hlsl:121-136` 一致）；
-- 主光/附加光阴影采样所需的最小全局与 PCF 函数（从 `Shadows.hlsl` 复制必要片段）；
-- GBuffer 解码的两个纯函数（`BRDFDataFromGbuffer`、`InputDataFromGbufferAndWorldPosition` 的 compute-safe 副本，补 `normalizedScreenSpaceUV`）；
-- GTAO 直接光 AO 的唯一函数（`_SCREEN_SPACE_OCCLUSION`）。
+- 主光/附加光阴影采样所需的最小全局与 PCF 函数（从 `Shadows.hlsl` 复制必要片段，T4）；
+- GBuffer 解码的纯函数：`CdBRDFDataFromGbuffer`、`CdSurfaceDataFromGbuffer`（SimpleLit）、`CdUnpackNormal`、`CdInputDataFromGbufferAndWorldPosition`（补 `normalizedScreenSpaceUV`）；
+- 光照求值：复制 `LightingPhysicallyBased`（Lit）与 `LightingLambert`/`LightingSpecular`（SimpleLit）；可 include `BRDF.hlsl`（只拉 core `BSDF.hlsl`/`CommonMaterial.hlsl` 与 `SurfaceData.hlsl`，无 per-draw 依赖）；
+- 材质类型 mask 纹理 `_MaterialTypeMask`（`R8_UInt`，0/1/2）；
+- GTAO 直接光 AO 的唯一函数（`_SCREEN_SPACE_OCCLUSION`，T4）。
 
-不得 include：URP 的 `ShaderLibrary/Input.hlsl`、`ShaderLibrary/Lighting.hlsl`、`ShaderLibrary/Core.hlsl` 与 `Shadows.hlsl` 整体（均拉 per-draw state）；允许 include core 包的 `Common.hlsl`/`ShadowSamplingTent.hlsl` 等无 per-draw 依赖的头。
+不得 include：URP 的 `ShaderLibrary/Input.hlsl`、`ShaderLibrary/Lighting.hlsl`、`ShaderLibrary/Core.hlsl` 与 `Shadows.hlsl` 整体（均拉 per-draw state）；允许 include core 包的 `Common.hlsl`/`ShadowSamplingTent.hlsl` 等无 per-draw 依赖的头。`Light`/`InputData` 不要从 `RealtimeLights.hlsl`/`Input.hlsl` 取，在 include 内定义 `CdLight`/`CdInputData`。
 
 ### 4.6 新增 / 修改文件
 
@@ -375,9 +404,11 @@ void CSMain(uint3 groupID, uint3 threadID) {
 
 | 文件 | 作用 |
 |---|---|
-| `Runtime/ClusteredDeferred/ClusteredDeferredPass.cs` | `ScriptableRenderPass`；`ConfigureTarget` 与 `DeferredPass` 对齐；`Configure`/`Execute`（本版本无 RenderGraph 路径） |
+| `Runtime/ClusteredDeferred/ClusteredDeferredPass.cs` | `ScriptableRenderPass`；分配/管理 `R8_UInt` mask 与 `RGBA16F` lighting RT；mask pass、dispatch、resolve 三步；`Configure`/`Execute`（本版本无 RenderGraph 路径） |
 | `Runtime/ClusteredDeferred/ClusteredDeferredResources.cs` | kernel/材质/参数 id、每相机状态（若需要） |
-| `Shaders/Utils/ClusteredDeferred.compute` | kernel + 关键字集合 |
+| `Shaders/Utils/ClusteredDeferred.compute` | kernel + 关键字集合（像素并行 dispatch，写 RGBA16F UAV） |
+| `Shaders/Utils/ClusteredDeferredMask.shader` | 2 个全屏 stencil-tested pass，向 `R8_UInt` 写 1（Lit）/2（SimpleLit）；`WriteMask=0` |
+| `Shaders/Utils/ClusteredDeferredResolve.shader` | 全屏采样 `_CdLightingTexture`，`Blend One One, Zero One` 加进 GBuffer3 |
 | `ShaderLibrary/ClusteredDeferred.hlsl` | compute-safe 子集（§4.5） |
 | `Tests/.../ClusteredDeferred*` | 编译检查、矩阵测试（§7） |
 
@@ -387,7 +418,7 @@ void CSMain(uint3 groupID, uint3 threadID) {
 |---|---|
 | `Runtime/UniversalRendererData.cs` | 新增 `[SerializeField] bool m_ClusteredDeferredLighting`（默认 false，旧资产无需迁移）；`OnValidate` 断言仅 Deferred 有效 |
 | `Editor/UniversalRendererDataEditor.cs` | 开关 UI；Rendering Mode != Deferred 时禁用并提示 |
-| `Runtime/UniversalRenderer.cs` | (1) `forwardInitParams.clusteredDeferred = ...`；(2) `m_Clustering = ForwardPlus || clustered`（只影响 debug/中间纹理）；(3) `EnqueueDeferred` 二选一 pass；(4) clustered 时跳过 `m_RenderOpaqueForwardOnlyPass`；(5) `SetupCullingParameters` 收紧 `maximumVisibleLights`（当前 Deferred 为 `0xFFFF`，`:1432`）；(6) 强制 `!m_DeferredLights.UseRenderPass`；(7) 新 pass 带 `ProfilingSampler`，便于 Frame Debugger/Profiler 取证 |
+| `Runtime/UniversalRenderer.cs` | (1) `forwardInitParams.clusteredDeferred = ...`；(2) `m_Clustering = ForwardPlus || clustered`（只影响 debug/中间纹理）；(3) `EnqueueDeferred` 二选一 pass，并在 GBuffer 之后 enqueue mask pass；(4) **保留** `m_RenderOpaqueForwardOnlyPass`；(5) `SetupCullingParameters` 收紧 `maximumVisibleLights`（当前 Deferred 为 `0xFFFF`，`:1432`）；(6) 强制 `!m_DeferredLights.UseRenderPass`；(7) 新 pass 带 `ProfilingSampler`，便于 Frame Debugger/Profiler 取证 |
 | `Runtime/ForwardLights.cs` | `InitParams` 新增 `clusteredDeferred`；`m_UseClusters = m_UseForwardPlus || m_ClusteredDeferred`，用于缓冲创建（`:140`）、`PreSetup` 构图（`:194`）、jobs complete/上传/`_FPParams*`（`:391-410`）；**`_FORWARD_PLUS`（`:429`）与 `SetupPerObjectLightIndices`（`:630+`）仍只由 `m_UseForwardPlus` 控制** |
 | `Runtime/UniversalRenderPipeline.cs` | 新增 `isClusteredLighting`：附加光阴影启用（`:1356`、`:1380`、`:1465`）使用 `ForwardPlus || clusteredDeferred`；逐物体灯 flags（`:1384`、`:1598-1609`）仍只用 `isForwardPlus` |
 
@@ -406,26 +437,31 @@ void CSMain(uint3 groupID, uint3 threadID) {
 | GTAO 直接光 AO | 支持 | 采样 `_ScreenSpaceOcclusionTexture` |
 | SSGI/SSR/折射 | 不参与 kernel | 保持 GBuffer pass / 现有 pass |
 | MSAA | 不支持 | deferred 已禁用 |
-| native render pass | 不支持 | `UseRenderPass == true` 时该相机回退 stencil deferred 并告警；Vulkan/Metal 若默认开启 native RP，本特性在这些相机上不可用 |
+| native render pass | 命中时强制关闭并告警 | 本帧 `useRenderPassEnabled=false`；仓库资产默认关闭，D3D12 硬排除；Vulkan/Metal 显式开启时仍可用（回退到普通 RT 绑定） |
 | XR / foveated | 不支持 | follow-up |
 | 正交相机 | 支持（zbin 有线性分支） | 纳入 AC |
 | GLES/WebGL | 不支持 | 平台 gate |
 | Preview / Overlay 相机 | 回退 stencil deferred | 预览/Overlay 的灯数据与附件组合未验证；不猜测，直接走原路径 |
 | 多相机 | 支持，顺序执行 | 聚类缓冲是全局单份；依赖每相机 `PreSetup` 重新构建；若 Overlay 相机不构建则回退并告警（T5 验证） |
-| tile 宽度 != 16 | 该帧禁用本特性并告警 | kernel 线程组固定 16×16；不尝试适配 8/32 |
+| tile 宽度 8/16/32/64 | 支持（像素并行） | 无 gate；tile id 由每像素 UV × `_FPParams1.xy` 推导 |
+| 材质类型 | Lit / SimpleLit 参与直接光；Unlit / ComplexLit 跳过 | mask 0/1/2；与 stencil deferred 的 stencil 分流一致 |
 | `useStructuredBuffer == true` | 不支持 | 本 fork 恒为 false（`RenderingUtils.cs:74-87`）；启动时断言 |
-| Forward-only opaque | 不支持 | D9；该 pass 不 enqueue |
+| Forward-only opaque | **支持**（由原 forward-only pass 着色） | D9 已废止；mask=0，compute 跳过，不重复受光 |
+| 材质类型 mask | 必需 | `R8_UInt`；GBuffer 之后 2 个全屏 stencil-tested draw；v1 增加约 0.1ms/mp 级固定开销 |
 | 深度纹理 | 必需 | v1 依赖 `!UseRenderPass` 下的 `_CameraDepthTexture` |
 
 ### 4.8 与 stencil deferred 的已知差异
 
 1. 灯体积光栅化与 early-z 拒绝被移除；改为每像素列表循环。灯少/大体积时可能更慢。
 2. 每像素读取 tile 列表（常量缓冲位图）与计算 tile/zbin 索引，存在固定开销。
-3. forward-only opaque 不支持（D9）；材质缺 GBuffer pass 时不渲染（见 §8 风险）。
-4. **stencil 只写不读**：GBuffer pass 仍写材质位（`GBufferPass.cs:58-61`），但本路径不写 `StencilLight`、也不读 stencil 做像素分类；依赖这些位的自定义效果会看到 0，需审计并记入 KnownDifferences。
+3. forward-only opaque **支持**：仍由原 forward-only pass（在 deferred lighting 之后）着色；compute 通过 mask=0 跳过，不重复受光。缺 GBuffer 只意味着该物体不享受 clustered deferred，不是渲染缺失。
+4. **stencil 只写不新增**：GBuffer pass 仍写材质位（`GBufferPass.cs:58-61`）；本路径额外用 2 个全屏 stencil-tested draw 把材质类型转成 mask，不改 stencil、不写 `StencilLight`。依赖 `StencilLight` 位的自定义效果会看到 0，需审计并记入 KnownDifferences。
 5. 混合光照的逐灯早退（`_LightFlags`/subtractive）以 per-pixel 方式处理；`_RECEIVE_SHADOWS_OFF` 需在 kernel 内按材质 flag 跳过阴影；语义对齐写入 KnownDifferences。
-6. 浮点累加顺序不同：stencil deferred 是每灯单独 pass 的加法，kernel 是 tile 内循环后一次加法；阈值要允许极小差异，不要求 bit-exact（AC-4/AC-5）。
+6. 浮点累加顺序不同：stencil deferred 是每灯单独 pass 的加法，kernel 是循环后一次加法；阈值要允许极小差异，不要求 bit-exact（AC-4/AC-5）。
 7. alpha 不改写（`Blend ... Zero One`），与现有 AO/depth 语义一致；若未来有 pass 依赖 lighting alpha 需另立任务。
+8. 新增 1 张 `R8_UInt` mask、1 张 `RGBA16F` lighting、2 个全屏 draw（mask）+ 1 个全屏 resolve；mask/lighting 与 compute 之间各有一次读写依赖，暂不并入同一 native RP。
+9. Unlit / ComplexLit 不参与直接光（与 stencil deferred 一致：ComplexLit 在 `GBufferPass.cs:61` 被写成 `MaterialUnlit`）。
+10. compute 输出经 `RGBA16F` 中转再 resolve，比 stencil deferred 多一次全屏采样/写；这是 compute 无固定功能混合的代价。若后续实测 resolve 成为瓶颈，可改为单次全屏 PS（同一套灯循环，`SV_Target` 直接 Blend），但仍保持 cluster/GBuffer 数据布局不变。
 
 ---
 
@@ -437,11 +473,11 @@ void CSMain(uint3 groupID, uint3 threadID) {
 T0(冻结)
  └→ T1(构建解耦 + 灯上限 + isForwardPlus 审计)
      └→ T2(compute-safe include)
-         └→ T3(kernel v1 无阴影)
+         └→ T3(kernel v1：像素并行 + mask + 无阴影)
              ├→ T4(阴影/cookie/layers/mixed/AO)  [kernel/include]
              └→ T5(集成/边界/平台 gate)          [C#/Editor]
                  └──────────┬──────────────────────┘
-                            └→ T6(GBuffer 覆盖清单与自定义 shader)
+                            └→ T6(可选：GBuffer 覆盖清单与自定义 shader)
                                 └→ T7(证据/性能矩阵)
                                     └→ T8(文档/验收/归档)
 ```
@@ -455,21 +491,23 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 | `Runtime/UniversalRendererData.cs`、`Editor/UniversalRendererDataEditor.cs` | T5 | 仅 T5 |
 | `ShaderLibrary/ClusteredDeferred.hlsl` | T2 → T4 | 串行；T4 只追加阴影子集 |
 | `Shaders/Utils/ClusteredDeferred.compute` | T3 → T4 | 串行；T5 不得改 kernel |
+| `Shaders/Utils/ClusteredDeferredMask.shader` | T3 | 仅 T3 |
+| `Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredCoverageScan.cs` | T6 preflight | 扫描工具；与 T7 的测试资产分开提交 |
 | 各材质 shader 的 GBuffer pass | T6 | 仅 T6；不得与 T7 的测试资产同批修改 |
-| `Assets/Tests/ClusteredDeferred/**` | T7 | 仅 T7 提交测试资产 |
+| `Assets/Tests/ClusteredDeferred/**`（测试资产） | T7 | 仅 T7 提交测试资产 |
 | `report.md`、`KnownDifferences.md`、`PLAN/ACCEPTANCE.md` | T8 | 仅 T8 |
 
 ### 5.2 任务定义
 
 | ID | 任务 | 主要文件 | 退出条件 | 证据 |
 |---|---|---|---|---|
-| T0 | 冻结决策与基线 | 本文件 | D1–D14 入库；基线 `c37b9dd` 记录 | — |
+| T0 | 冻结决策与基线 | 本文件 | D1–D16 入库；基线 `c37b9dd` 记录 | — |
 | T1 | 构建解耦 + 灯上限 + `isForwardPlus` 审计 | `ForwardLights.cs`、`UniversalRenderer.cs`、`UniversalRenderPipeline.cs` | (a) `InitParams.clusteredDeferred` 生效；(b) 6 处 `m_UseForwardPlus` gating 拆为 `m_UseClusters`，关键字与逐物体索引仍只受 `m_UseForwardPlus` 控制；(c) `isClusteredLighting` 只用于阴影启用；(d) Deferred 可见灯上限收紧到 `maxVisibleAdditionalLights`；(e) 关闭开关时 forward/透明逐像素一致 | `T1ClusterParity.json`：开关关闭图像差分=0；开启后 `URP_ZBins/urp_Tiles/_FPParams*` 与 Forward+ 同场景逐元素一致；`_AdditionalLightsIndices` 仍存在 |
 | T2 | compute-safe include：灯数组、衰减、cluster 迭代、GBuffer 解码、阴影子集 | `ClusteredDeferred.hlsl` | 编译 0 错误；header 0/1 语义、方向光偏移、`URP_FP_PROBES_BEGIN` 边界（off-by-one）与 `Clustering.hlsl:25-130` 一致 | `T2ShaderCheck.txt`（0 消息）、`T2IterParity.json`（逐像素灯集合与 PS 一致） |
-| T3 | kernel v1：无阴影、点/聚光/方向光、direct-only additive | `ClusteredDeferred.compute`、`ClusteredDeferredPass.cs` | 无阴影场景与 stencil deferred 差异在阈值内；天空不写；无 NaN；tile 参数来自 `_FPParams1/2`；深度/正交/翻转 Z 正确 | `T3LightingDiff.json`（mean/max/NaN）、A/B PNG |
+| T3 | kernel v1：像素并行 dispatch、材质类型 mask、Lit+SimpleLit、主光+附加方向光+cluster、无阴影、direct-only additive | `ClusteredDeferred.compute`、`ClusteredDeferred.hlsl`、`ClusteredDeferredMask.shader`、`ClusteredDeferredResolve.shader` | 无阴影场景与 stencil deferred 差异在阈值内；天空/mask=0 不写；无 NaN；tile 宽度 8/16/32/64 行为一致；深度/正交/翻转 Z 正确 | `T3LightingDiff.json`（mean/max/NaN）、`T3ShaderCheck.txt`、A/B PNG |
 | T4 | 阴影/cookie/layers/mixed/AO | kernel + include | 每项单开关 A/B；`_RECEIVE_SHADOWS_OFF` 跳阴影；subtractive 早退；AO 只作用于直接光；cookie/layer 与 forward 一致 | `T4FeatureMatrix.json`、A/B PNG |
-| T5 | 集成/边界：renderer data 开关、pass 替换、跳过 forward-only、`UseRenderPass` gate、预览/overlay、tile 宽度、平台 gate、变体 | `Runtime/UniversalRendererData.cs`、`Editor/UniversalRendererDataEditor.cs`、`UniversalRenderer.cs` | 开关可运行时切换；不满足条件时明确回退/禁用并告警；变体数可报告 | `T5ModeGateTests.xml`、`T5VariantCount.json` |
-| T6 | opaque 材质 GBuffer 覆盖清单；缺 pass 的自定义 shader 补齐 | shader 清单 + 各 shader | 清单落盘；编辑器扫描能列出缺 pass 的材质；本模式下无“漏渲染”材质；每个新增 pass 有编译与视觉验证 | `T6Coverage.json`、编译检查、A/B PNG |
+| T5 | 集成/边界：renderer data 开关、pass 替换、mask pass、保留 forward-only、`UseRenderPass` gate、预览/overlay、平台 gate、变体 | `Runtime/UniversalRendererData.cs`、`Editor/UniversalRendererDataEditor.cs`、`UniversalRenderer.cs`、`Runtime/ClusteredDeferred/*` | 开关可运行时切换；mask 绑定/清除正确；不满足条件时明确回退/禁用并告警；变体数可报告 | `T5ModeGateTests.xml`、`T5VariantCount.json` |
+| T6 | **可选优化**：opaque 材质 GBuffer 覆盖清单，把希望享受 clustered deferred 的 forward-only 材质补 GBuffer | 扫描工具 + 各 shader | 清单落盘（含材质类型）；可选补齐项有编译与视觉验证；**不再是正确性前置** | `T6Coverage.json`、编译检查、A/B PNG |
 | T7 | 测试、证据与性能矩阵 | `validation/` | 既有测试全绿；新测试全绿；A/B/交叉点/RenderDoc/Player 完成 | `T7Perf.json`、`T7PlayerSummary.json`、`*.xml`、PNG |
 | T8 | 文档/验收/归档 | `report.md`、`KnownDifferences.md`、`PLAN/ACCEPTANCE.md` | 五处文档一致；产物清理；TODO→Done | `git status`/`git diff --stat`、`report.md` |
 
@@ -479,10 +517,13 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 
 - `isForwardPlus` 的四处用途（阴影启用 vs 逐物体灯数据）未区分；若只改 `m_UseForwardPlus`，会造成“阴影被静默关闭”或“透明灯数据缺失”。
 - `m_Clustering` 被误当作构建开关（它只影响 debug/中间纹理）。
-- 未指定 `m_RenderOpaqueForwardOnlyPass` 在 clustered 模式下不 enqueue。
+- 原“clustered 时跳过 forward-only pass”会静默丢失缺 GBuffer 的物体；本版改为保留 pass + mask 跳过。
 - 未指定 `UseRenderPass` 的强制关闭与回退。
 - 未指定 `maximumVisibleLights` 必须在 culling 前收紧（Deferred 当前为 `0xFFFF`）。
-- 未覆盖 Preview/Overlay 相机、多相机共享缓冲、tile 宽度 gate、变体 stripping、`.meta` 与测试资产归属。
+- 未覆盖 Preview/Overlay 相机、多相机共享缓冲、变体 stripping、`.meta` 与测试资产归属。
+- **材质类型分层遗漏**：stencil deferred 用 stencil 分 Lit/SimpleLit/跳过；compute 不能读 stencil，必须有 mask pass（本版补入）。
+- **附加方向光遗漏**：Forward+ 在 cluster 前单独循环 `URP_FP_DIRECTIONAL_LIGHTS_COUNT` 盏附加方向光（本版补入）。
+- **tile 宽度 gate 误判**：4K 必选 32；本版删除 gate（D15）。
 
 **冲突与顺序规则**：
 
@@ -504,14 +545,14 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 | AC-5 | 阴影：主光 cascade、screen-space shadow、附加光 atlas 各单项 A/B 通过 |
 | AC-6 | Cookie、light layers、mixed lighting/shadowmask、GTAO 直接光 AO 各单项 A/B 通过 |
 | AC-7 | 天空/背景像素不写 lighting；无 NaN/Inf；alpha 语义与基线一致 |
-| AC-8 | GBuffer 覆盖清单落盘；本模式下不存在无 GBuffer 的 opaque 材质；发现问题时有明确告警 |
+| AC-8 | GBuffer/材质类型清单落盘（含 Lit/SimpleLit/Unlit/ComplexLit/forward-only 分类）；forward-only 物体在 clustered 模式下仍由原 pass 渲染且与基线一致；缺 GBuffer 不再视为渲染缺失 |
 | AC-9 | compute 在 D3D11/D3D12/Vulkan/Metal 编译 0 错误；无 `USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA` 分支；报告变体数量；GLES/WebGL 被明确排除 |
-| AC-10 | 支持矩阵如实落盘：MSAA/native RP/XR/foveated/GLES 不支持；Preview/Overlay 回退；多相机顺序构建；tile 宽度 !=16 时禁用；`useStructuredBuffer=true` 禁用；正交支持并有测试 |
+| AC-10 | 支持矩阵如实落盘：MSAA/XR/foveated/GLES 不支持；native RP 命中时本帧强制关闭并告警；Preview/Overlay 回退；多相机顺序构建；tile 宽度 8/16/32/64 均支持（无 gate）；`useStructuredBuffer=true` 禁用；正交支持并有测试；mask 对 Lit/SimpleLit/Unlit/ComplexLit/forward-only 的分流与 stencil deferred 一致 |
 | AC-11 | 性能：多灯重叠场景给出 stencil deferred / clustered deferred / forward+ 的交叉点；记录 CPU 构图与 GPU 时间 |
 | AC-12 | RenderDoc：dispatch 尺寸、tile 布局、每像素灯数分布、A/B diff；`.rdc` 遵守预算 |
 | AC-13 | 既有 SSL/GTAO/SSR/折射与 EditMode/PlayMode 全绿；§7.3 新测试全绿；shader 编译检查 0 消息；变体计数变化有记录 |
 | AC-14 | 代码边界审计：核心文件改动仅 §4.6 清单；`DeferredPass.cs`/`DeferredLights` 每灯 pass/GBuffer 布局未改；无 HDRP 面光源/7 GBuffer/material feature 引入 |
-| AC-15 | 回退：关闭开关无需重编 shader/重建 renderer；clustered 模式下 forward-only 不重复受光；player build 不丢 shader；Preview/Overlay 正确回退 |
+| AC-15 | 回退：关闭开关无需重编 shader/重建 renderer；clustered 模式下 forward-only 不重复受光（mask=0）；mask/GBuffer 同帧正确清除与绑定；player build 不丢 shader；Preview/Overlay 正确回退 |
 | AC-16 | 文档一致：HANDOFF/report/KnownDifferences/ACCEPTANCE/T1 契约五处一致，AC 证据路径存在 |
 
 ---
@@ -542,13 +583,14 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 | 测试 | 类型 | 覆盖 |
 |---|---|---|
 | `ClusteredDeferredShaderCompileTests` | EditMode（包内） | include + compute 0 error；关键字集合；无 `USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA` 分支 |
-| `ClusteredDeferredIterationParityTests` | EditMode（包内） | header 0/1 语义；方向光偏移；灯数 0/1/31/32/33；探针列表不串扰；sky 像素 |
+| `ClusteredDeferredIterationParityTests` | EditMode（包内） | header 0/1 语义；方向光偏移；附加方向光单独循环；灯数 0/1/31/32/33；探针列表不串扰；sky 像素 |
 | `ClusteredDeferredBuildParityTests` | EditMode（包内） | Deferred 模式构建 cluster；开关关闭不构建；`_FORWARD_PLUS` 仍为 false；`_AdditionalLightsIndices` 仍存在；缓冲与 Forward+ 同场景一致 |
 | `ClusteredDeferredCullingCapTests` | EditMode（包内） | `maximumVisibleLights` 在 culling 前收紧；超 `maxVisibleAdditionalLights` 时告警；数组不越界 |
-| `ClusteredDeferredModeGateTests` | EditMode/PlayMode（包内+项目） | `UseRenderPass`、MSAA、XR、foveated、GLES、Preview/Overlay、tile 宽度 !=16、`useStructuredBuffer=true` 的禁用/回退 |
+| `ClusteredDeferredModeGateTests` | EditMode/PlayMode（包内+项目） | `UseRenderPass`（强制关闭并告警）、MSAA、XR、foveated、GLES、Preview/Overlay、`useStructuredBuffer=true` 的禁用/回退；tile 宽度 8/16/32/64 均不触发禁用 |
+| `ClusteredDeferredMaterialTypeTests` | EditMode（包内）+ PlayMode | mask pass 对 Lit/SimpleLit/Unlit/ComplexLit/forward-only 的 0/1/2 分流；SimpleLit 走 Lambert+Specular；forward-only 仍由原 pass 渲染且不重复受光 |
 | `ClusteredDeferredLightingEqualityTests` | PlayMode（项目）+ 视觉 | 无阴影/有阴影/cookie/layers/mixed/AO/正交；阈值见 AC-4/AC-5 |
 | `ClusteredDeferredForwardParityTests` | PlayMode（项目） | 开关关闭逐像素一致；开关开启时 forward/透明与基线一致 |
-| `ClusteredDeferredCoverageTests` | EditMode（包内） | 材质扫描：缺 GBuffer pass 的材质清单；告警 |
+| `ClusteredDeferredCoverageTests` | EditMode（包内） | 材质扫描：GBuffer/材质类型/forward-only 清单（信息性，不再是正确性 gate） |
 | `ClusteredDeferredResourceLifecycleTests` | EditMode（包内） | 开关反复切换、Renderer/相机销毁：无泄漏 RT/GraphicsBuffer；cluster 缓冲 Dispose |
 | `ClusteredDeferredPlayerTests` | Player（T7 执行） | 非 Development build 中 compute/shader 未 strip；运行时开关生效 |
 
@@ -641,11 +683,12 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 | `ForwardLights` 构建解耦回归 | forward/透明光照错误 | AC-1/AC-2 逐像素；T1 独立提交；保留 `m_UseForwardPlus` 原路径与逐物体索引 |
 | `isForwardPlus` 用法混淆 | 附加光阴影被静默关闭，或透明缺失逐物体灯数据 | T1 区分“阴影启用”与“per-object flags”；AC-3/AC-13 覆盖 |
 | 灯数组/可见灯上限不匹配 | 越界或静默截断 | T1 在 culling 前收紧 `maximumVisibleLights`；启动断言；超限告警 |
-| `UseRenderPass`/native RP 未关闭 | GBuffer/深度绑定不同，kernel 行为错误 | T5 强制 `!UseRenderPass`；不满足则回退并告警（AC-10） |
-| forward-only pass 未跳过 | 像素被重复受光/分类错误 | T5 在 `EnqueueDeferred` 不 enqueue；AC-15 覆盖 |
+| `UseRenderPass`/native RP 未关闭 | GBuffer/深度绑定不同，kernel 行为错误 | T5 本帧强制 `useRenderPassEnabled=false` + `m_DeferredLights.UseRenderPass=false` 并告警（AC-10） |
+| forward-only pass 与 mask 不一致 | 重复受光或物体消失 | 保留 forward-only pass；mask 以 stencil `MaterialUnlit` 保持 0；AC-15 覆盖 |
 | Preview/Overlay/多相机 | 缓冲缺失或串帧 | T5 回退 stencil deferred；AC-10 |
-| tile 宽度被 CPU 选为 8/32 | kernel 线程组映射错误 | v1 强制 16；不满足时关闭特性并告警（AC-10） |
-| GBuffer 覆盖不完整 | 材质漏渲染/错误光照 | T6 先出清单；编辑器扫描 + 运行时告警；必要时禁用该材质 |
+| 材质类型 mask 未清/未绑定 | Lit 像素被跳过（黑）或分流错误 | mask 每帧 Clear 0；T5 绑定与生命周期测试；AC-10/AC-15 |
+| mask pass 与 native RP/附件依赖冲突 | stencil 不可读或 RT 绑定错误 | v1 强制非 native RP；mask 与 compute 分两个 pass；T5 gate |
+| GBuffer 覆盖不完整 | 该材质不走 clustered deferred | 不再导致漏渲染（mask 0 + 原 forward pass）；T6 仅作可选优化清单 |
 | compute-safe 阴影/AO 子集编译失败 | kernel 无法编译/行为不一致 | T2 先做编译 gate；AC-9；失败时按 keyword 关单项并记录 |
 | 全局索引与阴影槽位不一致 | 阴影错位 | 复用 Forward+ 已验证链路；T4 逐项 A/B |
 | 现有 stencil 依赖未清理 | SSR/自定义效果异常 | T5 grep + 关闭开关 A/B；KnownDifferences |
@@ -666,22 +709,24 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 |---|---|
 | T1 构建解耦 + 灯上限 + `isForwardPlus` 审计 | 1–2 |
 | T2 compute-safe include（灯/阴影/AO/GBuffer 解码） | 1–2 |
-| T3 kernel v1（无阴影） | 1.5–2 |
+| T3 kernel v1（像素并行 + 材质 mask + Lit/SimpleLit + 附加方向光，无阴影） | 1.5–2 |
 | T4 阴影/cookie/layers/mixed/AO | 2–3 |
-| T5 集成/边界/平台 gate | 1–2 |
-| T6 自定义 shader GBuffer 覆盖 | 每个 0.5–2 天（线性） |
+| T5 集成/边界/平台 gate + mask pass | 1–2 |
+| T6 可选：自定义 shader GBuffer 覆盖 | 从核心成本移出；每个 0.5–2 天（线性） |
 | T7 证据/性能矩阵 | 1–2 |
 | T8 文档/验收/归档 | 0.5–1 |
 | **核心合计（不含 T6）** | **6–10 人周** |
 | 按本仓库验收强度上浮 30–50% | **9–15 人周** |
 | GPU FPTL（可选 follow-up） | +2–4 人周 |
 
+> 说明：mask pass 约 +0.5 人周，但取消 D9 的“全 opaque 补 GBuffer”约束，把 T6 的线性成本移出核心；两者相抵后核心区间不变。
+
 ---
 
 ## 10. 立即下一步
 
 1. 按 T1 先做最小接线：`InitParams.clusteredDeferred`、`m_UseClusters` 拆分、`isClusteredLighting` 区分阴影启用、culling 前收紧可见灯上限；**保持 `_FORWARD_PLUS` 关闭**，验证 forward/透明逐像素不变。
-2. 按 T5 的最小子集先确认 `EnqueueDeferred` 二选一、跳过 forward-only、`!UseRenderPass` gate 都成立，再写 kernel；避免在错误帧序上调试光照。
-3. 按 T2 建立 compute-safe include，并在测试 kernel 中对齐 PS 的灯集合（header 0/1、方向光偏移、off-by-one）。
-4. 按 T3 出第一版无阴影 A/B，确认“翻译函数”这条路成立，再进入阴影与覆盖清单。
+2. 按 T3 先出 **材质类型 mask + 像素并行 kernel**：mask 的 0/1/2 分流先于光照调试验证；kernel 先跑无阴影 Lit/SimpleLit，再确认附加方向光与 cluster 偏移。
+3. 按 T5 的最小子集确认 `EnqueueDeferred` 二选一、mask pass 插入点、**保留 forward-only**、`!UseRenderPass` gate 都成立；避免在错误帧序上调试光照。
+4. 按 T4 加阴影/cookie/layers/mixed/AO，逐项单开关 A/B。
 5. 不要先搬 `lightlistbuild.compute`；只有当 T7 的 profiler 证明 CPU 构图是瓶颈时，才启动 GPU FPTL，并保持缓冲布局不变。
