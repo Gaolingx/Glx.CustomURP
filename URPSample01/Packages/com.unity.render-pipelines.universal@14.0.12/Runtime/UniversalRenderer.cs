@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.Universal
                 if (m_ClusteredDeferredLighting)
                 {
                     m_ClusteredDeferredPass = new ClusteredDeferredPass(RenderPassEvent.BeforeRenderingDeferredLights,
-                        m_DeferredLights, data.shaders.clusteredDeferredCS,
+                        m_DeferredLights, m_ForwardLights, data.shaders.clusteredDeferredCS,
                         data.shaders.clusteredDeferredMaskPS, data.shaders.clusteredDeferredResolvePS);
                 }
                 m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);

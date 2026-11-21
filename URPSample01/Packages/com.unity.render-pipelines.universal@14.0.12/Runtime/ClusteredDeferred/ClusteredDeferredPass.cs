@@ -33,6 +33,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         const int k_ThreadGroupSize = 16;
 
         readonly DeferredLights m_DeferredLights;
+        // G1c: the cluster list may still be running on the async compute queue when this pass
+        // starts; the scheduler owns the fence and inserts the wait here, after GBuffer.
+        readonly ForwardLights m_ForwardLights;
         readonly ComputeShader m_Compute;
         readonly int m_Kernel;
         readonly Material m_MaskMaterial;
@@ -42,12 +45,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTexture m_MaskTexture;
         RenderTexture m_LightingTexture;
 
-        public ClusteredDeferredPass(RenderPassEvent evt, DeferredLights deferredLights,
+        public ClusteredDeferredPass(RenderPassEvent evt, DeferredLights deferredLights, ForwardLights forwardLights,
             ComputeShader compute, Shader maskShader, Shader resolveShader)
         {
             base.profilingSampler = new ProfilingSampler(nameof(ClusteredDeferredPass));
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
+            m_ForwardLights = forwardLights;
             m_Compute = compute;
             m_Kernel = compute != null ? compute.FindKernel("ClusteredDeferred") : -1;
             m_MaskMaterial = maskShader != null ? CoreUtils.CreateEngineMaterial(maskShader) : null;
@@ -164,6 +168,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // The stencil path enables this around ExecuteDeferredPass (DeferredLights.cs:581);
                 // the clustered path replaces that pass, so it must set the same keyword itself.
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, m_DeferredLights.UseShadowMask);
+                // The G1c async build runs after GBuffer; waiting at the compute stage here lets the
+                // mask draws above overlap whatever is left of it instead of stalling all GPU work.
+                m_ForwardLights.WaitForClusterList(cmd);
                 cmd.DispatchCompute(m_Compute, m_Kernel,
                     (width + k_ThreadGroupSize - 1) / k_ThreadGroupSize,
                     (height + k_ThreadGroupSize - 1) / k_ThreadGroupSize,

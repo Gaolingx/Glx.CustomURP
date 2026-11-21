@@ -80,6 +80,50 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             outputRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "ClusteredDeferredOutput"));
         Directory.CreateDirectory(outputRoot);
 
+        var clusterAccess = ClusterListAccess.Create();
+        if (clusterAccess != null && HasArgument("--cd-cluster-sync"))
+            clusterAccess.asyncCompute = false;
+        if (clusterAccess != null && HasArgument("--cd-cluster-async"))
+            clusterAccess.asyncCompute = true;
+
+        if (HasArgument("--cd-parity"))
+        {
+            var parityReport = new BufferParityReport
+            {
+                utcTimestamp = DateTime.UtcNow.ToString("O"),
+                unityVersion = Application.unityVersion,
+                graphicsDeviceName = SystemInfo.graphicsDeviceName,
+                graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString(),
+                lightCount = totalLights,
+                supportsAsyncCompute = SystemInfo.supportsAsyncCompute,
+            };
+
+            var parityRoutine = RunBufferParity(outputRoot, parityReport, clusterAccess);
+            while (true)
+            {
+                bool moveNext;
+                try
+                {
+                    moveNext = parityRoutine.MoveNext();
+                }
+                catch (Exception exception)
+                {
+                    parityReport.error = exception.ToString();
+                    WriteParity(outputRoot, parityReport);
+                    File.WriteAllText(Path.Combine(outputRoot, "CdError.txt"), exception.ToString());
+                    Application.Quit(2);
+                    yield break;
+                }
+
+                if (!moveNext)
+                    break;
+                yield return parityRoutine.Current;
+            }
+
+            Application.Quit(parityReport.completed && parityReport.passed ? 0 : 2);
+            yield break;
+        }
+
         if (HasArgument("--cd-t4"))
         {
             var featureReport = new FeatureMatrixReport
@@ -132,6 +176,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                 width = width,
                 height = height,
                 sampleFrames = cpuBreakdownFrames,
+                supportsAsyncCompute = SystemInfo.supportsAsyncCompute,
+                clusterListAsync = clusterAccess != null && clusterAccess.asyncCompute,
                 modes = new List<CpuModeBreakdown>(),
             };
 
@@ -170,6 +216,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString(),
             graphicsDeviceVersion = SystemInfo.graphicsDeviceVersion,
             supportsComputeShaders = SystemInfo.supportsComputeShaders,
+            supportsAsyncCompute = SystemInfo.supportsAsyncCompute,
+            clusterListAsync = clusterAccess != null && clusterAccess.asyncCompute,
             width = width,
             height = height,
             warmupFrames = warmupFrames,
@@ -221,7 +269,261 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         report.height = Screen.height;
         report.completed = true;
         WriteReport(outputRoot, report);
+
+        // External capture tools attach after a fixed frame delay; keep the warmed-up clustered
+        // frame presenting instead of quitting immediately.
+        if (HasArgument("--cd-hold"))
+        {
+            while (true)
+                yield return new WaitForEndOfFrame();
+        }
+
         Application.Quit(0);
+    }
+
+    // G1c gate: the async-scheduled and sync-scheduled GPU lists must be bit-identical, and the
+    // CPU list must still be a subset of the GPU one. Runs the same camera/light field and only
+    // flips the scheduling switch between captures.
+    IEnumerator RunBufferParity(string outputRoot, BufferParityReport report, ClusterListAccess access)
+    {
+        if (access == null)
+            throw new InvalidOperationException("ClusterListGpuBuilder/ClusterListParityCapture are missing from the URP runtime assembly.");
+
+        SetupArena();
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = 0;
+        Screen.SetResolution(width, height, false);
+        SetLightCount(totalLights);
+        yield return SetPipeline(clusteredDeferredPipeline);
+        yield return WaitFrames(warmupFrames);
+
+        access.enabled = true;
+        access.captureEnabled = true;
+
+        access.asyncCompute = true;
+        access.ClearGpuCapture();
+        yield return WaitForGpuCapture(access);
+        var asyncSnapshot = access.ReadGpu();
+        if (asyncSnapshot == null)
+            throw new InvalidOperationException("The async-scheduled GPU list was not captured.");
+        report.asyncScheduled = SystemInfo.supportsAsyncCompute;
+
+        access.asyncCompute = false;
+        access.ClearGpuCapture();
+        yield return WaitForGpuCapture(access);
+        var syncSnapshot = access.ReadGpu();
+        if (syncSnapshot == null)
+            throw new InvalidOperationException("The sync-scheduled GPU list was not captured.");
+
+        access.enabled = false;
+        yield return WaitFrames(2);
+        var cpuSnapshot = access.ReadCpu();
+        if (cpuSnapshot == null)
+            throw new InvalidOperationException("The CPU list was not captured.");
+
+        access.enabled = true;
+        access.asyncCompute = true;
+        access.captureEnabled = false;
+
+        var difference = CompareSchedules(asyncSnapshot, syncSnapshot, cpuSnapshot);
+        report.zBinWords = asyncSnapshot.zBins.Length;
+        report.tileWords = asyncSnapshot.tileMasks.Length;
+        report.zBinUsedWords = asyncSnapshot.ZBinUsedWords;
+        report.tileUsedWords = asyncSnapshot.TileUsedWords;
+        report.layoutMatches = difference.layoutMatches;
+        report.asyncSyncZBinMismatchWords = difference.asyncSyncZBinMismatchWords;
+        report.asyncSyncZBinMismatchBits = difference.asyncSyncZBinMismatchBits;
+        report.asyncSyncTileMismatchWords = difference.asyncSyncTileMismatchWords;
+        report.asyncSyncTileMismatchBits = difference.asyncSyncTileMismatchBits;
+        report.asyncSyncFirstMismatch = difference.asyncSyncFirstMismatch;
+        report.cpuGpuZBinMismatchWords = difference.cpuGpuZBinMismatchWords;
+        report.cpuGpuZBinMismatchBits = difference.cpuGpuZBinMismatchBits;
+        report.cpuGpuZBinMissingBits = difference.cpuGpuZBinMissingBits;
+        report.cpuGpuZBinExtraBits = difference.cpuGpuZBinExtraBits;
+        report.cpuGpuTileMismatchWords = difference.cpuGpuTileMismatchWords;
+        report.cpuGpuTileMismatchBits = difference.cpuGpuTileMismatchBits;
+        report.cpuGpuTileMissingBits = difference.cpuGpuTileMissingBits;
+        report.cpuGpuTileExtraBits = difference.cpuGpuTileExtraBits;
+        report.cpuTileBits = difference.cpuTileBits;
+        report.gpuTileBits = difference.gpuTileBits;
+        report.itemCount = difference.itemCount;
+        report.fullScreenItems = difference.fullScreenItems;
+        report.minItemTiles = difference.minItemTiles;
+        report.maxItemTiles = difference.maxItemTiles;
+        report.medianItemTiles = difference.medianItemTiles;
+        report.cpuGpuFirstMismatch = difference.cpuGpuFirstMismatch;
+        report.completed = true;
+        report.passed = difference.passed;
+        WriteParity(outputRoot, report);
+    }
+
+    static IEnumerator WaitForGpuCapture(ClusterListAccess access)
+    {
+        for (var i = 0; i < 30 && access.ReadGpu() == null; i++)
+            yield return null;
+    }
+
+    struct BufferParityDifference
+    {
+        public bool layoutMatches;
+        public int asyncSyncZBinMismatchWords;
+        public int asyncSyncZBinMismatchBits;
+        public int asyncSyncTileMismatchWords;
+        public int asyncSyncTileMismatchBits;
+        public int asyncSyncFirstMismatch;
+        public int cpuGpuZBinMismatchWords;
+        public int cpuGpuZBinMismatchBits;
+        public int cpuGpuZBinMissingBits;
+        public int cpuGpuZBinExtraBits;
+        public int cpuGpuTileMismatchWords;
+        public int cpuGpuTileMismatchBits;
+        public int cpuGpuTileMissingBits;
+        public int cpuGpuTileExtraBits;
+        public int cpuGpuFirstMismatch;
+        public int cpuTileBits;
+        public int gpuTileBits;
+        public int itemCount;
+        public int fullScreenItems;
+        public int minItemTiles;
+        public int maxItemTiles;
+        public int medianItemTiles;
+
+        public bool passed => layoutMatches &&
+                              asyncSyncZBinMismatchWords == 0 && asyncSyncTileMismatchWords == 0 &&
+                              cpuGpuZBinMissingBits == 0 && cpuGpuTileMissingBits == 0 &&
+                              cpuGpuZBinExtraBits == 0;
+    }
+
+    static BufferParityDifference CompareSchedules(ClusterWordSnapshot asyncSnapshot, ClusterWordSnapshot syncSnapshot,
+        ClusterWordSnapshot cpuSnapshot)
+    {
+        var difference = new BufferParityDifference
+        {
+            layoutMatches = asyncSnapshot.binCount == syncSnapshot.binCount &&
+                            asyncSnapshot.wordsPerTile == syncSnapshot.wordsPerTile &&
+                            asyncSnapshot.viewCount == syncSnapshot.viewCount &&
+                            asyncSnapshot.tileWidth == syncSnapshot.tileWidth &&
+                            asyncSnapshot.tileResolution == syncSnapshot.tileResolution,
+            asyncSyncFirstMismatch = -1,
+            cpuGpuFirstMismatch = -1,
+        };
+
+        // Scheduling must not change a single word. Extra words outside the used prefix count too,
+        // because the kernels clear the whole buffers.
+        var zBinSchedule = DiffWords(asyncSnapshot.zBins, syncSnapshot.zBins, int.MaxValue);
+        var tileSchedule = DiffWords(asyncSnapshot.tileMasks, syncSnapshot.tileMasks, int.MaxValue);
+        difference.asyncSyncZBinMismatchWords = zBinSchedule.mismatchWords;
+        difference.asyncSyncZBinMismatchBits = zBinSchedule.mismatchBits;
+        difference.asyncSyncTileMismatchWords = tileSchedule.mismatchWords;
+        difference.asyncSyncTileMismatchBits = tileSchedule.mismatchBits;
+        difference.asyncSyncFirstMismatch = Mathf.Min(zBinSchedule.firstMismatch, tileSchedule.firstMismatch);
+
+        var zBinCoverage = DiffWords(cpuSnapshot.zBins, asyncSnapshot.zBins, cpuSnapshot.ZBinUsedWords);
+        var tileCoverage = DiffWords(cpuSnapshot.tileMasks, asyncSnapshot.tileMasks, cpuSnapshot.TileUsedWords);
+        difference.cpuGpuZBinMismatchWords = zBinCoverage.mismatchWords;
+        difference.cpuGpuZBinMismatchBits = zBinCoverage.mismatchBits;
+        difference.cpuGpuZBinMissingBits = zBinCoverage.missingBits;
+        difference.cpuGpuZBinExtraBits = zBinCoverage.extraBits;
+        difference.cpuGpuTileMismatchWords = tileCoverage.mismatchWords;
+        difference.cpuGpuTileMismatchBits = tileCoverage.mismatchBits;
+        difference.cpuGpuTileMissingBits = tileCoverage.missingBits;
+        difference.cpuGpuTileExtraBits = tileCoverage.extraBits;
+        difference.cpuGpuFirstMismatch = Mathf.Min(zBinCoverage.firstMismatch, tileCoverage.firstMismatch);
+
+        difference.cpuTileBits = CountSetBits(cpuSnapshot.tileMasks, cpuSnapshot.TileUsedWords);
+        difference.gpuTileBits = CountSetBits(asyncSnapshot.tileMasks, asyncSnapshot.TileUsedWords);
+        ItemCoverage(asyncSnapshot, out difference.itemCount, out difference.fullScreenItems,
+            out difference.minItemTiles, out difference.maxItemTiles, out difference.medianItemTiles);
+        return difference;
+    }
+
+    // How loose the conservative tile AABB is: per-item tile coverage, including items that hit the
+    // near-plane branch and therefore claim the whole screen.
+    static void ItemCoverage(ClusterWordSnapshot snapshot, out int itemCount, out int fullScreenItems,
+        out int minTiles, out int maxTiles, out int medianTiles)
+    {
+        itemCount = snapshot.wordsPerTile * 32;
+        fullScreenItems = 0;
+        minTiles = int.MaxValue;
+        maxTiles = 0;
+        medianTiles = 0;
+        if (snapshot.tileMasks == null || snapshot.wordsPerTile <= 0)
+        {
+            minTiles = 0;
+            return;
+        }
+
+        var tileCount = snapshot.tileResolution.x * snapshot.tileResolution.y;
+        var coverage = new int[itemCount];
+        for (var item = 0; item < itemCount; item++)
+        {
+            var word = item >> 5;
+            var mask = 1u << (item & 31);
+            var covered = 0;
+            for (var tile = 0; tile < tileCount; tile++)
+            {
+                if ((snapshot.tileMasks[tile * snapshot.wordsPerTile + word] & mask) != 0)
+                    covered++;
+            }
+
+            coverage[item] = covered;
+            minTiles = Mathf.Min(minTiles, covered);
+            maxTiles = Mathf.Max(maxTiles, covered);
+            if (covered == tileCount)
+                fullScreenItems++;
+        }
+
+        System.Array.Sort(coverage);
+        medianTiles = itemCount > 0 ? coverage[itemCount / 2] : 0;
+    }
+
+    struct WordDiff
+    {
+        public int mismatchWords;
+        public int mismatchBits;
+        public int missingBits;   // set in expected, cleared in actual
+        public int extraBits;     // set in actual, cleared in expected
+        public int firstMismatch; // -1 when none inside the used prefix
+    }
+
+    static WordDiff DiffWords(uint[] expected, uint[] actual, int usedWords)
+    {
+        var diff = new WordDiff { firstMismatch = -1 };
+        if (expected == null || actual == null)
+            return diff;
+
+        var length = Mathf.Min(expected.Length, actual.Length);
+        for (var i = 0; i < length; i++)
+        {
+            if (expected[i] == actual[i])
+                continue;
+
+            var xor = expected[i] ^ actual[i];
+            diff.mismatchWords++;
+            diff.mismatchBits += CountSetBits(xor);
+            diff.missingBits += CountSetBits(expected[i] & ~actual[i]);
+            diff.extraBits += CountSetBits(actual[i] & ~expected[i]);
+            if (i < usedWords && diff.firstMismatch < 0)
+                diff.firstMismatch = i;
+        }
+
+        return diff;
+    }
+
+    static int CountSetBits(uint value)
+    {
+        var bits = 0;
+        for (; value != 0; value &= value - 1)
+            bits++;
+        return bits;
+    }
+
+    static int CountSetBits(uint[] words, int count)
+    {
+        var bits = 0;
+        for (var i = 0; i < count; i++)
+            bits += CountSetBits(words[i]);
+        return bits;
     }
 
     // CPU decomposition for the deferred light path: PreSetup (cluster job scheduling),
@@ -881,6 +1183,11 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         File.WriteAllText(Path.Combine(outputRoot, "CdCpuBreakdown.json"), json);
     }
 
+    static void WriteParity(string outputRoot, BufferParityReport report)
+    {
+        File.WriteAllText(Path.Combine(outputRoot, "G1BufferParity.json"), JsonUtility.ToJson(report, true));
+    }
+
     // The probe type is internal to URP; reflection keeps this test asset script independent from
     // package internals (same approach as the GTAO settings above).
     sealed class CpuProbeAccess
@@ -951,6 +1258,129 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             var ticks = (long)field.GetValue(null);
             return ticks * 1000.0 / System.Diagnostics.Stopwatch.Frequency / frames;
         }
+    }
+
+    // The G1 builder and parity capture are internal to URP; reflection keeps this player runner
+    // independent of package internals (same approach as CpuProbeAccess).
+    sealed class ClusterListAccess
+    {
+        const string BuilderTypeName = "UnityEngine.Rendering.Universal.Internal.ClusterListGpuBuilder";
+        const string CaptureTypeName = "UnityEngine.Rendering.Universal.Internal.ClusterListParityCapture";
+        const BindingFlags k_Static = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+
+        readonly FieldInfo m_Enabled;
+        readonly FieldInfo m_Async;
+        readonly FieldInfo m_CaptureEnabled;
+        readonly FieldInfo m_Last;
+        readonly FieldInfo m_LastGpu;
+        readonly FieldInfo m_ZBins;
+        readonly FieldInfo m_TileMasks;
+        readonly FieldInfo m_ZBinScale;
+        readonly FieldInfo m_ZBinOffset;
+        readonly FieldInfo m_BinCount;
+        readonly FieldInfo m_WordsPerTile;
+        readonly FieldInfo m_ViewCount;
+        readonly FieldInfo m_TileWidth;
+        readonly FieldInfo m_TileResolution;
+
+        public static ClusterListAccess Create()
+        {
+            var assembly = typeof(UniversalRenderPipeline).Assembly;
+            var builder = assembly.GetType(BuilderTypeName);
+            var capture = assembly.GetType(CaptureTypeName);
+            return builder == null || capture == null ? null : new ClusterListAccess(builder, capture);
+        }
+
+        ClusterListAccess(Type builder, Type capture)
+        {
+            m_Enabled = builder.GetField("enabled", k_Static);
+            m_Async = builder.GetField("asyncCompute", k_Static);
+            m_CaptureEnabled = capture.GetField("enabled", k_Static);
+            m_Last = capture.GetField("last", k_Static);
+            m_LastGpu = capture.GetField("lastGpu", k_Static);
+
+            var snapshot = m_Last?.FieldType;
+            if (snapshot != null)
+            {
+                m_ZBins = snapshot.GetField("zBins");
+                m_TileMasks = snapshot.GetField("tileMasks");
+                m_ZBinScale = snapshot.GetField("zBinScale");
+                m_ZBinOffset = snapshot.GetField("zBinOffset");
+                m_BinCount = snapshot.GetField("binCount");
+                m_WordsPerTile = snapshot.GetField("wordsPerTile");
+                m_ViewCount = snapshot.GetField("viewCount");
+                m_TileWidth = snapshot.GetField("tileWidth");
+                m_TileResolution = snapshot.GetField("tileResolution");
+            }
+        }
+
+        public bool enabled
+        {
+            get => (bool)m_Enabled.GetValue(null);
+            set => m_Enabled.SetValue(null, value);
+        }
+
+        public bool asyncCompute
+        {
+            get => (bool)m_Async.GetValue(null);
+            set => m_Async.SetValue(null, value);
+        }
+
+        public bool captureEnabled
+        {
+            get => (bool)m_CaptureEnabled.GetValue(null);
+            set => m_CaptureEnabled.SetValue(null, value);
+        }
+
+        public void ClearGpuCapture()
+        {
+            m_LastGpu.SetValue(null, Activator.CreateInstance(m_LastGpu.FieldType));
+        }
+
+        public ClusterWordSnapshot ReadGpu() => Read(m_LastGpu.GetValue(null));
+
+        public ClusterWordSnapshot ReadCpu() => Read(m_Last.GetValue(null));
+
+        ClusterWordSnapshot Read(object snapshot)
+        {
+            if (snapshot == null || m_ZBins == null)
+                return null;
+
+            var zBins = (uint[])m_ZBins.GetValue(snapshot);
+            if (zBins == null)
+                return null;
+
+            return new ClusterWordSnapshot
+            {
+                zBins = zBins,
+                tileMasks = (uint[])m_TileMasks.GetValue(snapshot),
+                zBinScale = (float)m_ZBinScale.GetValue(snapshot),
+                zBinOffset = (float)m_ZBinOffset.GetValue(snapshot),
+                binCount = (int)m_BinCount.GetValue(snapshot),
+                wordsPerTile = (int)m_WordsPerTile.GetValue(snapshot),
+                viewCount = (int)m_ViewCount.GetValue(snapshot),
+                tileWidth = (int)m_TileWidth.GetValue(snapshot),
+                tileResolution = (Vector2Int)m_TileResolution.GetValue(snapshot),
+            };
+        }
+    }
+
+    sealed class ClusterWordSnapshot
+    {
+        public uint[] zBins;
+        public uint[] tileMasks;
+        public float zBinScale;
+        public float zBinOffset;
+        public int binCount;
+        public int wordsPerTile;
+        public int viewCount;
+        public int tileWidth;
+        public Vector2Int tileResolution;
+
+        // ZBinningJob.headerLength = 2; only the used prefix is what the kernel can index.
+        public int ZBinUsedWords => binCount * (2 + wordsPerTile) * viewCount;
+
+        public int TileUsedWords => tileResolution.x * tileResolution.y * wordsPerTile * viewCount;
     }
 
     static void WriteCsv(string outputRoot, PerfReport report)
@@ -1078,6 +1508,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public string graphicsDeviceType;
         public string graphicsDeviceVersion;
         public bool supportsComputeShaders;
+        public bool supportsAsyncCompute;
+        public bool clusterListAsync;
         public int width;
         public int height;
         public int warmupFrames;
@@ -1119,8 +1551,53 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public int width;
         public int height;
         public int sampleFrames;
+        public bool supportsAsyncCompute;
+        public bool clusterListAsync;
         public bool completed;
         public string error;
         public List<CpuModeBreakdown> modes;
+    }
+
+    // G1c buffer parity: async vs sync scheduling must be word-identical, and the CPU list must
+    // remain a subset of the GPU list (zbin exact, tile conservative superset).
+    [Serializable]
+    public sealed class BufferParityReport
+    {
+        public string utcTimestamp;
+        public string unityVersion;
+        public string graphicsDeviceType;
+        public string graphicsDeviceName;
+        public int lightCount;
+        public bool supportsAsyncCompute;
+        public bool asyncScheduled;
+        public bool completed;
+        public bool passed;
+        public string error;
+        public bool layoutMatches;
+        public int zBinWords;
+        public int tileWords;
+        public int zBinUsedWords;
+        public int tileUsedWords;
+        public int asyncSyncZBinMismatchWords;
+        public int asyncSyncZBinMismatchBits;
+        public int asyncSyncTileMismatchWords;
+        public int asyncSyncTileMismatchBits;
+        public int asyncSyncFirstMismatch;
+        public int cpuGpuZBinMismatchWords;
+        public int cpuGpuZBinMismatchBits;
+        public int cpuGpuZBinMissingBits;
+        public int cpuGpuZBinExtraBits;
+        public int cpuGpuTileMismatchWords;
+        public int cpuGpuTileMismatchBits;
+        public int cpuGpuTileMissingBits;
+        public int cpuGpuTileExtraBits;
+        public int cpuGpuFirstMismatch;
+        public int cpuTileBits;
+        public int gpuTileBits;
+        public int itemCount;
+        public int fullScreenItems;
+        public int minItemTiles;
+        public int maxItemTiles;
+        public int medianItemTiles;
     }
 }

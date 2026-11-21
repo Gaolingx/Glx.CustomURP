@@ -10,6 +10,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public int lightCount;
         public int binCount;
         public int wordsPerTile;
+        public float zBinScale;
+        public float zBinOffset;
         public int zBinWordCount;
         public int tileWordCount;
         public int2 tileCount;
@@ -28,6 +30,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Fallback switch (HANDOFF §7): flipping this to false puts the CPU jobs back in charge
         // without touching shaders. Tests flip it to capture the CPU reference of the same frame.
         internal static bool enabled = true;
+
+        // G1c scheduling switch: when the device has an async queue the five dispatches can run
+        // there and overlap the shadow/GBuffer passes. Off by default: on the D3D12 validation
+        // machine the queue hand-off costs a constant ~0.11 ms per frame (measured at 0/8/16/32/
+        // 48/64 lights in validation/G1/T5-runtime/player-d3d12{,-async}) while the whole list
+        // takes ~0.05 ms, so sync wins until a scene is heavy enough to hide the hand-off.
+        internal static bool asyncCompute = false;
 
         const int k_BoundsThreads = 64;
         const int k_ClearThreads = 256;
@@ -65,13 +74,30 @@ namespace UnityEngine.Rendering.Universal.Internal
                                  m_BoundsKernel >= 0 && m_ClearKernel >= 0 && m_ScatterKernel >= 0 &&
                                  m_PackKernel >= 0 && m_ExpandKernel >= 0;
 
+        // Records the item upload on the command stream. Kept separate from Dispatch because the
+        // async path uploads on the graphics queue (so the data is ready when the async queue
+        // starts) and then dispatches on its own command buffer.
+        public void Upload(CommandBuffer cmd, ClusterItemRecord[] items, int itemCount)
+        {
+            if (!isCreated || items == null || itemCount <= 0)
+                return;
+
+            EnsureCapacity(itemCount, 0);
+            cmd.SetBufferData(m_Items, items, 0, 0, itemCount);
+        }
+
         public void Dispatch(CommandBuffer cmd, in ClusterListGpuParams p, GraphicsBuffer zbins, GraphicsBuffer tiles)
         {
             if (!isCreated || p.items == null)
                 return;
 
             EnsureCapacity(p.itemCount, p.binCount);
-            m_Items.SetData(p.items);
+
+            // The kernels read the two published parameters directly instead of the global
+            // _FPParams state, so an async command buffer does not depend on graphics-queue
+            // commands having executed first.
+            cmd.SetComputeVectorParam(m_Compute, "_FPParams0", new Vector4(p.zBinScale, p.zBinOffset, 0f, 0f));
+            cmd.SetComputeVectorParam(m_Compute, "_FPParams1", new Vector4(0f, 0f, 0f, p.wordsPerTile));
 
             cmd.SetComputeIntParam(m_Compute, "_CdClusterItemCount", p.itemCount);
             cmd.SetComputeIntParam(m_Compute, "_CdClusterLightCount", p.lightCount);

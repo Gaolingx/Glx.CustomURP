@@ -75,22 +75,44 @@ namespace UnityEngine.Rendering.Universal.Internal
         public static ClusterItemRecord[] Build(ref RenderingData renderingData, int lightOffset, int lightCount, int reflectionProbeCount)
         {
             var records = new ClusterItemRecord[lightCount + reflectionProbeCount];
+            Fill(ref renderingData, lightOffset, lightCount, reflectionProbeCount, records);
+            return records;
+        }
+
+        // Per-frame variant: keeps one array alive instead of allocating every frame. Returns the
+        // used count; the array can be longer.
+        public static int Build(ref RenderingData renderingData, int lightOffset, int lightCount, int reflectionProbeCount, ref ClusterItemRecord[] buffer)
+        {
+            int count = lightCount + reflectionProbeCount;
+            if (buffer == null || buffer.Length < count)
+                buffer = new ClusterItemRecord[count];
+            if (count != 0)
+                Fill(ref renderingData, lightOffset, lightCount, reflectionProbeCount, buffer);
+            return count;
+        }
+
+        static void Fill(ref RenderingData renderingData, int lightOffset, int lightCount, int reflectionProbeCount, ClusterItemRecord[] records)
+        {
             var lights = renderingData.lightData.visibleLights;
+            // The kernels read position/direction/type only; the authored layer mask is recorded
+            // solely for the parity snapshot, so skip the per-light component lookup when it is off.
+            bool captureLayerMask = ClusterListParityCapture.enabled;
             for (int i = 0; i < lightCount; i++)
             {
                 var index = lightOffset + i;
-                var light = lights[index].light;
                 uint layerMask = 0;
-                if (light != null)
-                    layerMask = RenderingLayerUtils.ToValidRenderingLayers(light.GetUniversalAdditionalLightData().renderingLayers);
+                if (captureLayerMask)
+                {
+                    var light = lights[index].light;
+                    if (light != null)
+                        layerMask = RenderingLayerUtils.ToValidRenderingLayers(light.GetUniversalAdditionalLightData().renderingLayers);
+                }
                 records[i] = ClusterItemRecord.FromVisibleLight(lights[index], index, layerMask);
             }
 
             var probes = renderingData.cullResults.visibleReflectionProbes;
             for (int i = 0; i < reflectionProbeCount; i++)
                 records[lightCount + i] = ClusterItemRecord.FromReflectionProbe(probes[i], i);
-
-            return records;
         }
     }
 }

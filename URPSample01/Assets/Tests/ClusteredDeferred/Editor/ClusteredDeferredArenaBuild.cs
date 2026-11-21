@@ -10,8 +10,8 @@ using UnityEngine.Rendering;
 public static class ClusteredDeferredArenaBuild
 {
     const string ScenePath = "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity";
-    const string ValidationRoot = "PLAN/TODO/12-GpuLightList/validation/C1/T5-runtime";
-    const string T4ValidationRoot = "PLAN/TODO/12-GpuLightList/validation/C1/T4-shadows";
+    const string ValidationRoot = "PLAN/TODO/12-GpuLightList/validation/G1/T5-runtime";
+    const string T4ValidationRoot = "PLAN/TODO/12-GpuLightList/validation/G1/T4-shadows";
 
     public static void BuildD3D11AndExit()
     {
@@ -73,6 +73,9 @@ public static class ClusteredDeferredArenaBuild
         BuildReport report;
         try
         {
+            // SetGraphicsAPIs only takes effect when the target stops using its default API list;
+            // without this the "Direct3D12" player silently launches on D3D11.
+            PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.StandaloneWindows64, false);
             PlayerSettings.SetGraphicsAPIs(BuildTarget.StandaloneWindows64, new[] { api });
             PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
             PlayerSettings.defaultScreenWidth = 1280;
