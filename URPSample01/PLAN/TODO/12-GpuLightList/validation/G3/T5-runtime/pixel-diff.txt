@@ -1,0 +1,9 @@
+G3 compact list vs bitmap, ClusteredDeferred_L48.png (1280x720, D3D11)
+comparison: PIL ImageChops.difference over RGB, 921600 pixels
+
+compact off  vs compact off rerun (identical config, separate process): max 1/255, 1 px
+compact off  vs compact on                                          : max 1/255, 2 px
+
+The two identical-config runs already differ on 1 pixel, so the compact/bitmap difference is
+process-to-process noise, not a list-content difference. The PlayMode gate
+(CompactListsKeepPixelsIdentical, 640x360, single process) compares exactly 0.

@@ -1,6 +1,6 @@
 # 12-GpuLightList：GPU 光表与异步两段式（计划）
 
-> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1a/G1b/G1c 已落地（G1 完成：GPU 光表、异步调度与 parity、结构化绑定 .rdc；异步实测净亏，默认同步）；G2 已落地并验收为 NO-GO（细剪默认关闭，保留 A/B）；G3 未开始**。
+> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1a/G1b/G1c 已落地（G1 完成：GPU 光表、异步调度与 parity、结构化绑定 .rdc；异步实测净亏，默认同步）；G2 已落地并验收为 NO-GO（细剪默认关闭，保留 A/B）；G3 已落地并验收为 NO-GO（按 (tile, zbin) 的紧凑列表默认关闭，保留 A/B）**。
 > 建立：2026-11-22；前置轮次：[`PLAN/Done/11-LightCulling`](../../Done/11-LightCulling/HANDOFF.md)（Clustered Deferred v1，已归档）。
 > 善后清单：[clean.md](clean.md)（C1 已落地；C2–C8 仍为规划）。
 > 基线：C1 提交后的 HEAD（见 `git log`）；C1 证据在 `validation/C1/`。
@@ -275,13 +275,46 @@ ClusteredDeferred.compute（不改一行）
 - 退出条件未达成：A/B 不变，但**每像素灯循环次数与 GPU 时间都没有下降**，细剪多付 ~0.07–0.10 ms。
 - 机制：按 tile 深度区间清掉的位，像素 kernel 本来就会被自己的 zbin 拒掉——tile 的 `[minZ,maxZ]` 覆盖了 tile 内所有像素的深度，item 的 z 区间与它不相交时，tile 内任何像素的 zbin 都不会包含该 item；空 tile 则根本没有 deferred 像素。侧平面判定能多清 6–9% 的位（保守 AABB 的角落错配），但量太小，抵不过一次全屏深度扫描。
 - **决策**：G2 判 NO-GO。实现保留为 A/B 路径（开关默认关），因为测量可复现且是 G3 的前置数据；真正能把“清掉的位”变成收益的是 G3 的按 (tile, zbin) 紧凑列表（位图里省下的位 = 列表长度的缩短），届时用这份 tile 深度区间直接生成列表即可。
+- **G3 复核（§5.3）**：这个预期在 ≤64 灯下也被证伪 —— 紧凑列表的每个 cell 平均有 8–21 项，比 1–2 word 的位图扫描更长，且仍要付一次全屏深度扫描。
 
-## 5. G3：variant / 间接派发
+## 5. G3：按 (tile, zbin) 的紧凑列表（已实施，验收 NO-GO）
 
-- 空 tile 跳过：由构建阶段产出非空 tile 计数/列表，`DispatchComputeIndirect`；或按 tile mask 打包。
-- 分类/feature flags：按灯类型或材质需求裁剪每个 tile 的循环；需要 kernel variant 与 stripping 预算同步。
-- 退出条件：空 tile 比例高的场景 GPU 时间下降；变体数变化有记录且不放宽 stripping；T4/T5 全绿。
-- 证据：`G3VariantCount.json`、间接 dispatch 参数、`.rdc` 的 dispatch 实际覆盖、A/B。
+- 原目标：把 G2 清掉的位变成“列表长度”，像素 kernel 不再逐 word 求交，而是一次读取 (tile, zbin) 的紧凑 item 索引表；再用空 tile 计数做间接派发。
+- **与 G2 的关系**：紧凑构建本身需要 tile 深度切片来确定 zbin 范围，所以它包含 G2 的深度/侧平面裁剪；`pruneByDepth` 与 `compactLists` 同时打开时，G2 的独立细剪 dispatch 会被跳过，避免两次全屏深度扫描。
+
+### 5.1 实现
+
+- kernel：`ClusterBuilder.compute` 新增 `ClusterCellBuild`，每个 tile 一个 8×8 group：
+  - 用与光照 kernel 同一份深度拷贝归约 tile 的线性 z 区间，按 `_FPParams0` 的 zbin 映射得到 `[binLo,binHi]`，两端各放宽 1 bin（像素 kernel 的 zbin 由另一条浮点路径算出，留一个 bin 的余量）；
+  - 每 tile 固定 `_CdClusterCellMax=32` 个 cell 槽；深度切片跨度超过 32 个 zbin 的 tile 置 overflow 位；
+  - 每个 cell（tile, zbin）做 `urp_Tiles & URP_ZBins` 的同一 word 交集，按 item 升序写入索引；可选与 G2 相同的“包围球 vs tile 视锥切片”测试；超过 32 项的 cell 置 overflow；
+  - 只写新缓冲，不改 `URP_ZBins`/`urp_Tiles`/`_FPParams*`/tile 宽度。
+- 消费端：`ClusteredDeferred.hlsl` 的 `CdClusterInit/Next` 增加 compact 模式。cell 位于 tile 深度切片内且未 overflow 时直接遍历升序索引表（0 项的 cell 立即结束）；否则回退位图迭代器（overflow tile/cell、空 tile、CPU 回退、开关关闭）。升序保证累加顺序与位图路径相同。
+- 宿主：`ClusterListGpuBuilder.BindCompact/BuildCells` 持有 cell 头/索引/tile info（1280×720、K=32 约 15 MB，只在开关打开时分配）；`ClusteredDeferredPass` 在 `WaitForClusterList` 和 G2 细剪之后、光照派发之前调用 `ForwardLights.BuildClusterCells`。
+- 开关：`compactLists`（默认 **false**）；arena `--cd-compact-on/--cd-compact-off/--cd-compact-stats`；`CdPerf.json` 新增 `clusterListCompact` 与每档 `compactCells/compactEntries/compactOverflowCells/compactOverflowTiles/compactScannedCells`。
+- 变体：不新增关键字/variant（一个 uniform 开关 + 始终绑定的结构化缓冲）；`ClusteredDeferred.compute` 的 multi_compile 组合数与 G2 相同。
+
+### 5.2 验证（D3D11，1280×720，同一 player；RTX 5060 Ti）
+
+| 项 | 结果 | 证据 |
+|---|---|---|
+| 像素等价（PlayMode） | compact on/off **逐位一致**（640×360、24 灯；非空 cell 21,609、索引 448,056、overflow cell 0） | `tests/G3PlayMode.xml`（`CompactListsKeepPixelsIdentical`）、`logs/G3PlayMode.log` |
+| 像素等价（arena 48 灯） | on/off 最大差 **1/255、2 px**；同配置重跑的控制也是 **1/255、1 px**（进程间噪声同量级） | `T5-runtime/player-d3d11-g3-compact-{off,on}/`、`...-off-rerun/` |
+| cell 统计（64 灯） | 21,692 非空 cell、433,570 索引（≈20/非空 cell）、108 overflow cell、264 overflow tile（3,600 tile，K=32） | `T5-runtime/player-d3d11-g3-compact-on/CdPerf.json` |
+| GPU 时间（clustered） | off **0.171/0.215/0.235/0.289/0.328/0.375 ms**；on **0.258/0.301/0.355/0.421/0.407/0.458 ms**（0/8/16/32/48/64 灯）；每档 **+0.079…+0.132 ms** | `T5-runtime/player-d3d11-g3-compact-{off,on}/CdPerf.json` |
+| G2 对照（同 exe） | prune on **0.249/0.321/0.399/0.512/0.425/0.471 ms**，同样只增不减 | `T5-runtime/player-d3d11-g3-prune-control/CdPerf.json` |
+| A/B（48 灯） | off mean **0.806** / max **9**；on **0.820** / **9**；prune **0.818** / **9**，全部 `passed=true` | 三个 `CdPerf.json` 的 `diffs` |
+| T4 特性矩阵（D3D11） | **7/7 passed**（stencil vs clustered on：mean 0.020–0.961、max 3–10） | `T4-shadows/player-d3d11/T4FeatureMatrix.json` |
+| D3D12 T5（默认 / compact on） | 默认 0.280/0.297/0.313/0.366/0.402/0.488 ms；on 0.331/0.337/0.365/0.437/0.405/0.455 ms（48/64 落在噪声内）；A/B 均 pass | `T5-runtime/player-d3d12-g3-{default,compact-on}/CdPerf.json` |
+| EditMode / PlayMode | **490/490**、**40/40** | `tests/G3EditMode.xml`、`tests/G3PlayMode.xml` |
+
+### 5.3 结论
+
+- **NO-GO**：紧凑列表在每个灯数档都更慢。固定成本是一次全屏深度扫描（≈0.08 ms，与 G2 同源），而光照 kernel 没有可回收的时间。
+- 机制：本 workload 的 `wordsPerTile` 只有 1（≤32 灯）到 2（48/64 灯），位图迭代器每像素只扫 1–2 个 word；同一 (tile, zbin) 的紧凑列表平均 8–21 项（灯光重叠严重），列表比位图扫描更长。紧凑列表要赢，必须出现“word 数远大于每 cell 项数”的分布（≥256 灯且每 cell 稀疏），本场景没有。
+- 空 tile 前提也不成立：1280×720/48–64 灯时平均每 tile ~10.2 个深度 cell（扫描 36,743 cell / 3,600 tile，全部有几何），没有可跳过的空 tile，所以没有加 `DispatchComputeIndirect`。
+- 决策：`compactLists` 默认关闭，保留为 A/B 路径与扩展性基础设施（cell 布局、overflow 回退、统计都已验证）；G1/G2 的默认路径与像素不变。要重开 G3，需要 256+ 灯且每 cell 列表显著短于位图 word 扫描的场景，或把 cell 构建折进已有 pass 以消掉全屏深度扫描。
+- 证据索引：[`validation/G3/README.md`](validation/G3/README.md)。
 
 ---
 
@@ -336,4 +369,4 @@ ClusteredDeferred.compute（不改一行）
 5. ~~**G1c**：异步重叠 —— `CommandBufferExecutionFlags.AsyncCompute` + fence，与 GBuffer 并行；同步/异步两种模式的位图必须逐位一致。同时在 D3D12 复跑 T5/T4，并补 1 个 `.rdc`（structured 绑定后的新结构）。~~（§3.6，已落地；异步逐位一致但在本机净亏 ~0.11–0.13 ms，默认关闭。）
 6. ~~**G1 性能收尾**：item 构建与 dispatch 提交合计约 0.084 ms，先量化能否用缓存的 item 缓冲与更少的 `SetCompute*` 调用压到 0.05 ms 以下；再决定 G2 是否值得做。~~（§3.6：列表 CPU 降到 ~0.061–0.064 ms；G2 的收益需另测，见下一条。）
 7. ~~**G2**：FPTL 细剪。构建时读 tile 深度 min/max，优先复用 GBuffer 后的 `_CameraDepthTexture`（D-G3），只清位不改布局；先量 tile 内灯循环次数与 GPU 时间，再谈紧凑列表。~~（§4：已落地并验收为 **NO-GO**——清 65% 的位、A/B 不变，但循环次数与 GPU 时间不降，dispatch 固定成本 ~0.07 ms；默认关，保留 A/B。）
-8. **G3**：在 §4.2 的测量之上做 variant / 间接派发。优先把清位换成按 (tile, zbin) 的紧凑列表（位图省下的位即列表长度），再用空 tile 计数做 `DispatchComputeIndirect`；验收前先复跑本轮的 prune on/off 作为对照。
+8. ~~**G3**：在 §4.2 的测量之上做 variant / 间接派发。优先把清位换成按 (tile, zbin) 的紧凑列表（位图省下的位即列表长度），再用空 tile 计数做 `DispatchComputeIndirect`；验收前先复跑本轮的 prune on/off 作为对照。~~（§5：已落地并验收为 **NO-GO** —— 每个灯数档都多 ~0.08–0.13 ms，cell 列表（8–21 项）比 1–2 word 的位图扫描更长；空 tile 比例为 0，未做间接派发。默认关，保留 A/B。）

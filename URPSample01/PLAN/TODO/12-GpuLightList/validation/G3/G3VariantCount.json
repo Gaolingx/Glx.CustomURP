@@ -1,0 +1,23 @@
+{
+  "note": "G3 adds no shader keywords or variants: compact vs bitmap is a runtime uniform branch (_CdClusterCellMax) over always-bound structured buffers, so stripping and the compiled combination count are unchanged from G2.",
+  "clusteredDeferredCompute": {
+    "multiCompileAxes": 8,
+    "axisStates": [2, 4, 2, 5, 2, 2, 2, 2],
+    "variantCombinations": 1280,
+    "changedByG3": false
+  },
+  "clusterBuilderCompute": {
+    "kernels": [
+      "ClusterItemBounds",
+      "ClusterZBinClear",
+      "ClusterZBinScatter",
+      "ClusterZBinPack",
+      "ClusterTileExpand",
+      "ClusterTilePrune",
+      "ClusterCellBuild"
+    ],
+    "changedByG3": "one kernel added (ClusterCellBuild); no keywords",
+    "keywords": 0
+  },
+  "stripping": "unchanged"
+}
