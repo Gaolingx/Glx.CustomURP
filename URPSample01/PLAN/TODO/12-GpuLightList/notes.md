@@ -1,11 +1,9 @@
 前情提要：我记得urp原方案是在cpu的jobs上跑lightculling的，到时候这些东西全部搞完也就成了死代码（包括原有的那套stencil deferred shader+c# urp死代码/功能块(pass、相关的bind、test)清理、URP 的 `CullingResults`/cullingMask/layer 语义用不到也得删（也许保留 CPU 可见光剔除这个fallback可以删掉） 你是不是应该考虑把善后工作也补充下呢）
-当然了现在不做没关系 我们只是先把plan提前规划好，可以写到E:\GitHub\Glx.CustomURP\URPSample01\PLAN\TODO\11-LightCulling\clean.md
+当然了现在不做没关系 我们只是先把plan提前规划好，可以写到善后清单里
 
 ---
 调研结果：
-善后计划已写入 [clean.md](file:///E:/GitHub/Glx.CustomURP/URPSample01/PLAN/TODO/11-LightCulling/clean.md)（commit `4287c36`，仅文档、未动代码）。
-
-按你给的路径放在 TODO；11-LightCulling 本体已归档在 `PLAN/Done`。如果你想让它跟着归档轮次走，我可以再挪到 `Done/11-LightCulling/clean.md`。
+善后计划已写入 [clean.md](clean.md)（commit `4287c36`，仅文档、未动代码），并随本轮从 `PLAN/TODO/11-LightCulling` 并入 `PLAN/TODO/12-GpuLightList`；11-LightCulling 本体已归档在 `PLAN/Done`。
 
 计划里包含删除清单（文件/符号/规模）、C0–C8 顺序、每步验证配方、风险和明确不删表。先纠正了四个容易误删的前提：
 

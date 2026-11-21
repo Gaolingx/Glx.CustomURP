@@ -31,6 +31,7 @@
 | 05-ScreenSpaceRefractionImprove | ✅* | 1 PASS、1 PASS*、2 PARTIAL、8 ACCEPTED | 汇总 `Report.json`/`Cleanup.md` 的旧快照已在 `726e57b` 修正；433/434 EditMode 仍无日志；P0-1/P0-3 的探针回退辐射未被区分 |
 | 06-ValidationAllRDC | ✅* | 21 PASS、2 PASS*、3 PARTIAL、1 ACCEPTED | 初次验收 `P6-2` 为 FAIL（52 个/963.9 MiB vs 150 MB/12）；所有者决定把预算提高到 1 GB，`.gitignore`/4 份报告已同步（`fa67325`），61 个路径已修正（`f6f754e`/`726e57b`）；P0-4/P2-3 仍为 PARTIAL |
 | 11-LightCulling | ✅* | 5 PASS、2 PASS*、1 PARTIAL、1 ACCEPTED | mixed lighting-shadowmask 为 PARTIAL（无 baked shadowmask 数据）；T2/T3 的逐元素 parity JSON 未单列，由 T4/T5/PlayMode A/B 覆盖；T6 可选未补 GBuffer |
+| 12-GpuLightList | ◐ 进行中 | C1 PASS；G1–G3 待执行 | CPU 分解显示 64 灯列表构建 0.17 ms/帧；GPU 光表的价值主要在异步重叠与 256+ 灯扩展性 |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -496,3 +497,21 @@ PY
 | AC-15 | 运行时开关、临时 RT 释放、forward-only mask 均在 PlayMode 验证 |
 
 **测试暴露的集成缺陷**：PreSetup 的 cluster jobs 与同帧 `ResolveMixedLightingMode` 争用 culling 灯数组，编辑器 Job safety 失败并级联。修复为在 deferred setup 读取灯数组前完成 jobs（`9702d4f`）；PlayMode 由 0/7 → 7/7；GPU 输入不变。
+
+## 16. 12-GpuLightList（进行中，C1 已落地，2026-11-22）
+
+> 范围：GPU 光表主线的前置项 C1——clustered 模式跳过 stencil 灯预计算，并补齐 CPU 分解探针；G1–G3（GPU 光表 / FPTL 精剪 / 间接派发）待执行。
+> 计划：[PLAN/TODO/12-GpuLightList/HANDOFF.md](TODO/12-GpuLightList/HANDOFF.md)；善后：[clean.md](TODO/12-GpuLightList/clean.md)
+> 结论：**C1 PASS；主线计划已冻结（D-G1–D-G4）**。
+
+| 项 | 结论 | 证据 |
+|---|---|---|
+| C1 跳过 `PrecomputeLights` | ✅ | 本提交 diff；`validation/C1/README.md` |
+| 回退规则（stencil / Preview / Overlay / XR 仍构建） | ✅ | `C1EditMode.xml::StencilLightPrecomputeIsSkippedOnlyForEligibleClusteredCameras` |
+| T4 七项特性（D3D11/D3D12） | ✅ 7/7 | `validation/C1/T4-shadows/player-*/T4FeatureMatrix.json` |
+| T5 A/B（D3D11/D3D12，48 灯） | ✅ mean 0.803/0.804、max 9 | `validation/C1/T5-runtime/player-*/CdPerf.json` |
+| EditMode / PlayMode 全量 | ✅ 485/485、36/36 | `validation/C1/tests/*.xml` |
+| CPU 分解（64 灯） | `PrecomputeLights` 0.0035 → 0.00009 ms；列表构建 ≈0.17 ms/帧 | `validation/C1/cpu/CdCpuBreakdown.json` |
+| G1 GPU 光表 / G2 精剪 / G3 派发 | 待执行 | HANDOFF §3–§5 |
+
+**判定说明**：C1 的收益是“去掉无人消费的每帧 Temp 分配与两遍灯遍历”，绝对量很小（64 灯 0.0035 ms/帧）；它不改变像素与 GPU 输入。C1 的更大价值是把回退规则显式化，并为 G1 的 Go/No-Go 提供分解数据：64 灯下列表构建 CPU 总量约 0.17 ms/帧（PreSetup 0.05 + job 完成 0.11 + 上传 0.012），灯常量上传另 0.10 ms；因此 GPU 光表若只省 CPU，上限约 14%，真正的收益点是异步重叠与 256+ 灯扩展性。

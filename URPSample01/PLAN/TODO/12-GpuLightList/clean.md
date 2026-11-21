@@ -1,8 +1,8 @@
-# 11-LightCulling 善后：死代码清理计划（暂不执行）
+# Light Culling 善后：死代码清理计划（暂不执行）
 
-> 位置说明：11-LightCulling 的实现与验收已归档到 [`PLAN/Done/11-LightCulling`](../../Done/11-LightCulling/HANDOFF.md)。本文件是**后续善后计划**，按用户指定放在 TODO，便于在下一轮（建议 `12-*`）启动时并入该轮任务表；它不是已归档交付物的一部分。
+> 位置说明：11-LightCulling 的实现与验收已归档到 [`PLAN/Done/11-LightCulling`](../../Done/11-LightCulling/HANDOFF.md)。本文件是**后续善后计划**，已并入 `12-GpuLightList` 轮次（用户指定），C1 已在本轮落地；C2–C8 仍为规划。
 >
-> 状态：规划稿，2026-11-22。所有“可删”项都带有前置条件；**当前一行都还不能删**。
+> 状态：规划稿，2026-11-22（并入 12-GpuLightList）。所有“可删”项都带有前置条件；**C1 以外当前一行都还不能删**。
 
 ---
 
@@ -152,7 +152,7 @@ GPU 光表仍需要一份候选灯数据。最便宜的来源就是 CPU 的 `Cul
 | 步骤 | 内容 | 退出条件 | 验证 | 回滚 |
 |---|---|---|---|---|
 | **C0** | 冻结基线：tag（如 `pre-gpu-lightlist`）、记录 HEAD；重跑 D3D11/D3D12 player 的 A/B、性能、变体、RenderDoc，保存到新轮次 `validation/baseline/` | 基线可复现 | player + `CdPerf.json` + `.rdc` + PNG + XML | 无需回滚 |
-| **C1** | **立即可做的收益**：clustered 模式下 `DeferredLights.SetupLights` 跳过 `PrecomputeLights`（stencil 灯数组），保留关键字/常量设置 | CPU 帧时间下降；A/B 不变 | T4/T5 矩阵复跑；与其一帧的 RenderDoc 结构不变 | 单行开关 |
+| **C1** | **已实施**：clustered 模式下 `DeferredLights.SetupLights` 跳过 `PrecomputeLights`（stencil 灯数组），保留关键字/常量设置；Preview/Overlay/XR 回退仍构建 | CPU 帧时间下降；A/B 不变 | T4/T5 矩阵复跑；CPU 分解见 `validation/C1/cpu/CdCpuBreakdown.json` | 单行开关 |
 | **C2** | 透明/forward-only 接管新光表（如 D-C4 要求）；之后再删 `_AdditionalLightsIndices`/per-object 索引 | 透明/fwd-only 像素 A/B 通过 | PlayMode + player A/B（含透明用例） | 保留旧索引路径的 feature flag |
 | **C3** | 删除 stencil deferred：先迁移 fog/AO 入口、Preview/Overlay/XR/GLES 的回退决定，再删 pass/shader/material/关键字 | 无 stencil 引用；build 0 error | 全量 EditMode/PlayMode；player A/B vs C0 基线；`git grep` 证明 | 按子模块拆 commit；保留 C0 tag |
 | **C4** | GPU 光表上线后删除 CPU tile/zbin jobs 与 `_FPParams*`/旧缓冲 | 新光表成为唯一输入 | 性能、结构、A/B | 保留旧 kernel 一个 tag |
