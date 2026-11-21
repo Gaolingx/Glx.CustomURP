@@ -85,6 +85,24 @@ namespace UnityEngine.Rendering.Universal
             public Shader stencilDeferredPS;
 
             /// <summary>
+            /// Clustered deferred direct lighting compute.
+            /// </summary>
+            [Reload("Shaders/Utils/ClusteredDeferred.compute")]
+            public ComputeShader clusteredDeferredCS;
+
+            /// <summary>
+            /// Material type mask shader used by clustered deferred.
+            /// </summary>
+            [Reload("Shaders/Utils/ClusteredDeferredMask.shader")]
+            public Shader clusteredDeferredMaskPS;
+
+            /// <summary>
+            /// Additive resolve shader used by clustered deferred.
+            /// </summary>
+            [Reload("Shaders/Utils/ClusteredDeferredResolve.shader")]
+            public Shader clusteredDeferredResolvePS;
+
+            /// <summary>
             /// Fallback error shader.
             /// </summary>
             [Reload("Shaders/Utils/FallbackError.shader")]
@@ -178,6 +196,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
+        [SerializeField] bool m_ClusteredDeferredLighting = false;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterTransparents;
 #if UNITY_EDITOR
@@ -260,6 +279,19 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_RenderingMode = value;
+            }
+        }
+
+        /// <summary>
+        /// Uses the clustered deferred lighting path when Rendering Mode is Deferred.
+        /// </summary>
+        public bool clusteredDeferredLighting
+        {
+            get => m_ClusteredDeferredLighting;
+            set
+            {
+                SetDirty();
+                m_ClusteredDeferredLighting = value;
             }
         }
 

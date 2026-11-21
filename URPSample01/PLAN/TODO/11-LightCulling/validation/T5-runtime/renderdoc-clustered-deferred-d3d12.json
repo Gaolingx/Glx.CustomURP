@@ -1,0 +1,76 @@
+{
+  "capture": "PLAN/TODO/11-LightCulling/validation/T5-runtime/clustered-deferred-d3d12-lighting_frame172.rdc",
+  "sizeBytes": 14879629,
+  "api": "D3D12",
+  "resolution": "1280x720",
+  "renderer": "CdClusteredDeferredRenderer",
+  "pipeline": "CdClusteredDeferredPipeline",
+  "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+  "captureMode": "Player launched as --cd-capture (clustered renderer, 64 field lights, 60 warmup frames); renderdoc-mcp capture_frame, delayFrames=100, captured frame 172.",
+  "playerBuild": "Direct3D12, Development, Builds/ClusteredDeferredArena/Direct3D12/CdArena.exe",
+  "structure": [
+    { "eventId": 76, "name": "ScriptableRenderer.Execute: CdClusteredDeferredRenderer" },
+    { "eventId": 88, "name": "Render GBuffer", "draws": 54, "note": "Arena floor/back wall + 60 runtime receivers, Lit only." },
+    { "eventId": 638, "name": "CopyDepth", "draws": [647] },
+    {
+      "eventId": 649,
+      "name": "Clustered Deferred",
+      "children": [
+        { "eventId": 652, "name": "Clear material-type mask (color only)" },
+        { "eventId": 656, "name": "Mask draw: Lit stencil (Ref 0x20, ReadMask 0x60, Equal)" },
+        { "eventId": 659, "name": "Mask draw: SimpleLit stencil (Ref 0x40)" },
+        { "eventId": 670, "name": "Dispatch ClusteredDeferred", "groups": "80 x 45 x 1 (16x16 threads, 1280x720)" },
+        { "eventId": 677, "name": "Resolve: Blend One One into GBuffer3" }
+      ]
+    },
+    { "eventId": 679, "name": "Render Opaques Forward Only", "draws": 0 },
+    { "eventId": 681, "name": "DrawTransparentObjects", "draws": 0 },
+    { "eventId": 683, "name": "FinalBlit", "draws": [692] }
+  ],
+  "maskPass": {
+    "renderTarget": "Clustered Deferred Material Mask, R8_UINT view of an R8_TYPELESS texture, 1280x720",
+    "depthTarget": "_CameraDepthAttachment D32S8 1280x720",
+    "draws": 2,
+    "topology": "3-vertex fullscreen triangle",
+    "stats": { "min": 0, "max": 1, "note": "Scene uses only Lit materials, so the mask is 0 (sky/background) or 1 (Lit); SimpleLit pass wrote nothing." }
+  },
+  "computeDispatch": {
+    "eventId": 670,
+    "shader": "ClusteredDeferred.ClusteredDeferred",
+    "dispatchProvenBounds": "debug_thread(group 79,44,0 / thread 15,15,0) executed vThreadID=(1279,719); group counts are ceil(1280/16)=80 by ceil(720/16)=45 as computed by ClusteredDeferredPass.",
+    "bindings": {
+      "readOnlyTextures": 5,
+      "readOnlyOrder": ["_MaterialTypeMask", "_CameraDepthTexture", "_GBuffer0", "_GBuffer1", "_GBuffer2"],
+      "uav": "_CdLightingTextureRW",
+      "constantBuffers": [
+        { "slot": 0, "byteSize": 224, "note": "loose globals: _ScreenSize, _CdCamera*, _FPParams0-2, _MainLight*" },
+        { "slot": 1, "byteSize": 16384, "note": "URP_ZBinBuffer (1024 float4)" },
+        { "slot": 2, "byteSize": 65536, "note": "urp_TileBuffer (4096 float4)" },
+        { "slot": 3, "byteSize": 16384, "note": "AdditionalLights constants" }
+      ]
+    },
+    "threadEvidence": [
+      { "group": [32, 30], "thread": [8, 0], "vThreadID": [520, 480], "steps": 728, "note": "Lit pixel: full cluster loop executed." },
+      { "group": [79, 44], "thread": [15, 15], "vThreadID": [1279, 719], "steps": 11, "note": "Edges of the dispatch." }
+    ]
+  },
+  "lightingResources": {
+    "uav": {
+      "name": "Clustered Deferred Lighting",
+      "resourceId": "ResourceId::800",
+      "format": "R16G16B16A16_SFLOAT (R16G16B16A16_TYPELESS storage)",
+      "size": "1280x720",
+      "stats": { "min": 0.0, "max": [2346.0, 399.75, 450.0, 1.0], "note": "HDR direct lighting; NaN/Inf would surface in the stats." },
+      "usage": ["629 Barrier", "670 CS_RWResource", "676 Barrier", "677 PS_Resource"]
+    },
+    "resolveTarget": "_CameraColorAttachmentA R11G11B10_FLOAT 1280x720",
+    "resolveDepth": "_CameraDepthAttachment D32S8 1280x720",
+    "resolveBlend": "Blend One One, Zero One (same additive semantics as the stencil deferred punctual pass)"
+  },
+  "validation": "renderdoc-mcp assert_clean: no messages at severity >= high.",
+  "files": {
+    "directLighting": "PLAN/TODO/11-LightCulling/validation/T5-runtime/clustered-deferred-d3d12-direct-lighting.png",
+    "materialMask": "PLAN/TODO/11-LightCulling/validation/T5-runtime/clustered-deferred-d3d12-material-mask.png"
+  },
+  "scope": "Clustered deferred lighting path only. No shadows, cookies, light layers, mixed lighting or AO (v1 scope); the arena lights disable shadows so the stencil/clustered A/B in T5-runtime/player-d3d11 is directly comparable."
+}

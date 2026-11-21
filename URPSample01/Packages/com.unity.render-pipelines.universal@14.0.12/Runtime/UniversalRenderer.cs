@@ -83,6 +83,10 @@ namespace UnityEngine.Rendering.Universal
         : this.renderingModeRequested;
 
         bool m_Clustering;
+        bool m_ClusteredDeferredLighting;
+        ClusteredDeferredPass m_ClusteredDeferredPass;
+
+        internal bool clusteredDeferredEnabled => m_ClusteredDeferredLighting;
 
         internal bool accurateGbufferNormals => m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false;
 
@@ -246,7 +250,15 @@ namespace UnityEngine.Rendering.Universal
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             forwardInitParams.forwardPlus = data.renderingMode == RenderingMode.ForwardPlus;
             forwardInitParams.publishProbeAtlas = false;
-            m_Clustering = data.renderingMode == RenderingMode.ForwardPlus;
+            m_ClusteredDeferredLighting = data.renderingMode == RenderingMode.Deferred && data.clusteredDeferredLighting;
+            if (m_ClusteredDeferredLighting && !ClusteredDeferredPass.IsSupportedDevice)
+            {
+                m_ClusteredDeferredLighting = false;
+                Debug.LogWarning("Clustered deferred lighting needs compute shaders and the constant light array; falling back to stencil deferred.");
+            }
+
+            forwardInitParams.clusteredDeferred = m_ClusteredDeferredLighting;
+            m_Clustering = data.renderingMode == RenderingMode.ForwardPlus || m_ClusteredDeferredLighting;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
@@ -304,6 +316,12 @@ namespace UnityEngine.Rendering.Universal
                 int forwardOnlyStencilRef = stencilData.stencilReference | (int)StencilUsage.MaterialUnlit;
                 m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingGbuffer + 1, m_CopyDepthMaterial, true);
                 m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingDeferredLights, m_DeferredLights);
+                if (m_ClusteredDeferredLighting)
+                {
+                    m_ClusteredDeferredPass = new ClusteredDeferredPass(RenderPassEvent.BeforeRenderingDeferredLights,
+                        m_DeferredLights, data.shaders.clusteredDeferredCS,
+                        data.shaders.clusteredDeferredMaskPS, data.shaders.clusteredDeferredResolvePS);
+                }
                 m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
             }
 
@@ -388,6 +406,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ForwardLights.Cleanup();
             m_GBufferPass?.Dispose();
+            m_ClusteredDeferredPass?.Dispose();
             m_PostProcessPasses.Dispose();
             m_FinalBlitPass?.Dispose();
             m_DrawOffscreenUIPass?.Dispose();
@@ -564,6 +583,16 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Clustered deferred requires plain render-target binding (the mask pass reads stencil and
+            // the compute/resolve need explicit textures). Force native RP off for this frame.
+            if (m_ClusteredDeferredLighting && renderingModeActual == RenderingMode.Deferred &&
+                ClusteredDeferredPass.IsEligibleCamera(ref renderingData.cameraData))
+            {
+                useRenderPassEnabled = false;
+                if (m_DeferredLights != null)
+                    m_DeferredLights.UseRenderPass = false;
+            }
+
             m_ForwardLights.PreSetup(ref renderingData);
 
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -1428,7 +1457,13 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (this.renderingModeActual == RenderingMode.Deferred)
-                cullingParameters.maximumVisibleLights = 0xFFFF;
+            {
+                cullingParameters.maximumVisibleLights = m_ClusteredDeferredLighting
+                    ? UniversalRenderPipeline.maxVisibleAdditionalLights
+                    : 0xFFFF;
+                if (m_ClusteredDeferredLighting)
+                    cullingParameters.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.None;
+            }
             else if (this.renderingModeActual == RenderingMode.ForwardPlus)
             {
                 // We don't add one to the maximum light because mainlight is treated as any other light.
@@ -1488,7 +1523,15 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_GBufferCopyDepthPass);
             }
 
-            EnqueuePass(m_DeferredPass);
+            if (m_ClusteredDeferredPass != null && m_ClusteredDeferredLighting &&
+                ClusteredDeferredPass.IsEligibleCamera(ref renderingData.cameraData))
+            {
+                EnqueuePass(m_ClusteredDeferredPass);
+            }
+            else
+            {
+                EnqueuePass(m_DeferredPass);
+            }
 
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
         }

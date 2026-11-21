@@ -1338,6 +1338,10 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeRenderingData);
 
             var isForwardPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.ForwardPlus };
+            // Clustered deferred also shades additional lights per pixel with the cluster list, so it
+            // needs the same additional-light shadow enablement as Forward+.
+            var isClusteredLighting = isForwardPlus ||
+                (cameraData.renderer is UniversalRenderer clusteredRenderer && clusteredRenderer.clusteredDeferredEnabled);
             var visibleLights = cullResults.visibleLights;
 
             int mainLightIndex = GetMainLightIndex(settings, visibleLights);
@@ -1353,7 +1357,7 @@ namespace UnityEngine.Rendering.Universal
                 if (settings.supportsAdditionalLightShadows)
                 {
                     // If additional lights are shaded per-vertex they cannot cast shadows
-                    if (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel || isForwardPlus)
+                    if (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel || isClusteredLighting)
                     {
                         for (int i = 0; i < visibleLights.Length; ++i)
                         {
@@ -1377,7 +1381,7 @@ namespace UnityEngine.Rendering.Universal
             renderingData.cullResults = cullResults;
             renderingData.cameraData = cameraData;
             InitializeLightData(settings, visibleLights, mainLightIndex, out renderingData.lightData);
-            InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, isForwardPlus, out renderingData.shadowData);
+            InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, isClusteredLighting, out renderingData.shadowData);
             InitializePostProcessingData(settings, cameraData.stackLastCameraOutputToHDR, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
 
@@ -1388,7 +1392,7 @@ namespace UnityEngine.Rendering.Universal
             CheckAndApplyDebugSettings(ref renderingData);
         }
 
-        static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, bool isForwardPlus, out ShadowData shadowData)
+        static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, bool isClusteredLighting, out ShadowData shadowData)
         {
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeShadowData);
 
@@ -1462,7 +1466,7 @@ namespace UnityEngine.Rendering.Universal
 
             shadowData.mainLightShadowCascadeBorder = settings.cascadeBorder;
 
-            shadowData.additionalLightShadowsEnabled = settings.supportsAdditionalLightShadows && (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel || isForwardPlus);
+            shadowData.additionalLightShadowsEnabled = settings.supportsAdditionalLightShadows && (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel || isClusteredLighting);
             shadowData.supportsAdditionalLightShadows = SystemInfo.supportsShadows && shadowData.additionalLightShadowsEnabled && additionalLightsCastShadows;
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);

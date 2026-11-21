@@ -1,0 +1,212 @@
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Profiling;
+
+namespace UnityEngine.Rendering.Universal.Internal
+{
+    // Clustered deferred lighting for the Universal Renderer.
+    //
+    // Three steps in one pass event (BeforeRenderingDeferredLights, after GBuffer + CopyDepth):
+    //   1. material-type mask: two stencil-tested fullscreen draws -> R8_UInt (0 skip, 1 Lit, 2 SimpleLit)
+    //   2. pixel-parallel compute: depth/GBuffer/mask -> RGBA16F direct lighting UAV
+    //   3. resolve: fullscreen Blend One One adds the UAV into the lighting attachment (GBuffer3)
+    // Compute dispatches have no fixed-function blending, hence the UAV + resolve; see HANDOFF D8/D16.
+    internal class ClusteredDeferredPass : ScriptableRenderPass
+    {
+        static class ShaderIDs
+        {
+            public static readonly int MaterialTypeMask = Shader.PropertyToID("_MaterialTypeMask");
+            public static readonly int LightingTexture = Shader.PropertyToID("_CdLightingTexture");
+            public static readonly int LightingTextureRW = Shader.PropertyToID("_CdLightingTextureRW");
+            public static readonly int CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
+            public static readonly int GBuffer0 = Shader.PropertyToID("_GBuffer0");
+            public static readonly int GBuffer1 = Shader.PropertyToID("_GBuffer1");
+            public static readonly int GBuffer2 = Shader.PropertyToID("_GBuffer2");
+            public static readonly int ScreenSize = Shader.PropertyToID("_ScreenSize");
+            public static readonly int CameraPositionWS = Shader.PropertyToID("_CdCameraPositionWS");
+            public static readonly int ViewForward = Shader.PropertyToID("_CdViewForward");
+            public static readonly int CameraParams = Shader.PropertyToID("_CdCameraParams");
+        }
+
+        const int k_ThreadGroupSize = 16;
+
+        readonly DeferredLights m_DeferredLights;
+        readonly ComputeShader m_Compute;
+        readonly int m_Kernel;
+        readonly Material m_MaskMaterial;
+        readonly Material m_ResolveMaterial;
+        readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Clustered Deferred");
+
+        RenderTexture m_MaskTexture;
+        RenderTexture m_LightingTexture;
+
+        public ClusteredDeferredPass(RenderPassEvent evt, DeferredLights deferredLights,
+            ComputeShader compute, Shader maskShader, Shader resolveShader)
+        {
+            base.profilingSampler = new ProfilingSampler(nameof(ClusteredDeferredPass));
+            base.renderPassEvent = evt;
+            m_DeferredLights = deferredLights;
+            m_Compute = compute;
+            m_Kernel = compute != null ? compute.FindKernel("ClusteredDeferred") : -1;
+            m_MaskMaterial = maskShader != null ? CoreUtils.CreateEngineMaterial(maskShader) : null;
+            m_ResolveMaterial = resolveShader != null ? CoreUtils.CreateEngineMaterial(resolveShader) : null;
+
+            if (m_Compute == null || m_Kernel < 0 || m_MaskMaterial == null || m_ResolveMaterial == null)
+                Debug.LogError("Clustered deferred is enabled but its compute/mask/resolve resources are missing.");
+        }
+
+        // v1 requires compute plus readable GBuffer/depth textures; GLES/WebGL have no compute
+        // path and the structured-buffer light layout is not what the kernel reads.
+        internal static bool IsSupportedDevice
+        {
+            get
+            {
+                if (!SystemInfo.supportsComputeShaders || RenderingUtils.useStructuredBuffer)
+                    return false;
+
+                // GLES has compute on 3.1+ but the deferred GBuffer path is not supported there;
+                // WebGL never reports compute support, so the check above already excludes it.
+                var api = SystemInfo.graphicsDeviceType;
+                return api != GraphicsDeviceType.OpenGLES2 &&
+                       api != GraphicsDeviceType.OpenGLES3;
+            }
+        }
+
+        // XR/foveated are out of v1 scope; preview and overlay cameras keep stencil deferred.
+        internal static bool IsEligibleCamera(ref CameraData cameraData)
+        {
+            return cameraData.cameraType == CameraType.Game &&
+                   cameraData.renderType == CameraRenderType.Base &&
+                   !cameraData.isPreviewCamera &&
+                   !cameraData.xr.enabled;
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            var lightingAttachment = m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferLightingIndex];
+            var depthAttachment = m_DeferredLights.DepthAttachmentHandle;
+            ConfigureTarget(lightingAttachment, depthAttachment);
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            if (m_Compute == null || m_Kernel < 0 || m_MaskMaterial == null || m_ResolveMaterial == null)
+                return;
+
+            var cmd = renderingData.commandBuffer;
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                ref var cameraData = ref renderingData.cameraData;
+                var width = cameraData.cameraTargetDescriptor.width;
+                var height = cameraData.cameraTargetDescriptor.height;
+                if (width <= 0 || height <= 0)
+                    return;
+
+                EnsureTargets(width, height);
+                if (m_MaskTexture == null || m_LightingTexture == null)
+                    return;
+
+                var lightingAttachment = m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferLightingIndex];
+                var depthAttachment = m_DeferredLights.DepthAttachmentHandle;
+                var lightingTarget = (RenderTargetIdentifier)lightingAttachment;
+                var depthTarget = (RenderTargetIdentifier)depthAttachment;
+
+                // 1) Material type mask.
+                cmd.SetRenderTarget(new RenderTargetIdentifier(m_MaskTexture), depthTarget);
+                cmd.ClearRenderTarget(false, true, Color.clear);
+                cmd.DrawProcedural(Matrix4x4.identity, m_MaskMaterial, 0, MeshTopology.Triangles, 3);
+                cmd.DrawProcedural(Matrix4x4.identity, m_MaskMaterial, 1, MeshTopology.Triangles, 3);
+
+                // 2) Direct lighting compute. Cluster buffers, _FPParams*, light constants and
+                // unity_MatrixInvVP are global state published by ForwardLights/UniversalRenderer.
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.MaterialTypeMask, new RenderTargetIdentifier(m_MaskTexture));
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.LightingTextureRW, new RenderTargetIdentifier(m_LightingTexture));
+                var depthCopy = m_DeferredLights.DepthCopyTexture ?? m_DeferredLights.DepthAttachmentHandle;
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.CameraDepthTexture, (RenderTargetIdentifier)depthCopy);
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer0, (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[0]);
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer1, (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[1]);
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer2, (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[2]);
+
+                var camera = cameraData.camera;
+                cmd.SetComputeVectorParam(m_Compute, ShaderIDs.ScreenSize,
+                    new Vector4(width, height, 1.0f / width, 1.0f / height));
+                cmd.SetComputeVectorParam(m_Compute, ShaderIDs.CameraPositionWS, camera.transform.position);
+                cmd.SetComputeVectorParam(m_Compute, ShaderIDs.ViewForward, camera.transform.forward);
+                cmd.SetComputeVectorParam(m_Compute, ShaderIDs.CameraParams,
+                    new Vector4(camera.orthographic ? 0.0f : 1.0f, 0.0f, 0.0f, 0.0f));
+
+                cmd.DispatchCompute(m_Compute, m_Kernel,
+                    (width + k_ThreadGroupSize - 1) / k_ThreadGroupSize,
+                    (height + k_ThreadGroupSize - 1) / k_ThreadGroupSize,
+                    1);
+
+                // 3) Add the direct lighting into GBuffer3.
+                cmd.SetGlobalTexture(ShaderIDs.LightingTexture, m_LightingTexture);
+                cmd.SetRenderTarget(lightingTarget, depthTarget);
+                cmd.DrawProcedural(Matrix4x4.identity, m_ResolveMaterial, 0, MeshTopology.Triangles, 3);
+            }
+        }
+
+        void EnsureTargets(int width, int height)
+        {
+            if (m_MaskTexture != null && m_LightingTexture != null &&
+                m_MaskTexture.width == width && m_MaskTexture.height == height)
+            {
+                return;
+            }
+
+            ReleaseTargets();
+
+            var maskDescriptor = new RenderTextureDescriptor(width, height, GraphicsFormat.R8_UInt, 0)
+            {
+                msaaSamples = 1,
+                useMipMap = false,
+                autoGenerateMips = false,
+                enableRandomWrite = false,
+            };
+            m_MaskTexture = new RenderTexture(maskDescriptor)
+            {
+                name = "Clustered Deferred Material Mask",
+                hideFlags = HideFlags.HideAndDontSave,
+            };
+            m_MaskTexture.Create();
+
+            var lightingDescriptor = new RenderTextureDescriptor(width, height, GraphicsFormat.R16G16B16A16_SFloat, 0)
+            {
+                msaaSamples = 1,
+                useMipMap = false,
+                autoGenerateMips = false,
+                enableRandomWrite = true,
+            };
+            m_LightingTexture = new RenderTexture(lightingDescriptor)
+            {
+                name = "Clustered Deferred Lighting",
+                hideFlags = HideFlags.HideAndDontSave,
+            };
+            m_LightingTexture.Create();
+        }
+
+        void ReleaseTargets()
+        {
+            if (m_MaskTexture != null)
+            {
+                m_MaskTexture.Release();
+                CoreUtils.Destroy(m_MaskTexture);
+                m_MaskTexture = null;
+            }
+
+            if (m_LightingTexture != null)
+            {
+                m_LightingTexture.Release();
+                CoreUtils.Destroy(m_LightingTexture);
+                m_LightingTexture = null;
+            }
+        }
+
+        public void Dispose()
+        {
+            ReleaseTargets();
+            CoreUtils.Destroy(m_MaskMaterial);
+            CoreUtils.Destroy(m_ResolveMaterial);
+        }
+    }
+}

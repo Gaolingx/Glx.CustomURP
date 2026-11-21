@@ -50,6 +50,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_UseStructuredBuffer;
 
         bool m_UseForwardPlus;
+        bool m_ClusteredDeferred;
+        bool m_UseClusters;
         bool m_PublishProbeAtlas;
         int m_DirectionalLightCount;
         int m_ActualTileWidth;
@@ -73,6 +75,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             public LightCookieManager lightCookieManager;
             public bool forwardPlus;
+            // Builds the cluster list for clustered deferred even though _FORWARD_PLUS stays off.
+            public bool clusteredDeferred;
             // Publishes the probe atlas outside Forward+ so the SSGI miss fallback can iterate the
             // visible probe list. Cluster buffers and keywords stay Forward+ only.
             public bool publishProbeAtlas;
@@ -91,6 +95,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     p.lightCookieManager = new LightCookieManager(ref settings);
                     p.forwardPlus = false;
+                    p.clusteredDeferred = false;
                     p.publishProbeAtlas = false;
                 }
                 return p;
@@ -106,6 +111,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
             m_UseForwardPlus = initParams.forwardPlus;
+            m_ClusteredDeferred = initParams.clusteredDeferred;
+            m_UseClusters = m_UseForwardPlus || m_ClusteredDeferred;
             m_PublishProbeAtlas = initParams.publishProbeAtlas;
 
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
@@ -137,7 +144,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightsLayerMasks = new float[maxLights];
             }
 
-            if (m_UseForwardPlus)
+            if (m_UseClusters)
                 CreateForwardPlusBuffers();
 
             if (m_UseForwardPlus || m_PublishProbeAtlas)
@@ -172,6 +179,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static int AlignByteCount(int count, int align) => align * ((count + align - 1) / align);
 
+        // Forward+ always builds clusters. Clustered deferred only needs them for base game cameras;
+        // preview and overlay cameras fall back to stencil deferred.
+        bool ShouldBuildClusters(ref CameraData cameraData)
+        {
+            if (!m_UseClusters)
+                return false;
+            if (!m_ClusteredDeferred)
+                return true;
+            return ClusteredDeferredPass.IsEligibleCamera(ref cameraData);
+        }
+
         // Calculate view planes and viewToViewportScaleBias. This handles projection center in case the projection is off-centered
         void GetViewParams(Camera camera, float4x4 viewToClip, out float viewPlaneBot, out float viewPlaneTop, out float4 viewToViewportScaleBias)
         {
@@ -191,7 +209,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void PreSetup(ref RenderingData renderingData)
         {
-            if (m_UseForwardPlus)
+            if (ShouldBuildClusters(ref renderingData.cameraData))
             {
                 using var _ = new ProfilingScope(null, m_ProfilingSamplerFPSetup);
 
@@ -391,7 +409,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (m_UseForwardPlus)
                 {
                     m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData);
+                }
+                else if (m_PublishProbeAtlas)
+                {
+                    // The feature toggle can be enabled after the renderer was created; allocate
+                    // lazily instead of requiring a renderer rebuild.
+                    if (!m_ReflectionProbeManager.isCreated)
+                        m_ReflectionProbeManager = ReflectionProbeManager.Create();
 
+                    m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData);
+                }
+
+                if (ShouldBuildClusters(ref renderingData.cameraData))
+                {
                     using (new ProfilingScope(null, m_ProfilingSamplerFPComplete))
                     {
                         m_CullingHandle.Complete();
@@ -408,15 +438,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector("_FPParams0", math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount));
                     cmd.SetGlobalVector("_FPParams1", math.float4(renderingData.cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile));
                     cmd.SetGlobalVector("_FPParams2", math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0));
-                }
-                else if (m_PublishProbeAtlas)
-                {
-                    // The feature toggle can be enabled after the renderer was created; allocate
-                    // lazily instead of requiring a renderer rebuild.
-                    if (!m_ReflectionProbeManager.isCreated)
-                        m_ReflectionProbeManager = ReflectionProbeManager.Create();
-
-                    m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData);
                 }
 
                 SetupShaderLightConstants(cmd, ref renderingData);
@@ -464,7 +485,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void Cleanup()
         {
-            if (m_UseForwardPlus)
+            if (m_UseClusters)
             {
                 m_CullingHandle.Complete();
                 if (m_ZBins.IsCreated)

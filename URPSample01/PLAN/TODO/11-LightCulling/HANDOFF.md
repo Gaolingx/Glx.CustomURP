@@ -1,7 +1,7 @@
 # 11-LightCulling 交接：HDRP 光列表调研与 URP Clustered Deferred（URP BRDF）实施计划
 
-> 状态：**计划已修订（D15/D16）；T3 kernel 与 T6 preflight 已产出（D3D11 编译通过，未运行时接入）；已与 HDRP 14.0.12 对照定稿**
-> 修订：2026-11-21（tile 像素并行、材质类型 mask、compute UAV+resolve、native RP 强制关闭）
+> 状态：**计划已修订（D15/D16）；T1/T5 运行时接入完成并在 D3D11/D3D12 player 验证；多灯 A/B（mean 0.78/255）与性能交叉点已取得；T3 kernel 与 T6 preflight 已产出；已与 HDRP 14.0.12 对照定稿**
+> 修订：2026-11-21（T5 运行时接入、cluster 缓冲释放、设备/XR gate、arena A/B、D3D12 光源抓帧）
 > 建立：2026-11-21
 > 基线：`c37b9dd`（Record the DDGI plan revision commit）
 > 结果入口：本文件；实施后追加 `report.md` 与 `validation/`
@@ -528,11 +528,11 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 | ID | 任务 | 主要文件 | 退出条件 | 证据 |
 |---|---|---|---|---|
 | T0 | 冻结决策与基线 | 本文件 | D1–D16 入库；基线 `c37b9dd` 记录 | — |
-| T1 | 构建解耦 + 灯上限 + `isForwardPlus` 审计 | `ForwardLights.cs`、`UniversalRenderer.cs`、`UniversalRenderPipeline.cs` | (a) `InitParams.clusteredDeferred` 生效；(b) 6 处 `m_UseForwardPlus` gating 拆为 `m_UseClusters`，关键字与逐物体索引仍只受 `m_UseForwardPlus` 控制；(c) `isClusteredLighting` 只用于阴影启用；(d) Deferred 可见灯上限收紧到 `maxVisibleAdditionalLights`；(e) 关闭开关时 forward/透明逐像素一致 | `T1ClusterParity.json`：开关关闭图像差分=0；开启后 `URP_ZBins/urp_Tiles/_FPParams*` 与 Forward+ 同场景逐元素一致；`_AdditionalLightsIndices` 仍存在 |
+| T1 | 构建解耦 + 灯上限 + `isForwardPlus` 审计 | `ForwardLights.cs`、`UniversalRenderer.cs`、`UniversalRenderPipeline.cs` | (a) `InitParams.clusteredDeferred` 生效；(b) 6 处 `m_UseForwardPlus` gating 拆为 `m_UseClusters`，关键字与逐物体索引仍只受 `m_UseForwardPlus` 控制；(c) `isClusteredLighting` 只用于阴影启用；(d) Deferred 可见灯上限收紧到 `maxVisibleAdditionalLights`；(e) 关闭开关时 forward/透明逐像素一致 | `T5-runtime/CdPerf.json`：关闭时 ForwardLights 仍走 `m_UseClusters=false` 分支，stencil 模式渲染正常；`T1ClusterParity.json` 的逐元素缓冲对比与关闭差分仍待 T7 |
 | T2 | compute-safe include：灯数组、衰减、cluster 迭代、GBuffer 解码、阴影子集 | `ClusteredDeferred.hlsl` | 编译 0 错误；header 0/1 语义、方向光偏移、`URP_FP_PROBES_BEGIN` 边界（off-by-one）与 `Clustering.hlsl:25-130` 一致 | `T2ShaderCheck.txt`（0 消息）、`T2IterParity.json`（逐像素灯集合与 PS 一致） |
 | T3 | kernel v1：像素并行 dispatch、材质类型 mask、Lit+SimpleLit、主光+附加方向光+cluster、无阴影、direct-only additive | `ClusteredDeferred.compute`、`ClusteredDeferred.hlsl`、`ClusteredDeferredMask.shader`、`ClusteredDeferredResolve.shader` | 无阴影场景与 stencil deferred 差异在阈值内；天空/mask=0 不写；无 NaN；tile 宽度 8/16/32/64 行为一致；深度/正交/翻转 Z 正确 | `T3LightingDiff.json`（mean/max/NaN）、`T3ShaderCheck.txt`、A/B PNG |
 | T4 | 阴影/cookie/layers/mixed/AO | kernel + include | 每项单开关 A/B；`_RECEIVE_SHADOWS_OFF` 跳阴影；subtractive 早退；AO 只作用于直接光；cookie/layer 与 forward 一致 | `T4FeatureMatrix.json`、A/B PNG |
-| T5 | 集成/边界：renderer data 开关、pass 替换、mask pass、保留 forward-only、`UseRenderPass` gate、预览/overlay、平台 gate、变体 | `Runtime/UniversalRendererData.cs`、`Editor/UniversalRendererDataEditor.cs`、`UniversalRenderer.cs`、`Runtime/ClusteredDeferred/*` | 开关可运行时切换；mask 绑定/清除正确；不满足条件时明确回退/禁用并告警；变体数可报告 | `T5ModeGateTests.xml`、`T5VariantCount.json` |
+| T5 | 集成/边界：renderer data 开关、pass 替换、mask pass、保留 forward-only、`UseRenderPass` gate、预览/overlay、平台 gate、变体 | `Runtime/UniversalRendererData.cs`、`Editor/UniversalRendererDataEditor.cs`、`UniversalRenderer.cs`、`Runtime/ClusteredDeferred/*` | 开关可运行时切换；mask 绑定/清除正确；不满足条件时明确回退/禁用并告警；变体数可报告 | `T5-runtime/`：双 API player、A/B、D3D12 抓帧（已产出）；`T5ModeGateTests.xml`、`T5VariantCount.json` 待 T7 |
 | T6 | **可选优化**：opaque 材质 GBuffer 覆盖清单，把希望享受 clustered deferred 的 forward-only 材质补 GBuffer | 扫描工具 + 各 shader | 清单落盘（含材质类型）；可选补齐项有编译与视觉验证；**不再是正确性前置** | `T6Coverage.json`、编译检查、A/B PNG |
 | T7 | 测试、证据与性能矩阵 | `validation/` | 既有测试全绿；新测试全绿；A/B/交叉点/RenderDoc/Player 完成 | `T7Perf.json`、`T7PlayerSummary.json`、`*.xml`、PNG、`renderdoc-stencil-deferred-baseline*.json` + 批准范围内的 `.rdc` |
 | T8 | 文档/验收/归档 | `report.md`、`KnownDifferences.md`、`PLAN/ACCEPTANCE.md` | 五处文档一致；产物清理；TODO→Done | `git status`/`git diff --stat`、`report.md` |
@@ -659,6 +659,33 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 | T6 | `T6Coverage.json`、缺 pass 清单、补齐后的编译与 A/B |
 | T7 | `T7Perf.json`（交叉点）、`T7PlayerSummary.json`、测试 XML、RenderDoc 摘要 |
 | T8 | `report.md`、`KnownDifferences.md`、ACCEPTANCE 新节 |
+
+### 7.5.1 本轮 T1/T5 运行时证据（2026-11-21）
+
+**测试资产**（仅 `Assets/Tests/ClusteredDeferred`，默认 Pipeline/Renderer/场景未改）：
+
+- `Scenes/ClusteredDeferredArena.unity`：固定相机、平行主光（无阴影）、地面/后墙；runner 运行时生成 64 盏点/聚光（无阴影、无 cookie、无 light layer）与 60 个 Lit 接收体。
+- `Renderers/CdStencilDeferredRenderer` 与 `CdClusteredDeferredRenderer`：除 `m_ClusteredDeferredLighting` 外完全相同；均拷贝自 `SslValidationDeferredRenderer` 并移除 renderer features，使 A/B 只比较光照路径。
+- `Runtime/ClusteredDeferredArenaRunner.cs`：只切换 pipeline（stencil / clustered / Forward+）× 灯数 `[0,8,16,32,48,64]`；FrameTimingManager 采样，48 灯截图并计算 A/B 差分。
+
+**A/B（D3D11 player，1280x720，48 灯）**：平均通道差 0.78/255（0.31%），最大 9/255，超过 8/255 的像素 5/921600；记录阈值 mean ≤ 2/255、max ≤ 24/255 → 通过。PNG：`T5-runtime/player-d3d11/StencilDeferred_L48.png`、`ClusteredDeferred_L48.png`。
+
+**性能交叉点（GPU mean ms，RTX 5060 Ti，720p）**：
+
+| 灯数 | Stencil deferred | Clustered deferred | Forward+ |
+|---:|---:|---:|---:|
+| 0 | 0.191 | 0.186 | 0.255 |
+| 8 | 0.212 | 0.197 | 0.267 |
+| 16 | 0.230 | 0.192 | 0.280 |
+| 32 | 0.344 | 0.212 | 0.312 |
+| 48 | 0.484 | 0.241 | 0.363 |
+| 64 | 0.709 | 0.254 | 0.420 |
+
+clustered 从约 24 盏灯起低于 stencil deferred（16 灯已略低，32 灯起差距 >1.5×），64 灯时 0.254 vs 0.709 ms；本场景下 clustered 在所有灯数均低于 Forward+。CPU 侧 stencil deferred 随灯数升到 1.59 ms（64 灯，逐灯 draw/dispatch），clustered 约 1.13 ms。完整数据：`T5-runtime/player-d3d11/CdPerf.json`、`CdPerf.csv`。
+
+**D3D12 抓帧**：`T5-runtime/clustered-deferred-d3d12-lighting_frame172.rdc`（1 个，14.2 MiB，预算内）。结构：GBuffer（54 draws）→ CopyDepth → **Clustered Deferred**（mask clear、2 个全屏 mask draw、1 次 dispatch、1 个 resolve）→ Forward Only（0）→ FinalBlit，**没有 stencil 灯体积**。mask 为 R8_UINT（场景全 Lit，max=1）；compute 绑定 5 张 SRV + 1 个 RGBA16F UAV + `URP_ZBinBuffer`(16 KB)/`urp_TileBuffer`(64 KB)；UAV 在 670 写入、677 被 resolve 读取；`debug_thread` 证明 dispatch 覆盖 (1279,719)，Lit 像素线程执行 728 步；`assert_clean` 无 ≥high 消息。详见 `T5-runtime/renderdoc-clustered-deferred-d3d12.json`。
+
+**本轮未覆盖**：v1 无阴影/cookie/light layers/mixed/AO（T4）；legacy fog 仍由 stencil deferred 的 fog pass 绘制，clustered 路径未绘制（列入 KnownDifferences）；AC-15 的运行时开关切换、变体计数、Preview/Overlay 门控测试与 `T5ModeGateTests.xml` 留待 T7。设备/XR gate 已实现：不支持 compute、`useStructuredBuffer=true` 或 GLES 时回退 stencil deferred 并告警；XR 相机不启用。
 
 ### 7.6 归档与清理
 
