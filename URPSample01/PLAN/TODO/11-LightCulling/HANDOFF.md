@@ -1,6 +1,6 @@
 # 11-LightCulling 交接：HDRP 光列表调研与 URP Clustered Deferred（URP BRDF）实施计划
 
-> 状态：**计划已修订（D15/D16）；T3 kernel 与 T6 preflight 已产出（编译通过，未运行时接入）**
+> 状态：**计划已修订（D15/D16）；T3 kernel 与 T6 preflight 已产出（D3D11 编译通过，未运行时接入）；已与 HDRP 14.0.12 对照定稿**
 > 修订：2026-11-21（tile 像素并行、材质类型 mask、compute UAV+resolve、native RP 强制关闭）
 > 建立：2026-11-21
 > 基线：`c37b9dd`（Record the DDGI plan revision commit）
@@ -51,7 +51,7 @@
 | D13 | 代码边界：新增 kernel/include/pass 放 URP 包内独立目录；核心修改限于接入点（`ForwardLights`、`UniversalRenderer`、`UniversalRendererData` 及 Editor），逐项列入 §4.6 并审计 | 可整目录回滚；不让 HDRP 代码扩散进 URP 本体 |
 | D14 | 不做 HDRP 的 7 张 GBuffer、material feature、面积光、体积雾、物理曝光、SSS、StackLit/Hair/Fabric、HD 阴影 atlas、HD 曝光/Volume | 本轮是“光照架构 + 光列表”，不是“渲染能力对齐” |
 | D15 | tile 宽度**不设 gate**：支持 CPU 实际会选择的 8/16/32/64；删除“tile != 16 禁用特性”的支持矩阵行、测试项与风险项 | `maxTileWords=16384`；4K 下 tile16 = 32400 tiles，CPU 必选 32；原 gate 会让特性在 4K 永久关闭 |
-| D16 | 新增 **Material Type Mask** 全屏 pass：用 stencil（`MaterialMask`，`Equal` `MaterialLit`/`MaterialSimpleLit`）向 `R8_UInt` 写 0/1/2；compute 读 mask 分流 Lit / SimpleLit / 跳过，不直接读 stencil，不改 GBuffer 布局 | D3D11 不能为 depth-stencil 建 SRV；stencil deferred 的 `_LIT`/`_SIMPLELIT`/跳过 分层必须在 compute 里换成可读表示 |
+| D16 | 新增 **Material Type Mask** 全屏 pass：用 stencil（`MaterialMask`，`Equal` `MaterialLit`/`MaterialSimpleLit`）向 `R8_UInt` 写 0/1/2；compute 读 mask 分流 Lit / SimpleLit / 跳过，不直接读 stencil，不改 GBuffer 布局 | 材质类型在 URP GBuffer 中不存在（HDRP 用 GBuffer `materialFeatures` 解码）；HDRP 的 `Deferred.compute` 虽用 `RenderTextureSubElement.Stencil` 直读 stencil，但其 `only_renderers` **不含 d3d12**；v1 要求 D3D12，故用可移植的 stencil-test mask |
 
 **与上一轮口头估算的差异**：
 
@@ -74,11 +74,11 @@
 **本版修订（2026-11-21，第二遍：像素并行 + 材质分类）**：
 
 - **tile 宽度边界（D15）**：按 fork 实际参数，`MAX_VISIBLE_LIGHTS = 256`（桌面）→ `maxTileWords = 4096*4 = 16384`；tile 宽度从 8 起倍增，直到 `tileX*tileY*wordsPerTile <= 16384`（`ForwardLights.cs:247-253`）。实测边界：1080p 且 items（灯+探针）≤64（≤2 words）→ 16；1080p 3+ words → 32；**4K 即使只有 1 盏附加光也必然选 32**（32400 tiles > 16384）；0 盏附加光 → 8。因此“tile 必须 16”是分辨率相关的误关闭，删除该 gate，kernel 改为像素并行 dispatch。
-- **材质类型分类（D16）**：stencil deferred 用 stencil bits[5,6] 选择 `_LIT` / `_SIMPLELIT`，并把 Unlit 与 ComplexLit 统一写为 `MaterialUnlit` 后跳过（`GBufferPass.cs:58-61`）。D3D11 无法在 compute 里读 stencil，因此新增一个全屏 stencil-tested mask pass：mask=1（Lit）、2（SimpleLit）、0（Unlit/ComplexLit/forward-only/天空）。
+- **材质类型分类（D16）**：stencil deferred 用 stencil bits[5,6] 选择 `_LIT` / `_SIMPLELIT`，并把 Unlit 与 ComplexLit 统一写为 `MaterialUnlit` 后跳过（`GBufferPass.cs:58-61`）。URP 的 GBuffer 不携带材质模型（HDRP 的 `materialFeatures`），而 HDRP compute 的 stencil 直读（`RenderTextureSubElement.Stencil`）不覆盖 d3d12；因此新增一个可移植的全屏 stencil-tested mask pass：mask=1（Lit）、2（SimpleLit）、0（Unlit/ComplexLit/forward-only/天空）。
 - **D9 废止**：有了 mask，forward-only 像素在 compute 中 mask=0 被跳过，仍由原 `m_RenderOpaqueForwardOnlyPass`（event `BeforeRenderingOpaques`，实际在 deferred lighting 之后）着色；不会重复受光，也没有“缺 pass 就消失”的内容风险。T6 从“必须补齐 GBuffer”降为“可选优化”。
 - **附加方向光遗漏**：Forward+ 的 `LIGHT_LOOP_BEGIN` 在 cluster 索引上加 `URP_FP_DIRECTIONAL_LIGHTS_COUNT`，并在进入 cluster 前**单独循环** 0..`URP_FP_DIRECTIONAL_LIGHTS_COUNT-1` 的附加方向光（`Lighting.hlsl:463-483`）。原 kernel 伪代码只处理主光 + cluster，漏了附加方向光；T3 必须补。
 - **SimpleLit 分支**：mask=2 的像素走 `SurfaceDataFromGbuffer` + `LightingLambert`/`LightingSpecular`（与 `StencilDeferred.hlsl:309-318` 一致）；Unlit/ComplexLit 在 stencil deferred 中本就不参与直接光，mask=0 跳过是行为对齐，不是缺失。
-- **preflight 产物（2026-11-21）**：`validation/T6-preflight/T6Coverage.json`（8 场景 / 39 个不透明材质；引用中 11 Lit、1 ComplexLit 跳过、无 forward-only）、`T3ShaderCheck.txt`（D3D11 下 compute + mask + resolve 均 0 消息）、`renderdoc-stencil-deferred-baseline.json`（既有 `deferred_ssgi_full_frame12818.rdc` 的 pass 结构：stencil deferred 为每灯一个全屏 draw，forward-only 在 deferred 之后单独 draw）。
+- **preflight 产物（2026-11-21）**：`validation/T6-preflight/T6Coverage.json`（8 场景 / 39 个不透明材质；引用中 11 Lit、1 ComplexLit 跳过、无 forward-only）、`T3ShaderCheck.txt`（D3D11）与 `T3ShaderCheck_Direct3D12.txt`（D3D12，compute + mask + resolve 均 0 消息）、`renderdoc-stencil-deferred-baseline.json`（D3D11）与 `renderdoc-stencil-deferred-baseline-d3d12.json` + `clustered-deferred-d3d12-stencil-baseline.rdc`（D3D12：`SslDeferredRenderer`，GBuffer → CopyDepth → Deferred Shading (Stencil) 2 全屏 + 6 灯体积 → Forward Only → Skybox；RT `R11G11B10` + `D32S8`，与 D3D11 结构一致；捕获 7.4 MiB，遵守 1 个 ≤20 MiB 预算）。
 
 **验收摘要**：AC-1…AC-16（§6）。核心：开关关闭逐像素一致；点/聚光/方向光与 stencil deferred 一致；阴影/cookie/layers/mixed/AO 各单项一致；天空不写、无 NaN；forward/透明路径零回归；GBuffer 覆盖清单落盘；compute 在四个桌面 API 编译 0 错误；性能交叉点有数据；`.rdc` 遵守预算。
 
@@ -248,7 +248,7 @@
 
 - **不需要 light-shape stencil**；
 - GBuffer 的材质位继续写（成本不变，兼容其他特性）；
-- v1 **需要读材质类型**（Lit / SimpleLit / 跳过），但不能在 compute 里读 stencil（D3D11 不能为 depth-stencil 建 SRV）。改为在 GBuffer 之后跑一个全屏 stencil-tested mask pass：`ReadMask=MaterialMask`、`Comp=Equal`、`Ref=MaterialLit`（写 1）/`Ref=MaterialSimpleLit`（写 2），目标 `R8_UInt` 先清 0；`WriteMask=0` 不改 stencil。Unlit/ComplexLit 写的是 `MaterialUnlit`（`GBufferPass.cs:61`），forward-only 的 ref 也含 `MaterialUnlit`，两者都保持 0，与 stencil deferred 的跳过语义一致。
+- v1 **需要读材质类型**（Lit / SimpleLit / 跳过）。HDRP 的做法是在 compute 里用 `RenderTextureSubElement.Stencil` 直读 stencil（`Deferred.compute:100,159`），但其 `only_renderers` 不含 d3d12；URP v1 要求 D3D12，因此改为在 GBuffer 之后跑一个可移植的全屏 stencil-tested mask pass：`ReadMask=MaterialMask`、`Comp=Equal`、`Ref=MaterialLit`（写 1）/`Ref=MaterialSimpleLit`（写 2），目标 `R8_UInt` 先清 0；`WriteMask=0` 不改 stencil。Unlit/ComplexLit 写的是 `MaterialUnlit`（`GBufferPass.cs:61`），forward-only 的 ref 也含 `MaterialUnlit`，两者都保持 0，与 stencil deferred 的跳过语义一致。stencil 直读保留为 D3D11/Vulkan/Metal 的后续优化。
 - mask pass 机制已有先例：`DeferredLights.ClearStencilPartial` 就是用全屏 mesh + stencil 状态操作 depth-stencil（`DeferredLights.cs:555-563`）。
 
 ### 3.7 deferred 的既有前提与约束
@@ -463,6 +463,32 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 9. Unlit / ComplexLit 不参与直接光（与 stencil deferred 一致：ComplexLit 在 `GBufferPass.cs:61` 被写成 `MaterialUnlit`）。
 10. compute 输出经 `RGBA16F` 中转再 resolve，比 stencil deferred 多一次全屏采样/写；这是 compute 无固定功能混合的代价。若后续实测 resolve 成为瓶颈，可改为单次全屏 PS（同一套灯循环，`SV_Target` 直接 Blend），但仍保持 cluster/GBuffer 数据布局不变。
 
+### 4.9 与 HDRP 14.0.12 的对照与定稿
+
+参照 `high-definition@14.0.12/Runtime/Lighting/LightLoop/{DeferredTile.shader, Deferred.compute, LightLoop.hlsl}` 与 `RenderPipeline/HDStencilUsage.cs`。
+
+| 维度 | HDRP 14.0.12 | 本方案 | 定稿 |
+|---|---|---|---|
+| deferred 着色 | 默认全屏 PS（`DeferredTile.shader:402`，`Blend Off`，输出**总光照**）；可选 compute（`Deferred.compute`） | compute 只算直接光；UAV + resolve 加法写 GBuffer3 | 保持。URP 的 GI 在 GBuffer3，HDRP 在 deferred pass 内算总光照，所以 HDRP 能 `Blend Off`/UAV 直写，URP 必须加法合成 |
+| 像素分类 | stencil 只查 `RequiresDeferredLighting`（`HDStencilUsage.cs:15`）；材质模型来自 GBuffer `materialFeatures` | mask 0/1/2 分流 Lit/SimpleLit/跳过 | 保持 mask。HDRP 的 compute 直读 stencil（`Deferred.compute:100,159`），但 `only_renderers` 不含 d3d12（`:94`）；v1 要求 D3D12，直读降为后续优化 |
+| 列表构建 | GPU compute，固定 16×16 + 64 big tile，tile feature flags，`builddispatchindirect` 只 dispatch 非空 tile | CPU Burst zbin/tile 位图，全屏 dispatch | 保持 v1；GPU FPTL/indirect 为 D11 follow-up |
+| compute 线程映射 | 固定 16 tile，4 个 8×8 组/tile（`Deferred.compute:104`），组内共享 tile | 视口像素并行，逐像素推导 tile id | 保持。URP tile 宽度自适应，绑定组=tile 会重新引入 gate；kernel 无 group-shared 数据 |
+| 材质模型 | GBuffer `materialFeatures` + Lit/StackLit/Hair/...（`Lit.hlsl:309+`） | Lit/SimpleLit 两路；Unlit/ComplexLit 跳过 | 保持 v1；与 URP stencil deferred 的跳过语义一致 |
+| 间接光 | deferred pass 内算 GI/反射/SSS | GBuffer pass 已写 GBuffer3 | 保持；kernel 不采样探针、不算 GI |
+| 透明 | clustered/FPTL | 逐物体（`_FORWARD_PLUS` 关闭） | 保持；零回归优先 |
+| 阴影 | 阴影 atlas + per-light 索引 | 附加光 atlas + 全局索引 | 保持；T4 复用 Forward+ 已验证链路 |
+| 剔除精度 | tile 深度 min/max + fine prune | zbin 粒度 + 屏幕空间 tile 位图 | **已知差异**：URP 会多算“z 重叠但空间不相关”的灯 |
+| 空 tile | indirect dispatch 跳过 | 全屏 dispatch + 逐像素 mask/depth 早退 | **已知差异**：空 tile 仍有 dispatch/线程开销 |
+| 输出 | 总光照直接写 lighting buffer | `RGBA16F` UAV + resolve | **已知差异**：多一次全屏读写；HDRP compute 同样证明 compute 无法混合 |
+
+**定稿的技术细节**：
+
+- **D8（UAV+resolve）确认**：HDRP 的 compute 同样用 UAV 写 lighting（`Deferred.compute:101-102,185-190`），其 PS 路径 `Blend Off` 能直写是因为它产出总光照；URP 的加法 resolve 是 GBuffer3 已含 GI 的必然结果。
+- **D16（mask pass）确认**：直读 stencil 在 HDRP 的 D3D11/Vulkan/Metal compute 路径可行，但 d3d12 被 `only_renderers` 排除；v1 以 D3D12 为目标，mask 是唯一跨 API 的可移植方案。后续若放弃 D3D12 或完成逐 API 验证，可去掉 2 个全屏 draw 与 `R8_UInt`。
+- **D7（像素并行）确认**：HDRP 能绑定 8×8 组到固定 16 tile，是因为 tile 宽度固定；URP 的 tile 宽度随分辨率/灯数变化，像素并行避免了重新引入 gate。代价是逐像素 tile id 运算（几个 ALU）。
+- **D4（不开 `_FORWARD_PLUS`）确认**：HDRP 透明也走 cluster，但本仓库目标是透明零回归；transparent 的 cluster 化另立计划。
+- **明确不做**：HDRP 的 tile feature flags/material variants、非空 tile indirect dispatch、GPU FPTL、big-tile 粗筛、面光源/体积雾/SSS/HD 阴影 atlas。这些列入 KnownDifferences 与 follow-up，不进入 v1 核心成本。
+
 ---
 
 ## 5. 任务清单（T0–T8）
@@ -492,7 +518,7 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 | `ShaderLibrary/ClusteredDeferred.hlsl` | T2 → T4 | 串行；T4 只追加阴影子集 |
 | `Shaders/Utils/ClusteredDeferred.compute` | T3 → T4 | 串行；T5 不得改 kernel |
 | `Shaders/Utils/ClusteredDeferredMask.shader` | T3 | 仅 T3 |
-| `Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredCoverageScan.cs` | T6 preflight | 扫描工具；与 T7 的测试资产分开提交 |
+| `Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferred*` | T6 preflight | 覆盖扫描、shader 编译检查、D3D12 抓帧构建；与 T7 测试资产分开提交 |
 | 各材质 shader 的 GBuffer pass | T6 | 仅 T6；不得与 T7 的测试资产同批修改 |
 | `Assets/Tests/ClusteredDeferred/**`（测试资产） | T7 | 仅 T7 提交测试资产 |
 | `report.md`、`KnownDifferences.md`、`PLAN/ACCEPTANCE.md` | T8 | 仅 T8 |
@@ -508,7 +534,7 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 | T4 | 阴影/cookie/layers/mixed/AO | kernel + include | 每项单开关 A/B；`_RECEIVE_SHADOWS_OFF` 跳阴影；subtractive 早退；AO 只作用于直接光；cookie/layer 与 forward 一致 | `T4FeatureMatrix.json`、A/B PNG |
 | T5 | 集成/边界：renderer data 开关、pass 替换、mask pass、保留 forward-only、`UseRenderPass` gate、预览/overlay、平台 gate、变体 | `Runtime/UniversalRendererData.cs`、`Editor/UniversalRendererDataEditor.cs`、`UniversalRenderer.cs`、`Runtime/ClusteredDeferred/*` | 开关可运行时切换；mask 绑定/清除正确；不满足条件时明确回退/禁用并告警；变体数可报告 | `T5ModeGateTests.xml`、`T5VariantCount.json` |
 | T6 | **可选优化**：opaque 材质 GBuffer 覆盖清单，把希望享受 clustered deferred 的 forward-only 材质补 GBuffer | 扫描工具 + 各 shader | 清单落盘（含材质类型）；可选补齐项有编译与视觉验证；**不再是正确性前置** | `T6Coverage.json`、编译检查、A/B PNG |
-| T7 | 测试、证据与性能矩阵 | `validation/` | 既有测试全绿；新测试全绿；A/B/交叉点/RenderDoc/Player 完成 | `T7Perf.json`、`T7PlayerSummary.json`、`*.xml`、PNG |
+| T7 | 测试、证据与性能矩阵 | `validation/` | 既有测试全绿；新测试全绿；A/B/交叉点/RenderDoc/Player 完成 | `T7Perf.json`、`T7PlayerSummary.json`、`*.xml`、PNG、`renderdoc-stencil-deferred-baseline*.json` + 批准范围内的 `.rdc` |
 | T8 | 文档/验收/归档 | `report.md`、`KnownDifferences.md`、`PLAN/ACCEPTANCE.md` | 五处文档一致；产物清理；TODO→Done | `git status`/`git diff --stat`、`report.md` |
 
 ### 5.3 任务冲突/遗漏审计
@@ -687,7 +713,7 @@ T4 与 T5 可以并行，但必须满足下列文件锁；任何同文件改动�
 | forward-only pass 与 mask 不一致 | 重复受光或物体消失 | 保留 forward-only pass；mask 以 stencil `MaterialUnlit` 保持 0；AC-15 覆盖 |
 | Preview/Overlay/多相机 | 缓冲缺失或串帧 | T5 回退 stencil deferred；AC-10 |
 | 材质类型 mask 未清/未绑定 | Lit 像素被跳过（黑）或分流错误 | mask 每帧 Clear 0；T5 绑定与生命周期测试；AC-10/AC-15 |
-| mask pass 与 native RP/附件依赖冲突 | stencil 不可读或 RT 绑定错误 | v1 强制非 native RP；mask 与 compute 分两个 pass；T5 gate |
+| mask pass 与 native RP/附件依赖冲突 | stencil test/RT 绑定错误 | v1 强制非 native RP；mask 与 compute 分两个 pass；T5 gate |
 | GBuffer 覆盖不完整 | 该材质不走 clustered deferred | 不再导致漏渲染（mask 0 + 原 forward pass）；T6 仅作可选优化清单 |
 | compute-safe 阴影/AO 子集编译失败 | kernel 无法编译/行为不一致 | T2 先做编译 gate；AC-9；失败时按 keyword 关单项并记录 |
 | 全局索引与阴影槽位不一致 | 阴影错位 | 复用 Forward+ 已验证链路；T4 逐项 A/B |

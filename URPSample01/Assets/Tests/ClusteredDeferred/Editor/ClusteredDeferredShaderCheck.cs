@@ -6,6 +6,7 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 // Compiles the clustered deferred compute/include and the two helper shaders on the current
 // graphics API and writes T3ShaderCheck.txt. T2/T3 evidence; cross-API coverage is a player-build
@@ -14,6 +15,11 @@ public static class ClusteredDeferredShaderCheck
 {
     const string OutputRoot = "PLAN/TODO/11-LightCulling/validation/T6-preflight";
     const string ReportName = "T3ShaderCheck.txt";
+
+    static string ReportFileName =>
+        SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11
+            ? ReportName
+            : "T3ShaderCheck_" + SystemInfo.graphicsDeviceType + ".txt";
 
     [MenuItem("Tests/Clustered Deferred/Run Shader Check")]
     public static void RunFromMenu()
@@ -118,7 +124,7 @@ public static class ClusteredDeferredShaderCheck
             failed = true;
         }
 
-        var reportPath = Path.Combine(outputDirectory, ReportName);
+        var reportPath = Path.Combine(outputDirectory, ReportFileName);
         File.WriteAllText(reportPath, builder.ToString());
         Debug.Log("Clustered deferred shader check: failed=" + failed + " -> " + reportPath);
         return !failed;

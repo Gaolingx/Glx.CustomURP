@@ -1,0 +1,56 @@
+{
+  "capture": "PLAN/TODO/11-LightCulling/validation/T6-preflight/clustered-deferred-d3d12-stencil-baseline.rdc",
+  "api": "D3D12",
+  "device": "NVIDIA GeForce RTX 5060 Ti, Direct3D 12 [level 12.1]",
+  "resolution": "1280x720",
+  "renderer": "SslDeferredRenderer",
+  "pipeline": "SslDeferredPipeline",
+  "frame": 1009,
+  "capturedBy": "renderdoc-mcp capture_frame (delayFrames=1000)",
+  "scene": "Temporary copy of ScreenSpaceLightingBaseline.unity with all three runner pipeline slots set to Deferred (warmup 20, sample 600); deleted after the build.",
+  "build": "D3D12-only standalone player, Development. All three SSL pipelines were parked on quality levels so deferred shader variants survived stripping; the first attempt without this rendered the URP magenta error shader.",
+  "structure": [
+    { "eventId": 49, "name": "Setup Light Constants" },
+    { "eventId": 56, "name": "MainLightShadow" },
+    { "eventId": 255, "name": "Render GBuffer", "draws": [286, 295, 303, 311, 322, 334, 346, 354, 362, 371, 379, 387, 396, 404] },
+    { "eventId": 418, "name": "CopyDepth", "draws": [427] },
+    {
+      "eventId": 429,
+      "name": "Deferred Pass",
+      "children": [
+        {
+          "eventId": 430,
+          "name": "Deferred Shading (Stencil)",
+          "draws": [443, 452, 460, 471, 481, 489, 500, 510],
+          "note": "2 fullscreen draws (3 indices) + 6 stencil light volumes (240 indices)."
+        },
+        { "eventId": 513, "name": "Render Opaques Forward Only", "draws": [] }
+      ]
+    },
+    { "eventId": 515, "name": "Camera.RenderSkybox", "draws": [526] },
+    { "eventId": 528, "name": "DrawTransparentObjects", "draws": [] },
+    { "eventId": 530, "name": "FinalBlit", "draws": [539] }
+  ],
+  "deferredLightingDraw": {
+    "eventId": 443,
+    "renderTarget": "_CameraColorAttachmentA B10G11R11_UFloatPack32 1280x720",
+    "depthTarget": "_CameraDepthAttachment D32S8 1280x720",
+    "pipeline": "stencil deferred fullscreen/directional pass"
+  },
+  "stencilVolumeDraw": {
+    "eventId": 460,
+    "topology": "240 indices (light volume mesh)",
+    "renderTarget": "same lighting attachment and depth as event 443"
+  },
+  "comparisonWithD3D11": [
+    "Same pass order: GBuffer -> CopyDepth -> Deferred Shading (Stencil) -> Forward Only -> Skybox -> Transparent -> FinalBlit.",
+    "D3D11 baseline had 2 fullscreen deferred draws (2 lights); this D3D12 baseline has 2 fullscreen + 6 stencil light volumes (more lights), confirming per-light draw scaling on both APIs.",
+    "Lighting attachment and depth formats match: R11G11B10_FLOAT + D32S8.",
+    "Forward-only is still a separate pass after deferred lighting, matching the mask=0 design (D16)."
+  ],
+  "newShaderEvidence": {
+    "file": "T3ShaderCheck_Direct3D12.txt",
+    "result": "ClusteredDeferred.compute, ClusteredDeferredMask.shader and ClusteredDeferredResolve.shader compile with 0 messages on D3D12."
+  },
+  "scope": "Stencil-deferred D3D12 baseline only. The clustered kernel has no runtime pass yet; clustered A/B images belong to T5/T7."
+}

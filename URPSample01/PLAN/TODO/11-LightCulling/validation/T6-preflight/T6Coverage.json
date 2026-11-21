@@ -1,7 +1,7 @@
 {
-    "utcTimestamp": "2026-11-21T10:41:58.6369428Z",
+    "utcTimestamp": "2026-11-21T10:51:34.5031525Z",
     "unityVersion": "2022.3.62f1",
-    "graphicsDeviceType": "Direct3D11",
+    "graphicsDeviceType": "Direct3D12",
     "notes": [
         "A/B multi-light scene does not exist yet (T7 creates it); this scan covers every scene under Assets plus every material asset as the preflight baseline.",
         "clusteredLit/clusteredSimpleLit: shaded by the clustered deferred compute (mask 1/2).",
