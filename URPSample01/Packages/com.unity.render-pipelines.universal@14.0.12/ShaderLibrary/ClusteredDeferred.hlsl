@@ -17,6 +17,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.hlsl"
 
 // Must match Input.hlsl / UniversalRenderPipeline.maxVisibleAdditionalLights.
@@ -97,6 +99,316 @@ CBUFFER_END
 float4 _MainLightPosition;
 half4 _MainLightColor;
 uint _MainLightLayerMask;
+half4 _MainLightOcclusionProbes;
+
+// ----------------------------------------------------------------------------
+// Shadows (Shadows.hlsl subset). The layout must match the globals URP uploads;
+// the keyword-derived sections mirror ShaderLibrary/Shadows.hlsl exactly.
+// ----------------------------------------------------------------------------
+
+#define CD_MAX_SHADOW_CASCADES 4
+
+// The compute shader has no per-material keywords; the GBuffer material flag decides
+// per pixel whether a surface receives shadows (kMaterialFlagReceiveShadowsOff).
+#if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+#define CD_MAIN_LIGHT_CALCULATE_SHADOWS
+#endif
+#if defined(_ADDITIONAL_LIGHT_SHADOWS)
+#define CD_ADDITIONAL_LIGHT_CALCULATE_SHADOWS
+#endif
+
+TEXTURE2D_SHADOW(_MainLightShadowmapTexture);
+TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
+SAMPLER_CMP(sampler_LinearClampCompare);
+
+TEXTURE2D(_ScreenSpaceShadowmapTexture);
+
+CBUFFER_START(LightShadows)
+float4x4 _MainLightWorldToShadow[CD_MAX_SHADOW_CASCADES + 1];
+float4 _CascadeShadowSplitSpheres0;
+float4 _CascadeShadowSplitSpheres1;
+float4 _CascadeShadowSplitSpheres2;
+float4 _CascadeShadowSplitSpheres3;
+float4 _CascadeShadowSplitSphereRadii;
+
+float4 _MainLightShadowOffset0;
+float4 _MainLightShadowOffset1;
+float4 _MainLightShadowParams;   // (x: shadowStrength, y: soft-shadow quality, z: fade scale, w: fade bias)
+float4 _MainLightShadowmapSize;  // (xy: 1/width and 1/height, zw: width and height)
+
+float4 _AdditionalShadowOffset0;
+float4 _AdditionalShadowOffset1;
+float4 _AdditionalShadowFadeParams;
+float4 _AdditionalShadowmapSize;
+
+#if defined(CD_ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+float4   _AdditionalShadowParams[CD_MAX_VISIBLE_LIGHTS];
+float4x4 _AdditionalLightsWorldToShadow[CD_MAX_VISIBLE_LIGHTS];
+#endif
+CBUFFER_END
+
+float4 _ShadowBias; // x: depth bias, y: normal bias
+
+#define CD_BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0
+
+#define CD_SOFT_SHADOW_QUALITY_OFF    half(0.0)
+#define CD_SOFT_SHADOW_QUALITY_LOW    half(1.0)
+#define CD_SOFT_SHADOW_QUALITY_MEDIUM half(2.0)
+#define CD_SOFT_SHADOW_QUALITY_HIGH   half(3.0)
+
+struct CdShadowSamplingData
+{
+    half4 shadowOffset0;
+    half4 shadowOffset1;
+    float4 shadowmapSize;
+    half softShadowQuality;
+};
+
+CdShadowSamplingData CdGetMainLightShadowSamplingData()
+{
+    CdShadowSamplingData data;
+    data.shadowOffset0 = _MainLightShadowOffset0;
+    data.shadowOffset1 = _MainLightShadowOffset1;
+    data.shadowmapSize = _MainLightShadowmapSize;
+    data.softShadowQuality = _MainLightShadowParams.y;
+    return data;
+}
+
+CdShadowSamplingData CdGetAdditionalLightShadowSamplingData(int index)
+{
+    CdShadowSamplingData data = (CdShadowSamplingData)0;
+#if defined(CD_ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+    data.shadowOffset0 = _AdditionalShadowOffset0;
+    data.shadowOffset1 = _AdditionalShadowOffset1;
+    data.shadowmapSize = _AdditionalShadowmapSize;
+    data.softShadowQuality = _AdditionalShadowParams[index].y;
+#endif
+    return data;
+}
+
+half4 CdGetMainLightShadowParams()
+{
+    return _MainLightShadowParams;
+}
+
+half4 CdGetAdditionalLightShadowParams(int lightIndex)
+{
+#if defined(CD_ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+    return _AdditionalShadowParams[lightIndex];
+#else
+    return half4(0, 0, 0, -1);
+#endif
+}
+
+half CdSampleScreenSpaceShadowmap(float4 shadowCoord)
+{
+    shadowCoord.xy /= max(0.00001, shadowCoord.w);
+    // Compute has no implicit derivatives; Sample() cannot map to cs_5_0.
+    return half(SAMPLE_TEXTURE2D_LOD(_ScreenSpaceShadowmapTexture, sampler_PointClamp, shadowCoord.xy, 0).x);
+}
+
+real CdSampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, CdShadowSamplingData samplingData)
+{
+    real4 attenuation4;
+    attenuation4.x = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset0.xy, 0)));
+    attenuation4.y = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset0.zw, 0)));
+    attenuation4.z = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset1.xy, 0)));
+    attenuation4.w = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset1.zw, 0)));
+    return dot(attenuation4, real(0.25));
+}
+
+real CdSampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, CdShadowSamplingData samplingData)
+{
+    real fetchesWeights[9];
+    real2 fetchesUV[9];
+    SampleShadow_ComputeSamples_Tent_5x5(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
+
+    return fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
+                + fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z))
+                + fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z))
+                + fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy, shadowCoord.z))
+                + fetchesWeights[4] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[4].xy, shadowCoord.z))
+                + fetchesWeights[5] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[5].xy, shadowCoord.z))
+                + fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[6].xy, shadowCoord.z))
+                + fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy, shadowCoord.z))
+                + fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy, shadowCoord.z));
+}
+
+real CdSampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, CdShadowSamplingData samplingData)
+{
+    real fetchesWeights[16];
+    real2 fetchesUV[16];
+    SampleShadow_ComputeSamples_Tent_7x7(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
+
+    return fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
+                + fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z))
+                + fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z))
+                + fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy, shadowCoord.z))
+                + fetchesWeights[4] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[4].xy, shadowCoord.z))
+                + fetchesWeights[5] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[5].xy, shadowCoord.z))
+                + fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[6].xy, shadowCoord.z))
+                + fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy, shadowCoord.z))
+                + fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy, shadowCoord.z))
+                + fetchesWeights[9] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[9].xy, shadowCoord.z))
+                + fetchesWeights[10] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[10].xy, shadowCoord.z))
+                + fetchesWeights[11] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[11].xy, shadowCoord.z))
+                + fetchesWeights[12] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[12].xy, shadowCoord.z))
+                + fetchesWeights[13] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[13].xy, shadowCoord.z))
+                + fetchesWeights[14] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[14].xy, shadowCoord.z))
+                + fetchesWeights[15] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[15].xy, shadowCoord.z));
+}
+
+real CdSampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, CdShadowSamplingData samplingData)
+{
+    real attenuation = real(1.0);
+    if (samplingData.softShadowQuality == CD_SOFT_SHADOW_QUALITY_LOW)
+        attenuation = CdSampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+    else if (samplingData.softShadowQuality == CD_SOFT_SHADOW_QUALITY_MEDIUM)
+        attenuation = CdSampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+    else
+        attenuation = CdSampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+    return attenuation;
+}
+
+real CdSampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, CdShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection)
+{
+    // Main-light coords carry w = 0 (matrix .xyz only); only additional-light coords divide by w.
+    if (isPerspectiveProjection)
+        shadowCoord.xyz /= shadowCoord.w;
+
+    real attenuation;
+    real shadowStrength = shadowParams.x;
+
+#if defined(_SHADOWS_SOFT_LOW)
+    attenuation = CdSampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+#elif defined(_SHADOWS_SOFT_MEDIUM)
+    attenuation = CdSampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+#elif defined(_SHADOWS_SOFT_HIGH)
+    attenuation = CdSampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+#elif defined(_SHADOWS_SOFT)
+    if (shadowParams.y > CD_SOFT_SHADOW_QUALITY_OFF)
+        attenuation = CdSampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+    else
+        attenuation = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz));
+#else
+    attenuation = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz));
+#endif
+
+    attenuation = LerpWhiteTo(attenuation, shadowStrength);
+    return CD_BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
+}
+
+half CdComputeCascadeIndex(float3 positionWS)
+{
+    float3 fromCenter0 = positionWS - _CascadeShadowSplitSpheres0.xyz;
+    float3 fromCenter1 = positionWS - _CascadeShadowSplitSpheres1.xyz;
+    float3 fromCenter2 = positionWS - _CascadeShadowSplitSpheres2.xyz;
+    float3 fromCenter3 = positionWS - _CascadeShadowSplitSpheres3.xyz;
+    float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
+    half4 weights = half4(distances2 < _CascadeShadowSplitSphereRadii);
+    weights.yzw = saturate(weights.yzw - weights.xyz);
+    return half(4.0) - dot(weights, half4(4, 3, 2, 1));
+}
+
+float4 CdTransformWorldToShadowCoord(float3 positionWS, float2 normalizedScreenSpaceUV)
+{
+#if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+    return float4(normalizedScreenSpaceUV, 0.0, 1.0);
+#else
+    #if defined(_MAIN_LIGHT_SHADOWS_CASCADE)
+    half cascadeIndex = CdComputeCascadeIndex(positionWS);
+    #else
+    half cascadeIndex = half(0.0);
+    #endif
+    return float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 0.0);
+#endif
+}
+
+half CdMainLightRealtimeShadow(float4 shadowCoord)
+{
+#if !defined(CD_MAIN_LIGHT_CALCULATE_SHADOWS)
+    return half(1.0);
+#elif defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+    return CdSampleScreenSpaceShadowmap(shadowCoord);
+#else
+    return CdSampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare),
+        shadowCoord, CdGetMainLightShadowSamplingData(), CdGetMainLightShadowParams(), false);
+#endif
+}
+
+half CdAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)
+{
+#if defined(CD_ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+    CdShadowSamplingData samplingData = CdGetAdditionalLightShadowSamplingData(lightIndex);
+    half4 shadowParams = CdGetAdditionalLightShadowParams(lightIndex);
+
+    int shadowSliceIndex = shadowParams.w;
+    if (shadowSliceIndex < 0)
+        return 1.0;
+
+    UNITY_BRANCH
+    if (shadowParams.z)
+    {
+        // Point lights store six shadow slices; pick the cubemap face the fragment faces.
+        float cubemapFaceId = CubeMapFaceID(-lightDirection);
+        shadowSliceIndex += (int)cubemapFaceId;
+    }
+
+    float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
+    return CdSampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare),
+        shadowCoord, samplingData, shadowParams, true);
+#else
+    return half(1.0);
+#endif
+}
+
+half CdMainLightShadowFade(float3 positionWS)
+{
+    float3 camToPixel = positionWS - _CdCameraPositionWS.xyz;
+    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+    return half(saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w)));
+}
+
+half CdAdditionalLightShadowFade(float3 positionWS)
+{
+#if defined(CD_ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+    float3 camToPixel = positionWS - _CdCameraPositionWS.xyz;
+    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+    return half(saturate(distanceCamToPixel2 * float(_AdditionalShadowFadeParams.x) + float(_AdditionalShadowFadeParams.y)));
+#else
+    return half(1.0);
+#endif
+}
+
+half CdMixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shadowFade)
+{
+    return lerp(realtimeShadow, bakedShadow, shadowFade);
+}
+
+half CdMainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)
+{
+    half realtimeShadow = CdMainLightRealtimeShadow(shadowCoord);
+    // Mixed lighting/shadowmask is not part of the shadow subset yet: baked term stays white.
+    const half bakedShadow = half(1.0);
+#ifdef CD_MAIN_LIGHT_CALCULATE_SHADOWS
+    half shadowFade = CdMainLightShadowFade(positionWS);
+#else
+    half shadowFade = half(1.0);
+#endif
+    return CdMixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
+}
+
+half CdAdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels)
+{
+    half realtimeShadow = CdAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection);
+    const half bakedShadow = half(1.0);
+#ifdef CD_ADDITIONAL_LIGHT_CALCULATE_SHADOWS
+    half shadowFade = CdAdditionalLightShadowFade(positionWS);
+#else
+    half shadowFade = half(1.0);
+#endif
+    return CdMixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
+}
 
 // ----------------------------------------------------------------------------
 // Cluster iterator (Clustering.hlsl, header 0). General path only: the desktop

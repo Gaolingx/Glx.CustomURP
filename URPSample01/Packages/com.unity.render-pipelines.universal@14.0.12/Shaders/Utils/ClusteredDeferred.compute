@@ -1,12 +1,19 @@
-// Clustered Deferred (URP BRDF) lighting kernel, v1: no shadows/cookies/layers/AO/mixed lighting.
+// Clustered Deferred (URP BRDF) lighting kernel.
 //
 // Dispatch is pixel-parallel: ceil(viewport / 16) groups of 16x16 threads, one pixel per thread.
 // The tile id is derived per pixel from _FPParams1.xy, so the kernel does not care whether the CPU
 // picked an 8/16/32/64-wide tile. Output goes to a UAV because compute dispatches have no
 // fixed-function blending; ClusteredDeferredResolve adds it into GBuffer3 with Blend One One.
+//
+// Shadows are the T4 shadow subset: main light (cascade or screen space) and additional-light
+// atlas shadows, disabled per pixel by the GBuffer receive-shadows-off flag. Cookies, light
+// layers, mixed lighting/shadowmask and screen-space AO are not wired up yet.
 #pragma kernel ClusteredDeferred
 
 #pragma multi_compile _ _GBUFFER_NORMALS_OCT
+#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+#pragma multi_compile _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ClusteredDeferred.hlsl"
 
@@ -43,9 +50,19 @@ void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     CdInputData inputData = CdInputDataFromGbufferAndWorldPosition(gbuffer2, positionWS, uv);
 
+    uint materialFlags = CdUnpackMaterialFlags(gbuffer0.a);
+    bool receiveShadowsOff = (materialFlags & CD_FLAG_RECEIVE_SHADOWS_OFF) != 0;
+    // Mixed lighting/shadowmask is not part of the shadow subset yet.
+    const half4 shadowMask = half4(1.0, 1.0, 1.0, 1.0);
+
     half3 color = 0.0.xxx;
 
     CdLight mainLight = CdMainLight();
+    if (!receiveShadowsOff)
+    {
+        float4 shadowCoord = CdTransformWorldToShadowCoord(positionWS, uv);
+        mainLight.shadowAttenuation = CdMainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
+    }
     color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, mainLight, inputData);
 
     // Additional directional lights are not part of the cluster list; Forward+ loops them first
@@ -55,6 +72,8 @@ void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
         directionalIndex++)
     {
         CdLight light = CdGetAdditionalLight(directionalIndex, positionWS);
+        if (!receiveShadowsOff)
+            light.shadowAttenuation = CdAdditionalLightShadow(directionalIndex, positionWS, light.direction, shadowMask, _AdditionalLightsOcclusionProbes[directionalIndex]);
         color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, light, inputData);
     }
 
@@ -67,6 +86,8 @@ void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
             continue;
 
         CdLight light = CdGetAdditionalLight(lightIndex, positionWS);
+        if (!receiveShadowsOff)
+            light.shadowAttenuation = CdAdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, _AdditionalLightsOcclusionProbes[lightIndex]);
         color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, light, inputData);
     }
 
