@@ -227,7 +227,7 @@ ClusteredDeferred.compute（不改一行）
 | T5 A/B D3D12 异步（48 灯） | mean **0.8281**、max **9**、>8 差 3 px，pass | `T5-runtime/player-d3d12-async/CdPerf.json` |
 | T4 特性矩阵 D3D11 | **7/7** | `T4-shadows/player-d3d11/T4FeatureMatrix.json` |
 | T4 特性矩阵 D3D12 同步 / 异步 | **7/7** / **7/7** | `T4-shadows/player-d3d12{,-sync}/`、`player-d3d12-async/` |
-| 64 灯 GPU 时间 | D3D11 stencil 0.634 / clustered **0.362 ms**；D3D12 同步 stencil 1.106 / clustered **0.410 ms**；异步 clustered **0.582 ms** | 对应 `CdPerf.json` |
+| 64 灯 GPU 时间 | D3D11 stencil 0.634 / clustered **0.362 ms**；D3D12 同步 stencil 1.106 / clustered **0.449 ms**；D3D12 异步 clustered **0.582 ms**（同步/异步取自同一轮 player） | 对应 `CdPerf.json` |
 | CPU 分解（64 灯） | D3D11 `preSetup` 0.008 + `setupLights` 0.137（灯常量 0.079 + deferred 0.006）→ 列表 ≈ **0.061 ms**；D3D12 同步 ≈ **0.064 ms**；D3D12 异步 ≈ **0.079 ms** | `cpu/d3d11/`、`cpu/d3d12/`、`cpu/d3d12-async/` |
 | EditMode / PlayMode | **490/490**、**38/38** | `tests/G1cEditMode.xml`、`tests/G1cPlayMode.xml` |
 | `.rdc` | D3D12 frame 203（**14.4 MB**）：异步命令列表含上传 + 5 次 dispatch，GBuffer 之后光照 dispatch 经 fence 读结构化 SRV；无校验消息 | `rdc/cluster-list-d3d12_frame203.rdc`、`rdc/Report.json` |

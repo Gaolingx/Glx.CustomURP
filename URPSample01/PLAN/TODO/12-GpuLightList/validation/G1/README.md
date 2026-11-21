@@ -156,7 +156,7 @@ OUT="$P/PLAN/TODO/12-GpuLightList/validation/G1"
 | CPU ⊆ GPU | zbin 逐位 0/0；tile 0 漏位、多 91,350 bit；GPU 161,974 vs CPU 70,624（229%），22/64 item 整屏 | 同上 |
 | T5 A/B 48 灯 | D3D11 mean 0.8119/max 9；D3D12 同步 0.8156/9；D3D12 异步 0.8281/9，全部 pass | `T5-runtime/player-*/CdPerf.json` |
 | T4 | D3D11 7/7；D3D12 同步 7/7；D3D12 异步 7/7 | `T4-shadows/player-*/T4FeatureMatrix.json` |
-| 64 灯 GPU | D3D11 clustered 0.362 ms；D3D12 同步 0.410、异步 0.582 ms | `CdPerf.json` |
+| 64 灯 GPU | D3D11 clustered 0.362 ms；D3D12 同步 0.449、异步 0.582 ms（同一轮 player） | `T5-runtime/player-*/CdPerf.json` |
 | CPU 列表成本（64 灯） | D3D11 ≈0.061 ms；D3D12 同步 ≈0.064 ms；异步 ≈0.079 ms（G1b CPU jobs 为 0.173） | `cpu/*/CdCpuBreakdown.json` |
 | 测试 | EditMode 490/490、PlayMode 38/38 | `tests/G1c*.xml` |
 | `.rdc` | 14.4 MB；异步命令列表含上传 + 5 次 dispatch；光照 dispatch 绑定结构化 SRV；无校验消息 | `rdc/` |
