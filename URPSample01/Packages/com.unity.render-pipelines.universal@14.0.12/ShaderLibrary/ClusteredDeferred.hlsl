@@ -577,10 +577,8 @@ half CdDirectAmbientOcclusion(float2 normalizedScreenSpaceUV)
 #endif
 }
 
-// The stencil path does not apply AO to indirect lighting directly; it cancels the baked
-// occlusion the GBuffer already applied and substitutes the min(baked, screen-space) value
-// with SrcAlpha blending on the first light pass (StencilDeferred.hlsl:286-295). The clustered
-// resolve reproduces the same multiply on GBuffer3, so the kernel only has to emit the factor.
+// The GBuffer already includes baked occlusion. Emit a factor for the resolve's SrcAlpha
+// blend so GBuffer3 ends up with min(baked, screen-space) instead of their product.
 half CdIndirectAmbientOcclusionCancel(float2 normalizedScreenSpaceUV, half surfaceOcclusion)
 {
 #if defined(_SCREEN_SPACE_OCCLUSION)
@@ -779,7 +777,7 @@ struct CdLight
     float distanceAttenuation;
     half shadowAttenuation;
     uint layerMask;
-    bool subtractiveMixed; // light is baked-mixed/subtractive; stencil deferred skips it on subtractive materials
+    bool subtractiveMixed; // Skip this baked-mixed light on subtractive materials.
 };
 
 float CdDistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
@@ -880,7 +878,6 @@ half3 CdShade(uint materialType, half4 gbuffer0, half4 gbuffer1, half4 gbuffer2,
 {
     if (materialType == 2u)
     {
-        // SimpleLit: same terms as StencilDeferred.hlsl:309-318.
         half3 albedo = gbuffer0.rgb;
         half3 specular = gbuffer1.rgb;
         half smoothness = gbuffer2.a;

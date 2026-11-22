@@ -16,8 +16,8 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         static class LightConstantBuffer
         {
-            public static int _MainLightPosition;   // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-            public static int _MainLightColor;      // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
+            public static int _MainLightPosition;
+            public static int _MainLightColor;
             public static int _MainLightOcclusionProbesChannel;    // Deferred?
             public static int _MainLightLayerMask;
 
@@ -218,16 +218,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static int AlignByteCount(int count, int align) => align * ((count + align - 1) / align);
 
-        // Forward+ always builds clusters. Clustered deferred only needs them for base game cameras;
-        // preview and overlay cameras fall back to stencil deferred.
-        bool ShouldBuildClusters(ref CameraData cameraData)
-        {
-            if (!m_UseClusters)
-                return false;
-            if (!m_ClusteredDeferred)
-                return true;
-            return ClusteredDeferredPass.IsEligibleCamera(ref cameraData);
-        }
+        // Use the same decision as culling and pass selection; eligibility alone does not account
+        // for resource, debug or RenderGraph fallback.
+        bool ShouldBuildClusters(ref CameraData cameraData) => m_UseForwardPlus ||
+            (m_ClusteredDeferred && cameraData.renderer is UniversalRenderer { clusteredDeferredEnabled: true });
 
         // Completes the cluster jobs scheduled by PreSetup. Clustered deferred calls this before
         // the deferred setup reads the culling light/probe arrays; upstream Forward+ waits until
@@ -704,7 +698,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 bool lightCountCheck = (renderingData.cameraData.renderer.stripAdditionalLightOffVariants && renderingData.lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 // Forward-drawn objects read the cluster list only on frames that actually built it,
-                // so preview/overlay cameras that fall back to stencil deferred keep per-object lights.
+                // so cameras falling back to ordinary Forward keep per-object lights.
                 bool clusterForwardLights = buildClusters && m_ClusteredDeferred && !m_UseForwardPlus &&
                                             ClusteredDeferredPass.forwardClusterLights;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ClusteredDeferredLights, clusterForwardLights);

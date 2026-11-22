@@ -1,0 +1,25 @@
+--- a/URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs
++++ b/URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs
+@@ -81,13 +81,15 @@
+                 var clustered = ReadPixels();
+                 AssertImageUsable(clustered, "clustered");
+ 
+-                SwitchPipeline(StencilPipelinePath);
+-                yield return null;
+-                yield return RenderFrames(WarmupFrames);
+-                var stencil = ReadPixels();
+-                AssertImageUsable(stencil, "stencil");
+-
+-                var diff = Compare(stencil, clustered);
++                Assert.AreEqual(2, CountClusterTargets());
++                SwitchPipeline(ForwardPlusPipelinePath);
++                yield return null;
++                yield return RenderFrames(WarmupFrames);
++                var forwardPlus = ReadPixels();
++                AssertImageUsable(forwardPlus, "Forward+");
++
++                var diff = Compare(forwardPlus, clustered);
++                Debug.Log($"C3_REFERENCE commit=5ab7626 pair=ForwardPlus_vs_Clustered api={SystemInfo.graphicsDeviceType} color={QualitySettings.activeColorSpace} rt={m_Target.graphicsFormat} size={m_Target.width}x{m_Target.height} lights={m_Lights.Count} pixels={clustered.Length} mean={diff.mean:R} max={diff.max:R} over8={diff.over8} nonFinite={diff.nonFinite}");
+                 Assert.AreEqual(0, diff.nonFinite, "A/B image contains non-finite pixels.");
+                 Assert.LessOrEqual(diff.mean, kMeanThreshold,
+                     $"mean channel difference {diff.mean:0.###}/255 exceeds {kMeanThreshold}");

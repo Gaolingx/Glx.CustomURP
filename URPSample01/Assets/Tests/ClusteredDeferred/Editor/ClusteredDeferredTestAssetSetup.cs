@@ -8,11 +8,8 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
 // Creates the dedicated pipelines/renderers and the multi-light arena scene used by the
-// clustered deferred A/B and crossover evidence. The stencil and clustered renderers share every
-// setting except UniversalRendererData.clusteredDeferredLighting.
-//
-// Renderer features are stripped from the copies so both modes render the same base lighting path
-// (GTAO/SSGI would only add identical overhead to both sides of the A/B).
+// clustered deferred A/B and crossover evidence. Each T4 pair starts from the same templates;
+// only the rendering mode differs. The T5 Forward+ pipeline retains the C0 loadout.
 public static class ClusteredDeferredTestAssetSetup
 {
     const string Root = "Assets/Tests/ClusteredDeferred";
@@ -20,28 +17,10 @@ public static class ClusteredDeferredTestAssetSetup
     const string RendererFolder = Root + "/Renderers";
     const string TextureFolder = Root + "/Textures";
     const string ScenePath = SceneFolder + "/ClusteredDeferredArena.unity";
-    const string StencilRendererPath = RendererFolder + "/CdStencilDeferredRenderer.asset";
-    const string ClusteredRendererPath = RendererFolder + "/CdClusteredDeferredRenderer.asset";
-    const string StencilPipelinePath = RendererFolder + "/CdStencilDeferredPipeline.asset";
-    const string ClusteredPipelinePath = RendererFolder + "/CdClusteredDeferredPipeline.asset";
-    const string ForwardPlusPipelinePath = RendererFolder + "/CdForwardPlusPipeline.asset";
+    internal const string ClusteredPipelinePath = RendererFolder + "/CdClusteredDeferredPipeline.asset";
+    internal const string ForwardPlusPipelinePath = RendererFolder + "/CdForwardPlusPipeline.asset";
 
-    // T4 shadow subset: same renderer pair, pipelines with main/additional shadows enabled.
-    const string ShadowStencilRendererPath = RendererFolder + "/CdShadowStencilDeferredRenderer.asset";
-    const string ShadowClusteredRendererPath = RendererFolder + "/CdShadowClusteredDeferredRenderer.asset";
-    const string ShadowStencilPipelinePath = RendererFolder + "/CdShadowStencilDeferredPipeline.asset";
-    const string ShadowClusteredPipelinePath = RendererFolder + "/CdShadowClusteredDeferredPipeline.asset";
-    const string ScreenShadowStencilRendererPath = RendererFolder + "/CdScreenShadowStencilDeferredRenderer.asset";
-    const string ScreenShadowClusteredRendererPath = RendererFolder + "/CdScreenShadowClusteredDeferredRenderer.asset";
-    const string ScreenShadowStencilPipelinePath = RendererFolder + "/CdScreenShadowStencilDeferredPipeline.asset";
-    const string ScreenShadowClusteredPipelinePath = RendererFolder + "/CdScreenShadowClusteredDeferredPipeline.asset";
-
-    // T4 feature subset (cookie / light layers / GTAO direct AO): one renderer pair with light
-    // layers enabled and a GTAO feature whose direct-lighting strength the runner toggles.
-    const string FeatureStencilRendererPath = RendererFolder + "/CdFeatureStencilDeferredRenderer.asset";
-    const string FeatureClusteredRendererPath = RendererFolder + "/CdFeatureClusteredDeferredRenderer.asset";
-    const string FeatureStencilPipelinePath = RendererFolder + "/CdFeatureStencilDeferredPipeline.asset";
-    const string FeatureClusteredPipelinePath = RendererFolder + "/CdFeatureClusteredDeferredPipeline.asset";
+    internal static string T4Prefix(string loadout) => RendererFolder + "/Cd" + loadout;
 
     const string SourceDeferredRenderer = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationDeferredRenderer.asset";
     const string SourceDeferredPipeline = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationDeferredPipeline.asset";
@@ -95,33 +74,32 @@ public static class ClusteredDeferredTestAssetSetup
         if (deferredRenderer == null || deferredPipeline == null || forwardPlusRenderer == null || forwardPlusPipeline == null)
             throw new FileNotFoundException("Missing one of the SSL validation renderer/pipeline assets.");
 
-        var stencilRenderer = CreateRendererCopy(deferredRenderer, StencilRendererPath, false, false);
-        var clusteredRenderer = CreateRendererCopy(deferredRenderer, ClusteredRendererPath, true, false);
-        var stencilPipeline = CreatePipelineCopy(deferredPipeline, StencilPipelinePath, stencilRenderer);
+        if (forwardPlusRenderer.renderingMode != RenderingMode.ForwardPlus)
+            throw new InvalidOperationException("T5 reference is not a Forward+ renderer.");
+        var clusteredRenderer = CreateRendererCopy(deferredRenderer, RendererFolder + "/CdClusteredDeferredRenderer.asset",
+            RenderingMode.Deferred, false);
         var clusteredPipeline = CreatePipelineCopy(deferredPipeline, ClusteredPipelinePath, clusteredRenderer);
         var forwardPipeline = CreatePipelineCopy(forwardPlusPipeline, ForwardPlusPipelinePath, forwardPlusRenderer);
 
-        var shadowStencilRenderer = CreateRendererCopy(deferredRenderer, ShadowStencilRendererPath, false, false);
-        var shadowClusteredRenderer = CreateRendererCopy(deferredRenderer, ShadowClusteredRendererPath, true, false);
-        var shadowStencilPipeline = CreateShadowPipeline(deferredPipeline, ShadowStencilPipelinePath, shadowStencilRenderer, 4);
-        var shadowClusteredPipeline = CreateShadowPipeline(deferredPipeline, ShadowClusteredPipelinePath, shadowClusteredRenderer, 4);
+        CreatePair("Shadow", 4, false, false, out var shadowForward, out var shadowClustered);
+        CreatePair("ScreenShadow", 1, true, false, out var screenForward, out var screenClustered);
+        CreatePair("Feature", 2, true, true, out var featureForward, out var featureClustered);
+        CreateScene(clusteredPipeline, forwardPipeline, shadowForward, shadowClustered,
+            screenForward, screenClustered, featureForward, featureClustered, CreateCookieTexture());
 
-        var screenShadowStencilRenderer = CreateRendererCopy(deferredRenderer, ScreenShadowStencilRendererPath, false, true);
-        var screenShadowClusteredRenderer = CreateRendererCopy(deferredRenderer, ScreenShadowClusteredRendererPath, true, true);
-        var screenShadowStencilPipeline = CreateShadowPipeline(deferredPipeline, ScreenShadowStencilPipelinePath, screenShadowStencilRenderer, 1);
-        var screenShadowClusteredPipeline = CreateShadowPipeline(deferredPipeline, ScreenShadowClusteredPipelinePath, screenShadowClusteredRenderer, 1);
-
-        var featureStencilRenderer = CreateRendererCopy(deferredRenderer, FeatureStencilRendererPath, false, true, true);
-        var featureClusteredRenderer = CreateRendererCopy(deferredRenderer, FeatureClusteredRendererPath, true, true, true);
-        var featureStencilPipeline = CreateFeaturePipeline(deferredPipeline, FeatureStencilPipelinePath, featureStencilRenderer);
-        var featureClusteredPipeline = CreateFeaturePipeline(deferredPipeline, FeatureClusteredPipelinePath, featureClusteredRenderer);
-        var cookieTexture = CreateCookieTexture();
-
-        CreateScene(stencilPipeline, clusteredPipeline, forwardPipeline,
-            shadowStencilPipeline, shadowClusteredPipeline,
-            screenShadowStencilPipeline, screenShadowClusteredPipeline,
-            featureStencilPipeline, featureClusteredPipeline,
-            cookieTexture);
+        void CreatePair(string loadout, int cascades, bool screenShadows, bool gtao,
+            out UniversalRenderPipelineAsset forward, out UniversalRenderPipelineAsset clustered)
+        {
+            var prefix = T4Prefix(loadout);
+            var f = CreateRendererCopy(deferredRenderer, prefix + "ForwardPlusRenderer.asset",
+                RenderingMode.ForwardPlus, screenShadows, gtao);
+            var c = CreateRendererCopy(deferredRenderer, prefix + "ClusteredDeferredRenderer.asset",
+                RenderingMode.Deferred, screenShadows, gtao);
+            forward = CreateShadowPipeline(deferredPipeline, prefix + "ForwardPlusPipeline.asset", f, cascades, gtao);
+            // Preprocessing scans every renderer in a quality pipeline. Include both modes for
+            // this exact loadout in one slot; index zero remains the runtime clustered renderer.
+            clustered = CreateShadowPipeline(deferredPipeline, prefix + "ClusteredDeferredPipeline.asset", c, cascades, gtao, f);
+        }
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -129,7 +107,7 @@ public static class ClusteredDeferredTestAssetSetup
         return true;
     }
 
-    static UniversalRendererData CreateRendererCopy(UniversalRendererData source, string path, bool clustered,
+    static UniversalRendererData CreateRendererCopy(UniversalRendererData source, string path, RenderingMode mode,
         bool screenSpaceShadows, bool gtao = false)
     {
         AssetDatabase.DeleteAsset(path);
@@ -142,7 +120,7 @@ public static class ClusteredDeferredTestAssetSetup
         serialized.FindProperty("m_RendererFeatureMap").ClearArray();
         serialized.ApplyModifiedPropertiesWithoutUndo();
 
-        renderer.clusteredDeferredLighting = clustered;
+        renderer.renderingMode = mode;
         ResourceReloader.TryReloadAllNullIn(renderer, UniversalRenderPipelineAsset.packagePath);
         AssetDatabase.CreateAsset(renderer, path);
 
@@ -153,8 +131,8 @@ public static class ClusteredDeferredTestAssetSetup
             throw new InvalidOperationException("Clustered deferred shader resources did not reload on " + path);
         }
 
-        if (saved.clusteredDeferredLighting != clustered)
-            throw new InvalidOperationException("The clustered toggle did not persist on " + path);
+        if (saved.renderingMode != mode)
+            throw new InvalidOperationException(mode + " rendering mode did not persist on " + path);
 
         if (screenSpaceShadows)
             AddScreenSpaceShadowsFeature(saved);
@@ -180,7 +158,7 @@ public static class ClusteredDeferredTestAssetSetup
         settings.FindPropertyRelative("directLightingStrength").floatValue = 0f;
         // Temporal accumulation depends on the frame phase, so two pipelines captured at
         // different frame counts would compare different AO noise. Spatial-only AO is
-        // deterministic and makes the stencil/clustered A/B meaningful.
+        // deterministic and makes the Forward+/clustered A/B meaningful.
         settings.FindPropertyRelative("temporalAccumulation").boolValue = false;
         serializedFeature.ApplyModifiedPropertiesWithoutUndo();
 
@@ -228,21 +206,6 @@ public static class ClusteredDeferredTestAssetSetup
         AppendRendererFeature(renderer, feature, 1);
     }
 
-    // Light layers need the pipeline flag: it decides whether the deferred GBuffer allocates the
-    // rendering-layer slot and whether DeferredLights enables the _LIGHT_LAYERS keyword.
-    static UniversalRenderPipelineAsset CreateFeaturePipeline(UniversalRenderPipelineAsset source, string path,
-        UniversalRendererData renderer)
-    {
-        var pipeline = CreateShadowPipeline(source, path, renderer, 2);
-        var serialized = new SerializedObject(pipeline);
-        serialized.FindProperty("m_SupportsLightLayers").boolValue = true;
-        serialized.FindProperty("m_SupportsLightCookies").boolValue = true;
-        serialized.ApplyModifiedPropertiesWithoutUndo();
-        EditorUtility.SetDirty(pipeline);
-        AssetDatabase.SaveAssets();
-        return pipeline;
-    }
-
     // Spot cookie: soft radial falloff with an 8-px checker so the pattern is unambiguous at 720p.
     static Texture2D CreateCookieTexture()
     {
@@ -287,8 +250,9 @@ public static class ClusteredDeferredTestAssetSetup
     }
 
     static UniversalRenderPipelineAsset CreateShadowPipeline(UniversalRenderPipelineAsset source, string path,
-        UniversalRendererData renderer, int cascadeCount)    {
-        var pipeline = CreatePipelineCopy(source, path, renderer);
+        UniversalRendererData renderer, int cascadeCount, bool cookies, UniversalRendererData variantRenderer = null)
+    {
+        var pipeline = CreatePipelineCopy(source, path, renderer, variantRenderer);
         var serialized = new SerializedObject(pipeline);
         serialized.FindProperty("m_MainLightShadowsSupported").boolValue = true;
         serialized.FindProperty("m_MainLightShadowmapResolution").intValue = 2048;
@@ -305,6 +269,8 @@ public static class ClusteredDeferredTestAssetSetup
         // otherwise the _LIGHT_LAYERS/_WRITE_RENDERING_LAYERS variants are stripped from the player
         // and the deferred layer slot stays empty.
         serialized.FindProperty("m_SupportsLightLayers").boolValue = true;
+        if (cookies)
+            serialized.FindProperty("m_SupportsLightCookies").boolValue = true;
         serialized.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(pipeline);
         AssetDatabase.SaveAssets();
@@ -312,7 +278,7 @@ public static class ClusteredDeferredTestAssetSetup
     }
 
     static UniversalRenderPipelineAsset CreatePipelineCopy(UniversalRenderPipelineAsset source, string path,
-        ScriptableRendererData renderer)
+        ScriptableRendererData renderer, ScriptableRendererData variantRenderer = null)
     {
         AssetDatabase.DeleteAsset(path);
         var pipeline = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
@@ -321,8 +287,10 @@ public static class ClusteredDeferredTestAssetSetup
 
         var serialized = new SerializedObject(pipeline);
         var rendererList = serialized.FindProperty("m_RendererDataList");
-        rendererList.arraySize = 1;
+        rendererList.arraySize = variantRenderer == null ? 1 : 2;
         rendererList.GetArrayElementAtIndex(0).objectReferenceValue = renderer;
+        if (variantRenderer != null)
+            rendererList.GetArrayElementAtIndex(1).objectReferenceValue = variantRenderer;
         serialized.FindProperty("m_DefaultRendererIndex").intValue = 0;
         serialized.ApplyModifiedPropertiesWithoutUndo();
 
@@ -330,11 +298,11 @@ public static class ClusteredDeferredTestAssetSetup
         return AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(path);
     }
 
-    static void CreateScene(UniversalRenderPipelineAsset stencil, UniversalRenderPipelineAsset clustered,
+    static void CreateScene(UniversalRenderPipelineAsset clustered,
         UniversalRenderPipelineAsset forwardPlus,
-        UniversalRenderPipelineAsset shadowStencil, UniversalRenderPipelineAsset shadowClustered,
-        UniversalRenderPipelineAsset screenShadowStencil, UniversalRenderPipelineAsset screenShadowClustered,
-        UniversalRenderPipelineAsset featureStencil, UniversalRenderPipelineAsset featureClustered,
+        UniversalRenderPipelineAsset shadowForwardPlus, UniversalRenderPipelineAsset shadowClustered,
+        UniversalRenderPipelineAsset screenShadowForwardPlus, UniversalRenderPipelineAsset screenShadowClustered,
+        UniversalRenderPipelineAsset featureForwardPlus, UniversalRenderPipelineAsset featureClustered,
         Texture2D cookieTexture)
     {
         var floor = AssetDatabase.LoadAssetAtPath<Material>(FloorMaterial);
@@ -388,14 +356,13 @@ public static class ClusteredDeferredTestAssetSetup
 
         var runnerObject = new GameObject("Clustered Deferred Arena Runner");
         var runner = runnerObject.AddComponent<ClusteredDeferredArenaRunner>();
-        runner.stencilDeferredPipeline = stencil;
         runner.clusteredDeferredPipeline = clustered;
         runner.forwardPlusPipeline = forwardPlus;
-        runner.shadowStencilPipeline = shadowStencil;
+        runner.shadowForwardPlusPipeline = shadowForwardPlus;
         runner.shadowClusteredPipeline = shadowClustered;
-        runner.screenShadowStencilPipeline = screenShadowStencil;
+        runner.screenShadowForwardPlusPipeline = screenShadowForwardPlus;
         runner.screenShadowClusteredPipeline = screenShadowClustered;
-        runner.featureStencilPipeline = featureStencil;
+        runner.featureForwardPlusPipeline = featureForwardPlus;
         runner.featureClusteredPipeline = featureClustered;
         runner.cookieTexture = cookieTexture;
         runner.arenaMainLight = mainLight;
@@ -421,6 +388,7 @@ public static class ClusteredDeferredTestAssetSetup
             throw new InvalidOperationException("Unable to copy " + sourcePath);
 
         var material = AssetDatabase.LoadAssetAtPath<Material>(ReceiveShadowsOffMaterialPath);
+        material.SetFloat("_ReceiveShadows", 0f);
         material.EnableKeyword("_RECEIVE_SHADOWS_OFF");
         EditorUtility.SetDirty(material);
         AssetDatabase.SaveAssets();

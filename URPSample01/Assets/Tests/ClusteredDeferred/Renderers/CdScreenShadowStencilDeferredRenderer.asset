@@ -41,7 +41,6 @@ MonoBehaviour:
     copyDepthPS: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
     screenSpaceShadowPS: {fileID: 0}
     samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
-    stencilDeferredPS: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
     clusteredDeferredCS: {fileID: 7200000, guid: 1caad89c94e90944caea5a3a60906c2e,
       type: 3}
     clusterBuilderCS: {fileID: 7200000, guid: 577378dd0df1dae4fbdd8a7ea0701609, type: 3}
@@ -84,7 +83,6 @@ MonoBehaviour:
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 1
-  m_ClusteredDeferredLighting: 0
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0

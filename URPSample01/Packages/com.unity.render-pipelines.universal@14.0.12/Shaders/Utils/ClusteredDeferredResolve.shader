@@ -2,9 +2,8 @@
 //
 // A compute dispatch cannot use fixed-function blending, so the kernel writes direct lighting to
 // _CdLightingTexture and this fullscreen pass adds it to the lighting attachment. The blend is
-// Blend One SrcAlpha, Zero One: the kernel's alpha is the SrcAlpha factor the stencil deferred
-// path applies to the baked indirect lighting on its first light pass (StencilDeferred.hlsl:286-295),
-// and it is 1 unless screen-space AO needs to cancel baked occlusion.
+// Blend One SrcAlpha, Zero One: source alpha scales baked indirect lighting in GBuffer3.
+// It is 1 unless screen-space AO needs to adjust the baked occlusion.
 Shader "Hidden/Universal/ClusteredDeferredResolve"
 {
     SubShader

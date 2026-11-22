@@ -633,6 +633,8 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
+                    if (renderer is UniversalRenderer universalRenderer)
+                        universalRenderer.UpdateCameraRenderingMode(ref cameraData, useRenderGraph);
                     renderer.OnPreCullRenderPasses(in cameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
@@ -733,18 +735,14 @@ namespace UnityEngine.Rendering.Universal
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
             bool mainHdrDisplayOutputActive = HDROutputForMainDisplayIsActive();
 
-            int rendererCount = asset.m_RendererDataList.Length;
-
-            // We need to know the last active camera in the stack to be able to resolve
-            // rendering to screen when rendering it. The last camera in the stack is not
-            // necessarily the last active one as it users might disable it.
-            int lastActiveOverlayCameraIndex = -1;
+            // Render only admitted overlays. Resolving against a raw stack index fails when
+            // skipped entries (including null entries pruned below) shift the final camera.
+            using var stackLease = ListPool<UniversalAdditionalCameraData>.Get(out var activeOverlays);
+            cameraStackRequiresDepthForPostprocessing = false;
             if (cameraStack != null)
             {
-                var baseCameraRendererType = baseCameraAdditionalData?.scriptableRenderer.GetType();
+                var baseCameraRendererType = renderer.GetType();
                 bool shouldUpdateCameraStack = false;
-
-                cameraStackRequiresDepthForPostprocessing = false;
 
                 for (int i = 0; i < cameraStack.Count; ++i)
                 {
@@ -757,19 +755,22 @@ namespace UnityEngine.Rendering.Universal
 
                     if (currCamera.isActiveAndEnabled)
                     {
-                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
-
-                        // Checking if the base and the overlay camera is of the same renderer type.
-                        var currCameraRendererType = data?.scriptableRenderer.GetType();
-                        if (currCameraRendererType != baseCameraRendererType)
+                        if (!currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data) || data.renderType != CameraRenderType.Overlay)
                         {
-                            Debug.LogWarning("Only cameras with compatible renderer types can be stacked. " +
-                                             $"The camera: {currCamera.name} are using the renderer {currCameraRendererType.Name}, " +
-                                             $"but the base camera: {baseCamera.name} are using {baseCameraRendererType.Name}. Will skip rendering");
+                            Debug.LogWarning($"Stack can only contain Overlay cameras. Skipping {currCamera.name}.");
                             continue;
                         }
 
                         var overlayRenderer = data.scriptableRenderer;
+                        var currCameraRendererType = overlayRenderer?.GetType();
+                        if (currCameraRendererType != baseCameraRendererType)
+                        {
+                            Debug.LogWarning("Only cameras with compatible renderer types can be stacked. " +
+                                             $"The camera: {currCamera.name} are using the renderer {currCameraRendererType?.Name ?? "<none>"}, " +
+                                             $"but the base camera: {baseCamera.name} are using {baseCameraRendererType.Name}. Will skip rendering");
+                            continue;
+                        }
+
                         // Checking if they are the same renderer type but just not supporting Overlay
                         if ((overlayRenderer.SupportedCameraStackingTypes() & 1 << (int)CameraRenderType.Overlay) == 0)
                         {
@@ -777,17 +778,10 @@ namespace UnityEngine.Rendering.Universal
                             continue;
                         }
 
-                        if (data == null || data.renderType != CameraRenderType.Overlay)
-                        {
-                            Debug.LogWarning($"Stack can only contain Overlay cameras. The camera: {currCamera.name} " +
-                                             $"has a type {data.renderType} that is not supported. Will skip rendering.");
-                            continue;
-                        }
-
                         cameraStackRequiresDepthForPostprocessing |= CheckPostProcessForDepth();
 
                         anyPostProcessingEnabled |= data.renderPostProcessing;
-                        lastActiveOverlayCameraIndex = i;
+                        activeOverlays.Add(data);
                     }
                 }
                 if (shouldUpdateCameraStack)
@@ -799,7 +793,7 @@ namespace UnityEngine.Rendering.Universal
             // Post-processing not supported in GLES2.
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
-            bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
+            bool isStackedRendering = activeOverlays.Count != 0;
 
             // Prepare XR rendering
             var xrActive = false;
@@ -883,16 +877,12 @@ namespace UnityEngine.Rendering.Universal
 
                 if (isStackedRendering)
                 {
-                    for (int i = 0; i < cameraStack.Count; ++i)
+                    for (int i = 0; i < activeOverlays.Count; ++i)
                     {
-                        var currCamera = cameraStack[i];
-                        if (!currCamera.isActiveAndEnabled)
-                            continue;
-
-                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currAdditionalCameraData);
-                        // Camera is overlay and enabled
-                        if (currAdditionalCameraData != null)
+                        var currAdditionalCameraData = activeOverlays[i];
+                        if (currAdditionalCameraData != null && currAdditionalCameraData.camera.isActiveAndEnabled)
                         {
+                            var currCamera = currAdditionalCameraData.camera;
                             // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
                             CameraData overlayCameraData = baseCameraData;
                             overlayCameraData.camera = currCamera;
@@ -910,7 +900,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                             UpdateVolumeFramework(currCamera, currAdditionalCameraData);
 
-                            bool lastCamera = i == lastActiveOverlayCameraIndex;
+                            bool lastCamera = i == activeOverlays.Count - 1;
                             InitializeAdditionalCameraData(currCamera, currAdditionalCameraData, lastCamera, ref overlayCameraData);
                             
                             overlayCameraData.stackAnyPostProcessingEnabled = anyPostProcessingEnabled;
@@ -1381,7 +1371,8 @@ namespace UnityEngine.Rendering.Universal
             renderingData.cullResults = cullResults;
             renderingData.cameraData = cameraData;
             InitializeLightData(settings, visibleLights, mainLightIndex, out renderingData.lightData);
-            InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, isClusteredLighting, out renderingData.shadowData);
+            // additionalLightsCastShadows already accounts for the actual camera path above.
+            InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows, isClusteredLighting, out renderingData.shadowData);
             InitializePostProcessingData(settings, cameraData.stackLastCameraOutputToHDR, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
 

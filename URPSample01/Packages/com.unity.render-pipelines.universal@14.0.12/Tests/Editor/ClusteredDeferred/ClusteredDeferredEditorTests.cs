@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
@@ -41,10 +42,10 @@ namespace UnityEditor.Rendering.Universal.Tests
             return asset;
         }
 
-        public static UniversalRendererData StencilRenderer => Load<UniversalRendererData>("CdStencilDeferredRenderer.asset");
+        public static UniversalRendererData ForwardPlusRenderer =>
+            (UniversalRendererData)Load<UniversalRenderPipelineAsset>("CdForwardPlusPipeline.asset").scriptableRendererData;
         public static UniversalRendererData ClusteredRenderer => Load<UniversalRendererData>("CdClusteredDeferredRenderer.asset");
         public static UniversalRenderPipelineAsset ClusteredPipeline => Load<UniversalRenderPipelineAsset>("CdClusteredDeferredPipeline.asset");
-        public static UniversalRenderPipelineAsset StencilPipeline => Load<UniversalRenderPipelineAsset>("CdStencilDeferredPipeline.asset");
 
         public static void UsePipeline(UniversalRenderPipelineAsset pipeline)
         {
@@ -154,13 +155,16 @@ namespace UnityEditor.Rendering.Universal.Tests
     class ClusteredDeferredModeGateTests
     {
         [Test]
-        public void SupportedDeviceMatchesComputeAndConstantLightArray()
+        public void SupportedDeviceRequiresComputeGBufferAndReadableMaskAndLightingTargets()
         {
             var api = SystemInfo.graphicsDeviceType;
             bool expected = SystemInfo.supportsComputeShaders &&
                             !RenderingUtils.useStructuredBuffer &&
-                            api != GraphicsDeviceType.OpenGLES2 &&
-                            api != GraphicsDeviceType.OpenGLES3;
+                            (api == GraphicsDeviceType.Direct3D11 || api == GraphicsDeviceType.Direct3D12 ||
+                             api == GraphicsDeviceType.Vulkan || api == GraphicsDeviceType.Metal) &&
+                            SystemInfo.graphicsShaderLevel >= 45 && SystemInfo.supportedRenderTargetCount >= 4 &&
+                            SystemInfo.IsFormatSupported(GraphicsFormat.R8_UInt, FormatUsage.Render) &&
+                            SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.LoadStore);
             Assert.AreEqual(expected, ClusteredDeferredPass.IsSupportedDevice);
         }
 
@@ -181,38 +185,18 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void StencilLightPrecomputeIsSkippedOnlyForEligibleClusteredCameras()
+        public void OracleAndClusteredFixturesUseComparableRendererSettings()
         {
-            var gameBase = new CameraData { cameraType = CameraType.Game, renderType = CameraRenderType.Base, xr = XRSystem.emptyPass };
-            Assert.IsFalse(DeferredLights.ShouldPrecomputeStencilLights(true, ref gameBase),
-                "Clustered base game cameras never rasterize stencil light volumes.");
-            Assert.IsTrue(DeferredLights.ShouldPrecomputeStencilLights(false, ref gameBase),
-                "The stencil path still needs the per-type light lists.");
-
-            var overlay = new CameraData { cameraType = CameraType.Game, renderType = CameraRenderType.Overlay, xr = XRSystem.emptyPass };
-            Assert.IsTrue(DeferredLights.ShouldPrecomputeStencilLights(true, ref overlay),
-                "Overlay cameras fall back to stencil deferred and need the lists.");
-
-            var preview = new CameraData { cameraType = CameraType.Preview, renderType = CameraRenderType.Base, xr = XRSystem.emptyPass };
-            Assert.IsTrue(DeferredLights.ShouldPrecomputeStencilLights(true, ref preview),
-                "Preview cameras fall back to stencil deferred and need the lists.");
-        }
-
-        [Test]
-        public void RendererAssetsAgreeExceptForTheClusteredSwitch()
-        {
-            var stencil = ClusteredDeferredAssets.StencilRenderer;
+            var oracle = ClusteredDeferredAssets.ForwardPlusRenderer;
             var clustered = ClusteredDeferredAssets.ClusteredRenderer;
 
-            Assert.AreEqual(RenderingMode.Deferred, stencil.renderingMode);
+            Assert.AreEqual(RenderingMode.ForwardPlus, oracle.renderingMode);
             Assert.AreEqual(RenderingMode.Deferred, clustered.renderingMode);
-            Assert.IsFalse(stencil.clusteredDeferredLighting);
-            Assert.IsTrue(clustered.clusteredDeferredLighting);
-            Assert.AreEqual(stencil.useNativeRenderPass, clustered.useNativeRenderPass);
-            Assert.AreEqual(stencil.opaqueLayerMask, clustered.opaqueLayerMask);
-            Assert.AreEqual(stencil.transparentLayerMask, clustered.transparentLayerMask);
-            Assert.AreEqual(stencil.depthPrimingMode, clustered.depthPrimingMode);
-            Assert.AreEqual(stencil.accurateGbufferNormals, clustered.accurateGbufferNormals);
+            Assert.AreEqual(oracle.useNativeRenderPass, clustered.useNativeRenderPass);
+            Assert.AreEqual(oracle.opaqueLayerMask, clustered.opaqueLayerMask);
+            Assert.AreEqual(oracle.transparentLayerMask, clustered.transparentLayerMask);
+            Assert.AreEqual(oracle.depthPrimingMode, clustered.depthPrimingMode);
+            Assert.AreEqual(oracle.accurateGbufferNormals, clustered.accurateGbufferNormals);
 
             Assert.IsNotNull(clustered.shaders.clusteredDeferredCS, "Clustered renderer has no compute shader reference.");
             Assert.IsNotNull(clustered.shaders.clusteredDeferredMaskPS, "Clustered renderer has no mask shader reference.");
@@ -241,31 +225,20 @@ namespace UnityEditor.Rendering.Universal.Tests
             QualitySettings.renderPipeline = m_PreviousQualityPipeline;
         }
 
-        [Test]
-        public void ClusteredSwitchOnlyAppliesToDeferredRenderers()
+        [TestCase(RenderingMode.Forward)]
+        [TestCase(RenderingMode.ForwardPlus)]
+        public void NonDeferredRenderersKeepTheirRequestedMode(RenderingMode mode)
         {
-            var clustered = new UniversalRenderer(ClusteredDeferredAssets.ClusteredRenderer);
-            try
-            {
-                Assert.IsTrue(clustered.clusteredDeferredEnabled);
-            }
-            finally
-            {
-                clustered.Dispose();
-            }
-
             var copied = UnityEngine.Object.Instantiate(ClusteredDeferredAssets.ClusteredRenderer);
             try
             {
-                copied.renderingMode = RenderingMode.Forward;
-                var forward = new UniversalRenderer(copied);
-                try
+                copied.renderingMode = mode;
+                using (var renderer = new UniversalRenderer(copied))
                 {
-                    Assert.IsFalse(forward.clusteredDeferredEnabled, "A forward renderer must not enable clustered deferred lighting.");
-                }
-                finally
-                {
-                    forward.Dispose();
+                    var game = Camera(CameraType.Game);
+                    renderer.UpdateCameraRenderingMode(ref game, false);
+                    Assert.AreEqual(mode, renderer.renderingModeActual);
+                    Assert.IsFalse(renderer.clusteredDeferredEnabled);
                 }
             }
             finally
@@ -282,56 +255,82 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.DoesNotThrow(() => renderer.Dispose());
         }
 
-        [Test]
-        public void ClusteredCappingRunsBeforeCulling()
+        static CameraData Camera(CameraType type, CameraRenderType renderType = CameraRenderType.Base) => new CameraData
         {
-            var renderer = new UniversalRenderer(ClusteredDeferredAssets.ClusteredRenderer);
-            try
-            {
-                var culling = default(ScriptableCullingParameters);
-                var cameraData = new CameraData
-                {
-                    cameraType = CameraType.Game,
-                    renderType = CameraRenderType.Base,
-                    maxShadowDistance = 25.0f,
-                };
-                renderer.SetupCullingParameters(ref culling, ref cameraData);
+            cameraType = type,
+            renderType = renderType,
+            xr = XRSystem.emptyPass,
+            maxShadowDistance = 25f,
+            cameraTargetDescriptor = new RenderTextureDescriptor(64, 64) { msaaSamples = 1 },
+        };
 
-                Assert.AreEqual(UniversalRenderPipeline.maxVisibleAdditionalLights, culling.maximumVisibleLights,
-                    "Clustered deferred must cap visible lights before culling.");
-                Assert.AreEqual(ReflectionProbeSortingCriteria.None, culling.reflectionProbeSortingCriteria,
-                    "Clustered deferred must keep the probe order the GPU list expects.");
-            }
-            finally
+        static void AssertCulling(UniversalRenderer renderer, CameraData camera, RenderingMode expected, bool renderGraph = false)
+        {
+            renderer.UpdateCameraRenderingMode(ref camera, renderGraph);
+            Assert.AreEqual(expected, renderer.renderingModeActual, $"{camera.cameraType}/{camera.renderType}");
+            var culling = new ScriptableCullingParameters { reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.ImportanceThenSize };
+            renderer.SetupCullingParameters(ref culling, ref camera);
+            bool deferred = expected == RenderingMode.Deferred;
+            Assert.AreEqual(UniversalRenderPipeline.maxVisibleAdditionalLights + (deferred ? 0 : 1), culling.maximumVisibleLights);
+            Assert.AreEqual(deferred ? ReflectionProbeSortingCriteria.None : ReflectionProbeSortingCriteria.ImportanceThenSize,
+                culling.reflectionProbeSortingCriteria);
+            Assert.AreEqual((CullingOptions)0, culling.cullingOptions & CullingOptions.DisablePerObjectCulling,
+                "Neither clustered deferred nor its ordinary Forward fallback may discard per-object indices.");
+        }
+
+        [Test]
+        public void CullingUsesCurrentCameraModeNotPreviousCameraMode()
+        {
+            using (var renderer = new UniversalRenderer(ClusteredDeferredAssets.ClusteredRenderer))
             {
-                renderer.Dispose();
+                var game = Camera(CameraType.Game);
+                var gameMode = ClusteredDeferredPass.IsSupportedDevice ? RenderingMode.Deferred : RenderingMode.Forward;
+                AssertCulling(renderer, game, gameMode);
+                AssertCulling(renderer, Camera(CameraType.Game, CameraRenderType.Overlay), RenderingMode.Forward);
+                AssertCulling(renderer, game, gameMode);
+                AssertCulling(renderer, Camera(CameraType.Preview), RenderingMode.Forward);
+                AssertCulling(renderer, Camera(CameraType.SceneView), RenderingMode.Forward);
+                AssertCulling(renderer, game, gameMode);
+                AssertCulling(renderer, game, RenderingMode.Forward, renderGraph: true);
+                var multisampled = game;
+                multisampled.cameraTargetDescriptor.msaaSamples = 4;
+                AssertCulling(renderer, multisampled, RenderingMode.Forward);
+                AssertCulling(renderer, game, gameMode);
             }
         }
 
         [Test]
-        public void StencilDeferredKeepsLegacyCullingCaps()
+        public void MissingComputeResourceForcesForwardEvenForBaseGame()
         {
-            var renderer = new UniversalRenderer(ClusteredDeferredAssets.StencilRenderer);
+            var copied = UnityEngine.Object.Instantiate(ClusteredDeferredAssets.ClusteredRenderer);
             try
             {
-                var culling = default(ScriptableCullingParameters);
-                culling.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.ImportanceThenSize;
-                var cameraData = new CameraData
-                {
-                    cameraType = CameraType.Game,
-                    renderType = CameraRenderType.Base,
-                    maxShadowDistance = 25.0f,
-                };
-                renderer.SetupCullingParameters(ref culling, ref cameraData);
-
-                Assert.AreEqual(0xFFFF, culling.maximumVisibleLights);
-                Assert.AreEqual(ReflectionProbeSortingCriteria.ImportanceThenSize, culling.reflectionProbeSortingCriteria,
-                    "Stencil deferred must not change the culling probe sorting.");
+                copied.shaders.clusteredDeferredCS = null;
+                using (var renderer = new UniversalRenderer(copied))
+                    AssertCulling(renderer, Camera(CameraType.Game), RenderingMode.Forward);
             }
             finally
             {
-                renderer.Dispose();
+                UnityEngine.Object.DestroyImmediate(copied);
             }
+        }
+
+        [Test]
+        public void XRBaseGameUsesForwardWithoutAHeadset()
+        {
+            // The core package keeps XRView/AddView internal. Supply one default view; only its
+            // presence is consumed by the gate. Never mutate XRSystem.emptyPass or a pooled pass.
+            var xr = new UnityEngine.Experimental.Rendering.XRPass();
+            var addView = xr.GetType().GetMethod("AddView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.IsNotNull(addView);
+            addView.Invoke(xr, new[] { Activator.CreateInstance(addView.GetParameters()[0].ParameterType) });
+            if (!xr.enabled)
+                Assert.Ignore("This build of the Core XR module compiles XRPass.enabled to false.");
+            var game = Camera(CameraType.Game);
+            game.xr = xr;
+            Assert.IsFalse(ClusteredDeferredPass.IsEligibleCamera(ref game));
+            using (var renderer = new UniversalRenderer(ClusteredDeferredAssets.ClusteredRenderer))
+                AssertCulling(renderer, game, RenderingMode.Forward);
         }
     }
 }

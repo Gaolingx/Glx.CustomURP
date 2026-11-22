@@ -92,8 +92,6 @@ namespace UnityEngine.Rendering.Universal
 
             createDepthTexture = (requiresDepthTexture/* || cameraHasPostProcessingWithDepth*/) && !requiresDepthPrepass;
             createDepthTexture |= !renderingData.cameraData.resolveFinalTarget;
-            // Deferred renderer always need to access depth buffer.
-            createDepthTexture |= (this.renderingModeActual == RenderingMode.Deferred && !useRenderPassEnabled);
             // Some render cases (e.g. Material previews) have shown we need to create a depth texture when we're forcing a prepass.
             createDepthTexture |= m_DepthPrimingMode == DepthPrimingMode.Forced;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -108,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
                 createColorTexture |= createDepthTexture;
 #endif
             bool depthPriming = IsDepthPrimingEnabled(ref renderingData.cameraData);
-            depthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth);
+            depthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && renderingModeActual == RenderingMode.Forward && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth);
 
             if (useRenderPassEnabled || depthPriming)
                 createColorTexture |= createDepthTexture;
@@ -244,9 +242,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void OnFinishRenderGraphRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (this.renderingModeActual == RenderingMode.Deferred)
-                m_DeferredPass.OnCameraCleanup(renderingData.commandBuffer);
-
             m_CopyDepthPass.OnCameraCleanup(renderingData.commandBuffer);
             m_DepthNormalPrepass.OnCameraCleanup(renderingData.commandBuffer);
         }
@@ -327,26 +322,10 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-            if (this.renderingModeActual == RenderingMode.Deferred)
-            {
-                m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
-                if (m_DeferredLights != null)
-                {
-                    m_DeferredLights.UseRenderPass = false;
-                    m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
-                    m_DeferredLights.IsOverlay = renderingData.cameraData.renderType == CameraRenderType.Overlay;
-                }
-
-                m_GBufferPass.Render(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, ref renderingData, ref frameResources);
-                m_GBufferCopyDepthPass.Render(renderGraph, out frameResources.cameraDepthTexture, in frameResources.cameraDepth, ref renderingData);
-                m_DeferredPass.Render(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, frameResources.gbuffer, ref renderingData);
-                m_RenderOpaqueForwardOnlyPass.Render(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
-            }
-            else
-            {
-                m_RenderOpaqueForwardPass.m_IsActiveTargetBackBuffer = m_TargetIsBackbuffer;
-                m_RenderOpaqueForwardPass.Render(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
-            }
+            // UpdateCameraRenderingMode selects Forward before culling: this experimental graph
+            // does not declare the cluster-list buffers, compute UAV or resolve dependencies.
+            m_RenderOpaqueForwardPass.m_IsActiveTargetBackBuffer = m_TargetIsBackbuffer;
+            m_RenderOpaqueForwardPass.Render(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
             // RunCustomPasses(RenderPassEvent.AfterOpaque);
 
             if (renderingData.cameraData.renderType == CameraRenderType.Base)

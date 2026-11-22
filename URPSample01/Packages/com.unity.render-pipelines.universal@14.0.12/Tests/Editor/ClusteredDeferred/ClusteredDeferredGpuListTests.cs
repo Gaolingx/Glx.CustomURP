@@ -38,6 +38,37 @@ namespace UnityEditor.Rendering.Universal.Tests
         static int OffsetOf(string field) => Marshal.OffsetOf<ClusterItemRecord>(field).ToInt32();
 
         [Test]
+        public void FreshBuilderPublishesEmptyBinsWithoutAnItemUpload()
+        {
+            if (!SystemInfo.supportsComputeShaders)
+                Assert.Ignore("Compute shaders unavailable.");
+            var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.universal/Shaders/Utils/ClusterBuilder.compute");
+            var builder = new ClusterListGpuBuilder(shader);
+            using var bins = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, sizeof(uint));
+            using var tiles = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, sizeof(uint));
+            using var cmd = new CommandBuffer();
+            try
+            {
+                Assert.IsTrue(builder.isCreated);
+                bins.SetData(new[] { uint.MaxValue, uint.MaxValue });
+                tiles.SetData(new[] { uint.MaxValue });
+                builder.Dispatch(cmd, new ClusterListGpuParams { items = Array.Empty<ClusterItemRecord>(),
+                    binCount = 1, zBinWordCount = 2, tileWordCount = 1, tileCount = new int2(1, 1) }, bins, tiles);
+                Graphics.ExecuteCommandBuffer(cmd);
+                var headers = new uint[2];
+                var tile = new uint[1];
+                bins.GetData(headers);
+                tiles.GetData(tile);
+                CollectionAssert.AreEqual(new[] { 0xffffu, 0xffffu }, headers);
+                Assert.AreEqual(0u, tile[0]);
+            }
+            finally
+            {
+                builder.Dispose();
+            }
+        }
+
+        [Test]
         public void SnapshotRoundTripsThroughDisk()
         {
             var expected = MakeSnapshot();

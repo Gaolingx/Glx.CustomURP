@@ -15,7 +15,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
 {
     // T5/T7 runtime regression for the clustered deferred lighting path.
     //
-    // The suite drives real cameras through both deferred renderers against a rig with one of
+    // The suite drives real cameras through clustered deferred and Forward+ against a rig with one of
     // every material type that matters to the mask pass (Lit, SimpleLit, Unlit/forward-only,
     // ComplexLit/skipped), so the A/B covers lighting, the material mask and the forward-only
     // fallback at once. The player-only arena runner keeps the large light-count sweep; this suite
@@ -23,10 +23,8 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
     public class ClusteredDeferredPlayModeTests
     {
         const string RendererRoot = "Assets/Tests/ClusteredDeferred/Renderers";
-        const string StencilPipelinePath = RendererRoot + "/CdStencilDeferredPipeline.asset";
         const string ClusteredPipelinePath = RendererRoot + "/CdClusteredDeferredPipeline.asset";
         const string ForwardPlusPipelinePath = RendererRoot + "/CdForwardPlusPipeline.asset";
-        const string ClusteredRendererPath = RendererRoot + "/CdClusteredDeferredRenderer.asset";
 
         const int WarmupFrames = 3;
         const float kMeanThreshold = 2.0f;
@@ -63,7 +61,6 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         RenderPipelineAsset m_PreviousPipeline;
         RenderPipelineAsset m_PreviousQualityPipeline;
         UniversalRenderPipelineAsset m_Pipeline;
-        UniversalRendererData m_ClusteredRendererData;
         GameObject m_Root;
         GameObject m_CameraObject;
         Camera m_Camera;
@@ -72,29 +69,58 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         readonly List<Material> m_Materials = new List<Material>();
 
         [UnityTest]
-        public IEnumerator StencilMatchesClusteredAcrossMaterialTypes()
+        public IEnumerator ClusteredMatchesForwardPlusAcrossMaterialTypes()
         {
             yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
             try
             {
                 yield return RenderFrames(WarmupFrames);
+                Assert.AreEqual(2, CountClusterTargets());
                 var clustered = ReadPixels();
                 AssertImageUsable(clustered, "clustered");
+                var receivers = m_Root.GetComponentsInChildren<Renderer>()
+                    .Where(r => r.name == "Cd Back Wall" || r.name.EndsWith("Sphere")).ToArray();
+                Assert.AreEqual(4, receivers.Length);
+                var interiors = CaptureRegions(receivers);
 
-                SwitchPipeline(StencilPipelinePath);
+                SwitchPipeline(ForwardPlusPipelinePath);
                 yield return null;
                 yield return RenderFrames(WarmupFrames);
-                var stencil = ReadPixels();
-                AssertImageUsable(stencil, "stencil");
+                var forwardPlus = ReadPixels();
+                AssertImageUsable(forwardPlus, "Forward+");
+                var forwardInteriors = CaptureRegions(receivers);
+                for (int i = 0; i < receivers.Length; ++i)
+                {
+                    var interior = Compare(interiors[i], forwardInteriors[i]);
+                    Assert.LessOrEqual(interior.mean, kMeanThreshold, receivers[i].name);
+                    Assert.LessOrEqual(interior.max, kMaxThreshold, receivers[i].name);
+                }
 
-                var diff = Compare(stencil, clustered);
+                var output = System.Environment.GetEnvironmentVariable("C3_MATERIAL_OUTPUT");
+                if (!string.IsNullOrEmpty(output))
+                {
+                    var directory = System.IO.Directory.CreateDirectory(System.IO.Path.Combine(output, SystemInfo.graphicsDeviceType.ToString()));
+                    foreach (var frame in new[] { ("clustered", clustered), ("forwardPlus", forwardPlus) })
+                    {
+                        using var writer = new System.IO.BinaryWriter(System.IO.File.Create(System.IO.Path.Combine(directory.FullName, frame.Item1 + ".rgba32f")));
+                        foreach (Color pixel in frame.Item2)
+                        {
+                            writer.Write(pixel.r);
+                            writer.Write(pixel.g);
+                            writer.Write(pixel.b);
+                            writer.Write(pixel.a);
+                        }
+                    }
+                }
+                var diff = Compare(forwardPlus, clustered);
                 Assert.AreEqual(0, diff.nonFinite, "A/B image contains non-finite pixels.");
                 Assert.LessOrEqual(diff.mean, kMeanThreshold,
                     $"mean channel difference {diff.mean:0.###}/255 exceeds {kMeanThreshold}");
-                Assert.LessOrEqual(diff.max, kMaxThreshold,
-                    $"max channel difference {diff.max:0.###}/255 exceeds {kMaxThreshold}");
+                // C0 control measured isolated Forward+/GBuffer peaks up to 86/255. Allow those
+                // outliers only in the whole frame; keep the tight interior, mean and area gates.
+                Assert.LessOrEqual(diff.max, 96f, "Whole-frame Forward+ peak (in 1/255 units).");
                 Assert.LessOrEqual(diff.over8, clustered.Length / 1000,
-                    $"{diff.over8} pixels differ by more than 8/255; expected a sparse light-volume-edge residue.");
+                    $"{diff.over8} pixels differ by more than 8/255; expected sparse raster/shading differences.");
             }
             finally
             {
@@ -103,14 +129,14 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator C3FogPerspectiveMatchesStencil() => CompareFogReceivers(false);
+        public IEnumerator PerspectiveFogMatchesForwardPlus() => CompareFogReceivers(false);
 
         [UnityTest]
-        public IEnumerator C3FogOrthographicMatchesStencil() => CompareFogReceivers(true);
+        public IEnumerator OrthographicFogSkipsOnlyTheDeferredReceiver() => CompareFogReceivers(true);
 
         IEnumerator CompareFogReceivers(bool orthographic)
         {
-            yield return SetUpRig(StencilPipelinePath, 640, 360, 1);
+            yield return SetUpRig(ForwardPlusPipelinePath, 640, 360, 1);
             bool fog = RenderSettings.fog;
             var mode = RenderSettings.fogMode;
             var color = RenderSettings.fogColor;
@@ -164,7 +190,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
                     foreach (var receiver in receivers)
                         receiver.enabled = false;
                     yield return RenderFrames(WarmupFrames);
-                    var empty = CaptureFogRegions(receivers);
+                    var empty = CaptureRegions(receivers);
                     foreach (var receiver in receivers)
                         receiver.enabled = true;
 
@@ -174,29 +200,33 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
                         RenderSettings.fogMode = modes[m] ?? FogMode.Linear;
                         RenderSettings.fog = modes[m].HasValue;
                         yield return RenderFrames(WarmupFrames);
-                        var regions = CaptureFogRegions(receivers);
+                        var regions = CaptureRegions(receivers);
                         if (m == 0)
                         {
                             off = regions;
                             if (clustered)
-                                Assert.AreEqual(2, CountClusterTargets(), "Clustered renderer fell back to stencil.");
+                                Assert.AreEqual(2, CountClusterTargets(), "Expected the eligible deferred camera to allocate both cluster targets.");
                         }
                         if (!clustered)
                             reference[m] = regions;
                         for (int i = 0; i < receivers.Length; i++)
                         {
-                            string label = $"{(clustered ? "clustered" : "stencil")} {modes[m]?.ToString() ?? "off"} {receivers[i].name}";
+                            string label = $"{(clustered ? "clustered" : "Forward+")} {modes[m]?.ToString() ?? "off"} {receivers[i].name}";
                             var change = Compare(m == 0 ? empty[i] : off[i], regions[i]);
                             Assert.AreEqual(0, change.nonFinite, label);
-                            if (m == 0 || !orthographic)
-                                Assert.Greater(change.mean, 4f, label + (m == 0 ? " not visible against empty frame" : " missing fog response"));
-                            else if (i == 0) // Stencil skips fullscreen deferred fog for orthographic cameras.
+                            if (clustered && orthographic && i == 0 && m != 0)
+                            {
+                                // Legacy fullscreen deferred fog intentionally skips orthographic cameras.
+                                // Forward+ shades this same surface in its forward pass and does not skip it.
                                 Assert.LessOrEqual(change.max, 1f, label + " unexpected orthographic deferred fog");
+                                continue;
+                            }
+                            Assert.Greater(change.mean, 4f, label + (m == 0 ? " not visible against empty frame" : " missing fog response"));
                             if (clustered)
                             {
                                 var parity = Compare(reference[m][i], regions[i]);
-                                Assert.LessOrEqual(parity.mean, kMeanThreshold, label + " mean difference vs stencil");
-                                Assert.LessOrEqual(parity.max, kMaxThreshold, label + " max difference vs stencil");
+                                Assert.LessOrEqual(parity.mean, kMeanThreshold, label + " mean difference vs Forward+");
+                                Assert.LessOrEqual(parity.max, kMaxThreshold, label + " max difference vs Forward+");
                             }
                         }
                     }
@@ -214,7 +244,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
         }
 
-        Color[][] CaptureFogRegions(Renderer[] receivers)
+        Color[][] CaptureRegions(Renderer[] receivers)
         {
             var pixels = ReadPixels(); // All three interior patches come from the same frame.
             const int side = 12;
@@ -312,56 +342,121 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
         }
 
-        [UnityTest]
-        public IEnumerator RuntimeSwitchFallsBackAndReenables()
+        // Observe production ordering at the first renderer-feature callback, not just after
+        // rendering (where a decision made too late for culling would look correct).
+        sealed class CameraRoutingProbe : ScriptableRendererFeature
         {
-            yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
-#if !UNITY_EDITOR
-            Assert.Ignore("The runtime switch loads its renderer asset through the AssetDatabase.");
-            yield break;
-#else
-            bool original = m_ClusteredRendererData.clusteredDeferredLighting;
+            public Camera primary, overlay;
+            public readonly List<Camera> cameras = new List<Camera>();
+            public readonly List<RenderingMode> preCullModes = new List<RenderingMode>();
+            public readonly List<PerObjectData> lightFlags = new List<PerObjectData>();
+
+            public override void Create() { }
+            public override void OnCameraPreCull(ScriptableRenderer renderer, in CameraData data)
+            {
+                if (data.camera != primary && data.camera != overlay) return;
+                cameras.Add(data.camera);
+                preCullModes.Add(((UniversalRenderer)renderer).renderingModeActual);
+            }
+
+            public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData data)
+            {
+                if (data.cameraData.camera == primary || data.cameraData.camera == overlay)
+                    lightFlags.Add(data.perObjectData);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CameraStackSelectsModeBeforeCullAndPreservesPerObjectLights()
+        {
+            yield return SetUpRig(ClusteredPipelinePath, 640, 360, 3);
+            const int overlayLayer = 29;
+            var pipeline = Object.Instantiate(m_Pipeline);
+            var rendererData = Object.Instantiate(m_Pipeline.scriptableRendererData);
+            var probe = ScriptableObject.CreateInstance<CameraRoutingProbe>();
             try
             {
-                yield return RenderFrames(WarmupFrames);
-                var clusteredOn = ReadPixels();
-
-                SwitchPipeline(StencilPipelinePath);
+                rendererData.rendererFeatures.Add(probe);
+                pipeline.m_RendererDataList = new[] { rendererData };
+                GraphicsSettings.defaultRenderPipeline = pipeline;
+                QualitySettings.renderPipeline = pipeline;
                 yield return null;
-                yield return RenderFrames(WarmupFrames);
-                var stencil = ReadPixels();
+                var overlayObject = new GameObject("Cd Forward Overlay");
+                overlayObject.transform.SetParent(m_Camera.transform, false);
+                var overlay = overlayObject.AddComponent<Camera>();
+                overlay.CopyFrom(m_Camera);
+                overlay.cullingMask = 1 << overlayLayer;
+                var overlayData = overlay.GetUniversalAdditionalCameraData();
+                overlayData.renderType = CameraRenderType.Overlay;
+                m_Camera.cullingMask &= ~overlay.cullingMask;
+                var stack = m_Camera.GetUniversalAdditionalCameraData().cameraStack;
 
-                SwitchPipeline(ClusteredPipelinePath);
-                yield return null;
-                yield return RenderFrames(WarmupFrames);
+                // The two front faces have disjoint light ranges. A missing index map (or a
+                // repeated index zero) cannot give both objects the correct response to this swap.
+                var white = CreateMaterial("Universal Render Pipeline/Lit", "Cd Overlay Receiver", Color.white, 0f, 0f);
+                var receivers = new Renderer[2];
+                for (int i = 0; i < receivers.Length; i++)
+                {
+                    var pos = m_Camera.ViewportToWorldPoint(new Vector3(i == 0 ? 0.30f : 0.70f, 0.5f, 9f));
+                    var box = AddBox(white, "Overlay receiver " + i, pos, new Vector3(1.5f, 1.5f, 0.2f));
+                    box.layer = overlayLayer;
+                    receivers[i] = box.GetComponent<Renderer>();
+                    var light = m_Lights[i];
+                    light.gameObject.layer = overlayLayer;
+                    light.cullingMask = overlay.cullingMask;
+                    light.transform.position = pos - m_Camera.transform.forward * 1.3f;
+                    light.range = 2.5f;
+                    light.intensity = 3f;
+                    light.color = i == 0 ? Color.red : Color.blue;
+                }
 
-                m_ClusteredRendererData.clusteredDeferredLighting = false;
-                yield return null;
                 yield return RenderFrames(WarmupFrames);
-                Assert.IsFalse(m_ClusteredRendererData.clusteredDeferredLighting);
-                var toggledOff = ReadPixels();
-                var offDiff = Compare(stencil, toggledOff);
-                Assert.LessOrEqual(offDiff.mean, kMeanThreshold,
-                    "Turning the switch off at runtime did not return to stencil deferred.");
-                Assert.LessOrEqual(offDiff.max, kMaxThreshold,
-                    $"Runtime off-image max difference {offDiff.max:0.###}/255.");
-
-                m_ClusteredRendererData.clusteredDeferredLighting = true;
-                yield return null;
-                yield return RenderFrames(WarmupFrames);
-                var toggledOn = ReadPixels();
-                var onDiff = Compare(clusteredOn, toggledOn);
-                Assert.LessOrEqual(onDiff.mean, 0.01f, "Re-enabling at runtime changed the clustered image.");
-                Assert.LessOrEqual(onDiff.max, 1.0f, "Re-enabling at runtime changed the clustered image.");
+                probe.primary = m_Camera;
+                probe.overlay = overlay;
+                m_Camera.Render();
+                var baseOnly = ReadPixels();
+                m_Camera.cameraType = CameraType.Preview;
+                m_Camera.Render();
+                m_Camera.cameraType = CameraType.Game;
+                stack.Add(overlay);
+                m_Camera.Render();
+                var first = CaptureRegions(receivers);
+                m_Lights[0].color = Color.blue;
+                m_Lights[1].color = Color.red;
+                m_Camera.Render();
+                var swapped = CaptureRegions(receivers);
+                for (int i = 0; i < receivers.Length; i++)
+                {
+                    var delta = Compare(first[i], swapped[i]);
+                    Assert.AreEqual(0, delta.nonFinite);
+                    var red = i == 0 ? first[i] : swapped[i];
+                    var blue = i == 0 ? swapped[i] : first[i];
+                    Assert.Greater(red.Average(c => c.r) - blue.Average(c => c.r), 8f / 255f, receivers[i].name);
+                    Assert.Greater(blue.Average(c => c.b) - red.Average(c => c.b), 8f / 255f, receivers[i].name);
+                }
+                stack.Remove(overlay);
+                m_Lights[0].color = Color.red;
+                m_Lights[1].color = Color.blue;
+                m_Camera.Render();
+                CollectionAssert.AreEqual(new[] { m_Camera, m_Camera, m_Camera, overlay, m_Camera, overlay, m_Camera }, probe.cameras);
+                CollectionAssert.AreEqual(new[] { RenderingMode.Deferred, RenderingMode.Forward, RenderingMode.Deferred,
+                    RenderingMode.Forward, RenderingMode.Deferred, RenderingMode.Forward, RenderingMode.Deferred }, probe.preCullModes);
+                Assert.AreEqual(probe.cameras.Count, probe.lightFlags.Count);
+                const PerObjectData required = PerObjectData.LightData | PerObjectData.LightIndices;
+                for (int i = 0; i < probe.lightFlags.Count; ++i)
+                    Assert.AreEqual(required, probe.lightFlags[i] & required, $"Per-object light data missing at camera {i}");
+                var restored = Compare(baseOnly, ReadPixels());
+                Assert.AreEqual(0, restored.nonFinite);
+                Assert.LessOrEqual(restored.mean, 0.01f, "Overlay state leaked into the next base render.");
+                Assert.LessOrEqual(restored.max, 1f);
             }
             finally
             {
-                m_ClusteredRendererData.clusteredDeferredLighting = original;
-                EditorUtility.SetDirty(m_ClusteredRendererData);
-                AssetDatabase.SaveAssets();
                 TearDownRig();
+                Object.Destroy(pipeline);
+                Object.Destroy(rendererData);
+                Object.Destroy(probe);
             }
-#endif
         }
 
         [UnityTest]
@@ -373,7 +468,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
                 yield return RenderFrames(2);
                 Assert.AreEqual(2, CountClusterTargets(), "The clustered pass did not allocate its mask/lighting targets.");
 
-                SwitchPipeline(StencilPipelinePath);
+                SwitchPipeline(ForwardPlusPipelinePath);
                 yield return null;
                 yield return null;
                 Assert.AreEqual(0, CountClusterTargets(), "Clustered deferred render targets survived the renderer disposal.");
@@ -645,9 +740,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
 
 #if UNITY_EDITOR
             m_Pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(pipelinePath);
-            m_ClusteredRendererData = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(ClusteredRendererPath);
             Assert.IsNotNull(m_Pipeline, "Missing pipeline asset " + pipelinePath);
-            Assert.IsNotNull(m_ClusteredRendererData, "Missing clustered renderer asset " + ClusteredRendererPath);
 #else
             Assert.Ignore("The PlayMode regression loads its pipeline assets through the AssetDatabase.");
 #endif
@@ -740,7 +833,6 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             m_Root = null;
             m_Target = null;
             m_Pipeline = null;
-            m_ClusteredRendererData = null;
         }
 
         void SwitchPipeline(string pipelinePath)

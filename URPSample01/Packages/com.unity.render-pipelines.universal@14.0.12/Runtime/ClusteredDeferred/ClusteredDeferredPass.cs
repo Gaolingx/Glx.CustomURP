@@ -58,12 +58,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DeferredLights = deferredLights;
             m_ForwardLights = forwardLights;
             m_Compute = compute;
-            m_Kernel = compute != null ? compute.FindKernel("ClusteredDeferred") : -1;
+            int kernel = compute != null && compute.HasKernel("ClusteredDeferred") ? compute.FindKernel("ClusteredDeferred") : -1;
+            m_Kernel = kernel >= 0 && compute.IsSupported(kernel) ? kernel : -1;
             m_MaskMaterial = maskShader != null ? CoreUtils.CreateEngineMaterial(maskShader) : null;
             m_ResolveMaterial = resolveShader != null ? CoreUtils.CreateEngineMaterial(resolveShader) : null;
 
-            if (m_Compute == null || m_Kernel < 0 || m_MaskMaterial == null || m_ResolveMaterial == null)
-                Debug.LogError("Clustered deferred is enabled but its compute/mask/resolve resources are missing.");
+            if (!isAvailable)
+                Debug.LogWarning("Clustered deferred lighting resources are unavailable; using Forward.");
         }
 
         // v1 requires compute plus readable GBuffer/depth textures; GLES/WebGL have no compute
@@ -75,15 +76,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (!SystemInfo.supportsComputeShaders || RenderingUtils.useStructuredBuffer)
                     return false;
 
-                // GLES has compute on 3.1+ but the deferred GBuffer path is not supported there;
-                // WebGL never reports compute support, so the check above already excludes it.
                 var api = SystemInfo.graphicsDeviceType;
-                return api != GraphicsDeviceType.OpenGLES2 &&
-                       api != GraphicsDeviceType.OpenGLES3;
+                return (api == GraphicsDeviceType.Direct3D11 || api == GraphicsDeviceType.Direct3D12 ||
+                        api == GraphicsDeviceType.Vulkan || api == GraphicsDeviceType.Metal) &&
+                       SystemInfo.graphicsShaderLevel >= 45 && SystemInfo.supportedRenderTargetCount >= 4 &&
+                       SystemInfo.IsFormatSupported(GraphicsFormat.R8_UInt, FormatUsage.Render) &&
+                       SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.LoadStore);
             }
         }
 
-        // XR/foveated are out of v1 scope; preview and overlay cameras keep stencil deferred.
+        internal bool isAvailable => m_Compute != null && m_Kernel >= 0 && m_MaskMaterial != null && m_ResolveMaterial != null;
+
+        // XR/foveated, preview and overlay cameras use ordinary Forward.
         internal static bool IsEligibleCamera(ref CameraData cameraData)
         {
             return cameraData.cameraType == CameraType.Game &&
@@ -101,7 +105,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (m_Compute == null || m_Kernel < 0 || m_MaskMaterial == null || m_ResolveMaterial == null)
+            if (!isAvailable)
                 return;
 
             var cmd = renderingData.commandBuffer;
@@ -138,10 +142,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer1, (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[1]);
                 cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer2, (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[2]);
 
-                // Optional GBuffer slots. The kernel samples them under the same keywords the
-                // deferred path uses (_DEFERRED_MIXED_LIGHTING / _LIGHT_LAYERS); those globals are
-                // enabled by DeferredLights.Setup before this pass, except the mixed-lighting
-                // keyword, which the stencil path sets around ExecuteDeferredPass.
+                // The shadow caster passes publish shared shadow textures and constants. Only
+                // the optional GBuffer inputs need explicit compute bindings here.
                 var shadowMaskIndex = m_DeferredLights.GBufferShadowMask;
                 if (shadowMaskIndex >= 0)
                     cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.ShadowMaskTexture,
@@ -170,8 +172,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetComputeVectorParam(m_Compute, ShaderIDs.CameraParams,
                     new Vector4(camera.orthographic ? 0.0f : 1.0f, 0.0f, 0.0f, 0.0f));
 
-                // The stencil path enables this around ExecuteDeferredPass (DeferredLights.cs:581);
-                // the clustered path replaces that pass, so it must set the same keyword itself.
+                // Scope the optional shadowmask variant to the lighting dispatch.
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, m_DeferredLights.UseShadowMask);
                 // The G1c async build runs after GBuffer; waiting at the compute stage here lets the
                 // mask draws above overlap whatever is left of it instead of stalling all GPU work.
@@ -277,6 +278,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.Destroy(m_LightingTexture);
                 m_LightingTexture = null;
             }
+        }
+
+        public override void OnCameraCleanup(CommandBuffer cmd)
+        {
+            m_DeferredLights.OnCameraCleanup(cmd);
         }
 
         public void Dispose()

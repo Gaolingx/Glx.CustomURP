@@ -10,8 +10,8 @@ using UnityEngine.Rendering;
 public static class ClusteredDeferredArenaBuild
 {
     const string ScenePath = "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity";
-    const string ValidationRoot = "PLAN/TODO/16-CleanupBaseline/validation/baseline";
-    const string T4ValidationRoot = "PLAN/TODO/16-CleanupBaseline/validation/baseline/t4";
+    const string ValidationRoot = "PLAN/TODO/16-CleanupBaseline/validation/c3";
+    const string T4ValidationRoot = ValidationRoot + "/t4";
 
     public static void BuildD3D11AndExit()
     {
@@ -89,17 +89,17 @@ public static class ClusteredDeferredArenaBuild
             var pipelinePaths = t4
                 ? new[]
                 {
-                    "Assets/Tests/ClusteredDeferred/Renderers/CdShadowStencilDeferredPipeline.asset",
-                    "Assets/Tests/ClusteredDeferred/Renderers/CdShadowClusteredDeferredPipeline.asset",
-                    "Assets/Tests/ClusteredDeferred/Renderers/CdScreenShadowStencilDeferredPipeline.asset",
-                    "Assets/Tests/ClusteredDeferred/Renderers/CdFeatureStencilDeferredPipeline.asset",
+                    ClusteredDeferredTestAssetSetup.T4Prefix("Shadow") + "ClusteredDeferredPipeline.asset",
+                    ClusteredDeferredTestAssetSetup.T4Prefix("ScreenShadow") + "ClusteredDeferredPipeline.asset",
+                    ClusteredDeferredTestAssetSetup.T4Prefix("Feature") + "ClusteredDeferredPipeline.asset",
                 }
                 : new[]
                 {
-                    "Assets/Tests/ClusteredDeferred/Renderers/CdStencilDeferredPipeline.asset",
-                    "Assets/Tests/ClusteredDeferred/Renderers/CdClusteredDeferredPipeline.asset",
-                    "Assets/Tests/ClusteredDeferred/Renderers/CdForwardPlusPipeline.asset",
+                    ClusteredDeferredTestAssetSetup.ClusteredPipelinePath,
+                    ClusteredDeferredTestAssetSetup.ForwardPlusPipelinePath,
                 };
+            if (qualityLevelCount < pipelinePaths.Length)
+                throw new InvalidOperationException("Not enough quality slots to retain every arena loadout.");
             var pipelines = new RenderPipelineAsset[pipelinePaths.Length];
             for (var i = 0; i < pipelinePaths.Length; i++)
             {

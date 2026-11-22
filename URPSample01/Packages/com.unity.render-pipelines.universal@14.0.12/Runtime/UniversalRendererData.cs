@@ -79,12 +79,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader samplingPS;
 
             /// <summary>
-            /// Stencil Deferred shader.
-            /// </summary>
-            [Reload("Shaders/Utils/StencilDeferred.shader")]
-            public Shader stencilDeferredPS;
-
-            /// <summary>
             /// Clustered deferred direct lighting compute.
             /// </summary>
             [Reload("Shaders/Utils/ClusteredDeferred.compute")]
@@ -202,7 +196,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
-        [SerializeField] bool m_ClusteredDeferredLighting = false;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterTransparents;
 #if UNITY_EDITOR
@@ -285,19 +278,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_RenderingMode = value;
-            }
-        }
-
-        /// <summary>
-        /// Uses the clustered deferred lighting path when Rendering Mode is Deferred.
-        /// </summary>
-        public bool clusteredDeferredLighting
-        {
-            get => m_ClusteredDeferredLighting;
-            set
-            {
-                SetDirty();
-                m_ClusteredDeferredLighting = value;
             }
         }
 

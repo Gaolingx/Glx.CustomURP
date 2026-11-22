@@ -48,12 +48,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader samplingPS;
 
             /// <summary>
-            /// Stencil deferred shader.
-            /// </summary>
-            [Reload("Shaders/Utils/StencilDeferred.shader")]
-            public Shader stencilDeferredPS;
-
-            /// <summary>
             /// Fallback error shader.
             /// </summary>
             [Reload("Shaders/Utils/FallbackError.shader")]

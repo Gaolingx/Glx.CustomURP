@@ -13,25 +13,22 @@ using UnityEngine.Rendering.Universal;
 //
 // The arena (ground, walls, main light) lives in the scene; this runner spawns the light field
 // and the receiving geometry deterministically, then walks:
-//   mode (stencil deferred / clustered deferred / forward+) x light count
-// with FrameTimingManager sampling and one screenshot per mode at the A/B light count.
-// The clustered path and the stencil path use the same deferred renderer settings; only
-// UniversalRendererData.clusteredDeferredLighting differs.
+//   mode (Forward+ / clustered deferred) x light count
+// with FrameTimingManager sampling and screenshots at the requested light counts.
 public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
 {
-    public UniversalRenderPipelineAsset stencilDeferredPipeline;
     public UniversalRenderPipelineAsset clusteredDeferredPipeline;
     public UniversalRenderPipelineAsset forwardPlusPipeline;
 
     // T4 shadow subset: same renderer pair, different pipeline shadow settings.
-    public UniversalRenderPipelineAsset shadowStencilPipeline;
+    public UniversalRenderPipelineAsset shadowForwardPlusPipeline;
     public UniversalRenderPipelineAsset shadowClusteredPipeline;
-    public UniversalRenderPipelineAsset screenShadowStencilPipeline;
+    public UniversalRenderPipelineAsset screenShadowForwardPlusPipeline;
     public UniversalRenderPipelineAsset screenShadowClusteredPipeline;
 
     // T4 feature subset: the renderer pair has light layers enabled and a GTAO feature
     // (indirect AO always on, direct-light AO toggled by the runner).
-    public UniversalRenderPipelineAsset featureStencilPipeline;
+    public UniversalRenderPipelineAsset featureForwardPlusPipeline;
     public UniversalRenderPipelineAsset featureClusteredPipeline;
     public Texture2D cookieTexture;
     public Light arenaMainLight;
@@ -51,7 +48,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     public int width = 1280;
     public int height = 720;
 
-    const string StencilMode = "StencilDeferred";
     const string ClusteredMode = "ClusteredDeferred";
     const string ForwardPlusMode = "ForwardPlus";
     const uint kDefaultRenderingLayer = 1u;
@@ -311,7 +307,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             perObjectLightLimit = m_PerObjectLightLimit,
             captureOnly = captureOnly,
             modes = m_Modes,
-            diffs = new List<DiffReport>(),
             forwardPlusDiffs = new List<DiffReport>(),
         };
 
@@ -624,10 +619,18 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         return bits;
     }
 
-    // CPU decomposition for the deferred light path: PreSetup (cluster job scheduling),
-    // SetupLights (job completion, list upload, light constants, stencil light precompute) and
-    // everything else in the frame. Stencil and clustered modes share the scene and light count,
-    // so the PrecomputeLights delta is a direct measurement of the C1 saving.
+    ModePipelines[] ComparisonModes()
+    {
+        if (forwardPlusPipeline == clusteredDeferredPipeline)
+            throw new InvalidOperationException("The Forward+ reference must be independent of clustered deferred.");
+        return new[]
+        {
+            new ModePipelines { name = ClusteredMode, pipeline = clusteredDeferredPipeline },
+            new ModePipelines { name = ForwardPlusMode, pipeline = forwardPlusPipeline },
+        };
+    }
+
+    // Record the CPU slices for the same two pipelines as the image sweep.
     IEnumerator RunCpuBreakdown(string outputRoot, CpuBreakdownReport report)
     {
         SetupArena();
@@ -640,11 +643,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         if (probe == null)
             throw new InvalidOperationException("ClusteredDeferredCpuProbe is missing from the URP runtime assembly.");
 
-        var modes = new[]
-        {
-            new ModePipelines { name = StencilMode, pipeline = stencilDeferredPipeline },
-            new ModePipelines { name = ClusteredMode, pipeline = clusteredDeferredPipeline },
-        };
+        var modes = ComparisonModes();
 
         for (var modeIndex = 0; modeIndex < modes.Length; modeIndex++)
         {
@@ -684,12 +683,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         Application.targetFrameRate = 0;
         Screen.SetResolution(width, height, false);
 
-        var pipelines = new[]
-        {
-            new ModePipelines { name = StencilMode, pipeline = stencilDeferredPipeline },
-            new ModePipelines { name = ClusteredMode, pipeline = clusteredDeferredPipeline },
-            new ModePipelines { name = ForwardPlusMode, pipeline = forwardPlusPipeline },
-        };
+        var pipelines = ComparisonModes();
 
         for (var modeIndex = 0; modeIndex < pipelines.Length; modeIndex++)
         {
@@ -755,6 +749,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                     yield return new WaitForEndOfFrame();
                     if (m_TransparentRect.width == 0)
                         m_TransparentRect = ComputeProjectedRect();
+                    if (Shader.IsKeywordEnabled("_FORWARD_PLUS") != (mode.name == ForwardPlusMode))
+                        throw new InvalidOperationException("Unexpected _FORWARD_PLUS state for " + mode.name);
                     var key = mode.name + "_L" + lightCount;
                     var texture = ScreenCapture.CaptureScreenshotAsTexture();
                     m_Screenshots[key] = texture;
@@ -786,7 +782,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             }
         }
 
-        ComputeDiffs(report.diffs, report.forwardPlusDiffs);
+        ComputeDiffs(report.forwardPlusDiffs);
         report.transparentRectX = m_TransparentRect.x;
         report.transparentRectY = m_TransparentRect.y;
         report.transparentRectWidth = m_TransparentRect.width;
@@ -820,36 +816,36 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 0;
         Screen.SetResolution(width, height, false);
-        yield return SetPipeline(stencilDeferredPipeline);
+        yield return SetPipeline(shadowForwardPlusPipeline);
         yield return WaitFrames(warmupFrames);
 
         yield return RunFeatureCase(outputRoot, report, "MainShadowCascade",
-            shadowStencilPipeline, shadowClusteredPipeline, ApplyMainLightShadows);
+            shadowForwardPlusPipeline, shadowClusteredPipeline, ApplyMainLightShadows);
         yield return RunFeatureCase(outputRoot, report, "ReceiveShadowsOff",
-            shadowStencilPipeline, shadowClusteredPipeline, ApplyReceiveShadowsOff);
+            shadowForwardPlusPipeline, shadowClusteredPipeline, ApplyReceiveShadowsOff);
         yield return RunFeatureCase(outputRoot, report, "MainShadowScreen",
-            screenShadowStencilPipeline, screenShadowClusteredPipeline, ApplyMainLightShadows);
+            screenShadowForwardPlusPipeline, screenShadowClusteredPipeline, ApplyMainLightShadows);
         // Last: this case moves six spot lights above the receiver row.
         yield return RunFeatureCase(outputRoot, report, "AdditionalShadowAtlas",
-            shadowStencilPipeline, shadowClusteredPipeline, ApplyAdditionalLightShadows);
+            shadowForwardPlusPipeline, shadowClusteredPipeline, ApplyAdditionalLightShadows);
 
         yield return RunFeatureCase(outputRoot, report, "LightCookie",
-            featureStencilPipeline, featureClusteredPipeline, ApplyLightCookies);
+            featureForwardPlusPipeline, featureClusteredPipeline, ApplyLightCookies);
         yield return RunFeatureCase(outputRoot, report, "LightLayers",
-            featureStencilPipeline, featureClusteredPipeline, ApplyLightLayers);
+            featureForwardPlusPipeline, featureClusteredPipeline, ApplyLightLayers);
         yield return RunFeatureCase(outputRoot, report, "ScreenSpaceAO",
-            featureStencilPipeline, featureClusteredPipeline, ApplyDirectAmbientOcclusion);
+            featureForwardPlusPipeline, featureClusteredPipeline, ApplyDirectAmbientOcclusion);
 
         WriteFeatureMatrix(outputRoot, report);
     }
 
     // One feature at a time: reset every shadow switch, toggle only the feature under test,
-    // capture stencil and clustered with the feature off and on.
+    // capture forwardPlus and clustered with the feature off and on.
     IEnumerator RunFeatureCase(string outputRoot, FeatureMatrixReport report, string feature,
-        UniversalRenderPipelineAsset stencil, UniversalRenderPipelineAsset clustered, Action<bool> applyFeature)
+        UniversalRenderPipelineAsset forwardPlus, UniversalRenderPipelineAsset clustered, Action<bool> applyFeature)
     {
-        if (stencil == null || clustered == null)
-            throw new InvalidOperationException("Missing T4 pipeline for " + feature);
+        if (forwardPlus == null || clustered == null || forwardPlus == clustered)
+            throw new InvalidOperationException("Expected independent Forward+ and clustered pipelines for " + feature);
 
         var entry = new FeatureEntry
         {
@@ -860,28 +856,28 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         report.entries.Add(entry);
 
         var shots = new Dictionary<string, Texture2D>();
-        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "StencilOff", stencil, applyFeature, false);
+        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "ForwardPlusOff", forwardPlus, applyFeature, false);
         yield return CaptureFeatureState(outputRoot, entry, shots, feature, "ClusteredOff", clustered, applyFeature, false);
-        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "StencilOn", stencil, applyFeature, true);
+        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "ForwardPlusOn", forwardPlus, applyFeature, true);
         yield return CaptureFeatureState(outputRoot, entry, shots, feature, "ClusteredOn", clustered, applyFeature, true);
 
-        entry.comparisons.Add(CompareFeature("stencil_vs_clustered_on",
-            shots[feature + "_StencilOn"], shots[feature + "_ClusteredOn"]));
-        entry.comparisons.Add(CompareFeature("stencil_vs_clustered_off",
-            shots[feature + "_StencilOff"], shots[feature + "_ClusteredOff"]));
+        entry.comparisons.Add(CompareFeature("forward_plus_vs_clustered_on",
+            shots[feature + "_ForwardPlusOn"], shots[feature + "_ClusteredOn"]));
+        entry.comparisons.Add(CompareFeature("forward_plus_vs_clustered_off",
+            shots[feature + "_ForwardPlusOff"], shots[feature + "_ClusteredOff"]));
         entry.comparisons.Add(CompareFeature("clustered_feature_effect",
             shots[feature + "_ClusteredOff"], shots[feature + "_ClusteredOn"]));
-        entry.comparisons.Add(CompareFeature("stencil_feature_effect",
-            shots[feature + "_StencilOff"], shots[feature + "_StencilOn"]));
+        entry.comparisons.Add(CompareFeature("forward_plus_feature_effect",
+            shots[feature + "_ForwardPlusOff"], shots[feature + "_ForwardPlusOn"]));
 
-        var noMagenta = true;
+        var validStates = true;
         foreach (var state in entry.states)
-            noMagenta &= state.magentaPixelFraction < 0.001f;
+            validStates &= state.magentaPixelFraction < 0.001f &&
+                state.forwardPlusKeyword == state.name.StartsWith(ForwardPlusMode, StringComparison.Ordinal);
 
         // Liveness: the feature must move at least some pixels beyond the 8/255 noise band.
-        entry.featureActive = entry.comparisons[2].pixelsOverThreshold > 0 ||
-            entry.comparisons[2].meanChannelDiff > 0.05;
-        entry.passed = noMagenta && entry.featureActive &&
+        entry.featureActive = HasFeatureEffect(entry.comparisons[2]) && HasFeatureEffect(entry.comparisons[3]);
+        entry.passed = validStates && entry.featureActive &&
             entry.comparisons[0].passed && entry.comparisons[1].passed;
 
         foreach (var pair in shots)
@@ -908,6 +904,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         entry.states.Add(new FeatureState
         {
             name = state,
+            forwardPlusKeyword = Shader.IsKeywordEnabled("_FORWARD_PLUS"),
             file = key + ".png",
             magentaPixelFraction = MagentaFraction(texture.GetPixels32()),
         });
@@ -940,7 +937,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             m_ReceiverRenderers[i].renderingLayerMask = kDefaultRenderingLayer;
         }
         // The AO case owns direct-light AO; every other case renders with it off.
-        SetDirectAoStrength(featureStencilPipeline, 0f);
+        SetDirectAoStrength(featureForwardPlusPipeline, 0f);
         SetDirectAoStrength(featureClusteredPipeline, 0f);
     }
 
@@ -985,7 +982,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     // strength so the A/B only compares the deferred lighting path.
     void ApplyDirectAmbientOcclusion(bool on)
     {
-        SetDirectAoStrength(featureStencilPipeline, on ? 1f : 0f);
+        SetDirectAoStrength(featureForwardPlusPipeline, on ? 1f : 0f);
         SetDirectAoStrength(featureClusteredPipeline, on ? 1f : 0f);
     }
 
@@ -1030,7 +1027,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         if (receiveShadowsOffMaterial == null)
             return;
         for (var i = 0; i < m_ReceiverRenderers.Count; i++)
-            m_ReceiverRenderers[i].sharedMaterial = off && i % 2 == 0 ? receiveShadowsOffMaterial : m_ReceiverMaterials[i];
+            m_ReceiverRenderers[i].sharedMaterial = off && i % 2 == 0 && m_ReceiverMaterials[i] == sphereMaterial
+                ? receiveShadowsOffMaterial : m_ReceiverMaterials[i];
     }
 
     // Point-light shadows need six atlas slices each; keep the subset to spots so the 2048 atlas
@@ -1060,6 +1058,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         }
     }
 
+    static bool HasFeatureEffect(FeatureComparison effect) => effect.pixelsOverThreshold > 0 || effect.meanChannelDiff > 0.05;
+
     static FeatureComparison CompareFeature(string name, Texture2D reference, Texture2D candidate)
     {
         var diff = Compare(0, name, reference, name, candidate, new RectInt(0, 0, 0, 0));
@@ -1084,7 +1084,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                 return true;
         }
 
-        return false;
+        return report.entries.Count != 7;
     }
 
     static void WriteFeatureMatrix(string outputRoot, FeatureMatrixReport report)
@@ -1100,10 +1100,10 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         yield return null;
     }
 
-    // Forward+ ignores the per-object cap; setting it there too keeps the three assets identical.
+    // Forward+ ignores the per-object cap; keep the setting equal on both sweep pipelines.
     void ApplyPerObjectLightLimit(int limit)
     {
-        var pipelines = new[] { stencilDeferredPipeline, clusteredDeferredPipeline, forwardPlusPipeline };
+        var pipelines = new[] { clusteredDeferredPipeline, forwardPlusPipeline };
         for (var i = 0; i < pipelines.Length; i++)
         {
             if (pipelines[i] != null)
@@ -1208,9 +1208,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         }
 
         // Probe fixture: a row of alpha-blended Lit spheres between the camera and the receivers.
-        // The deferred and stencil paths light them through per-object indices (<= 4 lights by
-        // default), while Forward+ lights them from the cluster list; the diff over this group's
-        // projected rect is the gap this round measures.
+        // Measure clustered vs Forward+ inside their projected rect as well as over the frame.
         if (m_TransparentEnabled && m_TransparentMaterial != null)
         {
             for (var i = 0; i < 3; i++)
@@ -1271,21 +1269,13 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
     }
 
-    void ComputeDiffs(List<DiffReport> diffs, List<DiffReport> forwardPlusDiffs)
+    void ComputeDiffs(List<DiffReport> forwardPlusDiffs)
     {
-        foreach (var lightCount in lightCounts)
+        foreach (var count in SortedScreenshotCounts())
         {
-            Texture2D stencil;
-            Texture2D clustered;
-            Texture2D forwardPlus;
-            var hasStencil = m_Screenshots.TryGetValue(StencilMode + "_L" + lightCount, out stencil);
-            var hasClustered = m_Screenshots.TryGetValue(ClusteredMode + "_L" + lightCount, out clustered);
-            var hasForwardPlus = m_Screenshots.TryGetValue(ForwardPlusMode + "_L" + lightCount, out forwardPlus);
-
-            if (hasStencil && hasClustered)
-                diffs.Add(Compare(lightCount, StencilMode, stencil, ClusteredMode, clustered, m_TransparentRect));
-            if (hasClustered && hasForwardPlus)
-                forwardPlusDiffs.Add(Compare(lightCount, ClusteredMode, clustered, ForwardPlusMode, forwardPlus, m_TransparentRect));
+            var reference = m_Screenshots[ForwardPlusMode + "_L" + count];
+            var candidate = m_Screenshots[ClusteredMode + "_L" + count];
+            forwardPlusDiffs.Add(Compare(count, ForwardPlusMode, reference, ClusteredMode, candidate, m_TransparentRect));
         }
     }
 
@@ -1507,7 +1497,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
 
         double PerFrameMs(string slice, int frames)
         {
-            if (frames <= 0 || !m_Fields.TryGetValue(slice, out var field))
+            if (frames <= 0 || !m_Fields.TryGetValue(slice, out var field) || field == null)
                 return 0.0;
             var ticks = (long)field.GetValue(null);
             return ticks * 1000.0 / System.Diagnostics.Stopwatch.Frequency / frames;
@@ -1843,6 +1833,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     public sealed class FeatureState
     {
         public string name;
+        public bool forwardPlusKeyword;
         public string file;
         public float magentaPixelFraction;
     }
@@ -1917,7 +1908,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public bool completed;
         public string error;
         public List<ModeReport> modes;
-        public List<DiffReport> diffs;
         public List<DiffReport> forwardPlusDiffs;
     }
 

@@ -1280,24 +1280,6 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for high quality sampling for Depth Of Field. </summary>
         public const string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
-        /// <summary> Keyword used for Spot lights. </summary>
-        public const string _SPOT = "_SPOT";
-
-        /// <summary> Keyword used for Directional lights. </summary>
-        public const string _DIRECTIONAL = "_DIRECTIONAL";
-
-        /// <summary> Keyword used for Point lights. </summary>
-        public const string _POINT = "_POINT";
-
-        /// <summary> Keyword used for stencils when rendering with the Deferred rendering path. </summary>
-        public const string _DEFERRED_STENCIL = "_DEFERRED_STENCIL";
-
-        /// <summary> Keyword used for the first light when rendering with the Deferred rendering path. </summary>
-        public const string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
-
-        /// <summary> Keyword used for the main light when rendering with the Deferred rendering path. </summary>
-        public const string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
-
         /// <summary> Keyword used for Accurate G-buffer normals when rendering with the Deferred rendering path. </summary>
         public const string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
 

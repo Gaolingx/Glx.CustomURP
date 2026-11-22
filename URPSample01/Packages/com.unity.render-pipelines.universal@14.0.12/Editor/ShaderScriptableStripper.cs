@@ -109,7 +109,6 @@ namespace UnityEditor.Rendering.Universal
         Shader m_PaniniProjection = Shader.Find("Hidden/Universal Render Pipeline/PaniniProjection");
         Shader m_Bloom = Shader.Find("Hidden/Universal Render Pipeline/Bloom");
         Shader m_TerrainLit = Shader.Find("Universal Render Pipeline/Terrain/Lit");
-        Shader m_StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
         Shader m_UberPostShader = Shader.Find("Hidden/Universal Render Pipeline/UberPost");
         Shader m_HDROutputBlitShader = Shader.Find("Hidden/Universal/BlitHDROverlay");
         Shader m_DataDrivenLensFlareShader = Shader.Find("Hidden/Universal Render Pipeline/LensFlareDataDriven");
@@ -990,19 +989,6 @@ namespace UnityEditor.Rendering.Universal
                             Unused Shaders
         *********************************************************/
 
-        internal bool StripUnusedShaders_Deferred(ref IShaderScriptableStrippingData strippingData)
-        {
-            if (!strippingData.stripUnusedVariants)
-                return false;
-
-            // Remove DeferredStencil if Deferred Rendering is not used
-            if (strippingData.shader == m_StencilDeferred)
-                if (!strippingData.IsShaderFeatureEnabled(ShaderFeatures.DeferredShading))
-                    return true;
-
-            return false;
-        }
-
         internal bool StripUnusedShaders_HDROutput(ref IShaderScriptableStrippingData strippingData)
         {
             if (!strippingData.stripUnusedVariants)
@@ -1020,10 +1006,6 @@ namespace UnityEditor.Rendering.Universal
         {
             if (!strippingData.stripUnusedVariants)
                 return false;
-
-            // Remove DeferredStencil if Deferred Rendering is not used
-            if (StripUnusedShaders_Deferred(ref strippingData))
-                return true;
 
             // Remove BlitHDROverlay if HDR output is not used
             if (StripUnusedShaders_HDROutput(ref strippingData))

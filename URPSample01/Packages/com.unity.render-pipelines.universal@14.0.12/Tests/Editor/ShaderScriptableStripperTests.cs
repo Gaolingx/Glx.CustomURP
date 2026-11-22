@@ -111,61 +111,41 @@ namespace ShaderStrippingAndPrefiltering
          * Strip Unused Shaders...
          *****************************************************/
 
-        [TestCase(null, false, false)]
-        [TestCase("", false, false)]
-        [TestCase("Universal Render Pipeline/Lit", false, false)]
-        [TestCase("Universal Render Pipeline/Simple Lit", false, false)]
-        [TestCase("Universal Render Pipeline/Unlit", false, false)]
-        [TestCase("Universal Render Pipeline/Terrain/Lit", false, false)]
-        [TestCase("Universal Render Pipeline/Particles/Lit", false, false)]
-        [TestCase("Universal Render Pipeline/Particles/Simple Lit", false, false)]
-        [TestCase("Universal Render Pipeline/Particles/Unlit", false, false)]
-        [TestCase("Universal Render Pipeline/Baked Lit", false, false)]
-        [TestCase("Universal Render Pipeline/Nature/SpeedTree7", false, false)]
-        [TestCase("Universal Render Pipeline/Nature/SpeedTree7 Billboard", false, false)]
-        [TestCase("Universal Render Pipeline/Nature/SpeedTree8_PBRLit", false, false)]
-        [TestCase("Universal Render Pipeline/Complex Lit", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/BokehDepthOfField", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/GaussianDepthOfField", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/CameraMotionBlur", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/PaniniProjection", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/Bloom", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/StencilDeferred", true, false)]
-        [TestCase("Hidden/Universal Render Pipeline/UberPost", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/DBufferClear", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/CameraMotionVectors", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/CopyDepth", false, false)]
-        [TestCase("Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing", false, false)]
-        public void TestStripUnusedShaders(string shaderName, bool expectedNoFeatures, bool expectedWithDeferredShading)
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("Universal Render Pipeline/Lit")]
+        [TestCase("Universal Render Pipeline/Simple Lit")]
+        [TestCase("Universal Render Pipeline/Unlit")]
+        [TestCase("Universal Render Pipeline/Terrain/Lit")]
+        [TestCase("Universal Render Pipeline/Particles/Lit")]
+        [TestCase("Universal Render Pipeline/Particles/Simple Lit")]
+        [TestCase("Universal Render Pipeline/Particles/Unlit")]
+        [TestCase("Universal Render Pipeline/Baked Lit")]
+        [TestCase("Universal Render Pipeline/Nature/SpeedTree7")]
+        [TestCase("Universal Render Pipeline/Nature/SpeedTree7 Billboard")]
+        [TestCase("Universal Render Pipeline/Nature/SpeedTree8_PBRLit")]
+        [TestCase("Universal Render Pipeline/Complex Lit")]
+        [TestCase("Hidden/Universal Render Pipeline/BokehDepthOfField")]
+        [TestCase("Hidden/Universal Render Pipeline/GaussianDepthOfField")]
+        [TestCase("Hidden/Universal Render Pipeline/CameraMotionBlur")]
+        [TestCase("Hidden/Universal Render Pipeline/PaniniProjection")]
+        [TestCase("Hidden/Universal Render Pipeline/Bloom")]
+        [TestCase("Hidden/Universal Render Pipeline/UberPost")]
+        [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows")]
+        [TestCase("Hidden/Universal Render Pipeline/DBufferClear")]
+        [TestCase("Hidden/Universal Render Pipeline/CameraMotionVectors")]
+        [TestCase("Hidden/Universal Render Pipeline/CopyDepth")]
+        [TestCase("Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing")]
+        public void TestStripUnusedShaders(string shaderName)
         {
-            TestHelper helper;
-            Shader shader = Shader.Find(shaderName);
-            ShaderScriptableStripper scriptableStripper = new();
-
-            // Test each individual function...
-            TestStripUnusedShaders_Deferred(shader, expectedNoFeatures, expectedWithDeferredShading);
-
-            // Test the parent function...
-
-            // Strip unused variants enabled/disabled
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            helper.AreEqual(expectedNoFeatures, scriptableStripper.StripUnusedShaders(ref helper.data));
-
-            helper = new TestHelper(shader, ShaderFeatures.None, stripUnusedVariants:false);
-            helper.IsFalse(scriptableStripper.StripUnusedShaders(ref helper.data));
-        }
-
-        public void TestStripUnusedShaders_Deferred(Shader shader, bool expectedNoFeatures, bool expectedWithDeferredShading)
-        {
-            TestHelper helper;
-
-            // Currently only StencilDeferred is stripped out (when deferred is not in use)
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            helper.AreEqual(expectedNoFeatures, helper.stripper.StripUnusedShaders_Deferred(ref helper.data));
-
-            helper = new TestHelper(shader, ShaderFeatures.DeferredShading);
-            helper.AreEqual(expectedWithDeferredShading, helper.stripper.StripUnusedShaders_Deferred(ref helper.data));
+            var shader = Shader.Find(shaderName);
+            foreach (var features in new[] { ShaderFeatures.None, ShaderFeatures.DeferredShading })
+            {
+                var helper = new TestHelper(shader, features);
+                helper.IsFalse(helper.stripper.StripUnusedShaders(ref helper.data));
+                helper = new TestHelper(shader, features, stripUnusedVariants: false);
+                helper.IsFalse(helper.stripper.StripUnusedShaders(ref helper.data));
+            }
         }
 
         /*****************************************************
@@ -191,7 +171,6 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionBlur")]
         [TestCase("Hidden/Universal Render Pipeline/PaniniProjection")]
         [TestCase("Hidden/Universal Render Pipeline/Bloom")]
-        [TestCase("Hidden/Universal Render Pipeline/StencilDeferred")]
         [TestCase("Hidden/Universal Render Pipeline/UberPost")]
         [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows")]
         [TestCase("Hidden/Universal Render Pipeline/DBufferClear")]
@@ -417,7 +396,6 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionBlur", false, false, true)]
         [TestCase("Hidden/Universal Render Pipeline/PaniniProjection", false, false, true)]
         [TestCase("Hidden/Universal Render Pipeline/Bloom", false, false, true)]
-        [TestCase("Hidden/Universal Render Pipeline/StencilDeferred", false, false, true)]
         [TestCase("Hidden/Universal Render Pipeline/UberPost", false, false, true)]
         [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows", false, false, true)]
         [TestCase("Hidden/Universal Render Pipeline/DBufferClear", false, false, true)]
@@ -571,7 +549,6 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionBlur", true, true, true)]
         [TestCase("Hidden/Universal Render Pipeline/PaniniProjection", true, true, true)]
         [TestCase("Hidden/Universal Render Pipeline/Bloom", true, true, true)]
-        [TestCase("Hidden/Universal Render Pipeline/StencilDeferred", true, true, true)]
         [TestCase("Hidden/Universal Render Pipeline/UberPost", true, true, true)]
         [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows", true, true, true)]
         [TestCase("Hidden/Universal Render Pipeline/DBufferClear", true, true, true)]
@@ -648,7 +625,6 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionBlur")]
         [TestCase("Hidden/Universal Render Pipeline/PaniniProjection")]
         [TestCase("Hidden/Universal Render Pipeline/Bloom")]
-        [TestCase("Hidden/Universal Render Pipeline/StencilDeferred")]
         [TestCase("Hidden/Universal Render Pipeline/UberPost")]
         [TestCase("Hidden/Universal Render Pipeline/ScreenSpaceShadows")]
         [TestCase("Hidden/Universal Render Pipeline/DBufferClear")]

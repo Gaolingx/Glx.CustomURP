@@ -1,0 +1,39 @@
+{
+  "result": "PASS",
+  "scope": "Candidate T5 player logs and static C3 source inspection; no Unity run or runtime route claim.",
+  "paths": "Log paths are relative to this file; source paths are relative to URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/; lines are one-based.",
+  "budgetEvidence": "../baseline/C0VariantBaseline.json:8-15,33-46,55-58",
+  "litForwardLit": {
+    "shader": "Universal Render Pipeline/Lit",
+    "pass": "ForwardLit",
+    "stage": "fp",
+    "metric": "After scriptable stripping (not cache misses or newly compiled variants)",
+    "c0LimitPerApi": 6144,
+    "observations": [
+      {"api": "D3D11", "log": "build-t5-d3d11.log", "buildMethodLine": 32, "blockLines": [7486, 7493], "countLine": 7490, "afterBuiltIn": 18432, "afterScriptable": 6144, "deltaFromC0": 0},
+      {"api": "D3D12", "log": "build-t5-d3d12.log", "buildMethodLine": 29, "blockLines": [7324, 7331], "countLine": 7328, "afterBuiltIn": 18432, "afterScriptable": 6144, "deltaFromC0": 0}
+    ]
+  },
+  "clusteredDeferredCompute": {
+    "source": "Shaders/Utils/ClusteredDeferred.compute:11-20",
+    "metric": "Declared keyword combinations for the ClusteredDeferred kernel before stripping; each underscore counts as one off option.",
+    "axes": [
+      {"line": 13, "enabledOptions": ["_GBUFFER_NORMALS_OCT"], "states": 2},
+      {"line": 14, "enabledOptions": ["_MAIN_LIGHT_SHADOWS", "_MAIN_LIGHT_SHADOWS_CASCADE", "_MAIN_LIGHT_SHADOWS_SCREEN"], "states": 4},
+      {"line": 15, "enabledOptions": ["_ADDITIONAL_LIGHT_SHADOWS"], "states": 2},
+      {"line": 16, "enabledOptions": ["_SHADOWS_SOFT", "_SHADOWS_SOFT_LOW", "_SHADOWS_SOFT_MEDIUM", "_SHADOWS_SOFT_HIGH"], "states": 5},
+      {"line": 17, "enabledOptions": ["_LIGHT_COOKIES"], "states": 2},
+      {"line": 18, "enabledOptions": ["_LIGHT_LAYERS"], "states": 2},
+      {"line": 19, "enabledOptions": ["_SCREEN_SPACE_OCCLUSION"], "states": 2},
+      {"line": 20, "enabledOptions": ["_DEFERRED_MIXED_LIGHTING"], "states": 2}
+    ],
+    "calculation": "2 * 4 * 2 * 5 * 2 * 2 * 2 * 2 = 1280",
+    "combinations": 1280, "c0Budget": 1280, "deltaFromC0": 0
+  },
+  "retainedScope": [
+    {"finding": "Renderer still calls ForwardLights.PreSetup. The CPU path schedules light and probe min/max, Z binning, tiling and tile-range expansion jobs; Setup completes the handle before uploading results.", "evidence": ["Runtime/UniversalRenderer.cs:582", "Runtime/ForwardLights.cs:251,378-410,417-452,645-657"]},
+    {"finding": "Forward+ z-bins and tile masks remain constant buffers of packed float4s (four words per element); clustered deferred retains separate uint structured buffers. HLSL retains the matching declarations and word access paths.", "evidence": ["Runtime/ForwardLights.cs:187-200,652-666", "ShaderLibrary/Input.hlsl:174-186", "ShaderLibrary/Clustering.hlsl:24-26"]},
+    {"finding": "CPU publishes _FPParams0/1/2 and HLSL retains the lane mapping for z-bin scale/offset, probe start, directional count, tile scale/count, words per tile and bin count.", "evidence": ["Runtime/ForwardLights.cs:577-579", "ShaderLibrary/Input.hlsl:131-148"]},
+    {"finding": "Classic Forward retains the per-object index route: CPU requests indices and sets the culling index map; non-cluster GetAdditionalLight resolves the per-object index rather than using the cluster index directly.", "evidence": ["Runtime/UniversalRenderPipeline.cs:1608", "Runtime/ForwardLights.cs:866,938-978", "ShaderLibrary/RealtimeLights.hlsl:200-211,221-244,249-266"]}
+  ]
+}

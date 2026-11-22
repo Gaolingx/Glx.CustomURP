@@ -150,13 +150,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             context.ExecuteCommandBuffer(renderingData.commandBuffer);
             renderingData.commandBuffer.Clear();
 
-            if (data.deferredLights.IsOverlay)
-            {
-                data.deferredLights.ClearStencilPartial(renderingData.commandBuffer);
-                context.ExecuteCommandBuffer(renderingData.commandBuffer);
-                renderingData.commandBuffer.Clear();
-            }
-
             NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(s_ShaderTagValues, Allocator.Temp);
             NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(s_RenderStateBlocks, Allocator.Temp);
 

@@ -101,7 +101,6 @@ namespace UnityEngine.Rendering.Universal
 
         // Deferred Rendering
         [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove, keywordNames: new [] {
-            ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, ShaderKeywordStrings._DEFERRED_MAIN_LIGHT,
             ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, ShaderKeywordStrings._GBUFFER_NORMALS_OCT
         })]
         [SerializeField] private PrefilteringMode m_PrefilteringModeDeferredRendering = PrefilteringMode.Select;

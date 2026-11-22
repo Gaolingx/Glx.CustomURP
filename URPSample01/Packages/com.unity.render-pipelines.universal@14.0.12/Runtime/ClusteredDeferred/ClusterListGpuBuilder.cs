@@ -315,7 +315,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void EnsureCapacity(int itemCount, int binCount)
         {
-            if (m_ItemCapacity < itemCount)
+            // Empty dispatches still require valid structured-buffer bindings on D3D.
+            if (m_Items == null || m_ItemCapacity < itemCount)
             {
                 m_Items?.Dispose();
                 m_MinMaxZ?.Dispose();
