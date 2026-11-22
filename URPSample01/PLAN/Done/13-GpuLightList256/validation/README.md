@@ -75,6 +75,7 @@ GPU 列表的 CPU 成本 ≈ `setupLights - 灯常量 - deferredSetup` = **~0.15
 | `--cd-compact-on` | 1.309（重跑同值） | 非空 cell 585、索引 221,645（≈379/非空 cell）、overflow cell 6,475、overflow tile 19、扫描 7,874 cell |
 | 同序列 compact off 对照 | 1.358 | 用于 prune/compact 的像素对照 |
 
+- 首次 `compact/player-d3d11-256-on`（64→256）的 L64 GPU 均值出现一次 FrameTimingManager 异常值（1.37e10 ms；p95 1.058 ms 正常）；该次只采用 L256，1.309 ms 来自 L256-only 重跑。
 - 紧凑列表在 8 word 下仍更长（每 (tile,zbin) 平均数百项），且绝大多数 cell 超过 K=32 回退位图；没有翻盘。
 - prune 在 256 灯仍只增加固定成本；其像素与同序列 off 对照有 mean 0.233 / max 51 / 9,302 px 的差异。由于该开关默认关闭、且本轮不改 G2 结论，未继续归因；若将来要在高灯数启用 prune，需要单独验证。
 
