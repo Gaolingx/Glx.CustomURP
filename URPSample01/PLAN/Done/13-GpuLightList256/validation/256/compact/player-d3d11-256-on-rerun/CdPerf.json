@@ -1,0 +1,112 @@
+{
+    "utcTimestamp": "2026-11-22T04:34:15.4493010Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "graphicsDeviceVersion": "Direct3D 11.0 [level 11.1]",
+    "supportsComputeShaders": true,
+    "supportsAsyncCompute": false,
+    "clusterListAsync": false,
+    "clusterListPrune": false,
+    "clusterListCompact": true,
+    "width": 1280,
+    "height": 720,
+    "warmupFrames": 40,
+    "sampleFrames": 150,
+    "lightCounts": [
+        256
+    ],
+    "screenshotLightCount": 256,
+    "captureOnly": false,
+    "completed": true,
+    "error": "",
+    "modes": [
+        {
+            "name": "StencilDeferred",
+            "samples": [
+                {
+                    "lightCount": 256,
+                    "cpuSamples": 150,
+                    "gpuSamples": 122,
+                    "cpuMeanMs": 4.003173333333332,
+                    "cpuMedianMs": 3.7397,
+                    "cpuP95Ms": 5.6505,
+                    "gpuMeanMs": 1.946930360655738,
+                    "gpuMedianMs": 1.724416,
+                    "gpuP95Ms": 3.022848,
+                    "screenshotFile": "StencilDeferred_L256.png",
+                    "magentaPixelFraction": 0.0,
+                    "pruneKeptBits": 0,
+                    "pruneClearedBits": 0,
+                    "compactEntries": 0,
+                    "compactCells": 0,
+                    "compactOverflowCells": 0,
+                    "compactOverflowTiles": 0,
+                    "compactScannedCells": 0
+                }
+            ]
+        },
+        {
+            "name": "ClusteredDeferred",
+            "samples": [
+                {
+                    "lightCount": 256,
+                    "cpuSamples": 150,
+                    "gpuSamples": 112,
+                    "cpuMeanMs": 2.0165726666666679,
+                    "cpuMedianMs": 1.9703,
+                    "cpuP95Ms": 3.075,
+                    "gpuMeanMs": 1.309110857142857,
+                    "gpuMedianMs": 1.222144,
+                    "gpuP95Ms": 1.704192,
+                    "screenshotFile": "ClusteredDeferred_L256.png",
+                    "magentaPixelFraction": 0.0,
+                    "pruneKeptBits": 0,
+                    "pruneClearedBits": 0,
+                    "compactEntries": 221645,
+                    "compactCells": 585,
+                    "compactOverflowCells": 6475,
+                    "compactOverflowTiles": 19,
+                    "compactScannedCells": 7874
+                }
+            ]
+        },
+        {
+            "name": "ForwardPlus",
+            "samples": [
+                {
+                    "lightCount": 256,
+                    "cpuSamples": 150,
+                    "gpuSamples": 114,
+                    "cpuMeanMs": 1.8286386666666655,
+                    "cpuMedianMs": 1.8186,
+                    "cpuP95Ms": 2.536,
+                    "gpuMeanMs": 1.25184898245614,
+                    "gpuMedianMs": 1.101824,
+                    "gpuP95Ms": 2.360576,
+                    "screenshotFile": "ForwardPlus_L256.png",
+                    "magentaPixelFraction": 0.0,
+                    "pruneKeptBits": 0,
+                    "pruneClearedBits": 0,
+                    "compactEntries": 0,
+                    "compactCells": 0,
+                    "compactOverflowCells": 0,
+                    "compactOverflowTiles": 0,
+                    "compactScannedCells": 0
+                }
+            ]
+        }
+    ],
+    "diffs": [
+        {
+            "lightCount": 256,
+            "pixels": 921600,
+            "meanChannelDiff": 4.01546875,
+            "meanChannelDiffNormalized": 0.015746936274509805,
+            "maxChannelDiff": 102,
+            "pixelsOverThreshold": 369202,
+            "pixelsOverThresholdFraction": 0.40060980902777779,
+            "passed": false
+        }
+    ]
+}

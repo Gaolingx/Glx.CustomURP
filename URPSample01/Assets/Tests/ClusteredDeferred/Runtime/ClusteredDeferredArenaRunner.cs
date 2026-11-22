@@ -83,6 +83,35 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             outputRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "ClusteredDeferredOutput"));
         Directory.CreateDirectory(outputRoot);
 
+        var totalLightsArgument = GetArgument("--cd-total-lights");
+        if (!string.IsNullOrEmpty(totalLightsArgument) && int.TryParse(totalLightsArgument, out var parsedTotalLights))
+            totalLights = Mathf.Max(1, parsedTotalLights);
+
+        var lightCountsArgument = GetArgument("--cd-light-counts");
+        if (!string.IsNullOrEmpty(lightCountsArgument))
+        {
+            var counts = new List<int>();
+            foreach (var token in lightCountsArgument.Split(','))
+            {
+                if (int.TryParse(token, out var count))
+                    counts.Add(count);
+            }
+            if (counts.Count > 0)
+                lightCounts = counts.ToArray();
+        }
+
+        var screenshotLightsArgument = GetArgument("--cd-screenshot-lights");
+        if (!string.IsNullOrEmpty(screenshotLightsArgument) && int.TryParse(screenshotLightsArgument, out var parsedScreenshotLights))
+            screenshotLightCount = parsedScreenshotLights;
+
+        var samplesArgument = GetArgument("--cd-samples");
+        if (!string.IsNullOrEmpty(samplesArgument) && int.TryParse(samplesArgument, out var parsedSamples))
+            sampleFrames = Mathf.Max(1, parsedSamples);
+
+        var warmupArgument = GetArgument("--cd-warmup");
+        if (!string.IsNullOrEmpty(warmupArgument) && int.TryParse(warmupArgument, out var parsedWarmup))
+            warmupFrames = Mathf.Max(0, parsedWarmup);
+
         var clusterAccess = ClusterListAccess.Create();
         m_ClusterAccess = clusterAccess;
         if (clusterAccess != null && HasArgument("--cd-cluster-sync"))
@@ -350,6 +379,11 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         report.tileWords = asyncSnapshot.tileMasks.Length;
         report.zBinUsedWords = asyncSnapshot.ZBinUsedWords;
         report.tileUsedWords = asyncSnapshot.TileUsedWords;
+        report.binCount = asyncSnapshot.binCount;
+        report.wordsPerTile = asyncSnapshot.wordsPerTile;
+        report.tileWidth = asyncSnapshot.tileWidth;
+        report.tileResolutionX = asyncSnapshot.tileResolution.x;
+        report.tileResolutionY = asyncSnapshot.tileResolution.y;
         report.layoutMatches = difference.layoutMatches;
         report.asyncSyncZBinMismatchWords = difference.asyncSyncZBinMismatchWords;
         report.asyncSyncZBinMismatchBits = difference.asyncSyncZBinMismatchBits;
@@ -1737,6 +1771,11 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public int tileWords;
         public int zBinUsedWords;
         public int tileUsedWords;
+        public int binCount;
+        public int wordsPerTile;
+        public int tileWidth;
+        public int tileResolutionX;
+        public int tileResolutionY;
         public int asyncSyncZBinMismatchWords;
         public int asyncSyncZBinMismatchBits;
         public int asyncSyncTileMismatchWords;

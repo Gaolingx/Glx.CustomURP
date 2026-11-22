@@ -31,7 +31,8 @@
 | 05-ScreenSpaceRefractionImprove | ✅* | 1 PASS、1 PASS*、2 PARTIAL、8 ACCEPTED | 汇总 `Report.json`/`Cleanup.md` 的旧快照已在 `726e57b` 修正；433/434 EditMode 仍无日志；P0-1/P0-3 的探针回退辐射未被区分 |
 | 06-ValidationAllRDC | ✅* | 21 PASS、2 PASS*、3 PARTIAL、1 ACCEPTED | 初次验收 `P6-2` 为 FAIL（52 个/963.9 MiB vs 150 MB/12）；所有者决定把预算提高到 1 GB，`.gitignore`/4 份报告已同步（`fa67325`），61 个路径已修正（`f6f754e`/`726e57b`）；P0-4/P2-3 仍为 PARTIAL |
 | 11-LightCulling | ✅* | 5 PASS、2 PASS*、1 PARTIAL、1 ACCEPTED | mixed lighting-shadowmask 为 PARTIAL（无 baked shadowmask 数据）；T2/T3 的逐元素 parity JSON 未单列，由 T4/T5/PlayMode A/B 覆盖；T6 可选未补 GBuffer |
-| 12-GpuLightList | ✅ PASS | 2 PASS、2 ACCEPTED（NO-GO） | 默认同步 GPU 列表 + 位图；G2/G3 实现保留为默认关闭的 A/B；256+ 灯与透明/forward-only 接管未覆盖 |
+| 12-GpuLightList | ✅ PASS | 2 PASS、2 ACCEPTED（NO-GO） | 默认同步 GPU 列表 + 位图；G2/G3 实现保留为默认关闭的 A/B；透明/forward-only 接管未覆盖 |
+| 13-GpuLightList256 | ✅ PASS | 1 PASS（G2/G3 仍 NO-GO） | 256 灯 parity 成立、zbin 409 档；clustered GPU 1.270 vs stencil 1.763 ms；256 灯 A/B 需改用 Forward+ 参照 |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -518,4 +519,21 @@ PY
 
 **判定说明**：G1 的 tile parity 按冻结时修订的闸门执行（CPU ⊆ GPU + 像素逐位一致），因为 HLSL 与 Burst `FloatMode.Fast` 的三角函数差 1 ulp 就会翻位；zbin 仍要求逐位相等。G2/G3 记为 ACCEPTED 而非 FAIL：两者都已完成实现、测量与回归，负结果被如实记录并保留为可复现的 A/B 与扩展性基础设施。
 
-**能力边界**：仍不覆盖透明/forward-only 灯路径（D-G4，clean.md C2）、256+ 灯的扩展性实测、XR/foveated、GLES、MSAA、`useStructuredBuffer=true`、GPU 灯注册表（C8）。CPU jobs 与 stencil deferred 因此保留为回退与 A/B 参照，C2–C8 的删除必须等透明接管与 D-C2/D-C3 决策。
+**能力边界**：仍不覆盖透明/forward-only 灯路径（D-G4，clean.md C2）、XR/foveated、GLES、MSAA、`useStructuredBuffer=true`、GPU 灯注册表（C8）。CPU jobs 与 stencil deferred 因此保留为回退与 A/B 参照，C2–C8 的删除必须等透明接管与 D-C2/D-C3 决策。256+ 灯已由 [13-GpuLightList256](Done/13-GpuLightList256/HANDOFF.md) 实测为成立（见 §17）。
+
+## 17. 13-GpuLightList256（已归档，2026-11-22）
+
+> 范围：12 轮唯一未证伪的“256+ 灯扩展性”决策探针。新增 arena CLI 灯数覆盖与 parity 的 bin/word/tile 字段，不改变默认路径。
+> 计划/结果：[PLAN/Done/13-GpuLightList256/HANDOFF.md](Done/13-GpuLightList256/HANDOFF.md)；证据：[validation/README.md](Done/13-GpuLightList256/validation/README.md)
+> 结论：**PASS。GPU 列表在 256 灯成立，默认同步路径保持；不改 word 预算；G2/G3 仍 NO-GO。**
+
+| 项 | 结论 | 证据 | 说明 |
+|---|---|---|---|
+| 256 灯 parity | ✅ PASS | `validation/256/parity/player-d3d11-256/G1BufferParity.json` | `binCount=409`、`wordsPerTile=8`、`tileWidth=32`（40×23）；zbin 逐位相等、tile 0 漏位；64 灯对照与 G1c 一致 |
+| 像素正确性 | ✅ PASS | `validation/256/sweep/player-d3d11-256/` | clustered vs Forward+ mean 0.290 / 622 px >8；stencil vs clustered mean 4.080 / max 29 失败 |
+| A/B 根因 | ✅ | 同上；48 灯基线 | stencil 每盏灯一次 additive blend 进 R11G11B10f（`m_HDRColorBufferPrecision: 0`），256 次舍入、蓝色最差；clustered/Forward+ 单次求和。256 灯应用 Forward+ 或 64-bit HDR 作参照 |
+| 性能 | ✅ PASS | 同目录 `CdPerf.json` | 256 灯 GPU 1.763 / 1.270 ms（stencil/clustered）、CPU 3.218 / 1.811 ms；列表 CPU ≈0.155 ms |
+| G2/G3 复核 | ○ ACCEPTED（仍 NO-GO） | `compact/`、`prune/` | prune 清 63.1% 位但 1.284 vs 1.206 ms；compact +0.10 ms、每 cell ≈379 项、6,475 cell overflow |
+| 决策 | ✅ | HANDOFF §4.4 | 保持 GPU 列表默认；256 扩展性待证项关闭；下一缺口为透明/forward-only（D-G4 / C2） |
+
+**边界**：256 灯场是每 64 盏复用位置的最坏重叠场（96/256 item 整屏），不代表空间均匀分布；只测 D3D11 720p 单卡。跨运行像素噪声 mean ≈0.11 / 5,750 px >8，结论均取同一次运行内的对比。

@@ -6,7 +6,7 @@
 > 善后清单：[clean.md](clean.md)（C1 已落地；C2–C8 仍为规划）。
 > 基线：C1 提交后的 HEAD（见 `git log`）；C1 证据在 `validation/C1/`。
 > 本轮范围：只做“光列表怎么建”和“怎么派发”，不改 BRDF/GBuffer/阴影/cookie/layers/AO 语义。
-> 未证伪项（下一轮入口）：256+ 灯扩展性；透明/forward-only 接管（D-G4，clean.md C2）。
+> 未证伪项（下一轮入口）：256+ 灯扩展性——已由 [13-GpuLightList256](../13-GpuLightList256/HANDOFF.md) 实测（2026-11-22）：GPU 列表成立（zbin 409 档、clustered 1.270 vs stencil 1.763 ms），256 灯 A/B 的失败来自 stencil 的 R11G11B10f 逐灯累加，改用 Forward+ 参照后 mean 0.290；透明/forward-only 接管（D-G4，clean.md C2）仍待处理。
 
 ---
 

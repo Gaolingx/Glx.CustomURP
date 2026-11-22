@@ -1,0 +1,4 @@
+Mode,LightCount,CpuSamples,CpuMeanMs,CpuMedianMs,CpuP95Ms,GpuSamples,GpuMeanMs,GpuMedianMs,GpuP95Ms,Screenshot,MagentaFraction
+StencilDeferred,256,150,4.0032,3.7397,5.6505,122,1.9469,1.7244,3.0228,StencilDeferred_L256.png,0.000000
+ClusteredDeferred,256,150,2.0166,1.9703,3.0750,112,1.3091,1.2221,1.7042,ClusteredDeferred_L256.png,0.000000
+ForwardPlus,256,150,1.8286,1.8186,2.5360,114,1.2518,1.1018,2.3606,ForwardPlus_L256.png,0.000000
