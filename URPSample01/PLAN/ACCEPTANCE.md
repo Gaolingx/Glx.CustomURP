@@ -35,6 +35,7 @@
 | 13-GpuLightList256 | ✅ PASS | 1 PASS（G2/G3 仍 NO-GO） | 256 灯 parity 成立、zbin 409 档；clustered GPU 1.270 vs stencil 1.763 ms；256 灯 A/B 需改用 Forward+ 参照 |
 | 14-TransparentLightPath | ✅ PASS | 探针（4 闸门 PASS/FAIL 如实记录） | 透明像素 256 灯 89.4% 与 cluster 语义差 >8；上限 8 只降到 66.5%；帧时间增量在噪声内；决定 GO C2 |
 | 15-ForwardClusterLights | ✅ PASS | C2 实现（8 闸门） | 透明/forward-only 改读结构化 cluster 位图；256 灯 footprint >8 从 87.9%→0.18%、48 灯 15.4%→0.11%；control A/B 不回归 |
+| 16-CleanupBaseline | ✅ PASS（C0） | 8 闸门 | 冻结点 `f0c7ec4`：4/4 构建、491+41 测试、48 灯 S/C 0.822/0.814、变体 6144/1280；C0.5 变体补齐与 C3 删除未开始 |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -578,3 +579,28 @@ PY
 **语义变化**：CD 下透明/forward-only 与 stencil 模式在透明像素上不再一致（前者对齐 cluster/Forward+，后者仍是 per-object）；`Stencil vs Clustered` 的透明差异因此变大，这是 C2 的目的，不是回归。
 
 **边界**：只覆盖 Lit 透明夹具（其余 4 个 shader 变体已声明但无独立像素夹具）；256 灯为最坏重叠场；只测 D3D11 720p 单卡；Lit ForwardLit 片元变体 3072→6144，冷构建 918.6 s。
+
+## 20. 16-CleanupBaseline（C0 PASS，2026-11-22）
+
+> 范围：clean.md C0——冻结清理前基线与 D-C1–D-C8，不删任何渲染代码。C0.5（Terrain/SpeedTree/ShaderGraph 的 cluster 变体、forward-only 不透明夹具）尚未开始。
+> 计划/结果：[PLAN/TODO/16-CleanupBaseline/README.md](TODO/16-CleanupBaseline/README.md)、[DECISIONS.md](TODO/16-CleanupBaseline/DECISIONS.md)；证据：[validation/README.md](TODO/16-CleanupBaseline/validation/README.md)。
+> 冻结：tag `pre-cleanup` → `f0c7ec4`（渲染代码与 `0ffc46c` 相同）。
+> 结论：**C0 PASS。** 基线与 15 轮逐项一致；但 C3 仍被 D-C5（fog 迁移）阻塞，C4 仍被 C0.5（其余 shader 变体）阻塞。
+
+| 项 | 结论 | 证据 | 说明 |
+|---|---|---|---|
+| C0-1 冻结点 | ✅ PASS | `git tag`、`git log` | `pre-cleanup` = `f0c7ec4`；`0ffc46c` 为上一提交 |
+| C0-2 测试 | ✅ PASS | `validation/baseline/tests/` | EditMode 491/491、PlayMode 41/41 |
+| C0-3 构建 | ✅ PASS | `CdArena*BuildSummary-*.json` | T5/T4 × D3D11/D3D12 全 `Succeeded`、0 error |
+| C0-4 T5 A/B | ✅ PASS | `validation/baseline/t5-*/` | 48 灯 S/C 0.822/9（D3D11）、0.814/9（D3D12）；C/F 0.209/452、0.290/622 与 13–15 轮同 |
+| C0-5 T4 矩阵 | ✅ PASS | `validation/baseline/t4/player-*/T4FeatureMatrix.json` | 两 API 各 7/7；S/C-on mean 0.020–0.988、max 3–10 |
+| C0-6 CPU 分解 | ✅ PASS | `validation/baseline/cpu/` | 64 灯 clustered `preSetup` 0.008/0.009 ms、jobs 0.0001、上传 0 |
+| C0-7 变体基线 | ✅ PASS | `C0VariantBaseline.json` | T5 Lit ForwardLit fp **6144**、compute **1280**；T4 9216（shadow 关键字轴，不作预算） |
+| C0-8 RenderDoc | ✅ PASS | `validation/baseline/rdc/` | D3D11 12 MB + D3D12 15 MB；透明 PS 读 structured `t0/t1` |
+| C0.5 变体补齐 | ○ 待做 | — | Terrain/SpeedTree/ShaderGraph + forward-only 不透明夹具 |
+
+**决策冻结要点**：D-C1 只保留 compute 平台的 deferred（GLES 走 Forward）；D-C2 只保留 clustered；D-C4 其余 shader 变体在 C3 前补齐；D-C5 fog 先迁移再删 stencil；D-C7 Preview/Overlay/XR 走 Forward，per-object 索引保留（clean.md 2.3 标 ACCEPTED）；C4 拆为 C4a（CPU jobs）与 C4b（新光表布局，单独立轮）。
+
+**已知失败（非回归）**：control 256 灯 `Stencil vs Clustered` 照旧失败（stencil 逐灯累加进 `R11G11B10f`，13 轮定性）；cluster-on 48/256 灯的 S/C 失败是 C2 的预期语义差；C/F 的 `passed=false` 只来自固定管线 max（46–86），>8 像素 382–622 与 15 轮一致。
+
+**边界**：只测 D3D11/D3D12 720p 单卡；透明夹具只覆盖 Lit；T4 的 PNG 与 T5 的 PNG 均已入库。

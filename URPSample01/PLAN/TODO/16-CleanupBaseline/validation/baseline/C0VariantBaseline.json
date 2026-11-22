@@ -1,0 +1,60 @@
+{
+  "note": "C0 pre-cleanup variant budget. Counts are the 'After scriptable stripping' values printed by the player build logs (gitignored); the JSON is the committed summary. The T5 build is the cleanup budget; the T4 build parks the shadow pipelines and legitimately compiles more Lit combos.",
+  "utcTimestamp": "2026-11-22T06:15:00Z",
+  "frozenCommit": "f0c7ec45cdcc20aa21b96bb3c5c47ff58fb0ac44",
+  "preCleanupRendererCommit": "0ffc46c751ed95f036f7ca84d0992aec9e4e994e",
+  "unityVersion": "2022.3.62f1",
+  "device": "NVIDIA GeForce RTX 5060 Ti",
+  "litForwardLit": {
+    "t5Player": {
+      "shader": "Universal Render Pipeline/Lit",
+      "pass": "ForwardLit",
+      "vertexVariants": 32,
+      "fragmentVariants": 6144,
+      "perApi": ["Direct3D11", "Direct3D12"],
+      "sourceLogs": ["build-t5-d3d11.log", "build-t5-d3d12.log"]
+    },
+    "t4Player": {
+      "shader": "Universal Render Pipeline/Lit",
+      "pass": "ForwardLit",
+      "vertexVariants": 24,
+      "fragmentVariants": 9216,
+      "perApi": ["Direct3D11", "Direct3D12"],
+      "sourceLogs": ["build-t4-d3d11.log", "build-t4-d3d12.log"],
+      "note": "T4 keeps the shadow-keyword variants so the feature matrix can render them; not comparable to the T5 cleanup budget."
+    },
+    "shaderPassBlocks": 181,
+    "previousRound": {
+      "round": "15-ForwardClusterLights",
+      "fragmentVariants": 6144,
+      "changed": false
+    }
+  },
+  "clusteredDeferredCompute": {
+    "shader": "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute",
+    "kernel": "ClusteredDeferred",
+    "keywordAxes": [
+      { "pragma": "_GBUFFER_NORMALS_OCT", "options": 2 },
+      { "pragma": "_MAIN_LIGHT_SHADOWS | _MAIN_LIGHT_SHADOWS_CASCADE | _MAIN_LIGHT_SHADOWS_SCREEN", "options": 4 },
+      { "pragma": "_ADDITIONAL_LIGHT_SHADOWS", "options": 2 },
+      { "pragma": "_SHADOWS_SOFT | _SHADOWS_SOFT_LOW | _SHADOWS_SOFT_MEDIUM | _SHADOWS_SOFT_HIGH", "options": 5 },
+      { "pragma": "_LIGHT_COOKIES", "options": 2 },
+      { "pragma": "_LIGHT_LAYERS", "options": 2 },
+      { "pragma": "_SCREEN_SPACE_OCCLUSION", "options": 2 },
+      { "pragma": "_DEFERRED_MIXED_LIGHTING", "options": 2 }
+    ],
+    "combinations": 1280,
+    "changedByC0": false
+  },
+  "builds": {
+    "t5-d3d11": { "result": "Succeeded", "errors": 0, "seconds": 13.4, "bytes": 143548612 },
+    "t5-d3d12": { "result": "Succeeded", "errors": 0, "seconds": 11.3, "bytes": 143548616 },
+    "t4-d3d11": { "result": "Succeeded", "errors": 0, "seconds": 565.8, "bytes": 153605492 },
+    "t4-d3d12": { "result": "Succeeded", "errors": 0, "seconds": 13.1, "bytes": 153605487 }
+  },
+  "deletionBudget": {
+    "c3Removes": ["_DEFERRED_STENCIL", "_DEFERRED_FIRST_LIGHT", stencil Lit/SimpleLit variants"],
+    "c3MustNotRaise": "Lit ForwardLit fragment variants above 6144 before C5 re-baselines",
+    "c5ReBaseline": "record the post-deletion counts in the C5 round instead of editing this file"
+  }
+}

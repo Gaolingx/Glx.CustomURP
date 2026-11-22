@@ -1,0 +1,25 @@
+Path:         URPSample01/PLAN/TODO/16-CleanupBaseline/validation/baseline/rdc/c0-baseline-d3d11_frame320.rdc
+API:          D3D11
+Degraded:     no
+Total events: 198
+Total draws:  144
+Machine:      Windows x86 64-bit 
+Driver:       D3D11
+Callstacks:   no
+
+13	ScriptableRenderer.Execute: CdClusteredDeferredRenderer	64	0	0
+99	Render GBuffer	64	0	0
+558	CopyDepth	64	0	0
+578	Clustered Deferred	64	0	0
+640	Render Opaques Forward Only	64	0	0
+643	DrawTransparentObjects	64	0	0
+695	FinalBlit	64	0	0
+
+636		3	0
+679		2304	1
+682		2304	1
+685		2304	1
+714		3	0
+742		6	0
+768		6	0
+# 144 draws
