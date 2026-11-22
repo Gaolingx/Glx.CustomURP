@@ -1,0 +1,1892 @@
+{
+  "baseline": "5ab7626",
+  "main": "646f75a",
+  "inputs": {
+    "baseline": "t4-baseline/player-d3d{11,12}",
+    "main": "t4/player-d3d{11,12}"
+  },
+  "fixture": {
+    "receiveShadowsOffMaterialSHA256": "0c17b13d43dd4deab20386a9b78b61892288f5062f8d25d14005c84002f77a39",
+    "receiveShadowsOffScope": "even receiver index AND original sharedMaterial == sphereMaterial; other receivers retain original material",
+    "baselineClusteredProof": "Per state, active arena camera renderer pass-owned lighting texture exists and IsCreated only on Clustered. In 5ab7626 ClusteredDeferredPass allocates this target in Execute after camera/resource checks.",
+    "forwardPlusProof": "Independent pipeline and renderer; _FORWARD_PLUS true only in both ForwardPlus states."
+  },
+  "thresholds": {
+    "meanRGBAtMost": 2,
+    "maxChannelAtMost": 24,
+    "noiseBand": 8
+  },
+  "maskEncoding": "1280x720 row-major bytes, top-left origin; 255 if max absolute RGB difference exceeds threshold, else 0",
+  "apis": {
+    "D3D11": {
+      "samePath": {
+        "MainShadowCascade_ForwardPlusOff": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowCascade_ClusteredOff": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowCascade_ForwardPlusOn": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowCascade_ClusteredOn": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ReceiveShadowsOff_ForwardPlusOff": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ReceiveShadowsOff_ClusteredOff": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ReceiveShadowsOff_ForwardPlusOn": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ReceiveShadowsOff_ClusteredOn": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowScreen_ForwardPlusOff": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowScreen_ClusteredOff": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowScreen_ForwardPlusOn": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowScreen_ClusteredOn": {
+          "meanRGB": 3.616898148148148e-07,
+          "maxChannel": 1,
+          "changedPixels": 1,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "AdditionalShadowAtlas_ForwardPlusOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "AdditionalShadowAtlas_ClusteredOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "AdditionalShadowAtlas_ForwardPlusOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "AdditionalShadowAtlas_ClusteredOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightCookie_ForwardPlusOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightCookie_ClusteredOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightCookie_ForwardPlusOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightCookie_ClusteredOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightLayers_ForwardPlusOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightLayers_ClusteredOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightLayers_ForwardPlusOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightLayers_ClusteredOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ScreenSpaceAO_ForwardPlusOff": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ScreenSpaceAO_ClusteredOff": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ScreenSpaceAO_ForwardPlusOn": {
+          "meanRGB": 1.0850694444444444e-06,
+          "maxChannel": 1,
+          "changedPixels": 3,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ScreenSpaceAO_ClusteredOn": {
+          "meanRGB": 3.616898148148148e-07,
+          "maxChannel": 1,
+          "changedPixels": 1,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        }
+      },
+      "crossPath": {
+        "MainShadowCascade_On": {
+          "baseline": {
+            "meanRGB": 0.19264829282407409,
+            "maxChannel": 81,
+            "changedPixels": 408225,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.1926468460648148,
+            "maxChannel": 81,
+            "changedPixels": 408221,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "MainShadowCascade_Off": {
+          "baseline": {
+            "meanRGB": 0.19376736111111112,
+            "maxChannel": 81,
+            "changedPixels": 410374,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19376591435185186,
+            "maxChannel": 81,
+            "changedPixels": 410370,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "ReceiveShadowsOff_On": {
+          "baseline": {
+            "meanRGB": 0.19264214409722222,
+            "maxChannel": 81,
+            "changedPixels": 408224,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19264069733796296,
+            "maxChannel": 81,
+            "changedPixels": 408220,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "ReceiveShadowsOff_Off": {
+          "baseline": {
+            "meanRGB": 0.19264829282407409,
+            "maxChannel": 81,
+            "changedPixels": 408225,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.1926468460648148,
+            "maxChannel": 81,
+            "changedPixels": 408221,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "MainShadowScreen_On": {
+          "baseline": {
+            "meanRGB": 0.19279405381944445,
+            "maxChannel": 81,
+            "changedPixels": 408553,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19279296875,
+            "maxChannel": 81,
+            "changedPixels": 408550,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "MainShadowScreen_Off": {
+          "baseline": {
+            "meanRGB": 0.19376736111111112,
+            "maxChannel": 81,
+            "changedPixels": 410374,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19376591435185186,
+            "maxChannel": 81,
+            "changedPixels": 410370,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "AdditionalShadowAtlas_On": {
+          "baseline": {
+            "meanRGB": 0.1361451099537037,
+            "maxChannel": 46,
+            "changedPixels": 319921,
+            "over8": 85,
+            "over24": 16,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.1361451099537037,
+            "maxChannel": 46,
+            "changedPixels": 319921,
+            "over8": 85,
+            "over24": 16,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 85,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "89c0fd3b5da411e972c6c414cc2bc2dce738086c5c1be9db8bced541ac41aadb",
+            "mainMaskSHA256": "89c0fd3b5da411e972c6c414cc2bc2dce738086c5c1be9db8bced541ac41aadb"
+          },
+          "locationsOver24": {
+            "shared": 16,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3bb999ae511619c79d5da9300e3d35c2852d18344f18414ee552db495148ea05",
+            "mainMaskSHA256": "3bb999ae511619c79d5da9300e3d35c2852d18344f18414ee552db495148ea05"
+          }
+        },
+        "AdditionalShadowAtlas_Off": {
+          "baseline": {
+            "meanRGB": 0.136904296875,
+            "maxChannel": 46,
+            "changedPixels": 321427,
+            "over8": 85,
+            "over24": 16,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.136904296875,
+            "maxChannel": 46,
+            "changedPixels": 321427,
+            "over8": 85,
+            "over24": 16,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 85,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "89c0fd3b5da411e972c6c414cc2bc2dce738086c5c1be9db8bced541ac41aadb",
+            "mainMaskSHA256": "89c0fd3b5da411e972c6c414cc2bc2dce738086c5c1be9db8bced541ac41aadb"
+          },
+          "locationsOver24": {
+            "shared": 16,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3bb999ae511619c79d5da9300e3d35c2852d18344f18414ee552db495148ea05",
+            "mainMaskSHA256": "3bb999ae511619c79d5da9300e3d35c2852d18344f18414ee552db495148ea05"
+          }
+        },
+        "LightCookie_On": {
+          "baseline": {
+            "meanRGB": 0.13108723958333332,
+            "maxChannel": 46,
+            "changedPixels": 309312,
+            "over8": 73,
+            "over24": 16,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.13108723958333332,
+            "maxChannel": 46,
+            "changedPixels": 309312,
+            "over8": 73,
+            "over24": 16,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 73,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "5e113acb97c3f305fc8d467567bb5c52429ede22219e9b9a989e54447ab7f050",
+            "mainMaskSHA256": "5e113acb97c3f305fc8d467567bb5c52429ede22219e9b9a989e54447ab7f050"
+          },
+          "locationsOver24": {
+            "shared": 16,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "d919578acb2e2c99e82e784826cd77e0516e3b5ff8bfbe691f363ffc7b4f24f8",
+            "mainMaskSHA256": "d919578acb2e2c99e82e784826cd77e0516e3b5ff8bfbe691f363ffc7b4f24f8"
+          }
+        },
+        "LightCookie_Off": {
+          "baseline": {
+            "meanRGB": 0.138095703125,
+            "maxChannel": 53,
+            "changedPixels": 320262,
+            "over8": 87,
+            "over24": 16,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.138095703125,
+            "maxChannel": 53,
+            "changedPixels": 320262,
+            "over8": 87,
+            "over24": 16,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 87,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "371445de1604d9d3e9dde2a1462159de07260f65b512bf060654a95684fc1fa5",
+            "mainMaskSHA256": "371445de1604d9d3e9dde2a1462159de07260f65b512bf060654a95684fc1fa5"
+          },
+          "locationsOver24": {
+            "shared": 16,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "ceab1d2ae2f21eaf19f202c25d165419ddad7f590ed05686adec0b3b174afd27",
+            "mainMaskSHA256": "ceab1d2ae2f21eaf19f202c25d165419ddad7f590ed05686adec0b3b174afd27"
+          }
+        },
+        "LightLayers_On": {
+          "baseline": {
+            "meanRGB": 0.13723090277777777,
+            "maxChannel": 59,
+            "changedPixels": 321432,
+            "over8": 82,
+            "over24": 19,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.13723090277777777,
+            "maxChannel": 59,
+            "changedPixels": 321432,
+            "over8": 82,
+            "over24": 19,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 82,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "d454c7707b97f894160b6d4bc8342263d89bb6c4e265773d9d8c7d2b08c0915c",
+            "mainMaskSHA256": "d454c7707b97f894160b6d4bc8342263d89bb6c4e265773d9d8c7d2b08c0915c"
+          },
+          "locationsOver24": {
+            "shared": 19,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "495efa6f469957fd99e56295952c2cd472481a3fb99c373aafedd8ba2571d523",
+            "mainMaskSHA256": "495efa6f469957fd99e56295952c2cd472481a3fb99c373aafedd8ba2571d523"
+          }
+        },
+        "LightLayers_Off": {
+          "baseline": {
+            "meanRGB": 0.14302408854166668,
+            "maxChannel": 59,
+            "changedPixels": 329612,
+            "over8": 119,
+            "over24": 33,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.14302408854166668,
+            "maxChannel": 59,
+            "changedPixels": 329612,
+            "over8": 119,
+            "over24": 33,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 119,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "06494f4dd710faf53bf9dee776f7f6f8b5b78346a59ffe39551a34f066620f01",
+            "mainMaskSHA256": "06494f4dd710faf53bf9dee776f7f6f8b5b78346a59ffe39551a34f066620f01"
+          },
+          "locationsOver24": {
+            "shared": 33,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "6f5b47996766cd4f4a1f2a2942a8a439d31f192ddbd73e300cdbada0391df81e",
+            "mainMaskSHA256": "6f5b47996766cd4f4a1f2a2942a8a439d31f192ddbd73e300cdbada0391df81e"
+          }
+        },
+        "ScreenSpaceAO_On": {
+          "baseline": {
+            "meanRGB": 0.19175130208333332,
+            "maxChannel": 81,
+            "changedPixels": 407100,
+            "over8": 448,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.1917505787037037,
+            "maxChannel": 81,
+            "changedPixels": 407098,
+            "over8": 448,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 448,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "cd69ac424008d8f16ec0293cf3fdbc1ea85c5342421218f87e0b7a3a955d1444",
+            "mainMaskSHA256": "cd69ac424008d8f16ec0293cf3fdbc1ea85c5342421218f87e0b7a3a955d1444"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "ScreenSpaceAO_Off": {
+          "baseline": {
+            "meanRGB": 0.19348343460648149,
+            "maxChannel": 81,
+            "changedPixels": 409992,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19348198784722223,
+            "maxChannel": 81,
+            "changedPixels": 409988,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        }
+      },
+      "featureMatrixPassed": {
+        "baseline": {
+          "MainShadowCascade": false,
+          "ReceiveShadowsOff": false,
+          "MainShadowScreen": false,
+          "AdditionalShadowAtlas": false,
+          "LightCookie": false,
+          "LightLayers": false,
+          "ScreenSpaceAO": false
+        },
+        "main": {
+          "MainShadowCascade": false,
+          "ReceiveShadowsOff": false,
+          "MainShadowScreen": false,
+          "AdditionalShadowAtlas": false,
+          "LightCookie": false,
+          "LightLayers": false,
+          "ScreenSpaceAO": false
+        }
+      },
+      "routesValidated": {
+        "baseline": 28,
+        "main": 28
+      },
+      "featureActive": {
+        "baseline": {
+          "MainShadowCascade": true,
+          "ReceiveShadowsOff": true,
+          "MainShadowScreen": true,
+          "AdditionalShadowAtlas": true,
+          "LightCookie": true,
+          "LightLayers": true,
+          "ScreenSpaceAO": true
+        },
+        "main": {
+          "MainShadowCascade": true,
+          "ReceiveShadowsOff": true,
+          "MainShadowScreen": true,
+          "AdditionalShadowAtlas": true,
+          "LightCookie": true,
+          "LightLayers": true,
+          "ScreenSpaceAO": true
+        }
+      },
+      "environment": [
+        "2022.3.62f1",
+        "NVIDIA GeForce RTX 5060 Ti",
+        "Direct3D 11.0 [level 11.1]"
+      ],
+      "summary": {
+        "samePathIdentical": 12,
+        "samePathPassed": 28,
+        "samePathMax": 1,
+        "samePathLargestMean": 1.0850694444444444e-06,
+        "crossPathPassed": {
+          "baseline": 0,
+          "main": 0
+        },
+        "crossPathIdenticalLocationsOver8": 14,
+        "crossPathIdenticalLocationsOver24": 14
+      }
+    },
+    "D3D12": {
+      "samePath": {
+        "MainShadowCascade_ForwardPlusOff": {
+          "meanRGB": 3.616898148148148e-07,
+          "maxChannel": 1,
+          "changedPixels": 1,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowCascade_ClusteredOff": {
+          "meanRGB": 1.4467592592592592e-06,
+          "maxChannel": 1,
+          "changedPixels": 4,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowCascade_ForwardPlusOn": {
+          "meanRGB": 3.616898148148148e-07,
+          "maxChannel": 1,
+          "changedPixels": 1,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowCascade_ClusteredOn": {
+          "meanRGB": 1.0850694444444444e-06,
+          "maxChannel": 1,
+          "changedPixels": 3,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ReceiveShadowsOff_ForwardPlusOff": {
+          "meanRGB": 3.616898148148148e-07,
+          "maxChannel": 1,
+          "changedPixels": 1,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ReceiveShadowsOff_ClusteredOff": {
+          "meanRGB": 1.0850694444444444e-06,
+          "maxChannel": 1,
+          "changedPixels": 3,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ReceiveShadowsOff_ForwardPlusOn": {
+          "meanRGB": 3.616898148148148e-07,
+          "maxChannel": 1,
+          "changedPixels": 1,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ReceiveShadowsOff_ClusteredOn": {
+          "meanRGB": 1.0850694444444444e-06,
+          "maxChannel": 1,
+          "changedPixels": 3,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowScreen_ForwardPlusOff": {
+          "meanRGB": 3.616898148148148e-07,
+          "maxChannel": 1,
+          "changedPixels": 1,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowScreen_ClusteredOff": {
+          "meanRGB": 1.4467592592592592e-06,
+          "maxChannel": 1,
+          "changedPixels": 4,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowScreen_ForwardPlusOn": {
+          "meanRGB": 3.616898148148148e-07,
+          "maxChannel": 1,
+          "changedPixels": 1,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "MainShadowScreen_ClusteredOn": {
+          "meanRGB": 1.4467592592592592e-06,
+          "maxChannel": 1,
+          "changedPixels": 4,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "AdditionalShadowAtlas_ForwardPlusOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "AdditionalShadowAtlas_ClusteredOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "AdditionalShadowAtlas_ForwardPlusOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "AdditionalShadowAtlas_ClusteredOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightCookie_ForwardPlusOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightCookie_ClusteredOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightCookie_ForwardPlusOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightCookie_ClusteredOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightLayers_ForwardPlusOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightLayers_ClusteredOff": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightLayers_ForwardPlusOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "LightLayers_ClusteredOn": {
+          "meanRGB": 0.0,
+          "maxChannel": 0,
+          "changedPixels": 0,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ScreenSpaceAO_ForwardPlusOff": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ScreenSpaceAO_ClusteredOff": {
+          "meanRGB": 1.4467592592592592e-06,
+          "maxChannel": 1,
+          "changedPixels": 4,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ScreenSpaceAO_ForwardPlusOn": {
+          "meanRGB": 3.616898148148148e-07,
+          "maxChannel": 1,
+          "changedPixels": 1,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        },
+        "ScreenSpaceAO_ClusteredOn": {
+          "meanRGB": 7.233796296296296e-07,
+          "maxChannel": 1,
+          "changedPixels": 2,
+          "over8": 0,
+          "over24": 0,
+          "passed": true
+        }
+      },
+      "crossPath": {
+        "MainShadowCascade_On": {
+          "baseline": {
+            "meanRGB": 0.19264829282407409,
+            "maxChannel": 81,
+            "changedPixels": 408226,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19264829282407409,
+            "maxChannel": 81,
+            "changedPixels": 408226,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "MainShadowCascade_Off": {
+          "baseline": {
+            "meanRGB": 0.19376663773148148,
+            "maxChannel": 81,
+            "changedPixels": 410373,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.1937669994212963,
+            "maxChannel": 81,
+            "changedPixels": 410373,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "ReceiveShadowsOff_On": {
+          "baseline": {
+            "meanRGB": 0.19264214409722222,
+            "maxChannel": 81,
+            "changedPixels": 408225,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19264214409722222,
+            "maxChannel": 81,
+            "changedPixels": 408225,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "ReceiveShadowsOff_Off": {
+          "baseline": {
+            "meanRGB": 0.19264829282407409,
+            "maxChannel": 81,
+            "changedPixels": 408226,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19264829282407409,
+            "maxChannel": 81,
+            "changedPixels": 408226,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "MainShadowScreen_On": {
+          "baseline": {
+            "meanRGB": 0.1927933304398148,
+            "maxChannel": 81,
+            "changedPixels": 408552,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19279369212962963,
+            "maxChannel": 81,
+            "changedPixels": 408552,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "MainShadowScreen_Off": {
+          "baseline": {
+            "meanRGB": 0.19376663773148148,
+            "maxChannel": 81,
+            "changedPixels": 410373,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.1937669994212963,
+            "maxChannel": 81,
+            "changedPixels": 410373,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "AdditionalShadowAtlas_On": {
+          "baseline": {
+            "meanRGB": 0.1361451099537037,
+            "maxChannel": 46,
+            "changedPixels": 319921,
+            "over8": 85,
+            "over24": 16,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.1361451099537037,
+            "maxChannel": 46,
+            "changedPixels": 319921,
+            "over8": 85,
+            "over24": 16,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 85,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "89c0fd3b5da411e972c6c414cc2bc2dce738086c5c1be9db8bced541ac41aadb",
+            "mainMaskSHA256": "89c0fd3b5da411e972c6c414cc2bc2dce738086c5c1be9db8bced541ac41aadb"
+          },
+          "locationsOver24": {
+            "shared": 16,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3bb999ae511619c79d5da9300e3d35c2852d18344f18414ee552db495148ea05",
+            "mainMaskSHA256": "3bb999ae511619c79d5da9300e3d35c2852d18344f18414ee552db495148ea05"
+          }
+        },
+        "AdditionalShadowAtlas_Off": {
+          "baseline": {
+            "meanRGB": 0.136904296875,
+            "maxChannel": 46,
+            "changedPixels": 321427,
+            "over8": 85,
+            "over24": 16,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.136904296875,
+            "maxChannel": 46,
+            "changedPixels": 321427,
+            "over8": 85,
+            "over24": 16,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 85,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "89c0fd3b5da411e972c6c414cc2bc2dce738086c5c1be9db8bced541ac41aadb",
+            "mainMaskSHA256": "89c0fd3b5da411e972c6c414cc2bc2dce738086c5c1be9db8bced541ac41aadb"
+          },
+          "locationsOver24": {
+            "shared": 16,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3bb999ae511619c79d5da9300e3d35c2852d18344f18414ee552db495148ea05",
+            "mainMaskSHA256": "3bb999ae511619c79d5da9300e3d35c2852d18344f18414ee552db495148ea05"
+          }
+        },
+        "LightCookie_On": {
+          "baseline": {
+            "meanRGB": 0.13108687789351853,
+            "maxChannel": 46,
+            "changedPixels": 309311,
+            "over8": 73,
+            "over24": 16,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.13108687789351853,
+            "maxChannel": 46,
+            "changedPixels": 309311,
+            "over8": 73,
+            "over24": 16,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 73,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "5e113acb97c3f305fc8d467567bb5c52429ede22219e9b9a989e54447ab7f050",
+            "mainMaskSHA256": "5e113acb97c3f305fc8d467567bb5c52429ede22219e9b9a989e54447ab7f050"
+          },
+          "locationsOver24": {
+            "shared": 16,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "d919578acb2e2c99e82e784826cd77e0516e3b5ff8bfbe691f363ffc7b4f24f8",
+            "mainMaskSHA256": "d919578acb2e2c99e82e784826cd77e0516e3b5ff8bfbe691f363ffc7b4f24f8"
+          }
+        },
+        "LightCookie_Off": {
+          "baseline": {
+            "meanRGB": 0.13809534143518518,
+            "maxChannel": 53,
+            "changedPixels": 320261,
+            "over8": 87,
+            "over24": 16,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.13809534143518518,
+            "maxChannel": 53,
+            "changedPixels": 320261,
+            "over8": 87,
+            "over24": 16,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 87,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "371445de1604d9d3e9dde2a1462159de07260f65b512bf060654a95684fc1fa5",
+            "mainMaskSHA256": "371445de1604d9d3e9dde2a1462159de07260f65b512bf060654a95684fc1fa5"
+          },
+          "locationsOver24": {
+            "shared": 16,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "ceab1d2ae2f21eaf19f202c25d165419ddad7f590ed05686adec0b3b174afd27",
+            "mainMaskSHA256": "ceab1d2ae2f21eaf19f202c25d165419ddad7f590ed05686adec0b3b174afd27"
+          }
+        },
+        "LightLayers_On": {
+          "baseline": {
+            "meanRGB": 0.13723054108796295,
+            "maxChannel": 59,
+            "changedPixels": 321431,
+            "over8": 82,
+            "over24": 19,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.13723054108796295,
+            "maxChannel": 59,
+            "changedPixels": 321431,
+            "over8": 82,
+            "over24": 19,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 82,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "d454c7707b97f894160b6d4bc8342263d89bb6c4e265773d9d8c7d2b08c0915c",
+            "mainMaskSHA256": "d454c7707b97f894160b6d4bc8342263d89bb6c4e265773d9d8c7d2b08c0915c"
+          },
+          "locationsOver24": {
+            "shared": 19,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "495efa6f469957fd99e56295952c2cd472481a3fb99c373aafedd8ba2571d523",
+            "mainMaskSHA256": "495efa6f469957fd99e56295952c2cd472481a3fb99c373aafedd8ba2571d523"
+          }
+        },
+        "LightLayers_Off": {
+          "baseline": {
+            "meanRGB": 0.14302372685185186,
+            "maxChannel": 59,
+            "changedPixels": 329611,
+            "over8": 119,
+            "over24": 33,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.14302372685185186,
+            "maxChannel": 59,
+            "changedPixels": 329611,
+            "over8": 119,
+            "over24": 33,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 119,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "06494f4dd710faf53bf9dee776f7f6f8b5b78346a59ffe39551a34f066620f01",
+            "mainMaskSHA256": "06494f4dd710faf53bf9dee776f7f6f8b5b78346a59ffe39551a34f066620f01"
+          },
+          "locationsOver24": {
+            "shared": 33,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "6f5b47996766cd4f4a1f2a2942a8a439d31f192ddbd73e300cdbada0391df81e",
+            "mainMaskSHA256": "6f5b47996766cd4f4a1f2a2942a8a439d31f192ddbd73e300cdbada0391df81e"
+          }
+        },
+        "ScreenSpaceAO_On": {
+          "baseline": {
+            "meanRGB": 0.19175166377314815,
+            "maxChannel": 81,
+            "changedPixels": 407101,
+            "over8": 448,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19175202546296297,
+            "maxChannel": 81,
+            "changedPixels": 407102,
+            "over8": 448,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 448,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "cd69ac424008d8f16ec0293cf3fdbc1ea85c5342421218f87e0b7a3a955d1444",
+            "mainMaskSHA256": "cd69ac424008d8f16ec0293cf3fdbc1ea85c5342421218f87e0b7a3a955d1444"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        },
+        "ScreenSpaceAO_Off": {
+          "baseline": {
+            "meanRGB": 0.19348271122685184,
+            "maxChannel": 81,
+            "changedPixels": 409991,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "main": {
+            "meanRGB": 0.19348271122685184,
+            "maxChannel": 81,
+            "changedPixels": 409991,
+            "over8": 452,
+            "over24": 121,
+            "passed": false
+          },
+          "locationsOver8": {
+            "shared": 452,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd",
+            "mainMaskSHA256": "8229756167f25359ec84641c5d8f04e436072033419ab0235a663fcb3f7197dd"
+          },
+          "locationsOver24": {
+            "shared": 121,
+            "baselineOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "mainOnly": {
+              "pixels": 0,
+              "bboxXYXYExclusive": null
+            },
+            "identical": true,
+            "baselineMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70",
+            "mainMaskSHA256": "3c6ee7ddd8f25356c957d4dde8f7e123393ff45b9be33e45fab080efedf77d70"
+          }
+        }
+      },
+      "featureMatrixPassed": {
+        "baseline": {
+          "MainShadowCascade": false,
+          "ReceiveShadowsOff": false,
+          "MainShadowScreen": false,
+          "AdditionalShadowAtlas": false,
+          "LightCookie": false,
+          "LightLayers": false,
+          "ScreenSpaceAO": false
+        },
+        "main": {
+          "MainShadowCascade": false,
+          "ReceiveShadowsOff": false,
+          "MainShadowScreen": false,
+          "AdditionalShadowAtlas": false,
+          "LightCookie": false,
+          "LightLayers": false,
+          "ScreenSpaceAO": false
+        }
+      },
+      "routesValidated": {
+        "baseline": 28,
+        "main": 28
+      },
+      "featureActive": {
+        "baseline": {
+          "MainShadowCascade": true,
+          "ReceiveShadowsOff": true,
+          "MainShadowScreen": true,
+          "AdditionalShadowAtlas": true,
+          "LightCookie": true,
+          "LightLayers": true,
+          "ScreenSpaceAO": true
+        },
+        "main": {
+          "MainShadowCascade": true,
+          "ReceiveShadowsOff": true,
+          "MainShadowScreen": true,
+          "AdditionalShadowAtlas": true,
+          "LightCookie": true,
+          "LightLayers": true,
+          "ScreenSpaceAO": true
+        }
+      },
+      "environment": [
+        "2022.3.62f1",
+        "NVIDIA GeForce RTX 5060 Ti",
+        "Direct3D 12 [level 12.1]"
+      ],
+      "summary": {
+        "samePathIdentical": 12,
+        "samePathPassed": 28,
+        "samePathMax": 1,
+        "samePathLargestMean": 1.4467592592592592e-06,
+        "crossPathPassed": {
+          "baseline": 0,
+          "main": 0
+        },
+        "crossPathIdenticalLocationsOver8": 14,
+        "crossPathIdenticalLocationsOver24": 14
+      }
+    }
+  }
+}

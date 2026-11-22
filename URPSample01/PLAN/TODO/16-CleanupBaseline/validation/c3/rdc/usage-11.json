@@ -1,0 +1,77 @@
+{
+  "URP Z-Bin Buffer": {
+    "entries": [
+      {
+        "eventId": 42,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 57,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 71,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 630,
+        "usage": "CS_Resource"
+      },
+      {
+        "eventId": 685,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 688,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 691,
+        "usage": "PS_Resource"
+      }
+    ],
+    "resourceId": "ResourceId::8564"
+  },
+  "URP Tile Buffer": {
+    "entries": [
+      {
+        "eventId": 42,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 85,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 630,
+        "usage": "CS_Resource"
+      },
+      {
+        "eventId": 685,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 688,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 691,
+        "usage": "PS_Resource"
+      }
+    ],
+    "resourceId": "ResourceId::8567"
+  },
+  "Clustered Deferred Lighting": {
+    "entries": [
+      {
+        "eventId": 630,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 642,
+        "usage": "PS_Resource"
+      }
+    ],
+    "resourceId": "ResourceId::8648"
+  }
+}

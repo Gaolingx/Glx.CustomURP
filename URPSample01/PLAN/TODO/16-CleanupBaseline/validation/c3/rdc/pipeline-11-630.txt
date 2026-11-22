@@ -1,0 +1,19 @@
+API: D3D11
+
+Shaders:
+Stage	ShaderID	EntryPoint
+VS	8675	main
+PS	8679	main
+CS	8681	main
+
+Render targets:
+ID	Name	Width	Height	Format
+8505	RenderTexture-2D-1280x720	1280	720	R8G8B8A8_SRGB
+
+Depth target:
+ID	Name	Width	Height	Format
+8509	RenderTexture-2D-1280x720	1280	720	D32S8
+
+Viewports:
+X	Y	W	H	MinZ	MaxZ
+0	0	1280	720	0	1

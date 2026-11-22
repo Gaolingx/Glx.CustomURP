@@ -1,0 +1,16 @@
+{
+  "passes": [
+    {
+      "name": "UniversalRenderPipeline.RenderSingleCameraInternal: Arena Camera",
+      "eventId": 11,
+      "drawCount": 144,
+      "dispatchCount": 6,
+      "totalTriangles": 100877,
+      "rtWidth": 1280,
+      "rtHeight": 720,
+      "attachmentCount": 2,
+      "synthetic": false
+    }
+  ],
+  "count": 1
+}

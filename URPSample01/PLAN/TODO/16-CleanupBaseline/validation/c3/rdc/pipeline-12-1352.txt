@@ -1,0 +1,8 @@
+API: D3D12
+
+Shaders:
+Stage	ShaderID	EntryPoint
+VS	0	
+PS	0	
+CS	1000000000000000308	main
+

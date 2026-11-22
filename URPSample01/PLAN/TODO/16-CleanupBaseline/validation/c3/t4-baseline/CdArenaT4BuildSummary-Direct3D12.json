@@ -1,0 +1,10 @@
+{
+    "result": "Succeeded",
+    "totalErrors": 0,
+    "executablePath": "E:\\GitHub\\Glx.CustomURP-c3-material-5ab7626\\URPSample01\\Builds\\ClusteredDeferredArenaT4\\Direct3D12\\CdArenaT4.exe",
+    "graphicsApis": "Direct3D12",
+    "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+    "unityVersion": "2022.3.62f1",
+    "totalSizeBytes": 184415839,
+    "totalTimeSeconds": 23.0804375
+}

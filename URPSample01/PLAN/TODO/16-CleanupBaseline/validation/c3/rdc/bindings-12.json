@@ -1,0 +1,749 @@
+{
+  "1352": {
+    "api": "D3D12",
+    "eventId": 1352,
+    "stages": {
+      "cs": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 240,
+            "name": "cbuffer0",
+            "variables": 15
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 16384,
+            "name": "cbuffer1",
+            "variables": 1024
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 448,
+            "name": "cbuffer2",
+            "variables": 28
+          }
+        ],
+        "readOnlyResources": [
+          {
+            "bindPoint": 0,
+            "name": "texture0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "texture1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "texture2"
+          },
+          {
+            "bindPoint": 3,
+            "name": "texture3"
+          },
+          {
+            "bindPoint": 4,
+            "name": "texture4"
+          },
+          {
+            "bindPoint": 5,
+            "name": "structuredbuffer5"
+          },
+          {
+            "bindPoint": 6,
+            "name": "structuredbuffer6"
+          },
+          {
+            "bindPoint": 7,
+            "name": "structuredbuffer7"
+          },
+          {
+            "bindPoint": 8,
+            "name": "structuredbuffer8"
+          },
+          {
+            "bindPoint": 9,
+            "name": "structuredbuffer9"
+          },
+          {
+            "bindPoint": 10,
+            "name": "texture10"
+          }
+        ],
+        "readWriteResources": [
+          {
+            "bindPoint": 0,
+            "name": "uav0"
+          }
+        ],
+        "samplers": [
+          {
+            "bindPoint": 0,
+            "name": "sampler0"
+          }
+        ],
+        "shader": "ResourceId::1000000000000000308"
+      }
+    }
+  },
+  "1359": {
+    "api": "D3D12",
+    "eventId": 1359,
+    "stages": {
+      "cs": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 240,
+            "name": "cbuffer0",
+            "variables": 15
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 16384,
+            "name": "cbuffer1",
+            "variables": 1024
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 448,
+            "name": "cbuffer2",
+            "variables": 28
+          }
+        ],
+        "readOnlyResources": [
+          {
+            "bindPoint": 0,
+            "name": "texture0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "texture1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "texture2"
+          },
+          {
+            "bindPoint": 3,
+            "name": "texture3"
+          },
+          {
+            "bindPoint": 4,
+            "name": "texture4"
+          },
+          {
+            "bindPoint": 5,
+            "name": "structuredbuffer5"
+          },
+          {
+            "bindPoint": 6,
+            "name": "structuredbuffer6"
+          },
+          {
+            "bindPoint": 7,
+            "name": "structuredbuffer7"
+          },
+          {
+            "bindPoint": 8,
+            "name": "structuredbuffer8"
+          },
+          {
+            "bindPoint": 9,
+            "name": "structuredbuffer9"
+          },
+          {
+            "bindPoint": 10,
+            "name": "texture10"
+          }
+        ],
+        "readWriteResources": [
+          {
+            "bindPoint": 0,
+            "name": "uav0"
+          }
+        ],
+        "samplers": [
+          {
+            "bindPoint": 0,
+            "name": "sampler0"
+          }
+        ],
+        "shader": "ResourceId::1000000000000000308"
+      },
+      "ps": {
+        "readOnlyResources": [
+          {
+            "bindPoint": 0,
+            "name": "texture0"
+          }
+        ],
+        "shader": "ResourceId::851"
+      },
+      "vs": {
+        "shader": "ResourceId::836"
+      }
+    }
+  },
+  "1421": {
+    "api": "D3D12",
+    "eventId": 1421,
+    "stages": {
+      "cs": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 240,
+            "name": "cbuffer0",
+            "variables": 15
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 16384,
+            "name": "cbuffer1",
+            "variables": 1024
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 448,
+            "name": "cbuffer2",
+            "variables": 28
+          }
+        ],
+        "readOnlyResources": [
+          {
+            "bindPoint": 0,
+            "name": "texture0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "texture1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "texture2"
+          },
+          {
+            "bindPoint": 3,
+            "name": "texture3"
+          },
+          {
+            "bindPoint": 4,
+            "name": "texture4"
+          },
+          {
+            "bindPoint": 5,
+            "name": "structuredbuffer5"
+          },
+          {
+            "bindPoint": 6,
+            "name": "structuredbuffer6"
+          },
+          {
+            "bindPoint": 7,
+            "name": "structuredbuffer7"
+          },
+          {
+            "bindPoint": 8,
+            "name": "structuredbuffer8"
+          },
+          {
+            "bindPoint": 9,
+            "name": "structuredbuffer9"
+          },
+          {
+            "bindPoint": 10,
+            "name": "texture10"
+          }
+        ],
+        "readWriteResources": [
+          {
+            "bindPoint": 0,
+            "name": "uav0"
+          }
+        ],
+        "samplers": [
+          {
+            "bindPoint": 0,
+            "name": "sampler0"
+          }
+        ],
+        "shader": "ResourceId::1000000000000000308"
+      },
+      "ps": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 1120,
+            "name": "cbuffer0",
+            "variables": 70
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 16384,
+            "name": "cbuffer1",
+            "variables": 1024
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 512,
+            "name": "cbuffer2",
+            "variables": 32
+          },
+          {
+            "bindPoint": 3,
+            "byteSize": 128,
+            "name": "cbuffer3",
+            "variables": 8
+          },
+          {
+            "bindPoint": 4,
+            "byteSize": 448,
+            "name": "cbuffer4",
+            "variables": 28
+          }
+        ],
+        "readOnlyResources": [
+          {
+            "bindPoint": 0,
+            "name": "structuredbuffer0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "structuredbuffer1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "texture2"
+          },
+          {
+            "bindPoint": 3,
+            "name": "texture3"
+          },
+          {
+            "bindPoint": 4,
+            "name": "texture4"
+          }
+        ],
+        "samplers": [
+          {
+            "bindPoint": 0,
+            "name": "sampler0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "sampler1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "sampler2"
+          }
+        ],
+        "shader": "ResourceId::872"
+      },
+      "vs": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 1328,
+            "name": "cbuffer0",
+            "variables": 83
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 112,
+            "name": "cbuffer1",
+            "variables": 7
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 16,
+            "name": "cbuffer2",
+            "variables": 1
+          },
+          {
+            "bindPoint": 3,
+            "byteSize": 64,
+            "name": "cbuffer3",
+            "variables": 4
+          }
+        ],
+        "shader": "ResourceId::871"
+      }
+    }
+  },
+  "1431": {
+    "api": "D3D12",
+    "eventId": 1431,
+    "stages": {
+      "cs": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 240,
+            "name": "cbuffer0",
+            "variables": 15
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 16384,
+            "name": "cbuffer1",
+            "variables": 1024
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 448,
+            "name": "cbuffer2",
+            "variables": 28
+          }
+        ],
+        "readOnlyResources": [
+          {
+            "bindPoint": 0,
+            "name": "texture0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "texture1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "texture2"
+          },
+          {
+            "bindPoint": 3,
+            "name": "texture3"
+          },
+          {
+            "bindPoint": 4,
+            "name": "texture4"
+          },
+          {
+            "bindPoint": 5,
+            "name": "structuredbuffer5"
+          },
+          {
+            "bindPoint": 6,
+            "name": "structuredbuffer6"
+          },
+          {
+            "bindPoint": 7,
+            "name": "structuredbuffer7"
+          },
+          {
+            "bindPoint": 8,
+            "name": "structuredbuffer8"
+          },
+          {
+            "bindPoint": 9,
+            "name": "structuredbuffer9"
+          },
+          {
+            "bindPoint": 10,
+            "name": "texture10"
+          }
+        ],
+        "readWriteResources": [
+          {
+            "bindPoint": 0,
+            "name": "uav0"
+          }
+        ],
+        "samplers": [
+          {
+            "bindPoint": 0,
+            "name": "sampler0"
+          }
+        ],
+        "shader": "ResourceId::1000000000000000308"
+      },
+      "ps": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 1120,
+            "name": "cbuffer0",
+            "variables": 70
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 16384,
+            "name": "cbuffer1",
+            "variables": 1024
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 512,
+            "name": "cbuffer2",
+            "variables": 32
+          },
+          {
+            "bindPoint": 3,
+            "byteSize": 128,
+            "name": "cbuffer3",
+            "variables": 8
+          },
+          {
+            "bindPoint": 4,
+            "byteSize": 448,
+            "name": "cbuffer4",
+            "variables": 28
+          }
+        ],
+        "readOnlyResources": [
+          {
+            "bindPoint": 0,
+            "name": "structuredbuffer0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "structuredbuffer1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "texture2"
+          },
+          {
+            "bindPoint": 3,
+            "name": "texture3"
+          },
+          {
+            "bindPoint": 4,
+            "name": "texture4"
+          }
+        ],
+        "samplers": [
+          {
+            "bindPoint": 0,
+            "name": "sampler0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "sampler1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "sampler2"
+          }
+        ],
+        "shader": "ResourceId::872"
+      },
+      "vs": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 1328,
+            "name": "cbuffer0",
+            "variables": 83
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 112,
+            "name": "cbuffer1",
+            "variables": 7
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 16,
+            "name": "cbuffer2",
+            "variables": 1
+          },
+          {
+            "bindPoint": 3,
+            "byteSize": 64,
+            "name": "cbuffer3",
+            "variables": 4
+          }
+        ],
+        "shader": "ResourceId::871"
+      }
+    }
+  },
+  "1441": {
+    "api": "D3D12",
+    "eventId": 1441,
+    "stages": {
+      "cs": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 240,
+            "name": "cbuffer0",
+            "variables": 15
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 16384,
+            "name": "cbuffer1",
+            "variables": 1024
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 448,
+            "name": "cbuffer2",
+            "variables": 28
+          }
+        ],
+        "readOnlyResources": [
+          {
+            "bindPoint": 0,
+            "name": "texture0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "texture1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "texture2"
+          },
+          {
+            "bindPoint": 3,
+            "name": "texture3"
+          },
+          {
+            "bindPoint": 4,
+            "name": "texture4"
+          },
+          {
+            "bindPoint": 5,
+            "name": "structuredbuffer5"
+          },
+          {
+            "bindPoint": 6,
+            "name": "structuredbuffer6"
+          },
+          {
+            "bindPoint": 7,
+            "name": "structuredbuffer7"
+          },
+          {
+            "bindPoint": 8,
+            "name": "structuredbuffer8"
+          },
+          {
+            "bindPoint": 9,
+            "name": "structuredbuffer9"
+          },
+          {
+            "bindPoint": 10,
+            "name": "texture10"
+          }
+        ],
+        "readWriteResources": [
+          {
+            "bindPoint": 0,
+            "name": "uav0"
+          }
+        ],
+        "samplers": [
+          {
+            "bindPoint": 0,
+            "name": "sampler0"
+          }
+        ],
+        "shader": "ResourceId::1000000000000000308"
+      },
+      "ps": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 1120,
+            "name": "cbuffer0",
+            "variables": 70
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 16384,
+            "name": "cbuffer1",
+            "variables": 1024
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 512,
+            "name": "cbuffer2",
+            "variables": 32
+          },
+          {
+            "bindPoint": 3,
+            "byteSize": 128,
+            "name": "cbuffer3",
+            "variables": 8
+          },
+          {
+            "bindPoint": 4,
+            "byteSize": 448,
+            "name": "cbuffer4",
+            "variables": 28
+          }
+        ],
+        "readOnlyResources": [
+          {
+            "bindPoint": 0,
+            "name": "structuredbuffer0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "structuredbuffer1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "texture2"
+          },
+          {
+            "bindPoint": 3,
+            "name": "texture3"
+          },
+          {
+            "bindPoint": 4,
+            "name": "texture4"
+          }
+        ],
+        "samplers": [
+          {
+            "bindPoint": 0,
+            "name": "sampler0"
+          },
+          {
+            "bindPoint": 1,
+            "name": "sampler1"
+          },
+          {
+            "bindPoint": 2,
+            "name": "sampler2"
+          }
+        ],
+        "shader": "ResourceId::872"
+      },
+      "vs": {
+        "constantBuffers": [
+          {
+            "bindPoint": 0,
+            "byteSize": 1328,
+            "name": "cbuffer0",
+            "variables": 83
+          },
+          {
+            "bindPoint": 1,
+            "byteSize": 112,
+            "name": "cbuffer1",
+            "variables": 7
+          },
+          {
+            "bindPoint": 2,
+            "byteSize": 16,
+            "name": "cbuffer2",
+            "variables": 1
+          },
+          {
+            "bindPoint": 3,
+            "byteSize": 64,
+            "name": "cbuffer3",
+            "variables": 4
+          }
+        ],
+        "shader": "ResourceId::871"
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "passes": [
+    {
+      "name": "FrameTime.GPU",
+      "eventId": 96,
+      "drawCount": 143,
+      "dispatchCount": 6,
+      "totalTriangles": 100875,
+      "rtWidth": 0,
+      "rtHeight": 0,
+      "attachmentCount": 0,
+      "synthetic": false
+    }
+  ],
+  "count": 1
+}

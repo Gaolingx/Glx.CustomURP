@@ -1,0 +1,18 @@
+API: D3D12
+
+Shaders:
+Stage	ShaderID	EntryPoint
+VS	871	main
+PS	872	main
+
+Render targets:
+ID	Name	Width	Height	Format
+791	_CameraColorAttachmentA_1280x720_B10G11R11_UFloatPack32_Tex2D	1280	720	R11G11B10_FLOAT
+
+Depth target:
+ID	Name	Width	Height	Format
+793	_CameraDepthAttachment_1280x720_Depth	1280	720	D32S8
+
+Viewports:
+X	Y	W	H	MinZ	MaxZ
+0	0	1280	720	0	1

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-22 09:58:36Z" end-time="2026-11-22 09:58:38Z" duration="1.6778654">
+  <test-suite type="TestSuite" id="1000" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="45" result="Failed" site="Child" start-time="2026-11-22 09:58:36Z" end-time="2026-11-22 09:58:38Z" duration="1.677865" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1019" name="Unity.ClusteredDeferred.Tests.PlayMode.dll" fullname="E:/GitHub/Glx.CustomURP-c3-material-5ab7626/URPSample01/Library/ScriptAssemblies/Unity.ClusteredDeferred.Tests.PlayMode.dll" runstate="Runnable" testcasecount="16" result="Failed" site="Child" start-time="2026-11-22 09:58:36Z" end-time="2026-11-22 09:58:38Z" duration="1.664996" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="43700" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1020" name="Unity" fullname="Unity" runstate="Runnable" testcasecount="16" result="Failed" site="Child" start-time="2026-11-22 09:58:36Z" end-time="2026-11-22 09:58:38Z" duration="1.663542" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1021" name="ClusteredDeferred" fullname="Unity.ClusteredDeferred" runstate="Runnable" testcasecount="16" result="Failed" site="Child" start-time="2026-11-22 09:58:36Z" end-time="2026-11-22 09:58:38Z" duration="1.662477" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1022" name="Tests" fullname="Unity.ClusteredDeferred.Tests" runstate="Runnable" testcasecount="16" result="Failed" site="Child" start-time="2026-11-22 09:58:36Z" end-time="2026-11-22 09:58:38Z" duration="1.661447" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="1023" name="PlayMode" fullname="Unity.ClusteredDeferred.Tests.PlayMode" runstate="Runnable" testcasecount="16" result="Failed" site="Child" start-time="2026-11-22 09:58:36Z" end-time="2026-11-22 09:58:38Z" duration="1.660091" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1001" name="ClusteredDeferredPlayModeTests" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" testcasecount="16" result="Failed" site="Child" start-time="2026-11-22 09:58:36Z" end-time="2026-11-22 09:58:38Z" duration="1.657889" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1002" name="ClusteredMatchesForwardPlusAcrossMaterialTypes" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.ClusteredMatchesForwardPlusAcrossMaterialTypes" methodname="ClusteredMatchesForwardPlusAcrossMaterialTypes" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1910388592" result="Failed" start-time="2026-11-22 09:58:36Z" end-time="2026-11-22 09:58:38Z" duration="1.639396" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  1674 pixels differ by more than 8/255; expected sparse raster/shading differences.
+  Expected: less than or equal to 230
+  But was:  1674
+]]></message>
+                    <stack-trace><![CDATA[at Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests+<ClusteredMatchesForwardPlusAcrossMaterialTypes>d__21.MoveNext () [0x003a8] in E:\GitHub\Glx.CustomURP-c3-material-5ab7626\URPSample01\Assets\Tests\ClusteredDeferred\Tests\PlayMode\ClusteredDeferredPlayModeTests.cs:125
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@1.1.33\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:46
+]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[Shader warning in 'ClusterBuilder': use of potentially uninitialized variable (CdItemMinMaxZ) at kernel ClusterItemBounds at ClusterBuilder.compute(129) (on d3d11)
+CommandBuffer: temporary render texture  not found while executing  (SetComputeTextureParam)
+Shader warning in 'GTAO': integer divides may be much slower, try using uints if possible. at kernel GTAOMain at E:/GitHub/Glx.CustomURP-c3-material-5ab7626/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+Shader warning in 'GTAO': use of potentially uninitialized variable (GTAOGetDepthSample) at kernel GTAOMain at E:/GitHub/Glx.CustomURP-c3-material-5ab7626/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

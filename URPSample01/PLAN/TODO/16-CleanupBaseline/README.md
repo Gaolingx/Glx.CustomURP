@@ -110,6 +110,15 @@ RDC="E:/GitHub/renderdoc-mcp/_dist/package/renderdoc-mcp-windows-x64-v0.3.0/bin/
 
 独立限制：首轮零附加灯夹具在两 API 的正交测试报 `ClusterBuilder` 未绑定 `_CdClusterItems`，同轮另有 6 个 SSL 相机历史计数断言失败（[D3D11](validation/c3-fog/PlayMode-D3D11.xml) / [D3D12](validation/c3-fog/PlayMode-D3D12.xml)）。单附加灯复跑未复现，不宣称零附加灯通过；本提交未改灯表或缓冲布局。尚未删除 stencil 或执行删除后的 player / T4 / T5 / RenderDoc 验收。
 
+**C3 第二阶段（`646f75a`，未通过最终验收）**。删除 stencil 后的四组 T4/T5 玩家均已构建，最后补跑的 [T4 D3D12](validation/c3/t4/CdArenaT4BuildSummary-Direct3D12.json) 为 0 error。保留原始阈值，未将以下失败改判为通过。
+
+| 闸门 | 实测结果 |
+|---|---|
+| 材质 / PlayMode | EditMode 488/488，两 API PlayMode 各 43/44。以 `5ab7626` 的相同路径和材质夹具复测，[原始帧对照](validation/c3/material-comparison.json)显示两 API 的 1674 个超 `8/255` 像素位置完全相同，新增/消失均为 0；同一路径跨版本最大 RGB 差为 clustered 0.2491/255、Forward+ 0.000122/255 以内。原跨路径断言上限 230，仍失败。 |
+| T5 玩家 | [C0 同路径逐图](validation/c3/C3PlayerRegression.json)：D3D12 16/16，D3D11 12/16；失败均在 256 灯，涉及两条路径。[同一候选玩家独立进程复测](validation/c3/T5D3D11L256RootCause.json)：255 盏局部灯时两路 max 均为 2，256 盏时为 72/71。可见灯上限是有证据支持的解释，但未记录被排除的逐灯 ID。 |
+| T4 玩家 | 两 API 各 7 项开关均有响应，路由标志正确，无洋红像素；Forward+ 对 clustered 的原矩阵均为 **0/7**。相对 C0 各有 13/14 张 clustered 同路径图通过，唯一例外为 `ReceiveShadowsOff_ClusteredOn`（max 240，5432 px 超 8/255）。C0 的该项材质及替换范围不同。[相同夹具复核](validation/c3/T4MatchedFixtureComparison.json)：`5ab7626` → `646f75a` 两 API 各 28/28 张同路径图通过，最大通道差 1/255；各 14 组 Forward+ 对 clustered 在两版本均未过原阈值，但 >8/255 与 >24/255 的像素位置逐组完全相同。此结果证明本夹具未发现新增回归，不代表跨路径一致性通过。 |
+| RenderDoc | [双 API 证据](validation/c3/rdc/)：1280×720、256 灯、默认 clustered 透明路径各一帧。D3D11 compute→resolve EID 630→642，D3D12 1352→1359；六个透明 draw 的 PS 均读取 t0/t1 structured buffer。两帧均未出现 stencil 灯 pass，不外推至其他相机。 |
+
 | 后续步骤 | 前置 | 退出条件 |
 |---|---|---|
 | **C3** | C0.5 + D-C5 fog 迁移 | 删 stencil pass/shader/material/关键字；preview/overlay/XR 走 Forward；A/B vs C0 ≤ 阈值 |

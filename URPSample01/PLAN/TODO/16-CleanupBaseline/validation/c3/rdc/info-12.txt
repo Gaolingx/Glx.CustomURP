@@ -1,0 +1,8 @@
+Path:         E:/GitHub/Glx.CustomURP/URPSample01/PLAN/TODO/16-CleanupBaseline/validation/c3/rdc/c3-d3d12_frame_frame218.rdc
+API:          D3D12
+Degraded:     no
+Total events: 216
+Total draws:  143
+Machine:      Windows x86 64-bit 
+Driver:       D3D12
+Callstacks:   no

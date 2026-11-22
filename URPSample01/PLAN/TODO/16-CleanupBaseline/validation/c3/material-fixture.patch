@@ -1,0 +1,71 @@
+diff --git a/URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs b/URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs
+index 9fc8acc..fba6a59 100644
+--- a/URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs
++++ b/URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs
+@@ -71,6 +71,66 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
+         readonly List<Light> m_Lights = new List<Light>();
+         readonly List<Material> m_Materials = new List<Material>();
+ 
++        [UnityTest]
++        public IEnumerator ClusteredMatchesForwardPlusAcrossMaterialTypes()
++        {
++            yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
++            try
++            {
++                yield return RenderFrames(WarmupFrames);
++                Assert.AreEqual(2, CountClusterTargets());
++                var clustered = ReadPixels();
++                AssertImageUsable(clustered, "clustered");
++                var receivers = m_Root.GetComponentsInChildren<Renderer>()
++                    .Where(r => r.name == "Cd Back Wall" || r.name.EndsWith("Sphere")).ToArray();
++                Assert.AreEqual(4, receivers.Length);
++                var interiors = CaptureFogRegions(receivers);
++
++                SwitchPipeline(ForwardPlusPipelinePath);
++                yield return null;
++                yield return RenderFrames(WarmupFrames);
++                var forwardPlus = ReadPixels();
++                AssertImageUsable(forwardPlus, "Forward+");
++                var forwardInteriors = CaptureFogRegions(receivers);
++                for (int i = 0; i < receivers.Length; ++i)
++                {
++                    var interior = Compare(interiors[i], forwardInteriors[i]);
++                    Assert.LessOrEqual(interior.mean, kMeanThreshold, receivers[i].name);
++                    Assert.LessOrEqual(interior.max, kMaxThreshold, receivers[i].name);
++                }
++
++                var output = System.Environment.GetEnvironmentVariable("C3_MATERIAL_OUTPUT");
++                if (!string.IsNullOrEmpty(output))
++                {
++                    var directory = System.IO.Directory.CreateDirectory(System.IO.Path.Combine(output, SystemInfo.graphicsDeviceType.ToString()));
++                    foreach (var frame in new[] { ("clustered", clustered), ("forwardPlus", forwardPlus) })
++                    {
++                        using var writer = new System.IO.BinaryWriter(System.IO.File.Create(System.IO.Path.Combine(directory.FullName, frame.Item1 + ".rgba32f")));
++                        foreach (Color pixel in frame.Item2)
++                        {
++                            writer.Write(pixel.r);
++                            writer.Write(pixel.g);
++                            writer.Write(pixel.b);
++                            writer.Write(pixel.a);
++                        }
++                    }
++                }
++                var diff = Compare(forwardPlus, clustered);
++                Assert.AreEqual(0, diff.nonFinite, "A/B image contains non-finite pixels.");
++                Assert.LessOrEqual(diff.mean, kMeanThreshold,
++                    $"mean channel difference {diff.mean:0.###}/255 exceeds {kMeanThreshold}");
++                // C0 control measured isolated Forward+/GBuffer peaks up to 86/255. Allow those
++                // outliers only in the whole frame; keep the tight interior, mean and area gates.
++                Assert.LessOrEqual(diff.max, 96f, "Whole-frame Forward+ peak (in 1/255 units).");
++                Assert.LessOrEqual(diff.over8, clustered.Length / 1000,
++                    $"{diff.over8} pixels differ by more than 8/255; expected sparse raster/shading differences.");
++            }
++            finally
++            {
++                TearDownRig();
++            }
++        }
++
+         [UnityTest]
+         public IEnumerator StencilMatchesClusteredAcrossMaterialTypes()
+         {

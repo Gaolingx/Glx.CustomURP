@@ -1,0 +1,1176 @@
+{
+  "count": 146,
+  "resources": [
+    {
+      "byteSize": 0,
+      "name": "Immediate Context Bindings",
+      "resourceId": "ResourceId::1000000000000000015",
+      "type": "Other"
+    },
+    {
+      "byteSize": 0,
+      "name": "Immediate Context",
+      "resourceId": "ResourceId::14",
+      "type": "Queue"
+    },
+    {
+      "byteSize": 0,
+      "name": "Query 342",
+      "resourceId": "ResourceId::342",
+      "type": "Query"
+    },
+    {
+      "byteSize": 0,
+      "name": "Query 343",
+      "resourceId": "ResourceId::343",
+      "type": "Query"
+    },
+    {
+      "byteSize": 0,
+      "name": "Query 8244",
+      "resourceId": "ResourceId::8244",
+      "type": "Query"
+    },
+    {
+      "byteSize": 0,
+      "name": "Query 8248",
+      "resourceId": "ResourceId::8248",
+      "type": "Query"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 64,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R8G8B8A8_SRGB",
+      "formatDetails": {
+        "compByteWidth": 1,
+        "compCount": 4,
+        "compType": 9,
+        "name": "R8G8B8A8_SRGB"
+      },
+      "height": 4,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "UnityWhite",
+      "resourceId": "ResourceId::8251",
+      "type": "Texture",
+      "width": 4
+    },
+    {
+      "byteSize": 0,
+      "name": "Texture2D-SRV-12-4x4",
+      "resourceId": "ResourceId::8252",
+      "type": "View"
+    },
+    {
+      "arraysize": 6,
+      "byteSize": 24,
+      "cubemap": true,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R8G8B8A8_SRGB",
+      "formatDetails": {
+        "compByteWidth": 1,
+        "compCount": 4,
+        "compType": 9,
+        "name": "R8G8B8A8_SRGB"
+      },
+      "height": 1,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "UnityBlackCube",
+      "resourceId": "ResourceId::8269",
+      "type": "Texture",
+      "width": 1
+    },
+    {
+      "byteSize": 0,
+      "name": "TextureCube-SRV-21-1x1",
+      "resourceId": "ResourceId::8270",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 1024,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R8G8B8A8_SRGB",
+      "formatDetails": {
+        "compByteWidth": 1,
+        "compCount": 4,
+        "compType": 9,
+        "name": "R8G8B8A8_SRGB"
+      },
+      "height": 16,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "UnityDefault2D",
+      "resourceId": "ResourceId::8271",
+      "type": "Texture",
+      "width": 16
+    },
+    {
+      "byteSize": 0,
+      "name": "Texture2D-SRV-22-16x16",
+      "resourceId": "ResourceId::8272",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "BlendState-2-1",
+      "resourceId": "ResourceId::8295",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 176,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-73-176",
+      "resourceId": "ResourceId::8296",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 368,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-233-368",
+      "resourceId": "ResourceId::8297",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 688,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-73-688",
+      "resourceId": "ResourceId::8427",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 2128,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-239-2128",
+      "resourceId": "ResourceId::8432",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 2112,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-239-2112",
+      "resourceId": "ResourceId::8436",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 528,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-298-528",
+      "resourceId": "ResourceId::8441",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 24576,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-283-24576",
+      "resourceId": "ResourceId::8444",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "BlendState-2-1",
+      "resourceId": "ResourceId::8451",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "BlendState-2-5",
+      "resourceId": "ResourceId::8470",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 48,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-239-48",
+      "resourceId": "ResourceId::8479",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 64,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-239-64",
+      "resourceId": "ResourceId::8488",
+      "type": "Buffer"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 3686400,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R8G8B8A8_UNORM",
+      "formatDetails": {
+        "compByteWidth": 1,
+        "compCount": 4,
+        "compType": 2,
+        "name": "R8G8B8A8_UNORM"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "SwapChain-BackBuffer-Texture-1280x720",
+      "resourceId": "ResourceId::8500",
+      "type": "SwapchainImage",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "SwapChain-BackBuffer-RTV-1280x720",
+      "resourceId": "ResourceId::8502",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 3686400,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R8G8B8A8_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 1,
+        "compCount": 4,
+        "compType": 0,
+        "name": "R8G8B8A8_TYPELESS"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "RenderTexture-2D-1280x720",
+      "resourceId": "ResourceId::8505",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "Render Target View 8506",
+      "resourceId": "ResourceId::8506",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "Render Target View 8507",
+      "resourceId": "ResourceId::8507",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-SRV-81-color-1280x720",
+      "resourceId": "ResourceId::8508",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 7372800,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "D32S8_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 0,
+        "compCount": 2,
+        "compType": 0,
+        "name": "D32S8_TYPELESS"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "RenderTexture-2D-1280x720",
+      "resourceId": "ResourceId::8509",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "Depth Stencil View 8510",
+      "resourceId": "ResourceId::8510",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "BlendState-5-6",
+      "resourceId": "ResourceId::8516",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Internal-GUITexture",
+      "resourceId": "ResourceId::8518",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Internal-GUITexture",
+      "resourceId": "ResourceId::8519",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "SamplerState-1-000-0",
+      "resourceId": "ResourceId::8520",
+      "type": "Sampler"
+    },
+    {
+      "byteSize": 1048576,
+      "gpuAddress": 0,
+      "name": "Buffer-1-1048576",
+      "resourceId": "ResourceId::8521",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 131072,
+      "gpuAddress": 0,
+      "name": "Buffer-2-131072",
+      "resourceId": "ResourceId::8522",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "DepthStencilState-0-8",
+      "resourceId": "ResourceId::8524",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "RasterizerState-0-3",
+      "resourceId": "ResourceId::8525",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "DepthStencilState-0-7",
+      "resourceId": "ResourceId::8533",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 176,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-75-176",
+      "resourceId": "ResourceId::8538",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 2608,
+      "gpuAddress": 0,
+      "name": "ConstantBuffer-239-2608",
+      "resourceId": "ResourceId::8539",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 1344,
+      "gpuAddress": 0,
+      "name": "Cube",
+      "resourceId": "ResourceId::8543",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 72,
+      "gpuAddress": 0,
+      "name": "Cube",
+      "resourceId": "ResourceId::8544",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 5808,
+      "gpuAddress": 0,
+      "name": "Plane",
+      "resourceId": "ResourceId::8545",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 1200,
+      "gpuAddress": 0,
+      "name": "Plane",
+      "resourceId": "ResourceId::8546",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "Vertex Shader 8549",
+      "resourceId": "ResourceId::8549",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Pixel Shader 8550",
+      "resourceId": "ResourceId::8550",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "SamplerState-1-111-0",
+      "resourceId": "ResourceId::8551",
+      "type": "Sampler"
+    },
+    {
+      "byteSize": 0,
+      "name": "InputLayout-14",
+      "resourceId": "ResourceId::8552",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "Query 8553",
+      "resourceId": "ResourceId::8553",
+      "type": "Query"
+    },
+    {
+      "byteSize": 0,
+      "name": "BlendState-5-6",
+      "resourceId": "ResourceId::8555",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 28840,
+      "gpuAddress": 0,
+      "name": "Sphere",
+      "resourceId": "ResourceId::8556",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 4608,
+      "gpuAddress": 0,
+      "name": "Sphere",
+      "resourceId": "ResourceId::8557",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 16384,
+      "gpuAddress": 0,
+      "name": "URP Z-Bin Buffer",
+      "resourceId": "ResourceId::8564",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ComputeBuffer-UAV-4096x4",
+      "resourceId": "ResourceId::8565",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "ComputeBuffer-SRV-4096x4",
+      "resourceId": "ResourceId::8566",
+      "type": "View"
+    },
+    {
+      "byteSize": 65536,
+      "gpuAddress": 0,
+      "name": "URP Tile Buffer",
+      "resourceId": "ResourceId::8567",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ComputeBuffer-UAV-16384x4",
+      "resourceId": "ResourceId::8568",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "ComputeBuffer-SRV-16384x4",
+      "resourceId": "ResourceId::8569",
+      "type": "View"
+    },
+    {
+      "byteSize": 320,
+      "gpuAddress": 0,
+      "name": "CSConstantBuffer-0-320",
+      "resourceId": "ResourceId::8571",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 24576,
+      "gpuAddress": 0,
+      "name": "CSConstantBuffer-0-24576",
+      "resourceId": "ResourceId::8572",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 176,
+      "gpuAddress": 0,
+      "name": "Buffer-512-176",
+      "resourceId": "ResourceId::8580",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 176,
+      "gpuAddress": 0,
+      "name": "Buffer-512-176",
+      "resourceId": "ResourceId::8581",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 176,
+      "gpuAddress": 0,
+      "name": "Buffer-512-176",
+      "resourceId": "ResourceId::8582",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 176,
+      "gpuAddress": 0,
+      "name": "Buffer-512-176",
+      "resourceId": "ResourceId::8583",
+      "type": "Buffer"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 2,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R16_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 2,
+        "compCount": 1,
+        "compType": 0,
+        "name": "R16_TYPELESS"
+      },
+      "height": 1,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "_EmptyMainLightShadowmapTexture_1x1_Shadowmap",
+      "resourceId": "ResourceId::8584",
+      "type": "Texture",
+      "width": 1
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-SRV-89-depth-1x1",
+      "resourceId": "ResourceId::8587",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 3686400,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R11G11B10_FLOAT",
+      "formatDetails": {
+        "compByteWidth": 0,
+        "compCount": 3,
+        "compType": 1,
+        "name": "R11G11B10_FLOAT"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "_CameraColorAttachmentA_1280x720_B10G11R11_UFloatPack32_Tex2D",
+      "resourceId": "ResourceId::8588",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "Render Target View 8589",
+      "resourceId": "ResourceId::8589",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-SRV-91-color-1280x720",
+      "resourceId": "ResourceId::8591",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 7372800,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "D32S8_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 0,
+        "compCount": 2,
+        "compType": 0,
+        "name": "D32S8_TYPELESS"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "_CameraDepthAttachment_1280x720_Depth",
+      "resourceId": "ResourceId::8596",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "Depth Stencil View 8597",
+      "resourceId": "ResourceId::8597",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-SRV-95-depth-1280x720",
+      "resourceId": "ResourceId::8601",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 7372800,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "D32S8_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 0,
+        "compCount": 2,
+        "compType": 0,
+        "name": "D32S8_TYPELESS"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "_CameraDepthAttachment_Temp_1280x720_Depth",
+      "resourceId": "ResourceId::8603",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 3686400,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R32_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 4,
+        "compCount": 1,
+        "compType": 0,
+        "name": "R32_TYPELESS"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "_CameraDepthTexture_1280x720_R32_SFloat_Tex2D",
+      "resourceId": "ResourceId::8610",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "Render Target View 8611",
+      "resourceId": "ResourceId::8611",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-SRV-101-color-1280x720",
+      "resourceId": "ResourceId::8613",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 3686400,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R8G8B8A8_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 1,
+        "compCount": 4,
+        "compType": 0,
+        "name": "R8G8B8A8_TYPELESS"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "_GBuffer0_1280x720_R8G8B8A8_SRGB_Tex2D",
+      "resourceId": "ResourceId::8614",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "Render Target View 8615",
+      "resourceId": "ResourceId::8615",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-SRV-103-color-1280x720",
+      "resourceId": "ResourceId::8617",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 3686400,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R8G8B8A8_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 1,
+        "compCount": 4,
+        "compType": 0,
+        "name": "R8G8B8A8_TYPELESS"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "_GBuffer1_1280x720_R8G8B8A8_UNorm_Tex2D",
+      "resourceId": "ResourceId::8618",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "Render Target View 8619",
+      "resourceId": "ResourceId::8619",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-SRV-105-color-1280x720",
+      "resourceId": "ResourceId::8621",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 3686400,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R8G8B8A8_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 1,
+        "compCount": 4,
+        "compType": 0,
+        "name": "R8G8B8A8_TYPELESS"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "_GBuffer2_1280x720_R8G8B8A8_SNorm_Tex2D",
+      "resourceId": "ResourceId::8622",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "Render Target View 8623",
+      "resourceId": "ResourceId::8623",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-SRV-107-color-1280x720",
+      "resourceId": "ResourceId::8625",
+      "type": "View"
+    },
+    {
+      "byteSize": 12240,
+      "gpuAddress": 0,
+      "name": "CD Cluster Items",
+      "resourceId": "ResourceId::8626",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ComputeBuffer-SRV-255x48",
+      "resourceId": "ResourceId::8628",
+      "type": "View"
+    },
+    {
+      "byteSize": 2040,
+      "gpuAddress": 0,
+      "name": "CD Cluster MinMaxZ",
+      "resourceId": "ResourceId::8629",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ComputeBuffer-UAV-255x8",
+      "resourceId": "ResourceId::8630",
+      "type": "View"
+    },
+    {
+      "byteSize": 4080,
+      "gpuAddress": 0,
+      "name": "CD Cluster Tile Ranges",
+      "resourceId": "ResourceId::8632",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ComputeBuffer-UAV-255x16",
+      "resourceId": "ResourceId::8633",
+      "type": "View"
+    },
+    {
+      "byteSize": 6544,
+      "gpuAddress": 0,
+      "name": "CD Cluster Bin Headers",
+      "resourceId": "ResourceId::8638",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ComputeBuffer-UAV-1636x4",
+      "resourceId": "ResourceId::8639",
+      "type": "View"
+    },
+    {
+      "byteSize": 16,
+      "gpuAddress": 0,
+      "name": "CD Empty Cell Buffer",
+      "resourceId": "ResourceId::8641",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ComputeBuffer-SRV-4x4",
+      "resourceId": "ResourceId::8643",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 921600,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R8_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 1,
+        "compCount": 1,
+        "compType": 0,
+        "name": "R8_TYPELESS"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "Clustered Deferred Material Mask",
+      "resourceId": "ResourceId::8644",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "Render Target View 8645",
+      "resourceId": "ResourceId::8645",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-SRV-109-color-1280x720",
+      "resourceId": "ResourceId::8647",
+      "type": "View"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 7372800,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "R16G16B16A16_TYPELESS",
+      "formatDetails": {
+        "compByteWidth": 2,
+        "compCount": 4,
+        "compType": 0,
+        "name": "R16G16B16A16_TYPELESS"
+      },
+      "height": 720,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "Clustered Deferred Lighting",
+      "resourceId": "ResourceId::8648",
+      "type": "Texture",
+      "width": 1280
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-SRV-111-color-1280x720",
+      "resourceId": "ResourceId::8651",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "RenderTexture-UAV-111-color-1280x720-MIP-0",
+      "resourceId": "ResourceId::8652",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "ClusterBuilder.ClusterItemBounds",
+      "resourceId": "ResourceId::8653",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 240,
+      "gpuAddress": 0,
+      "name": "CSConstantBuffer-0-240",
+      "resourceId": "ResourceId::8654",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ClusterBuilder.ClusterZBinClear",
+      "resourceId": "ResourceId::8655",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 240,
+      "gpuAddress": 0,
+      "name": "CSConstantBuffer-0-240",
+      "resourceId": "ResourceId::8656",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ClusterBuilder.ClusterZBinScatter",
+      "resourceId": "ResourceId::8657",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 240,
+      "gpuAddress": 0,
+      "name": "CSConstantBuffer-0-240",
+      "resourceId": "ResourceId::8658",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ClusterBuilder.ClusterZBinPack",
+      "resourceId": "ResourceId::8659",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 240,
+      "gpuAddress": 0,
+      "name": "CSConstantBuffer-0-240",
+      "resourceId": "ResourceId::8660",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "ClusterBuilder.ClusterTileExpand",
+      "resourceId": "ResourceId::8661",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 240,
+      "gpuAddress": 0,
+      "name": "CSConstantBuffer-0-240",
+      "resourceId": "ResourceId::8662",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Universal Render Pipeline/CopyDepth",
+      "resourceId": "ResourceId::8663",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Universal Render Pipeline/Lit",
+      "resourceId": "ResourceId::8664",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Universal Render Pipeline/CopyDepth",
+      "resourceId": "ResourceId::8665",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Universal Render Pipeline/Lit",
+      "resourceId": "ResourceId::8666",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Universal/ClusteredDeferredMask",
+      "resourceId": "ResourceId::8667",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Universal/ClusteredDeferredMask",
+      "resourceId": "ResourceId::8668",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "SamplerState-1-111-0",
+      "resourceId": "ResourceId::8669",
+      "type": "Sampler"
+    },
+    {
+      "byteSize": 0,
+      "name": "DepthStencilState-1-7",
+      "resourceId": "ResourceId::8670",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "RasterizerState-1-3",
+      "resourceId": "ResourceId::8671",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 131072,
+      "gpuAddress": 0,
+      "name": "Buffer 8672",
+      "resourceId": "ResourceId::8672",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "InputLayout-14",
+      "resourceId": "ResourceId::8673",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "InputLayout-14",
+      "resourceId": "ResourceId::8674",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Universal/ClusteredDeferredMask",
+      "resourceId": "ResourceId::8675",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "SamplerState-0-111-0",
+      "resourceId": "ResourceId::8676",
+      "type": "Sampler"
+    },
+    {
+      "byteSize": 0,
+      "name": "DepthStencilState-1-8",
+      "resourceId": "ResourceId::8677",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "RasterizerState-1-3",
+      "resourceId": "ResourceId::8678",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Universal/ClusteredDeferredMask",
+      "resourceId": "ResourceId::8679",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "DepthStencilState-0-8",
+      "resourceId": "ResourceId::8680",
+      "type": "StateObject"
+    },
+    {
+      "byteSize": 0,
+      "name": "ClusteredDeferred.ClusteredDeferred",
+      "resourceId": "ResourceId::8681",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 528,
+      "gpuAddress": 0,
+      "name": "CSConstantBuffer-0-528",
+      "resourceId": "ResourceId::8682",
+      "type": "Buffer"
+    },
+    {
+      "byteSize": 0,
+      "name": "SamplerState-1-111-2",
+      "resourceId": "ResourceId::8683",
+      "type": "Sampler"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Universal/ClusteredDeferredResolve",
+      "resourceId": "ResourceId::8684",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Universal/ClusteredDeferredResolve",
+      "resourceId": "ResourceId::8685",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Universal Render Pipeline/Lit",
+      "resourceId": "ResourceId::8686",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Universal/CoreBlit",
+      "resourceId": "ResourceId::8687",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Universal Render Pipeline/Lit",
+      "resourceId": "ResourceId::8688",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 0,
+      "name": "Hidden/Universal/CoreBlit",
+      "resourceId": "ResourceId::8689",
+      "type": "Shader"
+    },
+    {
+      "byteSize": 2048,
+      "gpuAddress": 0,
+      "name": "Buffer 8690",
+      "resourceId": "ResourceId::8690",
+      "type": "Buffer"
+    },
+    {
+      "arraysize": 1,
+      "byteSize": 3910,
+      "cubemap": false,
+      "depth": 1,
+      "dimension": "2",
+      "format": "B4G4R4A4_UNORM",
+      "formatDetails": {
+        "compByteWidth": 0,
+        "compCount": 4,
+        "compType": 2,
+        "name": "B4G4R4A4_UNORM"
+      },
+      "height": 17,
+      "mips": 1,
+      "msSamp": 1,
+      "name": "UnityWatermark-dev",
+      "resourceId": "ResourceId::8691",
+      "type": "Texture",
+      "width": 115
+    },
+    {
+      "byteSize": 0,
+      "name": "Texture2D-SRV-113-115x17",
+      "resourceId": "ResourceId::8692",
+      "type": "View"
+    },
+    {
+      "byteSize": 0,
+      "name": "SamplerState-1-000-0",
+      "resourceId": "ResourceId::8697",
+      "type": "Sampler"
+    },
+    {
+      "byteSize": 0,
+      "name": "InputLayout-14",
+      "resourceId": "ResourceId::8698",
+      "type": "StateObject"
+    }
+  ]
+}

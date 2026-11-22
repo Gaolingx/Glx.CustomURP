@@ -1,0 +1,1540 @@
+{
+  "scope": "T5 same-route C0->C3, not within-player cross-route parity. All run and image paths relative to validation/. Code references relative to URPSample01/.",
+  "thresholds": {
+    "meanRGB": 2,
+    "maxChannel": 24
+  },
+  "method": "RGB8 decoded by Pillow, abs(A-B); mean over W*H*3, max over all channels, over24 counts pixels with any channel >24. PNG alpha excluded. Matrices below always compare a route with itself.",
+  "routes": [
+    "ClusteredDeferred",
+    "ForwardPlus"
+  ],
+  "runs": {
+    "C0-11-control": {
+      "directory": "baseline/t5-d3d11/control",
+      "cdPerfSha256": "5dc25b4484cb6ba5b448acac9249c9ba90f4e54d57d859af0d2ec96f070257cd",
+      "utcTimestamp": "2026-11-22T06:11:47.5951833Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D11",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "screenshotLightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "transparentFixture": false,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "StencilDeferred",
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L0.png": "6274f1299cfef68c783fb294894c1272719367a8608a6112fc60bccfa887da61",
+        "ClusteredDeferred_L256.png": "3b676f4c0dec4ec39532e88f3e101d344d3034b9fe2fc9de83aa9bf5d92f55b6",
+        "ClusteredDeferred_L48.png": "1f53193b5a70469afcfa89c7a244cd42eb1444070b7fe442e4df09a1520a3eec",
+        "ClusteredDeferred_L8.png": "12751654bb8b2a6a05d4916536acfdcfb6d4aa6fb0de13ec03372b127d95bd35",
+        "ForwardPlus_L0.png": "611d53433520848ad5f831b92070d6dded673fd7f6bca4a6ac950943c92d0cc7",
+        "ForwardPlus_L256.png": "5026e7c1379262ca82373aeff4ec72fc624ac3e999e225e7fa1044005706cf3c",
+        "ForwardPlus_L48.png": "f7403e72897736419dd6902be3105cf24fc84b576454f88dbe597f8424706d13",
+        "ForwardPlus_L8.png": "c1d29072da0048a5e48e53b47d87d3720dc7af2145267c32a43af7c094240c7e"
+      }
+    },
+    "C0-12-control": {
+      "directory": "baseline/t5-d3d12/control",
+      "cdPerfSha256": "a4729b40060daf4c0d617b7ac66b7835dbc2fcf8e77ad1e53dc39fbe4476f1b1",
+      "utcTimestamp": "2026-11-22T06:12:16.6780909Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D12",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "screenshotLightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "transparentFixture": false,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "StencilDeferred",
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L0.png": "6274f1299cfef68c783fb294894c1272719367a8608a6112fc60bccfa887da61",
+        "ClusteredDeferred_L256.png": "e349dfa11c2be7b0997a6bef44362843d0a8654665e3b405e39079baed6e634a",
+        "ClusteredDeferred_L48.png": "c0419381a9037eca142bd0f1b62e299550205574476c550cc92efde79e57ffd4",
+        "ClusteredDeferred_L8.png": "12751654bb8b2a6a05d4916536acfdcfb6d4aa6fb0de13ec03372b127d95bd35",
+        "ForwardPlus_L0.png": "5d87919056d03bf3c8e2d9d42581d4b31f9fd632a60a58579a2d2246b8f377ee",
+        "ForwardPlus_L256.png": "26c09753ef43a2cb926bfbad19fc55d11655596a2127e45f2935f88456729055",
+        "ForwardPlus_L48.png": "a737ce3201db8023a16b2b5b73240f45827bd252822879c62cf3a90149afe3da",
+        "ForwardPlus_L8.png": "68b309620995c014799f344f7b8d3cab4784a7e42cbe381e5971b85675b93c7c"
+      }
+    },
+    "C3-11-control": {
+      "directory": "c3/t5-d3d11/control",
+      "cdPerfSha256": "da9aea0d7838d984b408f9e674836724e1a9b31f7a3118f8f42956f26cdb6d0c",
+      "utcTimestamp": "2026-11-22T09:52:01.7646381Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D11",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "screenshotLightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "transparentFixture": false,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L0.png": "6274f1299cfef68c783fb294894c1272719367a8608a6112fc60bccfa887da61",
+        "ClusteredDeferred_L256.png": "1596199c2049098059e8c19d93b4c9a95ae3160ceb16509cb2856ed406090daf",
+        "ClusteredDeferred_L48.png": "2f7f96744d7954bcf50c6b18dcba2611ff0f26749bb1682cd689dc4c589f3ce0",
+        "ClusteredDeferred_L8.png": "12751654bb8b2a6a05d4916536acfdcfb6d4aa6fb0de13ec03372b127d95bd35",
+        "ForwardPlus_L0.png": "611d53433520848ad5f831b92070d6dded673fd7f6bca4a6ac950943c92d0cc7",
+        "ForwardPlus_L256.png": "0996ad61edeaae937f4082c31bf134adb69935b73ffd3d7392d53653063cc6cc",
+        "ForwardPlus_L48.png": "4a3daba91f9aac08277a1b3eec3cb283aab3f7dbd6da7c0fb98d34a9cdfd49c9",
+        "ForwardPlus_L8.png": "e0f033bdbe97418fcfeb6c1d47e1918819850a24d26acc4d1b6493d065c10eaa"
+      }
+    },
+    "C3-12-control": {
+      "directory": "c3/t5-d3d12/control",
+      "cdPerfSha256": "2993f5f4e38e51729a743608a51fd4008e650c0a3148024380e6a912e16bc455",
+      "utcTimestamp": "2026-11-22T09:52:19.7552250Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D12",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "screenshotLightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "transparentFixture": false,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L0.png": "6274f1299cfef68c783fb294894c1272719367a8608a6112fc60bccfa887da61",
+        "ClusteredDeferred_L256.png": "166ae92b3a193114dd951bdd09fac63543f7541e1ce999371d3685f1827edd57",
+        "ClusteredDeferred_L48.png": "373d62d3bc4b5dd638c56ef42a3364b17549c65bba480db8299a6e02ae2bd9f1",
+        "ClusteredDeferred_L8.png": "12751654bb8b2a6a05d4916536acfdcfb6d4aa6fb0de13ec03372b127d95bd35",
+        "ForwardPlus_L0.png": "5d87919056d03bf3c8e2d9d42581d4b31f9fd632a60a58579a2d2246b8f377ee",
+        "ForwardPlus_L256.png": "ec1f157956e591625d4056721ccbbe9375b0c48d8e5ee00d1a7821f13a38cf05",
+        "ForwardPlus_L48.png": "a737ce3201db8023a16b2b5b73240f45827bd252822879c62cf3a90149afe3da",
+        "ForwardPlus_L8.png": "68b309620995c014799f344f7b8d3cab4784a7e42cbe381e5971b85675b93c7c"
+      }
+    },
+    "C0-11-cluster-on": {
+      "directory": "baseline/t5-d3d11/cluster-on",
+      "cdPerfSha256": "adb08ae457631bc38dd6a8334b2c7559b57280943160206c04c7e18eff25aa61",
+      "utcTimestamp": "2026-11-22T06:11:56.2556192Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D11",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "screenshotLightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "transparentFixture": true,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "StencilDeferred",
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L0.png": "14a4ae3623a1135b179750319ff06fd10cb3b50343b3b6b8632f2c7fc3cf7af3",
+        "ClusteredDeferred_L256.png": "0d77d5361c84c52f14e572338b4b5479e85c1b58c8c89a6267ba2666f33a90b5",
+        "ClusteredDeferred_L48.png": "44c1eadf3caf49c0c504de57f5e111e1f0e77d8b7bccb5b7473e61aaa98e3323",
+        "ClusteredDeferred_L8.png": "97df548f5a320d7ae97b2a4fd529c7b35781f790b026ef6a63bc6584afbbf880",
+        "ForwardPlus_L0.png": "e7acf43375d423c9d5c283d88bd382299cebca42a10c7b123fc9d179b9266e62",
+        "ForwardPlus_L256.png": "ddb5ffa4bf8897874c397dd23a4a76352579b33325cb98d3a56b2146a7b39716",
+        "ForwardPlus_L48.png": "68861489b664d06c0d99e13365b1645d85b0e85a88275acf3fe78df10eb65a62",
+        "ForwardPlus_L8.png": "a4bd6b4381309ba69e020a7691e0eb8122cce5b5bd92e131a6906094a8e4640e"
+      }
+    },
+    "C0-12-cluster-on": {
+      "directory": "baseline/t5-d3d12/cluster-on",
+      "cdPerfSha256": "0de0e7dc73e62b094a9268eae8459b2af0d89fb5ba7d68e6bec4b33e87c5b59e",
+      "utcTimestamp": "2026-11-22T06:12:26.2286701Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D12",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "screenshotLightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "transparentFixture": true,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "StencilDeferred",
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L0.png": "14a4ae3623a1135b179750319ff06fd10cb3b50343b3b6b8632f2c7fc3cf7af3",
+        "ClusteredDeferred_L256.png": "df99dbe94fca9c8f30f6aec07cf03fd16f2e11bcd4442a6a58461961323ca155",
+        "ClusteredDeferred_L48.png": "cf6d5ab88ee932f8aeaed61e424ff995c20b1c4af31f84db7ed11db435ef763a",
+        "ClusteredDeferred_L8.png": "821fad1097cfa0c4e97d00fe7fc79119b11d15a04648618773dda6d0c1e16664",
+        "ForwardPlus_L0.png": "05b97c322995aa95cf7686dd38d632f81bf21ffd1a5441e1f4441e9328c5614c",
+        "ForwardPlus_L256.png": "5f7ecfbd1659bb7988bdc915a1d43640db5613e25a496e1858423b3650d7d1e2",
+        "ForwardPlus_L48.png": "6de021a5a4e80ede5c3539ae1d964fc606ccada9c4e2347574c9d0f722936478",
+        "ForwardPlus_L8.png": "69bb2137afa3e8d2326f55b68a3bf18e3055bee00fceac0778b0e884d2eca7fa"
+      }
+    },
+    "C3-11-cluster-on": {
+      "directory": "c3/t5-d3d11/cluster-on",
+      "cdPerfSha256": "8424f18b2345683998ea8df3dcb4d4d83e1b8dba0aaa7234dac53041b8e59cec",
+      "utcTimestamp": "2026-11-22T09:52:09.1111158Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D11",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "screenshotLightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "transparentFixture": true,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L0.png": "14a4ae3623a1135b179750319ff06fd10cb3b50343b3b6b8632f2c7fc3cf7af3",
+        "ClusteredDeferred_L256.png": "e404258a14780b30527048c5494a3a66e42cb024d3f2be41e7ca139b2c253918",
+        "ClusteredDeferred_L48.png": "4c45add28c6e608cd9461df7d923370956f1f377adfd0d783f6d52bd3a39a901",
+        "ClusteredDeferred_L8.png": "97df548f5a320d7ae97b2a4fd529c7b35781f790b026ef6a63bc6584afbbf880",
+        "ForwardPlus_L0.png": "e7acf43375d423c9d5c283d88bd382299cebca42a10c7b123fc9d179b9266e62",
+        "ForwardPlus_L256.png": "489a0535d8304103b541d5ff83f9cc83cfc53046f0f148cec3ed213e5bb5a018",
+        "ForwardPlus_L48.png": "36d910d4798b44f963a8d90aa1853338e1eb310ff3e5316b3c4ca07445789d7b",
+        "ForwardPlus_L8.png": "d97ffff8b6aac1579956d94418ce180e60bb49879c81b5237f2b14d8957c72ae"
+      }
+    },
+    "C3-12-cluster-on": {
+      "directory": "c3/t5-d3d12/cluster-on",
+      "cdPerfSha256": "3130f812cc03f9775da20f4868ff5100d24e5bffe2976d41360868e783699cee",
+      "utcTimestamp": "2026-11-22T09:52:28.3478856Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D12",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "screenshotLightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "transparentFixture": true,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L0.png": "14a4ae3623a1135b179750319ff06fd10cb3b50343b3b6b8632f2c7fc3cf7af3",
+        "ClusteredDeferred_L256.png": "4ddcc3797c4677a1ed6a3641c2caa003278882c1dc6799fa6ba63218c2bc9df0",
+        "ClusteredDeferred_L48.png": "db97ae064688c7432074b9888d3d1afd217734f1c3bf8c0630ffaaf0352e41da",
+        "ClusteredDeferred_L8.png": "97df548f5a320d7ae97b2a4fd529c7b35781f790b026ef6a63bc6584afbbf880",
+        "ForwardPlus_L0.png": "05b97c322995aa95cf7686dd38d632f81bf21ffd1a5441e1f4441e9328c5614c",
+        "ForwardPlus_L256.png": "65c4cd957f1ea50e27dfe1735317995d89664463b98b0121300119f12965f690",
+        "ForwardPlus_L48.png": "bb196e0f8a10b1909dff7586d7ec19cb8d9c2fc393239c267bb3faefbd80a8ae",
+        "ForwardPlus_L8.png": "1423fdd16b270f3354768aa55713b18532cc8039c5b1344dc19ef03f67a48b0b"
+      }
+    },
+    "repeat-control": {
+      "directory": "c3/t5-d3d11-repeat256",
+      "cdPerfSha256": "d198769034c9d1da26a55345c5eda9ca1dbb2074cfda09349c00aa8a0cd0479e",
+      "utcTimestamp": "2026-11-22T09:56:39.8398351Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D11",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "screenshotLightCounts": [
+        256
+      ],
+      "transparentFixture": false,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L256.png": "b1f1bdca58e0a32f3d885566afdd6693b90fe0d4489afe71e3a681b3f25b655e",
+        "ForwardPlus_L256.png": "4da8da5dd79bbe7d92d5d64007122c34630432ac1e6ce28262dce043deca844b"
+      }
+    },
+    "repeat-transparent": {
+      "directory": "c3/t5-d3d11-transparent-repeat",
+      "cdPerfSha256": "ba72ef6878ddb0f81eb5296bce162d4eb19bcb051057f1577908af5de0809c7d",
+      "utcTimestamp": "2026-11-22T09:59:04.4611933Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D11",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "screenshotLightCounts": [
+        0,
+        8,
+        48,
+        256
+      ],
+      "transparentFixture": true,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L0.png": "14a4ae3623a1135b179750319ff06fd10cb3b50343b3b6b8632f2c7fc3cf7af3",
+        "ClusteredDeferred_L256.png": "dda76234c3120169ba4da0ec5c164eb046bcaed10c8a66e5f35727684685dda8",
+        "ClusteredDeferred_L48.png": "79ffa51d4cb1faa36ba2ef39849bc671f5bad9281fa1707f370bc15bf550ca41",
+        "ClusteredDeferred_L8.png": "821fad1097cfa0c4e97d00fe7fc79119b11d15a04648618773dda6d0c1e16664",
+        "ForwardPlus_L0.png": "e7acf43375d423c9d5c283d88bd382299cebca42a10c7b123fc9d179b9266e62",
+        "ForwardPlus_L256.png": "b8b927f57456fdf0b9e3313b0bc3c2d974bab39493830250b470176829af953a",
+        "ForwardPlus_L48.png": "36d910d4798b44f963a8d90aa1853338e1eb310ff3e5316b3c4ca07445789d7b",
+        "ForwardPlus_L8.png": "d97ffff8b6aac1579956d94418ce180e60bb49879c81b5237f2b14d8957c72ae"
+      }
+    },
+    "A": {
+      "directory": "c3/t5-d3d11-cap-a",
+      "cdPerfSha256": "eed034d45a2e82373ed4452c20846621056e30be978d26850610661b3517d32f",
+      "utcTimestamp": "2026-11-22T09:58:51.9913486Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D11",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        255,
+        256
+      ],
+      "screenshotLightCounts": [
+        255,
+        256
+      ],
+      "transparentFixture": false,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L255.png": "480c40eb3e607c3a7e2affb62e1aac5163f118fa02a0c735482ab1c69ee084b4",
+        "ClusteredDeferred_L256.png": "fa573e9abcb25ebdec467903eca73dd66cd55a0454258c5a1e5af0742074e095",
+        "ForwardPlus_L255.png": "c93925b0f6e5e1df0fb269b99c212ee7dd7feb649bcb697a6e8862bc33b321fa",
+        "ForwardPlus_L256.png": "4572466316b9dc2d4715de4321e64162295ed31e3a7f34c4653b3960aee79b10"
+      }
+    },
+    "B": {
+      "directory": "c3/t5-d3d11-cap-b",
+      "cdPerfSha256": "71e3fc831e30a8cf3791eb235154494f0ef3d4e928bdc2b323642c567a3144f2",
+      "utcTimestamp": "2026-11-22T09:58:58.4084434Z",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "graphicsDeviceType": "Direct3D11",
+      "width": 1280,
+      "height": 720,
+      "warmupFrames": 40,
+      "sampleFrames": 150,
+      "lightCounts": [
+        255,
+        256
+      ],
+      "screenshotLightCounts": [
+        255,
+        256
+      ],
+      "transparentFixture": false,
+      "perObjectLightLimit": 4,
+      "forwardClusterLights": true,
+      "clusterListAsync": false,
+      "clusterListCompact": false,
+      "clusterListPrune": false,
+      "completed": true,
+      "error": "",
+      "modeOrder": [
+        "ClusteredDeferred",
+        "ForwardPlus"
+      ],
+      "pngSha256": {
+        "ClusteredDeferred_L255.png": "6e067f8f4fce0f478a224b8e2ba2f9dd206ab8eac9f0a964947bb7aaefdb1038",
+        "ClusteredDeferred_L256.png": "114be0da185d88f08a565273a8feca5311976fdaee75a5dec6c987cfcc082992",
+        "ForwardPlus_L255.png": "5fce4cb059094e83b2c827b280c87bb7f21f745c8520c38c9261bac6ae1a6d5b",
+        "ForwardPlus_L256.png": "26521c2ce668300e901d76f6e8d67948868790f382524f011fb7bbfc88cbb6df"
+      }
+    }
+  },
+  "comparisons": {
+    "C0-11-control vs C0-12-control": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.8084490740740741e-06,
+          "max": 1,
+          "changed": 5,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.13951171875,
+          "max": 93,
+          "changed": 44010,
+          "over24": 1302,
+          "passed": false
+        },
+        {
+          "mean": 0.1392849392361111,
+          "max": 93,
+          "changed": 43647,
+          "over24": 1296,
+          "passed": false
+        }
+      ]
+    },
+    "C0-11-control vs C3-11-control": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.10962058738425925,
+          "max": 93,
+          "changed": 42640,
+          "over24": 986,
+          "passed": false
+        },
+        {
+          "mean": 0.1094578269675926,
+          "max": 93,
+          "changed": 42305,
+          "over24": 992,
+          "passed": false
+        }
+      ]
+    },
+    "C0-11-control vs C3-12-control": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.8084490740740741e-06,
+          "max": 1,
+          "changed": 5,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.13950991030092594,
+          "max": 93,
+          "changed": 44007,
+          "over24": 1302,
+          "passed": false
+        },
+        {
+          "mean": 0.13928530092592592,
+          "max": 93,
+          "changed": 43648,
+          "over24": 1296,
+          "passed": false
+        }
+      ]
+    },
+    "C0-12-control vs C3-11-control": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.4467592592592592e-06,
+          "max": 1,
+          "changed": 4,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.035430049189814815,
+          "max": 64,
+          "changed": 31110,
+          "over24": 471,
+          "passed": false
+        },
+        {
+          "mean": 0.03531756365740741,
+          "max": 63,
+          "changed": 31010,
+          "over24": 470,
+          "passed": false
+        }
+      ]
+    },
+    "C0-12-control vs C3-12-control": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 1.8084490740740741e-06,
+          "max": 3,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        }
+      ]
+    },
+    "C3-11-control vs C3-12-control": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.4467592592592592e-06,
+          "max": 1,
+          "changed": 4,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.035428964120370374,
+          "max": 64,
+          "changed": 31109,
+          "over24": 471,
+          "passed": false
+        },
+        {
+          "mean": 0.035317201967592596,
+          "max": 63,
+          "changed": 31009,
+          "over24": 470,
+          "passed": false
+        }
+      ]
+    },
+    "C0-11-control vs repeat-control": {
+      "256": [
+        {
+          "mean": 0.13951280381944445,
+          "max": 93,
+          "changed": 44011,
+          "over24": 1302,
+          "passed": false
+        },
+        {
+          "mean": 0.1394997829861111,
+          "max": 93,
+          "changed": 44156,
+          "over24": 1296,
+          "passed": false
+        }
+      ]
+    },
+    "C0-12-control vs repeat-control": {
+      "256": [
+        {
+          "mean": 1.8084490740740741e-06,
+          "max": 3,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 0.00027922453703703703,
+          "max": 3,
+          "changed": 681,
+          "over24": 0,
+          "passed": true
+        }
+      ]
+    },
+    "C3-11-control vs repeat-control": {
+      "256": [
+        {
+          "mean": 0.035428964120370374,
+          "max": 64,
+          "changed": 31109,
+          "over24": 471,
+          "passed": false
+        },
+        {
+          "mean": 0.03555700231481482,
+          "max": 63,
+          "changed": 31568,
+          "over24": 469,
+          "passed": false
+        }
+      ]
+    },
+    "C3-12-control vs repeat-control": {
+      "256": [
+        {
+          "mean": 2.8935185185185184e-06,
+          "max": 3,
+          "changed": 4,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 0.00027886284722222223,
+          "max": 3,
+          "changed": 680,
+          "over24": 0,
+          "passed": true
+        }
+      ]
+    },
+    "C0-11-cluster-on vs C0-12-cluster-on": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.8084490740740741e-06,
+          "max": 1,
+          "changed": 5,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 1.4467592592592592e-06,
+          "max": 1,
+          "changed": 4,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.17141637731481482,
+          "max": 63,
+          "changed": 89970,
+          "over24": 526,
+          "passed": false
+        },
+        {
+          "mean": 0.17081597222222222,
+          "max": 65,
+          "changed": 89667,
+          "over24": 512,
+          "passed": false
+        }
+      ]
+    },
+    "C0-11-cluster-on vs C3-11-cluster-on": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.17253580729166668,
+          "max": 63,
+          "changed": 88636,
+          "over24": 613,
+          "passed": false
+        },
+        {
+          "mean": 0.1720283564814815,
+          "max": 65,
+          "changed": 88332,
+          "over24": 607,
+          "passed": false
+        }
+      ]
+    },
+    "C0-11-cluster-on vs C3-12-cluster-on": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.17141746238425926,
+          "max": 63,
+          "changed": 89971,
+          "over24": 526,
+          "passed": false
+        },
+        {
+          "mean": 0.17081524884259258,
+          "max": 65,
+          "changed": 89667,
+          "over24": 512,
+          "passed": false
+        }
+      ]
+    },
+    "C0-12-cluster-on vs C3-11-cluster-on": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.4467592592592592e-06,
+          "max": 1,
+          "changed": 4,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.09966109664351852,
+          "max": 27,
+          "changed": 49075,
+          "over24": 23,
+          "passed": false
+        },
+        {
+          "mean": 0.09951678240740741,
+          "max": 27,
+          "changed": 49103,
+          "over24": 25,
+          "passed": false
+        }
+      ]
+    },
+    "C0-12-cluster-on vs C3-12-cluster-on": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 1.0850694444444444e-06,
+          "max": 3,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 2.170138888888889e-06,
+          "max": 2,
+          "changed": 5,
+          "over24": 0,
+          "passed": true
+        }
+      ]
+    },
+    "C3-11-cluster-on vs C3-12-cluster-on": {
+      "0": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "8": [
+        {
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 1.4467592592592592e-06,
+          "max": 1,
+          "changed": 4,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "48": [
+        {
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.09966218171296297,
+          "max": 27,
+          "changed": 49076,
+          "over24": 23,
+          "passed": false
+        },
+        {
+          "mean": 0.09951750578703704,
+          "max": 27,
+          "changed": 49105,
+          "over24": 25,
+          "passed": false
+        }
+      ]
+    },
+    "C0-11-cluster-on vs repeat-transparent": {
+      "256": [
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 2,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 7.233796296296296e-07,
+          "max": 2,
+          "changed": 1,
+          "over24": 0,
+          "passed": true
+        }
+      ]
+    },
+    "C0-12-cluster-on vs repeat-transparent": {
+      "256": [
+        {
+          "mean": 0.17141710069444444,
+          "max": 63,
+          "changed": 89971,
+          "over24": 526,
+          "passed": false
+        },
+        {
+          "mean": 0.17081524884259258,
+          "max": 65,
+          "changed": 89666,
+          "over24": 512,
+          "passed": false
+        }
+      ]
+    },
+    "C3-11-cluster-on vs repeat-transparent": {
+      "256": [
+        {
+          "mean": 0.1725365306712963,
+          "max": 63,
+          "changed": 88637,
+          "over24": 613,
+          "passed": false
+        },
+        {
+          "mean": 0.17202763310185185,
+          "max": 65,
+          "changed": 88331,
+          "over24": 607,
+          "passed": false
+        }
+      ]
+    },
+    "C3-12-cluster-on vs repeat-transparent": {
+      "256": [
+        {
+          "mean": 0.1714181857638889,
+          "max": 63,
+          "changed": 89972,
+          "over24": 526,
+          "passed": false
+        },
+        {
+          "mean": 0.17081597222222222,
+          "max": 65,
+          "changed": 89668,
+          "over24": 512,
+          "passed": false
+        }
+      ]
+    },
+    "A vs B": {
+      "255": [
+        {
+          "mean": 6.148726851851852e-06,
+          "max": 2,
+          "changed": 14,
+          "over24": 0,
+          "passed": true
+        },
+        {
+          "mean": 4.701967592592593e-06,
+          "max": 2,
+          "changed": 12,
+          "over24": 0,
+          "passed": true
+        }
+      ],
+      "256": [
+        {
+          "mean": 0.24012984664351852,
+          "max": 72,
+          "changed": 91497,
+          "over24": 3081,
+          "passed": false
+        },
+        {
+          "mean": 0.2396169704861111,
+          "max": 71,
+          "changed": 91226,
+          "over24": 3085,
+          "passed": false
+        }
+      ]
+    }
+  },
+  "repeatProtocol": {
+    "executable": "Builds/ClusteredDeferredArena/Direct3D11/CdArena.exe",
+    "exeSha256": "d2e1444d0c4420c5d628cccc5700b61e9f2efac0d8d4478b5e9dc50b79d5e42f",
+    "managedAssemblySha256": {
+      "Assembly-CSharp.dll": "7aed800b3e5c354bf7a8c3762ae14bbf0464f4ec470517190cfcc52ddd3d9ce7",
+      "Unity.RenderPipelines.Universal.Runtime.dll": "2e6377cc7ba38d1e84b3d5219651e3921d251103d361afac1d8166dfe109393b"
+    },
+    "unchangedFlags": "-force-d3d11 -screen-fullscreen 0 -screen-width 1280 -screen-height 720 --cd-total-lights 256; --cd-output <run.directory> -logFile <run.directory>/Player.log; --cd-light-counts and --cd-screenshot-lights as recorded in each CdPerf. A/B identical except output paths. All independent processes.",
+    "transparentExtra": "--cd-transparent --cd-per-object-limit 4 --cd-forward-cluster-on"
+  },
+  "sourceEvidence": {
+    "arena": "Assets/Tests/ClusteredDeferred/Runtime/ClusteredDeferredArenaRunner.cs:1128-1178,1227-1234,694-709. Deterministic creation and prefix enable; 64 distinct positions repeat 4x; equal-range ForcePixel lights, i-dependent colors/types. Co-located emitters also have coincident opaque marker geometry, present even at 255 in A/B. No random picker in sweep.",
+    "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity:551-566, enabled directional main light in addition to field lights.",
+    "c3Cull": "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/UniversalRenderer.cs:82,1433-1448: both routes use maximumVisibleLights=maxVisibleAdditionalLights (not +1); reflectionProbeSortingCriteria does not sort lights.",
+    "c0Cull": "git show b707b5b:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/UniversalRenderer.cs, SetupCullingParameters: same limit on both routes; 0xFFFF applied to stencil only.",
+    "limit": "Runtime/UniversalRenderPipeline.cs:135-147 in same package; Library/PackageCache/com.unity.render-pipelines.universal-config@14.0.10/Runtime/ShaderConfig.cs:23 = 256 desktop.",
+    "ordering": "Runtime/ForwardLights.cs:286ff consumes directional prefix of renderingData.lightData.visibleLights; Runtime/UniversalRenderPipeline.cs:1488ff, 1620ff uses culled list. Field creation index is not a specified tie-breaker for native ScriptableRenderContext.Cull."
+  },
+  "conclusion": {
+    "verified": "D3D11 cross-launch variability already exceeds the original peak threshold on the unchanged C3 binary at 256 additional lights on both routes. Paired launches with identical 256-created arena pass at 255 enabled and fail at 256. C0 D3D11 already disagrees with C0 D3D12; C0/C3 D3D12 are within gate. Changing revision is not necessary for this failure. Original failed rows stay failed.",
+    "mechanism": "High-confidence shared visible-light selection at the cap: 255+directional fits; 256+directional offers 257 candidates for 256 slots. Different selected colored punctual contributions are consistent with large local peaks in both routes, unlike tiny summation/order noise below cap. The test enables a deterministic set but does not freeze the culled subset among tied candidates.",
+    "limits": "Candidate counts, not measurements of visibleLights.Length. PNG/CdPerf do not contain ordered light IDs or native cull ranking; exact discarded light and tie-break rule not observed. A repeated process pair does not prove all D3D12 launches stable or exclude a smaller coincident revision effect."
+  }
+}

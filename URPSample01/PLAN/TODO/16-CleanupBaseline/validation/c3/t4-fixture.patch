@@ -1,0 +1,644 @@
+diff --git a/URPSample01/Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredArenaBuild.cs b/URPSample01/Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredArenaBuild.cs
+index f8a4bc4..e390498 100644
+--- a/URPSample01/Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredArenaBuild.cs
++++ b/URPSample01/Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredArenaBuild.cs
+@@ -10,8 +10,8 @@ using UnityEngine.Rendering;
+ public static class ClusteredDeferredArenaBuild
+ {
+     const string ScenePath = "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity";
+-    const string ValidationRoot = "PLAN/TODO/16-CleanupBaseline/validation/baseline";
+-    const string T4ValidationRoot = "PLAN/TODO/16-CleanupBaseline/validation/baseline/t4";
++    const string ValidationRoot = "PLAN/TODO/16-CleanupBaseline/validation/c3";
++    const string T4ValidationRoot = ValidationRoot + "/t4";
+ 
+     public static void BuildD3D11AndExit()
+     {
+@@ -89,17 +89,17 @@ public static class ClusteredDeferredArenaBuild
+             var pipelinePaths = t4
+                 ? new[]
+                 {
+-                    "Assets/Tests/ClusteredDeferred/Renderers/CdShadowStencilDeferredPipeline.asset",
+-                    "Assets/Tests/ClusteredDeferred/Renderers/CdShadowClusteredDeferredPipeline.asset",
+-                    "Assets/Tests/ClusteredDeferred/Renderers/CdScreenShadowStencilDeferredPipeline.asset",
+-                    "Assets/Tests/ClusteredDeferred/Renderers/CdFeatureStencilDeferredPipeline.asset",
++                    ClusteredDeferredTestAssetSetup.T4Prefix("Shadow") + "ClusteredDeferredPipeline.asset",
++                    ClusteredDeferredTestAssetSetup.T4Prefix("ScreenShadow") + "ClusteredDeferredPipeline.asset",
++                    ClusteredDeferredTestAssetSetup.T4Prefix("Feature") + "ClusteredDeferredPipeline.asset",
+                 }
+                 : new[]
+                 {
+-                    "Assets/Tests/ClusteredDeferred/Renderers/CdStencilDeferredPipeline.asset",
+-                    "Assets/Tests/ClusteredDeferred/Renderers/CdClusteredDeferredPipeline.asset",
+-                    "Assets/Tests/ClusteredDeferred/Renderers/CdForwardPlusPipeline.asset",
++                    ClusteredDeferredTestAssetSetup.ClusteredPipelinePath,
++                    ClusteredDeferredTestAssetSetup.ForwardPlusPipelinePath,
+                 };
++            if (qualityLevelCount < pipelinePaths.Length)
++                throw new InvalidOperationException("Not enough quality slots to retain every arena loadout.");
+             var pipelines = new RenderPipelineAsset[pipelinePaths.Length];
+             for (var i = 0; i < pipelinePaths.Length; i++)
+             {
+diff --git a/URPSample01/Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredTestAssetSetup.cs b/URPSample01/Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredTestAssetSetup.cs
+index 51067a9..951cff0 100644
+--- a/URPSample01/Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredTestAssetSetup.cs
++++ b/URPSample01/Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredTestAssetSetup.cs
+@@ -8,11 +8,8 @@ using UnityEngine.Rendering.Universal;
+ using UnityEngine.SceneManagement;
+ 
+ // Creates the dedicated pipelines/renderers and the multi-light arena scene used by the
+-// clustered deferred A/B and crossover evidence. The stencil and clustered renderers share every
+-// setting except UniversalRendererData.clusteredDeferredLighting.
+-//
+-// Renderer features are stripped from the copies so both modes render the same base lighting path
+-// (GTAO/SSGI would only add identical overhead to both sides of the A/B).
++// clustered deferred A/B and crossover evidence. Each T4 pair starts from the same templates;
++// only the rendering mode differs. The T5 Forward+ pipeline retains the C0 loadout.
+ public static class ClusteredDeferredTestAssetSetup
+ {
+     const string Root = "Assets/Tests/ClusteredDeferred";
+@@ -20,28 +17,10 @@ public static class ClusteredDeferredTestAssetSetup
+     const string RendererFolder = Root + "/Renderers";
+     const string TextureFolder = Root + "/Textures";
+     const string ScenePath = SceneFolder + "/ClusteredDeferredArena.unity";
+-    const string StencilRendererPath = RendererFolder + "/CdStencilDeferredRenderer.asset";
+-    const string ClusteredRendererPath = RendererFolder + "/CdClusteredDeferredRenderer.asset";
+-    const string StencilPipelinePath = RendererFolder + "/CdStencilDeferredPipeline.asset";
+-    const string ClusteredPipelinePath = RendererFolder + "/CdClusteredDeferredPipeline.asset";
+-    const string ForwardPlusPipelinePath = RendererFolder + "/CdForwardPlusPipeline.asset";
+-
+-    // T4 shadow subset: same renderer pair, pipelines with main/additional shadows enabled.
+-    const string ShadowStencilRendererPath = RendererFolder + "/CdShadowStencilDeferredRenderer.asset";
+-    const string ShadowClusteredRendererPath = RendererFolder + "/CdShadowClusteredDeferredRenderer.asset";
+-    const string ShadowStencilPipelinePath = RendererFolder + "/CdShadowStencilDeferredPipeline.asset";
+-    const string ShadowClusteredPipelinePath = RendererFolder + "/CdShadowClusteredDeferredPipeline.asset";
+-    const string ScreenShadowStencilRendererPath = RendererFolder + "/CdScreenShadowStencilDeferredRenderer.asset";
+-    const string ScreenShadowClusteredRendererPath = RendererFolder + "/CdScreenShadowClusteredDeferredRenderer.asset";
+-    const string ScreenShadowStencilPipelinePath = RendererFolder + "/CdScreenShadowStencilDeferredPipeline.asset";
+-    const string ScreenShadowClusteredPipelinePath = RendererFolder + "/CdScreenShadowClusteredDeferredPipeline.asset";
+-
+-    // T4 feature subset (cookie / light layers / GTAO direct AO): one renderer pair with light
+-    // layers enabled and a GTAO feature whose direct-lighting strength the runner toggles.
+-    const string FeatureStencilRendererPath = RendererFolder + "/CdFeatureStencilDeferredRenderer.asset";
+-    const string FeatureClusteredRendererPath = RendererFolder + "/CdFeatureClusteredDeferredRenderer.asset";
+-    const string FeatureStencilPipelinePath = RendererFolder + "/CdFeatureStencilDeferredPipeline.asset";
+-    const string FeatureClusteredPipelinePath = RendererFolder + "/CdFeatureClusteredDeferredPipeline.asset";
++    internal const string ClusteredPipelinePath = RendererFolder + "/CdClusteredDeferredPipeline.asset";
++    internal const string ForwardPlusPipelinePath = RendererFolder + "/CdForwardPlusPipeline.asset";
++
++    internal static string T4Prefix(string loadout) => RendererFolder + "/Cd" + loadout;
+ 
+     const string SourceDeferredRenderer = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationDeferredRenderer.asset";
+     const string SourceDeferredPipeline = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationDeferredPipeline.asset";
+@@ -95,33 +74,32 @@ public static class ClusteredDeferredTestAssetSetup
+         if (deferredRenderer == null || deferredPipeline == null || forwardPlusRenderer == null || forwardPlusPipeline == null)
+             throw new FileNotFoundException("Missing one of the SSL validation renderer/pipeline assets.");
+ 
+-        var stencilRenderer = CreateRendererCopy(deferredRenderer, StencilRendererPath, false, false);
+-        var clusteredRenderer = CreateRendererCopy(deferredRenderer, ClusteredRendererPath, true, false);
+-        var stencilPipeline = CreatePipelineCopy(deferredPipeline, StencilPipelinePath, stencilRenderer);
++        if (forwardPlusRenderer.renderingMode != RenderingMode.ForwardPlus)
++            throw new InvalidOperationException("T5 reference is not a Forward+ renderer.");
++        var clusteredRenderer = CreateRendererCopy(deferredRenderer, RendererFolder + "/CdClusteredDeferredRenderer.asset",
++            RenderingMode.Deferred, false);
+         var clusteredPipeline = CreatePipelineCopy(deferredPipeline, ClusteredPipelinePath, clusteredRenderer);
+         var forwardPipeline = CreatePipelineCopy(forwardPlusPipeline, ForwardPlusPipelinePath, forwardPlusRenderer);
+ 
+-        var shadowStencilRenderer = CreateRendererCopy(deferredRenderer, ShadowStencilRendererPath, false, false);
+-        var shadowClusteredRenderer = CreateRendererCopy(deferredRenderer, ShadowClusteredRendererPath, true, false);
+-        var shadowStencilPipeline = CreateShadowPipeline(deferredPipeline, ShadowStencilPipelinePath, shadowStencilRenderer, 4);
+-        var shadowClusteredPipeline = CreateShadowPipeline(deferredPipeline, ShadowClusteredPipelinePath, shadowClusteredRenderer, 4);
+-
+-        var screenShadowStencilRenderer = CreateRendererCopy(deferredRenderer, ScreenShadowStencilRendererPath, false, true);
+-        var screenShadowClusteredRenderer = CreateRendererCopy(deferredRenderer, ScreenShadowClusteredRendererPath, true, true);
+-        var screenShadowStencilPipeline = CreateShadowPipeline(deferredPipeline, ScreenShadowStencilPipelinePath, screenShadowStencilRenderer, 1);
+-        var screenShadowClusteredPipeline = CreateShadowPipeline(deferredPipeline, ScreenShadowClusteredPipelinePath, screenShadowClusteredRenderer, 1);
++        CreatePair("Shadow", 4, false, false, out var shadowForward, out var shadowClustered);
++        CreatePair("ScreenShadow", 1, true, false, out var screenForward, out var screenClustered);
++        CreatePair("Feature", 2, true, true, out var featureForward, out var featureClustered);
++        CreateScene(clusteredPipeline, forwardPipeline, shadowForward, shadowClustered,
++            screenForward, screenClustered, featureForward, featureClustered, CreateCookieTexture());
+ 
+-        var featureStencilRenderer = CreateRendererCopy(deferredRenderer, FeatureStencilRendererPath, false, true, true);
+-        var featureClusteredRenderer = CreateRendererCopy(deferredRenderer, FeatureClusteredRendererPath, true, true, true);
+-        var featureStencilPipeline = CreateFeaturePipeline(deferredPipeline, FeatureStencilPipelinePath, featureStencilRenderer);
+-        var featureClusteredPipeline = CreateFeaturePipeline(deferredPipeline, FeatureClusteredPipelinePath, featureClusteredRenderer);
+-        var cookieTexture = CreateCookieTexture();
+-
+-        CreateScene(stencilPipeline, clusteredPipeline, forwardPipeline,
+-            shadowStencilPipeline, shadowClusteredPipeline,
+-            screenShadowStencilPipeline, screenShadowClusteredPipeline,
+-            featureStencilPipeline, featureClusteredPipeline,
+-            cookieTexture);
++        void CreatePair(string loadout, int cascades, bool screenShadows, bool gtao,
++            out UniversalRenderPipelineAsset forward, out UniversalRenderPipelineAsset clustered)
++        {
++            var prefix = T4Prefix(loadout);
++            var f = CreateRendererCopy(deferredRenderer, prefix + "ForwardPlusRenderer.asset",
++                RenderingMode.ForwardPlus, screenShadows, gtao);
++            var c = CreateRendererCopy(deferredRenderer, prefix + "ClusteredDeferredRenderer.asset",
++                RenderingMode.Deferred, screenShadows, gtao);
++            forward = CreateShadowPipeline(deferredPipeline, prefix + "ForwardPlusPipeline.asset", f, cascades, gtao);
++            // Preprocessing scans every renderer in a quality pipeline. Include both modes for
++            // this exact loadout in one slot; index zero remains the runtime clustered renderer.
++            clustered = CreateShadowPipeline(deferredPipeline, prefix + "ClusteredDeferredPipeline.asset", c, cascades, gtao, f);
++        }
+ 
+         AssetDatabase.SaveAssets();
+         AssetDatabase.Refresh();
+@@ -129,7 +107,7 @@ public static class ClusteredDeferredTestAssetSetup
+         return true;
+     }
+ 
+-    static UniversalRendererData CreateRendererCopy(UniversalRendererData source, string path, bool clustered,
++    static UniversalRendererData CreateRendererCopy(UniversalRendererData source, string path, RenderingMode mode,
+         bool screenSpaceShadows, bool gtao = false)
+     {
+         AssetDatabase.DeleteAsset(path);
+@@ -142,7 +120,8 @@ public static class ClusteredDeferredTestAssetSetup
+         serialized.FindProperty("m_RendererFeatureMap").ClearArray();
+         serialized.ApplyModifiedPropertiesWithoutUndo();
+ 
+-        renderer.clusteredDeferredLighting = clustered;
++        renderer.renderingMode = mode;
++        renderer.clusteredDeferredLighting = mode == RenderingMode.Deferred;
+         ResourceReloader.TryReloadAllNullIn(renderer, UniversalRenderPipelineAsset.packagePath);
+         AssetDatabase.CreateAsset(renderer, path);
+ 
+@@ -153,8 +132,8 @@ public static class ClusteredDeferredTestAssetSetup
+             throw new InvalidOperationException("Clustered deferred shader resources did not reload on " + path);
+         }
+ 
+-        if (saved.clusteredDeferredLighting != clustered)
+-            throw new InvalidOperationException("The clustered toggle did not persist on " + path);
++        if (saved.renderingMode != mode || saved.clusteredDeferredLighting != (mode == RenderingMode.Deferred))
++            throw new InvalidOperationException(mode + " rendering mode did not persist on " + path);
+ 
+         if (screenSpaceShadows)
+             AddScreenSpaceShadowsFeature(saved);
+@@ -180,7 +159,7 @@ public static class ClusteredDeferredTestAssetSetup
+         settings.FindPropertyRelative("directLightingStrength").floatValue = 0f;
+         // Temporal accumulation depends on the frame phase, so two pipelines captured at
+         // different frame counts would compare different AO noise. Spatial-only AO is
+-        // deterministic and makes the stencil/clustered A/B meaningful.
++        // deterministic and makes the Forward+/clustered A/B meaningful.
+         settings.FindPropertyRelative("temporalAccumulation").boolValue = false;
+         serializedFeature.ApplyModifiedPropertiesWithoutUndo();
+ 
+@@ -228,21 +207,6 @@ public static class ClusteredDeferredTestAssetSetup
+         AppendRendererFeature(renderer, feature, 1);
+     }
+ 
+-    // Light layers need the pipeline flag: it decides whether the deferred GBuffer allocates the
+-    // rendering-layer slot and whether DeferredLights enables the _LIGHT_LAYERS keyword.
+-    static UniversalRenderPipelineAsset CreateFeaturePipeline(UniversalRenderPipelineAsset source, string path,
+-        UniversalRendererData renderer)
+-    {
+-        var pipeline = CreateShadowPipeline(source, path, renderer, 2);
+-        var serialized = new SerializedObject(pipeline);
+-        serialized.FindProperty("m_SupportsLightLayers").boolValue = true;
+-        serialized.FindProperty("m_SupportsLightCookies").boolValue = true;
+-        serialized.ApplyModifiedPropertiesWithoutUndo();
+-        EditorUtility.SetDirty(pipeline);
+-        AssetDatabase.SaveAssets();
+-        return pipeline;
+-    }
+-
+     // Spot cookie: soft radial falloff with an 8-px checker so the pattern is unambiguous at 720p.
+     static Texture2D CreateCookieTexture()
+     {
+@@ -287,8 +251,9 @@ public static class ClusteredDeferredTestAssetSetup
+     }
+ 
+     static UniversalRenderPipelineAsset CreateShadowPipeline(UniversalRenderPipelineAsset source, string path,
+-        UniversalRendererData renderer, int cascadeCount)    {
+-        var pipeline = CreatePipelineCopy(source, path, renderer);
++        UniversalRendererData renderer, int cascadeCount, bool cookies, UniversalRendererData variantRenderer = null)
++    {
++        var pipeline = CreatePipelineCopy(source, path, renderer, variantRenderer);
+         var serialized = new SerializedObject(pipeline);
+         serialized.FindProperty("m_MainLightShadowsSupported").boolValue = true;
+         serialized.FindProperty("m_MainLightShadowmapResolution").intValue = 2048;
+@@ -305,6 +270,8 @@ public static class ClusteredDeferredTestAssetSetup
+         // otherwise the _LIGHT_LAYERS/_WRITE_RENDERING_LAYERS variants are stripped from the player
+         // and the deferred layer slot stays empty.
+         serialized.FindProperty("m_SupportsLightLayers").boolValue = true;
++        if (cookies)
++            serialized.FindProperty("m_SupportsLightCookies").boolValue = true;
+         serialized.ApplyModifiedPropertiesWithoutUndo();
+         EditorUtility.SetDirty(pipeline);
+         AssetDatabase.SaveAssets();
+@@ -312,7 +279,7 @@ public static class ClusteredDeferredTestAssetSetup
+     }
+ 
+     static UniversalRenderPipelineAsset CreatePipelineCopy(UniversalRenderPipelineAsset source, string path,
+-        ScriptableRendererData renderer)
++        ScriptableRendererData renderer, ScriptableRendererData variantRenderer = null)
+     {
+         AssetDatabase.DeleteAsset(path);
+         var pipeline = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+@@ -321,8 +288,10 @@ public static class ClusteredDeferredTestAssetSetup
+ 
+         var serialized = new SerializedObject(pipeline);
+         var rendererList = serialized.FindProperty("m_RendererDataList");
+-        rendererList.arraySize = 1;
++        rendererList.arraySize = variantRenderer == null ? 1 : 2;
+         rendererList.GetArrayElementAtIndex(0).objectReferenceValue = renderer;
++        if (variantRenderer != null)
++            rendererList.GetArrayElementAtIndex(1).objectReferenceValue = variantRenderer;
+         serialized.FindProperty("m_DefaultRendererIndex").intValue = 0;
+         serialized.ApplyModifiedPropertiesWithoutUndo();
+ 
+@@ -330,11 +299,11 @@ public static class ClusteredDeferredTestAssetSetup
+         return AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(path);
+     }
+ 
+-    static void CreateScene(UniversalRenderPipelineAsset stencil, UniversalRenderPipelineAsset clustered,
++    static void CreateScene(UniversalRenderPipelineAsset clustered,
+         UniversalRenderPipelineAsset forwardPlus,
+-        UniversalRenderPipelineAsset shadowStencil, UniversalRenderPipelineAsset shadowClustered,
+-        UniversalRenderPipelineAsset screenShadowStencil, UniversalRenderPipelineAsset screenShadowClustered,
+-        UniversalRenderPipelineAsset featureStencil, UniversalRenderPipelineAsset featureClustered,
++        UniversalRenderPipelineAsset shadowForwardPlus, UniversalRenderPipelineAsset shadowClustered,
++        UniversalRenderPipelineAsset screenShadowForwardPlus, UniversalRenderPipelineAsset screenShadowClustered,
++        UniversalRenderPipelineAsset featureForwardPlus, UniversalRenderPipelineAsset featureClustered,
+         Texture2D cookieTexture)
+     {
+         var floor = AssetDatabase.LoadAssetAtPath<Material>(FloorMaterial);
+@@ -388,14 +357,13 @@ public static class ClusteredDeferredTestAssetSetup
+ 
+         var runnerObject = new GameObject("Clustered Deferred Arena Runner");
+         var runner = runnerObject.AddComponent<ClusteredDeferredArenaRunner>();
+-        runner.stencilDeferredPipeline = stencil;
+         runner.clusteredDeferredPipeline = clustered;
+         runner.forwardPlusPipeline = forwardPlus;
+-        runner.shadowStencilPipeline = shadowStencil;
++        runner.shadowForwardPlusPipeline = shadowForwardPlus;
+         runner.shadowClusteredPipeline = shadowClustered;
+-        runner.screenShadowStencilPipeline = screenShadowStencil;
++        runner.screenShadowForwardPlusPipeline = screenShadowForwardPlus;
+         runner.screenShadowClusteredPipeline = screenShadowClustered;
+-        runner.featureStencilPipeline = featureStencil;
++        runner.featureForwardPlusPipeline = featureForwardPlus;
+         runner.featureClusteredPipeline = featureClustered;
+         runner.cookieTexture = cookieTexture;
+         runner.arenaMainLight = mainLight;
+@@ -421,6 +389,7 @@ public static class ClusteredDeferredTestAssetSetup
+             throw new InvalidOperationException("Unable to copy " + sourcePath);
+ 
+         var material = AssetDatabase.LoadAssetAtPath<Material>(ReceiveShadowsOffMaterialPath);
++        material.SetFloat("_ReceiveShadows", 0f);
+         material.EnableKeyword("_RECEIVE_SHADOWS_OFF");
+         EditorUtility.SetDirty(material);
+         AssetDatabase.SaveAssets();
+diff --git a/URPSample01/Assets/Tests/ClusteredDeferred/Runtime/ClusteredDeferredArenaRunner.cs b/URPSample01/Assets/Tests/ClusteredDeferred/Runtime/ClusteredDeferredArenaRunner.cs
+index 1bc80af..bda457b 100644
+--- a/URPSample01/Assets/Tests/ClusteredDeferred/Runtime/ClusteredDeferredArenaRunner.cs
++++ b/URPSample01/Assets/Tests/ClusteredDeferred/Runtime/ClusteredDeferredArenaRunner.cs
+@@ -13,25 +13,22 @@ using UnityEngine.Rendering.Universal;
+ //
+ // The arena (ground, walls, main light) lives in the scene; this runner spawns the light field
+ // and the receiving geometry deterministically, then walks:
+-//   mode (stencil deferred / clustered deferred / forward+) x light count
+-// with FrameTimingManager sampling and one screenshot per mode at the A/B light count.
+-// The clustered path and the stencil path use the same deferred renderer settings; only
+-// UniversalRendererData.clusteredDeferredLighting differs.
++//   mode (Forward+ / clustered deferred) x light count
++// with FrameTimingManager sampling and screenshots at the requested light counts.
+ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+ {
+-    public UniversalRenderPipelineAsset stencilDeferredPipeline;
+     public UniversalRenderPipelineAsset clusteredDeferredPipeline;
+     public UniversalRenderPipelineAsset forwardPlusPipeline;
+ 
+     // T4 shadow subset: same renderer pair, different pipeline shadow settings.
+-    public UniversalRenderPipelineAsset shadowStencilPipeline;
++    public UniversalRenderPipelineAsset shadowForwardPlusPipeline;
+     public UniversalRenderPipelineAsset shadowClusteredPipeline;
+-    public UniversalRenderPipelineAsset screenShadowStencilPipeline;
++    public UniversalRenderPipelineAsset screenShadowForwardPlusPipeline;
+     public UniversalRenderPipelineAsset screenShadowClusteredPipeline;
+ 
+     // T4 feature subset: the renderer pair has light layers enabled and a GTAO feature
+     // (indirect AO always on, direct-light AO toggled by the runner).
+-    public UniversalRenderPipelineAsset featureStencilPipeline;
++    public UniversalRenderPipelineAsset featureForwardPlusPipeline;
+     public UniversalRenderPipelineAsset featureClusteredPipeline;
+     public Texture2D cookieTexture;
+     public Light arenaMainLight;
+@@ -51,7 +48,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+     public int width = 1280;
+     public int height = 720;
+ 
+-    const string StencilMode = "StencilDeferred";
+     const string ClusteredMode = "ClusteredDeferred";
+     const string ForwardPlusMode = "ForwardPlus";
+     const uint kDefaultRenderingLayer = 1u;
+@@ -311,7 +307,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+             perObjectLightLimit = m_PerObjectLightLimit,
+             captureOnly = captureOnly,
+             modes = m_Modes,
+-            diffs = new List<DiffReport>(),
+             forwardPlusDiffs = new List<DiffReport>(),
+         };
+ 
+@@ -624,10 +619,18 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         return bits;
+     }
+ 
+-    // CPU decomposition for the deferred light path: PreSetup (cluster job scheduling),
+-    // SetupLights (job completion, list upload, light constants, stencil light precompute) and
+-    // everything else in the frame. Stencil and clustered modes share the scene and light count,
+-    // so the PrecomputeLights delta is a direct measurement of the C1 saving.
++    ModePipelines[] ComparisonModes()
++    {
++        if (forwardPlusPipeline == clusteredDeferredPipeline)
++            throw new InvalidOperationException("The Forward+ reference must be independent of clustered deferred.");
++        return new[]
++        {
++            new ModePipelines { name = ClusteredMode, pipeline = clusteredDeferredPipeline },
++            new ModePipelines { name = ForwardPlusMode, pipeline = forwardPlusPipeline },
++        };
++    }
++
++    // Record the CPU slices for the same two pipelines as the image sweep.
+     IEnumerator RunCpuBreakdown(string outputRoot, CpuBreakdownReport report)
+     {
+         SetupArena();
+@@ -640,11 +643,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         if (probe == null)
+             throw new InvalidOperationException("ClusteredDeferredCpuProbe is missing from the URP runtime assembly.");
+ 
+-        var modes = new[]
+-        {
+-            new ModePipelines { name = StencilMode, pipeline = stencilDeferredPipeline },
+-            new ModePipelines { name = ClusteredMode, pipeline = clusteredDeferredPipeline },
+-        };
++        var modes = ComparisonModes();
+ 
+         for (var modeIndex = 0; modeIndex < modes.Length; modeIndex++)
+         {
+@@ -684,12 +683,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         Application.targetFrameRate = 0;
+         Screen.SetResolution(width, height, false);
+ 
+-        var pipelines = new[]
+-        {
+-            new ModePipelines { name = StencilMode, pipeline = stencilDeferredPipeline },
+-            new ModePipelines { name = ClusteredMode, pipeline = clusteredDeferredPipeline },
+-            new ModePipelines { name = ForwardPlusMode, pipeline = forwardPlusPipeline },
+-        };
++        var pipelines = ComparisonModes();
+ 
+         for (var modeIndex = 0; modeIndex < pipelines.Length; modeIndex++)
+         {
+@@ -755,6 +749,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+                     yield return new WaitForEndOfFrame();
+                     if (m_TransparentRect.width == 0)
+                         m_TransparentRect = ComputeProjectedRect();
++                    if (Shader.IsKeywordEnabled("_FORWARD_PLUS") != (mode.name == ForwardPlusMode))
++                        throw new InvalidOperationException("Unexpected _FORWARD_PLUS state for " + mode.name);
+                     var key = mode.name + "_L" + lightCount;
+                     var texture = ScreenCapture.CaptureScreenshotAsTexture();
+                     m_Screenshots[key] = texture;
+@@ -786,7 +782,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+             }
+         }
+ 
+-        ComputeDiffs(report.diffs, report.forwardPlusDiffs);
++        ComputeDiffs(report.forwardPlusDiffs);
+         report.transparentRectX = m_TransparentRect.x;
+         report.transparentRectY = m_TransparentRect.y;
+         report.transparentRectWidth = m_TransparentRect.width;
+@@ -820,36 +816,36 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         QualitySettings.vSyncCount = 0;
+         Application.targetFrameRate = 0;
+         Screen.SetResolution(width, height, false);
+-        yield return SetPipeline(stencilDeferredPipeline);
++        yield return SetPipeline(shadowForwardPlusPipeline);
+         yield return WaitFrames(warmupFrames);
+ 
+         yield return RunFeatureCase(outputRoot, report, "MainShadowCascade",
+-            shadowStencilPipeline, shadowClusteredPipeline, ApplyMainLightShadows);
++            shadowForwardPlusPipeline, shadowClusteredPipeline, ApplyMainLightShadows);
+         yield return RunFeatureCase(outputRoot, report, "ReceiveShadowsOff",
+-            shadowStencilPipeline, shadowClusteredPipeline, ApplyReceiveShadowsOff);
++            shadowForwardPlusPipeline, shadowClusteredPipeline, ApplyReceiveShadowsOff);
+         yield return RunFeatureCase(outputRoot, report, "MainShadowScreen",
+-            screenShadowStencilPipeline, screenShadowClusteredPipeline, ApplyMainLightShadows);
++            screenShadowForwardPlusPipeline, screenShadowClusteredPipeline, ApplyMainLightShadows);
+         // Last: this case moves six spot lights above the receiver row.
+         yield return RunFeatureCase(outputRoot, report, "AdditionalShadowAtlas",
+-            shadowStencilPipeline, shadowClusteredPipeline, ApplyAdditionalLightShadows);
++            shadowForwardPlusPipeline, shadowClusteredPipeline, ApplyAdditionalLightShadows);
+ 
+         yield return RunFeatureCase(outputRoot, report, "LightCookie",
+-            featureStencilPipeline, featureClusteredPipeline, ApplyLightCookies);
++            featureForwardPlusPipeline, featureClusteredPipeline, ApplyLightCookies);
+         yield return RunFeatureCase(outputRoot, report, "LightLayers",
+-            featureStencilPipeline, featureClusteredPipeline, ApplyLightLayers);
++            featureForwardPlusPipeline, featureClusteredPipeline, ApplyLightLayers);
+         yield return RunFeatureCase(outputRoot, report, "ScreenSpaceAO",
+-            featureStencilPipeline, featureClusteredPipeline, ApplyDirectAmbientOcclusion);
++            featureForwardPlusPipeline, featureClusteredPipeline, ApplyDirectAmbientOcclusion);
+ 
+         WriteFeatureMatrix(outputRoot, report);
+     }
+ 
+     // One feature at a time: reset every shadow switch, toggle only the feature under test,
+-    // capture stencil and clustered with the feature off and on.
++    // capture forwardPlus and clustered with the feature off and on.
+     IEnumerator RunFeatureCase(string outputRoot, FeatureMatrixReport report, string feature,
+-        UniversalRenderPipelineAsset stencil, UniversalRenderPipelineAsset clustered, Action<bool> applyFeature)
++        UniversalRenderPipelineAsset forwardPlus, UniversalRenderPipelineAsset clustered, Action<bool> applyFeature)
+     {
+-        if (stencil == null || clustered == null)
+-            throw new InvalidOperationException("Missing T4 pipeline for " + feature);
++        if (forwardPlus == null || clustered == null || forwardPlus == clustered)
++            throw new InvalidOperationException("Expected independent Forward+ and clustered pipelines for " + feature);
+ 
+         var entry = new FeatureEntry
+         {
+@@ -860,28 +856,28 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         report.entries.Add(entry);
+ 
+         var shots = new Dictionary<string, Texture2D>();
+-        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "StencilOff", stencil, applyFeature, false);
++        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "ForwardPlusOff", forwardPlus, applyFeature, false);
+         yield return CaptureFeatureState(outputRoot, entry, shots, feature, "ClusteredOff", clustered, applyFeature, false);
+-        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "StencilOn", stencil, applyFeature, true);
++        yield return CaptureFeatureState(outputRoot, entry, shots, feature, "ForwardPlusOn", forwardPlus, applyFeature, true);
+         yield return CaptureFeatureState(outputRoot, entry, shots, feature, "ClusteredOn", clustered, applyFeature, true);
+ 
+-        entry.comparisons.Add(CompareFeature("stencil_vs_clustered_on",
+-            shots[feature + "_StencilOn"], shots[feature + "_ClusteredOn"]));
+-        entry.comparisons.Add(CompareFeature("stencil_vs_clustered_off",
+-            shots[feature + "_StencilOff"], shots[feature + "_ClusteredOff"]));
++        entry.comparisons.Add(CompareFeature("forward_plus_vs_clustered_on",
++            shots[feature + "_ForwardPlusOn"], shots[feature + "_ClusteredOn"]));
++        entry.comparisons.Add(CompareFeature("forward_plus_vs_clustered_off",
++            shots[feature + "_ForwardPlusOff"], shots[feature + "_ClusteredOff"]));
+         entry.comparisons.Add(CompareFeature("clustered_feature_effect",
+             shots[feature + "_ClusteredOff"], shots[feature + "_ClusteredOn"]));
+-        entry.comparisons.Add(CompareFeature("stencil_feature_effect",
+-            shots[feature + "_StencilOff"], shots[feature + "_StencilOn"]));
++        entry.comparisons.Add(CompareFeature("forward_plus_feature_effect",
++            shots[feature + "_ForwardPlusOff"], shots[feature + "_ForwardPlusOn"]));
+ 
+-        var noMagenta = true;
++        var validStates = true;
+         foreach (var state in entry.states)
+-            noMagenta &= state.magentaPixelFraction < 0.001f;
++            validStates &= state.magentaPixelFraction < 0.001f &&
++                state.forwardPlusKeyword == state.name.StartsWith(ForwardPlusMode, StringComparison.Ordinal);
+ 
+         // Liveness: the feature must move at least some pixels beyond the 8/255 noise band.
+-        entry.featureActive = entry.comparisons[2].pixelsOverThreshold > 0 ||
+-            entry.comparisons[2].meanChannelDiff > 0.05;
+-        entry.passed = noMagenta && entry.featureActive &&
++        entry.featureActive = HasFeatureEffect(entry.comparisons[2]) && HasFeatureEffect(entry.comparisons[3]);
++        entry.passed = validStates && entry.featureActive &&
+             entry.comparisons[0].passed && entry.comparisons[1].passed;
+ 
+         foreach (var pair in shots)
+@@ -905,9 +901,16 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         var key = feature + "_" + state;
+         shots[key] = texture;
+         File.WriteAllBytes(Path.Combine(outputRoot, key + ".png"), texture.EncodeToPNG());
++        // Only Execute allocates this pass-owned lighting target, after checking camera/resources.
++        var activeRenderer = arenaCamera.GetUniversalAdditionalCameraData().scriptableRenderer;
++        var flags = BindingFlags.Instance | BindingFlags.NonPublic;
++        var pass = activeRenderer.GetType().GetField("m_ClusteredDeferredPass", flags).GetValue(activeRenderer);
++        var lighting = pass?.GetType().GetField("m_LightingTexture", flags).GetValue(pass) as RenderTexture;
+         entry.states.Add(new FeatureState
+         {
+             name = state,
++            clusteredLightingTargetLive = lighting != null && lighting.IsCreated(),
++            forwardPlusKeyword = Shader.IsKeywordEnabled("_FORWARD_PLUS"),
+             file = key + ".png",
+             magentaPixelFraction = MagentaFraction(texture.GetPixels32()),
+         });
+@@ -940,7 +943,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+             m_ReceiverRenderers[i].renderingLayerMask = kDefaultRenderingLayer;
+         }
+         // The AO case owns direct-light AO; every other case renders with it off.
+-        SetDirectAoStrength(featureStencilPipeline, 0f);
++        SetDirectAoStrength(featureForwardPlusPipeline, 0f);
+         SetDirectAoStrength(featureClusteredPipeline, 0f);
+     }
+ 
+@@ -985,7 +988,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+     // strength so the A/B only compares the deferred lighting path.
+     void ApplyDirectAmbientOcclusion(bool on)
+     {
+-        SetDirectAoStrength(featureStencilPipeline, on ? 1f : 0f);
++        SetDirectAoStrength(featureForwardPlusPipeline, on ? 1f : 0f);
+         SetDirectAoStrength(featureClusteredPipeline, on ? 1f : 0f);
+     }
+ 
+@@ -1030,7 +1033,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         if (receiveShadowsOffMaterial == null)
+             return;
+         for (var i = 0; i < m_ReceiverRenderers.Count; i++)
+-            m_ReceiverRenderers[i].sharedMaterial = off && i % 2 == 0 ? receiveShadowsOffMaterial : m_ReceiverMaterials[i];
++            m_ReceiverRenderers[i].sharedMaterial = off && i % 2 == 0 && m_ReceiverMaterials[i] == sphereMaterial
++                ? receiveShadowsOffMaterial : m_ReceiverMaterials[i];
+     }
+ 
+     // Point-light shadows need six atlas slices each; keep the subset to spots so the 2048 atlas
+@@ -1060,6 +1064,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         }
+     }
+ 
++    static bool HasFeatureEffect(FeatureComparison effect) => effect.pixelsOverThreshold > 0 || effect.meanChannelDiff > 0.05;
++
+     static FeatureComparison CompareFeature(string name, Texture2D reference, Texture2D candidate)
+     {
+         var diff = Compare(0, name, reference, name, candidate, new RectInt(0, 0, 0, 0));
+@@ -1084,7 +1090,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+                 return true;
+         }
+ 
+-        return false;
++        return report.entries.Count != 7;
+     }
+ 
+     static void WriteFeatureMatrix(string outputRoot, FeatureMatrixReport report)
+@@ -1100,10 +1106,10 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         yield return null;
+     }
+ 
+-    // Forward+ ignores the per-object cap; setting it there too keeps the three assets identical.
++    // Forward+ ignores the per-object cap; keep the setting equal on both sweep pipelines.
+     void ApplyPerObjectLightLimit(int limit)
+     {
+-        var pipelines = new[] { stencilDeferredPipeline, clusteredDeferredPipeline, forwardPlusPipeline };
++        var pipelines = new[] { clusteredDeferredPipeline, forwardPlusPipeline };
+         for (var i = 0; i < pipelines.Length; i++)
+         {
+             if (pipelines[i] != null)
+@@ -1208,9 +1214,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         }
+ 
+         // Probe fixture: a row of alpha-blended Lit spheres between the camera and the receivers.
+-        // The deferred and stencil paths light them through per-object indices (<= 4 lights by
+-        // default), while Forward+ lights them from the cluster list; the diff over this group's
+-        // projected rect is the gap this round measures.
++        // Measure clustered vs Forward+ inside their projected rect as well as over the frame.
+         if (m_TransparentEnabled && m_TransparentMaterial != null)
+         {
+             for (var i = 0; i < 3; i++)
+@@ -1271,21 +1275,13 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
+     }
+ 
+-    void ComputeDiffs(List<DiffReport> diffs, List<DiffReport> forwardPlusDiffs)
++    void ComputeDiffs(List<DiffReport> forwardPlusDiffs)
+     {
+-        foreach (var lightCount in lightCounts)
+-        {
+-            Texture2D stencil;
+-            Texture2D clustered;
+-            Texture2D forwardPlus;
+-            var hasStencil = m_Screenshots.TryGetValue(StencilMode + "_L" + lightCount, out stencil);
+-            var hasClustered = m_Screenshots.TryGetValue(ClusteredMode + "_L" + lightCount, out clustered);
+-            var hasForwardPlus = m_Screenshots.TryGetValue(ForwardPlusMode + "_L" + lightCount, out forwardPlus);
+-
+-            if (hasStencil && hasClustered)
+-                diffs.Add(Compare(lightCount, StencilMode, stencil, ClusteredMode, clustered, m_TransparentRect));
+-            if (hasClustered && hasForwardPlus)
+-                forwardPlusDiffs.Add(Compare(lightCount, ClusteredMode, clustered, ForwardPlusMode, forwardPlus, m_TransparentRect));
++        foreach (var count in SortedScreenshotCounts())
++        {
++            var reference = m_Screenshots[ForwardPlusMode + "_L" + count];
++            var candidate = m_Screenshots[ClusteredMode + "_L" + count];
++            forwardPlusDiffs.Add(Compare(count, ForwardPlusMode, reference, ClusteredMode, candidate, m_TransparentRect));
+         }
+     }
+ 
+@@ -1507,7 +1503,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+ 
+         double PerFrameMs(string slice, int frames)
+         {
+-            if (frames <= 0 || !m_Fields.TryGetValue(slice, out var field))
++            if (frames <= 0 || !m_Fields.TryGetValue(slice, out var field) || field == null)
+                 return 0.0;
+             var ticks = (long)field.GetValue(null);
+             return ticks * 1000.0 / System.Diagnostics.Stopwatch.Frequency / frames;
+@@ -1842,7 +1838,9 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+     [Serializable]
+     public sealed class FeatureState
+     {
++        public bool clusteredLightingTargetLive;
+         public string name;
++        public bool forwardPlusKeyword;
+         public string file;
+         public float magentaPixelFraction;
+     }
+@@ -1917,7 +1915,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
+         public bool completed;
+         public string error;
+         public List<ModeReport> modes;
+-        public List<DiffReport> diffs;
+         public List<DiffReport> forwardPlusDiffs;
+     }
+ 

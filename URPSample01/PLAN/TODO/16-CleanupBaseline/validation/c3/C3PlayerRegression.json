@@ -1,0 +1,1336 @@
+{
+  "thresholds": {
+    "meanRGB": 2,
+    "maxChannel": 24
+  },
+  "t5": {
+    "t5-d3d11/control": {
+      "api": "Direct3D11",
+      "transparent": false,
+      "samePath": [
+        {
+          "file": "t5-d3d11/control/ClusteredDeferred_L0.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/control/ClusteredDeferred_L8.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/control/ClusteredDeferred_L48.png",
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/control/ClusteredDeferred_L256.png",
+          "mean": 0.10962058738425925,
+          "max": 93,
+          "changed": 42640,
+          "over8": 3785,
+          "passed": false
+        },
+        {
+          "file": "t5-d3d11/control/ForwardPlus_L0.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/control/ForwardPlus_L8.png",
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/control/ForwardPlus_L48.png",
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/control/ForwardPlus_L256.png",
+          "mean": 0.1094578269675926,
+          "max": 93,
+          "changed": 42305,
+          "over8": 3770,
+          "passed": false
+        }
+      ],
+      "crossRoute": [
+        {
+          "lightCount": 0,
+          "meanChannelDiff": 0.1749587673611111,
+          "maxChannelDiff": 46,
+          "pixelsOverThreshold": 572,
+          "passed": false
+        },
+        {
+          "lightCount": 8,
+          "meanChannelDiff": 0.178876953125,
+          "maxChannelDiff": 59,
+          "pixelsOverThreshold": 600,
+          "passed": false
+        },
+        {
+          "lightCount": 48,
+          "meanChannelDiff": 0.20924877025462962,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "passed": false
+        },
+        {
+          "lightCount": 256,
+          "meanChannelDiff": 0.28984736689814816,
+          "maxChannelDiff": 86,
+          "pixelsOverThreshold": 623,
+          "passed": false
+        }
+      ]
+    },
+    "t5-d3d11/cluster-on": {
+      "api": "Direct3D11",
+      "transparent": true,
+      "samePath": [
+        {
+          "file": "t5-d3d11/cluster-on/ClusteredDeferred_L0.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/cluster-on/ClusteredDeferred_L8.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/cluster-on/ClusteredDeferred_L48.png",
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/cluster-on/ClusteredDeferred_L256.png",
+          "mean": 0.17253580729166668,
+          "max": 63,
+          "changed": 88636,
+          "over8": 6570,
+          "passed": false
+        },
+        {
+          "file": "t5-d3d11/cluster-on/ForwardPlus_L0.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/cluster-on/ForwardPlus_L8.png",
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/cluster-on/ForwardPlus_L48.png",
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d11/cluster-on/ForwardPlus_L256.png",
+          "mean": 0.1720283564814815,
+          "max": 65,
+          "changed": 88332,
+          "over8": 6529,
+          "passed": false
+        }
+      ],
+      "crossRoute": [
+        {
+          "lightCount": 0,
+          "meanChannelDiff": 0.15383210358796295,
+          "maxChannelDiff": 49,
+          "pixelsOverThreshold": 190,
+          "passed": false
+        },
+        {
+          "lightCount": 8,
+          "meanChannelDiff": 0.15493561921296295,
+          "maxChannelDiff": 59,
+          "pixelsOverThreshold": 222,
+          "passed": false
+        },
+        {
+          "lightCount": 48,
+          "meanChannelDiff": 0.18700737847222224,
+          "maxChannelDiff": 82,
+          "pixelsOverThreshold": 382,
+          "passed": false
+        },
+        {
+          "lightCount": 256,
+          "meanChannelDiff": 0.26291883680555556,
+          "maxChannelDiff": 80,
+          "pixelsOverThreshold": 556,
+          "passed": false
+        }
+      ]
+    },
+    "t5-d3d12/control": {
+      "api": "Direct3D12",
+      "transparent": false,
+      "samePath": [
+        {
+          "file": "t5-d3d12/control/ClusteredDeferred_L0.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/control/ClusteredDeferred_L8.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/control/ClusteredDeferred_L48.png",
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/control/ClusteredDeferred_L256.png",
+          "mean": 1.8084490740740741e-06,
+          "max": 3,
+          "changed": 3,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/control/ForwardPlus_L0.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/control/ForwardPlus_L8.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/control/ForwardPlus_L48.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/control/ForwardPlus_L256.png",
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over8": 0,
+          "passed": true
+        }
+      ],
+      "crossRoute": [
+        {
+          "lightCount": 0,
+          "meanChannelDiff": 0.17495768229166667,
+          "maxChannelDiff": 46,
+          "pixelsOverThreshold": 572,
+          "passed": false
+        },
+        {
+          "lightCount": 8,
+          "meanChannelDiff": 0.17887622974537037,
+          "maxChannelDiff": 59,
+          "pixelsOverThreshold": 600,
+          "passed": false
+        },
+        {
+          "lightCount": 48,
+          "meanChannelDiff": 0.20924985532407409,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "passed": false
+        },
+        {
+          "lightCount": 256,
+          "meanChannelDiff": 0.2896965422453704,
+          "maxChannelDiff": 86,
+          "pixelsOverThreshold": 624,
+          "passed": false
+        }
+      ]
+    },
+    "t5-d3d12/cluster-on": {
+      "api": "Direct3D12",
+      "transparent": true,
+      "samePath": [
+        {
+          "file": "t5-d3d12/cluster-on/ClusteredDeferred_L0.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/cluster-on/ClusteredDeferred_L8.png",
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/cluster-on/ClusteredDeferred_L48.png",
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/cluster-on/ClusteredDeferred_L256.png",
+          "mean": 1.0850694444444444e-06,
+          "max": 3,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/cluster-on/ForwardPlus_L0.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/cluster-on/ForwardPlus_L8.png",
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/cluster-on/ForwardPlus_L48.png",
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t5-d3d12/cluster-on/ForwardPlus_L256.png",
+          "mean": 2.170138888888889e-06,
+          "max": 2,
+          "changed": 5,
+          "over8": 0,
+          "passed": true
+        }
+      ],
+      "crossRoute": [
+        {
+          "lightCount": 0,
+          "meanChannelDiff": 0.15383138020833334,
+          "maxChannelDiff": 49,
+          "pixelsOverThreshold": 190,
+          "passed": false
+        },
+        {
+          "lightCount": 8,
+          "meanChannelDiff": 0.15493561921296295,
+          "maxChannelDiff": 59,
+          "pixelsOverThreshold": 222,
+          "passed": false
+        },
+        {
+          "lightCount": 48,
+          "meanChannelDiff": 0.18700774016203703,
+          "maxChannelDiff": 82,
+          "pixelsOverThreshold": 382,
+          "passed": false
+        },
+        {
+          "lightCount": 256,
+          "meanChannelDiff": 0.2628219039351852,
+          "maxChannelDiff": 80,
+          "pixelsOverThreshold": 556,
+          "passed": false
+        }
+      ]
+    }
+  },
+  "t4D3D11": {
+    "MainShadowCascade": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.1926468460648148,
+          "meanChannelDiffNormalized": 0.0007554778277051561,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19376591435185186,
+          "meanChannelDiffNormalized": 0.000759866330791576,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.4451399739583333,
+          "meanChannelDiffNormalized": 0.0017456469566993463,
+          "maxChannelDiff": 41,
+          "pixelsOverThreshold": 22904,
+          "pixelsOverThresholdFraction": 0.024852430555555555,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.44404984085648147,
+          "meanChannelDiffNormalized": 0.0017413719249273784,
+          "maxChannelDiff": 42,
+          "pixelsOverThreshold": 22887,
+          "pixelsOverThresholdFraction": 0.024833984375,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d11/MainShadowCascade_ClusteredOff.png",
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d11/MainShadowCascade_ClusteredOn.png",
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    },
+    "ReceiveShadowsOff": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19264069733796296,
+          "meanChannelDiffNormalized": 0.0007554537150508352,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.1926468460648148,
+          "meanChannelDiffNormalized": 0.0007554778277051561,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.0021929253472222224,
+          "meanChannelDiffNormalized": 8.599707244008716e-06,
+          "maxChannelDiff": 41,
+          "pixelsOverThreshold": 109,
+          "pixelsOverThresholdFraction": 0.00011827256944444445,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.002185329861111111,
+          "meanChannelDiffNormalized": 8.56992102396514e-06,
+          "maxChannelDiff": 42,
+          "pixelsOverThreshold": 107,
+          "pixelsOverThresholdFraction": 0.00011610243055555556,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d11/ReceiveShadowsOff_ClusteredOff.png",
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d11/ReceiveShadowsOff_ClusteredOn.png",
+          "mean": 0.3806868489583333,
+          "max": 240,
+          "changed": 5435,
+          "over8": 5432,
+          "passed": false
+        }
+      ]
+    },
+    "MainShadowScreen": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19279296875,
+          "meanChannelDiffNormalized": 0.0007560508578431372,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19376591435185186,
+          "meanChannelDiffNormalized": 0.000759866330791576,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.3901851851851852,
+          "meanChannelDiffNormalized": 0.0015301379811183734,
+          "maxChannelDiff": 41,
+          "pixelsOverThreshold": 19899,
+          "pixelsOverThresholdFraction": 0.021591796875,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.3892556423611111,
+          "meanChannelDiffNormalized": 0.0015264927151416121,
+          "maxChannelDiff": 42,
+          "pixelsOverThreshold": 19884,
+          "pixelsOverThresholdFraction": 0.021575520833333334,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d11/MainShadowScreen_ClusteredOff.png",
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d11/MainShadowScreen_ClusteredOn.png",
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    },
+    "AdditionalShadowAtlas": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.1361451099537037,
+          "meanChannelDiffNormalized": 0.0005339023919753087,
+          "maxChannelDiff": 46,
+          "pixelsOverThreshold": 85,
+          "pixelsOverThresholdFraction": 9.223090277777778e-05,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.136904296875,
+          "meanChannelDiffNormalized": 0.0005368795955882353,
+          "maxChannelDiff": 46,
+          "pixelsOverThreshold": 85,
+          "pixelsOverThresholdFraction": 9.223090277777778e-05,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.9623813657407407,
+          "meanChannelDiffNormalized": 0.0037740445715323165,
+          "maxChannelDiff": 68,
+          "pixelsOverThreshold": 25261,
+          "pixelsOverThresholdFraction": 0.02740993923611111,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.9619809751157408,
+          "meanChannelDiffNormalized": 0.0037724744122185913,
+          "maxChannelDiff": 68,
+          "pixelsOverThreshold": 25259,
+          "pixelsOverThresholdFraction": 0.027407769097222222,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d11/AdditionalShadowAtlas_ClusteredOff.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d11/AdditionalShadowAtlas_ClusteredOn.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    },
+    "LightCookie": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.13108723958333332,
+          "meanChannelDiffNormalized": 0.0005140676062091503,
+          "maxChannelDiff": 46,
+          "pixelsOverThreshold": 73,
+          "pixelsOverThresholdFraction": 7.921006944444444e-05,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.138095703125,
+          "meanChannelDiffNormalized": 0.0005415517769607843,
+          "maxChannelDiff": 53,
+          "pixelsOverThreshold": 87,
+          "pixelsOverThresholdFraction": 9.440104166666666e-05,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 3.02412109375,
+          "meanChannelDiffNormalized": 0.011859298406862744,
+          "maxChannelDiff": 186,
+          "pixelsOverThreshold": 187682,
+          "pixelsOverThresholdFraction": 0.20364800347222223,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 3.017939453125,
+          "meanChannelDiffNormalized": 0.011835056678921568,
+          "maxChannelDiff": 192,
+          "pixelsOverThreshold": 187361,
+          "pixelsOverThresholdFraction": 0.20329969618055554,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d11/LightCookie_ClusteredOff.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d11/LightCookie_ClusteredOn.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    },
+    "LightLayers": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.13723090277777777,
+          "meanChannelDiffNormalized": 0.0005381604030501089,
+          "maxChannelDiff": 59,
+          "pixelsOverThreshold": 82,
+          "pixelsOverThresholdFraction": 8.897569444444445e-05,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.14302408854166668,
+          "meanChannelDiffNormalized": 0.0005608787785947712,
+          "maxChannelDiff": 59,
+          "pixelsOverThreshold": 119,
+          "pixelsOverThresholdFraction": 0.00012912326388888888,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 2.871354166666667,
+          "meanChannelDiffNormalized": 0.011260212418300655,
+          "maxChannelDiff": 245,
+          "pixelsOverThreshold": 136281,
+          "pixelsOverThresholdFraction": 0.14787434895833335,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 2.8674967447916666,
+          "meanChannelDiffNormalized": 0.01124508527369281,
+          "maxChannelDiff": 245,
+          "pixelsOverThreshold": 136127,
+          "pixelsOverThresholdFraction": 0.1477072482638889,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d11/LightLayers_ClusteredOff.png",
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d11/LightLayers_ClusteredOn.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    },
+    "ScreenSpaceAO": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.1917505787037037,
+          "meanChannelDiffNormalized": 0.0007519630537400145,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 448,
+          "pixelsOverThresholdFraction": 0.0004861111111111111,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19348198784722223,
+          "meanChannelDiffNormalized": 0.0007587528935185185,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.47664930555555557,
+          "meanChannelDiffNormalized": 0.001869212962962963,
+          "maxChannelDiff": 203,
+          "pixelsOverThreshold": 18635,
+          "pixelsOverThresholdFraction": 0.020220269097222222,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.4752955005787037,
+          "meanChannelDiffNormalized": 0.0018639039238380537,
+          "maxChannelDiff": 205,
+          "pixelsOverThreshold": 18602,
+          "pixelsOverThresholdFraction": 0.020184461805555557,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d11/ScreenSpaceAO_ClusteredOff.png",
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d11/ScreenSpaceAO_ClusteredOn.png",
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    }
+  },
+  "t4D3D12": {
+    "MainShadowCascade": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19264829282407409,
+          "meanChannelDiffNormalized": 0.0007554835012708788,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.1937669994212963,
+          "meanChannelDiffNormalized": 0.0007598705859658678,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.4451399739583333,
+          "meanChannelDiffNormalized": 0.0017456469566993463,
+          "maxChannelDiff": 41,
+          "pixelsOverThreshold": 22904,
+          "pixelsOverThresholdFraction": 0.024852430555555555,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.44404947916666665,
+          "meanChannelDiffNormalized": 0.0017413705065359476,
+          "maxChannelDiff": 42,
+          "pixelsOverThreshold": 22887,
+          "pixelsOverThresholdFraction": 0.024833984375,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d12/MainShadowCascade_ClusteredOff.png",
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d12/MainShadowCascade_ClusteredOn.png",
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    },
+    "ReceiveShadowsOff": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19264214409722222,
+          "meanChannelDiffNormalized": 0.0007554593886165578,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19264829282407409,
+          "meanChannelDiffNormalized": 0.0007554835012708788,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.0021929253472222224,
+          "meanChannelDiffNormalized": 8.599707244008716e-06,
+          "maxChannelDiff": 41,
+          "pixelsOverThreshold": 109,
+          "pixelsOverThresholdFraction": 0.00011827256944444445,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.002185329861111111,
+          "meanChannelDiffNormalized": 8.56992102396514e-06,
+          "maxChannelDiff": 42,
+          "pixelsOverThreshold": 107,
+          "pixelsOverThresholdFraction": 0.00011610243055555556,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d12/ReceiveShadowsOff_ClusteredOff.png",
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d12/ReceiveShadowsOff_ClusteredOn.png",
+          "mean": 0.3806868489583333,
+          "max": 240,
+          "changed": 5435,
+          "over8": 5432,
+          "passed": false
+        }
+      ]
+    },
+    "MainShadowScreen": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19279369212962963,
+          "meanChannelDiffNormalized": 0.0007560536946259986,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.1937669994212963,
+          "meanChannelDiffNormalized": 0.0007598705859658678,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.390185546875,
+          "meanChannelDiffNormalized": 0.001530139399509804,
+          "maxChannelDiff": 41,
+          "pixelsOverThreshold": 19899,
+          "pixelsOverThresholdFraction": 0.021591796875,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.3892556423611111,
+          "meanChannelDiffNormalized": 0.0015264927151416121,
+          "maxChannelDiff": 42,
+          "pixelsOverThreshold": 19884,
+          "pixelsOverThresholdFraction": 0.021575520833333334,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d12/MainShadowScreen_ClusteredOff.png",
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d12/MainShadowScreen_ClusteredOn.png",
+          "mean": 7.233796296296296e-07,
+          "max": 1,
+          "changed": 2,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    },
+    "AdditionalShadowAtlas": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.1361451099537037,
+          "meanChannelDiffNormalized": 0.0005339023919753087,
+          "maxChannelDiff": 46,
+          "pixelsOverThreshold": 85,
+          "pixelsOverThresholdFraction": 9.223090277777778e-05,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.136904296875,
+          "meanChannelDiffNormalized": 0.0005368795955882353,
+          "maxChannelDiff": 46,
+          "pixelsOverThreshold": 85,
+          "pixelsOverThresholdFraction": 9.223090277777778e-05,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.9623813657407407,
+          "meanChannelDiffNormalized": 0.0037740445715323165,
+          "maxChannelDiff": 68,
+          "pixelsOverThreshold": 25261,
+          "pixelsOverThresholdFraction": 0.02740993923611111,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.9619809751157408,
+          "meanChannelDiffNormalized": 0.0037724744122185913,
+          "maxChannelDiff": 68,
+          "pixelsOverThreshold": 25259,
+          "pixelsOverThresholdFraction": 0.027407769097222222,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d12/AdditionalShadowAtlas_ClusteredOff.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d12/AdditionalShadowAtlas_ClusteredOn.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    },
+    "LightCookie": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.13108687789351853,
+          "meanChannelDiffNormalized": 0.0005140661878177197,
+          "maxChannelDiff": 46,
+          "pixelsOverThreshold": 73,
+          "pixelsOverThresholdFraction": 7.921006944444444e-05,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.13809534143518518,
+          "meanChannelDiffNormalized": 0.0005415503585693536,
+          "maxChannelDiff": 53,
+          "pixelsOverThreshold": 87,
+          "pixelsOverThresholdFraction": 9.440104166666666e-05,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 3.02412109375,
+          "meanChannelDiffNormalized": 0.011859298406862744,
+          "maxChannelDiff": 186,
+          "pixelsOverThreshold": 187682,
+          "pixelsOverThresholdFraction": 0.20364800347222223,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 3.017939453125,
+          "meanChannelDiffNormalized": 0.011835056678921568,
+          "maxChannelDiff": 192,
+          "pixelsOverThreshold": 187361,
+          "pixelsOverThresholdFraction": 0.20329969618055554,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d12/LightCookie_ClusteredOff.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d12/LightCookie_ClusteredOn.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    },
+    "LightLayers": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.13723054108796295,
+          "meanChannelDiffNormalized": 0.0005381589846586782,
+          "maxChannelDiff": 59,
+          "pixelsOverThreshold": 82,
+          "pixelsOverThresholdFraction": 8.897569444444445e-05,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.14302372685185186,
+          "meanChannelDiffNormalized": 0.0005608773602033406,
+          "maxChannelDiff": 59,
+          "pixelsOverThreshold": 119,
+          "pixelsOverThresholdFraction": 0.00012912326388888888,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 2.871354166666667,
+          "meanChannelDiffNormalized": 0.011260212418300655,
+          "maxChannelDiff": 245,
+          "pixelsOverThreshold": 136281,
+          "pixelsOverThresholdFraction": 0.14787434895833335,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 2.8674967447916666,
+          "meanChannelDiffNormalized": 0.01124508527369281,
+          "maxChannelDiff": 245,
+          "pixelsOverThreshold": 136127,
+          "pixelsOverThresholdFraction": 0.1477072482638889,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d12/LightLayers_ClusteredOff.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d12/LightLayers_ClusteredOn.png",
+          "mean": 0.0,
+          "max": 0,
+          "changed": 0,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    },
+    "ScreenSpaceAO": {
+      "routeOK": true,
+      "noMagenta": true,
+      "featureActive": true,
+      "matrixPassed": false,
+      "comparisons": [
+        {
+          "name": "forward_plus_vs_clustered_on",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19175202546296297,
+          "meanChannelDiffNormalized": 0.0007519687273057371,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 448,
+          "pixelsOverThresholdFraction": 0.0004861111111111111,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_vs_clustered_off",
+          "pixels": 921600,
+          "meanChannelDiff": 0.19348271122685184,
+          "meanChannelDiffNormalized": 0.0007587557303013798,
+          "maxChannelDiff": 81,
+          "pixelsOverThreshold": 452,
+          "pixelsOverThresholdFraction": 0.0004904513888888889,
+          "passed": false
+        },
+        {
+          "name": "clustered_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.47664894386574075,
+          "meanChannelDiffNormalized": 0.0018692115445715324,
+          "maxChannelDiff": 203,
+          "pixelsOverThreshold": 18635,
+          "pixelsOverThresholdFraction": 0.020220269097222222,
+          "passed": false
+        },
+        {
+          "name": "forward_plus_feature_effect",
+          "pixels": 921600,
+          "meanChannelDiff": 0.4752958622685185,
+          "meanChannelDiffNormalized": 0.0018639053422294842,
+          "maxChannelDiff": 205,
+          "pixelsOverThreshold": 18602,
+          "pixelsOverThresholdFraction": 0.020184461805555557,
+          "passed": false
+        }
+      ],
+      "samePath": [
+        {
+          "file": "t4/player-d3d12/ScreenSpaceAO_ClusteredOff.png",
+          "mean": 1.0850694444444444e-06,
+          "max": 1,
+          "changed": 3,
+          "over8": 0,
+          "passed": true
+        },
+        {
+          "file": "t4/player-d3d12/ScreenSpaceAO_ClusteredOn.png",
+          "mean": 3.616898148148148e-07,
+          "max": 1,
+          "changed": 1,
+          "over8": 0,
+          "passed": true
+        }
+      ]
+    }
+  }
+}

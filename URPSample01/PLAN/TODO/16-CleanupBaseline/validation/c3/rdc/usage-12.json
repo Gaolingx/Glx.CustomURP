@@ -1,0 +1,133 @@
+{
+  "URP Z-Bin Buffer": {
+    "entries": [
+      {
+        "eventId": 86,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 114,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 118,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 119,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 124,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 125,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 1311,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 1311,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 1352,
+        "usage": "CS_Resource"
+      },
+      {
+        "eventId": 1396,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 1421,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 1431,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 1441,
+        "usage": "PS_Resource"
+      }
+    ],
+    "resourceId": "ResourceId::783"
+  },
+  "URP Tile Buffer": {
+    "entries": [
+      {
+        "eventId": 86,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 114,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 129,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 130,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 1311,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 1311,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 1352,
+        "usage": "CS_Resource"
+      },
+      {
+        "eventId": 1396,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 1421,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 1431,
+        "usage": "PS_Resource"
+      },
+      {
+        "eventId": 1441,
+        "usage": "PS_Resource"
+      }
+    ],
+    "resourceId": "ResourceId::784"
+  },
+  "Clustered Deferred Lighting": {
+    "entries": [
+      {
+        "eventId": 1311,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 1352,
+        "usage": "CS_RWResource"
+      },
+      {
+        "eventId": 1358,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 1358,
+        "usage": "Barrier"
+      },
+      {
+        "eventId": 1359,
+        "usage": "PS_Resource"
+      }
+    ],
+    "resourceId": "ResourceId::805"
+  }
+}
