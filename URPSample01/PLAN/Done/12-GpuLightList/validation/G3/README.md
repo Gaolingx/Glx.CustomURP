@@ -39,7 +39,7 @@
 ```bash
 U="/d/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe"
 P="E:/GitHub/Glx.CustomURP/URPSample01"
-OUT="$P/PLAN/TODO/12-GpuLightList/validation/G3"
+OUT="$P/PLAN/Done/12-GpuLightList/validation/G3"
 
 "$U" -batchmode -projectPath "$P" -runTests -testPlatform EditMode \
   -testResults "$OUT/tests/G3EditMode.xml" -logFile "$OUT/logs/G3EditMode.log"

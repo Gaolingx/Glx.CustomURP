@@ -15,7 +15,7 @@
 ```bash
 U="/d/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe"
 P="E:/GitHub/Glx.CustomURP/URPSample01"
-OUT="$P/PLAN/TODO/12-GpuLightList/validation/C1"
+OUT="$P/PLAN/Done/12-GpuLightList/validation/C1"
 
 # 测试（不带 -quit；-runTests 会自行退出）
 "$U" -batchmode -projectPath "$P" -runTests -testPlatform EditMode \

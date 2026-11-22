@@ -3,7 +3,7 @@
 
 ---
 调研结果：
-善后计划已写入 [clean.md](clean.md)（commit `4287c36`，仅文档、未动代码），并随本轮从 `PLAN/TODO/11-LightCulling` 并入 `PLAN/TODO/12-GpuLightList`；11-LightCulling 本体已归档在 `PLAN/Done`。
+善后计划已写入 [clean.md](clean.md)（commit `4287c36`，仅文档、未动代码），并随本轮从 `PLAN/TODO/11-LightCulling` 并入 12-GpuLightList 轮次（现归档于 `PLAN/Done/12-GpuLightList`）；11-LightCulling 本体已归档在 `PLAN/Done`。
 
 计划里包含删除清单（文件/符号/规模）、C0–C8 顺序、每步验证配方、风险和明确不删表。先纠正了四个容易误删的前提：
 

@@ -19,7 +19,7 @@
 ```bash
 U="/d/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe"
 P="E:/GitHub/Glx.CustomURP/URPSample01"
-OUT="$P/PLAN/TODO/12-GpuLightList/validation/G1"
+OUT="$P/PLAN/Done/12-GpuLightList/validation/G1"
 
 "$U" -batchmode -projectPath "$P" -runTests -testPlatform EditMode \
   -testResults "$OUT/tests/G1EditMode.xml" -logFile "$OUT/logs/G1EditMode.log"
@@ -66,7 +66,7 @@ batchmode 运行会把 `ProjectSettings.asset` / `GraphicsSettings.asset` / `Qua
 ```bash
 U="/d/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe"
 P="E:/GitHub/Glx.CustomURP/URPSample01"
-OUT="$P/PLAN/TODO/12-GpuLightList/validation/G1"
+OUT="$P/PLAN/Done/12-GpuLightList/validation/G1"
 
 "$U" -batchmode -projectPath "$P" -runTests -testPlatform EditMode -testResults "$OUT/tests/G1EditMode.xml" -logFile "$OUT/logs/G1EditMode.log"
 "$U" -batchmode -projectPath "$P" -runTests -testPlatform PlayMode -testResults "$OUT/tests/G1PlayMode.xml" -logFile "$OUT/logs/G1PlayMode.log"
@@ -122,7 +122,7 @@ arena 构建会经 `ClusteredDeferredTestAssetSetup.CreateAll()` 重写场景、
 ```bash
 U="/d/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe"
 P="E:/GitHub/Glx.CustomURP/URPSample01"
-OUT="$P/PLAN/TODO/12-GpuLightList/validation/G1"
+OUT="$P/PLAN/Done/12-GpuLightList/validation/G1"
 
 "$U" -batchmode -projectPath "$P" -runTests -testPlatform EditMode -testResults "$OUT/tests/G1cEditMode.xml" -logFile "$OUT/logs/G1cEditMode.log"
 "$U" -batchmode -projectPath "$P" -runTests -testPlatform PlayMode -testResults "$OUT/tests/G1cPlayMode.xml" -logFile "$OUT/logs/G1cPlayMode.log"

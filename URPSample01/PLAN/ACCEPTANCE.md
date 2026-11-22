@@ -31,7 +31,7 @@
 | 05-ScreenSpaceRefractionImprove | ✅* | 1 PASS、1 PASS*、2 PARTIAL、8 ACCEPTED | 汇总 `Report.json`/`Cleanup.md` 的旧快照已在 `726e57b` 修正；433/434 EditMode 仍无日志；P0-1/P0-3 的探针回退辐射未被区分 |
 | 06-ValidationAllRDC | ✅* | 21 PASS、2 PASS*、3 PARTIAL、1 ACCEPTED | 初次验收 `P6-2` 为 FAIL（52 个/963.9 MiB vs 150 MB/12）；所有者决定把预算提高到 1 GB，`.gitignore`/4 份报告已同步（`fa67325`），61 个路径已修正（`f6f754e`/`726e57b`）；P0-4/P2-3 仍为 PARTIAL |
 | 11-LightCulling | ✅* | 5 PASS、2 PASS*、1 PARTIAL、1 ACCEPTED | mixed lighting-shadowmask 为 PARTIAL（无 baked shadowmask 数据）；T2/T3 的逐元素 parity JSON 未单列，由 T4/T5/PlayMode A/B 覆盖；T6 可选未补 GBuffer |
-| 12-GpuLightList | ◐ 进行中 | C1 PASS；G1–G3 待执行 | CPU 分解显示 64 灯列表构建 0.17 ms/帧；GPU 光表的价值主要在异步重叠与 256+ 灯扩展性 |
+| 12-GpuLightList | ✅ PASS | 2 PASS、2 ACCEPTED（NO-GO） | 默认同步 GPU 列表 + 位图；G2/G3 实现保留为默认关闭的 A/B；256+ 灯与透明/forward-only 接管未覆盖 |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -498,20 +498,24 @@ PY
 
 **测试暴露的集成缺陷**：PreSetup 的 cluster jobs 与同帧 `ResolveMixedLightingMode` 争用 culling 灯数组，编辑器 Job safety 失败并级联。修复为在 deferred setup 读取灯数组前完成 jobs（`9702d4f`）；PlayMode 由 0/7 → 7/7；GPU 输入不变。
 
-## 16. 12-GpuLightList（进行中，C1 已落地，2026-11-22）
+## 16. 12-GpuLightList（已归档，2026-11-22）
 
-> 范围：GPU 光表主线的前置项 C1——clustered 模式跳过 stencil 灯预计算，并补齐 CPU 分解探针；G1–G3（GPU 光表 / FPTL 精剪 / 间接派发）待执行。
-> 计划：[PLAN/TODO/12-GpuLightList/HANDOFF.md](TODO/12-GpuLightList/HANDOFF.md)；善后：[clean.md](TODO/12-GpuLightList/clean.md)
-> 结论：**C1 PASS；主线计划已冻结（D-G1–D-G4）**。
+> 范围：C1（clustered 跳过 stencil 灯预计算 + CPU 分解探针）；G1（GPU 两段式构建 `URP_ZBinBuffer`/`urp_TileBuffer`，布局不变）；G2（FPTL 深度细剪）；G3（按 (tile, zbin) 的紧凑列表）。
+> 计划/结果：[PLAN/Done/12-GpuLightList/HANDOFF.md](Done/12-GpuLightList/HANDOFF.md)；善后：[clean.md](Done/12-GpuLightList/clean.md)；证据：[validation/](Done/12-GpuLightList/validation)。
+> 结论：**PASS。默认路径 = 同步 GPU 列表 + 位图；G2/G3 验收为 NO-GO，实现保留为默认关闭的 A/B。**
 
-| 项 | 结论 | 证据 |
-|---|---|---|
-| C1 跳过 `PrecomputeLights` | ✅ | 本提交 diff；`validation/C1/README.md` |
-| 回退规则（stencil / Preview / Overlay / XR 仍构建） | ✅ | `C1EditMode.xml::StencilLightPrecomputeIsSkippedOnlyForEligibleClusteredCameras` |
-| T4 七项特性（D3D11/D3D12） | ✅ 7/7 | `validation/C1/T4-shadows/player-*/T4FeatureMatrix.json` |
-| T5 A/B（D3D11/D3D12，48 灯） | ✅ mean 0.803/0.804、max 9 | `validation/C1/T5-runtime/player-*/CdPerf.json` |
-| EditMode / PlayMode 全量 | ✅ 485/485、36/36 | `validation/C1/tests/*.xml` |
-| CPU 分解（64 灯） | `PrecomputeLights` 0.0035 → 0.00009 ms；列表构建 ≈0.17 ms/帧 | `validation/C1/cpu/CdCpuBreakdown.json` |
-| G1 GPU 光表 / G2 精剪 / G3 派发 | 待执行 | HANDOFF §3–§5 |
+| 项 | 结论 | Git / 证据 | 说明 |
+|---|---|---|---|
+| C1 跳过 `PrecomputeLights` | ✅ PASS | `a313221`；`validation/C1/` | 去掉无人消费的 stencil 灯数组预计算（0.0035 ms/帧）；回退相机照常构建 |
+| G1 默认路径 | ✅ PASS | `cc73287`、`2033e04`；`validation/G1/` | **同步 GPU 列表 + 位图**：GPU 两段式写两张位图，`preSetup` 0.051→0.008 ms、job 完成 0.110→0，列表 CPU ≈0.061–0.064 ms；word 布局/header/`_FPParams*`/tile 宽度不变 |
+| G1 parity | ✅ PASS | `validation/G1/parity/player-d3d12/G1BufferParity.json` | zbin 逐位相等；tile 保守 AABB 满足 CPU ⊆ GPU（0 漏位）+ 像素逐位一致；async vs sync 逐位相同 |
+| G1 A/B 与特性 | ✅ PASS | `T5-runtime/`、`T4-shadows/`、`tests/G1c*.xml` | T5 48 灯 mean 0.812–0.828、max 9；T4 7/7（D3D11/D3D12）；EditMode 490/490、PlayMode 38/38；`.rdc` 14.4 MiB |
+| G1 异步 | ○ ACCEPTED（净亏） | `T5-runtime/player-d3d12-async/`、`cpu/d3d12-async/` | 位图逐位一致，但同机全档高 0.11–0.13 ms；`asyncCompute` 默认关闭，保留开关 |
+| G2 FPTL 细剪 | ○ ACCEPTED（NO-GO） | `ef86f76`；`validation/G2/` | 清掉 65% 的位、A/B 不变，但 GPU 时间 +0.07–0.10 ms（全屏深度扫描），光照循环无可回收；默认关 |
+| G3 紧凑列表 | ○ ACCEPTED（NO-GO） | `0e5ff0e`；`validation/G3/` | 每档 +0.08–0.13 ms；每 cell 8–21 项长于 1–2 word 位图扫描，空 tile 为 0，未做间接派发；默认关 |
+| 回归 / 回退矩阵 | ✅ PASS | `tests/G2*.xml`、`tests/G3*.xml` | 最终 EditMode 490/490、PlayMode 40/40；stencil / Preview / Overlay / XR / forward+ / structured-buffer 回退不变 |
+| 归档 | ✅ | 本提交 | TODO→Done；HANDOFF/ACCEPTANCE/验证脚本路径同步 |
 
-**判定说明**：C1 的收益是“去掉无人消费的每帧 Temp 分配与两遍灯遍历”，绝对量很小（64 灯 0.0035 ms/帧）；它不改变像素与 GPU 输入。C1 的更大价值是把回退规则显式化，并为 G1 的 Go/No-Go 提供分解数据：64 灯下列表构建 CPU 总量约 0.17 ms/帧（PreSetup 0.05 + job 完成 0.11 + 上传 0.012），灯常量上传另 0.10 ms；因此 GPU 光表若只省 CPU，上限约 14%，真正的收益点是异步重叠与 256+ 灯扩展性。
+**判定说明**：G1 的 tile parity 按冻结时修订的闸门执行（CPU ⊆ GPU + 像素逐位一致），因为 HLSL 与 Burst `FloatMode.Fast` 的三角函数差 1 ulp 就会翻位；zbin 仍要求逐位相等。G2/G3 记为 ACCEPTED 而非 FAIL：两者都已完成实现、测量与回归，负结果被如实记录并保留为可复现的 A/B 与扩展性基础设施。
+
+**能力边界**：仍不覆盖透明/forward-only 灯路径（D-G4，clean.md C2）、256+ 灯的扩展性实测、XR/foveated、GLES、MSAA、`useStructuredBuffer=true`、GPU 灯注册表（C8）。CPU jobs 与 stencil deferred 因此保留为回退与 A/B 参照，C2–C8 的删除必须等透明接管与 D-C2/D-C3 决策。

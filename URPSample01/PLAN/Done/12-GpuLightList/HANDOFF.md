@@ -1,10 +1,12 @@
-# 12-GpuLightList：GPU 光表与异步两段式（计划）
+# 12-GpuLightList：GPU 光表与异步两段式（已归档）
 
-> 状态：**计划已冻结（D-G1–D-G4）；C1 已实施并验收；G1a/G1b/G1c 已落地（G1 完成：GPU 光表、异步调度与 parity、结构化绑定 .rdc；异步实测净亏，默认同步）；G2 已落地并验收为 NO-GO（细剪默认关闭，保留 A/B）；G3 已落地并验收为 NO-GO（按 (tile, zbin) 的紧凑列表默认关闭，保留 A/B）**。
-> 建立：2026-11-22；前置轮次：[`PLAN/Done/11-LightCulling`](../../Done/11-LightCulling/HANDOFF.md)（Clustered Deferred v1，已归档）。
+> 状态：**已归档（2026-11-22）。默认路径 = 同步 GPU 列表 + 位图**：clustered 相机的 `URP_ZBinBuffer`/`urp_TileBuffer` 由 GPU 两段式 compute 在同队列构建（GBuffer 之后的 `PreSetup → dispatch → bind`），word 布局、header、`_FPParams*` 与 tile 宽度不变；`asyncCompute`、`pruneByDepth`、`compactLists` 默认关闭，仅保留为 A/B。
+> 结论：**C1 PASS；G1 PASS（默认同步 GPU 列表 + 位图）；G2 NO-GO（细剪）；G3 NO-GO（紧凑列表）**。G2/G3 的实现与测量保留为开关，默认关闭。
+> 建立：2026-11-22；前置轮次：[`PLAN/Done/11-LightCulling`](../11-LightCulling/HANDOFF.md)（Clustered Deferred v1，已归档）。
 > 善后清单：[clean.md](clean.md)（C1 已落地；C2–C8 仍为规划）。
 > 基线：C1 提交后的 HEAD（见 `git log`）；C1 证据在 `validation/C1/`。
 > 本轮范围：只做“光列表怎么建”和“怎么派发”，不改 BRDF/GBuffer/阴影/cookie/layers/AO 语义。
+> 未证伪项（下一轮入口）：256+ 灯扩展性；透明/forward-only 接管（D-G4，clean.md C2）。
 
 ---
 

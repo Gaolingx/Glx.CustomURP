@@ -1,6 +1,6 @@
 # Light Culling 善后：死代码清理计划（暂不执行）
 
-> 位置说明：11-LightCulling 的实现与验收已归档到 [`PLAN/Done/11-LightCulling`](../../Done/11-LightCulling/HANDOFF.md)。本文件是**后续善后计划**，已并入 `12-GpuLightList` 轮次（用户指定），C1 已在本轮落地；C2–C8 仍为规划。
+> 位置说明：11-LightCulling 的实现与验收已归档到 [`PLAN/Done/11-LightCulling`](../11-LightCulling/HANDOFF.md)。本文件是**后续善后计划**，已并入 `12-GpuLightList` 轮次（用户指定），C1 已在本轮落地；C2–C8 仍为规划。12-GpuLightList 本轮已归档到 `PLAN/Done/12-GpuLightList`，默认路径为同步 GPU 列表 + 位图；C2–C8 的前置条件（透明/forward-only 接管、D-C2/D-C3 决策）尚未满足，因此本轮不删除 CPU jobs 与 stencil 回退。
 >
 > 状态：规划稿，2026-11-22（并入 12-GpuLightList）。所有“可删”项都带有前置条件；**C1 以外当前一行都还不能删**。
 
