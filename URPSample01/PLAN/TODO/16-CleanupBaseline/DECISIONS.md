@@ -45,7 +45,9 @@
 
 逐项数据见[验收记录](README.md)。本次不启动 C4a。
 
-## 3. C0 退出条件
+## 3. C0 退出条件（冻结时的清单）
+
+以下保留开工时的复选框，不代表当前待办。八项闸门的实际结果见 [C0 验证记录](validation/README.md#1-闸门)；历史跨路径失败未改判。
 
 - [ ] `pre-cleanup` tag 存在并指向 C0 提交；HEAD 与 tag 记录在 `README.md`。
 - [ ] EditMode / PlayMode 全绿。

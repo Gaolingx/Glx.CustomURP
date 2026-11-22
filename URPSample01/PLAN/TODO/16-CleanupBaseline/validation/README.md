@@ -141,7 +141,7 @@ validation/baseline/
 
 ## 10. 复跑
 
-见 [../../README.md](../../README.md) §4。构建会重写测试资产与 ProjectSettings；验证后已还原，提交只含证据。
+见 [本轮复跑步骤](../README.md) §4。构建会重写测试资产与 ProjectSettings；验证后已还原，提交只含证据。
 
 ## 11. 边界与对清理的含义
 
