@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
+using UnityEditor.SceneManagement;
+using UnityEngine.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -23,6 +25,16 @@ public static class ClusteredDeferredArenaBuild
         Exit(Build(GraphicsDeviceType.Direct3D12, false));
     }
 
+    public static void BuildAsyncD3D11AndExit()
+    {
+        Exit(Build(GraphicsDeviceType.Direct3D11, false, true));
+    }
+
+    public static void BuildAsyncD3D12AndExit()
+    {
+        Exit(Build(GraphicsDeviceType.Direct3D12, false, true));
+    }
+
     public static void BuildT4D3D11AndExit()
     {
         Exit(Build(GraphicsDeviceType.Direct3D11, true));
@@ -38,14 +50,25 @@ public static class ClusteredDeferredArenaBuild
         EditorApplication.Exit(ok ? 0 : 1);
     }
 
-    public static bool Build(GraphicsDeviceType api, bool t4)
+    static UniversalRenderPipelineAsset CopyPipeline(string source, string destination, bool asyncRequest)
     {
-        if (!ClusteredDeferredTestAssetSetup.CreateAll())
-            return false;
+        if (!AssetDatabase.CopyAsset(source, destination))
+            throw new IOException("Cannot copy pipeline " + source);
+        var asset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(destination);
+        var serialized = new SerializedObject(asset);
+        serialized.FindProperty("m_AsyncLightListBuild").boolValue = asyncRequest;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        AssetDatabase.SaveAssetIfDirty(asset);
+        return asset;
+    }
+
+    public static bool Build(GraphicsDeviceType api, bool t4, bool asyncRequest = false)
+    {
 
         var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
         var apiName = api.ToString();
         var buildRoot = t4 ? "ClusteredDeferredArenaC4T4" : "ClusteredDeferredArenaC4";
+        if (asyncRequest) buildRoot += "Async";
         var executableName = t4 ? "CdArenaT4.exe" : "CdArena.exe";
         var outputDirectory = Path.Combine(projectRoot, "Builds", buildRoot, apiName);
         Directory.CreateDirectory(outputDirectory);
@@ -70,6 +93,8 @@ public static class ClusteredDeferredArenaBuild
 
         QualitySettings.SetQualityLevel(previousQualityLevel, true);
 
+        string stagingFolder = null;
+        var buildScenePath = ScenePath;
         BuildReport report;
         try
         {
@@ -108,6 +133,37 @@ public static class ClusteredDeferredArenaBuild
                     throw new FileNotFoundException("Missing test pipeline " + pipelinePaths[i]);
             }
 
+            if (!t4)
+            {
+                // Build from serialized copies. The scene and quality slots must reference the
+                // same pair; changing just the quality slots is undone by the runner at launch.
+                var guid = AssetDatabase.CreateFolder("Assets/Tests/ClusteredDeferred", "BuildStage_" + Guid.NewGuid().ToString("N"));
+                if (string.IsNullOrEmpty(guid)) throw new IOException("Cannot create arena build staging folder.");
+                stagingFolder = AssetDatabase.GUIDToAssetPath(guid);
+                var clustered = CopyPipeline(pipelinePaths[0], stagingFolder + "/Clustered.asset", asyncRequest);
+                var forward = CopyPipeline(pipelinePaths[1], stagingFolder + "/ForwardPlus.asset", asyncRequest);
+                var alternate = CopyPipeline(pipelinePaths[0], stagingFolder + "/ParityAlternate.asset", !asyncRequest);
+                pipelines[0] = clustered;
+                pipelines[1] = forward;
+                buildScenePath = stagingFolder + "/ClusteredDeferredArena.unity";
+                if (!AssetDatabase.CopyAsset(ScenePath, buildScenePath)) throw new IOException("Cannot stage arena scene.");
+                var scene = EditorSceneManager.OpenScene(buildScenePath, OpenSceneMode.Additive);
+                try
+                {
+                    var root = Array.Find(scene.GetRootGameObjects(), go => go.GetComponent<ClusteredDeferredArenaRunner>() != null);
+                    if (root == null) throw new InvalidOperationException("Staged scene is missing the arena runner.");
+                    var runner = root.GetComponent<ClusteredDeferredArenaRunner>();
+                    runner.clusteredDeferredPipeline = clustered;
+                    runner.forwardPlusPipeline = forward;
+                    runner.parityAlternateClusteredPipeline = alternate;
+                    if (!EditorSceneManager.SaveScene(scene)) throw new IOException("Cannot save staged arena scene.");
+                }
+                finally
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+
             for (var i = 0; i < qualityLevelCount; i++)
             {
                 QualitySettings.SetQualityLevel(i, true);
@@ -122,7 +178,7 @@ public static class ClusteredDeferredArenaBuild
 
             report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {
-                scenes = new[] { ScenePath },
+                scenes = new[] { buildScenePath },
                 locationPathName = executablePath,
                 target = BuildTarget.StandaloneWindows64,
                 targetGroup = BuildTargetGroup.Standalone,
@@ -147,9 +203,11 @@ public static class ClusteredDeferredArenaBuild
             }
 
             QualitySettings.SetQualityLevel(previousQualityLevel, true);
+            if (stagingFolder != null && !AssetDatabase.DeleteAsset(stagingFolder))
+                Debug.LogError("Could not remove arena build staging folder: " + stagingFolder);
         }
 
-        var summaryDirectory = Path.Combine(projectRoot, t4 ? T4ValidationRoot : ValidationRoot);
+        var summaryDirectory = Path.Combine(projectRoot, t4 ? T4ValidationRoot : asyncRequest ? ValidationRoot + "/async" : ValidationRoot);
         Directory.CreateDirectory(summaryDirectory);
         var summary = new BuildSummary
         {

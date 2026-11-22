@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty fsrOverrideSharpness { get; }
         public SerializedProperty fsrSharpness { get; }
 
+        public SerializedProperty asyncLightListBuildProp { get; }
         public SerializedProperty mainLightRenderingModeProp { get; }
         public SerializedProperty mainLightShadowsSupportedProp { get; }
         public SerializedProperty mainLightShadowmapResolutionProp { get; }
@@ -102,6 +103,7 @@ namespace UnityEditor.Rendering.Universal
 
             shEvalModeProp = serializedObject.FindProperty("m_ShEvalMode");
 
+            asyncLightListBuildProp = serializedObject.FindProperty("m_AsyncLightListBuild");
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             mainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
             mainLightShadowmapResolutionProp = serializedObject.FindProperty("m_MainLightShadowmapResolution");

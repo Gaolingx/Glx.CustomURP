@@ -68,8 +68,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         ClusterListGpuBuilder m_ClusterBuilder;
         GraphicsBuffer m_EmptyCellBuffer;
         CommandBuffer m_ClusterAsyncCmd;
-        GraphicsFence m_ClusterFence;
-        bool m_ClusterFencePending;
         ClusterItemRecord[] m_ClusterItems = Array.Empty<ClusterItemRecord>();
         ClusterListGpuParams m_ClusterGpuParams;
         float4x4 m_ClusterWorldToView;
@@ -204,7 +202,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal void PreSetup(ref RenderingData renderingData)
         {
             long probeStart = ClusteredDeferredCpuProbe.Begin();
-            m_ClusterFencePending = false;
             if (ShouldBuildClusters(ref renderingData.cameraData))
             {
                 using var _ = new ProfilingScope(null, m_ProfilingSamplerFPSetup);
@@ -291,12 +288,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.preSetup);
         }
 
-        // D3D11 has no async queue; there the dispatches stay on the graphics queue in the same
-        // order, which produces the same bitmaps (G1c parity gate).
-        bool ShouldRunClusterListAsync()
-        {
-            return ClusterListGpuBuilder.asyncCompute && SystemInfo.supportsAsyncCompute;
-        }
+        static bool ShouldRunClusterListAsync() => UniversalRenderPipeline.asset.asyncLightListBuild &&
+            SystemInfo.supportsAsyncCompute && SystemInfo.supportsGraphicsFence;
 
         CommandBuffer GetClusterAsyncCommandBuffer()
         {
@@ -307,17 +300,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // player logs an async-queue error and shows the development console over the frame.
             m_ClusterAsyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
             return m_ClusterAsyncCmd;
-        }
-
-        // Consumers of the cluster word buffer call this before reading them. Only the first consumer
-        // of a scheduled async build waits; later ones would only re-wait on a passed fence.
-        internal void WaitForClusterList(CommandBuffer cmd)
-        {
-            if (!m_ClusterFencePending)
-                return;
-
-            cmd.WaitOnAsyncGraphicsFence(m_ClusterFence, SynchronisationStageFlags.ComputeProcessing);
-            m_ClusterFencePending = false;
         }
 
         // G2: narrow the published tile bitmap with the tile depth slice. Must run after the build
@@ -377,16 +359,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(null, m_ProfilingSampler))
             {
                 bool forwardPlus = ForwardPlusActive(ref renderingData.cameraData);
-                if (forwardPlus || m_PublishProbeAtlas)
-                {
-                    // The feature toggle can be enabled after the renderer was created; allocate
-                    // lazily instead of requiring a renderer rebuild.
-                    if (!m_ReflectionProbeManager.isCreated)
-                        m_ReflectionProbeManager = ReflectionProbeManager.Create();
-
-                    m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData);
-                }
-
+                GraphicsFence? buildFence = null;
                 bool buildClusters = ShouldBuildClusters(ref renderingData.cameraData);
                 if (buildClusters)
                 {
@@ -423,23 +396,26 @@ namespace UnityEngine.Rendering.Universal.Internal
                         };
                         m_ClusterGpuParams = gpuParams;
 
-                        if (m_ClusteredDeferred && ShouldRunClusterListAsync())
+                        m_ClusterBuilder.Upload(cmd, m_ClusterItems, itemCount);
+                        if (ShouldRunClusterListAsync())
                         {
-                            // Self-contained async submission: upload and dispatches share the
-                            // compute queue, so no cross-queue upload fence or mid-frame graphics
-                            // flush is needed. Only the completion fence crosses back.
+                            // Order reuse after previous cameras' draws, compute and readbacks,
+                            // even if the asset switched from sync to async between cameras.
+                            var inputsReady = cmd.CreateGraphicsFence(GraphicsFenceType.AsyncQueueSynchronisation,
+                                SynchronisationStageFlags.AllGPUOperations);
+                            context.ExecuteCommandBuffer(cmd);
+                            cmd.Clear();
+
                             var asyncCmd = GetClusterAsyncCommandBuffer();
-                            m_ClusterBuilder.Upload(asyncCmd, m_ClusterItems, itemCount);
+                            asyncCmd.WaitOnAsyncGraphicsFence(inputsReady, SynchronisationStageFlags.ComputeProcessing);
                             m_ClusterBuilder.Dispatch(asyncCmd, gpuParams, m_ClusterWords);
-                            m_ClusterFence = asyncCmd.CreateGraphicsFence(
+                            buildFence = asyncCmd.CreateGraphicsFence(
                                 GraphicsFenceType.AsyncQueueSynchronisation, SynchronisationStageFlags.ComputeProcessing);
-                            m_ClusterFencePending = true;
                             context.ExecuteCommandBufferAsync(asyncCmd, ComputeQueueType.Background);
                             asyncCmd.Clear();
                         }
                         else
                         {
-                            m_ClusterBuilder.Upload(cmd, m_ClusterItems, itemCount);
                             m_ClusterBuilder.Dispatch(cmd, gpuParams, m_ClusterWords);
                         }
 
@@ -456,12 +432,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (ClusterListParityCapture.enabled)
                     {
                         var snapshot = CreateClusterSnapshot(ref renderingData, fp0, fp1, fp2);
-                        // On the async path the readback must wait for the compute queue;
-                        // the sync path is already ordered on this command buffer.
-                        if (m_ClusterFencePending)
-                            cmd.WaitOnAsyncGraphicsFence(m_ClusterFence, SynchronisationStageFlags.ComputeProcessing);
+                        if (buildFence.HasValue)
+                        {
+                            cmd.WaitOnAsyncGraphicsFence(buildFence.Value, SynchronisationStageFlags.AllGPUOperations);
+                            buildFence = null;
+                        }
                         ClusterListParityCapture.RequestGpuCapture(cmd, snapshot, m_ClusterWords, m_ClusterGpuParams.zBinWordCount);
                     }
+                }
+
+                // Atlas updates and light-cookie rendering do not read cluster words and can overlap the build.
+                if (forwardPlus || m_PublishProbeAtlas)
+                {
+                    if (!m_ReflectionProbeManager.isCreated)
+                        m_ReflectionProbeManager = ReflectionProbeManager.Create();
+                    m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData);
                 }
 
                 long constantsStart = ClusteredDeferredCpuProbe.Begin();
@@ -508,6 +493,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, false);
                 }
+
+                // A custom pass can read the globals before opaque or deferred lighting. Join here
+                // for both graphics shaders and compute consumers (including SSGI probe fallback).
+                if (buildFence.HasValue)
+                    cmd.WaitOnAsyncGraphicsFence(buildFence.Value, SynchronisationStageFlags.AllGPUOperations);
             }
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -540,7 +530,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_ClusterWords = null;
                 m_ClusterAsyncCmd?.Dispose();
                 m_ClusterAsyncCmd = null;
-                m_ClusterFencePending = false;
                 m_ClusterBuilder?.Dispose();
                 m_EmptyCellBuffer?.Dispose();
                 m_EmptyCellBuffer = null;

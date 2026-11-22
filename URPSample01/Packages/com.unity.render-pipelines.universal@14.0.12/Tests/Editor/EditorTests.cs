@@ -34,6 +34,36 @@ class EditorTests
         }
     }
 
+    [Test]
+    public void AsyncLightListBuildDefaultsToFalseAndRoundTripsThroughInspectorBinding()
+    {
+        var asset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+        try
+        {
+            using (var serialized = new SerializedObject(asset))
+            {
+                var binding = new UnityEditor.Rendering.Universal.SerializedUniversalRenderPipelineAsset(serialized);
+                var property = binding.asyncLightListBuildProp;
+                Assert.IsNotNull(property);
+                Assert.AreEqual(SerializedPropertyType.Boolean, property.propertyType);
+                Assert.IsFalse(asset.asyncLightListBuild);
+                Assert.IsFalse(property.boolValue);
+
+                property.boolValue = true;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                Assert.IsTrue(asset.asyncLightListBuild);
+
+                asset.asyncLightListBuild = false;
+                serialized.Update();
+                Assert.IsFalse(property.boolValue);
+            }
+        }
+        finally
+        {
+            ScriptableObject.DestroyImmediate(asset);
+        }
+    }
+
     // When creating a new Universal Renderer asset it should not log any errors or throw exceptions.
     [Test]
     public void CreateUniversalRendererAssetWithoutErrors()

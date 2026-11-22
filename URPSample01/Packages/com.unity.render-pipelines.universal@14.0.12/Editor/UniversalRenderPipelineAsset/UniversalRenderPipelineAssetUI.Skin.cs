@@ -45,6 +45,8 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent lodCrossFadeDitheringTypeText = EditorGUIUtility.TrTextContent("LOD Cross Fade Dithering Type", "Controls the LOD Cross Fade Dithering Type that will be used to draw Renderer LOD when LODGroup has CrossFade Fade Mode selected.");
             public static GUIContent shEvalModeText = EditorGUIUtility.TrTextContent("SH Evaluation Mode", "Defines the Spherical Harmonic (SH) lighting evaluation type (per vertex, per pixel, or mixed).");
 
+            public static GUIContent asyncLightListBuildText = EditorGUIUtility.TrTextContent("Async Light List Build", "Requests asynchronous light list building for Forward+ and clustered deferred rendering only.");
+
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");
             public static GUIContent supportsMainLightShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "If enabled, the main light can be a shadow casting light.");

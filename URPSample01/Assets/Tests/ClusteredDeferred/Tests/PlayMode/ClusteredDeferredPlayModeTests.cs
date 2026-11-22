@@ -734,18 +734,20 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         public IEnumerator ClusteredGpuSchedulesProduceIdenticalListsAndPixels()
         {
             yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
-            bool originalAsync = ClusterListGpuBuilder.asyncCompute;
+            var pipeline = Object.Instantiate(m_Pipeline);
             try
             {
+                pipeline.asyncLightListBuild = false;
+                GraphicsSettings.defaultRenderPipeline = pipeline;
+                QualitySettings.renderPipeline = pipeline;
                 yield return RenderFrames(WarmupFrames);
-                ClusterListGpuBuilder.asyncCompute = false;
                 yield return CaptureGpuFrame();
                 var sync = ClusterListParityCapture.lastGpu;
                 var syncImage = ReadPixels();
                 AssertImageUsable(syncImage, "Synchronous GPU list");
                 Assert.Greater(CountSetBits(sync.tileMasks, sync.TileUsedWords), 0);
 
-                ClusterListGpuBuilder.asyncCompute = true;
+                pipeline.asyncLightListBuild = true;
                 yield return CaptureGpuFrame();
                 var diff = ClusterListSnapshot.Diff(sync, ClusterListParityCapture.lastGpu);
                 Assert.IsTrue(diff.Exact, diff.ToString());
@@ -753,9 +755,9 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
             finally
             {
-                ClusterListGpuBuilder.asyncCompute = originalAsync;
                 ClusterListParityCapture.Reset();
                 TearDownRig();
+                Object.Destroy(pipeline);
             }
         }
 

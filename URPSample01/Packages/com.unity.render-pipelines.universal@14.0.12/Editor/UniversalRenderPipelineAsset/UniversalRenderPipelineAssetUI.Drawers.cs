@@ -253,6 +253,9 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
+            EditorGUILayout.PropertyField(serialized.asyncLightListBuildProp, Styles.asyncLightListBuildText);
+            EditorGUILayout.Space();
+
             // Reflection Probes
             EditorGUILayout.LabelField(Styles.reflectionProbesSettingsText);
             EditorGUI.indentLevel++;

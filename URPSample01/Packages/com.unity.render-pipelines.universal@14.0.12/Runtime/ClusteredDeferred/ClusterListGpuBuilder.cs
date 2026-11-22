@@ -28,13 +28,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     // that fill the two bitmaps owned and published by ForwardLights.
     internal sealed class ClusterListGpuBuilder
     {
-        // G1c scheduling switch: when the device has an async queue the five dispatches can run
-        // there and overlap the shadow/GBuffer passes. Off by default: on the D3D12 validation
-        // machine the queue hand-off costs a constant ~0.11 ms per frame (measured at 0/8/16/32/
-        // 48/64 lights in validation/G1/T5-runtime/player-d3d12{,-async}) while the whole list
-        // takes ~0.05 ms, so sync wins until a scene is heavy enough to hide the hand-off.
-        internal static bool asyncCompute = false;
-
         // G2 depth refine: after GBuffer, the tile bitmap is narrowed to the volumes that actually
         // intersect each tile's depth slice. Off by default: the measurement (HANDOFF §4.2) shows
         // it clears ~65% of the conservative tile bits but leaves per-pixel work unchanged --

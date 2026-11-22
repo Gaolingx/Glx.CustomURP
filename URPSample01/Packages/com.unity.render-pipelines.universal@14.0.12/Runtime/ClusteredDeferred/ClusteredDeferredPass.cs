@@ -174,9 +174,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Scope the optional shadowmask variant to the lighting dispatch.
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, m_DeferredLights.UseShadowMask);
-                // The G1c async build runs after GBuffer; waiting at the compute stage here lets the
-                // mask draws above overlap whatever is left of it instead of stalling all GPU work.
-                m_ForwardLights.WaitForClusterList(cmd);
 
                 // G2: narrow the conservative tile bits against each tile's visible depth slice.
                 // _ZBufferParams is derived from the same near/far pair the zbin scale uses.

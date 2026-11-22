@@ -19,6 +19,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
 {
     public UniversalRenderPipelineAsset clusteredDeferredPipeline;
     public UniversalRenderPipelineAsset forwardPlusPipeline;
+    // Wired into the build's scene copy, never the source scene.
+    public UniversalRenderPipelineAsset parityAlternateClusteredPipeline;
 
     // T4 shadow subset: same renderer pair, different pipeline shadow settings.
     public UniversalRenderPipelineAsset shadowForwardPlusPipeline;
@@ -138,10 +140,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
 
         var clusterAccess = ClusterListAccess.Create();
         m_ClusterAccess = clusterAccess;
-        if (clusterAccess != null && HasArgument("--cd-cluster-sync"))
-            clusterAccess.asyncCompute = false;
-        if (clusterAccess != null && HasArgument("--cd-cluster-async"))
-            clusterAccess.asyncCompute = true;
         if (clusterAccess != null && HasArgument("--cd-prune-on"))
             clusterAccess.pruneByDepth = true;
         if (clusterAccess != null && HasArgument("--cd-prune-off"))
@@ -252,7 +250,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                 height = height,
                 sampleFrames = cpuBreakdownFrames,
                 supportsAsyncCompute = SystemInfo.supportsAsyncCompute,
-                clusterListAsync = clusterAccess != null && clusterAccess.asyncCompute,
                 modes = new List<CpuModeBreakdown>(),
             };
 
@@ -292,7 +289,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             graphicsDeviceVersion = SystemInfo.graphicsDeviceVersion,
             supportsComputeShaders = SystemInfo.supportsComputeShaders,
             supportsAsyncCompute = SystemInfo.supportsAsyncCompute,
-            clusterListAsync = clusterAccess != null && clusterAccess.asyncCompute,
             clusterListPrune = clusterAccess != null && clusterAccess.pruneByDepth,
             clusterListCompact = clusterAccess != null && clusterAccess.compactLists,
             forwardClusterLights = clusterAccess != null ? clusterAccess.forwardClusterLights : true,
@@ -344,8 +340,13 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         SetupArena();
         SetLightCount(totalLights);
         bool forwardPlus = HasArgument("--cd-capture-forward-plus");
-        yield return SetPipeline(forwardPlus ? forwardPlusPipeline : clusteredDeferredPipeline);
+        var requestedPipeline = forwardPlus ? forwardPlusPipeline : clusteredDeferredPipeline;
+        yield return SetPipeline(requestedPipeline);
         yield return WaitFrames(Mathf.Max(warmupFrames, 60));
+        var active = UniversalRenderPipeline.asset;
+        if (active == null || active != requestedPipeline)
+            throw new InvalidOperationException("Capture pipeline asset is not active.");
+        report.clusterListAsync = active.asyncLightListBuild;
         if (Shader.IsKeywordEnabled("_FORWARD_PLUS") != forwardPlus)
             throw new InvalidOperationException("Capture camera did not enter the requested rendering mode.");
 
@@ -383,23 +384,28 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         Application.targetFrameRate = 0;
         Screen.SetResolution(width, height, false);
         SetLightCount(totalLights);
-        yield return SetPipeline(clusteredDeferredPipeline);
-        yield return WaitFrames(warmupFrames);
-
-        var originalAsync = access.asyncCompute;
+        var alternate = parityAlternateClusteredPipeline;
+        if (alternate == null || alternate.asyncLightListBuild == clusteredDeferredPipeline.asyncLightListBuild)
+            throw new InvalidOperationException("Parity needs clustered assets with opposite scheduling requests.");
+        var asyncPipeline = alternate.asyncLightListBuild ? alternate : clusteredDeferredPipeline;
+        var syncPipeline = alternate.asyncLightListBuild ? clusteredDeferredPipeline : alternate;
+        var previousDefault = GraphicsSettings.defaultRenderPipeline;
+        var previousQuality = QualitySettings.renderPipeline;
         var originalCapture = access.captureEnabled;
         ClusterWordSnapshot asyncSnapshot, syncSnapshot;
         try
         {
-            access.asyncCompute = true;
+            yield return SetPipeline(asyncPipeline);
+            yield return WaitFrames(warmupFrames);
             RequestArenaCapture(access);
             yield return WaitForGpuCapture(access);
             asyncSnapshot = access.ReadGpu();
             if (asyncSnapshot == null)
                 throw new InvalidOperationException("No GPU list for the async scheduling request.");
-            report.asyncScheduled = SystemInfo.supportsAsyncCompute;
+            report.asyncLightListBuildRequested = UniversalRenderPipeline.asset.asyncLightListBuild;
 
-            access.asyncCompute = false;
+            yield return SetPipeline(syncPipeline);
+            yield return WaitFrames(warmupFrames);
             RequestArenaCapture(access);
             yield return WaitForGpuCapture(access);
             syncSnapshot = access.ReadGpu();
@@ -409,7 +415,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         finally
         {
             access.captureEnabled = originalCapture;
-            access.asyncCompute = originalAsync;
+            GraphicsSettings.defaultRenderPipeline = previousDefault;
+            QualitySettings.renderPipeline = previousQuality;
         }
 
         var difference = CompareSchedules(asyncSnapshot, syncSnapshot);
@@ -639,7 +646,9 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                     frameCpu.Add(timings[0].cpuFrameTime);
             }
 
-            report.modes.Add(probe.Snapshot(mode.name, Mean(frameCpu)));
+            var snapshot = probe.Snapshot(mode.name, Mean(frameCpu));
+            report.clusterListAsync = snapshot.clusterListAsync = UniversalRenderPipeline.asset.asyncLightListBuild;
+            report.modes.Add(snapshot);
             probe.SetEnabled(false);
             WriteCpuBreakdown(outputRoot, report);
         }
@@ -667,7 +676,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             yield return SetPipeline(mode.pipeline);
             yield return WaitFrames(warmupFrames);
 
-            var modeReport = new ModeReport { name = mode.name, samples = new List<LightCountSample>() };
+            report.clusterListAsync = UniversalRenderPipeline.asset.asyncLightListBuild;
+            var modeReport = new ModeReport { name = mode.name, clusterListAsync = report.clusterListAsync, samples = new List<LightCountSample>() };
             m_Modes.Add(modeReport);
             for (var countIndex = 0; countIndex < lightCounts.Length; countIndex++)
             {
@@ -1076,7 +1086,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     // Forward+ ignores the per-object cap; keep the setting equal on both sweep pipelines.
     void ApplyPerObjectLightLimit(int limit)
     {
-        var pipelines = new[] { clusteredDeferredPipeline, forwardPlusPipeline };
+        var pipelines = new[] { clusteredDeferredPipeline, forwardPlusPipeline, parityAlternateClusteredPipeline };
         for (var i = 0; i < pipelines.Length; i++)
         {
             if (pipelines[i] != null)
@@ -1485,7 +1495,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         const BindingFlags k_Static = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
 
         readonly FieldInfo m_ForwardClusterLights;
-        readonly FieldInfo m_Async;
         readonly FieldInfo m_Prune;
         readonly FieldInfo m_PruneSidePlanes;
         readonly FieldInfo m_PruneStats;
@@ -1522,7 +1531,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         ClusterListAccess(Type builder, Type capture, Type pass)
         {
             m_ForwardClusterLights = pass.GetField("forwardClusterLights", k_Static);
-            m_Async = builder.GetField("asyncCompute", k_Static);
             m_Prune = builder.GetField("pruneByDepth", k_Static);
             m_PruneSidePlanes = builder.GetField("pruneSidePlanes", k_Static);
             m_PruneStats = builder.GetField("pruneStatsEnabled", k_Static);
@@ -1557,12 +1565,6 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         {
             get => (bool)m_ForwardClusterLights.GetValue(null);
             set => m_ForwardClusterLights.SetValue(null, value);
-        }
-
-        public bool asyncCompute
-        {
-            get => (bool)m_Async.GetValue(null);
-            set => m_Async.SetValue(null, value);
         }
 
         public bool pruneByDepth
@@ -1759,6 +1761,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     public sealed class ModeReport
     {
         public string name;
+        public bool clusterListAsync;
         public List<LightCountSample> samples;
     }
 
@@ -1875,6 +1878,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     public sealed class CpuModeBreakdown
     {
         public string mode;
+        public bool clusterListAsync;
         public int frames;
         public double frameCpuMeanMs;
         public double preSetupMs;
@@ -1913,7 +1917,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public string graphicsDeviceName;
         public int lightCount;
         public bool supportsAsyncCompute;
-        public bool asyncScheduled;
+        public bool asyncLightListBuildRequested;
         public bool completed;
         public bool passed;
         public string error;

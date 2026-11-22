@@ -462,6 +462,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
         [SerializeField] ShEvalMode m_ShEvalMode = ShEvalMode.Auto;
 
+        [SerializeField] bool m_AsyncLightListBuild = false;
+
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] bool m_MainLightShadowsSupported = true;
@@ -1143,6 +1145,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_MainLightRenderingMode; }
             internal set { m_MainLightRenderingMode = value; }
+        }
+
+        /// <summary>
+        /// Whether asynchronous light list building is requested for Forward+ and clustered deferred rendering.
+        /// </summary>
+        public bool asyncLightListBuild
+        {
+            get { return m_AsyncLightListBuild; }
+            internal set { m_AsyncLightListBuild = value; }
         }
 
         /// <summary>
