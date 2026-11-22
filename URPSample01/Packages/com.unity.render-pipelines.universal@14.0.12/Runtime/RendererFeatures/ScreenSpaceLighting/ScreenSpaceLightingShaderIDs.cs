@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsgiDepthPyramidMipLevelOffsets = Shader.PropertyToID("_SsgiDepthPyramidMipLevelOffsets");
 
         // Trace / reproject.
+        internal static readonly int SsgiHitPointTexture = Shader.PropertyToID("_SsgiHitPointTexture");
         internal static readonly int SsgiHitPointTextureRW = Shader.PropertyToID("_SsgiHitPointTextureRW");
         internal static readonly int SsgiProjectionTextureRW = Shader.PropertyToID("_SsgiProjectionTextureRW");
 

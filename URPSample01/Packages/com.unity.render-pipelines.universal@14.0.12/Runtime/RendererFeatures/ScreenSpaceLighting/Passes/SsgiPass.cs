@@ -442,7 +442,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(ssgiCompute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsgiMotionTexture, motionTexture);
             cmd.SetComputeTextureParam(ssgiCompute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsgiColorPyramid, m_History.readColorPyramid);
             cmd.SetComputeTextureParam(ssgiCompute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsgiPreviousDepthTexture, m_History.readPreviousDepth);
-            cmd.SetComputeTextureParam(ssgiCompute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsgiHitPointTextureRW, m_History.ssgiHitPoint);
+            cmd.SetComputeTextureParam(ssgiCompute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsgiHitPointTexture, m_History.ssgiHitPoint);
             cmd.SetComputeTextureParam(ssgiCompute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsgiProjectionTextureRW, m_History.ssgiProjection);
 
             // Miss fallback: hierarchy, default reflection cubemap and the ambient probe SH uploaded from

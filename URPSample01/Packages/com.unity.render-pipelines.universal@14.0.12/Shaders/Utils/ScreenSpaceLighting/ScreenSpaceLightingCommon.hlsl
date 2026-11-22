@@ -157,7 +157,7 @@ uint2 SslComputeSourceCoordinates(uint2 effectCoord, float2 screenSize, float2 e
 
 float3 SsgiClampRadiance(float3 color)
 {
-    if (any(isnan(color)) || any(isinf(color)))
+    if (!IsFinite(color.r) || !IsFinite(color.g) || !IsFinite(color.b))
         return 0.0;
 
     color = max(color, 0.0);

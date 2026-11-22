@@ -34,6 +34,7 @@ SSGI_TEXTURE2D_FLOAT(_SsgiPreviousDepthTexture);
 
 // Trace output: uv of the hit point, or (99, 0) for a miss.
 SSGI_RW_TEXTURE2D_FLOAT2(_SsgiHitPointTextureRW);
+SSGI_TEXTURE2D_FLOAT2(_SsgiHitPointTexture);
 // Reproject output: rgb = radiance, a = validity weight.
 SSGI_RW_TEXTURE2D_FLOAT4(_SsgiProjectionTextureRW);
 
@@ -136,7 +137,7 @@ void ReprojectGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
             SsgiGetSequenceSample(traceCoord, _SsgiFrameIndex, 1));
         float3 sampleDir = SampleHemisphereCosine(newSample.x, newSample.y, normalWS);
 
-        float2 hitUv = SSGI_LOAD(_SsgiHitPointTextureRW, traceCoord);
+        float2 hitUv = SSGI_LOAD(_SsgiHitPointTexture, traceCoord);
         bool invalid = hitUv.x > 1.0;
         uint2 hitPixel = min((uint2)(saturate(hitUv) * _SsgiScreenSize.xy), (uint2)_SsgiScreenSize.xy - 1u);
 

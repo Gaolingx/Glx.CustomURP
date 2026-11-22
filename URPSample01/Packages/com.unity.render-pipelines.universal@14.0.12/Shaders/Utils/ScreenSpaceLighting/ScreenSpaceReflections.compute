@@ -52,7 +52,11 @@ SSGI_TEXTURE2D_FLOAT2(_SsrMotionTexture);
 SSGI_TEXTURE2D_FLOAT4(_SsrColorPyramid);
 
 // Trace output: ndc of the hit point, or (99, 0) for a miss.
+#if defined(SSR_TRACE)
 SSGI_RW_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
+#elif defined(SSR_REPROJECT)
+SSGI_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
+#endif
 // Approximation output: rgb = radiance, a = blend weight.
 SSGI_RW_TEXTURE2D_FLOAT4(_SsrOutputTextureRW);
 
@@ -200,7 +204,7 @@ float3 SsrSamplePreviousColor(float2 hitPositionNDC, float perceptualRoughness, 
             * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 
     float3 color = SSGI_SAMPLE_LOD(_SsrColorPyramid, s_ssgi_linear_clamp_sampler, prevPyramidUv, mipLevel).rgb;
-    bool colorValid = !any(isnan(color)) && !any(isinf(color)) && all(color >= 0.0);
+    bool colorValid = IsFinite(color.r) && IsFinite(color.g) && IsFinite(color.b) && all(color >= 0.0);
     if (!colorValid)
     {
         opacity = 0.0;
@@ -214,6 +218,7 @@ float3 SsrSamplePreviousColor(float2 hitPositionNDC, float perceptualRoughness, 
 // Trace
 //--------------------------------------------------------------------------------------------------
 
+#if defined(SSR_TRACE)
 [numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
 void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -282,6 +287,7 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     SSGI_STORE(_SsrHitPointTextureRW, traceCoord, hitUv);
 }
+#elif defined(SSR_REPROJECT)
 
 //--------------------------------------------------------------------------------------------------
 // Reproject
@@ -475,7 +481,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
             if (weightSum > 0.0)
             {
                 float3 radiance = outputs / weightSum;
-                bool valid = !any(isnan(radiance)) && !any(isinf(radiance)) && all(radiance >= 0.0);
+                bool valid = IsFinite(radiance.r) && IsFinite(radiance.g) && IsFinite(radiance.b) && all(radiance >= 0.0);
                 if (valid)
                     result = float4(radiance, saturate(centerOpacity));
             }
@@ -485,6 +491,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 
     SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, result);
 }
+#endif
 
 //--------------------------------------------------------------------------------------------------
 // Parameter debug view (diagnostic, never feeds the material path)
