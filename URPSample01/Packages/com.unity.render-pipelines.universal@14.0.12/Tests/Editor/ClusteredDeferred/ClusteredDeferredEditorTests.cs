@@ -112,6 +112,27 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.AreEqual(1280, groups.Aggregate(1, (total, options) => total * options));
         }
 
+        // C2 keeps _FORWARD_PLUS off in clustered deferred, so the forward cluster path needs its
+        // own variant in every lit shader that draws transparent or forward-only geometry.
+        [Test]
+        public void ForwardLitShadersDeclareTheClusteredDeferredVariant()
+        {
+            var packageRoot = ComputePath.Substring(0, ComputePath.IndexOf("/Shaders/Utils/"));
+            foreach (var shader in new[]
+                     {
+                         "Lit", "SimpleLit", "ComplexLit",
+                         "Particles/ParticlesLit", "Particles/ParticlesSimpleLit",
+                     })
+            {
+                var source = File.ReadAllText(Path.GetFullPath(packageRoot + "/Shaders/" + shader + ".shader"));
+                StringAssert.Contains("#pragma multi_compile _ _CLUSTERED_DEFERRED_LIGHTS", source, shader);
+            }
+
+            var clustering = File.ReadAllText(Path.GetFullPath(packageRoot + "/ShaderLibrary/Clustering.hlsl"));
+            StringAssert.Contains("URPClusterWord", clustering);
+            StringAssert.Contains("#if USE_CLUSTER_LIGHTS", clustering);
+        }
+
         [Test]
         public void KernelDoesNotUseTheStructuredBufferLightPath()
         {

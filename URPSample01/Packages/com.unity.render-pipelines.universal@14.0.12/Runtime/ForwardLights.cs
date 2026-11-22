@@ -574,7 +574,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData);
                 }
 
-                if (ShouldBuildClusters(ref renderingData.cameraData))
+                bool buildClusters = ShouldBuildClusters(ref renderingData.cameraData);
+                if (buildClusters)
                 {
                     var fp0 = math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount);
                     var fp1 = math.float4(renderingData.cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile);
@@ -702,10 +703,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ClusteredDeferredCpuProbe.End(constantsStart, ref ClusteredDeferredCpuProbe.lightConstants);
 
                 bool lightCountCheck = (renderingData.cameraData.renderer.stripAdditionalLightOffVariants && renderingData.lightData.supportsAdditionalLights) || additionalLightsCount > 0;
+                // Forward-drawn objects read the cluster list only on frames that actually built it,
+                // so preview/overlay cameras that fall back to stencil deferred keep per-object lights.
+                bool clusterForwardLights = buildClusters && m_ClusteredDeferred && !m_UseForwardPlus &&
+                                            ClusteredDeferredPass.forwardClusterLights;
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ClusteredDeferredLights, clusterForwardLights);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
-                    lightCountCheck && additionalLightsPerVertex && !m_UseForwardPlus);
+                    lightCountCheck && additionalLightsPerVertex && !m_UseForwardPlus && !clusterForwardLights);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
-                    lightCountCheck && !additionalLightsPerVertex && !m_UseForwardPlus);
+                    lightCountCheck && !m_UseForwardPlus && (!additionalLightsPerVertex || clusterForwardLights));
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ForwardPlus,
                     m_UseForwardPlus);
 

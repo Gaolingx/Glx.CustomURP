@@ -26,13 +26,13 @@ struct Light
     #define _USE_WEBGL1_LIGHTS 0
 #endif
 
-#if USE_FORWARD_PLUS && defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
+#if USE_CLUSTER_LIGHTS && defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
 #define FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK if (_AdditionalLightsColor[lightIndex].a > 0.0h) continue;
 #else
 #define FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
 #endif
 
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHTS
     #define LIGHT_LOOP_BEGIN(lightCount) { \
     uint lightIndex; \
     ClusterIterator _urp_internal_clusterIterator = ClusterInit(inputData.normalizedScreenSpaceUV, inputData.positionWS, 0); \
@@ -248,7 +248,7 @@ int GetPerObjectLightIndex(uint index)
 // index to a perObjectLightIndex
 Light GetAdditionalLight(uint i, float3 positionWS)
 {
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHTS
     int lightIndex = i;
 #else
     int lightIndex = GetPerObjectLightIndex(i);
@@ -258,7 +258,7 @@ Light GetAdditionalLight(uint i, float3 positionWS)
 
 Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 {
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHTS
     int lightIndex = i;
 #else
     int lightIndex = GetPerObjectLightIndex(i);
@@ -295,7 +295,7 @@ Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientO
 
 int GetAdditionalLightsCount()
 {
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHTS
     // Counting the number of lights in clustered requires traversing the bit list, and is not needed up front.
     return 0;
 #else

@@ -25,6 +25,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         const string RendererRoot = "Assets/Tests/ClusteredDeferred/Renderers";
         const string StencilPipelinePath = RendererRoot + "/CdStencilDeferredPipeline.asset";
         const string ClusteredPipelinePath = RendererRoot + "/CdClusteredDeferredPipeline.asset";
+        const string ForwardPlusPipelinePath = RendererRoot + "/CdForwardPlusPipeline.asset";
         const string ClusteredRendererPath = RendererRoot + "/CdClusteredDeferredRenderer.asset";
 
         const int WarmupFrames = 3;
@@ -97,6 +98,61 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
             finally
             {
+                TearDownRig();
+            }
+        }
+
+        // C2: forward-drawn transparent objects read the same cluster list as the deferred kernel.
+        // Before the forward cluster variant they consumed the per-object indices (four lights by
+        // default) while the surface behind them consumed the cluster bitmap. Forward+ is the
+        // cluster-semantics reference; the same comparison with the switch off measures the gap the
+        // variant is supposed to close, so the fixed deferred/forward differences cancel out.
+        [UnityTest]
+        public IEnumerator ForwardTransparentObjectsReadTheClusterList()
+        {
+            yield return SetUpRig(ClusteredPipelinePath, 640, 360, 48, transparent: true);
+            bool originalSwitch = ClusteredDeferredPass.forwardClusterLights;
+            try
+            {
+                yield return RenderFrames(WarmupFrames);
+                Assert.IsTrue(Shader.IsKeywordEnabled("_CLUSTERED_DEFERRED_LIGHTS"),
+                    "The clustered deferred renderer did not enable the forward cluster keyword.");
+                var clusteredShared = ReadPixels();
+                AssertImageUsable(clusteredShared, "clustered (cluster lights)");
+
+                SwitchPipeline(ForwardPlusPipelinePath);
+                yield return null;
+                yield return RenderFrames(WarmupFrames);
+                var forwardPlus = ReadPixels();
+                AssertImageUsable(forwardPlus, "forward+");
+
+                var shared = Compare(clusteredShared, forwardPlus);
+
+                ClusteredDeferredPass.forwardClusterLights = false;
+                SwitchPipeline(ClusteredPipelinePath);
+                yield return null;
+                yield return RenderFrames(WarmupFrames);
+                Assert.IsFalse(Shader.IsKeywordEnabled("_CLUSTERED_DEFERRED_LIGHTS"),
+                    "Turning the switch off did not restore the per-object path.");
+                var clusteredPerObject = ReadPixels();
+                AssertImageUsable(clusteredPerObject, "clustered (per-object lights)");
+
+                var perObject = Compare(clusteredPerObject, forwardPlus);
+
+                Assert.AreEqual(0, shared.nonFinite, "A/B image contains non-finite pixels.");
+                Assert.LessOrEqual(shared.mean, kMeanThreshold,
+                    $"mean channel difference {shared.mean:0.###}/255 exceeds {kMeanThreshold}; the transparent sphere is not reading the cluster list.");
+                // The fixed deferred-vs-forward difference keeps a small residue; the per-object path
+                // has to stay visibly worse or the forward variant is not taking effect.
+                Assert.Less(shared.over8 * 3, perObject.over8,
+                    $"cluster path leaves {shared.over8} px >8 while the per-object path leaves {perObject.over8}; " +
+                    "the transparent sphere is not picking up the cluster list.");
+                Debug.Log($"[CD C2] transparent A/B vs Forward+: cluster over8={shared.over8} mean={shared.mean:0.###}; " +
+                          $"per-object over8={perObject.over8} mean={perObject.mean:0.###} ({clusteredShared.Length} px)");
+            }
+            finally
+            {
+                ClusteredDeferredPass.forwardClusterLights = originalSwitch;
                 TearDownRig();
             }
         }
@@ -427,7 +483,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         // Harness
         // ---------------------------------------------------------------------------------------------
 
-        IEnumerator SetUpRig(string pipelinePath, int width, int height, int additionalLights)
+        IEnumerator SetUpRig(string pipelinePath, int width, int height, int additionalLights, bool transparent = false)
         {
             m_PreviousPipeline = GraphicsSettings.defaultRenderPipeline;
             m_PreviousQualityPipeline = QualitySettings.renderPipeline;
@@ -456,6 +512,13 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             AddSphere(simpleLit, "Cd SimpleLit Sphere", new Vector3(-2.2f, 1f, 0.5f), 1.4f);
             AddSphere(complexLit, "Cd ComplexLit Sphere", new Vector3(0f, 1f, 1.2f), 1.4f);
             AddSphere(unlit, "Cd Unlit Sphere", new Vector3(2.2f, 1f, 0.2f), 1.4f);
+
+            if (transparent)
+            {
+                var transparentMaterial = Resources.Load<Material>("CdTransparent");
+                Assert.IsNotNull(transparentMaterial, "Missing Resources/CdTransparent.mat.");
+                AddSphere(transparentMaterial, "Cd Transparent Sphere", new Vector3(0f, 1.4f, -4f), 3f);
+            }
 
             var mainLightObject = new GameObject("Cd Main Light");
             mainLightObject.transform.SetParent(m_Root.transform, false);

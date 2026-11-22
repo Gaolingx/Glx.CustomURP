@@ -34,6 +34,7 @@
 | 12-GpuLightList | ✅ PASS | 2 PASS、2 ACCEPTED（NO-GO） | 默认同步 GPU 列表 + 位图；G2/G3 实现保留为默认关闭的 A/B；透明/forward-only 接管未覆盖 |
 | 13-GpuLightList256 | ✅ PASS | 1 PASS（G2/G3 仍 NO-GO） | 256 灯 parity 成立、zbin 409 档；clustered GPU 1.270 vs stencil 1.763 ms；256 灯 A/B 需改用 Forward+ 参照 |
 | 14-TransparentLightPath | ✅ PASS | 探针（4 闸门 PASS/FAIL 如实记录） | 透明像素 256 灯 89.4% 与 cluster 语义差 >8；上限 8 只降到 66.5%；帧时间增量在噪声内；决定 GO C2 |
+| 15-ForwardClusterLights | ✅ PASS | C2 实现（8 闸门） | 透明/forward-only 改读结构化 cluster 位图；256 灯 footprint >8 从 87.9%→0.18%、48 灯 15.4%→0.11%；control A/B 不回归 |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -555,3 +556,25 @@ PY
 | 归档 | ✅ | 本节 | TODO→Done；`ValidationRoot` 指向 Done；构建副作用（场景/renderer/ProjectSettings 重序列化）已还原 |
 
 **边界**：footprint 用 on/off 差分近似；只覆盖 Lit 透明（forward-only 不透明物体按同一 per-object 路径外推）；256 灯场为最坏重叠场；只测 D3D11 720p 单卡。
+
+## 19. 15-ForwardClusterLights（已归档，2026-11-22）
+
+> 范围：C2 实现——forward 端新增读结构化 `URP_ZBins`/`urp_Tiles` 的变体，透明与 forward-only 和 deferred 共用同一张 GPU 光表。
+> 计划/结果：[PLAN/Done/15-ForwardClusterLights/HANDOFF.md](Done/15-ForwardClusterLights/HANDOFF.md)；证据：[validation/README.md](Done/15-ForwardClusterLights/validation/README.md)、`rdc/forward-cluster-d3d11_frame305.rdc`。
+> 结论：**PASS。默认在 clustered deferred 下开启。**
+
+| 项 | 结论 | 证据 | 说明 |
+|---|---|---|---|
+| G15-1 256 灯 footprint | ✅ PASS | `validation/cluster-on/`、`cluster-off/` | C/F >8：0.18%（209/118,630），关闭开关时 87.92%（探针 89.44%） |
+| G15-2 48 灯 footprint | ✅ PASS | 同上 | 0.11%（132/116,983），关闭时 15.36%（探针 15.53%） |
+| G15-3 0/8 灯基线 | ✅ PASS | 同上 | 0.02%，与 14 轮一致 |
+| G15-4 control 无回归 | ✅ PASS | `validation/control/` | 48 灯 S/C 0.810/9、C/F 0.209；256 灯 C/F 0.290，与 13/14 轮一致 |
+| G15-5 开关复现 | ✅ PASS | `cluster-off/` | 与 14 轮 limit4 的 >8 像素（19,055/108,927）同量级（19,095/108,975） |
+| G15-6 成本 | ○ 记录 | 三组 `CdPerf.json` | CD 256 灯 +0.23 ms GPU、48 灯 +0.03 ms；与 Forward+ cluster 扫描同源，收益是正确性 |
+| G15-7 测试 | ✅ PASS | `tests/`、HANDOFF §4 | EditMode 491/491、PlayMode 41/41；PlayMode 自包含 A/B：over8 648 vs 17,809 |
+| G15-8 GPU 证据 | ✅ PASS | `rdc/ps_682.txt` | 透明 draw PS 声明 `t0/t1` structured(4 B) 并 `ld_structured`；抓帧进程 `_CLUSTERED_DEFERRED_LIGHTS=1`、`_FORWARD_PLUS=0` |
+| 归档 | ✅ | 本节 | TODO→Done；`ValidationRoot` 指向 Done；构建副作用已还原 |
+
+**语义变化**：CD 下透明/forward-only 与 stencil 模式在透明像素上不再一致（前者对齐 cluster/Forward+，后者仍是 per-object）；`Stencil vs Clustered` 的透明差异因此变大，这是 C2 的目的，不是回归。
+
+**边界**：只覆盖 Lit 透明夹具（其余 4 个 shader 变体已声明但无独立像素夹具）；256 灯为最坏重叠场；只测 D3D11 720p 单卡；Lit ForwardLit 片元变体 3072→6144，冷构建 918.6 s。

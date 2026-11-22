@@ -12,6 +12,11 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Compute dispatches have no fixed-function blending, hence the UAV + resolve; see HANDOFF D8/D16.
     internal class ClusteredDeferredPass : ScriptableRenderPass
     {
+        // C2: forward-drawn objects (transparent, forward-only) read the same structured cluster
+        // bitmaps as the kernel instead of the per-object light indices. Static so the arena can
+        // reproduce the per-object path in the same build.
+        internal static bool forwardClusterLights = true;
+
         static class ShaderIDs
         {
             public static readonly int MaterialTypeMask = Shader.PropertyToID("_MaterialTypeMask");

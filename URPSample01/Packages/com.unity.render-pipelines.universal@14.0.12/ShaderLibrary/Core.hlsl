@@ -13,6 +13,19 @@
 #define USE_FORWARD_PLUS 0
 #endif
 
+// Clustered deferred builds the same cluster bitmaps as Forward+, but keeps _FORWARD_PLUS off so
+// the reflection-probe atlas and main-light paths stay on the non-Forward+ branch. Forward-drawn
+// objects (transparent, forward-only) opt into the cluster list through their own keyword.
+#if defined(_CLUSTERED_DEFERRED_LIGHTS)
+#define _ADDITIONAL_LIGHTS 1
+#undef _ADDITIONAL_LIGHTS_VERTEX
+#define USE_CLUSTERED_DEFERRED_LIGHTS 1
+#else
+#define USE_CLUSTERED_DEFERRED_LIGHTS 0
+#endif
+
+#define USE_CLUSTER_LIGHTS (USE_FORWARD_PLUS || USE_CLUSTERED_DEFERRED_LIGHTS)
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"

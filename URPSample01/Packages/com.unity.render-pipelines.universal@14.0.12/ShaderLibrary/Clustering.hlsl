@@ -3,9 +3,29 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHTS
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
+// Forward+ stores the bitmaps in constant buffers as float4 words; clustered deferred stores the
+// same words in structured buffers (one uint per word) because its compute build writes them as
+// UAVs. Both accessors return the word the iterator expects.
+uint URPClusterWord(uint wordIndex)
+{
+#if USE_FORWARD_PLUS
+    return Select4(asuint(URP_ZBins[wordIndex / 4]), wordIndex % 4);
+#else
+    return URP_ZBins[wordIndex];
+#endif
+}
+
+uint URPClusterTileWord(uint wordIndex)
+{
+#if USE_FORWARD_PLUS
+    return Select4(asuint(urp_Tiles[wordIndex / 4]), wordIndex % 4);
+#else
+    return urp_Tiles[wordIndex];
+#endif
+}
 
 // Debug switches for disabling parts of the algorithm. Not implemented for mobile.
 #define URP_FP_DISABLE_ZBINNING 0
@@ -70,7 +90,7 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
     state.zBinOffset = zBinBaseIndex + 2;
 
 #if !URP_FP_DISABLE_ZBINNING
-    uint header = Select4(asuint(URP_ZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
+    uint header = URPClusterWord(zBinHeaderIndex);
 #else
     uint header = headerIndex == 0 ? ((URP_FP_PROBES_BEGIN - 1) << 16) : (((URP_FP_WORDS_PER_TILE * 32 - 1) << 16) | URP_FP_PROBES_BEGIN);
 #endif
@@ -82,8 +102,8 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
     if (URP_FP_WORDS_PER_TILE > 0)
     {
         state.tileMask =
-            Select4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
-            Select4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4) &
+            URPClusterTileWord(tileIndex) &
+            URPClusterWord(zBinIndex) &
             (0xFFFFFFFFu << (header & 0x1F)) & (0xFFFFFFFFu >> (31 - (header >> 16)));
     }
 #endif
@@ -104,10 +124,10 @@ bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
         uint zBinIndex = it.zBinOffset + wordIndex;
         it.tileMask =
 #if !URP_FP_DISABLE_TILING
-            Select4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
+            URPClusterTileWord(tileIndex) &
 #endif
 #if !URP_FP_DISABLE_ZBINNING
-            Select4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4) &
+            URPClusterWord(zBinIndex) &
 #endif
             // Mask out the beginning and end of the word.
             (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) & (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));

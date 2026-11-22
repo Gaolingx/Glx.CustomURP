@@ -9,6 +9,15 @@
 // Keep in sync with RenderingUtils.useStructuredBuffer
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
 
+// Core.hlsl defines this before including Input.hlsl; repeated here so direct includes still see it.
+#ifndef USE_CLUSTER_LIGHTS
+    #if defined(_FORWARD_PLUS) || defined(_CLUSTERED_DEFERRED_LIGHTS)
+        #define USE_CLUSTER_LIGHTS 1
+    #else
+        #define USE_CLUSTER_LIGHTS 0
+    #endif
+#endif
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
@@ -118,7 +127,7 @@ float _RenderingLayerRcpMaxInt;
 float4 _ScreenCoordScaleBias;
 float4 _ScreenSizeOverride;
 
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHTS
 float4 _FPParams0;
 float4 _FPParams1;
 float4 _FPParams2;
@@ -168,6 +177,17 @@ CBUFFER_END
 CBUFFER_START(urp_TileBuffer)
         float4 urp_Tiles[MAX_TILE_VEC4S];
 CBUFFER_END
+
+#elif USE_CLUSTER_LIGHTS
+
+// Clustered deferred builds the bitmaps with a compute dispatch, so the same words arrive as
+// structured buffers (a constant buffer cannot be a UAV).
+StructuredBuffer<uint> URP_ZBins;
+StructuredBuffer<uint> urp_Tiles;
+
+#endif
+
+#if USE_FORWARD_PLUS
 
 TEXTURE2D(urp_ReflProbes_Atlas);
 SAMPLER(samplerurp_ReflProbes_Atlas);

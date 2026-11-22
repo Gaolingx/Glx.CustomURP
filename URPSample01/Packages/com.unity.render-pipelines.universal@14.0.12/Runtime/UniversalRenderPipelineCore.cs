@@ -1094,6 +1094,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for Forward+. </summary>
         internal const string ForwardPlus = "_FORWARD_PLUS";
 
+        /// <summary> Keyword used by forward-drawn objects to read the clustered deferred GPU light list. </summary>
+        internal const string ClusteredDeferredLights = "_CLUSTERED_DEFERRED_LIGHTS";
+
         /// <summary> Keyword used for shadows on additional lights. </summary>
         public const string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
 

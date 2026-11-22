@@ -160,6 +160,10 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             clusterAccess.compactLists = false;
         if (clusterAccess != null && HasArgument("--cd-compact-stats"))
             clusterAccess.compactStatsEnabled = true;
+        if (clusterAccess != null && HasArgument("--cd-forward-cluster-off"))
+            clusterAccess.forwardClusterLights = false;
+        if (clusterAccess != null && HasArgument("--cd-forward-cluster-on"))
+            clusterAccess.forwardClusterLights = true;
 
         if (HasArgument("--cd-parity"))
         {
@@ -295,6 +299,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             clusterListAsync = clusterAccess != null && clusterAccess.asyncCompute,
             clusterListPrune = clusterAccess != null && clusterAccess.pruneByDepth,
             clusterListCompact = clusterAccess != null && clusterAccess.compactLists,
+            forwardClusterLights = clusterAccess != null ? clusterAccess.forwardClusterLights : true,
             width = width,
             height = height,
             warmupFrames = warmupFrames,
@@ -354,6 +359,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         report.additionalLightsPixelKeyword = Shader.IsKeywordEnabled("_ADDITIONAL_LIGHTS");
         report.additionalLightsVertexKeyword = Shader.IsKeywordEnabled("_ADDITIONAL_LIGHTS_VERTEX");
         report.forwardPlusKeyword = Shader.IsKeywordEnabled("_FORWARD_PLUS");
+        report.forwardClusterKeyword = Shader.IsKeywordEnabled("_CLUSTERED_DEFERRED_LIGHTS");
         report.completed = true;
         WriteReport(outputRoot, report);
 
@@ -1514,8 +1520,10 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     {
         const string BuilderTypeName = "UnityEngine.Rendering.Universal.Internal.ClusterListGpuBuilder";
         const string CaptureTypeName = "UnityEngine.Rendering.Universal.Internal.ClusterListParityCapture";
+        const string PassTypeName = "UnityEngine.Rendering.Universal.Internal.ClusteredDeferredPass";
         const BindingFlags k_Static = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
 
+        readonly FieldInfo m_ForwardClusterLights;
         readonly FieldInfo m_Enabled;
         readonly FieldInfo m_Async;
         readonly FieldInfo m_Prune;
@@ -1548,11 +1556,13 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             var assembly = typeof(UniversalRenderPipeline).Assembly;
             var builder = assembly.GetType(BuilderTypeName);
             var capture = assembly.GetType(CaptureTypeName);
-            return builder == null || capture == null ? null : new ClusterListAccess(builder, capture);
+            var pass = assembly.GetType(PassTypeName);
+            return builder == null || capture == null || pass == null ? null : new ClusterListAccess(builder, capture, pass);
         }
 
-        ClusterListAccess(Type builder, Type capture)
+        ClusterListAccess(Type builder, Type capture, Type pass)
         {
+            m_ForwardClusterLights = pass.GetField("forwardClusterLights", k_Static);
             m_Enabled = builder.GetField("enabled", k_Static);
             m_Async = builder.GetField("asyncCompute", k_Static);
             m_Prune = builder.GetField("pruneByDepth", k_Static);
@@ -1584,6 +1594,12 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                 m_TileWidth = snapshot.GetField("tileWidth");
                 m_TileResolution = snapshot.GetField("tileResolution");
             }
+        }
+
+        public bool forwardClusterLights
+        {
+            get => (bool)m_ForwardClusterLights.GetValue(null);
+            set => m_ForwardClusterLights.SetValue(null, value);
         }
 
         public bool enabled
@@ -1879,6 +1895,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public bool clusterListAsync;
         public bool clusterListPrune;
         public bool clusterListCompact;
+        public bool forwardClusterLights;
         public int width;
         public int height;
         public int warmupFrames;
@@ -1891,6 +1908,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public bool additionalLightsPixelKeyword;
         public bool additionalLightsVertexKeyword;
         public bool forwardPlusKeyword;
+        public bool forwardClusterKeyword;
         public int transparentRectX;
         public int transparentRectY;
         public int transparentRectWidth;
