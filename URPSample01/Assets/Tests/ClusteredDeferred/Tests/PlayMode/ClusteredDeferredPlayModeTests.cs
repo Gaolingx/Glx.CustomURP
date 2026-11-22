@@ -530,6 +530,8 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
                     m_Camera.Render();
                     ClusterListParityCapture.enabled = false; // Only request this camera/frame's readback.
                     Assert.IsTrue(Shader.IsKeywordEnabled("_FORWARD_PLUS"));
+                    Assert.IsInstanceOf<RenderTexture>(Shader.GetGlobalTexture("urp_ReflProbes_Atlas"),
+                        "An active Forward+ camera must publish the lazily allocated probe atlas.");
                     var pixels = ReadPixels();
                     yield return WaitForGpuSnapshot();
                     var snapshot = ClusterListParityCapture.lastGpu;

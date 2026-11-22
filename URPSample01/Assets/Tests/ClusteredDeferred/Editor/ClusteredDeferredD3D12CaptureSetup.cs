@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 
 // Builds a temporary copy of the SSL baseline scene as a D3D12 standalone player for RenderDoc.
 // The runner's three pipeline slots are all pointed at the deferred pipeline and the sampling window
-// is shortened, so a capture at frame ~100 lands in the deferred stencil path instead of waiting
+// is shortened, so a capture at frame ~100 lands in the clustered deferred path instead of waiting
 // ~4000 frames for Forward/ForwardPlus to finish. The temporary scene is deleted after the build.
 public static class ClusteredDeferredD3D12CaptureSetup
 {

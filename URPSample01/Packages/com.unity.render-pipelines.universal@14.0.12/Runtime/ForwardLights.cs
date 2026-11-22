@@ -175,8 +175,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal bool publishProbeAtlas => m_PublishProbeAtlas;
 
-        // Toggled from the renderer feature every frame. Forward+ always publishes the atlas and
-        // ignores the requested state.
+        // Remember the feature request for cameras that fall back to Forward.
+        // An active Forward+ camera publishes independently of the request.
         internal void SetProbeAtlasEnabled(bool enabled)
         {
             m_PublishProbeAtlas = enabled;

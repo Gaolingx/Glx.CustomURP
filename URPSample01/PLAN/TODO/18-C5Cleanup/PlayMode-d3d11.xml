@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="46" result="Failed(Child)" total="46" passed="45" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-22 16:07:31Z" end-time="2026-11-22 16:08:30Z" duration="59.1954872">
+  <test-suite type="TestSuite" id="1000" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="46" result="Failed" site="Child" start-time="2026-11-22 16:07:31Z" end-time="2026-11-22 16:08:30Z" duration="59.195487" total="46" passed="45" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1020" name="Unity.ClusteredDeferred.Tests.PlayMode.dll" fullname="E:/tmp/C5-verify/Library/ScriptAssemblies/Unity.ClusteredDeferred.Tests.PlayMode.dll" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 16:07:31Z" end-time="2026-11-22 16:08:01Z" duration="29.621083" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="53440" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1021" name="Unity" fullname="Unity" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 16:07:31Z" end-time="2026-11-22 16:08:01Z" duration="29.619063" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1022" name="ClusteredDeferred" fullname="Unity.ClusteredDeferred" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 16:07:31Z" end-time="2026-11-22 16:08:01Z" duration="29.617226" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1023" name="Tests" fullname="Unity.ClusteredDeferred.Tests" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 16:07:31Z" end-time="2026-11-22 16:08:01Z" duration="29.615887" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="1024" name="PlayMode" fullname="Unity.ClusteredDeferred.Tests.PlayMode" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 16:07:31Z" end-time="2026-11-22 16:08:01Z" duration="29.614756" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1001" name="ClusteredDeferredPlayModeTests" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 16:07:31Z" end-time="2026-11-22 16:08:01Z" duration="29.612107" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1007" name="CameraStackSelectsModeBeforeCullAndPreservesPerObjectLights" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.CameraStackSelectsModeBeforeCullAndPreservesPerObjectLights" methodname="CameraStackSelectsModeBeforeCullAndPreservesPerObjectLights" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1717822153" result="Passed" start-time="2026-11-22 16:07:31Z" end-time="2026-11-22 16:07:35Z" duration="4.192168" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <output><![CDATA[Shader warning in 'ClusterBuilder': use of potentially uninitialized variable (CdItemMinMaxZ) at kernel ClusterItemBounds at ClusterBuilder.compute(129) (on d3d11)
+]]></output>
+                </test-case>
+                <test-case id="1017" name="ClusteredGpuSchedulesProduceIdenticalListsAndPixels" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.ClusteredGpuSchedulesProduceIdenticalListsAndPixels" methodname="ClusteredGpuSchedulesProduceIdenticalListsAndPixels" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1371356150" result="Passed" start-time="2026-11-22 16:07:35Z" end-time="2026-11-22 16:07:36Z" duration="0.521402" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                </test-case>
+                <test-case id="1002" name="ClusteredMatchesForwardPlusAcrossMaterialTypes" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.ClusteredMatchesForwardPlusAcrossMaterialTypes" methodname="ClusteredMatchesForwardPlusAcrossMaterialTypes" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1732800010" result="Failed" start-time="2026-11-22 16:07:36Z" end-time="2026-11-22 16:07:39Z" duration="3.694568" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  1674 pixels differ by more than 8/255; expected sparse raster/shading differences.
+  Expected: less than or equal to 230
+  But was:  1674
+]]></message>
+                    <stack-trace><![CDATA[at Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests+<ClusteredMatchesForwardPlusAcrossMaterialTypes>d__18.MoveNext () [0x003a8] in E:\tmp\C5-verify\Assets\Tests\ClusteredDeferred\Tests\PlayMode\ClusteredDeferredPlayModeTests.cs:122
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@1.1.33\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:46
+]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[CommandBuffer: temporary render texture  not found while executing  (SetComputeTextureParam)
+Shader warning in 'GTAO': integer divides may be much slower, try using uints if possible. at kernel GTAOMain at E:/tmp/C5-verify/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+Shader warning in 'GTAO': use of potentially uninitialized variable (GTAOGetDepthSample) at kernel GTAOMain at E:/tmp/C5-verify/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+]]></output>
+                </test-case>
+                <test-case id="1016" name="ClusterListSnapshotIsDeterministicAndDescribesTheItemStream" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.ClusterListSnapshotIsDeterministicAndDescribesTheItemStream" methodname="ClusterListSnapshotIsDeterministicAndDescribesTheItemStream" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="88618475" result="Passed" start-time="2026-11-22 16:07:39Z" end-time="2026-11-22 16:07:39Z" duration="0.048551" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                </test-case>
+                <test-case id="1019" name="CompactListsKeepPixelsIdentical" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.CompactListsKeepPixelsIdentical" methodname="CompactListsKeepPixelsIdentical" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1584705303" result="Passed" start-time="2026-11-22 16:07:39Z" end-time="2026-11-22 16:07:40Z" duration="0.099591" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <output><![CDATA[Compact cells: cells 21609, entries 448056, scanned 37840, overflow cells 0, overflow tiles 128.
+]]></output>
+                </test-case>
+                <test-case id="1018" name="DepthPruneKeepsPixelsIdentical" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.DepthPruneKeepsPixelsIdentical" methodname="DepthPruneKeepsPixelsIdentical" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1495960554" result="Passed" start-time="2026-11-22 16:07:40Z" end-time="2026-11-22 16:07:40Z" duration="0.126794" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <output><![CDATA[Depth prune bits: kept 32182, cleared 54218.
+]]></output>
+                </test-case>
+                <test-case id="1015" name="ExplicitForwardPlusFallsBackBeforeCullWhenBuilderShaderIsMissing" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.ExplicitForwardPlusFallsBackBeforeCullWhenBuilderShaderIsMissing" methodname="ExplicitForwardPlusFallsBackBeforeCullWhenBuilderShaderIsMissing" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1070810160" result="Passed" start-time="2026-11-22 16:07:40Z" end-time="2026-11-22 16:07:41Z" duration="1.080933" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <output><![CDATA[Forward+ fell back to Forward for camera 'Cd Camera'. Assign a supported ClusterBuilder.compute with the required kernels in the renderer shader resources.
+]]></output>
+                </test-case>
+                <test-case id="1014" name="ForwardPlusGpuMatchesFrozenCpuReference" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.ForwardPlusGpuMatchesFrozenCpuReference" methodname="ForwardPlusGpuMatchesFrozenCpuReference" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1227943235" result="Passed" start-time="2026-11-22 16:07:41Z" end-time="2026-11-22 16:07:43Z" duration="1.781520" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                </test-case>
+                <test-case id="1005" name="ForwardTransparentObjectsReadTheClusterList" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.ForwardTransparentObjectsReadTheClusterList" methodname="ForwardTransparentObjectsReadTheClusterList" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="2077492853" result="Passed" start-time="2026-11-22 16:07:43Z" end-time="2026-11-22 16:07:45Z" duration="2.067437" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <output><![CDATA[[CD] transparent A/B vs Forward+: cluster over8=648 mean=0.455; per-object over8=17809 mean=11.056 (230400 px)
+]]></output>
+                </test-case>
+                <test-case id="1006" name="OpaqueForwardOnlyShaderGraphReadsTheClusterList" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.OpaqueForwardOnlyShaderGraphReadsTheClusterList" methodname="OpaqueForwardOnlyShaderGraphReadsTheClusterList" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="227806806" result="Passed" start-time="2026-11-22 16:07:45Z" end-time="2026-11-22 16:07:49Z" duration="3.941970" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <output><![CDATA[[CD] opaque forward-only ShaderGraph A/B vs Forward+: cluster over8=0 mean=0.003; per-object over8=23760 mean=11.931 (230400 px)
+]]></output>
+                </test-case>
+                <test-case id="1004" name="OrthographicFogSkipsOnlyTheDeferredReceiver" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.OrthographicFogSkipsOnlyTheDeferredReceiver" methodname="OrthographicFogSkipsOnlyTheDeferredReceiver" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="20334553" result="Passed" start-time="2026-11-22 16:07:49Z" end-time="2026-11-22 16:08:00Z" duration="11.522917" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <output><![CDATA[Shader warning in 'GTAO': integer divides may be much slower, try using uints if possible. at kernel GTAOMain at E:/tmp/C5-verify/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+Shader warning in 'GTAO': use of potentially uninitialized variable (GTAOGetDepthSample) at kernel GTAOMain at E:/tmp/C5-verify/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+]]></output>
+                </test-case>
+                <test-case id="1003" name="PerspectiveFogMatchesForwardPlus" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.PerspectiveFogMatchesForwardPlus" methodname="PerspectiveFogMatchesForwardPlus" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1115840227" result="Passed" start-time="2026-11-22 16:08:00Z" end-time="2026-11-22 16:08:00Z" duration="0.327702" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                </test-case>
+                <test-case id="1008" name="TemporaryTargetsAreReleasedWhenThePathIsRemoved" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.TemporaryTargetsAreReleasedWhenThePathIsRemoved" methodname="TemporaryTargetsAreReleasedWhenThePathIsRemoved" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="440456709" result="Passed" start-time="2026-11-22 16:08:00Z" end-time="2026-11-22 16:08:00Z" duration="0.046890" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1013" name="TileWidthFollowsResolutionAndLightCount" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.TileWidthFollowsResolutionAndLightCount" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-22 16:08:00Z" end-time="2026-11-22 16:08:01Z" duration="0.132695" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <test-case id="1009" name="TileWidthFollowsResolutionAndLightCount(tile8_640x360_8lights)" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.TileWidthFollowsResolutionAndLightCount(tile8_640x360_8lights)" methodname="TileWidthFollowsResolutionAndLightCount" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="122465431" result="Passed" start-time="2026-11-22 16:08:00Z" end-time="2026-11-22 16:08:01Z" duration="0.027709" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1010" name="TileWidthFollowsResolutionAndLightCount(tile16_1280x720_48lights)" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.TileWidthFollowsResolutionAndLightCount(tile16_1280x720_48lights)" methodname="TileWidthFollowsResolutionAndLightCount" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="923551513" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.035516" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1011" name="TileWidthFollowsResolutionAndLightCount(tile32_1920x1080_65lights)" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.TileWidthFollowsResolutionAndLightCount(tile32_1920x1080_65lights)" methodname="TileWidthFollowsResolutionAndLightCount" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1813105593" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.027154" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1012" name="TileWidthFollowsResolutionAndLightCount(tile64_3840x2160_65lights)" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.TileWidthFollowsResolutionAndLightCount(tile64_3840x2160_65lights)" methodname="TileWidthFollowsResolutionAndLightCount" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="913993427" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.036724" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1055" name="Unity.RenderPipelines.Universal.Runtime.Tests.dll" fullname="E:/tmp/C5-verify/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.Tests.dll" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.184013" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="53440" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestFixture" id="1026" name="RuntimeTests" fullname="RuntimeTests" classname="RuntimeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.012971" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1027" name="PipelineHasCorrectColorSpace" fullname="RuntimeTests.PipelineHasCorrectColorSpace" methodname="PipelineHasCorrectColorSpace" classname="RuntimeTests" runstate="Runnable" seed="761116600" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.008462" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+          <reason>
+            <message><![CDATA[Render Pipeline Asset is Null, test pass by default]]></message>
+          </reason>
+        </test-case>
+        <test-case id="1028" name="PipelineSetsAndRestoreGlobalShaderTagCorrectly" fullname="RuntimeTests.PipelineSetsAndRestoreGlobalShaderTagCorrectly" methodname="PipelineSetsAndRestoreGlobalShaderTagCorrectly" classname="RuntimeTests" runstate="Runnable" seed="512578439" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.002235" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+          <reason>
+            <message><![CDATA[Render Pipeline Asset is Null, test pass by default]]></message>
+          </reason>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestSuite" id="1056" name="UnityEngine" fullname="UnityEngine" runstate="Runnable" testcasecount="21" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.167375" total="21" passed="21" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1057" name="Rendering" fullname="UnityEngine.Rendering" runstate="Runnable" testcasecount="21" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.162008" total="21" passed="21" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1058" name="Universal" fullname="UnityEngine.Rendering.Universal" runstate="Runnable" testcasecount="21" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.160516" total="21" passed="21" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1059" name="Tests" fullname="UnityEngine.Rendering.Universal.Tests" runstate="Runnable" testcasecount="21" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.159229" total="21" passed="21" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1029" name="DecalTests" fullname="UnityEngine.Rendering.Universal.Tests.DecalTests" classname="UnityEngine.Rendering.Universal.Tests.DecalTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.038167" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1030" name="DecalDestroyEmptyChunk" fullname="UnityEngine.Rendering.Universal.Tests.DecalTests.DecalDestroyEmptyChunk" methodname="DecalDestroyEmptyChunk" classname="UnityEngine.Rendering.Universal.Tests.DecalTests" runstate="Runnable" seed="500571556" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.035621" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1038" name="LightTests" fullname="UnityEngine.Rendering.Universal.Tests.LightTests" classname="UnityEngine.Rendering.Universal.Tests.LightTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.002734" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1039" name="TestMainLightRenderingLayerMaskSyncWithUniversalLightAndShadowLayers" fullname="UnityEngine.Rendering.Universal.Tests.LightTests.TestMainLightRenderingLayerMaskSyncWithUniversalLightAndShadowLayers" methodname="TestMainLightRenderingLayerMaskSyncWithUniversalLightAndShadowLayers" classname="UnityEngine.Rendering.Universal.Tests.LightTests" runstate="Runnable" seed="1817702153" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.001238" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1031" name="MultipleObjectLight2DTests" fullname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests" classname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.101628" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1036" name="CachedMeshDataIsOverriddenByRuntimeChanges" fullname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.CachedMeshDataIsOverriddenByRuntimeChanges" methodname="CachedMeshDataIsOverriddenByRuntimeChanges" classname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests" runstate="Runnable" seed="893046818" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.087046" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1035" name="CachedMeshDataIsUpdatedOnChange" fullname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.CachedMeshDataIsUpdatedOnChange" methodname="CachedMeshDataIsUpdatedOnChange" classname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests" runstate="Runnable" seed="954438598" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.001903" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1037" name="EnsureShapeMeshGenerationDoesNotOverflowAllocation" fullname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.EnsureShapeMeshGenerationDoesNotOverflowAllocation" methodname="EnsureShapeMeshGenerationDoesNotOverflowAllocation" classname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests" runstate="Runnable" seed="1818516497" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.002560" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1033" name="LightIsInVisibleListIfInCameraView" fullname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.LightIsInVisibleListIfInCameraView" methodname="LightIsInVisibleListIfInCameraView" classname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests" runstate="Runnable" seed="572888078" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.005431" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1034" name="LightIsNotInVisibleListIfNotInCameraView" fullname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.LightIsNotInVisibleListIfNotInCameraView" methodname="LightIsNotInVisibleListIfNotInCameraView" classname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests" runstate="Runnable" seed="477033757" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000987" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1032" name="LightsAreSortedByLightOrder" fullname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.LightsAreSortedByLightOrder" methodname="LightsAreSortedByLightOrder" classname="UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests" runstate="Runnable" seed="806957938" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.001622" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1040" name="PixelPerfectCameraTests" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.014856" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="ParameterizedMethod" id="1050" name="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.008355" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1041" name="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,500,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,500,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" methodname="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="1993595355" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.003506" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1042" name="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1100,900,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1100,900,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" methodname="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="1907808498" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000304" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1043" name="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,400,250,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,400,250,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" methodname="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="1972820479" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000175" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1044" name="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1600,1200,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1600,1200,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" methodname="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="467764695" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000175" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1045" name="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1600,1100,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1600,1100,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" methodname="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="1406467007" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000180" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1046" name="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" methodname="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="733925952" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000173" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1047" name="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,700,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,700,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" methodname="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="1843500773" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000159" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1048" name="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,900,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,900,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" methodname="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="1392649698" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000164" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1049" name="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,900,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,900,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)" methodname="CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="281552776" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000129" asserts="0">
+                    <properties>
+                      <property name="childIndex" value="2" />
+                      <property name="childIndex" value="2" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="1054" name="CalculateFinalBlitPixelRectCenteredWorksWithoutUpscaleRT" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectCenteredWorksWithoutUpscaleRT" methodname="CalculateFinalBlitPixelRectCenteredWorksWithoutUpscaleRT" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="1633541919" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.001010" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1053" name="CalculateFinalBlitPixelRectCenteredWorksWithUpscaleRT" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectCenteredWorksWithUpscaleRT" methodname="CalculateFinalBlitPixelRectCenteredWorksWithUpscaleRT" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="1400445758" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000435" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1051" name="CalculateFinalBlitPixelRectStretchToFitHeightWorks" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectStretchToFitHeightWorks" methodname="CalculateFinalBlitPixelRectStretchToFitHeightWorks" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="1756925847" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000411" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1052" name="CalculateFinalBlitPixelRectStretchToFitWidthWorks" fullname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectStretchToFitWidthWorks" methodname="CalculateFinalBlitPixelRectStretchToFitWidthWorks" classname="UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests" runstate="Runnable" seed="40881549" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:01Z" duration="0.000395" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1069" name="Unity.ScreenSpaceLighting.Tests.PlayMode.dll" fullname="E:/tmp/C5-verify/Library/ScriptAssemblies/Unity.ScreenSpaceLighting.Tests.PlayMode.dll" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:30Z" duration="29.374851" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="53440" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1070" name="Unity" fullname="Unity" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:30Z" duration="29.373212" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1071" name="ScreenSpaceLighting" fullname="Unity.ScreenSpaceLighting" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:30Z" duration="29.371794" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1072" name="Tests" fullname="Unity.ScreenSpaceLighting.Tests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:30Z" duration="29.370742" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1073" name="PlayMode" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:30Z" duration="29.369717" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1060" name="ScreenSpaceLightingPlayModeTests" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:30Z" duration="29.368590" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="ParameterizedMethod" id="1064" name="AllEffectsDispatchAndRestoreReference" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:29Z" duration="28.272972" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <test-case id="1061" name="AllEffectsDispatchAndRestoreReference(&quot;Forward&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference(&quot;Forward&quot;)" methodname="AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="1674920141" result="Passed" start-time="2026-11-22 16:08:01Z" end-time="2026-11-22 16:08:10Z" duration="8.707901" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1062" name="AllEffectsDispatchAndRestoreReference(&quot;ForwardPlus&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference(&quot;ForwardPlus&quot;)" methodname="AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="1902449476" result="Passed" start-time="2026-11-22 16:08:10Z" end-time="2026-11-22 16:08:23Z" duration="13.182135" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1063" name="AllEffectsDispatchAndRestoreReference(&quot;Deferred&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference(&quot;Deferred&quot;)" methodname="AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="1561541545" result="Passed" start-time="2026-11-22 16:08:23Z" end-time="2026-11-22 16:08:29Z" duration="6.380872" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1068" name="RuntimeControlsAndCameraLifetime" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-22 16:08:29Z" end-time="2026-11-22 16:08:30Z" duration="1.093262" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <test-case id="1065" name="RuntimeControlsAndCameraLifetime(&quot;Forward&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime(&quot;Forward&quot;)" methodname="RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="528816247" result="Passed" start-time="2026-11-22 16:08:29Z" end-time="2026-11-22 16:08:29Z" duration="0.374393" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1066" name="RuntimeControlsAndCameraLifetime(&quot;ForwardPlus&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime(&quot;ForwardPlus&quot;)" methodname="RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="1278076387" result="Passed" start-time="2026-11-22 16:08:29Z" end-time="2026-11-22 16:08:30Z" duration="0.342874" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1067" name="RuntimeControlsAndCameraLifetime(&quot;Deferred&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime(&quot;Deferred&quot;)" methodname="RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="52585412" result="Passed" start-time="2026-11-22 16:08:30Z" end-time="2026-11-22 16:08:30Z" duration="0.371904" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

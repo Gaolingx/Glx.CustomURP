@@ -1,0 +1,58 @@
+{
+  "11": {
+    "log": "E:\\tmp\\C5-verify\\build-11.log",
+    "logSHA256": "d3dbe7abd08e1246e3aa7be5b0826ab6736fe9f8c5945496ead7f48889862fa0",
+    "buildSummary": {
+      "result": "Succeeded",
+      "totalErrors": 0,
+      "executablePath": "E:\\tmp\\C5-verify\\Builds\\ClusteredDeferredArenaC4\\Direct3D11\\CdArena.exe",
+      "graphicsApis": "Direct3D11",
+      "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+      "unityVersion": "2022.3.62f1",
+      "totalSizeBytes": 142274187,
+      "totalTimeSeconds": 412.7182135
+    },
+    "LitForwardLitFp_full_settings_builtin_scriptable": [
+      36238786560,
+      9437184,
+      36864,
+      6144
+    ],
+    "clusteredCompute_retained_declared": [
+      1280,
+      1280
+    ],
+    "shaderErrorLines": 0,
+    "shaderWarningLines": 723,
+    "missingReferenceOrScriptLines": 0,
+    "obsoleteKeywords": []
+  },
+  "12": {
+    "log": "E:\\tmp\\C5-verify\\build-12.log",
+    "logSHA256": "2bdc1b4f497b82c93e9c665fad6d6c9e7bbd0e9bfe287c3811e67f76f2d19b88",
+    "buildSummary": {
+      "result": "Succeeded",
+      "totalErrors": 0,
+      "executablePath": "E:\\tmp\\C5-verify\\Builds\\ClusteredDeferredArenaC4\\Direct3D12\\CdArena.exe",
+      "graphicsApis": "Direct3D12",
+      "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+      "unityVersion": "2022.3.62f1",
+      "totalSizeBytes": 142274204,
+      "totalTimeSeconds": 24.6450596
+    },
+    "LitForwardLitFp_full_settings_builtin_scriptable": [
+      36238786560,
+      9437184,
+      36864,
+      6144
+    ],
+    "clusteredCompute_retained_declared": [
+      1280,
+      1280
+    ],
+    "shaderErrorLines": 0,
+    "shaderWarningLines": 723,
+    "missingReferenceOrScriptLines": 0,
+    "obsoleteKeywords": []
+  }
+}

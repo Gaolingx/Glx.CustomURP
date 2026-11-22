@@ -38,12 +38,13 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void NonForwardPlusCreatesManagerWhenTheToggleIsPublished()
+        public void NonForwardPlusDefersRequestedAtlasUntilCameraSetup()
         {
             var lights = new ForwardLights(CreateInitParams(false, true));
 
-            Assert.IsTrue(lights.reflectionProbeManager.isCreated);
-            Assert.IsNotNull(lights.reflectionProbeManager.atlasRT);
+            Assert.IsTrue(lights.publishProbeAtlas);
+            Assert.IsFalse(lights.reflectionProbeManager.isCreated);
+            Assert.IsNull(lights.reflectionProbeManager.atlasRT);
 
             lights.Cleanup();
         }
@@ -64,17 +65,17 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void ForwardPlusAlwaysCreatesTheManagerAndIgnoresTheToggle()
+        public void ForwardPlusRemembersAtlasRequestForFallbackWithoutAllocatingAtConstruction()
         {
             var lights = new ForwardLights(CreateInitParams(true, false));
 
-            Assert.IsTrue(lights.reflectionProbeManager.isCreated);
+            Assert.IsFalse(lights.reflectionProbeManager.isCreated);
             Assert.IsFalse(lights.publishProbeAtlas);
 
             lights.SetProbeAtlasEnabled(true);
 
-            Assert.IsFalse(lights.publishProbeAtlas,
-                "Forward+ publishes the atlas through clustering and must ignore the feature toggle.");
+            Assert.IsTrue(lights.publishProbeAtlas);
+            Assert.IsFalse(lights.reflectionProbeManager.isCreated);
 
             lights.Cleanup();
         }
