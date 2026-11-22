@@ -1,0 +1,24 @@
+{
+  "11": {
+    "log": "E:\\tmp\\C4b-layout-verify\\build-t5-11.log",
+    "lines": [
+      "Compiling shader \"Universal Render Pipeline/Lit\" pass \"ForwardLit\" (fp)",
+      "    Full variant space:         36238786560",
+      "    After settings filtering:   9437184",
+      "    After built-in stripping:   36864",
+      "    After scriptable stripping: 6144",
+      "    Processed in 0.84 seconds"
+    ]
+  },
+  "12": {
+    "log": "E:\\tmp\\C4b-layout-verify\\build-t5-12.log",
+    "lines": [
+      "Compiling shader \"Universal Render Pipeline/Lit\" pass \"ForwardLit\" (fp)",
+      "    Full variant space:         36238786560",
+      "    After settings filtering:   9437184",
+      "    After built-in stripping:   36864",
+      "    After scriptable stripping: 6144",
+      "    Processed in 1.03 seconds"
+    ]
+  }
+}

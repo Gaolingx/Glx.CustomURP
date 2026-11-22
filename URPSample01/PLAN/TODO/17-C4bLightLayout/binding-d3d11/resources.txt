@@ -1,0 +1,44 @@
+ID	Name	Type	Bytes	Width	Height	Format
+8296	ConstantBuffer-73-176	Buffer	176			
+8297	ConstantBuffer-233-368	Buffer	368			
+8397	ConstantBuffer-239-2032	Buffer	2032			
+8398	ConstantBuffer-73-688	Buffer	688			
+8403	ConstantBuffer-239-2128	Buffer	2128			
+8407	ConstantBuffer-239-2112	Buffer	2112			
+8413	ConstantBuffer-297-528	Buffer	528			
+8415	ConstantBuffer-282-24576	Buffer	24576			
+8448	ConstantBuffer-239-48	Buffer	48			
+8486	ConstantBuffer-239-64	Buffer	64			
+8519	Buffer-1-1048576	Buffer	1048576			
+8520	Buffer-2-131072	Buffer	131072			
+8535	ConstantBuffer-75-176	Buffer	176			
+8536	ConstantBuffer-239-2624	Buffer	2624			
+8538	ConstantBuffer-256-10240	Buffer	10240			
+8540	Cube	Buffer	1344			
+8541	Cube	Buffer	72			
+8542	Plane	Buffer	5808			
+8543	Plane	Buffer	1200			
+8553	Sphere	Buffer	28840			
+8554	Sphere	Buffer	4608			
+8562	CSConstantBuffer-0-256	Buffer	256			
+8564	CSConstantBuffer-0-256	Buffer	256			
+8566	CSConstantBuffer-0-256	Buffer	256			
+8568	CSConstantBuffer-0-256	Buffer	256			
+8570	CSConstantBuffer-0-256	Buffer	256			
+8578	Buffer-512-176	Buffer	176			
+8579	Buffer-512-176	Buffer	176			
+8580	Buffer-512-176	Buffer	176			
+8581	URP Cluster Words	Buffer	81920			
+8636	CD Cluster Items	Buffer	3072			
+8639	CD Cluster MinMaxZ	Buffer	512			
+8642	CD Cluster Tile Ranges	Buffer	1024			
+8645	CD Cluster Bin Headers	Buffer	16384			
+8692	Buffer 8692	Buffer	16384			
+8702	CSConstantBuffer-0-48	Buffer	48			
+8704	CSConstantBuffer-0-48	Buffer	48			
+8706	CSConstantBuffer-0-240	Buffer	240			
+8708	CSConstantBuffer-0-240	Buffer	240			
+8712	CSConstantBuffer-0-240	Buffer	240			
+8714	CSConstantBuffer-0-240	Buffer	240			
+8721	Buffer 8721	Buffer	32768			
+# 42 resources

@@ -294,17 +294,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // CommandBuffer.RequestAsyncReadback is ordered after the dispatch, unlike
         // AsyncGPUReadback.Request, which would read the previous frame's buffer contents.
-        public static void RequestGpuCapture(CommandBuffer cmd, ClusterListSnapshot metadata, GraphicsBuffer zbins, GraphicsBuffer tiles)
+        public static void RequestGpuCapture(CommandBuffer cmd, ClusterListSnapshot metadata, GraphicsBuffer words, int zBinCount)
         {
-            if (cmd == null || zbins == null || tiles == null)
+            if (cmd == null || words == null)
                 return;
 
             var pending = new PendingCapture { snapshot = metadata, remaining = 2 };
             // Read the sizes now: the buffers can be disposed before the callback fires.
-            int zBinCount = zbins.count;
-            int tileCount = tiles.count;
-            cmd.RequestAsyncReadback(zbins, request => OnReadback(request, pending, zBinCount, true));
-            cmd.RequestAsyncReadback(tiles, request => OnReadback(request, pending, tileCount, false));
+            int tileCount = words.count - zBinCount;
+            cmd.RequestAsyncReadback(words, zBinCount * sizeof(uint), 0, request => OnReadback(request, pending, zBinCount, true));
+            cmd.RequestAsyncReadback(words, tileCount * sizeof(uint), zBinCount * sizeof(uint), request => OnReadback(request, pending, tileCount, false));
         }
 
         sealed class PendingCapture

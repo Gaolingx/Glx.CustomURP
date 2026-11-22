@@ -8,12 +8,12 @@
 
 uint URPClusterWord(uint wordIndex)
 {
-    return URP_ZBins[wordIndex];
+    return _URPClusterWords[wordIndex];
 }
 
 uint URPClusterTileWord(uint wordIndex)
 {
-    return urp_Tiles[wordIndex];
+    return _URPClusterWords[_URPClusterTileOffset + wordIndex];
 }
 
 // Debug switches for disabling parts of the algorithm. Not implemented for mobile.

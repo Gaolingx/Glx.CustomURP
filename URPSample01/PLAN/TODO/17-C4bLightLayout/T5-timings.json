@@ -1,0 +1,325 @@
+{
+  "note": "Concurrent shader compilation; descriptive only, not an isolated benchmark.",
+  "rows": [
+    {
+      "api": "Direct3D11",
+      "fixture": "cluster-on",
+      "mode": "ClusteredDeferred",
+      "count": 0,
+      "cpuMedianMs": 1.6819,
+      "gpuMedianMs": 0.210176,
+      "cpuDeltaMs": 0.8341,
+      "gpuDeltaMs": 0.01331199999999999
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "cluster-on",
+      "mode": "ClusteredDeferred",
+      "count": 8,
+      "cpuMedianMs": 1.3073,
+      "gpuMedianMs": 0.255232,
+      "cpuDeltaMs": 0.5675999999999999,
+      "gpuDeltaMs": 0.012032000000000015
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "cluster-on",
+      "mode": "ClusteredDeferred",
+      "count": 48,
+      "cpuMedianMs": 1.4893,
+      "gpuMedianMs": 0.404992,
+      "cpuDeltaMs": 0.5717000000000001,
+      "gpuDeltaMs": 0.01536000000000004
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "cluster-on",
+      "mode": "ClusteredDeferred",
+      "count": 256,
+      "cpuMedianMs": 3.0216,
+      "gpuMedianMs": 1.485568,
+      "cpuDeltaMs": 1.2044,
+      "gpuDeltaMs": 0.08652799999999994
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "cluster-on",
+      "mode": "ForwardPlus",
+      "count": 0,
+      "cpuMedianMs": 1.4378,
+      "gpuMedianMs": 0.545792,
+      "cpuDeltaMs": 0.5556,
+      "gpuDeltaMs": 0.25676800000000005
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "cluster-on",
+      "mode": "ForwardPlus",
+      "count": 8,
+      "cpuMedianMs": 1.4787,
+      "gpuMedianMs": 0.58496,
+      "cpuDeltaMs": 0.47529999999999983,
+      "gpuDeltaMs": 0.22860800000000003
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "cluster-on",
+      "mode": "ForwardPlus",
+      "count": 48,
+      "cpuMedianMs": 1.7698,
+      "gpuMedianMs": 0.745216,
+      "cpuDeltaMs": 0.7219,
+      "gpuDeltaMs": 0.22630399999999995
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "cluster-on",
+      "mode": "ForwardPlus",
+      "count": 256,
+      "cpuMedianMs": 3.7873,
+      "gpuMedianMs": 2.360576,
+      "cpuDeltaMs": 1.6959,
+      "gpuDeltaMs": 0.40832
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "control",
+      "mode": "ClusteredDeferred",
+      "count": 0,
+      "cpuMedianMs": 1.132,
+      "gpuMedianMs": 0.191744,
+      "cpuDeltaMs": 0.45819999999999994,
+      "gpuDeltaMs": 0.011776000000000009
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "control",
+      "mode": "ClusteredDeferred",
+      "count": 8,
+      "cpuMedianMs": 1.4572,
+      "gpuMedianMs": 0.229632,
+      "cpuDeltaMs": 0.5685,
+      "gpuDeltaMs": 0.012800000000000006
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "control",
+      "mode": "ClusteredDeferred",
+      "count": 48,
+      "cpuMedianMs": 1.8329,
+      "gpuMedianMs": 0.354816,
+      "cpuDeltaMs": 0.8058000000000001,
+      "gpuDeltaMs": 0.017408000000000035
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "control",
+      "mode": "ClusteredDeferred",
+      "count": 256,
+      "cpuMedianMs": 3.0776,
+      "gpuMedianMs": 1.192192,
+      "cpuDeltaMs": 1.1987999999999999,
+      "gpuDeltaMs": 0.04479999999999995
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "control",
+      "mode": "ForwardPlus",
+      "count": 0,
+      "cpuMedianMs": 1.813,
+      "gpuMedianMs": 0.481536,
+      "cpuDeltaMs": 0.9123,
+      "gpuDeltaMs": 0.20608000000000004
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "control",
+      "mode": "ForwardPlus",
+      "count": 8,
+      "cpuMedianMs": 1.6108,
+      "gpuMedianMs": 0.46336,
+      "cpuDeltaMs": 0.6599,
+      "gpuDeltaMs": 0.14617599999999997
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "control",
+      "mode": "ForwardPlus",
+      "count": 48,
+      "cpuMedianMs": 1.6225,
+      "gpuMedianMs": 0.62464,
+      "cpuDeltaMs": 0.5274000000000001,
+      "gpuDeltaMs": 0.15743999999999997
+    },
+    {
+      "api": "Direct3D11",
+      "fixture": "control",
+      "mode": "ForwardPlus",
+      "count": 256,
+      "cpuMedianMs": 2.9542,
+      "gpuMedianMs": 2.022912,
+      "cpuDeltaMs": 1.0572000000000001,
+      "gpuDeltaMs": 0.31846399999999986
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "cluster-on",
+      "mode": "ClusteredDeferred",
+      "count": 0,
+      "cpuMedianMs": 2.1899,
+      "gpuMedianMs": 0.718848,
+      "cpuDeltaMs": 1.4292000000000002,
+      "gpuDeltaMs": 0.36787200000000003
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "cluster-on",
+      "mode": "ClusteredDeferred",
+      "count": 8,
+      "cpuMedianMs": 2.4129,
+      "gpuMedianMs": 0.78336,
+      "cpuDeltaMs": 1.6556000000000002,
+      "gpuDeltaMs": 0.42316799999999993
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "cluster-on",
+      "mode": "ClusteredDeferred",
+      "count": 48,
+      "cpuMedianMs": 2.4707,
+      "gpuMedianMs": 0.797184,
+      "cpuDeltaMs": 1.4842999999999997,
+      "gpuDeltaMs": 0.28390400000000005
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "cluster-on",
+      "mode": "ClusteredDeferred",
+      "count": 256,
+      "cpuMedianMs": 4.579,
+      "gpuMedianMs": 1.699328,
+      "cpuDeltaMs": 2.9619,
+      "gpuDeltaMs": 0.3071999999999999
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "cluster-on",
+      "mode": "ForwardPlus",
+      "count": 0,
+      "cpuMedianMs": 3.1752,
+      "gpuMedianMs": 0.995328,
+      "cpuDeltaMs": 2.3038,
+      "gpuDeltaMs": 0.561152
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "cluster-on",
+      "mode": "ForwardPlus",
+      "count": 8,
+      "cpuMedianMs": 3.0616,
+      "gpuMedianMs": 1.10976,
+      "cpuDeltaMs": 2.0805,
+      "gpuDeltaMs": 0.639232
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "cluster-on",
+      "mode": "ForwardPlus",
+      "count": 48,
+      "cpuMedianMs": 3.5819,
+      "gpuMedianMs": 1.251328,
+      "cpuDeltaMs": 2.5399000000000003,
+      "gpuDeltaMs": 0.606208
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "cluster-on",
+      "mode": "ForwardPlus",
+      "count": 256,
+      "cpuMedianMs": 6.5492,
+      "gpuMedianMs": 3.089664,
+      "cpuDeltaMs": 4.392799999999999,
+      "gpuDeltaMs": 1.052928
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "control",
+      "mode": "ClusteredDeferred",
+      "count": 0,
+      "cpuMedianMs": 1.8528,
+      "gpuMedianMs": 0.585216,
+      "cpuDeltaMs": 1.0175999999999998,
+      "gpuDeltaMs": 0.28492799999999996
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "control",
+      "mode": "ClusteredDeferred",
+      "count": 8,
+      "cpuMedianMs": 1.9752,
+      "gpuMedianMs": 0.51456,
+      "cpuDeltaMs": 1.1721,
+      "gpuDeltaMs": 0.19558400000000004
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "control",
+      "mode": "ClusteredDeferred",
+      "count": 48,
+      "cpuMedianMs": 2.8413,
+      "gpuMedianMs": 0.752128,
+      "cpuDeltaMs": 1.7542,
+      "gpuDeltaMs": 0.302336
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "control",
+      "mode": "ClusteredDeferred",
+      "count": 256,
+      "cpuMedianMs": 4.5325,
+      "gpuMedianMs": 1.216768,
+      "cpuDeltaMs": 2.6952999999999996,
+      "gpuDeltaMs": 0.10752000000000006
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "control",
+      "mode": "ForwardPlus",
+      "count": 0,
+      "cpuMedianMs": 2.104,
+      "gpuMedianMs": 0.700928,
+      "cpuDeltaMs": 1.0386000000000002,
+      "gpuDeltaMs": 0.301056
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "control",
+      "mode": "ForwardPlus",
+      "count": 8,
+      "cpuMedianMs": 2.7984,
+      "gpuMedianMs": 0.860928,
+      "cpuDeltaMs": 1.6185,
+      "gpuDeltaMs": 0.407552
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "control",
+      "mode": "ForwardPlus",
+      "count": 48,
+      "cpuMedianMs": 3.8058,
+      "gpuMedianMs": 1.154304,
+      "cpuDeltaMs": 2.6816,
+      "gpuDeltaMs": 0.62592
+    },
+    {
+      "api": "Direct3D12",
+      "fixture": "control",
+      "mode": "ForwardPlus",
+      "count": 256,
+      "cpuMedianMs": 5.7155,
+      "gpuMedianMs": 2.601216,
+      "cpuDeltaMs": 3.8545,
+      "gpuDeltaMs": 0.854784
+    }
+  ]
+}

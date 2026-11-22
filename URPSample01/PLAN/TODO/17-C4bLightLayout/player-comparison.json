@@ -1,0 +1,695 @@
+{
+  "baseline": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\Done\\16-CleanupBaseline\\c4\\final-player",
+  "T4": {
+    "passed": 56,
+    "total": 56,
+    "rows": [
+      {
+        "api": 11,
+        "file": "MainShadowCascade_ForwardPlusOn.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "MainShadowCascade_ForwardPlusOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "MainShadowCascade_ClusteredOn.png",
+        "maxRGB": 1,
+        "meanRGB": 1.4467592592592592e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "MainShadowCascade_ClusteredOff.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "ReceiveShadowsOff_ForwardPlusOn.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "ReceiveShadowsOff_ForwardPlusOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "ReceiveShadowsOff_ClusteredOn.png",
+        "maxRGB": 1,
+        "meanRGB": 1.4467592592592592e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "ReceiveShadowsOff_ClusteredOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.4467592592592592e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "MainShadowScreen_ForwardPlusOn.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "MainShadowScreen_ForwardPlusOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "MainShadowScreen_ClusteredOn.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "MainShadowScreen_ClusteredOff.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "AdditionalShadowAtlas_ForwardPlusOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "AdditionalShadowAtlas_ForwardPlusOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "AdditionalShadowAtlas_ClusteredOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "AdditionalShadowAtlas_ClusteredOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "LightCookie_ForwardPlusOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "LightCookie_ForwardPlusOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "LightCookie_ClusteredOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "LightCookie_ClusteredOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "LightLayers_ForwardPlusOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "LightLayers_ForwardPlusOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "LightLayers_ClusteredOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "LightLayers_ClusteredOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "ScreenSpaceAO_ForwardPlusOn.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "ScreenSpaceAO_ForwardPlusOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "ScreenSpaceAO_ClusteredOn.png",
+        "maxRGB": 1,
+        "meanRGB": 3.616898148148148e-07,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "file": "ScreenSpaceAO_ClusteredOff.png",
+        "maxRGB": 1,
+        "meanRGB": 3.616898148148148e-07,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "MainShadowCascade_ForwardPlusOn.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "MainShadowCascade_ForwardPlusOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "MainShadowCascade_ClusteredOn.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "MainShadowCascade_ClusteredOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "ReceiveShadowsOff_ForwardPlusOn.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "ReceiveShadowsOff_ForwardPlusOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "ReceiveShadowsOff_ClusteredOn.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "ReceiveShadowsOff_ClusteredOff.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "MainShadowScreen_ForwardPlusOn.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "MainShadowScreen_ForwardPlusOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "MainShadowScreen_ClusteredOn.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "MainShadowScreen_ClusteredOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "AdditionalShadowAtlas_ForwardPlusOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "AdditionalShadowAtlas_ForwardPlusOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "AdditionalShadowAtlas_ClusteredOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "AdditionalShadowAtlas_ClusteredOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "LightCookie_ForwardPlusOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "LightCookie_ForwardPlusOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "LightCookie_ClusteredOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "LightCookie_ClusteredOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "LightLayers_ForwardPlusOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "LightLayers_ForwardPlusOff.png",
+        "maxRGB": 1,
+        "meanRGB": 3.616898148148148e-07,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "LightLayers_ClusteredOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "LightLayers_ClusteredOff.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "ScreenSpaceAO_ForwardPlusOn.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "ScreenSpaceAO_ForwardPlusOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "ScreenSpaceAO_ClusteredOn.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "file": "ScreenSpaceAO_ClusteredOff.png",
+        "maxRGB": 1,
+        "meanRGB": 1.0850694444444444e-06,
+        "passed": true
+      }
+    ]
+  },
+  "T5": {
+    "passed": 24,
+    "total": 32,
+    "rows": [
+      {
+        "api": 11,
+        "fixture": "control",
+        "file": "ClusteredDeferred_L0.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "control",
+        "file": "ClusteredDeferred_L8.png",
+        "maxRGB": 1,
+        "meanRGB": 3.616898148148148e-07,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "control",
+        "file": "ClusteredDeferred_L48.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "control",
+        "file": "ClusteredDeferred_L256.png",
+        "maxRGB": 72,
+        "meanRGB": 0.1150705295138889,
+        "over24": 1107,
+        "passed": false
+      },
+      {
+        "api": 11,
+        "fixture": "control",
+        "file": "ForwardPlus_L0.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "control",
+        "file": "ForwardPlus_L8.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "control",
+        "file": "ForwardPlus_L48.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "control",
+        "file": "ForwardPlus_L256.png",
+        "maxRGB": 71,
+        "meanRGB": 0.1145775462962963,
+        "over24": 1108,
+        "passed": false
+      },
+      {
+        "api": 11,
+        "fixture": "cluster-on",
+        "file": "ClusteredDeferred_L0.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "cluster-on",
+        "file": "ClusteredDeferred_L8.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "cluster-on",
+        "file": "ClusteredDeferred_L48.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "cluster-on",
+        "file": "ClusteredDeferred_L256.png",
+        "maxRGB": 30,
+        "meanRGB": 0.03246636284722222,
+        "over24": 3,
+        "passed": false
+      },
+      {
+        "api": 11,
+        "fixture": "cluster-on",
+        "file": "ForwardPlus_L0.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "cluster-on",
+        "file": "ForwardPlus_L8.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "cluster-on",
+        "file": "ForwardPlus_L48.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 11,
+        "fixture": "cluster-on",
+        "file": "ForwardPlus_L256.png",
+        "maxRGB": 30,
+        "meanRGB": 0.03221824363425926,
+        "over24": 3,
+        "passed": false
+      },
+      {
+        "api": 12,
+        "fixture": "control",
+        "file": "ClusteredDeferred_L0.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "control",
+        "file": "ClusteredDeferred_L8.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "control",
+        "file": "ClusteredDeferred_L48.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "control",
+        "file": "ClusteredDeferred_L256.png",
+        "maxRGB": 72,
+        "meanRGB": 0.24013129340277778,
+        "over24": 3081,
+        "passed": false
+      },
+      {
+        "api": 12,
+        "fixture": "control",
+        "file": "ForwardPlus_L0.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "control",
+        "file": "ForwardPlus_L8.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "control",
+        "file": "ForwardPlus_L48.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "control",
+        "file": "ForwardPlus_L256.png",
+        "maxRGB": 71,
+        "meanRGB": 0.23961263020833334,
+        "over24": 3085,
+        "passed": false
+      },
+      {
+        "api": 12,
+        "fixture": "cluster-on",
+        "file": "ClusteredDeferred_L0.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "cluster-on",
+        "file": "ClusteredDeferred_L8.png",
+        "maxRGB": 1,
+        "meanRGB": 3.616898148148148e-07,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "cluster-on",
+        "file": "ClusteredDeferred_L48.png",
+        "maxRGB": 1,
+        "meanRGB": 3.616898148148148e-07,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "cluster-on",
+        "file": "ClusteredDeferred_L256.png",
+        "maxRGB": 78,
+        "meanRGB": 0.15554723668981482,
+        "over24": 580,
+        "passed": false
+      },
+      {
+        "api": 12,
+        "fixture": "cluster-on",
+        "file": "ForwardPlus_L0.png",
+        "maxRGB": 0,
+        "meanRGB": 0.0,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "cluster-on",
+        "file": "ForwardPlus_L8.png",
+        "maxRGB": 1,
+        "meanRGB": 3.616898148148148e-07,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "cluster-on",
+        "file": "ForwardPlus_L48.png",
+        "maxRGB": 1,
+        "meanRGB": 7.233796296296296e-07,
+        "over24": 0,
+        "passed": true
+      },
+      {
+        "api": 12,
+        "fixture": "cluster-on",
+        "file": "ForwardPlus_L256.png",
+        "maxRGB": 78,
+        "meanRGB": 0.155244140625,
+        "over24": 573,
+        "passed": false
+      }
+    ]
+  }
+}

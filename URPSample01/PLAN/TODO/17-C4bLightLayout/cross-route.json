@@ -1,0 +1,578 @@
+[
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "MainShadowCascade",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "MainShadowCascade",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "MainShadowCascade",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "MainShadowCascade",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "ReceiveShadowsOff",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "ReceiveShadowsOff",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "ReceiveShadowsOff",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "ReceiveShadowsOff",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "MainShadowScreen",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "MainShadowScreen",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "MainShadowScreen",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "MainShadowScreen",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "AdditionalShadowAtlas",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "AdditionalShadowAtlas",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "AdditionalShadowAtlas",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "AdditionalShadowAtlas",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "LightCookie",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "LightCookie",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "LightCookie",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "LightCookie",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "LightLayers",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "LightLayers",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "LightLayers",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "LightLayers",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "ScreenSpaceAO",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "ScreenSpaceAO",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "ScreenSpaceAO",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "t4",
+    "case": "ScreenSpaceAO",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "control",
+    "case": "0",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "control",
+    "case": "8",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "control",
+    "case": "48",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "control",
+    "case": "256",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "cluster-on",
+    "case": "0",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "cluster-on",
+    "case": "8",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "cluster-on",
+    "case": "48",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 11,
+    "fixture": "cluster-on",
+    "case": "256",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "MainShadowCascade",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "MainShadowCascade",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "MainShadowCascade",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "MainShadowCascade",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "ReceiveShadowsOff",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "ReceiveShadowsOff",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "ReceiveShadowsOff",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "ReceiveShadowsOff",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "MainShadowScreen",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "MainShadowScreen",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "MainShadowScreen",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "MainShadowScreen",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "AdditionalShadowAtlas",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "AdditionalShadowAtlas",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "AdditionalShadowAtlas",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "AdditionalShadowAtlas",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "LightCookie",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "LightCookie",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "LightCookie",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "LightCookie",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "LightLayers",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "LightLayers",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "LightLayers",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "LightLayers",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "ScreenSpaceAO",
+    "comparison": "forward_plus_vs_clustered_on",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "ScreenSpaceAO",
+    "comparison": "forward_plus_vs_clustered_off",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "ScreenSpaceAO",
+    "comparison": "clustered_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "t4",
+    "case": "ScreenSpaceAO",
+    "comparison": "forward_plus_feature_effect",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "control",
+    "case": "0",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "control",
+    "case": "8",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "control",
+    "case": "48",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "control",
+    "case": "256",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "cluster-on",
+    "case": "0",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "cluster-on",
+    "case": "8",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "cluster-on",
+    "case": "48",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  },
+  {
+    "api": 12,
+    "fixture": "cluster-on",
+    "case": "256",
+    "comparison": "CD/FP",
+    "old": false,
+    "new": false
+  }
+]

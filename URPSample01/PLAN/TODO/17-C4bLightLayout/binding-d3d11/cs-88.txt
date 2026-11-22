@@ -1,0 +1,43 @@
+Stage:  CS
+ID:     8569
+Target: DXBC
+
+Shader hash 04cc65b1-7d7eb5ab-c34b1878-767554eb
+
+cs_5_0
+      dcl_globalFlags refactoringAllowed
+      dcl_constantbuffer cb0[6], immediateIndexed
+      dcl_uav_structured u0, 16
+      dcl_uav_structured u1, 4
+      dcl_input vThreadID.xy
+      dcl_temps 2
+      dcl_thread_group 8, 8, 1
+   0: uge r0.xy, vThreadID.xyxx, cb0[5].xyxx
+   1: or r0.x, r0.y, r0.x
+   2: if_nz r0.x
+   3:   ret
+   4: endif
+   5: ftou r0.x, cb0[2].w
+   6: imad r0.y, vThreadID.y, cb0[5].x, vThreadID.x
+   7: imad r0.x, r0.y, r0.x, cb0[0].x
+   8: mov r0.y, l(0)
+   9: loop
+  10:   uge r0.z, r0.y, cb0[4].x
+  11:   breakc_nz r0.z
+  12:   ld_structured_indexable(structured_buffer, stride=16)(mixed,mixed,mixed,mixed) r1.xyzw, r0.y, l(0), u0.xyzw
+  13:   ige r0.zw, vThreadID.yyyx, r1.xxxz
+  14:   ige r1.xy, r1.ywyy, vThreadID.yxyy
+  15:   and r0.z, r0.z, r1.x
+  16:   and r0.z, r0.w, r0.z
+  17:   and r0.z, r1.y, r0.z
+  18:   if_nz r0.z
+  19:     ushr r0.z, r0.y, l(5)
+  20:     iadd r0.z, r0.z, r0.x
+  21:     ld_structured_indexable(structured_buffer, stride=4)(mixed,mixed,mixed,mixed) r0.w, r0.z, l(0), u1.xxxx
+  22:     bfi r0.w, l(1), r0.y, l(1), r0.w
+  23:     store_structured u1.x, r0.z, l(0), r0.w
+  24:   endif
+  25:   iadd r0.y, r0.y, l(1)
+  26: endloop
+  27: ret
+

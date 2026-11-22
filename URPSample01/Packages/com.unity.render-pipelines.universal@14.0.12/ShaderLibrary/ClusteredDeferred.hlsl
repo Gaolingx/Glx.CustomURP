@@ -74,8 +74,8 @@ float4 _FPParams2;
 // G1: the bitmaps are UAV-writable structured buffers so the list can be built on the GPU.
 // D3D11 cannot bind a constant buffer as a UAV, which the CPU-only path could hide. The word
 // layout, headers and index formulas are the constant-buffer ones; only the binding type moved.
-StructuredBuffer<uint> URP_ZBins;
-StructuredBuffer<uint> urp_Tiles;
+StructuredBuffer<uint> _URPClusterWords;
+uint _URPClusterTileOffset; // word address; z-bin region starts at zero
 
 // G3 compact lists (ClusterBuilder.compute: ClusterCellBuild). When the build published a cell for
 // this frame, the iterator reads one header plus a short ascending item list instead of walking the
@@ -628,7 +628,7 @@ CdClusterIterator CdClusterInit(float2 normalizedScreenSpaceUV, float3 positionW
     // lookup below uses exactly the zbin the bitmap path would read.
     zBinIndex = min(zBinIndex, (CD_MAX_ZBIN_WORDS - zBinStride) / zBinStride);
     state.zBinOffset = zBinIndex * zBinStride + 2;
-    state.entityIndexNextMax = URP_ZBins[zBinIndex * zBinStride];
+    state.entityIndexNextMax = _URPClusterWords[zBinIndex * zBinStride];
 
     // Compact cell: exists only inside the tile's measured depth slice. A zero-count cell is a real
     // answer (no light reaches this (tile, zbin)); overflow falls back to the bitmap.
@@ -673,8 +673,8 @@ bool CdClusterNext(inout CdClusterIterator it, out uint entityIndex)
         uint tileIndex = it.tileOffset + wordIndex;
         uint zBinIndex = it.zBinOffset + wordIndex;
         it.tileMask =
-            urp_Tiles[tileIndex] &
-            URP_ZBins[zBinIndex] &
+            _URPClusterWords[_URPClusterTileOffset + tileIndex] &
+            _URPClusterWords[zBinIndex] &
             (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) &
             (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));
         it.entityIndexNextMax = (it.entityIndexNextMax + 32) & ~31;

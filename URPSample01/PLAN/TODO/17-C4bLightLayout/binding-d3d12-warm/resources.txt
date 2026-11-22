@@ -1,0 +1,36 @@
+ID	Name	Type	Bytes	Width	Height	Format
+332	D3D12PageAllocator::AllocateNewResourceInternal() Scratchbuffer (tag:0)	Buffer	4194304			
+344	Buffer 344	Buffer	65536			
+466	Command List 466	CommandBuffer	0			
+521	Cube	Buffer	1344			
+523	Cube	Buffer	72			
+524	Plane	Buffer	5808			
+525	Plane	Buffer	1200			
+731	Sphere	Buffer	28840			
+733	Sphere	Buffer	4608			
+736	Buffer-512-176	Buffer	256			
+737	Buffer-512-176	Buffer	256			
+738	Buffer-512-176	Buffer	256			
+739	URP Cluster Words	Buffer	81920			
+749	CD Cluster Items	Buffer	3072			
+750	CD Cluster MinMaxZ	Buffer	512			
+751	CD Cluster Tile Ranges	Buffer	1024			
+752	CD Cluster Bin Headers	Buffer	16384			
+793	Command List 793	CommandBuffer	0			
+797	Command List 797	CommandBuffer	0			
+803	Command List 803	CommandBuffer	0			
+828	Command List 828	CommandBuffer	0			
+832	Command List 832	CommandBuffer	0			
+835	Command List 835	CommandBuffer	0			
+856	Command List 856	CommandBuffer	0			
+868	Command List 868	CommandBuffer	0			
+5731	Baked Command List 5731	CommandBuffer	0			
+5732	Baked Command List 5732	CommandBuffer	0			
+5733	Baked Command List 5733	CommandBuffer	0			
+5734	Baked Command List 5734	CommandBuffer	0			
+5735	Baked Command List 5735	CommandBuffer	0			
+5756	Baked Command List 5756	CommandBuffer	0			
+5767	Baked Command List 5767	CommandBuffer	0			
+5769	Baked Command List 5769	CommandBuffer	0			
+5774	Baked Command List 5774	CommandBuffer	0			
+# 34 resources

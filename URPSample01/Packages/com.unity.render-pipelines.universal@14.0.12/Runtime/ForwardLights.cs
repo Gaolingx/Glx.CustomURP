@@ -53,8 +53,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         int m_ActualTileWidth;
         int2 m_TileResolution;
 
-        GraphicsBuffer m_ZBinsBuffer;
-        GraphicsBuffer m_TileMasksBuffer;
+        GraphicsBuffer m_ClusterWords; // [z-bin headers and masks | tile masks], in uint words
 
         LightCookieManager m_LightCookieManager;
         ReflectionProbeManager m_ReflectionProbeManager;
@@ -165,12 +164,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         void EnsureClusterBuffers()
         {
             int bins = UniversalRenderPipeline.maxZBinWords, tiles = UniversalRenderPipeline.maxTileWords;
-            if (m_ZBinsBuffer == null || m_ZBinsBuffer.count != bins || m_TileMasksBuffer.count != tiles)
+            if (m_ClusterWords == null || m_ClusterWords.count != bins + tiles)
             {
-                m_ZBinsBuffer?.Dispose();
-                m_TileMasksBuffer?.Dispose();
-                m_ZBinsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, bins, sizeof(uint)) { name = "URP Z-Bin Buffer" };
-                m_TileMasksBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, tiles, sizeof(uint)) { name = "URP Tile Buffer" };
+                m_ClusterWords?.Dispose();
+                m_ClusterWords = new GraphicsBuffer(GraphicsBuffer.Target.Structured, bins + tiles, sizeof(uint)) { name = "URP Cluster Words" };
             }
         }
 
@@ -312,7 +309,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return m_ClusterAsyncCmd;
         }
 
-        // Consumers of URP_ZBins/urp_Tiles call this before reading them. Only the first consumer
+        // Consumers of the cluster word buffer call this before reading them. Only the first consumer
         // of a scheduled async build waits; later ones would only re-wait on a passed fence.
         internal void WaitForClusterList(CommandBuffer cmd)
         {
@@ -329,12 +326,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // G3 cells already resolve depth per (tile, zbin); refining the bitmap would only add a
             // second full-screen depth scan before the cell build reads it.
-            if (!m_ClusteredDeferred || m_ClusterBuilder == null || m_TileMasksBuffer == null ||
+            if (!m_ClusteredDeferred || m_ClusterBuilder == null || m_ClusterWords == null ||
                 !ClusterListGpuBuilder.pruneByDepth || ClusterListGpuBuilder.compactLists)
                 return;
 
             using (new ProfilingScope(cmd, m_ProfilingSamplerFPGpuPrune))
-                m_ClusterBuilder.Prune(cmd, m_ClusterGpuParams, depthTexture, zBufferParams, m_TileMasksBuffer);
+                m_ClusterBuilder.Prune(cmd, m_ClusterGpuParams, depthTexture, zBufferParams, m_ClusterWords);
         }
 
         // The lighting kernel needs valid SRVs even when compact cells are disabled.
@@ -358,13 +355,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         // depth copy. Runs after the build fence and before the lighting dispatch.
         internal void BuildClusterCells(CommandBuffer cmd, RenderTargetIdentifier depthTexture, Vector4 zBufferParams)
         {
-            if (!m_ClusteredDeferred || m_ClusterBuilder == null || m_TileMasksBuffer == null ||
+            if (!m_ClusteredDeferred || m_ClusterBuilder == null || m_ClusterWords == null ||
                 !ClusterListGpuBuilder.compactLists)
                 return;
 
             using (new ProfilingScope(cmd, m_ProfilingSamplerFPGpuCells))
                 m_ClusterBuilder.BuildCells(cmd, m_ClusterGpuParams, depthTexture, zBufferParams,
-                    m_ZBinsBuffer, m_TileMasksBuffer);
+                    m_ClusterWords);
         }
 
         /// <summary>
@@ -413,8 +410,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                             wordsPerTile = m_WordsPerTile,
                             zBinScale = m_ZBinScale,
                             zBinOffset = m_ZBinOffset,
-                            zBinWordCount = m_ZBinsBuffer.count,
-                            tileWordCount = m_TileMasksBuffer.count,
+                            zBinWordCount = UniversalRenderPipeline.maxZBinWords,
+                            tileWordCount = UniversalRenderPipeline.maxTileWords,
                             tileCount = m_TileResolution,
                             tileWidth = m_ActualTileWidth,
                             screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight),
@@ -433,23 +430,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                             // flush is needed. Only the completion fence crosses back.
                             var asyncCmd = GetClusterAsyncCommandBuffer();
                             m_ClusterBuilder.Upload(asyncCmd, m_ClusterItems, itemCount);
-                            m_ClusterBuilder.Dispatch(asyncCmd, gpuParams, m_ZBinsBuffer, m_TileMasksBuffer);
+                            m_ClusterBuilder.Dispatch(asyncCmd, gpuParams, m_ClusterWords);
                             m_ClusterFence = asyncCmd.CreateGraphicsFence(
                                 GraphicsFenceType.AsyncQueueSynchronisation, SynchronisationStageFlags.ComputeProcessing);
                             m_ClusterFencePending = true;
                             context.ExecuteCommandBufferAsync(asyncCmd, ComputeQueueType.Background);
                             asyncCmd.Clear();
-
-                            cmd.SetGlobalBuffer("URP_ZBins", m_ZBinsBuffer);
-                            cmd.SetGlobalBuffer("urp_Tiles", m_TileMasksBuffer);
                         }
                         else
                         {
                             m_ClusterBuilder.Upload(cmd, m_ClusterItems, itemCount);
-                            m_ClusterBuilder.Dispatch(cmd, gpuParams, m_ZBinsBuffer, m_TileMasksBuffer);
-                            cmd.SetGlobalBuffer("URP_ZBins", m_ZBinsBuffer);
-                            cmd.SetGlobalBuffer("urp_Tiles", m_TileMasksBuffer);
+                            m_ClusterBuilder.Dispatch(cmd, gpuParams, m_ClusterWords);
                         }
+
+                        cmd.SetGlobalBuffer(ClusterListGpuBuilder.wordsId, m_ClusterWords);
+                        cmd.SetGlobalInteger(ClusterListGpuBuilder.tileOffsetId, gpuParams.zBinWordCount);
 
                         // G3: the cell buffers and their enable switch are read by the lighting
                         // compute. Bound here so the later ClusteredDeferredPass dispatch does not
@@ -465,7 +460,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         // the sync path is already ordered on this command buffer.
                         if (m_ClusterFencePending)
                             cmd.WaitOnAsyncGraphicsFence(m_ClusterFence, SynchronisationStageFlags.ComputeProcessing);
-                        ClusterListParityCapture.RequestGpuCapture(cmd, snapshot, m_ZBinsBuffer, m_TileMasksBuffer);
+                        ClusterListParityCapture.RequestGpuCapture(cmd, snapshot, m_ClusterWords, m_ClusterGpuParams.zBinWordCount);
                     }
                 }
 
@@ -541,10 +536,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (m_UseClusters)
             {
-                m_ZBinsBuffer?.Dispose();
-                m_ZBinsBuffer = null;
-                m_TileMasksBuffer?.Dispose();
-                m_TileMasksBuffer = null;
+                m_ClusterWords?.Dispose();
+                m_ClusterWords = null;
                 m_ClusterAsyncCmd?.Dispose();
                 m_ClusterAsyncCmd = null;
                 m_ClusterFencePending = false;

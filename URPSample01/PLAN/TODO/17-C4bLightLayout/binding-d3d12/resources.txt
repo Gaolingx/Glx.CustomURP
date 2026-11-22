@@ -1,0 +1,19 @@
+ID	Name	Type	Bytes	Width	Height	Format
+326	D3D12UploadBuffer::Initialize() UploadBuffer (tag:0)	Buffer	16777216			
+327	D3D12UploadBuffer::Initialize() UploadBuffer (tag:1)	Buffer	16777216			
+329	Command List 329	CommandBuffer	0			
+332	D3D12PageAllocator::AllocateNewResourceInternal() Scratchbuffer (tag:0)	Buffer	4194304			
+337	Buffer-1-20	Buffer	20			
+339	Command List 339	CommandBuffer	0			
+342	Buffer-1-28	Buffer	28			
+382	Command List 382	CommandBuffer	0			
+454	D3D12ScratchBufferInternal::D3D12ScratchBufferInternal() ScratchBuffer (tag:0)	Buffer	1048576			
+459	Sprite-Mesh-VB	Buffer	48			
+460	Sprite-Mesh-VB	Buffer	32			
+461	Sprite-Mesh-IB	Buffer	12			
+483	Command List 483	CommandBuffer	0			
+331	Baked Command List 331	CommandBuffer	0			
+341	Baked Command List 341	CommandBuffer	0			
+384	Baked Command List 384	CommandBuffer	0			
+485	Baked Command List 485	CommandBuffer	0			
+# 17 resources

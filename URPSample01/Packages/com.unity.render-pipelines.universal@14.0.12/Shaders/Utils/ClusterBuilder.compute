@@ -53,8 +53,8 @@ RWStructuredBuffer<float2> _CdClusterMinMaxZ;
 RWStructuredBuffer<int4> _CdClusterTileRanges;  // x/y = row range, z/w = column range; empty: y < x
 RWStructuredBuffer<uint> _CdClusterBinMinMax;   // 4 per bin: min/max for header 0 (lights) and 1 (probes)
 
-RWStructuredBuffer<uint> URP_ZBins;
-RWStructuredBuffer<uint> urp_Tiles;
+RWStructuredBuffer<uint> _URPClusterWords;
+uint _URPClusterTileOffset; // word address; z-bin region starts at zero
 
 float4 _FPParams0;
 float4 _FPParams1;
@@ -210,9 +210,9 @@ void ClusterZBinClear(uint3 id : SV_DispatchThreadID)
 {
     uint index = id.x;
     if (index < _CdClusterZBinWordCount)
-        URP_ZBins[index] = 0u;
+        _URPClusterWords[index] = 0u;
     if (index < _CdClusterTileWordCount)
-        urp_Tiles[index] = 0u;
+        _URPClusterWords[_URPClusterTileOffset + index] = 0u;
     if (index < _CdClusterBinCount * 4u)
         _CdClusterBinMinMax[index] = (index & 1u) == 0u ? 0xFFFFu : 0u;
 }
@@ -239,7 +239,7 @@ void ClusterZBinScatter(uint3 id : SV_DispatchThreadID)
 
     uint wordsPerTile = (uint)_FPParams1.w;
     uint words = bin * (2u + wordsPerTile);
-    InterlockedOr(URP_ZBins[words + 2u + (item >> 5)], 1u << (item & 31u));
+    InterlockedOr(_URPClusterWords[words + 2u + (item >> 5)], 1u << (item & 31u));
 
     // Header 0 is the punctual light range, header 1 the reflection probe range; both index the
     // combined item stream, which is what ZBinningJob writes.
@@ -257,8 +257,8 @@ void ClusterZBinPack(uint3 id : SV_DispatchThreadID)
 
     uint words = bin * (2u + (uint)_FPParams1.w);
     uint slot = bin * 4u;
-    URP_ZBins[words + 0u] = (_CdClusterBinMinMax[slot + 0u] & 0xFFFFu) | ((_CdClusterBinMinMax[slot + 1u] & 0xFFFFu) << 16u);
-    URP_ZBins[words + 1u] = (_CdClusterBinMinMax[slot + 2u] & 0xFFFFu) | ((_CdClusterBinMinMax[slot + 3u] & 0xFFFFu) << 16u);
+    _URPClusterWords[words + 0u] = (_CdClusterBinMinMax[slot + 0u] & 0xFFFFu) | ((_CdClusterBinMinMax[slot + 1u] & 0xFFFFu) << 16u);
+    _URPClusterWords[words + 1u] = (_CdClusterBinMinMax[slot + 2u] & 0xFFFFu) | ((_CdClusterBinMinMax[slot + 3u] & 0xFFFFu) << 16u);
 }
 
 [numthreads(8, 8, 1)]
@@ -278,7 +278,7 @@ void ClusterTileExpand(uint3 id : SV_DispatchThreadID)
         if ((int)tileY >= range.x && (int)tileY <= range.y &&
             (int)tileX >= range.z && (int)tileX <= range.w)
         {
-            urp_Tiles[wordBase + (item >> 5)] |= 1u << (item & 31u);
+            _URPClusterWords[_URPClusterTileOffset + wordBase + (item >> 5)] |= 1u << (item & 31u);
         }
     }
 }
@@ -390,7 +390,7 @@ void ClusterTilePrune(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThrea
     {
         uint word = item >> 5;
         uint mask = 1u << (item & 31u);
-        uint current = urp_Tiles[wordBase + word];
+        uint current = _URPClusterWords[_URPClusterTileOffset + wordBase + word];
         if ((current & mask) == 0u)
             continue;
 
@@ -418,7 +418,7 @@ void ClusterTilePrune(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThrea
         }
         else
         {
-            urp_Tiles[wordBase + word] = current & ~mask;
+            _URPClusterWords[_URPClusterTileOffset + wordBase + word] = current & ~mask;
             cleared++;
         }
     }
@@ -448,7 +448,7 @@ int CdCellDepthBin(float z)
 // One 8x8 group per tile. The group measures the tile's depth slice from the same depth copy the
 // lighting kernel reads, maps it to a zbin range (padded one bin each side so the pixel's own
 // truncation can never fall outside), and fills one cell per zbin with the ascending item indices
-// present in both bitmaps. Nothing here touches URP_ZBins/urp_Tiles, so the bitmap path stays the
+// present in both bitmaps. Nothing here modifies the shared bitmap words, so the bitmap path stays the
 // reference: cells the budget cannot hold keep the overflow flag and the pixel uses the bitmap.
 [numthreads(8, 8, 1)]
 void ClusterCellBuild(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
@@ -561,7 +561,7 @@ void ClusterCellBuild(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThrea
 
     [loop] for (uint word = 0u; word < wordsPerTile && !overflow; word++)
     {
-        uint bits = urp_Tiles[tileWordBase + word] & URP_ZBins[zBinWordBase + word];
+        uint bits = _URPClusterWords[_URPClusterTileOffset + tileWordBase + word] & _URPClusterWords[zBinWordBase + word];
         [loop] while (bits != 0u)
         {
             uint bit = firstbitlow(bits);

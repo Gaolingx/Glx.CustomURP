@@ -172,8 +172,8 @@ CBUFFER_END
 #if USE_CLUSTER_LIGHTS
 
 // Both cluster paths read the compute builder's bitmaps, one uint per word.
-StructuredBuffer<uint> URP_ZBins;
-StructuredBuffer<uint> urp_Tiles;
+StructuredBuffer<uint> _URPClusterWords;
+uint _URPClusterTileOffset; // word address; z-bin region starts at zero
 
 #endif
 

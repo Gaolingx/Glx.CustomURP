@@ -1,0 +1,17 @@
+C4b — 双 API 定向验证；不改 C4a 归档或签收。
+
+布局：ForwardLights 只持有一个 stride=4 的结构化输出。z-bin 从 word 0 开始，tile 从 host 发布的整型 _URPClusterTileOffset 开始（等于 z-bin 区域容量，而非使用长度）。照旧单独计算灯/探针 header、索引与 bitmap；未增加打包拷贝、dispatch、深度输入、shader keyword，也不减少位图字节数。默认同步；clustered 可选 async/G2/G3 也读写同一布局，没有启用 compact。Forward+、clustered deferred、SSGI 探针 fallback 全部迁移。奇数 z-bin 容量、32 局部灯加 1 探针跨 word、两个 tile、空表及尾部哨兵由 Editor GPU 测试覆盖。
+
+环境：Unity 2022.3.62f1，Windows，独立复制的 Assets/Packages/ProjectSettings 和 Library（E:\tmp\C4b-layout-verify、E:\tmp\C4b-player-verify）。主项目设置未改，未提交。两份副本的九个改动源文件与主树逐字节一致。PlayMode 从 Done/16-CleanupBaseline/c4/cpu-5d4bcca 只读同 API、L0-P0 / L24-P1 的 .bin + PNG；未重新生成 CPU 参照。D3D11、D3D12 均运行 -runTests -testPlatform PlayMode 或 EditMode -testFilter ClusteredDeferred。
+
+EditMode 两 API 各 20/20；PlayMode 各 16/17。独立 CPU 覆盖与 PNG、禁用 builder 后剔除前可见 Forward 回退/恢复、透明/ForwardOnly、相机堆叠、调度、prune 和 compact A/B 都过。唯一失败是同一跨路径材质测试，两个 API 都是 1674 像素 >8/255（限 230），与旧原始断言一致，仍 FAIL。
+
+四个新玩家构建均 Succeeded、0 build errors（本目录 BuildSummary）。Forward+ 玩家 RenderDoc：D3D11 binding-d3d11/forward_frame108.rdc，81920 B 的资源 8581，pack EID 74 / expand 88 写，DrawOpaqueObjects 483 内首个 draw 518 的 PS 读；D3D12 binding-d3d12-warm/forward_frame661.rdc，资源 739，同样 81920 B，135/140 写，506 barrier，DrawOpaqueObjects 502 内首个 draw 532 的 PS 读。见各目录 resources/events/usage、CS/PS 指令和 CdPerf.json，不把 UAV 绑定等同每像素都执行某条指令。首次 D3D12 抓到启动 frame 0，无灯表；保留 binding-d3d12 原始结果，不计通过；把延迟从 200 增至 1600 后复抓。两 API 的 T5 Lit/ForwardLit/fp 均为 6144。
+
+同 API、同模式、同状态的 1280x720 RGB 比较，原始 mean<=2 且 peak<=24，不应用任何例外。compare_player.py 可复算 player-comparison.json；有未过图片应退出 1。相对 C4a final-player：
+- T4 56/56，最大 peak=1，覆盖 7 功能 × 开关 × 两模式 × 两 API。T4 玩家矩阵内部跨路径判定并非全绿；命令退出 2 有完整清单和截图。cross-route.json：与 C4a 比较 72 项通过/失败状态没有变化，其中 44 项 CD/FP 原始失败（T4 28、T5 16），没有改判。
+- T5 24/32。全部 L0/8/48 通过；八项 L256 原始失败。control 的 CD/Forward+ 峰值在两 API 均为 72/71；透明 D3D11 为 30/30、D3D12 为 78/78。单独对 C3 也是 24/32（T5-same-path.json）。新 D3D11 255/256 边界进程对 C4a cap-control：255 的 CD/FP 峰值 2/1，256 为 66/66。不以 255 代替 256，也未在本次八张图逐帧鉴定被剔除灯 ID。
+- 历史 C4a 初测 28/32，归档复测 24/32（两个 API 各四项失败）；不把原始失败泛化为噪声，不扩展 D3D11 旧例外。T5 256 cap 继续 OPEN。
+- T5-timings.json 为 32 行候选 CPU/GPU 中位数及对 C4a 差值；编译任务与部分采样重叠，不能作为性能收益或无回退证据。没有据此调整任何门槛。
+
+边界：本阶段证实的是双 API 游戏玩家/Editor 的新物理布局及以上定向回归；不宣称所有材质跨路径一致、全部图像通过、SSGI 探针 miss 有独立专项图像签收，或覆盖 XR/其他图形 API。未做 C5–C7。

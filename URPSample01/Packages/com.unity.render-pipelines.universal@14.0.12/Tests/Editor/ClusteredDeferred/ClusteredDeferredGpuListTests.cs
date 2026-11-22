@@ -49,23 +49,52 @@ namespace UnityEditor.Rendering.Universal.Tests
         static void AssertEmptyDispatch(ComputeShader shader, bool bitmapOnly)
         {
             var builder = new ClusterListGpuBuilder(shader, bitmapOnly);
-            using var bins = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, sizeof(uint));
-            using var tiles = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, sizeof(uint));
+            using var words = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 4, sizeof(uint));
             using var cmd = new CommandBuffer();
             try
             {
                 Assert.IsTrue(builder.isCreated);
-                bins.SetData(new[] { uint.MaxValue, uint.MaxValue });
-                tiles.SetData(new[] { uint.MaxValue });
+                words.SetData(new[] { uint.MaxValue, uint.MaxValue, uint.MaxValue, 0xabcdef01u });
                 builder.Dispatch(cmd, new ClusterListGpuParams { items = Array.Empty<ClusterItemRecord>(),
-                    binCount = 1, zBinWordCount = 2, tileWordCount = 1, tileCount = new int2(1, 1) }, bins, tiles);
+                    binCount = 1, zBinWordCount = 2, tileWordCount = 1, tileCount = new int2(1, 1) }, words);
                 Graphics.ExecuteCommandBuffer(cmd);
-                var headers = new uint[2];
-                var tile = new uint[1];
-                bins.GetData(headers);
-                tiles.GetData(tile);
-                CollectionAssert.AreEqual(new[] { 0xffffu, 0xffffu }, headers);
-                Assert.AreEqual(0u, tile[0]);
+                var actual = new uint[4];
+                words.GetData(actual);
+                CollectionAssert.AreEqual(new[] { 0xffffu, 0xffffu, 0u, 0xabcdef01u }, actual);
+            }
+            finally
+            {
+                builder.Dispose();
+            }
+        }
+
+        [Test]
+        public void PackedBitmapSeparatesHeadersAndSecondMaskWord()
+        {
+            if (!SystemInfo.supportsComputeShaders)
+                Assert.Ignore("Compute shaders unavailable.");
+            var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.universal/Shaders/Utils/ClusterBuilder.compute");
+            var builder = new ClusterListGpuBuilder(shader, bitmapOnly: true);
+            // All candidates cross the near plane and cover both tiles. Probe 32 is bit 0 of word 1.
+            var items = new ClusterItemRecord[33];
+            for (int i = 0; i < items.Length; ++i)
+                items[i] = new ClusterItemRecord { positionRange = new float4(0, 0, 0, 1), lightType = LightType.Point };
+            items[32].itemType = ClusterItemType.Probe;
+            items[32].directionExtent = new float4(1, 1, 1, 0);
+            using var words = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 9, sizeof(uint));
+            using var cmd = new CommandBuffer();
+            try
+            {
+                Assert.IsTrue(builder.isCreated);
+                builder.Upload(cmd, items, items.Length);
+                builder.Dispatch(cmd, new ClusterListGpuParams { items = items, itemCount = 33, lightCount = 32,
+                    binCount = 1, wordsPerTile = 2, zBinWordCount = 5, tileWordCount = 4,
+                    worldToView = Matrix4x4.identity, near = 0.1f, tileCount = new int2(2, 1) }, words);
+                Graphics.ExecuteCommandBuffer(cmd);
+                var actual = new uint[9];
+                words.GetData(actual);
+                CollectionAssert.AreEqual(new[] { 31u << 16, (32u << 16) | 32u, uint.MaxValue, 1u, 0u,
+                    uint.MaxValue, 1u, uint.MaxValue, 1u }, actual);
             }
             finally
             {

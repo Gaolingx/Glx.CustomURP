@@ -50,8 +50,8 @@ float4 _FPParams2;
 #define URP_FP_ZBIN_COUNT ((uint)_FPParams2.x)
 #define URP_FP_TILE_COUNT ((uint)_FPParams2.y)
 
-StructuredBuffer<uint> URP_ZBins;
-StructuredBuffer<uint> urp_Tiles;
+StructuredBuffer<uint> _URPClusterWords;
+uint _URPClusterTileOffset; // word address; z-bin region starts at zero
 
 TEXTURE2D(urp_ReflProbes_Atlas);
 SAMPLER(samplerurp_ReflProbes_Atlas);
@@ -109,7 +109,7 @@ SslProbeClusterIterator SslProbeClusterInit(float2 normalizedScreenSpaceUV, floa
     // Header 1 is the reflection probe list; header 0 is the punctual light list.
     uint zBinHeaderIndex = zBinBaseIndex + 1;
     state.zBinOffset = zBinBaseIndex + 2;
-    state.entityIndexNextMax = URP_ZBins[zBinHeaderIndex];
+    state.entityIndexNextMax = _URPClusterWords[zBinHeaderIndex];
 
     return state;
 }
@@ -123,8 +123,8 @@ bool SslProbeClusterNext(inout SslProbeClusterIterator it, out uint entityIndex)
         uint tileIndex = it.tileOffset + wordIndex;
         uint zBinIndex = it.zBinOffset + wordIndex;
         it.tileMask =
-            urp_Tiles[tileIndex] &
-            URP_ZBins[zBinIndex] &
+            _URPClusterWords[_URPClusterTileOffset + tileIndex] &
+            _URPClusterWords[zBinIndex] &
             (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) &
             (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));
         it.entityIndexNextMax = (it.entityIndexNextMax + 32) & ~31;

@@ -66,6 +66,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal static int lastCompactOverflowTiles;
         internal static int lastCompactScannedCells;
 
+        internal static readonly int wordsId = Shader.PropertyToID("_URPClusterWords");
+        internal static readonly int tileOffsetId = Shader.PropertyToID("_URPClusterTileOffset");
+
         const int k_BoundsThreads = 64;
         const int k_ClearThreads = 256;
         const int k_ScatterThreads = 64;
@@ -143,7 +146,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetBufferData(m_Items, items, 0, 0, itemCount);
         }
 
-        public void Dispatch(CommandBuffer cmd, in ClusterListGpuParams p, GraphicsBuffer zbins, GraphicsBuffer tiles)
+        public void Dispatch(CommandBuffer cmd, in ClusterListGpuParams p, GraphicsBuffer words)
         {
             if (!isCreated || p.items == null)
                 return;
@@ -156,6 +159,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetComputeVectorParam(m_Compute, "_FPParams0", new Vector4(p.zBinScale, p.zBinOffset, 0f, 0f));
             cmd.SetComputeVectorParam(m_Compute, "_FPParams1", new Vector4(0f, 0f, 0f, p.wordsPerTile));
 
+            cmd.SetComputeIntParam(m_Compute, tileOffsetId, p.zBinWordCount);
             cmd.SetComputeIntParam(m_Compute, "_CdClusterItemCount", p.itemCount);
             cmd.SetComputeIntParam(m_Compute, "_CdClusterLightCount", p.lightCount);
             cmd.SetComputeIntParam(m_Compute, "_CdClusterBinCount", p.binCount);
@@ -172,18 +176,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetComputeBufferParam(m_Compute, m_BoundsKernel, "_CdClusterMinMaxZ", m_MinMaxZ);
             cmd.SetComputeBufferParam(m_Compute, m_BoundsKernel, "_CdClusterTileRanges", m_TileRanges);
 
-            cmd.SetComputeBufferParam(m_Compute, m_ClearKernel, "URP_ZBins", zbins);
-            cmd.SetComputeBufferParam(m_Compute, m_ClearKernel, "urp_Tiles", tiles);
+            cmd.SetComputeBufferParam(m_Compute, m_ClearKernel, wordsId, words);
             cmd.SetComputeBufferParam(m_Compute, m_ClearKernel, "_CdClusterBinMinMax", m_BinMinMax);
 
-            cmd.SetComputeBufferParam(m_Compute, m_ScatterKernel, "URP_ZBins", zbins);
+            cmd.SetComputeBufferParam(m_Compute, m_ScatterKernel, wordsId, words);
             cmd.SetComputeBufferParam(m_Compute, m_ScatterKernel, "_CdClusterMinMaxZ", m_MinMaxZ);
             cmd.SetComputeBufferParam(m_Compute, m_ScatterKernel, "_CdClusterBinMinMax", m_BinMinMax);
 
-            cmd.SetComputeBufferParam(m_Compute, m_PackKernel, "URP_ZBins", zbins);
+            cmd.SetComputeBufferParam(m_Compute, m_PackKernel, wordsId, words);
             cmd.SetComputeBufferParam(m_Compute, m_PackKernel, "_CdClusterBinMinMax", m_BinMinMax);
 
-            cmd.SetComputeBufferParam(m_Compute, m_ExpandKernel, "urp_Tiles", tiles);
+            cmd.SetComputeBufferParam(m_Compute, m_ExpandKernel, wordsId, words);
             cmd.SetComputeBufferParam(m_Compute, m_ExpandKernel, "_CdClusterTileRanges", m_TileRanges);
 
             if (p.itemCount > 0)
@@ -203,13 +206,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         // build fence, before the lighting dispatch. It narrows the published tile bitmap in place;
         // the zbin bitmap and every layout/param the kernel reads stay untouched.
         public bool Prune(CommandBuffer cmd, in ClusterListGpuParams p, RenderTargetIdentifier depthTexture,
-            Vector4 zBufferParams, GraphicsBuffer tiles)
+            Vector4 zBufferParams, GraphicsBuffer words)
         {
             if (!isCreated || !pruneByDepth || p.items == null)
                 return false;
 
             EnsureCapacity(p.itemCount, p.binCount);
 
+            cmd.SetComputeIntParam(m_Compute, tileOffsetId, p.zBinWordCount);
             cmd.SetComputeIntParam(m_Compute, "_CdClusterItemCount", p.itemCount);
             cmd.SetComputeIntParams(m_Compute, "_CdClusterTileCount", p.tileCount.x, p.tileCount.y);
             cmd.SetComputeIntParam(m_Compute, "_CdClusterTileWidth", p.tileWidth);
@@ -231,7 +235,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetComputeBufferParam(m_Compute, m_PruneKernel, "_CdClusterItems", m_Items);
             cmd.SetComputeBufferParam(m_Compute, m_PruneKernel, "_CdClusterMinMaxZ", m_MinMaxZ);
             cmd.SetComputeBufferParam(m_Compute, m_PruneKernel, "_CdClusterPruneTotals", m_PruneTotals);
-            cmd.SetComputeBufferParam(m_Compute, m_PruneKernel, "urp_Tiles", tiles);
+            cmd.SetComputeBufferParam(m_Compute, m_PruneKernel, wordsId, words);
 
             cmd.SetBufferData(m_PruneTotals, k_ZeroTotals);
             cmd.DispatchCompute(m_Compute, m_PruneKernel, p.tileCount.x, p.tileCount.y, 1);
@@ -272,7 +276,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // slice, maps it to a zbin range and fills one cell per (tile, zbin) with the item indices
         // present in both bitmaps. Tiles/cells over the capacity keep the bitmap path.
         public bool BuildCells(CommandBuffer cmd, in ClusterListGpuParams p, RenderTargetIdentifier depthTexture,
-            Vector4 zBufferParams, GraphicsBuffer zbins, GraphicsBuffer tiles)
+            Vector4 zBufferParams, GraphicsBuffer words)
         {
             if (!isCreated || !compactLists || p.items == null)
                 return false;
@@ -281,6 +285,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetComputeVectorParam(m_Compute, "_FPParams0", new Vector4(p.zBinScale, p.zBinOffset, 0f, 0f));
             cmd.SetComputeVectorParam(m_Compute, "_FPParams1", new Vector4(0f, 0f, 0f, p.wordsPerTile));
+            cmd.SetComputeIntParam(m_Compute, tileOffsetId, p.zBinWordCount);
             cmd.SetComputeIntParam(m_Compute, "_CdClusterItemCount", p.itemCount);
             cmd.SetComputeIntParam(m_Compute, "_CdClusterBinCount", p.binCount);
             cmd.SetComputeIntParams(m_Compute, "_CdClusterTileCount", p.tileCount.x, p.tileCount.y);
@@ -297,8 +302,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetComputeIntParam(m_Compute, "_CdClusterPruneSidePlanes", pruneSidePlanes ? 1 : 0);
 
             cmd.SetComputeTextureParam(m_Compute, m_CellKernel, "_CdClusterDepthTexture", depthTexture);
-            cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "URP_ZBins", zbins);
-            cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "urp_Tiles", tiles);
+            cmd.SetComputeBufferParam(m_Compute, m_CellKernel, wordsId, words);
             cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "_CdClusterItems", m_Items);
             cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "_CdCellHeaders", m_CellHeaders);
             cmd.SetComputeBufferParam(m_Compute, m_CellKernel, "_CdCellItems", m_CellItems);
