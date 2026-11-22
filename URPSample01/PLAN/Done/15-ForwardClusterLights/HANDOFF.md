@@ -34,8 +34,8 @@
   - 5 个 shader 的 ForwardLit 增加 `#pragma multi_compile _ _CLUSTERED_DEFERRED_LIGHTS`。
 - **Runtime**
   - `Runtime/UniversalRenderPipelineCore.cs`：`ShaderKeywordStrings.ClusteredDeferredLights`（`:1095` 附近）。
-  - `Runtime/ClusteredDeferred/ClusteredDeferredPass.cs:17`：静态开关 `forwardClusterLights = true`。
-  - `Runtime/ForwardLights.cs:706`：`clusterForwardLights = buildClusters && m_ClusteredDeferred && !m_UseForwardPlus && forwardClusterLights`；按帧 `SetKeyword`，per-vertex 灯关键字在 cluster 开启时让位给 per-pixel。
+  - `Runtime/ClusteredDeferred/ClusteredDeferredPass.cs:18`：静态开关 `forwardClusterLights = true`。
+  - `Runtime/ForwardLights.cs:709-710`：`clusterForwardLights = buildClusters && m_ClusteredDeferred && !m_UseForwardPlus && forwardClusterLights`；按帧 `SetKeyword`，per-vertex 灯关键字在 cluster 开启时让位给 per-pixel。
   - `Runtime/ScriptableRenderer.cs:1449`：每相机渲染前清掉该关键字，避免跨相机泄漏。
 - **夹具/验证**
   - `ClusteredDeferredArenaRunner`：`--cd-forward-cluster-off/on`、报告字段 `forwardClusterLights`/`forwardClusterKeyword`。
