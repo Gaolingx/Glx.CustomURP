@@ -1,5 +1,7 @@
 # 11-LightCulling 报告：Clustered Deferred (URP BRDF)
 
+> **SUPERSEDED（旧 stencil 基线）**：T4ShaderBuild、T5VariantCount、T7PlayerSummary 的旧结果保留为历史实测，不作为当前预算。C5 的双 API T5 玩家 Lit/ForwardLit(fp) 为 6144，ClusteredDeferred compute 为 1280。 见[当前验收口径](../../ACCEPTANCE.md#c6-current)。
+
 > 结论：**验收通过（mixed lighting-shadowmask 为 PARTIAL）**。clustered deferred 路径在 D3D11/D3D12 与 stencil deferred 逐像素 A/B 通过（mean ≤ 2/255、max ≤ 24/255），阴影/cookie/light layers/GTAO 直接光+间接光 AO 单项通过；EditMode 484/484、PlayMode 36/36；tile 宽度 8/16/32/64 实测生效；性能交叉点在 8–32 盏附加灯之间。mixed lighting-shadowmask 的实现与编译已覆盖，但本工程没有 baked shadowmask 数据，运行时 A/B 不可得。
 
 ## 1. 目标

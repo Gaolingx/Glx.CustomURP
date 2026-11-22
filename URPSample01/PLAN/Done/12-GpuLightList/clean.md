@@ -1,5 +1,7 @@
 # Light Culling 善后：死代码清理计划（暂不执行）
 
+> **C6 状态更新**：下列删除清单是规划时快照，并非当前操作步骤。C3、C4a 已归档；C4b 已统一灯表，C5 已清理无引用资产。阴影、材质分类 stencil、普通 Forward 逐物体索引仍保留。[阶段判定与证据](../../ACCEPTANCE.md#c6-current)。
+
 > 位置说明：11-LightCulling 的实现与验收已归档到 [`PLAN/Done/11-LightCulling`](../11-LightCulling/HANDOFF.md)。本文件是**后续善后计划**，已并入 `12-GpuLightList` 轮次（用户指定），C1 已在本轮落地；C2 已由 [`15-ForwardClusterLights`](../15-ForwardClusterLights/HANDOFF.md) 实现（透明/forward-only 读结构化 cluster 位图）；C3–C8 仍为规划。12-GpuLightList 本轮已归档到 `PLAN/Done/12-GpuLightList`，默认路径为同步 GPU 列表 + 位图；C3 的前置（fog 迁移、其余 shader 变体）尚未满足，因此仍不删除 CPU jobs 与 stencil 回退。
 >
 > 建立时状态（历史快照）：**C0 基线已冻结（2026-11-22，tag `pre-cleanup` = `f0c7ec4`）**，基线与 D-C1–D-C8 见 [`PLAN/Done/16-CleanupBaseline`](../../Done/16-CleanupBaseline/README.md)；C0.5 变体补齐与 C3 删除尚未开始。所有“可删”项都带有前置条件。

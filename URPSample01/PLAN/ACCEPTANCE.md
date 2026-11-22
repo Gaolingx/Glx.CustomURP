@@ -608,3 +608,12 @@ PY
 **已知失败（非回归）**：control 256 灯 `Stencil vs Clustered` 照旧失败（stencil 逐灯累加进 `R11G11B10f`，13 轮定性）；cluster-on 48/256 灯的 S/C 失败是 C2 的预期语义差；C/F 的 `passed=false` 只来自固定管线 max（46–86），>8 像素 382–622 与 15 轮一致。
 
 **边界**：只测 D3D11/D3D12 720p 单卡；透明夹具只覆盖 Lit；T4 的 PNG 与 T5 的 PNG 均已入库。
+
+<a id="c6-current"></a>
+## 21. C4b–C6：当前灯表、变体预算与历史基线
+
+| 阶段 | 当前判定 | 证据 |
+|---|---|---|
+| C4b `10ed839` | Forward+ 与 clustered deferred 共用一个结构化 word buffer；双 API 已验证 compute 写、首个 Forward+ draw 读。T4 同路径 56/56，T5 24/32，双 API 的 L256 仍 OPEN。 | [定向验收与边界](TODO/17-C4bLightLayout/RESULTS.txt) |
+| C5 `6023d29` | 移除四组无引用 stencil 测试资产；双 API 玩家构建 0 error，Lit/ForwardLit(fp) 6144、compute 1280，均 Δ0。两 API 全量 EditMode 各 489/489；PlayMode 各 45/46，材质跨路径 1674 px 超阈（限 230），仍 FAIL。 | [资产依据、剥离计数与 XML](TODO/18-C5Cleanup/report.md) |
+| C6 | **SUPERSEDED**：11 轮的 stencil A/B、旧构建和变体报告不再是当前执行步骤或预算。历史证据不覆盖；现有 Forward+ 对照和冻结的逐路径参照仍有效，不能互相替代。 | [已知差异](Done/11-LightCulling/KnownDifferences.md)、[历史报告](Done/11-LightCulling/report.md)、[交接](Done/11-LightCulling/HANDOFF.md)、[清理计划](Done/12-GpuLightList/clean.md) |

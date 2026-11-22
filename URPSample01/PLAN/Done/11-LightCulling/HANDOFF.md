@@ -1,5 +1,7 @@
 # 11-LightCulling 交接：HDRP 光列表调研与 URP Clustered Deferred（URP BRDF）实施计划
 
+> **SUPERSEDED（旧 stencil 基线）**：旧 stencil/clustered A/B 操作仅用于冻结版本，不能在当前玩家重跑。当前参照为 Forward+，普通 Forward 是不支持场景的回退。 见[当前验收口径](../../ACCEPTANCE.md#c6-current)。
+
 > 状态：**计划已修订（D15/D16）；T1/T5 运行时接入完成并在 D3D11/D3D12 player 验证；多灯 A/B（mean 0.78/255）与性能交叉点已取得；T3 kernel 与 T6 preflight 已产出；T4 阴影子集与 cookie / light layers / GTAO 直接光 AO 已在 D3D11/D3D12 player A/B 通过，mixed lighting-shadowmask 实现完成但无 baked 数据、运行时 A/B 标 PARTIAL；已与 HDRP 14.0.12 对照定稿**
 > 修订：2026-11-22（T4 cookie / light layers / mixed / GTAO 直接光 AO；间接 AO 取消分支；feature matrix 两个 API 重跑）
 > 修订：2026-11-21（T5 运行时接入、cluster 缓冲释放、设备/XR gate、arena A/B、D3D12 光源抓帧；T4 阴影子集与 feature matrix）

@@ -1,5 +1,7 @@
 # 11-LightCulling 已知差异
 
+> **SUPERSEDED（旧 stencil 基线）**：历史 stencil 与 clustered 的差异不代表当前回退行为。当前仍开放的是双 API 256 灯同路径图差和 1674 像素的既有材质跨路径断言；不能把两者一概归因为噪声。 见[当前验收口径](../../ACCEPTANCE.md#c6-current)。
+
 Clustered Deferred (URP BRDF) 与 stencil deferred / Forward+ 的已知差异、边界与未验证项。验收阈值与证据见 `report.md`、`validation/`。
 
 ## 1. 与 stencil deferred 的差异
