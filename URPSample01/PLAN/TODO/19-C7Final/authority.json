@@ -1,0 +1,76 @@
+{
+  "11": {
+    "C0": {
+      "logSHA256": "c7d8f77e1817075dea3ce147ec9c2b333b94dcd8f475c60012628247dabb7ba2",
+      "graphicsStageBlocks": 412,
+      "parsed": 412,
+      "stageSum": 8716,
+      "stencilStageSum": 350
+    },
+    "C5": {
+      "logSHA256": "d3dbe7abd08e1246e3aa7be5b0826ab6736fe9f8c5945496ead7f48889862fa0",
+      "graphicsStageBlocks": 398,
+      "parsed": 398,
+      "stageSum": 8462,
+      "stencilStageSum": 0
+    },
+    "EditMode": {
+      "total": "489",
+      "passed": "489",
+      "failed": "0",
+      "skipped": "0",
+      "result": "Passed",
+      "failures": []
+    },
+    "PlayMode": {
+      "total": "46",
+      "passed": "45",
+      "failed": "1",
+      "skipped": "0",
+      "result": "Failed(Child)",
+      "failures": [
+        "Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.ClusteredMatchesForwardPlusAcrossMaterialTypes"
+      ]
+    },
+    "capture": {
+      "arena_frame467.rdc": "1f0b9c879054bc7ec22bb9b934e36584bfe2112d1e6ef9b7291881881a4c1914"
+    }
+  },
+  "12": {
+    "C0": {
+      "logSHA256": "a692f08b7ef95ae2f44a6fc2fd3acf02609a59e27ffb7a13a72281e160834cfd",
+      "graphicsStageBlocks": 412,
+      "parsed": 412,
+      "stageSum": 8716,
+      "stencilStageSum": 350
+    },
+    "C5": {
+      "logSHA256": "2bdc1b4f497b82c93e9c665fad6d6c9e7bbd0e9bfe287c3811e67f76f2d19b88",
+      "graphicsStageBlocks": 398,
+      "parsed": 398,
+      "stageSum": 8462,
+      "stencilStageSum": 0
+    },
+    "EditMode": {
+      "total": "489",
+      "passed": "489",
+      "failed": "0",
+      "skipped": "0",
+      "result": "Passed",
+      "failures": []
+    },
+    "PlayMode": {
+      "total": "46",
+      "passed": "45",
+      "failed": "1",
+      "skipped": "0",
+      "result": "Failed(Child)",
+      "failures": [
+        "Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.ClusteredMatchesForwardPlusAcrossMaterialTypes"
+      ]
+    },
+    "capture": {
+      "arena_frame1437.rdc": "c8fea9d5593ebafdb092e9cdcd5463914a95ef79ca6f1ff5023f4e76fa6467ce"
+    }
+  }
+}

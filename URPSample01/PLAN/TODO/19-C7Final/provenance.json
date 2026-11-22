@@ -1,0 +1,94 @@
+{
+  "C0": {
+    "Assets/Tests/ClusteredDeferred/Runtime/ClusteredDeferredArenaRunner.cs": {
+      "sha256Normalized": "8ce77f3bee3dd44cf2545170f0922196e825f6cccd470c2634ee7c4f096f1554",
+      "equalsGitBlobNormalized": true
+    },
+    "Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredArenaBuild.cs": {
+      "sha256Normalized": "286d261468e9dfe19cfb3bcec324c5e2f0d4fa247cf55053f9ca8ecfc61147b4",
+      "equalsGitBlobNormalized": true
+    },
+    "Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT12Verification.cs": {
+      "sha256Normalized": "e471e7085aeedd2adf8081db5b3aa9ed07220d719d48a47d819f785eab7e05c0",
+      "equalsGitBlobNormalized": true
+    },
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ForwardLights.cs": {
+      "sha256Normalized": "d3966dc79cb9eee730b385421206800dd865436e89c29985c175b5085871760c",
+      "equalsGitBlobNormalized": true
+    },
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute": {
+      "sha256Normalized": "1940ebbcaccac9f1cef961e57077aa3607a3bf80dc3c59dd9bfa2fc5d2f829ac",
+      "equalsGitBlobNormalized": true
+    },
+    "Builds\\ClusteredDeferredArena\\Direct3D11\\CdArena_Data\\Managed\\Assembly-CSharp.dll": "9cab45ae65f674f7af19c92b06edc6e2788e6675d8943c4360b01ba96d0ad62a",
+    "Builds\\ClusteredDeferredArena\\Direct3D12\\CdArena_Data\\Managed\\Assembly-CSharp.dll": "9cab45ae65f674f7af19c92b06edc6e2788e6675d8943c4360b01ba96d0ad62a"
+  },
+  "C5-T5": {
+    "Assets/Tests/ClusteredDeferred/Runtime/ClusteredDeferredArenaRunner.cs": {
+      "sha256Normalized": "96bb33e6b12ec060d3f296b07c2d24edfb65ba201cffb2e300f63bf091eef368",
+      "equalsGitBlobNormalized": true
+    },
+    "Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredArenaBuild.cs": {
+      "sha256Normalized": "04e9e3a7e61387f23227b60fb7117f176264d1cbf799544c73b0f3b6ade3553f",
+      "equalsGitBlobNormalized": true
+    },
+    "Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT12Verification.cs": {
+      "sha256Normalized": "e471e7085aeedd2adf8081db5b3aa9ed07220d719d48a47d819f785eab7e05c0",
+      "equalsGitBlobNormalized": true
+    },
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ForwardLights.cs": {
+      "sha256Normalized": "20a67cb134a421f9682135abf83a46ca11cce3c1cbcb9835065fb73edd9f6330",
+      "equalsGitBlobNormalized": true
+    },
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute": {
+      "sha256Normalized": "f9592ae26c58579bf702e194c8e05adc1fca5544fa3b76142e6d92c9fa4d7f76",
+      "equalsGitBlobNormalized": true
+    },
+    "Builds\\ClusteredDeferredArenaC4\\Direct3D11\\CdArena_Data\\Managed\\Assembly-CSharp.dll": "25dc7900748bb6c6a6eb625703fe07b459deb0b85c17fb6569b6a2e28b927036",
+    "Builds\\ClusteredDeferredArenaC4\\Direct3D12\\CdArena_Data\\Managed\\Assembly-CSharp.dll": "25dc7900748bb6c6a6eb625703fe07b459deb0b85c17fb6569b6a2e28b927036"
+  },
+  "C5-T12": {
+    "Assets/Tests/ClusteredDeferred/Runtime/ClusteredDeferredArenaRunner.cs": {
+      "sha256Normalized": "96bb33e6b12ec060d3f296b07c2d24edfb65ba201cffb2e300f63bf091eef368",
+      "equalsGitBlobNormalized": true
+    },
+    "Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredArenaBuild.cs": {
+      "sha256Normalized": "04e9e3a7e61387f23227b60fb7117f176264d1cbf799544c73b0f3b6ade3553f",
+      "equalsGitBlobNormalized": true
+    },
+    "Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT12Verification.cs": {
+      "sha256Normalized": "e471e7085aeedd2adf8081db5b3aa9ed07220d719d48a47d819f785eab7e05c0",
+      "equalsGitBlobNormalized": true
+    },
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ForwardLights.cs": {
+      "sha256Normalized": "20a67cb134a421f9682135abf83a46ca11cce3c1cbcb9835065fb73edd9f6330",
+      "equalsGitBlobNormalized": true
+    },
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute": {
+      "sha256Normalized": "f9592ae26c58579bf702e194c8e05adc1fca5544fa3b76142e6d92c9fa4d7f76",
+      "equalsGitBlobNormalized": true
+    }
+  },
+  "C5-T4": {
+    "Assets/Tests/ClusteredDeferred/Runtime/ClusteredDeferredArenaRunner.cs": {
+      "sha256Normalized": "96bb33e6b12ec060d3f296b07c2d24edfb65ba201cffb2e300f63bf091eef368",
+      "equalsGitBlobNormalized": true
+    },
+    "Assets/Tests/ClusteredDeferred/Editor/ClusteredDeferredArenaBuild.cs": {
+      "sha256Normalized": "04e9e3a7e61387f23227b60fb7117f176264d1cbf799544c73b0f3b6ade3553f",
+      "equalsGitBlobNormalized": true
+    },
+    "Assets/Tests/ScreenSpaceLighting/Editor/ScreenSpaceLightingT12Verification.cs": {
+      "sha256Normalized": "e471e7085aeedd2adf8081db5b3aa9ed07220d719d48a47d819f785eab7e05c0",
+      "equalsGitBlobNormalized": true
+    },
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ForwardLights.cs": {
+      "sha256Normalized": "20a67cb134a421f9682135abf83a46ca11cce3c1cbcb9835065fb73edd9f6330",
+      "equalsGitBlobNormalized": true
+    },
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute": {
+      "sha256Normalized": "f9592ae26c58579bf702e194c8e05adc1fca5544fa3b76142e6d92c9fa4d7f76",
+      "equalsGitBlobNormalized": true
+    }
+  }
+}

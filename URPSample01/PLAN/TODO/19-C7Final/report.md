@@ -1,0 +1,29 @@
+# C7 独立验收：FAIL，不签全绿
+
+对象是 `6023d2941c91cf446a851286de847bf97be209f7`，文档观察点 `4049733`（仅五个 Markdown）。C0 源为 `pre-cleanup` / `f0c7ec4`。Windows、Unity 2022.3.62f1、RTX 5060 Ti；以下仅指 D3D11/12。没有打开主工程、更新金图或阈值、修改产品源码或提交。证据文件均在本目录。
+
+| clean.md §7 | 原始判定与依据 |
+|---|---|
+| 1 死代码、Shader.Find | **PASS**。`source-audit.txt` 保存 Git 树、搜索式、完整 stdout 和退出码：URP Runtime、Editor、Shaders、ShaderLibrary 和项目 Assets 的旧 stencil 灯体积实现/关键字零命中（git grep 退出 1）。真正执行精确 shader 名查找：`removed=null positive=Universal Render Pipeline/Lit api=Direct3D11`。`authority.zip` 有探针源码与完整 Editor 日志；这是隔离 Editor 的实际查找，不是由文件不存在推断。材质分类 `StencilUsage.MaterialMask`、Lit/SimpleLit 写入和 mask shader 的 Ref/ReadMask/Comp 保留。旧 CPU jobs 与旧列表缓冲不同于仍被 GPU builder 与读取方消费的 `_FPParams*`；普通 Forward 的逐物体索引不属于死代码。 |
+| 2 双 API 构建与变体 | **PASS（Development T5，非 release）**。复核 C5 两份完整 build 日志的 SHA-256 均匹配权威档；各 Succeeded、0 build error、0 shader error、0 missing-reference/script、0 旧关键字，723 条 shader warnings，不是零警告。C0→C5 两 API 各自 graphics shader/pass/stage 的 after-scriptable 行之和 **8716→8462（−254）**，完整解析 412/412→398/398 块；其中被删 shader 350→0。不是去重 GPU 程序数，也不混入 compute。Lit/ForwardLit(fp) 6144→6144，ClusteredDeferred compute 1280→1280；没有放宽预算。`authority.json` 与 `authority.zip`（逐行 TSV、C5 构建摘要、XML）。 |
+| 3 全量测试 | **FAIL**。权威 C5 全量双 API 各 EditMode **489/489**、PlayMode **45/46**。各自唯一失败 `ClusteredMatchesForwardPlusAcrossMaterialTypes`：1674 像素 >8/255，限 230。相机剔除前回退、Forward+ 冻结 CPU 对照、GPU 调度、透明、ForwardOnly、资源释放均有通过的命名用例；不抵扣失败。四份完整 rerun XML 已随包。 |
+| 4 冻结图像、GPU 结构 | **FAIL**。逐图及 SSL 见下。**结构 PASS**：此项没有拿 C4b 的 Forward+ 帧推断 deferred。C7 直接抓 C5 的双 API、透明、256 灯 clustered 玩家。GBuffer → CopyDepth → Clustered Deferred → Forward Only → Transparent → FinalBlit 的 EID 分别为 **98/563/583/644/647/698** 和 **140/1344/1355/1385/1387/1445**。无 stencil 灯体积事件。`authority.zip` 含两个实际 RDC、events/info、玩家报告和抓帧启动记录；CLI 未认出自动加帧号的文件名，随后按实际文件回放导出事件。单帧结构不等于全相机覆盖或每像素的灯 ID 鉴定。 |
+| 5 性能不低于 C0 | **FAIL**。24 个独立玩家进程，双 API × 有无透明 × 两版本 × 3 轮，顺序 C0/C5、C5/C0、C0/C5；每格同路径、同负载 0/8/48/**256**，40 帧预热、150 帧采样。所有构建退出后才计时；约每 2 秒检查 Unity Editor、shader compiler、Bee、csc，24 次运行均无命中。该抽查非连续系统追踪。以三轮各自的帧中位数再取中位数，32 个匹配格中 CPU 有 10 格、GPU 有 22 格变慢；未设噪声豁免。最明显为 **D3D12 透明 Forward+ 256**：CPU 1.3230→2.2693 ms（+0.9463），GPU 1.2457→2.1742 ms（+0.9285），三轮都慢；同负载 clustered 的 CPU/GPU 则分别 −0.0040/−0.0102 ms。不能解释为所有路径都退化，也没有证明原因。`performance.csv` 列出了每轮值、Δ 和原始判定。 |
+| 6 文档与工作树 | 五处口径 **PASS**：ACCEPTANCE 的 `c6-current` 与 HANDOFF、KnownDifferences、report、clean 的 superseded/回链；17/18 仍在 TODO。按直接阶段目录名，TODO/Done 交集为空。**字面 clean status FAIL**：开始时主树无改动，交付时只有 `?? URPSample01/PLAN/TODO/19-C7Final/`；不为制造 clean 状态而暂存或提交。见 `source-audit.txt`。 |
+
+## 图像矩阵：同路径结果与缺口
+
+| 对照 | D3D11 | D3D12 | 判读 |
+|---|---:|---:|---|
+| T4，冻结 C0 原图 vs 最终 clustered，7 功能 × 开关 | 13/14 | 13/14 | **FAIL**。两 API 唯一失败都是 `ReceiveShadowsOff_ClusteredOn`，peak 240，5432 px >8。原 C0 与最终夹具不同，这是字面冻结差异，不归因为渲染器回归。原 C0 T4 没有 Forward+ 半边，该路径相对原 C0 **未能验证**。 |
+| T4，`5ab7626` 匹配材质/独立 Forward+ 的历史夹具 vs 最终，两路径 | 28/28 | 28/28 | **PASS**，最大差 1，无像素 >8。两组最终 T4 玩家均新建；矩阵自身跨路径 `passed` 则各为 0/7，不与同路径判定混用。 |
+| T5，冻结 C0 原图 vs 最终，两路径 × 有无透明 × 4 灯数 | 12/16 | 14/16 | **FAIL**。正式三轮第一轮的 0/8/48 全过；D3D11 256 四图 peak 102/103（control）、73/73（透明）；D3D12 256 control 此次通过，透明两图 peak 30/30。首轮独立采集 D3D12 control 不过，不能挑绿帧签收。无同帧灯 ID 归因。 |
+| SSL T12，重建 C0 vs 最终，同 API 同案例同路径 | 85/85 | 85/85 | **PASS**。各 API 两版本都执行 Forward 34、Forward+ 34、Deferred 35 个内部检查，各 103/103；每版本每 API 实出 85 张可匹配 PNG。两 API 各自整组 peak≤1、0 px >8，最大 mean 分别为 0.01926/0.01927。不是把内部 case 通过当作图像相等，也未把历史 D3D11 图套给 D3D12。 |
+
+`matrix.csv` 给出每个文件的双 SHA-256、mean、peak、>8 像素数和比例。`raw.zip` 保存原始 T4/T12 JSON、逐进程 CdPerf JSON/CSV、BuildReport、运行命令、起止时间与编译进程抽查。同包 `image-manifest.json` 把逻辑路径映射到两份 `pixels-*.zip` 中的 `png/<SHA256>.png`；以哈希查图即可脱离工程复算。`authority.zip` 含原始 RDC 与权威测试证据。`run.py --paired` 为正式配对采集；`collect.py` 从采集目录复算表和未拆分的图像包。
+
+## 证据口径
+
+- 性能首轮发现默认旧 `Builds/ClusteredDeferredArena` 指向的不是 C0：输出只有 ClusteredDeferred 和 ForwardPlus，而冻结原始报告有第三个 StencilDeferred。**整轮不计性能**。重新从 `git archive f0c7ec4` 建独立工程，用历史 Library 的物理副本作为编译缓存而不复用其产品源码/配置，重建双 API；记录中 `C0-*` 是被排除的首轮，`frozen-*` 才是重建冻结代码的结果。重建玩家不宣称和已覆盖的原 EXE 逐字节相同。`provenance.json` 比对关键文件与 Git blob。
+- 图差使用 1280×720 的 RGB8：所有通道绝对差的平均值、任一通道绝对差的最大值、最大通道差 >8 的像素数/比例。阈值 mean≤2、peak≤24。对完全一致的冻结图自比，>8 比例为 0；非零单列，不因 mean/peak 合格就说比例没有上升。`compare.py` 可对两个同名图片目录复算。T4 原冻结无 Forward+ 状态，不拿旧 Stencil 当 Forward+。不设 cap 例外，不以 255 代 256。
+- `frozen-images.csv` 额外记录首次 C5 T5 捕获 vs 原 C0 PNG（24/32，八个 L256 全失败），及历史 08 D3D11 SSL vs C5 的 85 张（仅 37 张通过 mean/peak）。这是历史交叉检查，不能拿 08 图替代同 API、同版本 C0，也不能据 T12 的内部 passed 批准金图。

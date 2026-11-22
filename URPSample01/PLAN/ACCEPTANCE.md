@@ -617,3 +617,13 @@ PY
 | C4b `10ed839` | Forward+ 与 clustered deferred 共用一个结构化 word buffer；双 API 已验证 compute 写、首个 Forward+ draw 读。T4 同路径 56/56，T5 24/32，双 API 的 L256 仍 OPEN。 | [定向验收与边界](TODO/17-C4bLightLayout/RESULTS.txt) |
 | C5 `6023d29` | 移除四组无引用 stencil 测试资产；双 API 玩家构建 0 error，Lit/ForwardLit(fp) 6144、compute 1280，均 Δ0。两 API 全量 EditMode 各 489/489；PlayMode 各 45/46，材质跨路径 1674 px 超阈（限 230），仍 FAIL。 | [资产依据、剥离计数与 XML](TODO/18-C5Cleanup/report.md) |
 | C6 | **SUPERSEDED**：11 轮的 stencil A/B、旧构建和变体报告不再是当前执行步骤或预算。历史证据不覆盖；现有 Forward+ 对照和冻结的逐路径参照仍有效，不能互相替代。 | [已知差异](Done/11-LightCulling/KnownDifferences.md)、[历史报告](Done/11-LightCulling/report.md)、[交接](Done/11-LightCulling/HANDOFF.md)、[清理计划](Done/12-GpuLightList/clean.md) |
+
+## 22. C7 最终验收：FAIL（2026-11-23）
+
+代码 `6023d29`，C0 `f0c7ec4`。旧 stencil 灯体积实现与关键字零命中，Shader.Find 实测为空；双 API 构建、变体及最终玩家 RenderDoc 结构通过。C0 对最终版的 SSL T12 同路径图像均为 85/85。**不签全绿，不放宽阈值**：
+
+- D3D11/D3D12 全量 EditMode 各 489/489、PlayMode 各 45/46；材质跨路径 1674 px 超阈，限 230。
+- 严格用原 C0 参照，T4 clustered 两端各 13/14，原 C0 无 Forward+ 图；匹配夹具对照另为 56/56。T5 正式轮 26/32，6 张失败均为 256 灯，独立首轮另为 24/32。
+- 同机三轮配对中，D3D12 透明 Forward+、256 灯的 CPU 中位数增加 0.9463 ms，GPU 增加 0.9285 ms；三轮同向，不作噪声豁免，尚未定位到具体改动。
+
+[最终报告与证据口径](TODO/19-C7Final/report.md) · [逐图矩阵](TODO/19-C7Final/matrix.csv) · [逐轮性能](TODO/19-C7Final/performance.csv)。报告中的工作树判定是提交证据前的快照，不是渲染门槛。

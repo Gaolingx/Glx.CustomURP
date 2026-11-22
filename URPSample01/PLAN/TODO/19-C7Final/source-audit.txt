@@ -1,0 +1,151 @@
+$ git grep -nI -E PrecomputeLights|RenderStencilLights|StencilDeferred|stencilDeferredPS|_DEFERRED_FIRST_LIGHT|_DEFERRED_STENCIL|k_DeferredStencilPass|m_ProfilingSamplerDeferredStencilPass 6023d29 -- URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Editor URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary URPSample01/Assets
+exit=1
+
+$ git grep -nI -E LightMinMaxZJob|ReflectionProbeMinMaxZJob|ZBinningJob|TilingJob|TileRangeExpansionJob|m_CullingHandle|URP_ZBinBuffer|urp_TileBuffer|_FPParams[012]|m_ClusteredDeferredLighting 6023d29 -- URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Editor URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary URPSample01/Assets
+exit=0
+6023d29:URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs:489:                var parameters = Shader.GetGlobalVector(Shader.PropertyToID("_FPParams1"));
+6023d29:URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs:490:                Assert.Greater(parameters.x, 0.0f, "The clustered path did not publish _FPParams1.");
+6023d29:URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs:718:                var fp0 = Shader.GetGlobalVector("_FPParams0");
+6023d29:URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs:719:                var fp1 = Shader.GetGlobalVector("_FPParams1");
+6023d29:URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs:720:                Assert.AreEqual(fp0.x, first.fpParams[0], 0f, "zBinScale drifted from _FPParams0.");
+6023d29:URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs:721:                Assert.AreEqual(fp1.x, first.fpParams[4], 0f, "tileScale drifted from _FPParams1.");
+6023d29:URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs:722:                Assert.AreEqual(fp1.w, first.fpParams[7], 0f, "wordsPerTile drifted from _FPParams1.");
+6023d29:URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs:724:                    "The captured tile width disagrees with the published _FPParams1.");
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ClusteredDeferred/ClusterListGpuBuilder.cs:159:            cmd.SetComputeVectorParam(m_Compute, "_FPParams0", new Vector4(p.zBinScale, p.zBinOffset, 0f, 0f));
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ClusteredDeferred/ClusterListGpuBuilder.cs:160:            cmd.SetComputeVectorParam(m_Compute, "_FPParams1", new Vector4(0f, 0f, 0f, p.wordsPerTile));
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ClusteredDeferred/ClusterListGpuBuilder.cs:229:            cmd.SetComputeVectorParam(m_Compute, "_FPParams1", new Vector4(0f, 0f, 0f, p.wordsPerTile));
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ClusteredDeferred/ClusterListGpuBuilder.cs:286:            cmd.SetComputeVectorParam(m_Compute, "_FPParams0", new Vector4(p.zBinScale, p.zBinOffset, 0f, 0f));
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ClusteredDeferred/ClusterListGpuBuilder.cs:287:            cmd.SetComputeVectorParam(m_Compute, "_FPParams1", new Vector4(0f, 0f, 0f, p.wordsPerTile));
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ClusteredDeferred/ClusterListParity.cs:18:        public float[] fpParams; // _FPParams0/1/2, 12 floats in declaration order
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ForwardLights.cs:396:                    cmd.SetGlobalVector("_FPParams0", fp0);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ForwardLights.cs:397:                    cmd.SetGlobalVector("_FPParams1", fp1);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ForwardLights.cs:398:                    cmd.SetGlobalVector("_FPParams2", fp2);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:60:float4 _FPParams0;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:61:float4 _FPParams1;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:62:float4 _FPParams2;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:64:#define URP_FP_ZBIN_SCALE (_FPParams0.x)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:65:#define URP_FP_ZBIN_OFFSET (_FPParams0.y)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:66:#define URP_FP_PROBES_BEGIN ((uint)_FPParams0.z)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:67:#define URP_FP_DIRECTIONAL_LIGHTS_COUNT ((uint)_FPParams0.w)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:68:#define URP_FP_TILE_SCALE ((float2)_FPParams1.xy)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:69:#define URP_FP_TILE_COUNT_X ((uint)_FPParams1.z)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:70:#define URP_FP_WORDS_PER_TILE ((uint)_FPParams1.w)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:71:#define URP_FP_ZBIN_COUNT ((uint)_FPParams2.x)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:72:#define URP_FP_TILE_COUNT ((uint)_FPParams2.y)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:131:float4 _FPParams0;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:132:float4 _FPParams1;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:133:float4 _FPParams2;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:135:#define URP_FP_ZBIN_SCALE (_FPParams0.x)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:136:#define URP_FP_ZBIN_OFFSET (_FPParams0.y)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:137:#define URP_FP_PROBES_BEGIN ((uint)_FPParams0.z)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:140:#define URP_FP_DIRECTIONAL_LIGHTS_COUNT ((uint)_FPParams0.w)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:143:#define URP_FP_TILE_SCALE ((float2)_FPParams1.xy)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:144:#define URP_FP_TILE_COUNT_X ((uint)_FPParams1.z)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:145:#define URP_FP_WORDS_PER_TILE ((uint)_FPParams1.w)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:147:#define URP_FP_ZBIN_COUNT ((uint)_FPParams2.x)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:148:#define URP_FP_TILE_COUNT ((uint)_FPParams2.y)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:6:// screen-space tile AABB. Stage B reproduces ZBinningJob + TileRangeExpansionJob: the zbin scatter
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:12:// CPU TilingJob would not set (those are then shaded and attenuated to zero), but it never clears
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:59:float4 _FPParams0;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:60:float4 _FPParams1;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:61:float4 _FPParams2;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:112:// Mirrors LightMinMaxZJob / ReflectionProbeMinMaxZJob. The spot branch is ported verbatim (including
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:151:    // Only lights clamp to the camera plane; ReflectionProbeMinMaxZJob keeps raw corner depths.
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:229:    float scale = _FPParams0.x;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:230:    float offset = _FPParams0.y;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:240:    uint wordsPerTile = (uint)_FPParams1.w;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:245:    // combined item stream, which is what ZBinningJob writes.
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:258:    uint words = bin * (2u + (uint)_FPParams1.w);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:272:    uint wordsPerTile = (uint)_FPParams1.w;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:337:    uint wordsPerTile = (uint)_FPParams1.w;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:445:    return (int)floor(term * _FPParams0.x + _FPParams0.y);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusterBuilder.compute:549:    uint wordsPerTile = (uint)_FPParams1.w;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute:4:// The tile id is derived per pixel from _FPParams1.xy, so the kernel does not care whether the CPU
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:40:float4 _FPParams0;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:41:float4 _FPParams1;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:42:float4 _FPParams2;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:44:#define URP_FP_ZBIN_SCALE (_FPParams0.x)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:45:#define URP_FP_ZBIN_OFFSET (_FPParams0.y)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:46:#define URP_FP_PROBES_BEGIN ((uint)_FPParams0.z)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:47:#define URP_FP_TILE_SCALE ((float2)_FPParams1.xy)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:48:#define URP_FP_TILE_COUNT_X ((uint)_FPParams1.z)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:49:#define URP_FP_WORDS_PER_TILE ((uint)_FPParams1.w)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:50:#define URP_FP_ZBIN_COUNT ((uint)_FPParams2.x)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl:51:#define URP_FP_TILE_COUNT ((uint)_FPParams2.y)
+
+$ git grep -nI -E MaterialLit|MaterialSimpleLit|StencilUsage.MaterialMask|_AdditionalLightsIndices|IsMatchingLightLayer|_DEFERRED_MIXED_LIGHTING 6023d29 -- URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Editor URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary URPSample01/Assets
+exit=0
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ClusteredDeferred/ClusteredDeferredPass.cs:176:                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, m_DeferredLights.UseShadowMask);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ClusteredDeferred/ClusteredDeferredPass.cs:194:                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, false);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/Data/UniversalRenderPipelineAssetPrefiltering.cs:104:            ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, ShaderKeywordStrings._GBUFFER_NORMALS_OCT
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ForwardLights.cs:29:        int m_AdditionalLightsIndicesId;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ForwardLights.cs:139:                m_AdditionalLightsIndicesId = Shader.PropertyToID("_AdditionalLightsIndices");
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/ForwardLights.cs:654:                    cmd.SetGlobalBuffer(m_AdditionalLightsIndicesId, lightIndicesBuffer);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/Passes/GBufferPass.cs:58:                s_RenderStateBlocks[0] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialLit);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/Passes/GBufferPass.cs:59:                s_RenderStateBlocks[1] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialSimpleLit);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/Passes/GBufferPass.cs:60:                s_RenderStateBlocks[2] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialUnlit);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/Passes/GBufferPass.cs:61:                s_RenderStateBlocks[3] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialUnlit);  // Fill GBuffer, but skip lighting pass for ComplexLit
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/StencilUsage.cs:12:        MaterialLit = 0b_0010_0000,
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/StencilUsage.cs:13:        MaterialSimpleLit = 0b_0100_0000
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/UniversalRenderPipelineCore.cs:1287:        public const string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/UniversalRenderer.cs:345:                StencilState forwardOnlyStencilState = DeferredLights.OverwriteStencil(m_DefaultStencilState, (int)StencilUsage.MaterialMask);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:115:TEXTURE2D(_CdShadowMaskTexture);     // GBuffer shadowmask/probes slot, _DEFERRED_MIXED_LIGHTING
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:405:// Shadowmask mixing. The deferred path turns baked shadows on with _DEFERRED_MIXED_LIGHTING
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:416:#if defined(_DEFERRED_MIXED_LIGHTING)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:427:#if defined(_DEFERRED_MIXED_LIGHTING)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ClusteredDeferred.hlsl:443:#if defined(_DEFERRED_MIXED_LIGHTING)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:154:StructuredBuffer<int> _AdditionalLightsIndices;
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Lighting.hlsl:164:    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Lighting.hlsl:328:    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Lighting.hlsl:348:        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Lighting.hlsl:362:        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Lighting.hlsl:448:    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Lighting.hlsl:471:        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Lighting.hlsl:489:        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Lighting.hlsl:557:    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Lighting.hlsl:573:        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Lighting.hlsl:584:        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/RealtimeLights.hlsl:211:    return _AdditionalLightsIndices[offset + index];
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceRefraction.hlsl:152:        // filters env lights with IsMatchingLightLayer.
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/UnityGBuffer.hlsl:14:#elif defined(_DEFERRED_MIXED_LIGHTING)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute:20:#pragma multi_compile _ _DEFERRED_MIXED_LIGHTING
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute:64:#if defined(_DEFERRED_MIXED_LIGHTING)
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute:77:    mainLightCulled = mainLightCulled || !IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute:98:        culled = culled || !IsMatchingLightLayer(light.layerMask, meshRenderingLayers);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute:119:        culled = culled || !IsMatchingLightLayer(light.layerMask, meshRenderingLayers);
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:8:// Pass 0: Equal MaterialLit        (0x20) -> 1
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:9:// Pass 1: Equal MaterialSimpleLit  (0x40) -> 2
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:28:                Ref 32          // StencilUsage.MaterialLit
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:29:                ReadMask 96     // StencilUsage.MaterialMask
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:73:                Ref 64          // StencilUsage.MaterialSimpleLit
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:74:                ReadMask 96     // StencilUsage.MaterialMask
+
+$ git grep -nI -E "Stencil|ReadMask|Ref |Comp " 6023d29 -- URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader
+exit=0
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:3:// Stencil deferred selects _LIT / _SIMPLELIT variants from stencil bits [5,6] and skips
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:10:// Stencil read mask 0x60 (MaterialMask), write mask 0: the stencil itself is left untouched.
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:26:            Stencil
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:28:                Ref 32          // StencilUsage.MaterialLit
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:29:                ReadMask 96     // StencilUsage.MaterialMask
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:31:                Comp Equal
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:71:            Stencil
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:73:                Ref 64          // StencilUsage.MaterialSimpleLit
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:74:                ReadMask 96     // StencilUsage.MaterialMask
+6023d29:URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferredMask.shader:76:                Comp Equal
+
+$ git diff --name-status 6023d29 4049733
+M	URPSample01/PLAN/ACCEPTANCE.md
+M	URPSample01/PLAN/Done/11-LightCulling/HANDOFF.md
+M	URPSample01/PLAN/Done/11-LightCulling/KnownDifferences.md
+M	URPSample01/PLAN/Done/11-LightCulling/report.md
+M	URPSample01/PLAN/Done/12-GpuLightList/clean.md
+$ git grep -n c6-current 4049733 -- */PLAN/*.md
+4049733:URPSample01/PLAN/ACCEPTANCE.md:612:<a id="c6-current"></a>
+4049733:URPSample01/PLAN/Done/11-LightCulling/HANDOFF.md:3:> **SUPERSEDED（旧 stencil 基线）**：旧 stencil/clustered A/B 操作仅用于冻结版本，不能在当前玩家重跑。当前参照为 Forward+，普通 Forward 是不支持场景的回退。 见[当前验收口径](../../ACCEPTANCE.md#c6-current)。
+4049733:URPSample01/PLAN/Done/11-LightCulling/KnownDifferences.md:3:> **SUPERSEDED（旧 stencil 基线）**：历史 stencil 与 clustered 的差异不代表当前回退行为。当前仍开放的是双 API 256 灯同路径图差和 1674 像素的既有材质跨路径断言；不能把两者一概归因为噪声。 见[当前验收口径](../../ACCEPTANCE.md#c6-current)。
+4049733:URPSample01/PLAN/Done/11-LightCulling/report.md:3:> **SUPERSEDED（旧 stencil 基线）**：T4ShaderBuild、T5VariantCount、T7PlayerSummary 的旧结果保留为历史实测，不作为当前预算。C5 的双 API T5 玩家 Lit/ForwardLit(fp) 为 6144，ClusteredDeferred compute 为 1280。 见[当前验收口径](../../ACCEPTANCE.md#c6-current)。
+4049733:URPSample01/PLAN/Done/12-GpuLightList/clean.md:3:> **C6 状态更新**：下列删除清单是规划时快照，并非当前操作步骤。C3、C4a 已归档；C4b 已统一灯表，C5 已清理无引用资产。阴影、材质分类 stencil、普通 Forward 逐物体索引仍保留。[阶段判定与证据](../../ACCEPTANCE.md#c6-current)。
+$ git status --short --branch
+## main...origin/main [ahead 4]
+?? URPSample01/PLAN/TODO/19-C7Final/
+TODO/Done intersect: set()
