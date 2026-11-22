@@ -593,4 +593,4 @@ python "PLAN/Done/01-ScreenSpaceLighting/validation/T1/Analyze-T1Evidence.py" --
 - `0bbce70`：新增 editor-only 相机 MV pass（事件 203），仅对无 ACD 相机写入，prev VP 存 per-camera history；shader 复刻 URP `CameraMotionVectors.shader`。
 - `3761adc`：深度金字塔构建 token 增加非抖动 VP；同帧同姿态仍共享一次构建。
 
-**验证**：E2E 三模式下无 ACD 与原生 MV 逐帧完全一致；抑制基线复现 8.8% 像素劣化；EditMode 173/173、PlayMode 6/6、T12 34/34/35（12 张差异均为姿态化金字塔纠正）。详见 `PLAN/TODO/07-EditorMVPass/Report.md`。
+**验证**：E2E 三模式下无 ACD 与原生 MV 逐帧完全一致；抑制基线复现 8.8% 像素劣化；EditMode 173/173、PlayMode 6/6、T12 34/34/35（12 张差异均为姿态化金字塔纠正）。详见 `PLAN/Done/07-EditorMVPass/Report.md`。

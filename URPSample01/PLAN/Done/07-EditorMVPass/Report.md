@@ -65,25 +65,25 @@ Edit Mode 下无 `UniversalAdditionalCameraData` 的相机（Scene View 及编�
 ```powershell
 # EditMode（已把 ScreenSpaceDepthPyramidSharingTests 补进过滤器）
 powershell -File "PLAN/Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14EditModeTests.ps1" `
-  -LogPath  "PLAN/TODO/07-EditorMVPass/validation/UnityEditModeTests.log" `
-  -ResultsPath "PLAN/TODO/07-EditorMVPass/validation/UnityEditModeTests.xml"
+  -LogPath  "PLAN/Done/07-EditorMVPass/validation/UnityEditModeTests.log" `
+  -ResultsPath "PLAN/Done/07-EditorMVPass/validation/UnityEditModeTests.xml"
 
 # E2E（异步 harness，每个 editor tick 渲染一步；脚本自行退出）
 powershell -Command '& "PLAN/Done/01-ScreenSpaceLighting/validation/T1/Invoke-T1Unity.ps1" `
   -ExecuteMethod ScreenSpaceLightingEditorMotionVerification.Run `
-  -LogPath "PLAN/TODO/07-EditorMVPass/validation/UnityEditorMotion.log" `
-  -ReportPath "PLAN/TODO/07-EditorMVPass/validation/UnityEditorMotionSettingsRestoration.json" `
-  -AdditionalArguments @("-ssl-editor-motion-output","<abs>/PLAN/TODO/07-EditorMVPass/validation/EditorMotion")'
+  -LogPath "PLAN/Done/07-EditorMVPass/validation/UnityEditorMotion.log" `
+  -ReportPath "PLAN/Done/07-EditorMVPass/validation/UnityEditorMotionSettingsRestoration.json" `
+  -AdditionalArguments @("-ssl-editor-motion-output","<abs>/PLAN/Done/07-EditorMVPass/validation/EditorMotion")'
 
 # PlayMode
 powershell -File "PLAN/Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14PlayModeTests.ps1" `
-  -LogPath "PLAN/TODO/07-EditorMVPass/validation/UnityPlayModeTests.log" `
-  -ResultsPath "PLAN/TODO/07-EditorMVPass/validation/UnityPlayModeTests.xml"
+  -LogPath "PLAN/Done/07-EditorMVPass/validation/UnityPlayModeTests.log" `
+  -ResultsPath "PLAN/Done/07-EditorMVPass/validation/UnityPlayModeTests.xml"
 
 # T12 组合矩阵
 powershell -File "PLAN/Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14GraphicsRegression.ps1" `
-  -LogPath "PLAN/TODO/07-EditorMVPass/validation/T12/UnityT12.log" `
-  -OutputRoot "PLAN/TODO/07-EditorMVPass/validation/T12"
+  -LogPath "PLAN/Done/07-EditorMVPass/validation/T12/UnityT12.log" `
+  -OutputRoot "PLAN/Done/07-EditorMVPass/validation/T12"
 ```
 
 E2E 设计要点：
@@ -181,7 +181,7 @@ E2E 设计要点：
 
 ---
 
-## 8. 第二阶段：SSL-only Scene View 的共享 Editor MV（自动验收通过，人工 SSR 验收待确认）
+## 8. 第二阶段：SSL-only Scene View 的共享 Editor MV（自动与人工验收通过）
 
 AC-9 的人工验收同时确认了 `KnownDifferences.md` 第 3 条的独立问题：GTAO feature 关闭、只开 SSGI/SSR 时，Scene View 仍然没有 motion，SSR（Approximation 与 PBR）用零 motion 采样上一帧颜色金字塔，滚轮缩放时反射拖尾。
 
@@ -224,7 +224,7 @@ AC-9 的人工验收同时确认了 `KnownDifferences.md` 第 3 条的独立问�
 | SSL-only 入队 | SSR/SSGI 启用时入队；Refraction-only 不入队；有 ACD 不入队 | `ScreenSpaceLightingRendererFeatureTests` |
 | T12 | 见 §8.3 | `validation/Phase2/T12/` |
 | 设置恢复 | 3 份 `*SettingsRestoration.json` 全部 `true` | `validation/Phase2/`、`Phase2/T12/` |
-| 人工 SSR SceneView | ⏳ 待仓库所有者：GTAO 关闭、SSR Approximation、滚轮缩放无反射拖尾 | — |
+| 人工 SSR SceneView | PASS：真实 Scene View 中滚轮缩放无 SSR 反射拖尾 | 仓库所有者确认（2026-11-22） |
 
 E2E 的 volume 在 harness 中被关闭，因此 GTAO 是唯一消费者；共享 pass 的 22/2 计数与第一阶段完全相同，证明迁移没有改变逐帧输出。SSL-only 的“写入 motion”证据链为：EditMode 证明 SSL 入队 → E2E 证明同一 pass 的输出与 URP 原生 MV 逐帧一致 → SSR compute 已知按命中像素 motion 采样（`ScreenSpaceReflections.compute:182-202`）。
 

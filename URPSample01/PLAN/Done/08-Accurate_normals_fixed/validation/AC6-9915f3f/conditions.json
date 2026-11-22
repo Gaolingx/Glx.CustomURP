@@ -1,0 +1,16 @@
+{
+  "criterion": "HANDOFF §4 AC-6: oct path performance regression <5%; historical fix vs immediate parent, not oct vs signed",
+  "before": "0f64764cb134fd3c38a42c7661d656c029ed6a8d",
+  "afterShaders": "9915f3fda11db2ee753b43dd2d8b6afa3ae2fbf1",
+  "fixture": "Isolated git archive of before Assets, Packages and ProjectSettings. Swap embedded URP Shaders tree from the indicated revision between launches. All 14 changed production shader/HLSL files included, no other runtime changes. Identical attribution helper from 9915f3f on both sides.",
+  "host": "Windows NT build 20348, NVIDIA GeForce RTX 5060 Ti, NVIDIA driver 576.80, Unity 2022.3.62f1, D3D11 feature level 11.1",
+  "render": "ScreenSpaceLightingT3Verification, SslT5DeferredPipeline/Renderer, Baseline Volume active, attribution Both_Oct reference GTAO and SSL, static camera, 1280x720 linear ARGBFloat RT, depth 24, camera post processing off, camera AA none. Each CSV identifies enabled oct compute keywords before sampling.",
+  "clock": "Immediate-context D3D11 timestamp pair around one Camera.Render via render-thread plugin events. Convert using hardware timestamp-disjoint frequency; reject disjoint/missing/nonpositive samples. GPU elapsed interval, not CPU wall time, utilization or frame interval. Two untimed renders queued ahead of each measured render.",
+  "sampling": "Fresh Editor process per CSV, chronological ABBAABBA. 16 setup renders plus readback, 128 discarded triplets then 192 sampled triplets per launch. CSV contains all measured intervals in nanoseconds, including spikes. An initial setup-only attempt checked keywords too early and aborted before timing; not counted.",
+  "runMedianMsInOrder": [0.939200,1.005888,1.004112,0.940880,0.940832,1.003920,1.007152,0.941040],
+  "meanOfRunMediansMs": {"before":0.940488,"after":1.005268,"regressionPercent":6.887914},
+  "adjacentPairMedianRegressionPercent": [7.101,6.721,6.706,7.025],
+  "arithmeticMeanAllMs": {"before":0.991388,"after":1.051880,"regressionPercent":6.101729},
+  "scope": "Above threshold for this matched Editor offscreen fixture. Not standalone Player or present-to-present timing. Repeated explicit Camera.Render in one synchronous editor invocation, not separate game updates. Not a shader-pass breakdown; includes downstream work on corrected normals. Clocks not locked and desktop shared; isolated spikes retained.",
+  "reproduce": ["Extract the isolated fixture as above. From an x64 VS developer shell: cl /LD /O2 /EHsc /I<Editor/Data/PluginAPI> Ac6Clock.cpp /link /out:Ac6Clock.dll. Install DLL in temporary project's Assets/Plugins/x86_64. Copy Ac6Probe.cs and the historical attribution helper to Assets/Tests/ScreenSpaceLighting/Editor.","Before each launch extract that revision's URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders over the temporary project's identical tree. Set AC6_OUTPUT to a new absolute CSV filename. Run Unity.exe -batchmode -force-d3d11 -projectPath <isolated-project> -executeMethod Ac6Probe.Run -quit -logFile <unique-log>. Original isolated project and logs: D:/ac6-oct-9915f3f. CSV 01 is A2.log; remaining logs match CSV stems."]
+}

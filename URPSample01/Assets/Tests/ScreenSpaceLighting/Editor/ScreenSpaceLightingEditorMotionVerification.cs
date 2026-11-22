@@ -146,7 +146,7 @@ public static class ScreenSpaceLightingEditorMotionVerification
     {
         var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
         s_OutputDirectory = GetCommandLineValue(OutputArgument)
-            ?? Path.Combine(projectRoot, "PLAN/TODO/07-EditorMVPass/validation/EditorMotion");
+            ?? Path.Combine(projectRoot, "PLAN/Done/07-EditorMVPass/validation/EditorMotion");
         Directory.CreateDirectory(s_OutputDirectory);
 
         s_Report = new Report

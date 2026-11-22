@@ -1,6 +1,6 @@
 # 08-AccurateNormalsFixed 报告：Deferred + Accurate G-buffer normals 噪点
 
-> 状态：修复与自动验收完成；T12 回放见 §5
+> 状态：已归档；功能验收通过（§5），AC-6 性能未达标（§6）
 > 基线：`a8e5a7e`；本轮提交见 `git log`
 > 证据：`validation/Attribution/`（图像 + JSON）、`validation/EditMode/`（NUnit XML）、`validation/T12/`
 
@@ -81,7 +81,7 @@ Deferred + `Accurate G-buffer normals` 的地面噪点/闪烁**不是该开关�
 | WavingGrassBillboard 的 oct 法线来源 | 原先 oct 分支用 `input.normal`，signed 分支用 view-dir 有限差分；本轮统一为有限差分，只在 accurate normals 下生效 |
 | Terrain / SpeedTree prepass 编码 | 这两个材质的 GBuffer pass 本来就写 oct，本轮让 prepass 与之对齐；它们的 depth-normals 输出原先没有 oct 分支 |
 | 透明 prepass | 保持 signed（消费端固定 `octNormals=false`），不参与本轮 |
-| 性能 | 只新增 shader 变体与一次编码，无额外 pass；AC-6（<5% 性能回归）本轮未测，列为 follow-up |
+| 性能 | AC-6 FAIL：0.940488 → 1.005268 ms（+6.89%，要求 <5%）。RTX 5060 Ti / D3D11 Editor，T3 场景 720p 离屏，固定 Both_Oct，对比 `0f64764` 与 `9915f3f` 的着色器。8 轮 ABBAABBA，每轮预热 128 组、采样 192 组，取各轮 GPU 时间中位数的均值。含下游效果，不代表 Player 帧耗时。[GPU 计时与逐轮数据](validation/AC6-9915f3f/conditions.json) |
 | 变体数量 | 受影响的 DepthNormals pass 各 +1 fragment variant（oct 开/关） |
 
 ## 7. 复现
@@ -89,7 +89,7 @@ Deferred + `Accurate G-buffer normals` 的地面噪点/闪烁**不是该开关�
 ```
 Unity.exe -batchmode -projectPath <repo>/URPSample01 \
   -executeMethod ScreenSpaceLightingAccurateNormalsAttribution.RunAttribution \
-  -logFile PLAN/TODO/08-Accurate_normals_fixed/validation/Attribution/UnityRun.log
+  -logFile PLAN/Done/08-Accurate_normals_fixed/validation/Attribution/UnityRun.log
 ```
 
-T12：加 `-ssl-t12-output PLAN/TODO/08-Accurate_normals_fixed/validation/T12`。
+T12：加 `-ssl-t12-output PLAN/Done/08-Accurate_normals_fixed/validation/T12`。

@@ -1,10 +1,10 @@
 # 08-AccurateNormalsFixed 交接：Deferred + Accurate G-buffer normals 噪点与闪烁
 
-> 状态：**修复与自动验收完成**（T0 归因、T1 修复、T2 回归覆盖、EditMode 182/182、归因脚本 passed；T12 回放见 §6）
+> 状态：**已归档：功能验收通过，AC-6 性能未达标**（T0 归因、T1 修复、T2 回归覆盖、EditMode 182/182、归因脚本 passed；T12 回放见 §6）
 > 建立：2026-11-19
 > 基线：`a8e5a7e`（Share the editor camera motion pass with screen space lighting）
 > 结果入口：[Report.md](Report.md)、`validation/`
-> 关联：`PLAN/TODO/07-EditorMVPass`（同一批 GTAO/SSL 时域路径）、`PLAN/Done/01-ScreenSpaceLighting`（GTAO / SSL 实现）、`PLAN/Done/06-ValidationAllRDC`（差异与证据规范）
+> 关联：`PLAN/Done/07-EditorMVPass`（同一批 GTAO/SSL 时域路径）、`PLAN/Done/01-ScreenSpaceLighting`（GTAO / SSL 实现）、`PLAN/Done/06-ValidationAllRDC`（差异与证据规范）
 > 本文中的代码行号基于 `a8e5a7e`，改动后以符号名为准。
 
 ---
@@ -191,7 +191,7 @@
 | AC-3 | 连续帧帧间平均绝对差 ≤ 0.5/255，oct/signed 均满足 | 最大 8e-6 | ✅ |
 | AC-4 | 三个 oct 关键字在 Deferred + accurate 下实际启用，并有自动化断言 | `Attribution.json` 的 `keywords` 全为 true；`AccurateGbufferNormalsTests` 断言写入端/解码端契约 | ✅ |
 | AC-5 | signed 路径无回归：T12 图像哈希不变，EditMode / PlayMode 全绿 | EditMode 182/182；T12 Forward 34/34、Forward+ 34/34、Deferred 35/35，`passed=true` | ✅ |
-| AC-6 | oct 路径性能回归 < 5% | 本轮未测（只新增 shader 变体，无额外 pass）；列为 follow-up | ○ |
+| AC-6 | oct 路径性能回归 < 5% | 0.940488 → 1.005268 ms（+6.89%，要求 <5%）；[GPU 计时与逐轮数据](validation/AC6-9915f3f/conditions.json) | FAIL |
 
 阈值定义在 `ScreenSpaceLightingAccurateNormalsAttribution.cs`（`k_HighFrequencyTolerance`、`k_LuminanceTolerance`、`k_FrameDeltaTolerance`），脚本退出码即判定结果。
 

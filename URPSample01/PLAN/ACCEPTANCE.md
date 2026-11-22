@@ -30,6 +30,8 @@
 | 04-SSGIFallbackImprove | ✅* | 4 PASS、3 PASS*、1 PARTIAL | 运行时开关未真正跨帧验证（06 F-07 才修复）；1/4/32 探针的截图是同一文件；性能 0.153 ms 依赖“配对中位数”估计器（已在 `726e57b` 标注） |
 | 05-ScreenSpaceRefractionImprove | ✅* | 1 PASS、1 PASS*、2 PARTIAL、8 ACCEPTED | 汇总 `Report.json`/`Cleanup.md` 的旧快照已在 `726e57b` 修正；433/434 EditMode 仍无日志；P0-1/P0-3 的探针回退辐射未被区分 |
 | 06-ValidationAllRDC | ✅* | 21 PASS、2 PASS*、3 PARTIAL、1 ACCEPTED | 初次验收 `P6-2` 为 FAIL（52 个/963.9 MiB vs 150 MB/12）；所有者决定把预算提高到 1 GB，`.gitignore`/4 份报告已同步（`fa67325`），61 个路径已修正（`f6f754e`/`726e57b`）；P0-4/P2-3 仍为 PARTIAL |
+| 07-EditorMVPass | PASS | 两阶段自动验收通过，AC-9 与 AC-14 已人工确认 | [验收报告](Done/07-EditorMVPass/Report.md) |
+| 08-Accurate_normals_fixed | 已归档，性能未达标 | AC-1～5 PASS；AC-6 FAIL | D3D11 Editor 离屏 GPU 时间 +6.89%（要求 <5%），见 §14 |
 | 11-LightCulling | ✅* | 5 PASS、2 PASS*、1 PARTIAL、1 ACCEPTED | mixed lighting-shadowmask 为 PARTIAL（无 baked shadowmask 数据）；T2/T3 的逐元素 parity JSON 未单列，由 T4/T5/PlayMode A/B 覆盖；T6 可选未补 GBuffer |
 | 12-GpuLightList | ✅ PASS | 2 PASS、2 ACCEPTED（NO-GO） | 默认同步 GPU 列表 + 位图；G2/G3 实现保留为默认关闭的 A/B；透明/forward-only 接管未覆盖 |
 | 13-GpuLightList256 | ✅ PASS | 1 PASS（G2/G3 仍 NO-GO） | 256 灯 parity 成立、zbin 409 档；clustered GPU 1.270 vs stencil 1.763 ms；256 灯 A/B 需改用 Forward+ 参照 |
@@ -429,14 +431,14 @@ PY
 ## 13. 07-EditorMVPass（2026-11-18）
 
 > 范围：Editor 下无 `UniversalAdditionalCameraData` 相机的 GTAO 时间重投影（Scene View 拖影）与共享深度金字塔的同帧姿态复用；第二阶段扩展为 SSL-only Scene View 的共享 Editor MV。
-> 计划：[PLAN/TODO/07-EditorMVPass/HANDOFF.md](TODO/07-EditorMVPass/HANDOFF.md)（第二阶段完成后移入 `Done/`）
-> 结论：**第一阶段 ✅ PASS**（自动验收 + AC-9 人工确认，2026-11-18）；第二阶段实施中。
+> 计划：[PLAN/Done/07-EditorMVPass/HANDOFF.md](Done/07-EditorMVPass/HANDOFF.md)（已归档）
+> 结论：**第一阶段 ✅ PASS**（自动验收 + AC-9 人工确认，2026-11-18）；第二阶段 PASS（AC-14 人工确认，2026-11-22）。
 
 | 交付 | Commit | 证据 | 结论 |
 |---|---|---|---|
 | Editor 相机 MV pass + shader + gating + 单测 | `0bbce70` | `GroundTruthAmbientOcclusionEditorMotionPass.cs`（第二阶段迁移至 `ScreenSpaceCommon`）；E2E `meanAbs vs 原生 = 0` | ✅ |
 | 深度金字塔按姿态重建 + 单测 | `3761adc` | `ScreenSpaceDepthPyramid.cs`；同帧同姿态仍只 build 一次 | ✅ |
-| E2E / T12 回归 / 报告 | 本轮第三提交 | [Report.md](TODO/07-EditorMVPass/Report.md)、`validation/EditorMotion/`、`validation/T12/` | ✅ |
+| E2E / T12 回归 / 报告 | 本轮第三提交 | [Report.md](Done/07-EditorMVPass/Report.md)、`validation/EditorMotion/`、`validation/T12/` | ✅ |
 
 | 项 | 结果 |
 |---|---|
@@ -448,17 +450,17 @@ PY
 | T12 哈希差异 | 12 张，全部在 `RenderScale75`/`TargetResize`/`CameraCut`/`MotionBlur`；`SameFrameDoubleRender` 对照不变；逐张数值见 `T12/HashDiff.json` |
 | AC-9 人工验收 | ✅ 仓库所有者 2026-11-18 确认：真实 Scene View 拖拽/滚轮无 GTAO 残影 |
 
-**第二阶段（SSL-only Scene View 共享 Editor MV）**：代码与自动验收已交付——SSL feature 在 SSGI/SSR 启用且相机无 ACD 时入队共享 `ScreenSpaceEditorCameraMotionPass`；EditMode 180/180、PlayMode 6/6；Editor MV E2E 3 模式与原生 MV 逐帧 `meanAbs = 0`；T12 34/34、34/34、35/35 且 85/85 PNG 哈希不变；3 份设置恢复全部 `true`。真实 Scene View 的 SSR 反射目视确认待仓库所有者（AC-14）。
+**第二阶段（SSL-only Scene View 共享 Editor MV）**：代码与自动验收已交付——SSL feature 在 SSGI/SSR 启用且相机无 ACD 时入队共享 `ScreenSpaceEditorCameraMotionPass`；EditMode 180/180、PlayMode 6/6；Editor MV E2E 3 模式与原生 MV 逐帧 `meanAbs = 0`；T12 34/34、34/34、35/35 且 85/85 PNG 哈希不变；3 份设置恢复全部 `true`。仓库所有者已于 2026-11-22 确认真实 Scene View 滚轮缩放无 SSR 反射拖尾（AC-14 PASS）。
 
 **口径修订**：计划的 AC-3 使用“与 12 帧收敛参考的差值 ≤ 0.002”。实测 URP 原生 MV 路径同样偏离该参考约 `0.035`（时间累积的固定反馈延迟），该指标无法区分重投影错误。验收改为“与原生 MV 路径逐帧一致（`meanAbs ≤ 0.001`） + 抑制后显著劣化”，并在 `Report.md` §5.1 记录原因与原始数据。
 
-**限制**：Editor 下不补物体运动；同姿态物体移动 + 同帧重渲染仍复用金字塔；SSL-only Scene View 与 XR 不在本轮范围。见 `KnownDifferences.md`。
+**限制**：Editor 下不补物体运动；同姿态物体移动 + 同帧重渲染仍复用金字塔；第二阶段已覆盖 SSL-only Scene View；XR 不在本轮范围。见 `KnownDifferences.md`。
 
 ## 14. 08-AccurateNormalsFixed（2026-11-19）
 
 > 范围：Deferred + `Accurate G-buffer normals` 下屏幕空间光照（GTAO / SSGI / SSR）的噪点与闪烁；octahedron 法线路径首次进入验证矩阵。
-> 计划与结果：[PLAN/TODO/08-Accurate_normals_fixed/HANDOFF.md](TODO/08-Accurate_normals_fixed/HANDOFF.md)、[Report.md](TODO/08-Accurate_normals_fixed/Report.md)
-> 结论：**根因已确认并修复，自动验收通过**。
+> 计划与结果：[PLAN/Done/08-Accurate_normals_fixed/HANDOFF.md](Done/08-Accurate_normals_fixed/HANDOFF.md)、[Report.md](Done/08-Accurate_normals_fixed/Report.md)
+> 结论：**已归档：根因已修复，功能验收通过，AC-6 性能未达标**。
 
 | 交付 | 结果 | 证据 |
 |---|---|---|
@@ -467,7 +469,7 @@ PY
 | AC-1/2/3 | oct vs signed 亮度差 ≤ 1e-5、地面高频差 1.2e-4、帧间差 ≤ 8e-6；`passed=true` | `validation/Attribution/Attribution.json` |
 | AC-4 | 三个 oct 关键字全部启用 + 关键字/解码契约测试 | `validation/Attribution/Attribution.json`、`AccurateGbufferNormalsTests` |
 | AC-5 | EditMode 182/182；T12 回放见 `validation/T12/` | `validation/EditMode/UnityEditModeTests.xml` |
-| AC-6 | 性能回归未测（只加变体，无额外 pass），列为 follow-up | `Report.md` §6 |
+| AC-6 | FAIL：D3D11 Editor 离屏相机 GPU 时间 0.940488 → 1.005268 ms（+6.89%，要求 <5%） | [测量条件与原始数据](Done/08-Accurate_normals_fixed/validation/AC6-9915f3f/conditions.json) |
 
 **判定**：现象不属于 accurate normals 的预期表现；修复不触碰 signed 路径的算法，透明 prepass 按原设计保持 signed。
 

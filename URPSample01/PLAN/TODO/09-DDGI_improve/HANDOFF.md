@@ -4,7 +4,7 @@
 > 建立：2026-11-19；修订：2026-11-20（复核 1–5：基线、互斥、TLAS、schema、任务、流程）
 > 基线：计划于 `0a73b2b` 起草；T0 已按实施 HEAD `720bedd` 重测（见 §2.2）
 > 结果入口：本文件、[report.md](report.md)、`validation/`
-> 关联：`PLAN/Done/01-ScreenSpaceLighting`（SSL/GTAO 实现）、`PLAN/Done/06-ValidationAllRDC`（证据与 `.rdc` 规范）、`PLAN/TODO/07-EditorMVPass`、`PLAN/TODO/08-Accurate_normals_fixed`（测试/收尾格式）
+> 关联：`PLAN/Done/01-ScreenSpaceLighting`（SSL/GTAO 实现）、`PLAN/Done/06-ValidationAllRDC`（证据与 `.rdc` 规范）、`PLAN/Done/07-EditorMVPass`、`PLAN/Done/08-Accurate_normals_fixed`（测试/收尾格式）
 > 外部参考：`E:\workspace\GitHub\RTXGI-DDGI-URP`（DDGI 数据面/采样/光追）、`E:\workspace\GitHub\UnitySSGIURP`（材质/降噪接入风格）
 > 本文中的参考仓库行号基于其当前工作树；本项目代码行号基于 `0a73b2b`，改动后以符号名为准。
 
@@ -898,6 +898,6 @@ git status --short
 
 1. 本文件 §0（决策）、§4（边界）、§5（任务）、§6（验收）。
 2. [report.md](report.md) §5（参考实现解剖）、§5.7（本仓库 SSGI/SSR 对照）、§7（选型）、§9（勘误）。
-3. `PLAN/Done/06-ValidationAllRDC/HANDOFF.md` §7.1（三层证据）与 §8（收尾/清理）、`PLAN/TODO/08-Accurate_normals_fixed/HANDOFF.md`（测试/收尾格式）。
+3. `PLAN/Done/06-ValidationAllRDC/HANDOFF.md` §7.1（三层证据）与 §8（收尾/清理）、`PLAN/Done/08-Accurate_normals_fixed/HANDOFF.md`（测试/收尾格式）。
 
 **完成判据**：§8.4 全部勾选，T13 归档到 `PLAN/Done/09-DDGI_improve`，ACCEPTANCE 新增节（执行时编号）记录 AC-1…AC-13 的结论与证据链接。

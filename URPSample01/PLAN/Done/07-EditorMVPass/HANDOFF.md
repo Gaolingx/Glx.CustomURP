@@ -1,6 +1,6 @@
 # 07-EditorMVPass 交接：Editor 运动矢量补齐（GTAO 相机拖影）
 
-> 状态：**第一阶段 PASS（AC-9 已由仓库所有者确认）**；第二阶段自动验收通过，人工 SSR Scene View 验收待确认
+> 状态：**两阶段 PASS，已归档**。仓库所有者已确认 AC-9 与 AC-14。
 > 建立：2026-11-18；实施与验证：2026-11-18
 > 基线：`2291aa0`（调研文档提交）
 > 结果入口：[Report.md](Report.md)、[KnownDifferences.md](KnownDifferences.md)、`validation/`
@@ -36,7 +36,7 @@
 | 回归 | EditMode 173/173、PlayMode 6/6、T12 34/34/34/35 |
 | T12 差异 | 12 张，全部在 `RenderScale75`/`TargetResize`/`CameraCut`/`MotionBlur`，逐张解释见 `Report.md` §5.3 |
 | T0.2 | 同帧多姿态**确实存在**（T12 MotionBlur 紧循环、E2E 首版 frameCount 重复）；T4 为必要修复 |
-| AC-9 | 待人工拖拽确认；步骤见 §7.3 |
+| AC-9 | 仓库所有者已于 2026-11-18 确认；步骤见 §7.3 |
 
 AC-3 的判定口径已调整：不再用“与 12 帧收敛参考的差值”作为主判据，因为 URP 原生 MV 路径同样偏离该参考（时间反馈延迟）；改为“与原生 MV 路径逐帧一致 + 抑制后显著劣化”。详见 `Report.md` §5.1。
 
@@ -341,7 +341,7 @@ internal bool ShouldBuild(int frameIndex, Matrix4x4 viewProjection)
 
 ### T6 — 文档与证据
 
-- 完成并通过后：`PLAN/TODO/07-EditorMVPass` → `PLAN/Done/07-EditorMVPass`（保留本文件并更新状态/结论）；
+- 已归档至 `PLAN/Done/07-EditorMVPass`；
 - `PLAN/ACCEPTANCE.md` 增加 07 行（PASS/PASS* + 证据入口）；
 - `PLAN/Done/01-ScreenSpaceLighting/HANDOFF.md` 增加“后续缺陷修复（日期）：Editor MV pass”小节；
 - 新增 `PLAN/Done/07-EditorMVPass/KnownDifferences.md`：
@@ -387,8 +387,8 @@ internal bool ShouldBuild(int frameIndex, Matrix4x4 viewProjection)
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14EditModeTests.ps1" `
-  -LogPath "PLAN/TODO/07-EditorMVPass/validation/UnityEditModeTests.log" `
-  -ResultsPath "PLAN/TODO/07-EditorMVPass/validation/UnityEditModeTests.xml"
+  -LogPath "PLAN/Done/07-EditorMVPass/validation/UnityEditModeTests.log" `
+  -ResultsPath "PLAN/Done/07-EditorMVPass/validation/UnityEditModeTests.xml"
 ```
 
 2. **T4 金字塔单测**（若 T4 实施）：同一 EditMode 运行覆盖；报告中单列相关用例结果。
@@ -398,17 +398,17 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/Done/01-ScreenSpac
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/Done/01-ScreenSpaceLighting/validation/T1/Invoke-T1Unity.ps1" `
   -ExecuteMethod ScreenSpaceLightingEditorMotionVerification.Run `
-  -LogPath "PLAN/TODO/07-EditorMVPass/validation/UnityEditorMotion.log" `
-  -ReportPath "PLAN/TODO/07-EditorMVPass/validation/UnityEditorMotionSettingsRestoration.json" `
-  -AdditionalArguments @("-ssl-editor-motion-output","<abs>/PLAN/TODO/07-EditorMVPass/validation/EditorMotion")
+  -LogPath "PLAN/Done/07-EditorMVPass/validation/UnityEditorMotion.log" `
+  -ReportPath "PLAN/Done/07-EditorMVPass/validation/UnityEditorMotionSettingsRestoration.json" `
+  -AdditionalArguments @("-ssl-editor-motion-output","<abs>/PLAN/Done/07-EditorMVPass/validation/EditorMotion")
 ```
 
 4. **T12 组合矩阵回放**（回归）
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14GraphicsRegression.ps1" `
-  -LogPath "PLAN/TODO/07-EditorMVPass/validation/T12/UnityT12.log" `
-  -OutputRoot "PLAN/TODO/07-EditorMVPass/validation/T12"
+  -LogPath "PLAN/Done/07-EditorMVPass/validation/T12/UnityT12.log" `
+  -OutputRoot "PLAN/Done/07-EditorMVPass/validation/T12"
 ```
 
 与 `PLAN/Done/06-ValidationAllRDC`/T14 归档哈希对比；若 T4 导致相机运动类用例图像变化，逐张列出并解释（不得静默接受）。
@@ -417,8 +417,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/Done/01-ScreenSpac
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PLAN/Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14PlayModeTests.ps1" `
-  -LogPath "PLAN/TODO/07-EditorMVPass/validation/UnityPlayModeTests.log" `
-  -ResultsPath "PLAN/TODO/07-EditorMVPass/validation/UnityPlayModeTests.xml"
+  -LogPath "PLAN/Done/07-EditorMVPass/validation/UnityPlayModeTests.log" `
+  -ResultsPath "PLAN/Done/07-EditorMVPass/validation/UnityPlayModeTests.xml"
 ```
 
 6. **Player 对照**（可选但推荐）：现有 DX11/DX12 验证 Player，确认 GTAO temporal 输出未变（本改动仅在 `UNITY_EDITOR`）。
@@ -498,7 +498,7 @@ PLAN/Done/07-EditorMVPass/
 2. AC-1…AC-9 全部有证据并通过（AC-9 由仓库所有者确认）；
 3. `Report.md` 包含：根因、参考实现差异、A/B 数据、T12 差异说明、限制；
 4. `PLAN/ACCEPTANCE.md` 与 `01/HANDOFF.md` 已更新；
-5. ~~目录移动到 `PLAN/Done/07-EditorMVPass`~~ → 等第二阶段完成后一并移动；第一阶段 AC-9 已确认。
+5. 两阶段验收完成，目录已移入 `PLAN/Done/07-EditorMVPass`。
 6. 工作区干净，`.rdc` 预算与设置恢复报告无异常。
 
 ---
@@ -547,7 +547,7 @@ PLAN/Done/07-EditorMVPass/
 | AC-11 | 共享 pass 的逐帧输出与第一阶段一致 | ✅ E2E 3 模式，`meanAbs vs ACD = 0`，draws 22 / skips 2 | `validation/Phase2/EditorMotion/Metrics.json` |
 | AC-12 | T12 无新增失败、无非预期图像变化 | ✅ Forward 34/34、Forward+ 34/34、Deferred 35/35；85/85 PNG SHA-256 与第一阶段相同 | `validation/Phase2/T12/` |
 | AC-13 | PlayMode 与设置恢复 | ✅ PlayMode 6/6；3 份 `*SettingsRestoration.json` 全部 `true` | `validation/Phase2/`、`Phase2/T12/` |
-| AC-14 | 真实 Scene View 中 SSR Approximation 滚轮缩放无反射拖尾 | ⏳ 待仓库所有者 | — |
+| AC-14 | 真实 Scene View 中 SSR Approximation 滚轮缩放无反射拖尾 | PASS | 仓库所有者于 2026-11-22 确认滚轮缩放无 SSR 反射拖尾 |
 
 - SSL-only + 无 ACD：共享 pass 入队；motion 均值 > 0；SSR 反射在滚轮/推拉序列中跟随几何。
 - 有 ACD：不入队，原生相机+物体 MV 保留。

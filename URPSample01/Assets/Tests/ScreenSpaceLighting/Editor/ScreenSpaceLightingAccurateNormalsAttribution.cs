@@ -20,7 +20,7 @@ public static class ScreenSpaceLightingAccurateNormalsAttribution
     const string RendererPath = "Assets/Tests/ScreenSpaceLighting/Renderers/SslT5DeferredRenderer.asset";
     const string PipelinePath = "Assets/Tests/ScreenSpaceLighting/Renderers/SslT5DeferredPipeline.asset";
     const string ScenePath = "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity";
-    const string OutputRoot = "PLAN/TODO/08-Accurate_normals_fixed/validation/Attribution";
+    const string OutputRoot = "PLAN/Done/08-Accurate_normals_fixed/validation/Attribution";
 
     const int ImageWidth = 1280;
     const int ImageHeight = 720;
