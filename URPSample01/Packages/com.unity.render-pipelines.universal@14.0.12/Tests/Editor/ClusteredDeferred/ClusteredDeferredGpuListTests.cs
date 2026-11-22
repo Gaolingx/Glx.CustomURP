@@ -89,7 +89,8 @@ namespace UnityEditor.Rendering.Universal.Tests
                 builder.Upload(cmd, items, items.Length);
                 builder.Dispatch(cmd, new ClusterListGpuParams { items = items, itemCount = 33, lightCount = 32,
                     binCount = 1, wordsPerTile = 2, zBinWordCount = 5, tileWordCount = 4,
-                    worldToView = Matrix4x4.identity, near = 0.1f, tileCount = new int2(2, 1) }, words);
+                    worldToView = Matrix4x4.identity, near = 0.1f, tileCount = new int2(2, 1),
+                    tileScale = new float2(2, 1), viewToViewportScaleBias = new Vector4(0.5f, 0.5f, 0.5f, 0.5f) }, words);
                 Graphics.ExecuteCommandBuffer(cmd);
                 var actual = new uint[9];
                 words.GetData(actual);

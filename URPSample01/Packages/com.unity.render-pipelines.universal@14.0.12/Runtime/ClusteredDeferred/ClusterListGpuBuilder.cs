@@ -117,7 +117,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ClearKernel = SupportedKernel(compute, "ClusterZBinClear");
             m_ScatterKernel = SupportedKernel(compute, "ClusterZBinScatter");
             m_PackKernel = SupportedKernel(compute, "ClusterZBinPack");
-            m_ExpandKernel = SupportedKernel(compute, "ClusterTileExpand");
+            m_ExpandKernel = SupportedKernel(compute, bitmapOnly ? "ClusterTileExpandForwardPlus" : "ClusterTileExpand");
             m_PruneKernel = bitmapOnly ? -1 : SupportedKernel(compute, "ClusterTilePrune");
             m_CellKernel = bitmapOnly ? -1 : SupportedKernel(compute, "ClusterCellBuild");
         }
@@ -179,6 +179,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetComputeBufferParam(m_Compute, m_PackKernel, wordsId, words);
             cmd.SetComputeBufferParam(m_Compute, m_PackKernel, "_CdClusterBinMinMax", m_BinMinMax);
 
+            if (m_BitmapOnly)
+                cmd.SetComputeBufferParam(m_Compute, m_ExpandKernel, "_CdClusterItems", m_Items);
             cmd.SetComputeBufferParam(m_Compute, m_ExpandKernel, wordsId, words);
             cmd.SetComputeBufferParam(m_Compute, m_ExpandKernel, "_CdClusterTileRanges", m_TileRanges);
 

@@ -25,6 +25,7 @@
 #pragma kernel ClusterZBinScatter
 #pragma kernel ClusterZBinPack
 #pragma kernel ClusterTileExpand
+#pragma kernel ClusterTileExpandForwardPlus CD_FORWARD_TILE_PLANES
 #pragma kernel ClusterTilePrune
 #pragma kernel ClusterCellBuild
 
@@ -174,7 +175,7 @@ int4 CdTileRange(CdClusterItem item, float3 centerWS, float3 boxExtents)
 
     if (tsMax.x < 0.0 || tsMax.y < 0.0)
         return int4(1, 0, 0, 0);
-    if (tsMin.x > (float)(_CdClusterTileCount.x - 1) || tsMin.y > (float)(_CdClusterTileCount.y - 1))
+    if (any(tsMin >= float2(_CdClusterTileCount)))
         return int4(1, 0, 0, 0);
 
     int2 tileMin = clamp((int2)floor(tsMin), int2(0, 0), (int2)_CdClusterTileCount - 1);
@@ -261,6 +262,38 @@ void ClusterZBinPack(uint3 id : SV_DispatchThreadID)
     _URPClusterWords[words + 1u] = (_CdClusterBinMinMax[slot + 2u] & 0xFFFFu) | ((_CdClusterBinMinMax[slot + 3u] & 0xFFFFu) << 16u);
 }
 
+#ifdef CD_FORWARD_TILE_PLANES
+bool CdLightOverlapsTile(CdClusterItem item, float2 lo, float2 hi)
+{
+    if (item.itemType != CD_ITEM_LIGHT)
+        return true;
+
+    float radius = item.positionRange.w;
+    float3 center = item.positionRange.xyz;
+    if (item.lightType == CD_LIGHTTYPE_SPOT)
+    {
+        float halfCos = cos(radians(item.directionExtent.w) * 0.5);
+        if (halfCos > 0.5)
+        {
+            // The shifted sphere touches both the apex and the outer rim of the spherical sector.
+            radius *= 0.5 / halfCos;
+            center += normalize(item.directionExtent.xyz) * radius;
+        }
+    }
+    float3 view = mul(_CdClusterWorldToView, float4(center, 1.0)).xyz;
+    float z = _CdClusterOrthographic != 0u ? 1.0 : -view.z;
+    radius = radius * 1.0001 + 1e-4;
+    float2 padLo = radius, padHi = radius;
+    if (_CdClusterOrthographic == 0u)
+    {
+        padLo *= sqrt(1.0 + lo * lo);
+        padHi *= sqrt(1.0 + hi * hi);
+    }
+    return all(view.xy - lo * z >= -padLo) && all(hi * z - view.xy >= -padHi);
+}
+#define ClusterTileExpand ClusterTileExpandForwardPlus
+#endif
+
 [numthreads(8, 8, 1)]
 void ClusterTileExpand(uint3 id : SV_DispatchThreadID)
 {
@@ -271,6 +304,10 @@ void ClusterTileExpand(uint3 id : SV_DispatchThreadID)
 
     uint wordsPerTile = (uint)_FPParams1.w;
     uint wordBase = (tileY * _CdClusterTileCount.x + tileX) * wordsPerTile;
+#ifdef CD_FORWARD_TILE_PLANES
+    float2 a = (float2(id.xy) / _CdClusterTileScale - _CdClusterViewToViewportScaleBias.zw) / _CdClusterViewToViewportScaleBias.xy;
+    float2 b = (float2(id.xy + 1u) / _CdClusterTileScale - _CdClusterViewToViewportScaleBias.zw) / _CdClusterViewToViewportScaleBias.xy;
+#endif
 
     [loop] for (uint item = 0u; item < _CdClusterItemCount; item++)
     {
@@ -278,6 +315,10 @@ void ClusterTileExpand(uint3 id : SV_DispatchThreadID)
         if ((int)tileY >= range.x && (int)tileY <= range.y &&
             (int)tileX >= range.z && (int)tileX <= range.w)
         {
+#ifdef CD_FORWARD_TILE_PLANES
+            if (!CdLightOverlapsTile(_CdClusterItems[item], min(a, b), max(a, b)))
+                continue;
+#endif
             _URPClusterWords[_URPClusterTileOffset + wordBase + (item >> 5)] |= 1u << (item & 31u);
         }
     }

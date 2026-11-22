@@ -22,6 +22,16 @@
 
 `matrix.csv` 给出每个文件的双 SHA-256、mean、peak、>8 像素数和比例。`raw.zip` 保存原始 T4/T12 JSON、逐进程 CdPerf JSON/CSV、BuildReport、运行命令、起止时间与编译进程抽查。同包 `image-manifest.json` 把逻辑路径映射到两份 `pixels-*.zip` 中的 `png/<SHA256>.png`；以哈希查图即可脱离工程复算。`authority.zip` 含原始 RDC 与权威测试证据。`run.py --paired` 为正式配对采集；`collect.py` 从采集目录复算表和未拆分的图像包。
 
+## C7 后续：Forward+ 性能与屏幕边界（不改历史判定）
+
+同机 D3D12、无透明、256 灯：C0→C4a 的原生 GPU 帧中位数 1.0826→1.7894 ms。六个回放帧的同一个内部像素实际循环 31→40 盏，新增九盏均已在 C0 上传且通过 z-bin，差别在 tile。隔离 C4a 保持 shader、structured buffer 和五次建表 dispatch，同进程等量上传宽/窄掩码，六对原生帧中位数节省 0.7462–0.7849 ms；不把回放事件时间相加当原生整帧。
+
+不移植 FPTL 的固定容量分类索引；先在已有位图生成时，对点光范围球和聚光扇形包围球做 tile 侧面测试，不使用不透明深度。隔离 C4a 的 256 灯实验，D3D11/12 × 有无透明共 16 对节省 0.49–0.69 ms，peak≤3/255。0 灯无一致方向，8 灯约省 0.014 ms，48 灯省 0.070–0.080 ms。这些不是 `main` 的验收结果。
+
+独立 CPU 几何样本发现旧粗筛把 `tileCount-1`（最后一个格子的起点）当成连续投影范围的终点。257×129、16 像素 tile 的最后一列覆盖 [256,257)，小光源可只照到其中一个像素。修正后，相同 24,514 个已点亮的采样点从漏掉 9,197 个变为 0；采样刻意偏向边缘，不代表线上发生率。下一闸门：在 D3D11/12 玩家用真实 GPU 灯表验证末列、末行与控制格，旧版必须红，候选必须绿；独立复测主线原生性能，不替代 C7 的图像、材质和全套门槛。
+
+历史调查摘要表、回放分段、采样脚本与 CPU 反例：[tile-investigation.zip](tile-investigation.zip)。玩家回归命令：`CdArena.exe -force-d3d11 --cd-edge-tiles --cd-output <独立目录>`，D3D12 用 `-force-d3d12`。夹具使用正交 257×129 参数直接派发产品 bounds / expand 核并读回 tile 位；不是最终像素颜色测试。末列、末行、角点、内部各应仅置一个指定 tile，屏外应全零。失败写 `CdEdgeTiles.json` 并退出 2；通过退出 0。
+
 ## 证据口径
 
 - 性能首轮发现默认旧 `Builds/ClusteredDeferredArena` 指向的不是 C0：输出只有 ClusteredDeferred 和 ForwardPlus，而冻结原始报告有第三个 StencilDeferred。**整轮不计性能**。重新从 `git archive f0c7ec4` 建独立工程，用历史 Library 的物理副本作为编译缓存而不复用其产品源码/配置，重建双 API；记录中 `C0-*` 是被排除的首轮，`frozen-*` 才是重建冻结代码的结果。重建玩家不宣称和已覆盖的原 EXE 逐字节相同。`provenance.json` 比对关键文件与 Git blob。

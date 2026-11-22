@@ -85,6 +85,11 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         var outputRoot = GetArgument("--cd-output");
         if (string.IsNullOrEmpty(outputRoot))
             outputRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "ClusteredDeferredOutput"));
+        if (HasArgument("--cd-edge-tiles"))
+        {
+            RunEdgeTiles(outputRoot);
+            yield break;
+        }
         Directory.CreateDirectory(outputRoot);
 
         var totalLightsArgument = GetArgument("--cd-total-lights");
@@ -335,6 +340,140 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     }
 
 #if !UNITY_EDITOR
+    // Binary layout of CdClusterItem in the renderer's ClusterBuilder.compute.
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    struct EdgeItem
+    {
+        public Vector4 positionRange, directionExtent;
+        public uint itemType;
+        public int lightType;
+        public uint layerMask, sourceIndex;
+    }
+
+    [Serializable]
+    sealed class EdgeCase
+    {
+        public string name;
+        public float pixelX, pixelY;
+        public int expectedX, expectedY, bitIndex, actualTileCount;
+        public bool expectedTileHit, passed;
+
+        public EdgeCase(string name, float x, float y, int tileX, int tileY)
+        {
+            this.name = name;
+            pixelX = x;
+            pixelY = y;
+            expectedX = tileX;
+            expectedY = tileY;
+        }
+    }
+
+    [Serializable]
+    sealed class EdgeReport
+    {
+        public string graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString();
+        public int width = 257, height = 129, tileWidth = 16;
+        public bool passed;
+        public string error;
+        public EdgeCase[] cases = {
+            new EdgeCase("lastRow", 40.5f, 128.5f, 2, 8),
+            new EdgeCase("lastColumn", 256.5f, 40.5f, 16, 2),
+            new EdgeCase("corner", 256.5f, 128.5f, 16, 8),
+            new EdgeCase("interior", 56.5f, 72.5f, 3, 4),
+            new EdgeCase("outside", 280.5f, 40.5f, -1, -1),
+        };
+    }
+
+    void RunEdgeTiles(string outputRoot)
+    {
+        var report = new EdgeReport();
+        try
+        {
+            if (!SystemInfo.supportsComputeShaders || clusteredDeferredPipeline == null)
+                throw new InvalidOperationException("Edge tiles requires compute support and the arena's clustered pipeline.");
+            var property = typeof(UniversalRenderPipelineAsset).GetProperty("scriptableRendererData",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var data = property?.GetValue(clusteredDeferredPipeline) as UniversalRendererData;
+            var shader = data?.shaders?.clusterBuilderCS;
+            if (shader == null)
+                throw new InvalidOperationException("Default renderer has no clusterBuilderCS.");
+            DispatchEdgeTiles(shader, report);
+            report.passed = Array.TrueForAll(report.cases, c => c.passed);
+        }
+        catch (Exception ex)
+        {
+            report.error = ex.ToString();
+            Debug.LogException(ex);
+        }
+
+        try
+        {
+            Directory.CreateDirectory(outputRoot);
+            File.WriteAllText(Path.Combine(outputRoot, "CdEdgeTiles.json"), JsonUtility.ToJson(report, true));
+        }
+        catch (Exception ex)
+        {
+            report.passed = false;
+            Debug.LogException(ex);
+        }
+        Application.Quit(report.passed ? 0 : 2);
+    }
+
+    static void DispatchEdgeTiles(ComputeShader shader, EdgeReport report)
+    {
+        const int columns = 17, rows = 9;
+        var items = new EdgeItem[report.cases.Length];
+        var masks = new uint[columns * rows]; // One word per tile, initially clear for expansion's OR.
+        for (int i = 0; i < items.Length; i++)
+        {
+            var c = report.cases[i];
+            c.bitIndex = i;
+            // One view-space unit per pixel. A quarter-pixel radius fits even the one-pixel slivers.
+            items[i].positionRange = new Vector4(c.pixelX - report.width * 0.5f,
+                c.pixelY - report.height * 0.5f, -10f, 0.25f);
+            items[i].lightType = (int)LightType.Point;
+        }
+
+        int bounds = shader.FindKernel("ClusterItemBounds"), expand = shader.FindKernel("ClusterTileExpand");
+        using (var input = new ComputeBuffer(items.Length, 48))
+        using (var depths = new ComputeBuffer(items.Length, 8))
+        using (var ranges = new ComputeBuffer(items.Length, 16))
+        using (var words = new ComputeBuffer(masks.Length, 4))
+        {
+            input.SetData(items);
+            words.SetData(masks);
+            shader.SetInt("_CdClusterItemCount", items.Length);
+            shader.SetInts("_CdClusterTileCount", columns, rows);
+            shader.SetVector("_CdClusterTileScale", new Vector4((float)report.width / report.tileWidth,
+                (float)report.height / report.tileWidth, 0, 0));
+            shader.SetVector("_CdClusterViewToViewportScaleBias", new Vector4(1f / report.width, 1f / report.height, 0.5f, 0.5f));
+            shader.SetMatrix("_CdClusterWorldToView", Matrix4x4.identity);
+            shader.SetFloat("_CdClusterNear", 0.1f);
+            shader.SetInt("_CdClusterOrthographic", 1);
+            shader.SetBuffer(bounds, "_CdClusterItems", input);
+            shader.SetBuffer(bounds, "_CdClusterMinMaxZ", depths);
+            shader.SetBuffer(bounds, "_CdClusterTileRanges", ranges);
+            shader.Dispatch(bounds, 1, 1, 1);
+
+            shader.SetVector("_FPParams1", new Vector4(0, 0, 0, 1));
+            shader.SetInt("_URPClusterTileOffset", 0);
+            shader.SetBuffer(expand, "_CdClusterTileRanges", ranges);
+            shader.SetBuffer(expand, "_URPClusterWords", words);
+            shader.Dispatch(expand, (columns + 7) / 8, (rows + 7) / 8, 1);
+            words.GetData(masks);
+        }
+
+        foreach (var c in report.cases)
+        {
+            uint bit = 1u << c.bitIndex;
+            foreach (var mask in masks)
+                if ((mask & bit) != 0) c.actualTileCount++;
+            if (c.expectedX >= 0)
+                c.expectedTileHit = (masks[c.expectedY * columns + c.expectedX] & bit) != 0;
+            c.passed = c.expectedX < 0 ? c.actualTileCount == 0 : c.expectedTileHit && c.actualTileCount == 1;
+        }
+    }
+
     IEnumerator RunCaptureOnly(string outputRoot, PerfReport report)
     {
         SetupArena();
