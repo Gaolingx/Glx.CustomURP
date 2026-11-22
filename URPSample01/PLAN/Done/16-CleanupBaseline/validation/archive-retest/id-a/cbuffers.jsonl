@@ -1,0 +1,2 @@
+{"id":1,"jsonrpc":"2.0","result":{"content":[{"text":"{\"api\":\"D3D11\",\"degraded\":false,\"driverName\":\"\",\"gpus\":[],\"hasCallstacks\":false,\"machineIdent\":\"\",\"path\":\"E:\\\\GitHub\\\\Glx.CustomURP\\\\URPSample01\\\\PLAN\\\\TODO\\\\16-CleanupBaseline\\\\validation\\\\archive-retest\\\\id-a\\\\id_frame290.rdc\",\"timestampBase\":0,\"totalDraws\":272,\"totalEvents\":345}","type":"text"}]}}
+{"error":{"code":-32602,"message":"Invalid params: Unknown tool: list_cbuffers"},"id":2,"jsonrpc":"2.0"}

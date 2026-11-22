@@ -1,0 +1,25 @@
+{
+  "command": [
+    "E:\\GitHub\\Glx.CustomURP\\URPSample01\\Builds\\ClusteredDeferredArenaC4\\Direct3D11\\CdArena.exe",
+    "-force-d3d11",
+    "--cd-output",
+    "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\TODO\\16-CleanupBaseline\\validation\\archive-retest\\c-d3d11-cap",
+    "-logFile",
+    "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\TODO\\16-CleanupBaseline\\validation\\archive-retest\\c-d3d11-cap\\Player.log",
+    "--cd-total-lights",
+    "256",
+    "--cd-light-counts",
+    "255,256",
+    "--cd-screenshot-lights",
+    "255,256"
+  ],
+  "pid": 27532,
+  "utc": "2026-11-22T15:00:27.193349+00:00",
+  "sha256": {
+    "E:\\GitHub\\Glx.CustomURP\\URPSample01\\Builds\\ClusteredDeferredArenaC4\\Direct3D11\\CdArena.exe": "d2e1444d0c4420c5d628cccc5700b61e9f2efac0d8d4478b5e9dc50b79d5e42f",
+    "E:\\GitHub\\Glx.CustomURP\\URPSample01\\Builds\\ClusteredDeferredArenaC4\\Direct3D11\\CdArena_Data\\globalgamemanagers": "17caa4c389f220f33ec5f53730e9f09fbb940d30e3df2207f9491685a6f3248a",
+    "E:\\GitHub\\Glx.CustomURP\\URPSample01\\Builds\\ClusteredDeferredArenaC4\\Direct3D11\\CdArena_Data\\Managed\\Unity.RenderPipelines.Universal.Runtime.dll": "7f62faa8e3f7147be211eae8b3046e7bc915cace4525bbd6ef4b1f008b56b9bf",
+    "E:\\GitHub\\Glx.CustomURP\\URPSample01\\Builds\\ClusteredDeferredArenaC4\\Direct3D11\\CdArena_Data\\Managed\\Assembly-CSharp.dll": "4bd64ba284dc6c4221c8b2e8ac1fb22fdbe5f70b544d906145f0bca83b431ddc"
+  },
+  "exit": 0
+}

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Passed" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-22 15:10:26Z" end-time="2026-11-22 15:10:33Z" duration="7.1523081">
+  <test-suite type="TestSuite" id="1000" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="46" result="Passed" start-time="2026-11-22 15:10:26Z" end-time="2026-11-22 15:10:33Z" duration="7.152308" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1020" name="Unity.ClusteredDeferred.Tests.PlayMode.dll" fullname="E:/tmp/c3-retest-29ceb1c/URPSample01/Library/ScriptAssemblies/Unity.ClusteredDeferred.Tests.PlayMode.dll" runstate="Runnable" testcasecount="17" result="Passed" start-time="2026-11-22 15:10:26Z" end-time="2026-11-22 15:10:28Z" duration="2.514849" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="57704" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1021" name="Unity" fullname="Unity" runstate="Runnable" testcasecount="17" result="Passed" start-time="2026-11-22 15:10:26Z" end-time="2026-11-22 15:10:28Z" duration="2.512252" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1022" name="ClusteredDeferred" fullname="Unity.ClusteredDeferred" runstate="Runnable" testcasecount="17" result="Passed" start-time="2026-11-22 15:10:26Z" end-time="2026-11-22 15:10:28Z" duration="2.510708" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1023" name="Tests" fullname="Unity.ClusteredDeferred.Tests" runstate="Runnable" testcasecount="17" result="Passed" start-time="2026-11-22 15:10:26Z" end-time="2026-11-22 15:10:28Z" duration="2.509236" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <output><![CDATA[Shader warning in 'ClusterBuilder': use of potentially uninitialized variable (CdItemMinMaxZ) at kernel ClusterItemBounds at ClusterBuilder.compute(129) (on d3d11)
+]]></output>
+            <test-suite type="TestSuite" id="1024" name="PlayMode" fullname="Unity.ClusteredDeferred.Tests.PlayMode" runstate="Runnable" testcasecount="17" result="Passed" start-time="2026-11-22 15:10:26Z" end-time="2026-11-22 15:10:28Z" duration="2.506769" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1001" name="ClusteredDeferredPlayModeTests" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" testcasecount="17" result="Passed" start-time="2026-11-22 15:10:26Z" end-time="2026-11-22 15:10:28Z" duration="2.503490" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1004" name="OrthographicFogSkipsOnlyTheDeferredReceiver" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.OrthographicFogSkipsOnlyTheDeferredReceiver" methodname="OrthographicFogSkipsOnlyTheDeferredReceiver" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1493803372" result="Passed" start-time="2026-11-22 15:10:26Z" end-time="2026-11-22 15:10:28Z" duration="2.475255" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <output><![CDATA[CommandBuffer: temporary render texture  not found while executing  (SetComputeTextureParam)
+Shader warning in 'GTAO': integer divides may be much slower, try using uints if possible. at kernel GTAOMain at E:/tmp/c3-retest-29ceb1c/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+Shader warning in 'GTAO': use of potentially uninitialized variable (GTAOGetDepthSample) at kernel GTAOMain at E:/tmp/c3-retest-29ceb1c/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+Shader warning in 'GTAO': integer divides may be much slower, try using uints if possible. at kernel GTAOMain at E:/tmp/c3-retest-29ceb1c/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+Shader warning in 'GTAO': use of potentially uninitialized variable (GTAOGetDepthSample) at kernel GTAOMain at E:/tmp/c3-retest-29ceb1c/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1069" name="Unity.ScreenSpaceLighting.Tests.PlayMode.dll" fullname="E:/tmp/c3-retest-29ceb1c/URPSample01/Library/ScriptAssemblies/Unity.ScreenSpaceLighting.Tests.PlayMode.dll" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 15:10:28Z" end-time="2026-11-22 15:10:33Z" duration="4.618568" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="57704" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1070" name="Unity" fullname="Unity" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 15:10:28Z" end-time="2026-11-22 15:10:33Z" duration="4.613663" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1071" name="ScreenSpaceLighting" fullname="Unity.ScreenSpaceLighting" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 15:10:28Z" end-time="2026-11-22 15:10:33Z" duration="4.609892" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1072" name="Tests" fullname="Unity.ScreenSpaceLighting.Tests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 15:10:28Z" end-time="2026-11-22 15:10:33Z" duration="4.608146" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1073" name="PlayMode" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 15:10:28Z" end-time="2026-11-22 15:10:33Z" duration="4.606775" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1060" name="ScreenSpaceLightingPlayModeTests" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 15:10:28Z" end-time="2026-11-22 15:10:33Z" duration="4.605381" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="ParameterizedMethod" id="1064" name="AllEffectsDispatchAndRestoreReference" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-22 15:10:28Z" end-time="2026-11-22 15:10:32Z" duration="3.473837" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <test-case id="1061" name="AllEffectsDispatchAndRestoreReference(&quot;Forward&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference(&quot;Forward&quot;)" methodname="AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="2065277807" result="Passed" start-time="2026-11-22 15:10:28Z" end-time="2026-11-22 15:10:30Z" duration="1.367788" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1062" name="AllEffectsDispatchAndRestoreReference(&quot;ForwardPlus&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference(&quot;ForwardPlus&quot;)" methodname="AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="1797753071" result="Passed" start-time="2026-11-22 15:10:30Z" end-time="2026-11-22 15:10:31Z" duration="1.272423" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1063" name="AllEffectsDispatchAndRestoreReference(&quot;Deferred&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.AllEffectsDispatchAndRestoreReference(&quot;Deferred&quot;)" methodname="AllEffectsDispatchAndRestoreReference" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="1431794640" result="Passed" start-time="2026-11-22 15:10:31Z" end-time="2026-11-22 15:10:32Z" duration="0.830654" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1068" name="RuntimeControlsAndCameraLifetime" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-22 15:10:32Z" end-time="2026-11-22 15:10:33Z" duration="1.129064" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <test-case id="1065" name="RuntimeControlsAndCameraLifetime(&quot;Forward&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime(&quot;Forward&quot;)" methodname="RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="2017960343" result="Passed" start-time="2026-11-22 15:10:32Z" end-time="2026-11-22 15:10:32Z" duration="0.363507" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1066" name="RuntimeControlsAndCameraLifetime(&quot;ForwardPlus&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime(&quot;ForwardPlus&quot;)" methodname="RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="1272328398" result="Passed" start-time="2026-11-22 15:10:32Z" end-time="2026-11-22 15:10:32Z" duration="0.394029" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1067" name="RuntimeControlsAndCameraLifetime(&quot;Deferred&quot;)" fullname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests.RuntimeControlsAndCameraLifetime(&quot;Deferred&quot;)" methodname="RuntimeControlsAndCameraLifetime" classname="Unity.ScreenSpaceLighting.Tests.PlayMode.ScreenSpaceLightingPlayModeTests" runstate="Runnable" seed="1134895987" result="Passed" start-time="2026-11-22 15:10:32Z" end-time="2026-11-22 15:10:33Z" duration="0.364945" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

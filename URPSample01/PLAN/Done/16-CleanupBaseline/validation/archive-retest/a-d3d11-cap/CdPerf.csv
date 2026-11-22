@@ -1,0 +1,5 @@
+Mode,LightCount,CpuSamples,CpuMeanMs,CpuMedianMs,CpuP95Ms,GpuSamples,GpuMeanMs,GpuMedianMs,GpuP95Ms,Screenshot,MagentaFraction
+ClusteredDeferred,255,150,2.0250,1.8747,3.7472,114,1.5032,1.2506,2.7144,ClusteredDeferred_L255.png,0.000000
+ClusteredDeferred,256,150,1.8685,1.7110,3.0047,118,1.3303,1.1558,2.8052,ClusteredDeferred_L256.png,0.000000
+ForwardPlus,255,150,2.3881,2.1950,3.8425,150,2.2292,2.0465,3.5430,ForwardPlus_L255.png,0.000000
+ForwardPlus,256,150,2.1523,1.9825,3.5115,143,1.9685,1.8053,3.2294,ForwardPlus_L256.png,0.000000

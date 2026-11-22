@@ -504,7 +504,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             var api = SystemInfo.graphicsDeviceType;
             if (api != GraphicsDeviceType.Direct3D11 && api != GraphicsDeviceType.Direct3D12)
                 Assert.Ignore("No independent 5d4bcca Forward+ capture for " + api);
-            var directory = System.IO.Path.Combine(Application.dataPath, "../PLAN/TODO/16-CleanupBaseline/c4/cpu-5d4bcca", api.ToString());
+            var directory = System.IO.Path.Combine(Application.dataPath, "../PLAN/Done/16-CleanupBaseline/c4/cpu-5d4bcca", api.ToString());
             yield return SetUpRig(ForwardPlusPipelinePath, 640, 360, 24, transparent: true);
             var cube = new Cubemap(16, TextureFormat.RGBA32, false);
             var reference = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);

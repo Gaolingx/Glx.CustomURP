@@ -1,0 +1,11 @@
+--- a/URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs
++++ b/URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs
+@@ -136,7 +136,7 @@
+ 
+         IEnumerator CompareFogReceivers(bool orthographic)
+         {
+-            yield return SetUpRig(ForwardPlusPipelinePath, 640, 360, 1);
++            yield return SetUpRig(ForwardPlusPipelinePath, 640, 360, orthographic ? 0 : 1);
+             bool fog = RenderSettings.fog;
+             var mode = RenderSettings.fogMode;
+             var color = RenderSettings.fogColor;

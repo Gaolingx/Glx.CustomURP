@@ -1,0 +1,3282 @@
+[
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L256.png",
+    "peak": 61,
+    "mean": 0.14898111979166667,
+    "over24": 323,
+    "bbox": [
+      226,
+      296,
+      991,
+      351
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L256.png",
+    "peak": 56,
+    "mean": 0.14865234375,
+    "over24": 324,
+    "bbox": [
+      226,
+      296,
+      991,
+      352
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L256.png",
+    "peak": 61,
+    "mean": 0.18032769097222223,
+    "over24": 259,
+    "bbox": [
+      272,
+      223,
+      991,
+      347
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L256.png",
+    "peak": 56,
+    "mean": 0.17965784143518518,
+    "over24": 257,
+    "bbox": [
+      272,
+      223,
+      991,
+      347
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L256.png",
+    "peak": 51,
+    "mean": 0.23310438368055555,
+    "over24": 1824,
+    "bbox": [
+      241,
+      223,
+      999,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L256.png",
+    "peak": 53,
+    "mean": 0.2323169849537037,
+    "over24": 1813,
+    "bbox": [
+      241,
+      223,
+      999,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L48.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L256.png",
+    "peak": 62,
+    "mean": 0.1593334056712963,
+    "over24": 1187,
+    "bbox": [
+      241,
+      223,
+      980,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L256.png",
+    "peak": 62,
+    "mean": 0.15885380497685186,
+    "over24": 1175,
+    "bbox": [
+      241,
+      223,
+      980,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L48.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\AdditionalShadowAtlas_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\AdditionalShadowAtlas_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\AdditionalShadowAtlas_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\AdditionalShadowAtlas_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\AdditionalShadowAtlas_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\AdditionalShadowAtlas_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\AdditionalShadowAtlas_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\AdditionalShadowAtlas_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\LightCookie_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightCookie_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\LightCookie_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightCookie_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\LightCookie_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightCookie_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\LightCookie_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightCookie_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\LightLayers_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightLayers_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\LightLayers_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightLayers_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\LightLayers_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightLayers_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\LightLayers_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightLayers_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\MainShadowCascade_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowCascade_ClusteredOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\MainShadowCascade_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowCascade_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\MainShadowCascade_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowCascade_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\MainShadowCascade_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowCascade_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\MainShadowScreen_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowScreen_ClusteredOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\MainShadowScreen_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowScreen_ClusteredOn.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\MainShadowScreen_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowScreen_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\MainShadowScreen_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowScreen_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\ReceiveShadowsOff_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ReceiveShadowsOff_ClusteredOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\ReceiveShadowsOff_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ReceiveShadowsOff_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\ReceiveShadowsOff_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ReceiveShadowsOff_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\ReceiveShadowsOff_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ReceiveShadowsOff_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\ScreenSpaceAO_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ScreenSpaceAO_ClusteredOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\ScreenSpaceAO_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ScreenSpaceAO_ClusteredOn.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\ScreenSpaceAO_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ScreenSpaceAO_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d11\\ScreenSpaceAO_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ScreenSpaceAO_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\AdditionalShadowAtlas_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\AdditionalShadowAtlas_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\AdditionalShadowAtlas_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\AdditionalShadowAtlas_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\AdditionalShadowAtlas_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\AdditionalShadowAtlas_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\AdditionalShadowAtlas_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\AdditionalShadowAtlas_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\LightCookie_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightCookie_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\LightCookie_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightCookie_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\LightCookie_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightCookie_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\LightCookie_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightCookie_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\LightLayers_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightLayers_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\LightLayers_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightLayers_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\LightLayers_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightLayers_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\LightLayers_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\LightLayers_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\MainShadowCascade_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowCascade_ClusteredOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\MainShadowCascade_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowCascade_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\MainShadowCascade_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowCascade_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\MainShadowCascade_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowCascade_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\MainShadowScreen_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowScreen_ClusteredOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\MainShadowScreen_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowScreen_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\MainShadowScreen_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowScreen_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\MainShadowScreen_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\MainShadowScreen_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\ReceiveShadowsOff_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ReceiveShadowsOff_ClusteredOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\ReceiveShadowsOff_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ReceiveShadowsOff_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\ReceiveShadowsOff_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ReceiveShadowsOff_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\ReceiveShadowsOff_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ReceiveShadowsOff_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\ScreenSpaceAO_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ScreenSpaceAO_ClusteredOff.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\ScreenSpaceAO_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ScreenSpaceAO_ClusteredOn.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\ScreenSpaceAO_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ScreenSpaceAO_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d11\\ScreenSpaceAO_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d11-t4\\ScreenSpaceAO_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\cluster-on\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\cluster-on\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ClusteredDeferred_L256.png",
+    "peak": 63,
+    "mean": 0.1714181857638889,
+    "over24": 526,
+    "bbox": [
+      273,
+      224,
+      991,
+      347
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\cluster-on\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\cluster-on\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ClusteredDeferred_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\cluster-on\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\cluster-on\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ForwardPlus_L256.png",
+    "peak": 65,
+    "mean": 0.17081741898148148,
+    "over24": 512,
+    "bbox": [
+      273,
+      224,
+      991,
+      347
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\cluster-on\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ForwardPlus_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\cluster-on\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ForwardPlus_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\cluster-on\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\cluster-on\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ClusteredDeferred_L256.png",
+    "peak": 63,
+    "mean": 0.17141710069444444,
+    "over24": 526,
+    "bbox": [
+      273,
+      224,
+      991,
+      347
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\cluster-on\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\cluster-on\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ClusteredDeferred_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\cluster-on\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\cluster-on\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ForwardPlus_L256.png",
+    "peak": 65,
+    "mean": 0.17081669560185186,
+    "over24": 512,
+    "bbox": [
+      273,
+      224,
+      991,
+      347
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\cluster-on\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ForwardPlus_L48.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\cluster-on\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-cluster-on\\ForwardPlus_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\control\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\control\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ClusteredDeferred_L256.png",
+    "peak": 93,
+    "mean": 0.13951171875,
+    "over24": 1302,
+    "bbox": [
+      846,
+      286,
+      1001,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\control\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\control\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ClusteredDeferred_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\control\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ForwardPlus_L256.png",
+    "peak": 93,
+    "mean": 0.1392849392361111,
+    "over24": 1296,
+    "bbox": [
+      846,
+      286,
+      1001,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\control\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ForwardPlus_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t5-d3d12\\control\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ForwardPlus_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\control\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\control\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ClusteredDeferred_L256.png",
+    "peak": 93,
+    "mean": 0.1395120804398148,
+    "over24": 1302,
+    "bbox": [
+      846,
+      286,
+      1001,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\control\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\control\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ClusteredDeferred_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\control\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ForwardPlus_L256.png",
+    "peak": 93,
+    "mean": 0.1392849392361111,
+    "over24": 1296,
+    "bbox": [
+      846,
+      286,
+      1001,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\control\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ForwardPlus_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t5-d3d12\\control\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-control\\ForwardPlus_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\AdditionalShadowAtlas_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\AdditionalShadowAtlas_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\AdditionalShadowAtlas_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\AdditionalShadowAtlas_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\AdditionalShadowAtlas_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\AdditionalShadowAtlas_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\AdditionalShadowAtlas_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\AdditionalShadowAtlas_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\LightCookie_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightCookie_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\LightCookie_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightCookie_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\LightCookie_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightCookie_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\LightCookie_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightCookie_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\LightLayers_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightLayers_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\LightLayers_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightLayers_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\LightLayers_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightLayers_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\LightLayers_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightLayers_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\MainShadowCascade_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowCascade_ClusteredOff.png",
+    "peak": 1,
+    "mean": 2.170138888888889e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\MainShadowCascade_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowCascade_ClusteredOn.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\MainShadowCascade_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowCascade_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\MainShadowCascade_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowCascade_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\MainShadowScreen_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowScreen_ClusteredOff.png",
+    "peak": 1,
+    "mean": 2.170138888888889e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\MainShadowScreen_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowScreen_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.4467592592592592e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\MainShadowScreen_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowScreen_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\MainShadowScreen_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowScreen_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\ReceiveShadowsOff_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ReceiveShadowsOff_ClusteredOff.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\ReceiveShadowsOff_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ReceiveShadowsOff_ClusteredOn.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\ReceiveShadowsOff_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ReceiveShadowsOff_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\ReceiveShadowsOff_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ReceiveShadowsOff_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\ScreenSpaceAO_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ScreenSpaceAO_ClusteredOff.png",
+    "peak": 1,
+    "mean": 2.170138888888889e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\ScreenSpaceAO_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ScreenSpaceAO_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\ScreenSpaceAO_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ScreenSpaceAO_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/c3",
+    "a": "validation\\c3\\t4\\player-d3d12\\ScreenSpaceAO_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ScreenSpaceAO_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\AdditionalShadowAtlas_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\AdditionalShadowAtlas_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\AdditionalShadowAtlas_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\AdditionalShadowAtlas_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\AdditionalShadowAtlas_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\AdditionalShadowAtlas_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\AdditionalShadowAtlas_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\AdditionalShadowAtlas_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\LightCookie_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightCookie_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\LightCookie_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightCookie_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\LightCookie_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightCookie_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\LightCookie_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightCookie_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\LightLayers_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightLayers_ClusteredOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\LightLayers_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightLayers_ClusteredOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\LightLayers_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightLayers_ForwardPlusOff.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\LightLayers_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\LightLayers_ForwardPlusOn.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\MainShadowCascade_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowCascade_ClusteredOff.png",
+    "peak": 1,
+    "mean": 2.170138888888889e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\MainShadowCascade_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowCascade_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\MainShadowCascade_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowCascade_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\MainShadowCascade_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowCascade_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\MainShadowScreen_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowScreen_ClusteredOff.png",
+    "peak": 1,
+    "mean": 2.170138888888889e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\MainShadowScreen_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowScreen_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.4467592592592592e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\MainShadowScreen_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowScreen_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\MainShadowScreen_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\MainShadowScreen_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\ReceiveShadowsOff_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ReceiveShadowsOff_ClusteredOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\ReceiveShadowsOff_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ReceiveShadowsOff_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\ReceiveShadowsOff_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ReceiveShadowsOff_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\ReceiveShadowsOff_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ReceiveShadowsOff_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\ScreenSpaceAO_ClusteredOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ScreenSpaceAO_ClusteredOff.png",
+    "peak": 1,
+    "mean": 2.170138888888889e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\ScreenSpaceAO_ClusteredOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ScreenSpaceAO_ClusteredOn.png",
+    "peak": 1,
+    "mean": 1.4467592592592592e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\ScreenSpaceAO_ForwardPlusOff.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ScreenSpaceAO_ForwardPlusOff.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "matrix/final-player",
+    "a": "c4\\final-player\\t4\\player-d3d12\\ScreenSpaceAO_ForwardPlusOn.png",
+    "b": "validation\\archive-retest\\matrix-d3d12-t4\\ScreenSpaceAO_ForwardPlusOn.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L256.png",
+    "peak": 78,
+    "mean": 0.1566652199074074,
+    "over24": 667,
+    "bbox": [
+      226,
+      279,
+      989,
+      351
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L256.png",
+    "peak": 78,
+    "mean": 0.1564547164351852,
+    "over24": 668,
+    "bbox": [
+      226,
+      279,
+      989,
+      352
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L48.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\cluster-on\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L256.png",
+    "peak": 78,
+    "mean": 0.18801106770833334,
+    "over24": 603,
+    "bbox": [
+      272,
+      223,
+      989,
+      346
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L48.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L256.png",
+    "peak": 78,
+    "mean": 0.18746238425925926,
+    "over24": 601,
+    "bbox": [
+      272,
+      223,
+      989,
+      346
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L48.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\cluster-on\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L256.png",
+    "peak": 71,
+    "mean": 0.08773618344907408,
+    "over24": 464,
+    "bbox": [
+      847,
+      280,
+      989,
+      344
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ClusteredDeferred_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L256.png",
+    "peak": 71,
+    "mean": 0.08755063657407407,
+    "over24": 460,
+    "bbox": [
+      847,
+      280,
+      989,
+      343
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-cluster-on\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-cluster-on\\ForwardPlus_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L256.png",
+    "peak": 51,
+    "mean": 0.1930982349537037,
+    "over24": 1816,
+    "bbox": [
+      241,
+      224,
+      999,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L8.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L256.png",
+    "peak": 53,
+    "mean": 0.19259006076388888,
+    "over24": 1805,
+    "bbox": [
+      241,
+      224,
+      999,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L48.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/c3",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L256.png",
+    "peak": 62,
+    "mean": 0.11932798032407407,
+    "over24": 1179,
+    "bbox": [
+      241,
+      224,
+      980,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L256.png",
+    "peak": 62,
+    "mean": 0.11912688078703704,
+    "over24": 1167,
+    "bbox": [
+      241,
+      224,
+      980,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L48.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/final-player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L8.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L256.png",
+    "peak": 38,
+    "mean": 0.040006148726851855,
+    "over24": 150,
+    "bbox": [
+      266,
+      224,
+      340,
+      347
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L48.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ClusteredDeferred_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ClusteredDeferred_L8.png",
+    "peak": 1,
+    "mean": 3.616898148148148e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L0.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L0.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L256.png",
+    "peak": 39,
+    "mean": 0.0397290943287037,
+    "over24": 146,
+    "bbox": [
+      265,
+      224,
+      340,
+      347
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L48.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L48.png",
+    "peak": 0,
+    "mean": 0.0,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "repeat/matrix",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L8.png",
+    "b": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L8.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ClusteredDeferred_L255.png",
+    "b": "validation\\c3\\t5-d3d11-cap-b\\ClusteredDeferred_L255.png",
+    "peak": 2,
+    "mean": 6.148726851851852e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ClusteredDeferred_L256.png",
+    "b": "validation\\c3\\t5-d3d11-cap-b\\ClusteredDeferred_L256.png",
+    "peak": 72,
+    "mean": 0.24012984664351852,
+    "over24": 3081,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ForwardPlus_L255.png",
+    "b": "validation\\c3\\t5-d3d11-cap-b\\ForwardPlus_L255.png",
+    "peak": 2,
+    "mean": 4.701967592592593e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ForwardPlus_L256.png",
+    "b": "validation\\c3\\t5-d3d11-cap-b\\ForwardPlus_L256.png",
+    "peak": 71,
+    "mean": 0.2396169704861111,
+    "over24": 3085,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ClusteredDeferred_L255.png",
+    "b": "c4\\cap-control\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 6.510416666666667e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ClusteredDeferred_L256.png",
+    "b": "c4\\cap-control\\ClusteredDeferred_L256.png",
+    "peak": 72,
+    "mean": 0.24013093171296296,
+    "over24": 3081,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ForwardPlus_L255.png",
+    "b": "c4\\cap-control\\ForwardPlus_L255.png",
+    "peak": 2,
+    "mean": 2.8935185185185184e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ForwardPlus_L256.png",
+    "b": "c4\\cap-control\\ForwardPlus_L256.png",
+    "peak": 71,
+    "mean": 0.2396166087962963,
+    "over24": 3085,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 7.2337962962962966e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 72,
+    "mean": 0.24013093171296296,
+    "over24": 3081,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 3,
+    "mean": 5.063657407407407e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 71,
+    "mean": 0.23961588541666667,
+    "over24": 3085,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 5.787037037037037e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 2,
+    "mean": 4.340277777777778e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 2,
+    "mean": 1.4467592592592592e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 5.787037037037037e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 72,
+    "mean": 0.24013020833333334,
+    "over24": 3081,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 1,
+    "mean": 4.340277777777778e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-a\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 71,
+    "mean": 0.23961769386574075,
+    "over24": 3085,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ClusteredDeferred_L255.png",
+    "b": "c4\\cap-control\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 8.318865740740741e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ClusteredDeferred_L256.png",
+    "b": "c4\\cap-control\\ClusteredDeferred_L256.png",
+    "peak": 2,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ForwardPlus_L255.png",
+    "b": "c4\\cap-control\\ForwardPlus_L255.png",
+    "peak": 2,
+    "mean": 3.2552083333333335e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ForwardPlus_L256.png",
+    "b": "c4\\cap-control\\ForwardPlus_L256.png",
+    "peak": 2,
+    "mean": 1.8084490740740741e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 6.148726851851852e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 3,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 3,
+    "mean": 3.2552083333333335e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 2,
+    "mean": 2.5318287037037036e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 7.595486111111111e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 72,
+    "mean": 0.24013020833333334,
+    "over24": 3081,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 2,
+    "mean": 3.978587962962963e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 71,
+    "mean": 0.2396169704861111,
+    "over24": 3085,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 6.148726851851852e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 2,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 2,
+    "mean": 3.2552083333333335e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\c3\\t5-d3d11-cap-b\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 2,
+    "mean": 1.4467592592592592e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 5.063657407407407e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 3,
+    "mean": 2.170138888888889e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 3,
+    "mean": 4.340277777777778e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\a-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 1,
+    "mean": 3.6168981481481483e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 72,
+    "mean": 0.24013129340277778,
+    "over24": 3081,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 1,
+    "mean": 2.170138888888889e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 71,
+    "mean": 0.23961588541666667,
+    "over24": 3085,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 2,
+    "mean": 4.340277777777778e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 1,
+    "mean": 7.233796296296296e-07,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 2,
+    "mean": 4.340277777777778e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "c4\\cap-control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 1,
+    "mean": 1.0850694444444444e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\a-d3d11-cap\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 5.787037037037037e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\a-d3d11-cap\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 72,
+    "mean": 0.24013129340277778,
+    "over24": 3081,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\a-d3d11-cap\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 3,
+    "mean": 5.787037037037037e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\a-d3d11-cap\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\b-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 71,
+    "mean": 0.23961588541666667,
+    "over24": 3085,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\a-d3d11-cap\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 3,
+    "mean": 5.787037037037037e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\a-d3d11-cap\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 3,
+    "mean": 2.170138888888889e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\a-d3d11-cap\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 3,
+    "mean": 4.340277777777778e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\a-d3d11-cap\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 1,
+    "mean": 1.8084490740740741e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\b-d3d11-cap\\ClusteredDeferred_L255.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ClusteredDeferred_L255.png",
+    "peak": 2,
+    "mean": 2.8935185185185184e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\b-d3d11-cap\\ClusteredDeferred_L256.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ClusteredDeferred_L256.png",
+    "peak": 72,
+    "mean": 0.24013129340277778,
+    "over24": 3081,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\b-d3d11-cap\\ForwardPlus_L255.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ForwardPlus_L255.png",
+    "peak": 2,
+    "mean": 4.340277777777778e-06,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "cap",
+    "a": "validation\\archive-retest\\b-d3d11-cap\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\c-d3d11-cap\\ForwardPlus_L256.png",
+    "peak": 71,
+    "mean": 0.2396162471064815,
+    "over24": 3085,
+    "bbox": [
+      226,
+      283,
+      999,
+      358
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-a\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.1078587962962963,
+    "over24": 1364,
+    "bbox": [
+      962,
+      285,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-a\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.1871025028935185,
+    "over24": 2002,
+    "bbox": [
+      846,
+      283,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-a\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.33710575810185184,
+    "over24": 3159,
+    "bbox": [
+      241,
+      223,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-a\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.2973802806712963,
+    "over24": 3151,
+    "bbox": [
+      241,
+      224,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-b\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.10802445023148148,
+    "over24": 1363,
+    "bbox": [
+      962,
+      285,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-b\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.18725947627314815,
+    "over24": 2002,
+    "bbox": [
+      846,
+      283,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-b\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.3372026909722222,
+    "over24": 3159,
+    "bbox": [
+      241,
+      223,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-b\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.29747649016203703,
+    "over24": 3151,
+    "bbox": [
+      241,
+      224,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "validation\\c3\\t5-d3d11\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-c\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.26519748263888887,
+    "over24": 2699,
+    "bbox": [
+      241,
+      224,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "c4\\final-player\\t5-d3d11\\control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-c\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.19179796006944444,
+    "over24": 2061,
+    "bbox": [
+      241,
+      224,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "validation\\archive-retest\\matrix-d3d11-control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-c\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.11246310763888889,
+    "over24": 1040,
+    "bbox": [
+      265,
+      224,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/player",
+    "a": "validation\\archive-retest\\repeat-d3d11-control\\ForwardPlus_L256.png",
+    "b": "validation\\archive-retest\\id-c\\rt_1147_0.png",
+    "peak": 121,
+    "mean": 0.07275933159722223,
+    "over24": 894,
+    "bbox": [
+      1165,
+      700,
+      1276,
+      715
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/pair",
+    "a": "validation\\archive-retest\\id-a\\rt_1147_0.png",
+    "b": "validation\\archive-retest\\id-b\\rt_1147_0.png",
+    "peak": 3,
+    "mean": 0.0003407118055555556,
+    "over24": 0,
+    "bbox": null,
+    "rawPass": true
+  },
+  {
+    "group": "capture/pair",
+    "a": "validation\\archive-retest\\id-a\\rt_1147_0.png",
+    "b": "validation\\archive-retest\\id-c\\rt_1147_0.png",
+    "peak": 71,
+    "mean": 0.22507957175925927,
+    "over24": 2257,
+    "bbox": [
+      241,
+      224,
+      999,
+      355
+    ],
+    "rawPass": false
+  },
+  {
+    "group": "capture/pair",
+    "a": "validation\\archive-retest\\id-b\\rt_1147_0.png",
+    "b": "validation\\archive-retest\\id-c\\rt_1147_0.png",
+    "peak": 71,
+    "mean": 0.22490451388888888,
+    "over24": 2257,
+    "bbox": [
+      241,
+      224,
+      999,
+      355
+    ],
+    "rawPass": false
+  }
+]

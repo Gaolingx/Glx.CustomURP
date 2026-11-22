@@ -1,0 +1,22 @@
+16-CleanupBaseline / archive-retest — 2026-11-22，独立复测，不改历史签收
+
+结论：T5 L256 保持 OPEN。本次相对 C3 的完整玩家矩阵：T4 56/56，T5 24/32；D3D11 与 D3D12 各四张 L256 原始失败。原 c4/final-comparison.json 仍是 56/56、28/32（仅 D3D11 四图失败）。本次 D3D12 是相对该历史矩阵新增的同路径失败，不是新发现的跨路径失败，未证明是代码回归。不要扩展 C4a 例外或把本次结果改判为 PASS。
+
+同夹具、同 API、同路径相对 validation/c3 的结果（CD / Forward+ 峰值，RGB8）：
+                     control     含透明接收体
+ D3D11 matrix         51 / 53      61 / 56
+ D3D11 repeat         51 / 53      78 / 78
+ D3D12 matrix         93 / 93      63 / 65
+原始门槛 mean≤2 且 peak≤24；所有 L0/8/48 均过。对 c4/final-player 的完整矩阵也仅这八张失败。C4a 的限定例外只适用于 D3D11 L256 四图（mean≤0.2、over24≤0.1%、peak≤64）；本次 matrix/control 的 mean=0.2331/0.2323，over24=1824/1813（921600 px），不在例外内；matrix/透明两图在例外内但原始仍失败。repeat/control 超面积，repeat/透明超峰值。D3D12 不适用该例外。逐图 mean/peak/over24/区域边界见 images.json。
+
+255 边界实验：始终创建 256 个局部灯，只切换启用 255/256；三个新进程 a/b/c 与历史 C3 cap-a/b、C4 cap-control 逐对逐路径比较。全部 L255 峰值≤3；L256 新 a/b 的 CD/Forward+ 峰值 72/71。新 a、c 靠近 C3 cap-b，新 b 靠近 cap-a。255 不是 256 验收替代项。
+
+稳定 ID 的证据层次：未经插桩的 D3D11 最终玩家在三个额外、独立的 control Forward+ capture-only 进程中，各自把同帧的灯常量和 FinalBlit 目标一起导出。以夹具 Field Light i 的生成序号作稳定标识，不用 Unity InstanceID、GPU ResourceId 或数组下标作跨进程 ID。EID 692 是 DrawOpaqueObjects 首个 draw，PS 常量的前两个 float4[256] 分别给出世界位置和线性 RGB×亮度；按 ArenaRunner.SetupArena 的坐标、HSV 色与 point/spot 亮度联合匹配，位置容差 1e-4、颜色容差 1e-3，每个非零槽恰好唯一匹配，每帧 255 个不重复 ID、一个空槽。id-a/id-b 均缺 183，虽有 171 个槽的顺序不同，同帧 FinalBlit（EID 1147）两图峰值仅 3、over24=0。id-c 缺 240，与前两帧分别比较均 peak=71、over24=2257，边界同为 [241,224,999,355)。原始 RDC、bin、PNG、事件及 replay 回执在 id-{a,b,c}；序列在 gpu-ids.json。这是在该夹具中实测的 GPU 已上传局部灯集合差异与局部画差共现；不是直接枚举 CPU CullingResults.visibleLights，不说明 Unity 如何取舍，也不是对历史四张 PNG、透明路径或 D3D12 的逐帧归因。capture/player 不同采样位置的比较仅诊断，不计正式门槛。
+
+跨路径与材质：完整矩阵对 C3 和 C4，T4 28 项 CD/FP、T5 16 项 CD/FP 依旧 44 项失败，无通过→失败；不是 44 项通过。双 API 的 T4 全部比较（含 feature on/off，各 28 项）通过/失败模式也与 C3 相同。T4 玩家退出 2，有完整清单和 28 PNG/API，不视为进程无产物；T5 玩家退出 0 不代表图像比对通过。原始对照见 cross-route.json、各运行清单。
+材质先从 git archive ffa654a 导出 URPSample01/{Assets,Packages,ProjectSettings} 到临时副本，用 Unity 2022.3.62f1、-batchmode -force-d3d{11,12} -runTests -testPlatform PlayMode -testFilter ClusteredMatchesForwardPlusAcrossMaterialTypes、C3_MATERIAL_OUTPUT 指向新目录。首次两个进程退出 2，首错为 SslValidationForwardPlusRenderer is missing RendererFeatures，无帧，不算像素结果（material-d3d*.xml/log）。仅临时副本 GraphicsSettings.m_CustomRenderPipeline 与 QualitySettings 的 customRenderPipeline 默认引用改为 CdForwardPlusPipeline（GUID 9f91f4a6911c0104aa5a9eeb8c968381）；测试代码及自行切换的 CD/FP 夹具未改。相同命令新进程重跑，改用 material-isolated 输出；两个 XML 均为真正 1674 px >8/255，限 230，退出 2。640×360 RGBA32F 和 C3 material-candidate 实测超阈掩码新增/消失均 0；同路径峰值双 API 均为 CD 0.2491 以下、FP 0.00013 以下（8-bit 单位），不是逐字节一致。见 material-result.json、material-same-path.json。临时工程已释放。
+
+复测条件：未重建玩家；来自原 c4-final-build-{11,12}[T4].log 所在的 Builds/ClusteredDeferredArenaC4[ T4 无空格 ]/Direct3D{11,12} 构建路径。二进制与关键程序集当前哈希、PID、完整参数、退出码见每个 process.json；历史未提供完整二进制哈希，不声称做过历史哈希认证。独立串行启动每个 API 的 control、cluster-on、T4，又重复 D3D11 两组完整 T5 及三次 cap；1280×720、40 warmup、150 samples、RTX 5060 Ti、per-object=4、forwardClusterLights=true，async/prune/compact=false。matrix/repeat 的 T5 顺序 0,8,48,256，与历史一致，cap 为 255,256。players.py 接收新输出根，勿指回已用目录。measure.py 使用 Pillow 比较 RGB，不含 alpha，over24 为任一通道>24 的像素数，bbox 右/下开区间。对照根为 validation/c3 和 c4/final-player；同路径比不混 API、路径、透明状态。未以耗时判断因果。
+额外 ID 抓帧：renderdoc-cli capture <同一 D3D11 exe> -a "--cd-output <新目录> --cd-capture --cd-capture-forward-plus --cd-total-lights 256 --cd-hold -force-d3d11 -logFile <新日志>" -d 200 -o <新目录>/id.rdc。capture-only 直接启用 totalLights（CdPerf 的默认 lightCounts 并非采样扫灯）；工具报未找到请求名，但实际写出带 _frame 后缀的 RDC 并可回放；结束 hold 玩家。renderdoc-mcp open_capture → goto_event 692 → export_buffer(ResourceId::8445)，结合资源使用与内容识别；export-rt 0 -e 1147，逐帧保留输出。旧版工具缺 list_cbuffers 的错误不是灯表结果。
+
+变更范围：仅新增本目录的复测证据、度量脚本和说明；不改旧证据、运行时代码、主项目设置或任务位置，不提交。

@@ -1,0 +1,3 @@
+Launching and injecting: E:/GitHub/Glx.CustomURP/URPSample01/Builds/ClusteredDeferredArenaC4/Direct3D11/CdArena.exe
+Waiting 200 frames before capture...
+error: Capture completed but file not found on disk

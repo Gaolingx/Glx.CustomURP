@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-22 15:06:43Z" end-time="2026-11-22 15:06:48Z" duration="5.4552793">
+  <test-suite type="TestSuite" id="1000" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="46" result="Failed" site="Child" start-time="2026-11-22 15:06:43Z" end-time="2026-11-22 15:06:48Z" duration="5.455279" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1020" name="Unity.ClusteredDeferred.Tests.PlayMode.dll" fullname="C:/Users/GAOLIN~1/AppData/Local/Temp/1/c4-archive-0JAySW/URPSample01/Library/ScriptAssemblies/Unity.ClusteredDeferred.Tests.PlayMode.dll" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 15:06:43Z" end-time="2026-11-22 15:06:48Z" duration="5.444454" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="75720" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1021" name="Unity" fullname="Unity" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 15:06:43Z" end-time="2026-11-22 15:06:48Z" duration="5.442919" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1022" name="ClusteredDeferred" fullname="Unity.ClusteredDeferred" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 15:06:43Z" end-time="2026-11-22 15:06:48Z" duration="5.441611" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1023" name="Tests" fullname="Unity.ClusteredDeferred.Tests" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 15:06:43Z" end-time="2026-11-22 15:06:48Z" duration="5.440481" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="1024" name="PlayMode" fullname="Unity.ClusteredDeferred.Tests.PlayMode" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 15:06:43Z" end-time="2026-11-22 15:06:48Z" duration="5.439337" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1001" name="ClusteredDeferredPlayModeTests" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-22 15:06:43Z" end-time="2026-11-22 15:06:48Z" duration="5.436646" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1002" name="ClusteredMatchesForwardPlusAcrossMaterialTypes" fullname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests.ClusteredMatchesForwardPlusAcrossMaterialTypes" methodname="ClusteredMatchesForwardPlusAcrossMaterialTypes" classname="Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests" runstate="Runnable" seed="1359139071" result="Failed" start-time="2026-11-22 15:06:43Z" end-time="2026-11-22 15:06:48Z" duration="5.416116" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[Unhandled log message: '[Error] SslValidationForwardPlusRenderer is missing RendererFeatures
+This could be due to missing scripts or compile error.'. Use UnityEngine.TestTools.LogAssert.Expect]]></message>
+                    <stack-trace><![CDATA[UnityEditor.AssetDatabase:LoadAssetAtPath<UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset> (string)
+Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests:SwitchPipeline (string) (at C:/Users/Gaolingxiang/AppData/Local/Temp/1/c4-archive-0JAySW/URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs:1005)
+Unity.ClusteredDeferred.Tests.PlayMode.ClusteredDeferredPlayModeTests/<ClusteredMatchesForwardPlusAcrossMaterialTypes>d__18:MoveNext () (at C:/Users/Gaolingxiang/AppData/Local/Temp/1/c4-archive-0JAySW/URPSample01/Assets/Tests/ClusteredDeferred/Tests/PlayMode/ClusteredDeferredPlayModeTests.cs:86)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[Shader warning in 'ClusterBuilder': use of potentially uninitialized variable (CdItemMinMaxZ) at kernel ClusterItemBounds at ClusterBuilder.compute(129) (on d3d11)
+The referenced script (Unknown) on this Behaviour is missing!
+SslValidationForwardPlusRenderer is missing RendererFeatures
+This could be due to missing scripts or compile error.
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
