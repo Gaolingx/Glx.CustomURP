@@ -102,6 +102,135 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
         }
 
+        [UnityTest]
+        public IEnumerator C3FogPerspectiveMatchesStencil() => CompareFogReceivers(false);
+
+        [UnityTest]
+        public IEnumerator C3FogOrthographicMatchesStencil() => CompareFogReceivers(true);
+
+        IEnumerator CompareFogReceivers(bool orthographic)
+        {
+            yield return SetUpRig(StencilPipelinePath, 640, 360, 1);
+            bool fog = RenderSettings.fog;
+            var mode = RenderSettings.fogMode;
+            var color = RenderSettings.fogColor;
+            float start = RenderSettings.fogStartDistance, end = RenderSettings.fogEndDistance, density = RenderSettings.fogDensity;
+            try
+            {
+                foreach (var renderer in m_Root.GetComponentsInChildren<Renderer>())
+                    renderer.enabled = false;
+                m_Camera.orthographic = orthographic;
+                m_Camera.orthographicSize = 5f;
+                var lit = CreateMaterial("Universal Render Pipeline/Lit", "Deferred", Color.white, 0f, 0f);
+                var forward = CreateMaterial("Universal Render Pipeline/Complex Lit", "Forward-only", Color.white, 0f, 0f);
+                // Complex Lit has a GBuffer filler as well as its real forward shading pass.
+                // Exclude the filler so a fullscreen depth fog cannot masquerade as forward fog.
+                forward.SetShaderPassEnabled("UniversalGBuffer", false);
+                Assert.IsTrue(Enumerable.Range(0, forward.passCount).Any(i =>
+                    forward.shader.FindPassTagValue(i, new ShaderTagId("LightMode")).name == "UniversalForwardOnly"));
+                var transparent = Resources.Load<Material>("CdTransparent");
+                Assert.IsNotNull(transparent);
+                Assert.Greater(transparent.renderQueue, (int)RenderQueue.GeometryLast);
+                Assert.IsTrue(transparent.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT"));
+                Assert.AreEqual((int)BlendMode.SrcAlpha, transparent.GetInt("_SrcBlend"));
+                Assert.AreEqual((int)BlendMode.OneMinusSrcAlpha, transparent.GetInt("_DstBlend"));
+                Assert.That(transparent.GetColor("_BaseColor").a, Is.GreaterThan(0f).And.LessThan(1f));
+
+                // Keep the partially transparent receiver distinguishable from clear even in a scene
+                // with no ambient light. Only the rig's unshadowed directional light is needed.
+                m_Root.GetComponentInChildren<Light>().intensity = 2f;
+                var materials = new[] { lit, forward, transparent };
+                var receivers = new Renderer[materials.Length];
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    var position = m_Camera.ViewportToWorldPoint(new Vector3(0.2f + 0.3f * i, 0.5f, 10f + i * 2f));
+                    receivers[i] = AddBox(materials[i], materials[i].name, position, new Vector3(2f, 2f, 0.2f)).GetComponent<Renderer>();
+                }
+
+                RenderSettings.fogColor = new Color(1f, 0.02f, 0.04f);
+                RenderSettings.fogStartDistance = 2f;
+                RenderSettings.fogEndDistance = 20f;
+                RenderSettings.fogDensity = 0.075f;
+                FogMode?[] modes = { null, FogMode.Linear, FogMode.Exponential, FogMode.ExponentialSquared };
+                var reference = new Color[modes.Length][][];
+                foreach (bool clustered in new[] { false, true })
+                {
+                    if (clustered)
+                    {
+                        SwitchPipeline(ClusteredPipelinePath);
+                        yield return null;
+                    }
+                    RenderSettings.fog = false;
+                    foreach (var receiver in receivers)
+                        receiver.enabled = false;
+                    yield return RenderFrames(WarmupFrames);
+                    var empty = CaptureFogRegions(receivers);
+                    foreach (var receiver in receivers)
+                        receiver.enabled = true;
+
+                    Color[][] off = null;
+                    for (int m = 0; m < modes.Length; m++)
+                    {
+                        RenderSettings.fogMode = modes[m] ?? FogMode.Linear;
+                        RenderSettings.fog = modes[m].HasValue;
+                        yield return RenderFrames(WarmupFrames);
+                        var regions = CaptureFogRegions(receivers);
+                        if (m == 0)
+                        {
+                            off = regions;
+                            if (clustered)
+                                Assert.AreEqual(2, CountClusterTargets(), "Clustered renderer fell back to stencil.");
+                        }
+                        if (!clustered)
+                            reference[m] = regions;
+                        for (int i = 0; i < receivers.Length; i++)
+                        {
+                            string label = $"{(clustered ? "clustered" : "stencil")} {modes[m]?.ToString() ?? "off"} {receivers[i].name}";
+                            var change = Compare(m == 0 ? empty[i] : off[i], regions[i]);
+                            Assert.AreEqual(0, change.nonFinite, label);
+                            if (m == 0 || !orthographic)
+                                Assert.Greater(change.mean, 4f, label + (m == 0 ? " not visible against empty frame" : " missing fog response"));
+                            else if (i == 0) // Stencil skips fullscreen deferred fog for orthographic cameras.
+                                Assert.LessOrEqual(change.max, 1f, label + " unexpected orthographic deferred fog");
+                            if (clustered)
+                            {
+                                var parity = Compare(reference[m][i], regions[i]);
+                                Assert.LessOrEqual(parity.mean, kMeanThreshold, label + " mean difference vs stencil");
+                                Assert.LessOrEqual(parity.max, kMaxThreshold, label + " max difference vs stencil");
+                            }
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                RenderSettings.fogMode = mode;
+                RenderSettings.fogColor = color;
+                RenderSettings.fogStartDistance = start;
+                RenderSettings.fogEndDistance = end;
+                RenderSettings.fogDensity = density;
+                RenderSettings.fog = fog;
+                TearDownRig();
+            }
+        }
+
+        Color[][] CaptureFogRegions(Renderer[] receivers)
+        {
+            var pixels = ReadPixels(); // All three interior patches come from the same frame.
+            const int side = 12;
+            var regions = new Color[receivers.Length][];
+            for (int i = 0; i < receivers.Length; i++)
+            {
+                var center = m_Camera.WorldToViewportPoint(receivers[i].transform.position);
+                int x = Mathf.RoundToInt(center.x * m_Target.width) - side / 2;
+                int y = Mathf.RoundToInt(center.y * m_Target.height) - side / 2;
+                regions[i] = new Color[side * side];
+                for (int row = 0; row < side; row++)
+                    System.Array.Copy(pixels, (y + row) * m_Target.width + x, regions[i], row * side, side);
+            }
+            return regions;
+        }
+
         // C2: forward-drawn transparent objects read the same cluster list as the deferred kernel.
         // Before the forward cluster variant they consumed the per-object indices (four lights by
         // default) while the surface behind them consumed the cluster bitmap. Forward+ is the

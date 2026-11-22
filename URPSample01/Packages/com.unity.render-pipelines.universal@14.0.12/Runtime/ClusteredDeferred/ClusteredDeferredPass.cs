@@ -196,6 +196,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalTexture(ShaderIDs.LightingTexture, m_LightingTexture);
                 cmd.SetRenderTarget(lightingTarget, depthTarget);
                 cmd.DrawProcedural(Matrix4x4.identity, m_ResolveMaterial, 0, MeshTopology.Triangles, 3);
+                if (RenderSettings.fog && !camera.orthographic)
+                {
+                    cmd.SetGlobalTexture(ShaderIDs.CameraDepthTexture, (RenderTargetIdentifier)depthCopy);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_ResolveMaterial, 1, MeshTopology.Triangles, 3);
+                }
             }
         }
 

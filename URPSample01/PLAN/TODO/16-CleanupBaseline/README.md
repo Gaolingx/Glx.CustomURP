@@ -106,6 +106,10 @@ RDC="E:/GitHub/renderdoc-mcp/_dist/package/renderdoc-mcp-windows-x64-v0.3.0/bin/
 
 [EditMode 491/491](validation/c05/EditMode.xml)，[D3D11 PlayMode 42/42](validation/c05/PlayMode-D3D11.xml)，[D3D12 PlayMode 42/42](validation/c05/PlayMode-D3D12.xml)。48 灯独立不透明 ShaderGraph `UniversalForwardOnly` 接收体对比 Forward+：双 API 的 cluster-on mean 为 0.003、差值 >8 的像素为 0；per-object 对照为 11.931、23760 px（全图 230400 px）。这是 ShaderGraph 夹具的像素证据，Terrain/SpeedTree 的证据是玩家变体构建，不是逐材质像素 A/B。
 
+**C3 第一次提交：legacy fog 迁移 PASS（2026-11-22）**。clustered resolve 后、forward-only opaques 前对非正交相机执行全屏深度雾；保留 stencil 路径作像素参照。[EditMode 491/491](validation/c3-fog/EditMode.xml)，Editor PlayMode [D3D11 44/44](validation/c3-fog/OneLight-D3D11.xml)、[D3D12 44/44](validation/c3-fog/OneLight-D3D12.xml)。同帧采样 deferred Lit、forward-only Complex Lit、alpha 混合透明 Lit 各自的 12×12 内部区域；透视下四种状态（关 / Linear / Exp / Exp2）逐区域对比 stencil，每种开雾状态另验相对关雾的响应。正交下另验 deferred 不施雾。正式夹具使用一盏方向灯与一盏附加灯。
+
+独立限制：首轮零附加灯夹具在两 API 的正交测试报 `ClusterBuilder` 未绑定 `_CdClusterItems`，同轮另有 6 个 SSL 相机历史计数断言失败（[D3D11](validation/c3-fog/PlayMode-D3D11.xml) / [D3D12](validation/c3-fog/PlayMode-D3D12.xml)）。单附加灯复跑未复现，不宣称零附加灯通过；本提交未改灯表或缓冲布局。尚未删除 stencil 或执行删除后的 player / T4 / T5 / RenderDoc 验收。
+
 | 后续步骤 | 前置 | 退出条件 |
 |---|---|---|
 | **C3** | C0.5 + D-C5 fog 迁移 | 删 stencil pass/shader/material/关键字；preview/overlay/XR 走 Forward；A/B vs C0 ≤ 阈值 |

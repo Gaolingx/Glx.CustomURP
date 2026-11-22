@@ -47,5 +47,36 @@ Shader "Hidden/Universal/ClusteredDeferredResolve"
             }
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "Clustered Deferred Fog"
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend OneMinusSrcAlpha SrcAlpha, Zero One
+
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma vertex VertFog
+            #pragma fragment FragFog
+            #pragma multi_compile FOG_LINEAR FOG_EXP FOG_EXP2
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+
+            float4 VertFog(uint vertexID : SV_VertexID) : SV_POSITION
+            {
+                return GetFullScreenTriangleVertexPosition(vertexID, UNITY_RAW_FAR_CLIP_VALUE);
+            }
+
+            half4 FragFog(float4 positionCS : SV_POSITION) : SV_Target
+            {
+                float eyeZ = LinearEyeDepth(LoadSceneDepth(uint2(positionCS.xy)), _ZBufferParams);
+                float clipZ = UNITY_MATRIX_P[2][2] * -eyeZ + UNITY_MATRIX_P[2][3];
+                half fogFactor = ComputeFogFactor(clipZ);
+                return half4(unity_FogColor.rgb, ComputeFogIntensity(fogFactor));
+            }
+            ENDHLSL
+        }
     }
 }
