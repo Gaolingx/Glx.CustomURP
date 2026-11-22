@@ -28,6 +28,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _FORWARD_PLUS
+            #pragma multi_compile _ _CLUSTERED_DEFERRED_LIGHTS
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------

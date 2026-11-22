@@ -967,6 +967,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.DebugDisplay },
                 { CoreKeywordDescriptors.LightCookies },
                 { CoreKeywordDescriptors.ForwardPlus },
+                { CoreKeywordDescriptors.ClusteredDeferredLights },
                 { CoreKeywordDescriptors.EvaluateSh },
             };
 

@@ -57,6 +57,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _LIGHT_LAYERS
             #pragma multi_compile _ _FORWARD_PLUS
+            #pragma multi_compile _ _CLUSTERED_DEFERRED_LIGHTS
             #pragma multi_compile LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING

@@ -110,10 +110,36 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         [UnityTest]
         public IEnumerator ForwardTransparentObjectsReadTheClusterList()
         {
-            yield return SetUpRig(ClusteredPipelinePath, 640, 360, 48, transparent: true);
+            return CompareForwardReceiver(false);
+        }
+
+        [UnityTest]
+        public IEnumerator OpaqueForwardOnlyShaderGraphReadsTheClusterList()
+        {
+            return CompareForwardReceiver(true);
+        }
+
+        IEnumerator CompareForwardReceiver(bool opaque)
+        {
+            yield return SetUpRig(ClusteredPipelinePath, 640, 360, 48, transparent: !opaque);
             bool originalSwitch = ClusteredDeferredPass.forwardClusterLights;
             try
             {
+#if UNITY_EDITOR
+                if (opaque)
+                {
+                    var material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Tests/ScreenSpaceLighting/Materials/SslT9ComplexLitT14.mat");
+                    Assert.IsNotNull(material);
+                    Assert.LessOrEqual(material.renderQueue, (int)RenderQueue.GeometryLast);
+                    var lightMode = new ShaderTagId("LightMode");
+                    Assert.IsTrue(Enumerable.Range(0, material.passCount).Any(i =>
+                        material.shader.FindPassTagValue(i, lightMode).name == "UniversalForwardOnly"));
+                    foreach (var renderer in m_Root.GetComponentsInChildren<Renderer>())
+                        renderer.enabled = false;
+                    AddSphere(material, "Cd Opaque ShaderGraph Receiver", new Vector3(0f, 1.4f, -4f), 4.5f);
+                }
+#endif
+                ClusteredDeferredPass.forwardClusterLights = true;
                 yield return RenderFrames(WarmupFrames);
                 Assert.IsTrue(Shader.IsKeywordEnabled("_CLUSTERED_DEFERRED_LIGHTS"),
                     "The clustered deferred renderer did not enable the forward cluster keyword.");
@@ -141,13 +167,13 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
 
                 Assert.AreEqual(0, shared.nonFinite, "A/B image contains non-finite pixels.");
                 Assert.LessOrEqual(shared.mean, kMeanThreshold,
-                    $"mean channel difference {shared.mean:0.###}/255 exceeds {kMeanThreshold}; the transparent sphere is not reading the cluster list.");
+                    $"mean channel difference {shared.mean:0.###}/255 exceeds {kMeanThreshold}; the forward receiver is not reading the cluster list.");
                 // The fixed deferred-vs-forward difference keeps a small residue; the per-object path
                 // has to stay visibly worse or the forward variant is not taking effect.
                 Assert.Less(shared.over8 * 3, perObject.over8,
                     $"cluster path leaves {shared.over8} px >8 while the per-object path leaves {perObject.over8}; " +
-                    "the transparent sphere is not picking up the cluster list.");
-                Debug.Log($"[CD C2] transparent A/B vs Forward+: cluster over8={shared.over8} mean={shared.mean:0.###}; " +
+                    "the forward receiver is not picking up the cluster list.");
+                Debug.Log($"[CD] {(opaque ? "opaque forward-only ShaderGraph" : "transparent")} A/B vs Forward+: cluster over8={shared.over8} mean={shared.mean:0.###}; " +
                           $"per-object over8={perObject.over8} mean={perObject.mean:0.###} ({clusteredShared.Length} px)");
             }
             finally

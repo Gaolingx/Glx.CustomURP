@@ -2045,6 +2045,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static readonly KeywordDescriptor ClusteredDeferredLights = new KeywordDescriptor()
+        {
+            displayName = "Clustered Deferred Lights",
+            referenceName = "_CLUSTERED_DEFERRED_LIGHTS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor EditorVisualization = new KeywordDescriptor()
         {
             displayName = "Editor Visualization",

@@ -1,0 +1,831 @@
+{
+  "baselineCommit": "b707b5ba47406be353f7f51f0d9951c3b1f075b8",
+  "candidateBase": "3872e92 plus working tree",
+  "unity": "2022.3.62f1",
+  "target": "StandaloneWindows64 Development T5 arena; single requested player API per build",
+  "diskPreflightGiBApprox": {
+    "C": 14,
+    "D": 183,
+    "E": 69
+  },
+  "isolation": "D: disposable physical copies of Assets, Packages, ProjectSettings only; no original Library or links; embedded URP lock path is relative to Packages. C0 probe extracted via git archive. Each Unity process used disposable cwd and projectPath.",
+  "metric": "Per shader, pass and stage (vp=vertex, fp=fragment), after scriptable stripping; not sums, unique GPU binaries, cache misses or runtime usage. Missing rows mean not observed, never zero.",
+  "probe": "Identical editor harness adds default Resources materials for TerrainLit, Add, Base, SpeedTree7, SpeedTree7Billboard, SpeedTree8, SslT9Lit and SslT9ComplexLit, then calls stock T5 builder. Probe figures are not stock player costs or exhaustive material coverage.",
+  "candidateShaderSourceSHA256": {
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Editor\\ShaderGraph\\Targets\\UniversalLitSubTarget.cs": "f931cfb72dafbb05abc5735aac8f8761320a9aa9a88a8b34384f7f5491771863",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Editor\\ShaderGraph\\Targets\\UniversalTarget.cs": "af30a473bc86e1f827d84c6f9f290314c3b0e4fb2136f5833657acae025fdd16",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Nature\\SpeedTree7.shader": "496a174c7d4d4cdc0e4e07ff0ec9b49d3b3a60a533f78e00670b84040b99e2ee",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Nature\\SpeedTree7Billboard.shader": "c7b5bafbcc8a5bcde37d4269325b227dd26305f4947ea7577a4f55462a5320d2",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Nature\\SpeedTree8.shader": "1c03955a621ec4ebe6a58c1aa00f74e837a3cd23fd0879c0b428be92aa6ae0bb",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Terrain\\TerrainDetailLit.shader": "b73d66ee1d390362f9e4f19ec94b94d00e0c0a54ef964e55c8827a8df809c88d",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Terrain\\TerrainDetailLitPasses.hlsl": "2c266d2f684486c9ce16ee62e2055a568ad92834734b086bd099407538f56a15",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Terrain\\TerrainLit.shader": "ffc39f882e934399e72ac6dbf952c208fb3c780fde6db3ebbfb17d5f3f079703",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Terrain\\TerrainLitAdd.shader": "be71c576da34a3569b82a3e3b1ea8ed09f75572acfdbf1e8fa51ee0e4c18ee03",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Terrain\\TerrainLitBase.shader": "3c395d22b3ac3b6ac083f61d1078e02216188c0d2459c9b5fc02c95fbc4c54aa",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Terrain\\WavingGrass.shader": "3332eb8ad217ad933de094007c9a0a26540682401a1b46da0d99d3630e408e7d",
+    "Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Terrain\\WavingGrassBillboard.shader": "9b8708e6694f6b9fa417f37d2a93c4eabd245a0a962eab9b2e3945bd095ec4de"
+  },
+  "probeHarnessSHA256": "077401ca5fc5b49b6b16fc9d629d4c362e5ebf3434770bc51d7a2c12c270cfaa",
+  "measurements": {
+    "stock11": {
+      "reports": [
+        {
+          "build": {
+            "result": "Succeeded",
+            "totalErrors": 0,
+            "executablePath": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\Builds\\ClusteredDeferredArena\\Direct3D11\\CdArena.exe",
+            "graphicsApis": "Direct3D11",
+            "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+            "unityVersion": "2022.3.62f1",
+            "totalSizeBytes": 143548612,
+            "totalTimeSeconds": 13.3854051
+          },
+          "log": "URPSample01\\PLAN\\TODO\\16-CleanupBaseline\\validation\\baseline\\build-t5-d3d11.log",
+          "logSHA256": "c7d8f77e1817075dea3ce147ec9c2b333b94dcd8f475c60012628247dabb7ba2"
+        },
+        {
+          "build": {
+            "result": "Succeeded",
+            "totalErrors": 0,
+            "executablePath": "D:\\c05-t5-measure-1122\\Builds\\ClusteredDeferredArena\\Direct3D11\\CdArena.exe",
+            "graphicsApis": "Direct3D11",
+            "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+            "unityVersion": "2022.3.62f1",
+            "totalSizeBytes": 143573231,
+            "totalTimeSeconds": 1068.6565082
+          },
+          "log": "D:\\c05-t5-measure-1122\\stock11.log",
+          "logSHA256": "b32950c79a9c1db3dc279d4afa838b63d68fef70dad731cfceb3342f031983e9"
+        }
+      ],
+      "changes": [
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        }
+      ],
+      "groups": [
+        273,
+        273
+      ],
+      "litFP": [
+        [
+          6144
+        ],
+        [
+          6144
+        ]
+      ]
+    },
+    "stock12": {
+      "reports": [
+        {
+          "build": {
+            "result": "Succeeded",
+            "totalErrors": 0,
+            "executablePath": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\Builds\\ClusteredDeferredArena\\Direct3D12\\CdArena.exe",
+            "graphicsApis": "Direct3D12",
+            "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+            "unityVersion": "2022.3.62f1",
+            "totalSizeBytes": 143548616,
+            "totalTimeSeconds": 11.3006154
+          },
+          "log": "URPSample01\\PLAN\\TODO\\16-CleanupBaseline\\validation\\baseline\\build-t5-d3d12.log",
+          "logSHA256": "a692f08b7ef95ae2f44a6fc2fd3acf02609a59e27ffb7a13a72281e160834cfd"
+        },
+        {
+          "build": {
+            "result": "Succeeded",
+            "totalErrors": 0,
+            "executablePath": "D:\\c05-t5-measure-1122\\Builds\\ClusteredDeferredArena\\Direct3D12\\CdArena.exe",
+            "graphicsApis": "Direct3D12",
+            "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+            "unityVersion": "2022.3.62f1",
+            "totalSizeBytes": 143573236,
+            "totalTimeSeconds": 13.733774499999999
+          },
+          "log": "D:\\c05-t5-measure-1122\\stock12.log",
+          "logSHA256": "d1b5605bb6499480ef9cf43c6ad5101333614ac418361de15e1002745b2a120c"
+        }
+      ],
+      "changes": [
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        }
+      ],
+      "groups": [
+        273,
+        273
+      ],
+      "litFP": [
+        [
+          6144
+        ],
+        [
+          6144
+        ]
+      ]
+    },
+    "probe11": {
+      "reports": [
+        {
+          "build": {
+            "result": "Succeeded",
+            "totalErrors": 0,
+            "executablePath": "D:\\c05-t5-probe-c0-1122\\Builds\\ClusteredDeferredArena\\Direct3D11\\CdArena.exe",
+            "graphicsApis": "Direct3D11",
+            "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+            "unityVersion": "2022.3.62f1",
+            "totalSizeBytes": 145462332,
+            "totalTimeSeconds": 4173.9073096
+          },
+          "log": "D:\\c05-t5-probe-c0-1122\\probe11.log",
+          "logSHA256": "40b903fc80ba9886c0568e6dcb12590b549c3a8d44ecf0e279955557b3747525"
+        },
+        {
+          "build": {
+            "result": "Succeeded",
+            "totalErrors": 0,
+            "executablePath": "D:\\c05-t5-probe-candidate-1122\\Builds\\ClusteredDeferredArena\\Direct3D11\\CdArena.exe",
+            "graphicsApis": "Direct3D11",
+            "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+            "unityVersion": "2022.3.62f1",
+            "totalSizeBytes": 146796739,
+            "totalTimeSeconds": 483.2020503
+          },
+          "log": "D:\\c05-t5-probe-candidate-1122\\probe11.log",
+          "logSHA256": "4fb49b4e0c64b4a1aae58d0d8d8516873b8fa2196bd4e5f334b91cade8a69669"
+        }
+      ],
+      "changes": [
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)",
+          "shaderPass": "TerrainAddLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)",
+          "shaderPass": "TerrainAddLit",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)",
+          "shaderPass": "ForwardLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)",
+          "shaderPass": "ForwardLit",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Shader Graphs/SslT9ComplexLit",
+          "shaderPass": "Universal Forward Only",
+          "stage": "fp",
+          "before": [
+            512
+          ],
+          "after": [
+            1024
+          ]
+        },
+        {
+          "shader": "Shader Graphs/SslT9ComplexLit",
+          "shaderPass": "Universal Forward Only",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Shader Graphs/SslT9Lit",
+          "shaderPass": "Universal Forward",
+          "stage": "fp",
+          "before": [
+            512
+          ],
+          "after": [
+            1024
+          ]
+        },
+        {
+          "shader": "Shader Graphs/SslT9Lit",
+          "shaderPass": "Universal Forward",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree7",
+          "shaderPass": "ForwardLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree7",
+          "shaderPass": "ForwardLit",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree7 Billboard",
+          "shaderPass": "ForwardLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree7 Billboard",
+          "shaderPass": "ForwardLit",
+          "stage": "vp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree8",
+          "shaderPass": "ForwardLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree8",
+          "shaderPass": "ForwardLit",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Terrain/Lit",
+          "shaderPass": "ForwardLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Terrain/Lit",
+          "shaderPass": "ForwardLit",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        }
+      ],
+      "groups": [
+        357,
+        357
+      ],
+      "litFP": [
+        [
+          6144
+        ],
+        [
+          6144
+        ]
+      ]
+    },
+    "probe12": {
+      "reports": [
+        {
+          "build": {
+            "result": "Succeeded",
+            "totalErrors": 0,
+            "executablePath": "D:\\c05-t5-probe-c0-1122\\Builds\\ClusteredDeferredArena\\Direct3D12\\CdArena.exe",
+            "graphicsApis": "Direct3D12",
+            "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+            "unityVersion": "2022.3.62f1",
+            "totalSizeBytes": 145462340,
+            "totalTimeSeconds": 14.3036035
+          },
+          "log": "D:\\c05-t5-probe-c0-1122\\probe12.log",
+          "logSHA256": "f776cb2db29d7f32fa86211c2e497a11586c4b78931cfb167041f080d0e5e10b"
+        },
+        {
+          "build": {
+            "result": "Succeeded",
+            "totalErrors": 0,
+            "executablePath": "D:\\c05-t5-probe-candidate-1122\\Builds\\ClusteredDeferredArena\\Direct3D12\\CdArena.exe",
+            "graphicsApis": "Direct3D12",
+            "scene": "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity",
+            "unityVersion": "2022.3.62f1",
+            "totalSizeBytes": 146796744,
+            "totalTimeSeconds": 14.769894899999999
+          },
+          "log": "D:\\c05-t5-probe-candidate-1122\\probe12.log",
+          "logSHA256": "bc4a49b3c70654e9610e195d7ba630e77664e8ca3aa37a651bfa97537451f5e3"
+        }
+      ],
+      "changes": [
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)",
+          "shaderPass": "TerrainAddLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)",
+          "shaderPass": "TerrainAddLit",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)",
+          "shaderPass": "ForwardLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)",
+          "shaderPass": "ForwardLit",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Shader Graphs/SslT9ComplexLit",
+          "shaderPass": "Universal Forward Only",
+          "stage": "fp",
+          "before": [
+            512
+          ],
+          "after": [
+            1024
+          ]
+        },
+        {
+          "shader": "Shader Graphs/SslT9ComplexLit",
+          "shaderPass": "Universal Forward Only",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Shader Graphs/SslT9Lit",
+          "shaderPass": "Universal Forward",
+          "stage": "fp",
+          "before": [
+            512
+          ],
+          "after": [
+            1024
+          ]
+        },
+        {
+          "shader": "Shader Graphs/SslT9Lit",
+          "shaderPass": "Universal Forward",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree7",
+          "shaderPass": "ForwardLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree7",
+          "shaderPass": "ForwardLit",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree7 Billboard",
+          "shaderPass": "ForwardLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree7 Billboard",
+          "shaderPass": "ForwardLit",
+          "stage": "vp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree8",
+          "shaderPass": "ForwardLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Nature/SpeedTree8",
+          "shaderPass": "ForwardLit",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Terrain/Lit",
+          "shaderPass": "ForwardLit",
+          "stage": "fp",
+          "before": [
+            64
+          ],
+          "after": [
+            128
+          ]
+        },
+        {
+          "shader": "Universal Render Pipeline/Terrain/Lit",
+          "shaderPass": "ForwardLit",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        }
+      ],
+      "groups": [
+        357,
+        357
+      ],
+      "litFP": [
+        [
+          6144
+        ],
+        [
+          6144
+        ]
+      ]
+    }
+  }
+}

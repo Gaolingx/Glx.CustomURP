@@ -35,7 +35,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData = (InputData)0;
 
     inputData.positionCS = input.PositionCS;
-    inputData.normalWS = half3(0, 1, 0);
+    inputData.normalWS = NormalizeNormalPerPixel(input.NormalWS.xyz);
     inputData.viewDirectionWS = half3(0, 0, 1);
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -90,6 +90,23 @@ half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
     #else
     half3 lighting = inputData.vertexLighting;
     #endif
+    // Clustered lights have no per-object vertex light list. Use the fragment's tile and depth.
+    #if USE_CLUSTER_LIGHTS
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
+    {
+        for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); ++lightIndex)
+        {
+            FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+            Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+            lighting += LightingLambert(light.color * light.distanceAttenuation, light.direction, inputData.normalWS);
+        }
+        LIGHT_LOOP_BEGIN(0)
+            Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+            lighting += LightingLambert(light.color * light.distanceAttenuation, light.direction, inputData.normalWS);
+        LIGHT_LOOP_END
+    }
+    #endif
+
     half4 color = half4(surfaceData.albedo, surfaceData.alpha);
 
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_GLOBAL_ILLUMINATION))
@@ -130,7 +147,7 @@ Varyings TerrainLitVertex(Attributes input)
     #endif
 
     // Vertex Lighting
-    half3 NormalWS = input.NormalOS;
+    half3 NormalWS = TransformObjectToWorldNormal(input.NormalOS);
     OUTPUT_SH(NormalWS, output.vertexSH);
     Light mainLight = GetMainLight();
     half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
@@ -141,7 +158,7 @@ Varyings TerrainLitVertex(Attributes input)
         diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
     }
 
-    #if defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX)
+    #if !USE_CLUSTER_LIGHTS && (defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX))
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
     {
         int pixelLightCount = GetAdditionalLightsCount();

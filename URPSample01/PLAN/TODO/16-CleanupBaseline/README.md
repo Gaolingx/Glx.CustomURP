@@ -100,7 +100,14 @@ RDC="E:/GitHub/renderdoc-mcp/_dist/package/renderdoc-mcp-windows-x64-v0.3.0/bin/
 
 | 步骤 | 前置 | 退出条件 |
 |---|---|---|
-| **C0.5** | C0 冻结完成 | Terrain/SpeedTree/ShaderGraph 的 ForwardLit 加 `_CLUSTERED_DEFERRED_LIGHTS`；新增 forward-only 不透明夹具并拿到像素 A/B；重记变体数（预期只增这些 shader） |
+| **C0.5 PASS** | C0 冻结完成 | Terrain / SpeedTree / ShaderGraph 前向变体与不透明夹具已验证；双 API 实测见下。 |
+
+**C0.5 验收（2026-11-22）**：[变体明细](validation/c05/C05VariantMeasurement.json) 按 shader / pass / stage 比较剥离后计数；同名无名 pass 保留全部计数，不视作单个 pass。C0 与候选的探针构建 × D3D11/D3D12 均成功，0 error。每个 API 仅 11 个预期前向 pass 的顶点与片元组增长；标准 T5 只包含其中 3 个 Terrain detail/grass pass，Lit ForwardLit 片元仍为 6144。探针片元计数：Terrain Lit/Add/Base 和 SpeedTree 三项各 64→128，Detail/Grass 各 32→64，Grass Billboard 8→16，ShaderGraph Lit/Complex Lit 各 512→1024。
+
+[EditMode 491/491](validation/c05/EditMode.xml)，[D3D11 PlayMode 42/42](validation/c05/PlayMode-D3D11.xml)，[D3D12 PlayMode 42/42](validation/c05/PlayMode-D3D12.xml)。48 灯独立不透明 ShaderGraph `UniversalForwardOnly` 接收体对比 Forward+：双 API 的 cluster-on mean 为 0.003、差值 >8 的像素为 0；per-object 对照为 11.931、23760 px（全图 230400 px）。这是 ShaderGraph 夹具的像素证据，Terrain/SpeedTree 的证据是玩家变体构建，不是逐材质像素 A/B。
+
+| 后续步骤 | 前置 | 退出条件 |
+|---|---|---|
 | **C3** | C0.5 + D-C5 fog 迁移 | 删 stencil pass/shader/material/关键字；preview/overlay/XR 走 Forward；A/B vs C0 ≤ 阈值 |
 | **C4a** | C3 | 删 CPU jobs 与 `PreSetup` 构图；保留 `_FPParams*` / 缓冲布局 / per-object 索引 |
 | **C4b** | 单独立项 | 新 GPU 光表布局；不属于本轮清理 |
