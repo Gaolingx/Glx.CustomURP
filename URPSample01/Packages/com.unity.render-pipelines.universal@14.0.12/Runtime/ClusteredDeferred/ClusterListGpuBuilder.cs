@@ -25,14 +25,9 @@ namespace UnityEngine.Rendering.Universal.Internal
     }
 
     // G1 Stage A/B dispatch host. Owns the per-item intermediate buffers and runs the five kernels
-    // that fill the two bitmaps ForwardLights publishes; the buffers themselves stay with
-    // ForwardLights so the CPU fallback can keep writing them.
+    // that fill the two bitmaps owned and published by ForwardLights.
     internal sealed class ClusterListGpuBuilder
     {
-        // Fallback switch (HANDOFF §7): flipping this to false puts the CPU jobs back in charge
-        // without touching shaders. Tests flip it to capture the CPU reference of the same frame.
-        internal static bool enabled = true;
-
         // G1c scheduling switch: when the device has an async queue the five dispatches can run
         // there and overlap the shadow/GBuffer passes. Off by default: on the D3D12 validation
         // machine the queue hand-off costs a constant ~0.11 ms per frame (measured at 0/8/16/32/
@@ -101,25 +96,40 @@ namespace UnityEngine.Rendering.Universal.Internal
         int m_CellCapacity;
         int m_CellMax;
 
-        public ClusterListGpuBuilder(ComputeShader compute)
+        internal static bool IsSupportedDevice => !RenderingUtils.useStructuredBuffer && SystemInfo.supportsComputeShaders && SystemInfo.graphicsShaderLevel >= 45 &&
+            (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 ||
+             SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal);
+
+        static int SupportedKernel(ComputeShader compute, string name)
         {
+            if (!compute.HasKernel(name))
+                return -1;
+            int kernel = compute.FindKernel(name);
+            return kernel >= 0 && compute.IsSupported(kernel) ? kernel : -1;
+        }
+
+        readonly bool m_BitmapOnly;
+
+        public ClusterListGpuBuilder(ComputeShader compute, bool bitmapOnly = false)
+        {
+            m_BitmapOnly = bitmapOnly;
             m_Compute = compute;
             if (compute == null)
                 return;
 
-            m_BoundsKernel = compute.FindKernel("ClusterItemBounds");
-            m_ClearKernel = compute.FindKernel("ClusterZBinClear");
-            m_ScatterKernel = compute.FindKernel("ClusterZBinScatter");
-            m_PackKernel = compute.FindKernel("ClusterZBinPack");
-            m_ExpandKernel = compute.FindKernel("ClusterTileExpand");
-            m_PruneKernel = compute.FindKernel("ClusterTilePrune");
-            m_CellKernel = compute.FindKernel("ClusterCellBuild");
+            m_BoundsKernel = SupportedKernel(compute, "ClusterItemBounds");
+            m_ClearKernel = SupportedKernel(compute, "ClusterZBinClear");
+            m_ScatterKernel = SupportedKernel(compute, "ClusterZBinScatter");
+            m_PackKernel = SupportedKernel(compute, "ClusterZBinPack");
+            m_ExpandKernel = SupportedKernel(compute, "ClusterTileExpand");
+            m_PruneKernel = bitmapOnly ? -1 : SupportedKernel(compute, "ClusterTilePrune");
+            m_CellKernel = bitmapOnly ? -1 : SupportedKernel(compute, "ClusterCellBuild");
         }
 
         public bool isCreated => m_Compute != null &&
                                  m_BoundsKernel >= 0 && m_ClearKernel >= 0 && m_ScatterKernel >= 0 &&
                                  m_PackKernel >= 0 && m_ExpandKernel >= 0 &&
-                                 m_PruneKernel >= 0 && m_CellKernel >= 0;
+                                 (m_BitmapOnly || (m_PruneKernel >= 0 && m_CellKernel >= 0));
 
         // Records the item upload on the command stream. Kept separate from Dispatch because the
         // async path uploads on the graphics queue (so the data is ready when the async queue
@@ -176,13 +186,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetComputeBufferParam(m_Compute, m_ExpandKernel, "urp_Tiles", tiles);
             cmd.SetComputeBufferParam(m_Compute, m_ExpandKernel, "_CdClusterTileRanges", m_TileRanges);
 
-            cmd.DispatchCompute(m_Compute, m_BoundsKernel, Groups(p.itemCount, k_BoundsThreads), 1, 1);
+            if (p.itemCount > 0)
+                cmd.DispatchCompute(m_Compute, m_BoundsKernel, Groups(p.itemCount, k_BoundsThreads), 1, 1);
+            // Even an empty camera must replace the previous masks and pack empty bin headers.
             var clearCount = math.max(math.max(p.zBinWordCount, p.tileWordCount), p.binCount * 4);
             cmd.DispatchCompute(m_Compute, m_ClearKernel, Groups(clearCount, k_ClearThreads), 1, 1);
-            cmd.DispatchCompute(m_Compute, m_ScatterKernel, Groups(p.binCount, k_ScatterThreads), math.max(1, p.itemCount), 1);
+            if (p.itemCount > 0)
+                cmd.DispatchCompute(m_Compute, m_ScatterKernel, Groups(p.binCount, k_ScatterThreads), p.itemCount, 1);
             cmd.DispatchCompute(m_Compute, m_PackKernel, Groups(p.binCount, k_BoundsThreads), 1, 1);
-            cmd.DispatchCompute(m_Compute, m_ExpandKernel,
-                Groups(p.tileCount.x, k_ExpandThreads), Groups(p.tileCount.y, k_ExpandThreads), 1);
+            if (p.itemCount > 0)
+                cmd.DispatchCompute(m_Compute, m_ExpandKernel,
+                    Groups(p.tileCount.x, k_ExpandThreads), Groups(p.tileCount.y, k_ExpandThreads), 1);
         }
 
         // G2: runs on the graphics queue after the GBuffer depth is available and after the GPU
@@ -210,6 +224,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetComputeIntParam(m_Compute, "_CdClusterPruneSidePlanes", pruneSidePlanes ? 1 : 0);
             cmd.SetComputeVectorParam(m_Compute, "_FPParams1", new Vector4(0f, 0f, 0f, p.wordsPerTile));
 
+            if (m_PruneTotals == null)
+                m_PruneTotals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, 4) { name = "CD Cluster Prune Totals" };
             cmd.SetComputeTextureParam(m_Compute, m_PruneKernel, "_CdClusterDepthTexture", depthTexture);
 
             cmd.SetComputeBufferParam(m_Compute, m_PruneKernel, "_CdClusterItems", m_Items);
@@ -333,10 +349,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_BinCapacity = math.max(binCount, 256);
                 m_BinMinMax = new GraphicsBuffer(GraphicsBuffer.Target.Structured, m_BinCapacity * 4, 4) { name = "CD Cluster Bin Headers" };
             }
-
-            // Two counters, kept for the whole builder lifetime so the readback target never moves.
-            if (m_PruneTotals == null)
-                m_PruneTotals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, 4) { name = "CD Cluster Prune Totals" };
         }
 
         void EnsureCellCapacity(int tileCount)

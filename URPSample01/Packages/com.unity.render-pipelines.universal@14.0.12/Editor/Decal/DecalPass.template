@@ -19,6 +19,7 @@ Pass
 
     // Pragmas
     $splice(PassPragmas)
+    #pragma target 4.5 _FORWARD_PLUS
 
     // Keywords
     $splice(PassKeywords)

@@ -19,6 +19,7 @@ HLSLPROGRAM
 
 // Pragmas
 $splice(PassPragmas)
+#pragma target 4.5 _FORWARD_PLUS _CLUSTERED_DEFERRED_LIGHTS
 
 // Keywords
 $splice(PassKeywords)

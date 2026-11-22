@@ -198,6 +198,8 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.AreEqual(oracle.depthPrimingMode, clustered.depthPrimingMode);
             Assert.AreEqual(oracle.accurateGbufferNormals, clustered.accurateGbufferNormals);
 
+            Assert.IsNotNull(oracle.shaders.clusterBuilderCS, "Forward+ renderer has no list builder.");
+            Assert.IsNotNull(clustered.shaders.clusterBuilderCS, "Clustered renderer has no list builder.");
             Assert.IsNotNull(clustered.shaders.clusteredDeferredCS, "Clustered renderer has no compute shader reference.");
             Assert.IsNotNull(clustered.shaders.clusteredDeferredMaskPS, "Clustered renderer has no mask shader reference.");
             Assert.IsNotNull(clustered.shaders.clusteredDeferredResolvePS, "Clustered renderer has no resolve shader reference.");
@@ -207,12 +209,15 @@ namespace UnityEditor.Rendering.Universal.Tests
     [TestFixture]
     class ClusteredDeferredRendererTests
     {
+        UnityEngine.Camera m_Camera;
         RenderPipelineAsset m_PreviousDefaultPipeline;
         RenderPipelineAsset m_PreviousQualityPipeline;
 
         [SetUp]
         public void SetUp()
         {
+            m_Camera = new GameObject("Cluster culling fixture").AddComponent<UnityEngine.Camera>();
+            m_Camera.enabled = false;
             m_PreviousDefaultPipeline = GraphicsSettings.defaultRenderPipeline;
             m_PreviousQualityPipeline = QualitySettings.renderPipeline;
             ClusteredDeferredAssets.UsePipeline(ClusteredDeferredAssets.ClusteredPipeline);
@@ -221,13 +226,14 @@ namespace UnityEditor.Rendering.Universal.Tests
         [TearDown]
         public void TearDown()
         {
+            UnityEngine.Object.DestroyImmediate(m_Camera.gameObject);
             GraphicsSettings.defaultRenderPipeline = m_PreviousDefaultPipeline;
             QualitySettings.renderPipeline = m_PreviousQualityPipeline;
         }
 
         [TestCase(RenderingMode.Forward)]
         [TestCase(RenderingMode.ForwardPlus)]
-        public void NonDeferredRenderersKeepTheirRequestedMode(RenderingMode mode)
+        public void NonDeferredRenderersUseDeviceAppropriateCulling(RenderingMode mode)
         {
             var copied = UnityEngine.Object.Instantiate(ClusteredDeferredAssets.ClusteredRenderer);
             try
@@ -236,8 +242,9 @@ namespace UnityEditor.Rendering.Universal.Tests
                 using (var renderer = new UniversalRenderer(copied))
                 {
                     var game = Camera(CameraType.Game);
-                    renderer.UpdateCameraRenderingMode(ref game, false);
-                    Assert.AreEqual(mode, renderer.renderingModeActual);
+                    var expected = mode == RenderingMode.ForwardPlus && !ClusterListGpuBuilder.IsSupportedDevice
+                        ? RenderingMode.Forward : mode;
+                    AssertCulling(renderer, game, expected);
                     Assert.IsFalse(renderer.clusteredDeferredEnabled);
                 }
             }
@@ -255,8 +262,9 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.DoesNotThrow(() => renderer.Dispose());
         }
 
-        static CameraData Camera(CameraType type, CameraRenderType renderType = CameraRenderType.Base) => new CameraData
+        CameraData Camera(CameraType type, CameraRenderType renderType = CameraRenderType.Base) => new CameraData
         {
+            camera = m_Camera,
             cameraType = type,
             renderType = renderType,
             xr = XRSystem.emptyPass,
@@ -270,12 +278,12 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.AreEqual(expected, renderer.renderingModeActual, $"{camera.cameraType}/{camera.renderType}");
             var culling = new ScriptableCullingParameters { reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.ImportanceThenSize };
             renderer.SetupCullingParameters(ref culling, ref camera);
-            bool deferred = expected == RenderingMode.Deferred;
-            Assert.AreEqual(UniversalRenderPipeline.maxVisibleAdditionalLights + (deferred ? 0 : 1), culling.maximumVisibleLights);
-            Assert.AreEqual(deferred ? ReflectionProbeSortingCriteria.None : ReflectionProbeSortingCriteria.ImportanceThenSize,
+            bool clustered = expected == RenderingMode.Deferred || expected == RenderingMode.ForwardPlus;
+            Assert.AreEqual(UniversalRenderPipeline.maxVisibleAdditionalLights + (clustered ? 0 : 1), culling.maximumVisibleLights);
+            Assert.AreEqual(clustered ? ReflectionProbeSortingCriteria.None : ReflectionProbeSortingCriteria.ImportanceThenSize,
                 culling.reflectionProbeSortingCriteria);
-            Assert.AreEqual((CullingOptions)0, culling.cullingOptions & CullingOptions.DisablePerObjectCulling,
-                "Neither clustered deferred nor its ordinary Forward fallback may discard per-object indices.");
+            Assert.AreEqual(expected == RenderingMode.ForwardPlus ? CullingOptions.DisablePerObjectCulling : (CullingOptions)0,
+                culling.cullingOptions & CullingOptions.DisablePerObjectCulling);
         }
 
         [Test]
@@ -305,6 +313,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             var copied = UnityEngine.Object.Instantiate(ClusteredDeferredAssets.ClusteredRenderer);
             try
             {
+                copied.shaders = JsonUtility.FromJson<UniversalRendererData.ShaderResources>(JsonUtility.ToJson(copied.shaders));
                 copied.shaders.clusteredDeferredCS = null;
                 using (var renderer = new UniversalRenderer(copied))
                     AssertCulling(renderer, Camera(CameraType.Game), RenderingMode.Forward);

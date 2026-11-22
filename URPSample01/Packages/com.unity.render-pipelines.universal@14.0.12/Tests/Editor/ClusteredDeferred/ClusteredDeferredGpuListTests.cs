@@ -10,8 +10,7 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEditor.Rendering.Universal.Tests
 {
-    // G1 parity harness, CPU half. The GPU builder has to reproduce these two bitmaps word for word,
-    // so the layout and the comparison rules are pinned here before any compute is written.
+    // Pin the GPU item ABI, empty dispatch, and frozen snapshot comparison rules.
     [TestFixture]
     class ClusteredDeferredGpuListParityTests
     {
@@ -43,7 +42,13 @@ namespace UnityEditor.Rendering.Universal.Tests
             if (!SystemInfo.supportsComputeShaders)
                 Assert.Ignore("Compute shaders unavailable.");
             var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.universal/Shaders/Utils/ClusterBuilder.compute");
-            var builder = new ClusterListGpuBuilder(shader);
+            AssertEmptyDispatch(shader, bitmapOnly: true);
+            AssertEmptyDispatch(shader, bitmapOnly: false);
+        }
+
+        static void AssertEmptyDispatch(ComputeShader shader, bool bitmapOnly)
+        {
+            var builder = new ClusterListGpuBuilder(shader, bitmapOnly);
             using var bins = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, sizeof(uint));
             using var tiles = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, sizeof(uint));
             using var cmd = new CommandBuffer();

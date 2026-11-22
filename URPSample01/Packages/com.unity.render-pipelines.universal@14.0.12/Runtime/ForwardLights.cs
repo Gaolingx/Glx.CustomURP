@@ -1,11 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Unity.Collections;
-using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -36,8 +31,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string k_SetupLightConstants = "Setup Light Constants";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_SetupLightConstants);
         private static readonly ProfilingSampler m_ProfilingSamplerFPSetup = new ProfilingSampler("Forward+ Setup");
-        private static readonly ProfilingSampler m_ProfilingSamplerFPComplete = new ProfilingSampler("Forward+ Complete");
-        private static readonly ProfilingSampler m_ProfilingSamplerFPUpload = new ProfilingSampler("Forward+ Upload");
         private static readonly ProfilingSampler m_ProfilingSamplerFPGpuBuild = new ProfilingSampler("Cluster List GPU");
         private static readonly ProfilingSampler m_ProfilingSamplerFPGpuPrune = new ProfilingSampler("Cluster List Prune");
         private static readonly ProfilingSampler m_ProfilingSamplerFPGpuCells = new ProfilingSampler("Cluster List Cells");
@@ -60,10 +53,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         int m_ActualTileWidth;
         int2 m_TileResolution;
 
-        JobHandle m_CullingHandle;
-        NativeArray<uint> m_ZBins;
         GraphicsBuffer m_ZBinsBuffer;
-        NativeArray<uint> m_TileMasks;
         GraphicsBuffer m_TileMasksBuffer;
 
         LightCookieManager m_LightCookieManager;
@@ -73,15 +63,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         float m_ZBinOffset;
         int m_LightCount;
         int m_BinCount;
-        // PreSetup state the parity capture needs to describe the item stream; the jobs do not read it.
         int m_LightOffset;
-        int m_ViewCount;
         int m_ReflectionProbeCount;
 
-        // G1: when set, the two bitmaps are built by ClusterBuilder.compute instead of the CPU jobs.
         ClusterListGpuBuilder m_ClusterBuilder;
         GraphicsBuffer m_EmptyCellBuffer;
-        bool m_GpuClusterList;
         CommandBuffer m_ClusterAsyncCmd;
         GraphicsFence m_ClusterFence;
         bool m_ClusterFencePending;
@@ -99,7 +85,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public bool forwardPlus;
             // Builds the cluster list for clustered deferred even though _FORWARD_PLUS stays off.
             public bool clusteredDeferred;
-            // Builds the cluster list on the GPU (G1). Null keeps the CPU jobs in charge.
+            // Required by both clustered rendering modes.
             public ComputeShader clusterBuilder;
             // Publishes the probe atlas outside Forward+ so the SSGI miss fallback can iterate the
             // visible probe list. Cluster buffers and keywords stay Forward+ only.
@@ -139,8 +125,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ClusteredDeferred = initParams.clusteredDeferred;
             m_UseClusters = m_UseForwardPlus || m_ClusteredDeferred;
             m_PublishProbeAtlas = initParams.publishProbeAtlas;
-            if (m_ClusteredDeferred && initParams.clusterBuilder != null)
-                m_ClusterBuilder = new ClusterListGpuBuilder(initParams.clusterBuilder);
+            if (m_UseClusters && initParams.clusterBuilder != null)
+                m_ClusterBuilder = new ClusterListGpuBuilder(initParams.clusterBuilder, bitmapOnly: m_UseForwardPlus);
 
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
@@ -171,34 +157,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightsLayerMasks = new float[maxLights];
             }
 
-            if (m_UseClusters)
-                CreateForwardPlusBuffers();
-
-            if (m_UseForwardPlus || m_PublishProbeAtlas)
-                m_ReflectionProbeManager = ReflectionProbeManager.Create();
-
             m_LightCookieManager = initParams.lightCookieManager;
         }
 
-        void CreateForwardPlusBuffers()
+        internal bool hasClusterBuilder => m_ClusterBuilder != null && m_ClusterBuilder.isCreated;
+
+        void EnsureClusterBuffers()
         {
-            m_ZBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.Persistent);
-            m_TileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.Persistent);
-            if (m_UseForwardPlus)
+            int bins = UniversalRenderPipeline.maxZBinWords, tiles = UniversalRenderPipeline.maxTileWords;
+            if (m_ZBinsBuffer == null || m_ZBinsBuffer.count != bins || m_TileMasksBuffer.count != tiles)
             {
-                m_ZBinsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, UniversalRenderPipeline.maxZBinWords / 4, UnsafeUtility.SizeOf<float4>());
-                m_ZBinsBuffer.name = "URP Z-Bin Buffer";
-                m_TileMasksBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, UniversalRenderPipeline.maxTileWords / 4, UnsafeUtility.SizeOf<float4>());
-                m_TileMasksBuffer.name = "URP Tile Buffer";
-            }
-            else
-            {
-                // Clustered deferred reads the same words through a structured buffer so the list can
-                // be built by a compute dispatch; a constant buffer cannot be a UAV.
-                m_ZBinsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, UniversalRenderPipeline.maxZBinWords, sizeof(uint));
-                m_ZBinsBuffer.name = "URP Z-Bin Buffer";
-                m_TileMasksBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, UniversalRenderPipeline.maxTileWords, sizeof(uint));
-                m_TileMasksBuffer.name = "URP Tile Buffer";
+                m_ZBinsBuffer?.Dispose();
+                m_TileMasksBuffer?.Dispose();
+                m_ZBinsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, bins, sizeof(uint)) { name = "URP Z-Bin Buffer" };
+                m_TileMasksBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, tiles, sizeof(uint)) { name = "URP Tile Buffer" };
             }
         }
 
@@ -210,39 +182,23 @@ namespace UnityEngine.Rendering.Universal.Internal
         // ignores the requested state.
         internal void SetProbeAtlasEnabled(bool enabled)
         {
-            if (m_UseForwardPlus)
-                return;
-
             m_PublishProbeAtlas = enabled;
         }
 
-        static int AlignByteCount(int count, int align) => align * ((count + align - 1) / align);
-
         // Use the same decision as culling and pass selection; eligibility alone does not account
         // for resource, debug or RenderGraph fallback.
-        bool ShouldBuildClusters(ref CameraData cameraData) => m_UseForwardPlus ||
+        bool ForwardPlusActive(ref CameraData cameraData) => m_UseForwardPlus &&
+            cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.ForwardPlus };
+
+        bool ShouldBuildClusters(ref CameraData cameraData) => ForwardPlusActive(ref cameraData) ||
             (m_ClusteredDeferred && cameraData.renderer is UniversalRenderer { clusteredDeferredEnabled: true });
 
-        // Completes the cluster jobs scheduled by PreSetup. Clustered deferred calls this before
-        // the deferred setup reads the culling light/probe arrays; upstream Forward+ waits until
-        // Setup because nothing else touches those arrays in between.
-        internal void CompleteClusterJobs()
+        static float4 GetViewToViewportScaleBias(Camera camera, float4x4 viewToClip)
         {
-            m_CullingHandle.Complete();
-        }
-
-        // Calculate view planes and viewToViewportScaleBias. This handles projection center in case the projection is off-centered
-        void GetViewParams(Camera camera, float4x4 viewToClip, out float viewPlaneBot, out float viewPlaneTop, out float4 viewToViewportScaleBias)
-        {
-            // We want to calculate `fovHalfHeight = tan(fov / 2)`
-            // `projection[1][1]` contains `1 / tan(fov / 2)`
             var viewPlaneHalfSizeInv = math.float2(viewToClip[0][0], viewToClip[1][1]);
-            var viewPlaneHalfSize = math.rcp(viewPlaneHalfSizeInv);
             var centerClipSpace = camera.orthographic ? -math.float2(viewToClip[3][0], viewToClip[3][1]): math.float2(viewToClip[2][0], viewToClip[2][1]);
 
-            viewPlaneBot = centerClipSpace.y * viewPlaneHalfSize.y - viewPlaneHalfSize.y;
-            viewPlaneTop = centerClipSpace.y * viewPlaneHalfSize.y + viewPlaneHalfSize.y;
-            viewToViewportScaleBias = math.float4(
+            return math.float4(
                 viewPlaneHalfSizeInv * 0.5f,
                 -centerClipSpace * 0.5f + 0.5f
             );
@@ -256,31 +212,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using var _ = new ProfilingScope(null, m_ProfilingSamplerFPSetup);
 
-                if (!m_CullingHandle.IsCompleted)
-                {
-                    throw new InvalidOperationException("Forward+ jobs have not completed yet.");
-                }
-
-                if (m_TileMasks.Length != UniversalRenderPipeline.maxTileWords)
-                {
-                    m_ZBins.Dispose();
-                    m_ZBinsBuffer.Dispose();
-                    m_TileMasks.Dispose();
-                    m_TileMasksBuffer.Dispose();
-                    CreateForwardPlusBuffers();
-                }
-
                 ref var cameraData = ref renderingData.cameraData;
                 var camera = cameraData.camera;
 
                 var screenResolution = math.int2(cameraData.pixelWidth, cameraData.pixelHeight);
-#if ENABLE_VR && ENABLE_XR_MODULE
-                var viewCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;
-#else
-                var viewCount = 1;
-#endif
-                m_ViewCount = viewCount;
-
                 m_LightCount = renderingData.lightData.visibleLights.Length;
                 var lightOffset = 0;
                 while (lightOffset < m_LightCount && renderingData.lightData.visibleLights[lightOffset].lightType == LightType.Directional)
@@ -293,11 +228,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_DirectionalLightCount = lightOffset;
                 if (renderingData.lightData.mainLightIndex != -1 && m_DirectionalLightCount != 0) m_DirectionalLightCount -= 1;
 
-                var visibleLights = renderingData.lightData.visibleLights.GetSubArray(lightOffset, m_LightCount);
                 var reflectionProbes = renderingData.cullResults.visibleReflectionProbes;
                 var reflectionProbeCount = math.min(reflectionProbes.Length, UniversalRenderPipeline.maxVisibleReflectionProbes);
                 m_ReflectionProbeCount = reflectionProbeCount;
-                var itemsPerTile = visibleLights.Length + reflectionProbeCount;
+                var itemsPerTile = m_LightCount + reflectionProbeCount;
                 m_WordsPerTile = (itemsPerTile + 31) / 32;
 
                 m_ActualTileWidth = 8 >> 1;
@@ -306,28 +240,25 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_ActualTileWidth <<= 1;
                     m_TileResolution = (screenResolution + m_ActualTileWidth - 1) / m_ActualTileWidth;
                 }
-                while ((m_TileResolution.x * m_TileResolution.y * m_WordsPerTile * viewCount) > UniversalRenderPipeline.maxTileWords);
+                while ((m_TileResolution.x * m_TileResolution.y * m_WordsPerTile) > UniversalRenderPipeline.maxTileWords);
 
                 if (!camera.orthographic)
                 {
                     // Use to calculate binIndex = log2(z) * zBinScale + zBinOffset
-                    m_ZBinScale = (UniversalRenderPipeline.maxZBinWords / viewCount) / ((math.log2(camera.farClipPlane) - math.log2(camera.nearClipPlane)) * (2 + m_WordsPerTile));
+                    m_ZBinScale = UniversalRenderPipeline.maxZBinWords / ((math.log2(camera.farClipPlane) - math.log2(camera.nearClipPlane)) * (2 + m_WordsPerTile));
                     m_ZBinOffset = -math.log2(camera.nearClipPlane) * m_ZBinScale;
                     m_BinCount = (int)(math.log2(camera.farClipPlane) * m_ZBinScale + m_ZBinOffset);
                 }
                 else
                 {
                     // Use to calculate binIndex = z * zBinScale + zBinOffset
-                    m_ZBinScale = (UniversalRenderPipeline.maxZBinWords / viewCount) / ((camera.farClipPlane - camera.nearClipPlane) * (2 + m_WordsPerTile));
+                    m_ZBinScale = UniversalRenderPipeline.maxZBinWords / ((camera.farClipPlane - camera.nearClipPlane) * (2 + m_WordsPerTile));
                     m_ZBinOffset = -camera.nearClipPlane * m_ZBinScale;
                     m_BinCount = (int)(camera.farClipPlane * m_ZBinScale + m_ZBinOffset);
                 }
 
                 // Necessary to avoid negative bin count when the farClipPlane is set to Infinity in the editor.
                 m_BinCount = Math.Max(m_BinCount, 0);
-
-                var worldToViews = new Fixed2<float4x4>(cameraData.GetViewMatrix(0), cameraData.GetViewMatrix(math.min(1, viewCount - 1)));
-                var viewToClips = new Fixed2<float4x4>(cameraData.GetProjectionMatrix(0), cameraData.GetProjectionMatrix(math.min(1, viewCount - 1)));
 
                 // Should probe come after otherProbe?
                 static bool IsProbeGreater(VisibleReflectionProbe probe, VisibleReflectionProbe otherProbe)
@@ -349,120 +280,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                     reflectionProbes[j + 1] = probe;
                 }
 
-                // The GPU builder consumes the projection parameters without the jobs, so they are
-                // computed before the branch.
-                GetViewParams(camera, viewToClips[0], out float viewPlaneBottom0, out float viewPlaneTop0, out float4 viewToViewportScaleBias0);
-                GetViewParams(camera, viewToClips[1], out float viewPlaneBottom1, out float viewPlaneTop1, out float4 viewToViewportScaleBias1);
+                EnsureClusterBuffers();
+                // SetupFinalPassDebug can inspect the Forward+ atlas before SetupLights.
+                if (m_UseForwardPlus && !m_ReflectionProbeManager.isCreated)
+                    m_ReflectionProbeManager = ReflectionProbeManager.Create();
 
-                m_GpuClusterList = ShouldBuildClusterListOnGpu(viewCount);
-                if (m_GpuClusterList)
-                {
-                    m_ClusterWorldToView = worldToViews[0];
-                    m_ClusterViewToViewportScaleBias = viewToViewportScaleBias0;
-                    m_ClusterTileScale = (float2)screenResolution / m_ActualTileWidth;
-                    m_ClusterNear = camera.nearClipPlane;
-                    m_ClusterOrthographic = camera.orthographic;
-                    m_CullingHandle = default;
-                }
-                else
-                {
-                    // The GPU kernels clear both bitmaps themselves; only the jobs need them reset.
-                    unsafe
-                    {
-                        UnsafeUtility.MemClear(m_ZBins.GetUnsafePtr(), m_ZBins.Length * sizeof(uint));
-                        UnsafeUtility.MemClear(m_TileMasks.GetUnsafePtr(), m_TileMasks.Length * sizeof(uint));
-                    }
-
-                    var minMaxZs = new NativeArray<float2>(itemsPerTile * viewCount, Allocator.TempJob);
-
-                    var lightMinMaxZJob = new LightMinMaxZJob
-                    {
-                        worldToViews = worldToViews,
-                        lights = visibleLights,
-                        minMaxZs = minMaxZs.GetSubArray(0, m_LightCount * viewCount)
-                    };
-                    // Innerloop batch count of 32 is not special, just a handwavy amount to not have too much scheduling overhead nor too little parallelism.
-                    var lightMinMaxZHandle = lightMinMaxZJob.ScheduleParallel(m_LightCount * viewCount, 32, new JobHandle());
-
-                    var reflectionProbeMinMaxZJob = new ReflectionProbeMinMaxZJob
-                    {
-                        worldToViews = worldToViews,
-                        reflectionProbes = reflectionProbes,
-                        minMaxZs = minMaxZs.GetSubArray(m_LightCount * viewCount, reflectionProbeCount * viewCount)
-                    };
-                    var reflectionProbeMinMaxZHandle = reflectionProbeMinMaxZJob.ScheduleParallel(reflectionProbeCount * viewCount, 32, lightMinMaxZHandle);
-
-                    var zBinningBatchCount = (m_BinCount + ZBinningJob.batchSize - 1) / ZBinningJob.batchSize;
-                    var zBinningJob = new ZBinningJob
-                    {
-                        bins = m_ZBins,
-                        minMaxZs = minMaxZs,
-                        zBinScale = m_ZBinScale,
-                        zBinOffset = m_ZBinOffset,
-                        binCount = m_BinCount,
-                        wordsPerTile = m_WordsPerTile,
-                        lightCount = m_LightCount,
-                        reflectionProbeCount = reflectionProbeCount,
-                        batchCount = zBinningBatchCount,
-                        viewCount = viewCount,
-                        isOrthographic = camera.orthographic
-                    };
-                    var zBinningHandle = zBinningJob.ScheduleParallel(zBinningBatchCount * viewCount, 1, reflectionProbeMinMaxZHandle);
-
-                    reflectionProbeMinMaxZHandle.Complete();
-
-                    // Each light needs 1 range for Y, and a range per row. Align to 128-bytes to avoid false sharing.
-                    var rangesPerItem = AlignByteCount((1 + m_TileResolution.y) * UnsafeUtility.SizeOf<InclusiveRange>(), 128) / UnsafeUtility.SizeOf<InclusiveRange>();
-                    var tileRanges = new NativeArray<InclusiveRange>(rangesPerItem * itemsPerTile * viewCount, Allocator.TempJob);
-                    var tilingJob = new TilingJob
-                    {
-                        lights = visibleLights,
-                        reflectionProbes = reflectionProbes,
-                        tileRanges = tileRanges,
-                        itemsPerTile = itemsPerTile,
-                        rangesPerItem = rangesPerItem,
-                        worldToViews = worldToViews,
-                        tileScale = (float2)screenResolution / m_ActualTileWidth,
-                        tileScaleInv = m_ActualTileWidth / (float2)screenResolution,
-                        viewPlaneBottoms = new Fixed2<float>(viewPlaneBottom0, viewPlaneBottom1),
-                        viewPlaneTops = new Fixed2<float>(viewPlaneTop0, viewPlaneTop1),
-                        viewToViewportScaleBiases = new Fixed2<float4>(viewToViewportScaleBias0, viewToViewportScaleBias1),
-                        tileCount = m_TileResolution,
-                        near = camera.nearClipPlane,
-                        isOrthographic = camera.orthographic
-                    };
-
-                    var tileRangeHandle = tilingJob.ScheduleParallel(itemsPerTile * viewCount, 1, reflectionProbeMinMaxZHandle);
-
-                    var expansionJob = new TileRangeExpansionJob
-                    {
-                        tileRanges = tileRanges,
-                        tileMasks = m_TileMasks,
-                        rangesPerItem = rangesPerItem,
-                        itemsPerTile = itemsPerTile,
-                        wordsPerTile = m_WordsPerTile,
-                        tileResolution = m_TileResolution,
-                    };
-
-                    var tilingHandle = expansionJob.ScheduleParallel(m_TileResolution.y * viewCount, 1, tileRangeHandle);
-                    m_CullingHandle = JobHandle.CombineDependencies(
-                        minMaxZs.Dispose(zBinningHandle),
-                        tileRanges.Dispose(tilingHandle));
-
-                    JobHandle.ScheduleBatchedJobs();
-                }
+                m_ClusterWorldToView = cameraData.GetViewMatrix(0);
+                m_ClusterViewToViewportScaleBias = GetViewToViewportScaleBias(camera, cameraData.GetProjectionMatrix(0));
+                m_ClusterTileScale = (float2)screenResolution / m_ActualTileWidth;
+                m_ClusterNear = camera.nearClipPlane;
+                m_ClusterOrthographic = camera.orthographic;
             }
             ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.preSetup);
-        }
-
-        bool ShouldBuildClusterListOnGpu(int viewCount)
-        {
-            // Same device gate the renderer applied before it enabled clustered deferred; the only
-            // extra requirement is a single view, because the item stream and params are per camera.
-            return ClusterListGpuBuilder.enabled &&
-                   m_ClusteredDeferred && !m_UseForwardPlus &&
-                   viewCount == 1 &&
-                   m_ClusterBuilder != null && m_ClusterBuilder.isCreated;
         }
 
         // D3D11 has no async queue; there the dispatches stay on the graphics queue in the same
@@ -495,13 +324,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // G2: narrow the published tile bitmap with the tile depth slice. Must run after the build
-        // fence (reads the built bitmap) and after GBuffer (reads its depth). Only the GPU-built
-        // list is refined; the CPU fallback and Forward+ keep their exact/conservative bitmaps.
+        // fence (reads the built bitmap) and after GBuffer (reads its depth). Forward+ stays conservative.
         internal void PruneClusterList(CommandBuffer cmd, RenderTargetIdentifier depthTexture, Vector4 zBufferParams)
         {
             // G3 cells already resolve depth per (tile, zbin); refining the bitmap would only add a
             // second full-screen depth scan before the cell build reads it.
-            if (!m_GpuClusterList || m_ClusterBuilder == null || m_TileMasksBuffer == null ||
+            if (!m_ClusteredDeferred || m_ClusterBuilder == null || m_TileMasksBuffer == null ||
                 !ClusterListGpuBuilder.pruneByDepth || ClusterListGpuBuilder.compactLists)
                 return;
 
@@ -509,10 +337,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_ClusterBuilder.Prune(cmd, m_ClusterGpuParams, depthTexture, zBufferParams, m_TileMasksBuffer);
         }
 
-        // The lighting kernel declares the G3 cell SRVs unconditionally; with no GPU builder (CPU
-        // jobs or a device without compute) it still needs a binding, so a minimal placeholder is
-        // used together with the disabled switch. With a builder, the switch decides whether cells
-        // or bitmaps are read this frame.
+        // The lighting kernel needs valid SRVs even when compact cells are disabled.
         void PublishCompactCellBindings(CommandBuffer cmd, in ClusterListGpuParams p, bool enableCells)
         {
             if (enableCells && p.items != null && m_ClusterBuilder != null && m_ClusterBuilder.isCreated)
@@ -533,7 +358,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // depth copy. Runs after the build fence and before the lighting dispatch.
         internal void BuildClusterCells(CommandBuffer cmd, RenderTargetIdentifier depthTexture, Vector4 zBufferParams)
         {
-            if (!m_GpuClusterList || m_ClusterBuilder == null || m_TileMasksBuffer == null ||
+            if (!m_ClusteredDeferred || m_ClusterBuilder == null || m_TileMasksBuffer == null ||
                 !ClusterListGpuBuilder.compactLists)
                 return;
 
@@ -554,11 +379,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(null, m_ProfilingSampler))
             {
-                if (m_UseForwardPlus)
-                {
-                    m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData);
-                }
-                else if (m_PublishProbeAtlas)
+                bool forwardPlus = ForwardPlusActive(ref renderingData.cameraData);
+                if (forwardPlus || m_PublishProbeAtlas)
                 {
                     // The feature toggle can be enabled after the renderer was created; allocate
                     // lazily instead of requiring a renderer rebuild.
@@ -578,117 +400,72 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector("_FPParams1", fp1);
                     cmd.SetGlobalVector("_FPParams2", fp2);
 
-                    if (m_GpuClusterList)
+                    using (new ProfilingScope(null, m_ProfilingSamplerFPGpuBuild))
                     {
-                        using (new ProfilingScope(null, m_ProfilingSamplerFPGpuBuild))
+                        int itemCount = ClusterItemStream.Build(ref renderingData, m_LightOffset, m_LightCount,
+                            m_ReflectionProbeCount, ref m_ClusterItems);
+                        var gpuParams = new ClusterListGpuParams
                         {
-                            int itemCount = ClusterItemStream.Build(ref renderingData, m_LightOffset, m_LightCount,
-                                m_ReflectionProbeCount, ref m_ClusterItems);
-                            var gpuParams = new ClusterListGpuParams
-                            {
-                                items = m_ClusterItems,
-                                itemCount = itemCount,
-                                lightCount = m_LightCount,
-                                binCount = m_BinCount,
-                                wordsPerTile = m_WordsPerTile,
-                                zBinScale = m_ZBinScale,
-                                zBinOffset = m_ZBinOffset,
-                                zBinWordCount = m_ZBins.Length,
-                                tileWordCount = m_TileMasks.Length,
-                                tileCount = m_TileResolution,
-                                tileWidth = m_ActualTileWidth,
-                                screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight),
-                                tileScale = m_ClusterTileScale,
-                                viewToViewportScaleBias = (Vector4)m_ClusterViewToViewportScaleBias,
-                                worldToView = m_ClusterWorldToView,
-                                near = m_ClusterNear,
-                                orthographic = m_ClusterOrthographic,
-                            };
-                            m_ClusterGpuParams = gpuParams;
+                            items = m_ClusterItems,
+                            itemCount = itemCount,
+                            lightCount = m_LightCount,
+                            binCount = m_BinCount,
+                            wordsPerTile = m_WordsPerTile,
+                            zBinScale = m_ZBinScale,
+                            zBinOffset = m_ZBinOffset,
+                            zBinWordCount = m_ZBinsBuffer.count,
+                            tileWordCount = m_TileMasksBuffer.count,
+                            tileCount = m_TileResolution,
+                            tileWidth = m_ActualTileWidth,
+                            screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight),
+                            tileScale = m_ClusterTileScale,
+                            viewToViewportScaleBias = (Vector4)m_ClusterViewToViewportScaleBias,
+                            worldToView = m_ClusterWorldToView,
+                            near = m_ClusterNear,
+                            orthographic = m_ClusterOrthographic,
+                        };
+                        m_ClusterGpuParams = gpuParams;
 
-                            if (ShouldRunClusterListAsync())
-                            {
-                                // Self-contained async submission: upload and dispatches share the
-                                // compute queue, so no cross-queue upload fence or mid-frame graphics
-                                // flush is needed. Only the completion fence crosses back.
-                                var asyncCmd = GetClusterAsyncCommandBuffer();
-                                m_ClusterBuilder.Upload(asyncCmd, m_ClusterItems, itemCount);
-                                m_ClusterBuilder.Dispatch(asyncCmd, gpuParams, m_ZBinsBuffer, m_TileMasksBuffer);
-                                m_ClusterFence = asyncCmd.CreateGraphicsFence(
-                                    GraphicsFenceType.AsyncQueueSynchronisation, SynchronisationStageFlags.ComputeProcessing);
-                                m_ClusterFencePending = true;
-                                context.ExecuteCommandBufferAsync(asyncCmd, ComputeQueueType.Background);
-                                asyncCmd.Clear();
+                        if (m_ClusteredDeferred && ShouldRunClusterListAsync())
+                        {
+                            // Self-contained async submission: upload and dispatches share the
+                            // compute queue, so no cross-queue upload fence or mid-frame graphics
+                            // flush is needed. Only the completion fence crosses back.
+                            var asyncCmd = GetClusterAsyncCommandBuffer();
+                            m_ClusterBuilder.Upload(asyncCmd, m_ClusterItems, itemCount);
+                            m_ClusterBuilder.Dispatch(asyncCmd, gpuParams, m_ZBinsBuffer, m_TileMasksBuffer);
+                            m_ClusterFence = asyncCmd.CreateGraphicsFence(
+                                GraphicsFenceType.AsyncQueueSynchronisation, SynchronisationStageFlags.ComputeProcessing);
+                            m_ClusterFencePending = true;
+                            context.ExecuteCommandBufferAsync(asyncCmd, ComputeQueueType.Background);
+                            asyncCmd.Clear();
 
-                                cmd.SetGlobalBuffer("URP_ZBins", m_ZBinsBuffer);
-                                cmd.SetGlobalBuffer("urp_Tiles", m_TileMasksBuffer);
-                            }
-                            else
-                            {
-                                m_ClusterBuilder.Upload(cmd, m_ClusterItems, itemCount);
-                                m_ClusterBuilder.Dispatch(cmd, gpuParams, m_ZBinsBuffer, m_TileMasksBuffer);
-                                cmd.SetGlobalBuffer("URP_ZBins", m_ZBinsBuffer);
-                                cmd.SetGlobalBuffer("urp_Tiles", m_TileMasksBuffer);
-                            }
+                            cmd.SetGlobalBuffer("URP_ZBins", m_ZBinsBuffer);
+                            cmd.SetGlobalBuffer("urp_Tiles", m_TileMasksBuffer);
+                        }
+                        else
+                        {
+                            m_ClusterBuilder.Upload(cmd, m_ClusterItems, itemCount);
+                            m_ClusterBuilder.Dispatch(cmd, gpuParams, m_ZBinsBuffer, m_TileMasksBuffer);
+                            cmd.SetGlobalBuffer("URP_ZBins", m_ZBinsBuffer);
+                            cmd.SetGlobalBuffer("urp_Tiles", m_TileMasksBuffer);
+                        }
 
-                            // G3: the cell buffers and their enable switch are read by the lighting
-                            // compute. Bound here so the later ClusteredDeferredPass dispatch does not
-                            // depend on per-pass state; the cells themselves are filled after GBuffer.
+                        // G3: the cell buffers and their enable switch are read by the lighting
+                        // compute. Bound here so the later ClusteredDeferredPass dispatch does not
+                        // depend on per-pass state; the cells themselves are filled after GBuffer.
+                        if (m_ClusteredDeferred)
                             PublishCompactCellBindings(cmd, gpuParams, ClusterListGpuBuilder.compactLists);
-                        }
-                    }
-                    else
-                    {
-                        using (new ProfilingScope(null, m_ProfilingSamplerFPComplete))
-                        {
-                            long probeStart = ClusteredDeferredCpuProbe.Begin();
-                            m_CullingHandle.Complete();
-                            ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.clusterJobsComplete);
-                        }
-
-                        using (new ProfilingScope(null, m_ProfilingSamplerFPUpload))
-                        {
-                            long probeStart = ClusteredDeferredCpuProbe.Begin();
-                            if (m_UseForwardPlus)
-                            {
-                                m_ZBinsBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
-                                m_TileMasksBuffer.SetData(m_TileMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
-                                cmd.SetGlobalConstantBuffer(m_ZBinsBuffer, "URP_ZBinBuffer", 0, UniversalRenderPipeline.maxZBinWords * 4);
-                                cmd.SetGlobalConstantBuffer(m_TileMasksBuffer, "urp_TileBuffer", 0, UniversalRenderPipeline.maxTileWords * 4);
-                            }
-                            else
-                            {
-                                // Clustered fallback writes the same words into the structured buffers
-                                // the kernel reads, so only this renderer's active mode changes.
-                                m_ZBinsBuffer.SetData(m_ZBins);
-                                m_TileMasksBuffer.SetData(m_TileMasks);
-                                cmd.SetGlobalBuffer("URP_ZBins", m_ZBinsBuffer);
-                                cmd.SetGlobalBuffer("urp_Tiles", m_TileMasksBuffer);
-                            }
-
-                            // CPU jobs never publish cells; bind the placeholders and clear the switch
-                            // so a frame that flipped off the GPU list cannot read stale cells.
-                            PublishCompactCellBindings(cmd, m_ClusterGpuParams, false);
-                            ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.clusterUpload);
-                        }
                     }
 
                     if (ClusterListParityCapture.enabled)
                     {
                         var snapshot = CreateClusterSnapshot(ref renderingData, fp0, fp1, fp2);
-                        if (m_GpuClusterList)
-                        {
-                            // On the async path the readback must wait for the compute queue;
-                            // the sync path is already ordered on this command buffer.
-                            if (m_ClusterFencePending)
-                                cmd.WaitOnAsyncGraphicsFence(m_ClusterFence, SynchronisationStageFlags.ComputeProcessing);
-                            ClusterListParityCapture.RequestGpuCapture(cmd, snapshot, m_ZBinsBuffer, m_TileMasksBuffer);
-                        }
-                        else
-                        {
-                            snapshot.CopyBitmapsFrom(m_ZBins, m_TileMasks);
-                            ClusterListParityCapture.Capture(snapshot);
-                        }
+                        // On the async path the readback must wait for the compute queue;
+                        // the sync path is already ordered on this command buffer.
+                        if (m_ClusterFencePending)
+                            cmd.WaitOnAsyncGraphicsFence(m_ClusterFence, SynchronisationStageFlags.ComputeProcessing);
+                        ClusterListParityCapture.RequestGpuCapture(cmd, snapshot, m_ZBinsBuffer, m_TileMasksBuffer);
                     }
                 }
 
@@ -699,15 +476,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool lightCountCheck = (renderingData.cameraData.renderer.stripAdditionalLightOffVariants && renderingData.lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 // Forward-drawn objects read the cluster list only on frames that actually built it,
                 // so cameras falling back to ordinary Forward keep per-object lights.
-                bool clusterForwardLights = buildClusters && m_ClusteredDeferred && !m_UseForwardPlus &&
+                bool clusterForwardLights = buildClusters && m_ClusteredDeferred && !forwardPlus &&
                                             ClusteredDeferredPass.forwardClusterLights;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ClusteredDeferredLights, clusterForwardLights);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
-                    lightCountCheck && additionalLightsPerVertex && !m_UseForwardPlus && !clusterForwardLights);
+                    lightCountCheck && additionalLightsPerVertex && !forwardPlus && !clusterForwardLights);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
-                    lightCountCheck && !m_UseForwardPlus && (!additionalLightsPerVertex || clusterForwardLights));
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ForwardPlus,
-                    m_UseForwardPlus);
+                    lightCountCheck && !forwardPlus && (!additionalLightsPerVertex || clusterForwardLights));
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ForwardPlus, forwardPlus);
 
                 bool isShadowMask = renderingData.lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.ShadowMask;
                 bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
@@ -742,9 +518,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.Clear();
         }
 
-        // Everything the parity snapshot needs except the bitmaps themselves: CreateClusterSnapshot
-        // runs for both writers, then the CPU path copies its NativeArrays and the GPU path waits for
-        // the ordered readback.
+        // Capture metadata alongside the ordered GPU bitmap readback.
         ClusterListSnapshot CreateClusterSnapshot(ref RenderingData renderingData, float4 fp0, float4 fp1, float4 fp2)
         {
             var snapshot = new ClusterListSnapshot();
@@ -754,7 +528,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             snapshot.binCount = m_BinCount;
             snapshot.lightCount = m_LightCount;
             snapshot.directionalLightCount = m_DirectionalLightCount;
-            snapshot.viewCount = m_ViewCount;
+            snapshot.viewCount = 1; // Multiview falls back before culling.
             snapshot.tileWidth = m_ActualTileWidth;
             snapshot.tileResolution = new Vector2Int(m_TileResolution.x, m_TileResolution.y);
             snapshot.screenResolution = new Vector2Int(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
@@ -767,13 +541,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (m_UseClusters)
             {
-                m_CullingHandle.Complete();
-                if (m_ZBins.IsCreated)
-                    m_ZBins.Dispose();
-                m_ZBins = default;
-                if (m_TileMasks.IsCreated)
-                    m_TileMasks.Dispose();
-                m_TileMasks = default;
                 m_ZBinsBuffer?.Dispose();
                 m_ZBinsBuffer = null;
                 m_TileMasksBuffer?.Dispose();
@@ -863,7 +630,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cullResults = renderingData.cullResults;
             var lights = lightData.visibleLights;
             int maxAdditionalLightsCount = UniversalRenderPipeline.maxVisibleAdditionalLights;
-            int additionalLightsCount = SetupPerObjectLightIndices(cullResults, ref lightData);
+            int additionalLightsCount = SetupPerObjectLightIndices(cullResults, ref lightData, ForwardPlusActive(ref renderingData.cameraData));
             if (additionalLightsCount > 0)
             {
                 if (m_UseStructuredBuffer)
@@ -935,9 +702,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        int SetupPerObjectLightIndices(CullingResults cullResults, ref LightData lightData)
+        int SetupPerObjectLightIndices(CullingResults cullResults, ref LightData lightData, bool forwardPlus)
         {
-            if (lightData.additionalLightsCount == 0 || m_UseForwardPlus)
+            if (lightData.additionalLightsCount == 0 || forwardPlus)
                 return lightData.additionalLightsCount;
 
             var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);

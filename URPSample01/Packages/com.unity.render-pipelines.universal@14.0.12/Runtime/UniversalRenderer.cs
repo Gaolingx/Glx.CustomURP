@@ -81,10 +81,35 @@ namespace UnityEngine.Rendering.Universal
         internal bool clusteredDeferredEnabled => renderingModeActual == RenderingMode.Deferred;
         bool usesClusters => clusteredDeferredEnabled || renderingModeActual == RenderingMode.ForwardPlus;
         ClusteredDeferredPass m_ClusteredDeferredPass;
+        readonly HashSet<string> m_ClusterWarnings = new HashSet<string>();
 
         internal void UpdateCameraRenderingMode(ref CameraData cameraData, bool useRenderGraph)
         {
             renderingModeActual = renderingModeRequested;
+            bool forwardPlus = renderingModeRequested == RenderingMode.ForwardPlus;
+            if (forwardPlus || renderingModeRequested == RenderingMode.Deferred)
+            {
+                string reason = null;
+                if (!ClusterListGpuBuilder.IsSupportedDevice)
+                    reason = "Use array-based light data on a compute-capable SM4.5 D3D11, D3D12, Vulkan or Metal device, or select Forward in the renderer.";
+                else if (!m_ForwardLights.hasClusterBuilder)
+                    reason = "Assign a supported ClusterBuilder.compute with the required kernels in the renderer shader resources.";
+#if ENABLE_VR && ENABLE_XR_MODULE
+                else if (cameraData.xr.enabled && cameraData.xr.viewCount > 1)
+                    reason = "Use single-view rendering or XR multipass; the cluster builder supports one view per dispatch.";
+#endif
+                else if (forwardPlus && useRenderGraph)
+                    reason = "Disable experimental RenderGraph; it does not prepare or track the cluster list before forward draws.";
+
+                if (reason != null)
+                {
+                    renderingModeActual = RenderingMode.Forward;
+                    string mode = forwardPlus ? "Forward+" : "Clustered deferred";
+                    if (m_ClusterWarnings.Add(reason))
+                        Debug.LogWarning($"{mode} fell back to Forward for camera '{cameraData.camera.name}'. {reason}", cameraData.camera);
+                    return;
+                }
+            }
             if (renderingModeRequested != RenderingMode.Deferred)
                 return;
 
@@ -274,8 +299,8 @@ namespace UnityEngine.Rendering.Universal
                 useRenderPassEnabled = false;
 
             forwardInitParams.clusteredDeferred = clusteredAvailable;
-            // The GPU builder is optional; CPU jobs produce the same list layout.
-            forwardInitParams.clusterBuilder = clusteredAvailable ? data.shaders.clusterBuilderCS : null;
+            forwardInitParams.clusterBuilder = clusteredAvailable || (forwardInitParams.forwardPlus && ClusterListGpuBuilder.IsSupportedDevice)
+                ? data.shaders.clusterBuilderCS : null;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             m_RenderingMode = data.renderingMode;
             renderingModeActual = m_RenderingMode == RenderingMode.Deferred ? RenderingMode.Forward : m_RenderingMode;
@@ -688,13 +713,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // TODO: This needs to be setup early, otherwise gbuffer attachments will be allocated with wrong size
                 m_DeferredLights.HasNormalPrepass = renderPassInputs.requiresNormalsTexture;
-
-                // The cluster jobs scheduled in PreSetup hold the culling light/probe arrays, and
-                // ResolveMixedLightingMode takes mutable access to them. Finish the jobs first; the
-                // GPU upload still happens later in ForwardLights.Setup.
-                long probeStart = ClusteredDeferredCpuProbe.Begin();
-                m_ForwardLights.CompleteClusterJobs();
-                ClusteredDeferredCpuProbe.End(probeStart, ref ClusteredDeferredCpuProbe.clusterJobsComplete);
 
                 long resolveStart = ClusteredDeferredCpuProbe.Begin();
                 m_DeferredLights.ResolveMixedLightingMode(ref renderingData);

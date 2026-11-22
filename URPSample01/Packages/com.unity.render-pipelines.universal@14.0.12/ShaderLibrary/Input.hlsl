@@ -169,19 +169,9 @@ CBUFFER_END
 #endif
 #endif
 
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHTS
 
-CBUFFER_START(URP_ZBinBuffer)
-        float4 URP_ZBins[MAX_ZBIN_VEC4S];
-CBUFFER_END
-CBUFFER_START(urp_TileBuffer)
-        float4 urp_Tiles[MAX_TILE_VEC4S];
-CBUFFER_END
-
-#elif USE_CLUSTER_LIGHTS
-
-// Clustered deferred builds the bitmaps with a compute dispatch, so the same words arrive as
-// structured buffers (a constant buffer cannot be a UAV).
+// Both cluster paths read the compute builder's bitmaps, one uint per word.
 StructuredBuffer<uint> URP_ZBins;
 StructuredBuffer<uint> urp_Tiles;
 

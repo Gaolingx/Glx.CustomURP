@@ -1,0 +1,3394 @@
+{
+  "c3": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\TODO\\16-CleanupBaseline\\validation\\c3",
+  "candidate": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\TODO\\16-CleanupBaseline\\c4\\final-player",
+  "thresholds": {
+    "maxRGB": 24,
+    "meanRGB": 2
+  },
+  "samePath": {
+    "t5-d3d11/control/ClusteredDeferred_L0.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d11/control/ClusteredDeferred_L8.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t5-d3d11/control/ClusteredDeferred_L48.png": {
+      "maxRGB": 1,
+      "meanRGB": 1.0850694444444444e-06,
+      "passed": true
+    },
+    "t5-d3d11/control/ClusteredDeferred_L256.png": {
+      "maxRGB": 55,
+      "meanRGB": 0.08590277777777777,
+      "passed": false
+    },
+    "t5-d3d11/control/ForwardPlus_L0.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d11/control/ForwardPlus_L8.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t5-d3d11/control/ForwardPlus_L48.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d11/control/ForwardPlus_L256.png": {
+      "maxRGB": 56,
+      "meanRGB": 0.08554072627314815,
+      "passed": false
+    },
+    "t5-d3d11/cluster-on/ClusteredDeferred_L0.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d11/cluster-on/ClusteredDeferred_L8.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t5-d3d11/cluster-on/ClusteredDeferred_L48.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t5-d3d11/cluster-on/ClusteredDeferred_L256.png": {
+      "maxRGB": 31,
+      "meanRGB": 0.13212709780092594,
+      "passed": false
+    },
+    "t5-d3d11/cluster-on/ForwardPlus_L0.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d11/cluster-on/ForwardPlus_L8.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d11/cluster-on/ForwardPlus_L48.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d11/cluster-on/ForwardPlus_L256.png": {
+      "maxRGB": 31,
+      "meanRGB": 0.1317339409722222,
+      "passed": false
+    },
+    "t4/player-d3d11/MainShadowCascade_ForwardPlusOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d11/MainShadowCascade_ForwardPlusOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d11/MainShadowCascade_ClusteredOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 2.170138888888889e-06,
+      "passed": true
+    },
+    "t4/player-d3d11/MainShadowCascade_ClusteredOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 1.4467592592592592e-06,
+      "passed": true
+    },
+    "t4/player-d3d11/ReceiveShadowsOff_ForwardPlusOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d11/ReceiveShadowsOff_ForwardPlusOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d11/ReceiveShadowsOff_ClusteredOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 2.170138888888889e-06,
+      "passed": true
+    },
+    "t4/player-d3d11/ReceiveShadowsOff_ClusteredOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 2.170138888888889e-06,
+      "passed": true
+    },
+    "t4/player-d3d11/MainShadowScreen_ForwardPlusOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d11/MainShadowScreen_ForwardPlusOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d11/MainShadowScreen_ClusteredOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 1.4467592592592592e-06,
+      "passed": true
+    },
+    "t4/player-d3d11/MainShadowScreen_ClusteredOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 1.4467592592592592e-06,
+      "passed": true
+    },
+    "t4/player-d3d11/AdditionalShadowAtlas_ForwardPlusOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/AdditionalShadowAtlas_ForwardPlusOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/AdditionalShadowAtlas_ClusteredOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/AdditionalShadowAtlas_ClusteredOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/LightCookie_ForwardPlusOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/LightCookie_ForwardPlusOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/LightCookie_ClusteredOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/LightCookie_ClusteredOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/LightLayers_ForwardPlusOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/LightLayers_ForwardPlusOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/LightLayers_ClusteredOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/LightLayers_ClusteredOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d11/ScreenSpaceAO_ForwardPlusOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d11/ScreenSpaceAO_ForwardPlusOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d11/ScreenSpaceAO_ClusteredOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 1.0850694444444444e-06,
+      "passed": true
+    },
+    "t4/player-d3d11/ScreenSpaceAO_ClusteredOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 1.0850694444444444e-06,
+      "passed": true
+    },
+    "t5-d3d12/control/ClusteredDeferred_L0.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d12/control/ClusteredDeferred_L8.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d12/control/ClusteredDeferred_L48.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t5-d3d12/control/ClusteredDeferred_L256.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t5-d3d12/control/ForwardPlus_L0.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d12/control/ForwardPlus_L8.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d12/control/ForwardPlus_L48.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t5-d3d12/control/ForwardPlus_L256.png": {
+      "maxRGB": 1,
+      "meanRGB": 2.170138888888889e-06,
+      "passed": true
+    },
+    "t5-d3d12/cluster-on/ClusteredDeferred_L0.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d12/cluster-on/ClusteredDeferred_L8.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t5-d3d12/cluster-on/ClusteredDeferred_L48.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t5-d3d12/cluster-on/ClusteredDeferred_L256.png": {
+      "maxRGB": 3,
+      "meanRGB": 1.8084490740740741e-06,
+      "passed": true
+    },
+    "t5-d3d12/cluster-on/ForwardPlus_L0.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t5-d3d12/cluster-on/ForwardPlus_L8.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t5-d3d12/cluster-on/ForwardPlus_L48.png": {
+      "maxRGB": 1,
+      "meanRGB": 1.0850694444444444e-06,
+      "passed": true
+    },
+    "t5-d3d12/cluster-on/ForwardPlus_L256.png": {
+      "maxRGB": 2,
+      "meanRGB": 2.8935185185185184e-06,
+      "passed": true
+    },
+    "t4/player-d3d12/MainShadowCascade_ForwardPlusOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/MainShadowCascade_ForwardPlusOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/MainShadowCascade_ClusteredOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/MainShadowCascade_ClusteredOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/ReceiveShadowsOff_ForwardPlusOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/ReceiveShadowsOff_ForwardPlusOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/ReceiveShadowsOff_ClusteredOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/ReceiveShadowsOff_ClusteredOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/MainShadowScreen_ForwardPlusOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/MainShadowScreen_ForwardPlusOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/MainShadowScreen_ClusteredOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/MainShadowScreen_ClusteredOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/AdditionalShadowAtlas_ForwardPlusOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/AdditionalShadowAtlas_ForwardPlusOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/AdditionalShadowAtlas_ClusteredOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/AdditionalShadowAtlas_ClusteredOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/LightCookie_ForwardPlusOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/LightCookie_ForwardPlusOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/LightCookie_ClusteredOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/LightCookie_ClusteredOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/LightLayers_ForwardPlusOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/LightLayers_ForwardPlusOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/LightLayers_ClusteredOn.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/LightLayers_ClusteredOff.png": {
+      "maxRGB": 0,
+      "meanRGB": 0.0,
+      "passed": true
+    },
+    "t4/player-d3d12/ScreenSpaceAO_ForwardPlusOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/ScreenSpaceAO_ForwardPlusOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/ScreenSpaceAO_ClusteredOn.png": {
+      "maxRGB": 1,
+      "meanRGB": 3.616898148148148e-07,
+      "passed": true
+    },
+    "t4/player-d3d12/ScreenSpaceAO_ClusteredOff.png": {
+      "maxRGB": 1,
+      "meanRGB": 7.233796296296296e-07,
+      "passed": true
+    }
+  },
+  "crossRoute": {
+    "t5-d3d11/control/0": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 0,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1749587673611111,
+        "meanChannelDiffNormalized": 0.0006861128131808278,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 572,
+        "pixelsOverThresholdFraction": 0.0006206597222222222,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 0,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1749587673611111,
+        "meanChannelDiffNormalized": 0.0006861128131808278,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 572,
+        "pixelsOverThresholdFraction": 0.0006206597222222222,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d11/control/256": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 256,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.28984736689814816,
+        "meanChannelDiffNormalized": 0.0011366563407770515,
+        "maxChannelDiff": 86,
+        "pixelsOverThreshold": 623,
+        "pixelsOverThresholdFraction": 0.0006759982638888889,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 256,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.2902347366898148,
+        "meanChannelDiffNormalized": 0.0011381754379992737,
+        "maxChannelDiff": 86,
+        "pixelsOverThreshold": 622,
+        "pixelsOverThresholdFraction": 0.0006749131944444445,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d11/control/48": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 48,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.20924877025462962,
+        "meanChannelDiffNormalized": 0.0008205834127632534,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 48,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.20924985532407409,
+        "meanChannelDiffNormalized": 0.0008205876679375455,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d11/control/8": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 8,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.178876953125,
+        "meanChannelDiffNormalized": 0.0007014782475490195,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 600,
+        "pixelsOverThresholdFraction": 0.0006510416666666666,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 8,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.178876953125,
+        "meanChannelDiffNormalized": 0.0007014782475490195,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 600,
+        "pixelsOverThresholdFraction": 0.0006510416666666666,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d11/cluster-on/0": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 0,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.15383210358796295,
+        "meanChannelDiffNormalized": 0.0006032631513253449,
+        "maxChannelDiff": 49,
+        "pixelsOverThreshold": 190,
+        "pixelsOverThresholdFraction": 0.00020616319444444444,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.19454526612102457,
+        "rectMaxChannelDiff": 49,
+        "rectPixelsOverThreshold": 64,
+        "rectPixelsOverThresholdFraction": 0.00023136767215200857,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 0,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.15383210358796295,
+        "meanChannelDiffNormalized": 0.0006032631513253449,
+        "maxChannelDiff": 49,
+        "pixelsOverThreshold": 190,
+        "pixelsOverThresholdFraction": 0.00020616319444444444,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.19454526612102457,
+        "rectMaxChannelDiff": 49,
+        "rectPixelsOverThreshold": 64,
+        "rectPixelsOverThresholdFraction": 0.00023136767215200857,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d11/cluster-on/256": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 256,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.26291883680555556,
+        "meanChannelDiffNormalized": 0.0010310542619825708,
+        "maxChannelDiff": 80,
+        "pixelsOverThreshold": 556,
+        "pixelsOverThresholdFraction": 0.0006032986111111111,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.34262057629831005,
+        "rectMaxChannelDiff": 80,
+        "rectPixelsOverThreshold": 508,
+        "rectPixelsOverThresholdFraction": 0.0018364808977065679,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 256,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.2625726996527778,
+        "meanChannelDiffNormalized": 0.0010296968613834423,
+        "maxChannelDiff": 80,
+        "pixelsOverThreshold": 556,
+        "pixelsOverThresholdFraction": 0.0006032986111111111,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.3416384687316231,
+        "rectMaxChannelDiff": 80,
+        "rectPixelsOverThreshold": 508,
+        "rectPixelsOverThresholdFraction": 0.0018364808977065679,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d11/cluster-on/48": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 48,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.18700737847222224,
+        "meanChannelDiffNormalized": 0.0007333622685185186,
+        "maxChannelDiff": 82,
+        "pixelsOverThreshold": 382,
+        "pixelsOverThresholdFraction": 0.0004144965277777778,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.2521244854479375,
+        "rectMaxChannelDiff": 82,
+        "rectPixelsOverThreshold": 342,
+        "rectPixelsOverThresholdFraction": 0.0012363709980622957,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 48,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.18700701678240741,
+        "meanChannelDiffNormalized": 0.0007333608501270879,
+        "maxChannelDiff": 82,
+        "pixelsOverThreshold": 382,
+        "pixelsOverThresholdFraction": 0.0004144965277777778,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.2521244854479375,
+        "rectMaxChannelDiff": 82,
+        "rectPixelsOverThreshold": 342,
+        "rectPixelsOverThresholdFraction": 0.0012363709980622957,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d11/cluster-on/8": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 8,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.15493561921296295,
+        "meanChannelDiffNormalized": 0.0006075906635802468,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 222,
+        "pixelsOverThresholdFraction": 0.00024088541666666667,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.1891731979832451,
+        "rectMaxChannelDiff": 59,
+        "rectPixelsOverThreshold": 132,
+        "rectPixelsOverThresholdFraction": 0.00047719582381351765,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 8,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.15493598090277777,
+        "meanChannelDiffNormalized": 0.0006075920819716775,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 222,
+        "pixelsOverThresholdFraction": 0.00024088541666666667,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.1891731979832451,
+        "rectMaxChannelDiff": 59,
+        "rectPixelsOverThreshold": 132,
+        "rectPixelsOverThresholdFraction": 0.00047719582381351765,
+        "rectPassed": false
+      }
+    },
+    "t4/player-d3d11/AdditionalShadowAtlas/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.136904296875,
+        "meanChannelDiffNormalized": 0.0005368795955882353,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 85,
+        "pixelsOverThresholdFraction": 9.223090277777778e-05,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.136904296875,
+        "meanChannelDiffNormalized": 0.0005368795955882353,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 85,
+        "pixelsOverThresholdFraction": 9.223090277777778e-05,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/AdditionalShadowAtlas/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1361451099537037,
+        "meanChannelDiffNormalized": 0.0005339023919753087,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 85,
+        "pixelsOverThresholdFraction": 9.223090277777778e-05,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1361451099537037,
+        "meanChannelDiffNormalized": 0.0005339023919753087,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 85,
+        "pixelsOverThresholdFraction": 9.223090277777778e-05,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/LightCookie/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.138095703125,
+        "meanChannelDiffNormalized": 0.0005415517769607843,
+        "maxChannelDiff": 53,
+        "pixelsOverThreshold": 87,
+        "pixelsOverThresholdFraction": 9.440104166666666e-05,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.138095703125,
+        "meanChannelDiffNormalized": 0.0005415517769607843,
+        "maxChannelDiff": 53,
+        "pixelsOverThreshold": 87,
+        "pixelsOverThresholdFraction": 9.440104166666666e-05,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/LightCookie/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.13108723958333332,
+        "meanChannelDiffNormalized": 0.0005140676062091503,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 73,
+        "pixelsOverThresholdFraction": 7.921006944444444e-05,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.13108723958333332,
+        "meanChannelDiffNormalized": 0.0005140676062091503,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 73,
+        "pixelsOverThresholdFraction": 7.921006944444444e-05,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/LightLayers/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.14302408854166668,
+        "meanChannelDiffNormalized": 0.0005608787785947712,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 119,
+        "pixelsOverThresholdFraction": 0.00012912326388888888,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.14302408854166668,
+        "meanChannelDiffNormalized": 0.0005608787785947712,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 119,
+        "pixelsOverThresholdFraction": 0.00012912326388888888,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/LightLayers/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.13723090277777777,
+        "meanChannelDiffNormalized": 0.0005381604030501089,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 82,
+        "pixelsOverThresholdFraction": 8.897569444444445e-05,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.13723090277777777,
+        "meanChannelDiffNormalized": 0.0005381604030501089,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 82,
+        "pixelsOverThresholdFraction": 8.897569444444445e-05,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/MainShadowCascade/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19376591435185186,
+        "meanChannelDiffNormalized": 0.000759866330791576,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19376663773148148,
+        "meanChannelDiffNormalized": 0.0007598691675744372,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/MainShadowCascade/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1926468460648148,
+        "meanChannelDiffNormalized": 0.0007554778277051561,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19264829282407409,
+        "meanChannelDiffNormalized": 0.0007554835012708788,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/MainShadowScreen/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19376591435185186,
+        "meanChannelDiffNormalized": 0.000759866330791576,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19376663773148148,
+        "meanChannelDiffNormalized": 0.0007598691675744372,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/MainShadowScreen/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19279296875,
+        "meanChannelDiffNormalized": 0.0007560508578431372,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19279369212962963,
+        "meanChannelDiffNormalized": 0.0007560536946259986,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/ReceiveShadowsOff/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1926468460648148,
+        "meanChannelDiffNormalized": 0.0007554778277051561,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19264829282407409,
+        "meanChannelDiffNormalized": 0.0007554835012708788,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/ReceiveShadowsOff/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19264069733796296,
+        "meanChannelDiffNormalized": 0.0007554537150508352,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19264214409722222,
+        "meanChannelDiffNormalized": 0.0007554593886165578,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/ScreenSpaceAO/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19348198784722223,
+        "meanChannelDiffNormalized": 0.0007587528935185185,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19348307291666667,
+        "meanChannelDiffNormalized": 0.0007587571486928104,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d11/ScreenSpaceAO/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1917505787037037,
+        "meanChannelDiffNormalized": 0.0007519630537400145,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 448,
+        "pixelsOverThresholdFraction": 0.0004861111111111111,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19175166377314815,
+        "meanChannelDiffNormalized": 0.0007519673089143064,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 448,
+        "pixelsOverThresholdFraction": 0.0004861111111111111,
+        "passed": false
+      }
+    },
+    "t5-d3d12/control/0": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 0,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.17495768229166667,
+        "meanChannelDiffNormalized": 0.000686108558006536,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 572,
+        "pixelsOverThresholdFraction": 0.0006206597222222222,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 0,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.17495768229166667,
+        "meanChannelDiffNormalized": 0.000686108558006536,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 572,
+        "pixelsOverThresholdFraction": 0.0006206597222222222,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d12/control/256": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 256,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.2896965422453704,
+        "meanChannelDiffNormalized": 0.0011360648715504722,
+        "maxChannelDiff": 86,
+        "pixelsOverThreshold": 624,
+        "pixelsOverThresholdFraction": 0.0006770833333333334,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 256,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.2896976273148148,
+        "meanChannelDiffNormalized": 0.001136069126724764,
+        "maxChannelDiff": 86,
+        "pixelsOverThreshold": 624,
+        "pixelsOverThresholdFraction": 0.0006770833333333334,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d12/control/48": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 48,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.20924985532407409,
+        "meanChannelDiffNormalized": 0.0008205876679375455,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 48,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.20924949363425926,
+        "meanChannelDiffNormalized": 0.0008205862495461148,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d12/control/8": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 8,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.17887622974537037,
+        "meanChannelDiffNormalized": 0.0007014754107661583,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 600,
+        "pixelsOverThresholdFraction": 0.0006510416666666666,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 8,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.17887622974537037,
+        "meanChannelDiffNormalized": 0.0007014754107661583,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 600,
+        "pixelsOverThresholdFraction": 0.0006510416666666666,
+        "passed": false,
+        "hasTransparentRect": false,
+        "rectX": 0,
+        "rectY": 0,
+        "rectWidth": 0,
+        "rectHeight": 0,
+        "rectPixels": 0,
+        "rectMeanChannelDiff": 0.0,
+        "rectMaxChannelDiff": 0,
+        "rectPixelsOverThreshold": 0,
+        "rectPixelsOverThresholdFraction": 0.0,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d12/cluster-on/0": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 0,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.15383138020833334,
+        "meanChannelDiffNormalized": 0.0006032603145424837,
+        "maxChannelDiff": 49,
+        "pixelsOverThreshold": 190,
+        "pixelsOverThresholdFraction": 0.00020616319444444444,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.19454526612102457,
+        "rectMaxChannelDiff": 49,
+        "rectPixelsOverThreshold": 64,
+        "rectPixelsOverThresholdFraction": 0.00023136767215200857,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 0,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.15383138020833334,
+        "meanChannelDiffNormalized": 0.0006032603145424837,
+        "maxChannelDiff": 49,
+        "pixelsOverThreshold": 190,
+        "pixelsOverThresholdFraction": 0.00020616319444444444,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.19454526612102457,
+        "rectMaxChannelDiff": 49,
+        "rectPixelsOverThreshold": 64,
+        "rectPixelsOverThresholdFraction": 0.00023136767215200857,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d12/cluster-on/256": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 256,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.2628219039351852,
+        "meanChannelDiffNormalized": 0.0010306741330791576,
+        "maxChannelDiff": 80,
+        "pixelsOverThreshold": 556,
+        "pixelsOverThresholdFraction": 0.0006032986111111111,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.3420686679970308,
+        "rectMaxChannelDiff": 80,
+        "rectPixelsOverThreshold": 508,
+        "rectPixelsOverThresholdFraction": 0.0018364808977065679,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 256,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.262822265625,
+        "meanChannelDiffNormalized": 0.0010306755514705882,
+        "maxChannelDiff": 80,
+        "pixelsOverThreshold": 556,
+        "pixelsOverThresholdFraction": 0.0006032986111111111,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.3420686679970308,
+        "rectMaxChannelDiff": 80,
+        "rectPixelsOverThreshold": 508,
+        "rectPixelsOverThresholdFraction": 0.0018364808977065679,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d12/cluster-on/48": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 48,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.18700774016203703,
+        "meanChannelDiffNormalized": 0.0007333636869099492,
+        "maxChannelDiff": 82,
+        "pixelsOverThreshold": 382,
+        "pixelsOverThresholdFraction": 0.0004144965277777778,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.2521232804079783,
+        "rectMaxChannelDiff": 82,
+        "rectPixelsOverThreshold": 342,
+        "rectPixelsOverThresholdFraction": 0.0012363709980622957,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 48,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.18700737847222224,
+        "meanChannelDiffNormalized": 0.0007333622685185186,
+        "maxChannelDiff": 82,
+        "pixelsOverThreshold": 382,
+        "pixelsOverThresholdFraction": 0.0004144965277777778,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.2521244854479375,
+        "rectMaxChannelDiff": 82,
+        "rectPixelsOverThreshold": 342,
+        "rectPixelsOverThresholdFraction": 0.0012363709980622957,
+        "rectPassed": false
+      }
+    },
+    "t5-d3d12/cluster-on/8": {
+      "status": "pre-existing failure",
+      "c3": {
+        "lightCount": 8,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.15493561921296295,
+        "meanChannelDiffNormalized": 0.0006075906635802468,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 222,
+        "pixelsOverThresholdFraction": 0.00024088541666666667,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.1891731979832451,
+        "rectMaxChannelDiff": 59,
+        "rectPixelsOverThreshold": 132,
+        "rectPixelsOverThresholdFraction": 0.00047719582381351765,
+        "rectPassed": false
+      },
+      "candidate": {
+        "lightCount": 8,
+        "reference": "ForwardPlus",
+        "candidate": "ClusteredDeferred",
+        "pixels": 921600,
+        "meanChannelDiff": 0.15493561921296295,
+        "meanChannelDiffNormalized": 0.0006075906635802468,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 222,
+        "pixelsOverThresholdFraction": 0.00024088541666666667,
+        "passed": false,
+        "hasTransparentRect": true,
+        "rectX": 153,
+        "rectY": 192,
+        "rectWidth": 974,
+        "rectHeight": 284,
+        "rectPixels": 276616,
+        "rectMeanChannelDiff": 0.1891731979832451,
+        "rectMaxChannelDiff": 59,
+        "rectPixelsOverThreshold": 132,
+        "rectPixelsOverThresholdFraction": 0.00047719582381351765,
+        "rectPassed": false
+      }
+    },
+    "t4/player-d3d12/AdditionalShadowAtlas/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.136904296875,
+        "meanChannelDiffNormalized": 0.0005368795955882353,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 85,
+        "pixelsOverThresholdFraction": 9.223090277777778e-05,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.136904296875,
+        "meanChannelDiffNormalized": 0.0005368795955882353,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 85,
+        "pixelsOverThresholdFraction": 9.223090277777778e-05,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/AdditionalShadowAtlas/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1361451099537037,
+        "meanChannelDiffNormalized": 0.0005339023919753087,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 85,
+        "pixelsOverThresholdFraction": 9.223090277777778e-05,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1361451099537037,
+        "meanChannelDiffNormalized": 0.0005339023919753087,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 85,
+        "pixelsOverThresholdFraction": 9.223090277777778e-05,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/LightCookie/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.13809534143518518,
+        "meanChannelDiffNormalized": 0.0005415503585693536,
+        "maxChannelDiff": 53,
+        "pixelsOverThreshold": 87,
+        "pixelsOverThresholdFraction": 9.440104166666666e-05,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.13809534143518518,
+        "meanChannelDiffNormalized": 0.0005415503585693536,
+        "maxChannelDiff": 53,
+        "pixelsOverThreshold": 87,
+        "pixelsOverThresholdFraction": 9.440104166666666e-05,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/LightCookie/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.13108687789351853,
+        "meanChannelDiffNormalized": 0.0005140661878177197,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 73,
+        "pixelsOverThresholdFraction": 7.921006944444444e-05,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.13108687789351853,
+        "meanChannelDiffNormalized": 0.0005140661878177197,
+        "maxChannelDiff": 46,
+        "pixelsOverThreshold": 73,
+        "pixelsOverThresholdFraction": 7.921006944444444e-05,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/LightLayers/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.14302372685185186,
+        "meanChannelDiffNormalized": 0.0005608773602033406,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 119,
+        "pixelsOverThresholdFraction": 0.00012912326388888888,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.14302372685185186,
+        "meanChannelDiffNormalized": 0.0005608773602033406,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 119,
+        "pixelsOverThresholdFraction": 0.00012912326388888888,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/LightLayers/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.13723054108796295,
+        "meanChannelDiffNormalized": 0.0005381589846586782,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 82,
+        "pixelsOverThresholdFraction": 8.897569444444445e-05,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.13723054108796295,
+        "meanChannelDiffNormalized": 0.0005381589846586782,
+        "maxChannelDiff": 59,
+        "pixelsOverThreshold": 82,
+        "pixelsOverThresholdFraction": 8.897569444444445e-05,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/MainShadowCascade/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1937669994212963,
+        "meanChannelDiffNormalized": 0.0007598705859658678,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19376627604166666,
+        "meanChannelDiffNormalized": 0.0007598677491830065,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/MainShadowCascade/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19264829282407409,
+        "meanChannelDiffNormalized": 0.0007554835012708788,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19264793113425926,
+        "meanChannelDiffNormalized": 0.0007554820828794481,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/MainShadowScreen/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1937669994212963,
+        "meanChannelDiffNormalized": 0.0007598705859658678,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19376627604166666,
+        "meanChannelDiffNormalized": 0.0007598677491830065,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/MainShadowScreen/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19279369212962963,
+        "meanChannelDiffNormalized": 0.0007560536946259986,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19279296875,
+        "meanChannelDiffNormalized": 0.0007560508578431372,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/ReceiveShadowsOff/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19264829282407409,
+        "meanChannelDiffNormalized": 0.0007554835012708788,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19264793113425926,
+        "meanChannelDiffNormalized": 0.0007554820828794481,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/ReceiveShadowsOff/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19264214409722222,
+        "meanChannelDiffNormalized": 0.0007554593886165578,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.1926417824074074,
+        "meanChannelDiffNormalized": 0.0007554579702251271,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/ScreenSpaceAO/forward_plus_vs_clustered_off": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19348271122685184,
+        "meanChannelDiffNormalized": 0.0007587557303013798,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_off",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19348271122685184,
+        "meanChannelDiffNormalized": 0.0007587557303013798,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 452,
+        "pixelsOverThresholdFraction": 0.0004904513888888889,
+        "passed": false
+      }
+    },
+    "t4/player-d3d12/ScreenSpaceAO/forward_plus_vs_clustered_on": {
+      "status": "pre-existing failure",
+      "c3": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19175202546296297,
+        "meanChannelDiffNormalized": 0.0007519687273057371,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 448,
+        "pixelsOverThresholdFraction": 0.0004861111111111111,
+        "passed": false
+      },
+      "candidate": {
+        "name": "forward_plus_vs_clustered_on",
+        "pixels": 921600,
+        "meanChannelDiff": 0.19175166377314815,
+        "meanChannelDiffNormalized": 0.0007519673089143064,
+        "maxChannelDiff": 81,
+        "pixelsOverThreshold": 448,
+        "pixelsOverThresholdFraction": 0.0004861111111111111,
+        "passed": false
+      }
+    }
+  },
+  "timings": {
+    "t5-d3d11/control/ClusteredDeferred_L0.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 0.7637346666666663,
+          "candidate": 0.7301846666666666,
+          "delta": -0.03354999999999975
+        },
+        "MedianMs": {
+          "c3": 0.6806,
+          "candidate": 0.6738,
+          "delta": -0.006800000000000028
+        },
+        "P95Ms": {
+          "c3": 1.2084,
+          "candidate": 0.9286,
+          "delta": -0.27979999999999994
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 117,
+          "candidate": 121,
+          "delta": 4
+        },
+        "MeanMs": {
+          "c3": 0.23367329914529922,
+          "candidate": 0.24470426446280988,
+          "delta": 0.01103096531751066
+        },
+        "MedianMs": {
+          "c3": 0.182784,
+          "candidate": 0.179968,
+          "delta": -0.002816000000000013
+        },
+        "P95Ms": {
+          "c3": 0.66688,
+          "candidate": 0.67328,
+          "delta": 0.006399999999999961
+        }
+      }
+    },
+    "t5-d3d11/control/ClusteredDeferred_L8.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 0.8177953333333331,
+          "candidate": 0.8773919999999998,
+          "delta": 0.05959666666666674
+        },
+        "MedianMs": {
+          "c3": 0.7474,
+          "candidate": 0.8887,
+          "delta": 0.1413000000000001
+        },
+        "P95Ms": {
+          "c3": 1.1207,
+          "candidate": 1.0519,
+          "delta": -0.06879999999999997
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 119,
+          "candidate": 127,
+          "delta": 8
+        },
+        "MeanMs": {
+          "c3": 0.2580178823529411,
+          "candidate": 0.2763308346456692,
+          "delta": 0.018312952292728113
+        },
+        "MedianMs": {
+          "c3": 0.217344,
+          "candidate": 0.216832,
+          "delta": -0.0005120000000000124
+        },
+        "P95Ms": {
+          "c3": 0.681728,
+          "candidate": 0.641024,
+          "delta": -0.04070399999999996
+        }
+      }
+    },
+    "t5-d3d11/control/ClusteredDeferred_L48.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.0166033333333333,
+          "candidate": 1.0057946666666668,
+          "delta": -0.010808666666666467
+        },
+        "MedianMs": {
+          "c3": 1.0587,
+          "candidate": 1.0271,
+          "delta": -0.03160000000000007
+        },
+        "P95Ms": {
+          "c3": 1.4447,
+          "candidate": 1.3312,
+          "delta": -0.11350000000000016
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 123,
+          "candidate": 122,
+          "delta": -1
+        },
+        "MeanMs": {
+          "c3": 0.4305524552845532,
+          "candidate": 0.38775606557377107,
+          "delta": -0.042796389710782146
+        },
+        "MedianMs": {
+          "c3": 0.337408,
+          "candidate": 0.337408,
+          "delta": 0.0
+        },
+        "P95Ms": {
+          "c3": 0.978432,
+          "candidate": 0.797184,
+          "delta": -0.18124799999999996
+        }
+      }
+    },
+    "t5-d3d11/control/ClusteredDeferred_L256.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.8117346666666667,
+          "candidate": 1.8777859999999997,
+          "delta": 0.06605133333333302
+        },
+        "MedianMs": {
+          "c3": 1.6754,
+          "candidate": 1.8788,
+          "delta": 0.20340000000000003
+        },
+        "P95Ms": {
+          "c3": 2.9302,
+          "candidate": 2.6528,
+          "delta": -0.2774000000000001
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 114,
+          "candidate": 117,
+          "delta": 3
+        },
+        "MeanMs": {
+          "c3": 1.2611840000000005,
+          "candidate": 1.2470985299145299,
+          "delta": -0.014085470085470675
+        },
+        "MedianMs": {
+          "c3": 1.159168,
+          "candidate": 1.147392,
+          "delta": -0.011776000000000009
+        },
+        "P95Ms": {
+          "c3": 1.93408,
+          "candidate": 1.94688,
+          "delta": 0.012799999999999923
+        }
+      }
+    },
+    "t5-d3d11/control/ForwardPlus_L0.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 0.9160093333333335,
+          "candidate": 0.9063086666666661,
+          "delta": -0.009700666666667357
+        },
+        "MedianMs": {
+          "c3": 0.8524,
+          "candidate": 0.9007,
+          "delta": 0.0482999999999999
+        },
+        "P95Ms": {
+          "c3": 1.2801,
+          "candidate": 1.1665,
+          "delta": -0.11359999999999992
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 134,
+          "candidate": 123,
+          "delta": -11
+        },
+        "MeanMs": {
+          "c3": 0.3335527164179104,
+          "candidate": 0.3418266016260162,
+          "delta": 0.008273885208105791
+        },
+        "MedianMs": {
+          "c3": 0.279808,
+          "candidate": 0.275456,
+          "delta": -0.0043520000000000225
+        },
+        "P95Ms": {
+          "c3": 0.676352,
+          "candidate": 0.73856,
+          "delta": 0.06220800000000004
+        }
+      }
+    },
+    "t5-d3d11/control/ForwardPlus_L8.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.0836053333333335,
+          "candidate": 0.9604233333333332,
+          "delta": -0.12318200000000035
+        },
+        "MedianMs": {
+          "c3": 1.0425,
+          "candidate": 0.9509,
+          "delta": -0.09160000000000001
+        },
+        "P95Ms": {
+          "c3": 1.4145,
+          "candidate": 1.3218,
+          "delta": -0.0927
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 112,
+          "candidate": 125,
+          "delta": 13
+        },
+        "MeanMs": {
+          "c3": 0.3549325714285714,
+          "candidate": 0.39375871999999995,
+          "delta": 0.038826148571428576
+        },
+        "MedianMs": {
+          "c3": 0.294144,
+          "candidate": 0.317184,
+          "delta": 0.023040000000000005
+        },
+        "P95Ms": {
+          "c3": 1.000192,
+          "candidate": 0.809728,
+          "delta": -0.19046399999999997
+        }
+      }
+    },
+    "t5-d3d11/control/ForwardPlus_L48.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.2052846666666674,
+          "candidate": 1.1660053333333331,
+          "delta": -0.03927933333333433
+        },
+        "MedianMs": {
+          "c3": 1.1547,
+          "candidate": 1.0951,
+          "delta": -0.0596000000000001
+        },
+        "P95Ms": {
+          "c3": 1.5747,
+          "candidate": 1.8526,
+          "delta": 0.27790000000000004
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 126,
+          "candidate": 121,
+          "delta": -5
+        },
+        "MeanMs": {
+          "c3": 0.4732586666666664,
+          "candidate": 0.5670526942148759,
+          "delta": 0.09379402754820954
+        },
+        "MedianMs": {
+          "c3": 0.39808,
+          "candidate": 0.4672,
+          "delta": 0.06912000000000001
+        },
+        "P95Ms": {
+          "c3": 0.830208,
+          "candidate": 1.134592,
+          "delta": 0.3043840000000001
+        }
+      }
+    },
+    "t5-d3d11/control/ForwardPlus_L256.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.8587313333333326,
+          "candidate": 2.0872906666666653,
+          "delta": 0.22855933333333267
+        },
+        "MedianMs": {
+          "c3": 1.734,
+          "candidate": 1.897,
+          "delta": 0.16300000000000003
+        },
+        "P95Ms": {
+          "c3": 3.0175,
+          "candidate": 3.4798,
+          "delta": 0.46229999999999993
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 117,
+          "candidate": 131,
+          "delta": 14
+        },
+        "MeanMs": {
+          "c3": 1.3809799658119661,
+          "candidate": 1.8705861374045798,
+          "delta": 0.48960617159261366
+        },
+        "MedianMs": {
+          "c3": 1.2288,
+          "candidate": 1.704448,
+          "delta": 0.47564800000000007
+        },
+        "P95Ms": {
+          "c3": 2.843648,
+          "candidate": 2.712576,
+          "delta": -0.13107200000000008
+        }
+      }
+    },
+    "t5-d3d11/cluster-on/ClusteredDeferred_L0.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 0.9637886666666661,
+          "candidate": 0.843433333333333,
+          "delta": -0.12035533333333304
+        },
+        "MedianMs": {
+          "c3": 0.9122,
+          "candidate": 0.8478,
+          "delta": -0.06440000000000001
+        },
+        "P95Ms": {
+          "c3": 1.3041,
+          "candidate": 1.0422,
+          "delta": -0.2619
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 124,
+          "candidate": 126,
+          "delta": 2
+        },
+        "MeanMs": {
+          "c3": 0.2506838709677419,
+          "candidate": 0.22408533333333336,
+          "delta": -0.02659853763440856
+        },
+        "MedianMs": {
+          "c3": 0.196352,
+          "candidate": 0.196864,
+          "delta": 0.0005120000000000124
+        },
+        "P95Ms": {
+          "c3": 0.656896,
+          "candidate": 0.23936,
+          "delta": -0.417536
+        }
+      }
+    },
+    "t5-d3d11/cluster-on/ClusteredDeferred_L8.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.0839219999999994,
+          "candidate": 0.8195393333333333,
+          "delta": -0.2643826666666661
+        },
+        "MedianMs": {
+          "c3": 1.0056,
+          "candidate": 0.7397,
+          "delta": -0.2659
+        },
+        "P95Ms": {
+          "c3": 1.6319,
+          "candidate": 1.1529,
+          "delta": -0.47899999999999987
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 118,
+          "candidate": 121,
+          "delta": 3
+        },
+        "MeanMs": {
+          "c3": 0.34684962711864414,
+          "candidate": 0.29050499173553734,
+          "delta": -0.0563446353831068
+        },
+        "MedianMs": {
+          "c3": 0.245504,
+          "candidate": 0.2432,
+          "delta": -0.0023040000000000005
+        },
+        "P95Ms": {
+          "c3": 1.178112,
+          "candidate": 0.496384,
+          "delta": -0.6817280000000001
+        }
+      }
+    },
+    "t5-d3d11/cluster-on/ClusteredDeferred_L48.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.1826713333333327,
+          "candidate": 0.9806613333333337,
+          "delta": -0.20200999999999902
+        },
+        "MedianMs": {
+          "c3": 1.1462,
+          "candidate": 0.9176,
+          "delta": -0.22860000000000014
+        },
+        "P95Ms": {
+          "c3": 1.4219,
+          "candidate": 1.3076,
+          "delta": -0.11429999999999985
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 123,
+          "candidate": 117,
+          "delta": -6
+        },
+        "MeanMs": {
+          "c3": 0.47314835772357766,
+          "candidate": 0.4452627692307691,
+          "delta": -0.02788558849280859
+        },
+        "MedianMs": {
+          "c3": 0.392704,
+          "candidate": 0.389632,
+          "delta": -0.003072000000000019
+        },
+        "P95Ms": {
+          "c3": 0.676608,
+          "candidate": 0.861952,
+          "delta": 0.18534400000000006
+        }
+      }
+    },
+    "t5-d3d11/cluster-on/ClusteredDeferred_L256.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 2.0241086666666672,
+          "candidate": 1.880087333333333,
+          "delta": -0.14402133333333422
+        },
+        "MedianMs": {
+          "c3": 1.9394,
+          "candidate": 1.8172,
+          "delta": -0.12220000000000009
+        },
+        "P95Ms": {
+          "c3": 3.1758,
+          "candidate": 3.0923,
+          "delta": -0.08350000000000035
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 115,
+          "candidate": 141,
+          "delta": 26
+        },
+        "MeanMs": {
+          "c3": 1.5342436173913043,
+          "candidate": 1.5343986382978718,
+          "delta": 0.00015502090656749345
+        },
+        "MedianMs": {
+          "c3": 1.408768,
+          "candidate": 1.39904,
+          "delta": -0.009727999999999959
+        },
+        "P95Ms": {
+          "c3": 2.86464,
+          "candidate": 2.793472,
+          "delta": -0.07116800000000012
+        }
+      }
+    },
+    "t5-d3d11/cluster-on/ForwardPlus_L0.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.1389759999999993,
+          "candidate": 0.8518540000000001,
+          "delta": -0.2871219999999992
+        },
+        "MedianMs": {
+          "c3": 1.1083,
+          "candidate": 0.8822,
+          "delta": -0.22610000000000008
+        },
+        "P95Ms": {
+          "c3": 1.36,
+          "candidate": 1.1221,
+          "delta": -0.2379
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 126,
+          "candidate": 130,
+          "delta": 4
+        },
+        "MeanMs": {
+          "c3": 0.3929600000000001,
+          "candidate": 0.3345604923076924,
+          "delta": -0.05839950769230767
+        },
+        "MedianMs": {
+          "c3": 0.322304,
+          "candidate": 0.289024,
+          "delta": -0.033279999999999976
+        },
+        "P95Ms": {
+          "c3": 0.802304,
+          "candidate": 0.647936,
+          "delta": -0.15436800000000006
+        }
+      }
+    },
+    "t5-d3d11/cluster-on/ForwardPlus_L8.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.1833600000000004,
+          "candidate": 1.0382226666666667,
+          "delta": -0.14513733333333367
+        },
+        "MedianMs": {
+          "c3": 1.1625,
+          "candidate": 1.0034,
+          "delta": -0.15910000000000002
+        },
+        "P95Ms": {
+          "c3": 1.5303,
+          "candidate": 1.3694,
+          "delta": -0.16090000000000004
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 133,
+          "candidate": 119,
+          "delta": -14
+        },
+        "MeanMs": {
+          "c3": 0.4357427969924809,
+          "candidate": 0.39486816806722685,
+          "delta": -0.040874628925254064
+        },
+        "MedianMs": {
+          "c3": 0.346112,
+          "candidate": 0.356352,
+          "delta": 0.010240000000000027
+        },
+        "P95Ms": {
+          "c3": 0.99584,
+          "candidate": 0.708096,
+          "delta": -0.287744
+        }
+      }
+    },
+    "t5-d3d11/cluster-on/ForwardPlus_L48.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.3262606666666668,
+          "candidate": 1.0943173333333331,
+          "delta": -0.2319433333333336
+        },
+        "MedianMs": {
+          "c3": 1.2706,
+          "candidate": 1.0479,
+          "delta": -0.2226999999999999
+        },
+        "P95Ms": {
+          "c3": 1.7676,
+          "candidate": 1.608,
+          "delta": -0.15959999999999996
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 121,
+          "candidate": 126,
+          "delta": 5
+        },
+        "MeanMs": {
+          "c3": 0.5349045950413225,
+          "candidate": 0.600033523809524,
+          "delta": 0.06512892876820153
+        },
+        "MedianMs": {
+          "c3": 0.434944,
+          "candidate": 0.518912,
+          "delta": 0.08396800000000004
+        },
+        "P95Ms": {
+          "c3": 0.862976,
+          "candidate": 1.02784,
+          "delta": 0.16486400000000012
+        }
+      }
+    },
+    "t5-d3d11/cluster-on/ForwardPlus_L256.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.9693553333333333,
+          "candidate": 2.333452666666667,
+          "delta": 0.3640973333333337
+        },
+        "MedianMs": {
+          "c3": 1.8574,
+          "candidate": 2.0914,
+          "delta": 0.2340000000000002
+        },
+        "P95Ms": {
+          "c3": 3.1643,
+          "candidate": 3.7437,
+          "delta": 0.5794000000000001
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 111,
+          "candidate": 150,
+          "delta": 39
+        },
+        "MeanMs": {
+          "c3": 1.4842926126126132,
+          "candidate": 2.153791146666667,
+          "delta": 0.6694985340540536
+        },
+        "MedianMs": {
+          "c3": 1.342464,
+          "candidate": 1.952256,
+          "delta": 0.6097919999999999
+        },
+        "P95Ms": {
+          "c3": 2.104576,
+          "candidate": 3.084288,
+          "delta": 0.9797120000000001
+        }
+      }
+    },
+    "t5-d3d12/control/ClusteredDeferred_L0.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 0.8511813333333329,
+          "candidate": 0.8843666666666669,
+          "delta": 0.033185333333333955
+        },
+        "MedianMs": {
+          "c3": 0.7922,
+          "candidate": 0.8352,
+          "delta": 0.04300000000000004
+        },
+        "P95Ms": {
+          "c3": 1.1868,
+          "candidate": 1.1135,
+          "delta": -0.07330000000000014
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 124,
+          "candidate": 115,
+          "delta": -9
+        },
+        "MeanMs": {
+          "c3": 0.3382523870967742,
+          "candidate": 0.33426699130434784,
+          "delta": -0.0039853957924263494
+        },
+        "MedianMs": {
+          "c3": 0.284928,
+          "candidate": 0.300288,
+          "delta": 0.015359999999999985
+        },
+        "P95Ms": {
+          "c3": 0.605184,
+          "candidate": 0.469248,
+          "delta": -0.13593600000000006
+        }
+      }
+    },
+    "t5-d3d12/control/ClusteredDeferred_L8.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 0.8027786666666668,
+          "candidate": 0.8711599999999997,
+          "delta": 0.06838133333333296
+        },
+        "MedianMs": {
+          "c3": 0.7757,
+          "candidate": 0.8031,
+          "delta": 0.02740000000000009
+        },
+        "P95Ms": {
+          "c3": 1.0162,
+          "candidate": 1.1196,
+          "delta": 0.10339999999999994
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 115,
+          "candidate": 110,
+          "delta": -5
+        },
+        "MeanMs": {
+          "c3": 0.3358719999999999,
+          "candidate": 0.3441128727272727,
+          "delta": 0.008240872727272808
+        },
+        "MedianMs": {
+          "c3": 0.315648,
+          "candidate": 0.318976,
+          "delta": 0.0033279999999999976
+        },
+        "P95Ms": {
+          "c3": 0.513536,
+          "candidate": 0.464896,
+          "delta": -0.04864000000000002
+        }
+      }
+    },
+    "t5-d3d12/control/ClusteredDeferred_L48.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.1562339999999998,
+          "candidate": 1.057173333333333,
+          "delta": -0.09906066666666669
+        },
+        "MedianMs": {
+          "c3": 1.1174,
+          "candidate": 1.0871,
+          "delta": -0.030299999999999994
+        },
+        "P95Ms": {
+          "c3": 1.6425,
+          "candidate": 1.3272,
+          "delta": -0.31530000000000014
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 121,
+          "candidate": 113,
+          "delta": -8
+        },
+        "MeanMs": {
+          "c3": 0.5013051239669418,
+          "candidate": 0.4501680707964604,
+          "delta": -0.05113705317048145
+        },
+        "MedianMs": {
+          "c3": 0.489984,
+          "candidate": 0.449792,
+          "delta": -0.04019199999999995
+        },
+        "P95Ms": {
+          "c3": 0.653824,
+          "candidate": 0.5312,
+          "delta": -0.12262399999999996
+        }
+      }
+    },
+    "t5-d3d12/control/ClusteredDeferred_L256.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 4.381312666666665,
+          "candidate": 1.7500180000000012,
+          "delta": -2.631294666666664
+        },
+        "MedianMs": {
+          "c3": 2.2114,
+          "candidate": 1.8372,
+          "delta": -0.37419999999999987
+        },
+        "P95Ms": {
+          "c3": 13.6472,
+          "candidate": 2.0944,
+          "delta": -11.5528
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 120,
+          "candidate": 118,
+          "delta": -2
+        },
+        "MeanMs": {
+          "c3": 2.065777066666667,
+          "candidate": 1.132882440677966,
+          "delta": -0.932894625988701
+        },
+        "MedianMs": {
+          "c3": 1.174528,
+          "candidate": 1.109248,
+          "delta": -0.06528
+        },
+        "P95Ms": {
+          "c3": 5.803264,
+          "candidate": 1.204992,
+          "delta": -4.598272000000001
+        }
+      }
+    },
+    "t5-d3d12/control/ForwardPlus_L0.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.2831326666666665,
+          "candidate": 1.0698613333333338,
+          "delta": -0.2132713333333327
+        },
+        "MedianMs": {
+          "c3": 1.2202,
+          "candidate": 1.0654,
+          "delta": -0.15480000000000005
+        },
+        "P95Ms": {
+          "c3": 1.9574,
+          "candidate": 1.3347,
+          "delta": -0.6227
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 127,
+          "candidate": 130,
+          "delta": 3
+        },
+        "MeanMs": {
+          "c3": 0.5009133858267716,
+          "candidate": 0.420864,
+          "delta": -0.08004938582677157
+        },
+        "MedianMs": {
+          "c3": 0.442368,
+          "candidate": 0.399872,
+          "delta": -0.04249599999999998
+        },
+        "P95Ms": {
+          "c3": 0.883968,
+          "candidate": 0.65408,
+          "delta": -0.22988799999999998
+        }
+      }
+    },
+    "t5-d3d12/control/ForwardPlus_L8.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.3435486666666665,
+          "candidate": 1.1810133333333324,
+          "delta": -0.16253533333333414
+        },
+        "MedianMs": {
+          "c3": 1.2603,
+          "candidate": 1.1799,
+          "delta": -0.08040000000000003
+        },
+        "P95Ms": {
+          "c3": 1.8756,
+          "candidate": 1.504,
+          "delta": -0.37159999999999993
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 113,
+          "candidate": 131,
+          "delta": 18
+        },
+        "MeanMs": {
+          "c3": 0.4417721769911504,
+          "candidate": 0.4740944122137407,
+          "delta": 0.03232223522259031
+        },
+        "MedianMs": {
+          "c3": 0.395264,
+          "candidate": 0.453376,
+          "delta": 0.058112
+        },
+        "P95Ms": {
+          "c3": 0.649216,
+          "candidate": 0.6656,
+          "delta": 0.016383999999999954
+        }
+      }
+    },
+    "t5-d3d12/control/ForwardPlus_L48.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.4225859999999995,
+          "candidate": 1.113810666666667,
+          "delta": -0.3087753333333325
+        },
+        "MedianMs": {
+          "c3": 1.3965,
+          "candidate": 1.1242,
+          "delta": -0.2723
+        },
+        "P95Ms": {
+          "c3": 1.9989,
+          "candidate": 1.4011,
+          "delta": -0.5977999999999999
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 116,
+          "candidate": 113,
+          "delta": -3
+        },
+        "MeanMs": {
+          "c3": 0.5433026206896552,
+          "candidate": 0.5557556106194692,
+          "delta": 0.012452989929814029
+        },
+        "MedianMs": {
+          "c3": 0.506368,
+          "candidate": 0.528384,
+          "delta": 0.022015999999999925
+        },
+        "P95Ms": {
+          "c3": 0.769536,
+          "candidate": 0.75648,
+          "delta": -0.013055999999999957
+        }
+      }
+    },
+    "t5-d3d12/control/ForwardPlus_L256.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.9772986666666672,
+          "candidate": 1.9960659999999981,
+          "delta": 0.018767333333330916
+        },
+        "MedianMs": {
+          "c3": 1.8354,
+          "candidate": 1.861,
+          "delta": 0.025600000000000067
+        },
+        "P95Ms": {
+          "c3": 3.0727,
+          "candidate": 2.699,
+          "delta": -0.37370000000000037
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 124,
+          "candidate": 140,
+          "delta": 16
+        },
+        "MeanMs": {
+          "c3": 1.5023525161290316,
+          "candidate": 1.848597942857143,
+          "delta": 0.3462454267281114
+        },
+        "MedianMs": {
+          "c3": 1.3888,
+          "candidate": 1.746432,
+          "delta": 0.35763199999999995
+        },
+        "P95Ms": {
+          "c3": 2.266112,
+          "candidate": 2.3488,
+          "delta": 0.0826880000000001
+        }
+      }
+    },
+    "t5-d3d12/cluster-on/ClusteredDeferred_L0.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.0380699999999998,
+          "candidate": 0.8306240000000001,
+          "delta": -0.2074459999999997
+        },
+        "MedianMs": {
+          "c3": 0.986,
+          "candidate": 0.7607,
+          "delta": -0.22529999999999994
+        },
+        "P95Ms": {
+          "c3": 1.3824,
+          "candidate": 1.1209,
+          "delta": -0.26150000000000007
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 120,
+          "candidate": 122,
+          "delta": 2
+        },
+        "MeanMs": {
+          "c3": 0.4413888000000001,
+          "candidate": 0.3937867540983608,
+          "delta": -0.0476020459016393
+        },
+        "MedianMs": {
+          "c3": 0.42112,
+          "candidate": 0.350976,
+          "delta": -0.07014399999999998
+        },
+        "P95Ms": {
+          "c3": 0.697344,
+          "candidate": 0.61952,
+          "delta": -0.077824
+        }
+      }
+    },
+    "t5-d3d12/cluster-on/ClusteredDeferred_L8.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 0.9583639999999999,
+          "candidate": 0.8096926666666668,
+          "delta": -0.14867133333333304
+        },
+        "MedianMs": {
+          "c3": 0.9267,
+          "candidate": 0.7573,
+          "delta": -0.1694
+        },
+        "P95Ms": {
+          "c3": 1.2463,
+          "candidate": 1.068,
+          "delta": -0.1782999999999999
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 125,
+          "candidate": 127,
+          "delta": 2
+        },
+        "MeanMs": {
+          "c3": 0.40978227199999984,
+          "candidate": 0.38154280314960626,
+          "delta": -0.02823946885039358
+        },
+        "MedianMs": {
+          "c3": 0.369152,
+          "candidate": 0.360192,
+          "delta": -0.008959999999999968
+        },
+        "P95Ms": {
+          "c3": 0.64512,
+          "candidate": 0.541184,
+          "delta": -0.10393600000000003
+        }
+      }
+    },
+    "t5-d3d12/cluster-on/ClusteredDeferred_L48.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.1529253333333331,
+          "candidate": 1.0182813333333336,
+          "delta": -0.13464399999999954
+        },
+        "MedianMs": {
+          "c3": 1.1252,
+          "candidate": 0.9864,
+          "delta": -0.13879999999999992
+        },
+        "P95Ms": {
+          "c3": 1.3942,
+          "candidate": 1.356,
+          "delta": -0.03820000000000001
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 118,
+          "candidate": 126,
+          "delta": 8
+        },
+        "MeanMs": {
+          "c3": 0.585951457627119,
+          "candidate": 0.5340546031746032,
+          "delta": -0.051896854452515795
+        },
+        "MedianMs": {
+          "c3": 0.529152,
+          "candidate": 0.51328,
+          "delta": -0.015871999999999997
+        },
+        "P95Ms": {
+          "c3": 1.166592,
+          "candidate": 0.749312,
+          "delta": -0.4172800000000001
+        }
+      }
+    },
+    "t5-d3d12/cluster-on/ClusteredDeferred_L256.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 2.0774393333333316,
+          "candidate": 1.7312453333333326,
+          "delta": -0.346193999999999
+        },
+        "MedianMs": {
+          "c3": 2.0084,
+          "candidate": 1.6171,
+          "delta": -0.3913
+        },
+        "P95Ms": {
+          "c3": 2.5263,
+          "candidate": 2.2149,
+          "delta": -0.3113999999999999
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 111,
+          "candidate": 110,
+          "delta": -1
+        },
+        "MeanMs": {
+          "c3": 1.4867349909909904,
+          "candidate": 1.4343354181818178,
+          "delta": -0.05239957280917262
+        },
+        "MedianMs": {
+          "c3": 1.42592,
+          "candidate": 1.392128,
+          "delta": -0.033792000000000044
+        },
+        "P95Ms": {
+          "c3": 2.00192,
+          "candidate": 1.746176,
+          "delta": -0.2557440000000002
+        }
+      }
+    },
+    "t5-d3d12/cluster-on/ForwardPlus_L0.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.199091333333334,
+          "candidate": 0.903752666666667,
+          "delta": -0.29533866666666697
+        },
+        "MedianMs": {
+          "c3": 1.1852,
+          "candidate": 0.8714,
+          "delta": -0.3138000000000001
+        },
+        "P95Ms": {
+          "c3": 1.4703,
+          "candidate": 1.1262,
+          "delta": -0.34409999999999985
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 131,
+          "candidate": 132,
+          "delta": 1
+        },
+        "MeanMs": {
+          "c3": 0.5281065038167938,
+          "candidate": 0.46024145454545456,
+          "delta": -0.06786504927133924
+        },
+        "MedianMs": {
+          "c3": 0.517376,
+          "candidate": 0.434176,
+          "delta": -0.08319999999999994
+        },
+        "P95Ms": {
+          "c3": 0.664576,
+          "candidate": 0.649728,
+          "delta": -0.014847999999999972
+        }
+      }
+    },
+    "t5-d3d12/cluster-on/ForwardPlus_L8.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.2220533333333332,
+          "candidate": 1.0010440000000003,
+          "delta": -0.22100933333333295
+        },
+        "MedianMs": {
+          "c3": 1.1948,
+          "candidate": 0.9811,
+          "delta": -0.2137000000000001
+        },
+        "P95Ms": {
+          "c3": 1.5947,
+          "candidate": 1.368,
+          "delta": -0.2266999999999999
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 127,
+          "candidate": 124,
+          "delta": -3
+        },
+        "MeanMs": {
+          "c3": 0.5018305511811025,
+          "candidate": 0.4998234838709679,
+          "delta": -0.0020070673101346137
+        },
+        "MedianMs": {
+          "c3": 0.489984,
+          "candidate": 0.470528,
+          "delta": -0.019455999999999973
+        },
+        "P95Ms": {
+          "c3": 0.670464,
+          "candidate": 0.720896,
+          "delta": 0.05043200000000003
+        }
+      }
+    },
+    "t5-d3d12/cluster-on/ForwardPlus_L48.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 1.3297619999999999,
+          "candidate": 1.1019313333333336,
+          "delta": -0.2278306666666663
+        },
+        "MedianMs": {
+          "c3": 1.3167,
+          "candidate": 1.042,
+          "delta": -0.27469999999999994
+        },
+        "P95Ms": {
+          "c3": 1.697,
+          "candidate": 1.4364,
+          "delta": -0.26060000000000016
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 126,
+          "candidate": 130,
+          "delta": 4
+        },
+        "MeanMs": {
+          "c3": 0.607902476190476,
+          "candidate": 0.6752196923076923,
+          "delta": 0.0673172161172163
+        },
+        "MedianMs": {
+          "c3": 0.571904,
+          "candidate": 0.64512,
+          "delta": 0.07321600000000006
+        },
+        "P95Ms": {
+          "c3": 0.918528,
+          "candidate": 0.960768,
+          "delta": 0.042239999999999944
+        }
+      }
+    },
+    "t5-d3d12/cluster-on/ForwardPlus_L256.png": {
+      "cpu": {
+        "samples": {
+          "c3": 150,
+          "candidate": 150,
+          "delta": 0
+        },
+        "MeanMs": {
+          "c3": 2.519352666666668,
+          "candidate": 2.327824666666667,
+          "delta": -0.19152800000000125
+        },
+        "MedianMs": {
+          "c3": 2.3403,
+          "candidate": 2.1564,
+          "delta": -0.18389999999999995
+        },
+        "P95Ms": {
+          "c3": 3.8739,
+          "candidate": 3.3676,
+          "delta": -0.5063
+        }
+      },
+      "gpu": {
+        "samples": {
+          "c3": 111,
+          "candidate": 140,
+          "delta": 29
+        },
+        "MeanMs": {
+          "c3": 1.9020015855855847,
+          "candidate": 2.1683474285714293,
+          "delta": 0.2663458429858445
+        },
+        "MedianMs": {
+          "c3": 1.669888,
+          "candidate": 2.036736,
+          "delta": 0.36684799999999984
+        },
+        "P95Ms": {
+          "c3": 3.485952,
+          "candidate": 3.01824,
+          "delta": -0.4677120000000001
+        }
+      }
+    }
+  },
+  "variants": {
+    "Lit/ForwardLit/fp/D3D11": {
+      "c3": {
+        "log": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\TODO\\16-CleanupBaseline\\validation\\c3\\build-t5-d3d11.log",
+        "count": 6144,
+        "line": 7490
+      },
+      "candidate": {
+        "log": "URPSample01\\Logs\\c4-final-build-11.log",
+        "count": 6144,
+        "line": 7406
+      },
+      "delta": 0
+    },
+    "Lit/ForwardLit/fp/D3D12": {
+      "c3": {
+        "log": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\TODO\\16-CleanupBaseline\\validation\\c3\\build-t5-d3d12.log",
+        "count": 6144,
+        "line": 7328
+      },
+      "candidate": {
+        "log": "URPSample01\\Logs\\c4-final-build-12.log",
+        "count": 6144,
+        "line": 7361
+      },
+      "delta": 0
+    },
+    "ClusteredDeferredDeclaredPreStrip": {
+      "c3": 1280,
+      "candidate": 1280,
+      "delta": 0,
+      "source": "URPSample01\\Packages\\com.unity.render-pipelines.universal@14.0.12\\Shaders\\Utils\\ClusteredDeferred.compute"
+    }
+  },
+  "errors": [],
+  "samePathPassedCounts": {
+    "T5": 28,
+    "T4": 56
+  },
+  "samePathGatePassed": false
+}

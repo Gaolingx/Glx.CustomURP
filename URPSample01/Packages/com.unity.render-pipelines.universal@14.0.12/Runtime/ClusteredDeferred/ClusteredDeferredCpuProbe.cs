@@ -11,8 +11,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public static int frames;
 
         public static long preSetup;
-        public static long clusterJobsComplete;
-        public static long clusterUpload;
         public static long lightConstants;
         public static long resolveMixedLighting;
         public static long setupLights;
@@ -40,8 +38,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             frames = 0;
             preSetup = 0L;
-            clusterJobsComplete = 0L;
-            clusterUpload = 0L;
             lightConstants = 0L;
             resolveMixedLighting = 0L;
             setupLights = 0L;

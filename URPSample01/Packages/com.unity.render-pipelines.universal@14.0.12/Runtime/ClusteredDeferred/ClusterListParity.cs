@@ -2,16 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Unity.Collections;
 using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
-    // CPU-side capture of the two cluster bitmaps plus the parameters the CPU published for them.
-    // G1 compares this word-for-word with the GPU builder's readback: no float tolerance, a mismatch
-    // is reported with its word index instead of averaged away. Only the used prefix (what the kernel
-    // can index) counts towards Exact; the tail is tracked separately because a GPU clear that stops
-    // at the used region is legitimate.
+    // Shared format for frozen reference snapshots and live GPU readbacks.
     internal struct ClusterListSnapshot
     {
         public const int FormatVersion = 1;
@@ -33,17 +28,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         public Vector2Int tileResolution;
         public Vector2Int screenResolution;
 
-        public int ZBinUsedWords => binCount * (ZBinningJob.headerLength + wordsPerTile) * viewCount;
+        // Each bin begins with one light header and one probe header.
+        public int ZBinUsedWords => binCount * (2 + wordsPerTile) * viewCount;
 
         public int TileUsedWords => tileResolution.x * tileResolution.y * wordsPerTile * viewCount;
-
-        public void CopyBitmapsFrom(NativeArray<uint> zBins, NativeArray<uint> tileMasks)
-        {
-            this.zBins = new uint[zBins.Length];
-            this.tileMasks = new uint[tileMasks.Length];
-            zBins.CopyTo(this.zBins);
-            tileMasks.CopyTo(this.tileMasks);
-        }
 
         public void WriteFile(string path)
         {
@@ -301,11 +289,8 @@ namespace UnityEngine.Rendering.Universal.Internal
     internal static class ClusterListParityCapture
     {
         public static bool enabled;
-        public static ClusterListSnapshot last;
         // Filled asynchronously by the ordered readback, so tests have to wait a frame for it.
         public static ClusterListSnapshot lastGpu;
-
-        public static void Capture(ClusterListSnapshot snapshot) => last = snapshot;
 
         // CommandBuffer.RequestAsyncReadback is ordered after the dispatch, unlike
         // AsyncGPUReadback.Request, which would read the previous frame's buffer contents.
@@ -354,7 +339,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public static void Reset()
         {
             enabled = false;
-            last = default;
             lastGpu = default;
         }
     }

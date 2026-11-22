@@ -1,0 +1,23 @@
+{
+  "capture": "forward-plus-d3d11_frame219.rdc",
+  "result": "pass",
+  "replay": {"tool": "renderdoc-cli.exe v0.3.0", "api": "D3D11", "driver": "D3D11", "degraded": false},
+  "orderedDispatches": [
+    {"eid": 31, "shader": "ClusterBuilder.ClusterItemBounds", "csId": 8562},
+    {"eid": 46, "shader": "ClusterBuilder.ClusterZBinClear", "csId": 8564},
+    {"eid": 61, "shader": "ClusterBuilder.ClusterZBinScatter", "csId": 8566},
+    {"eid": 75, "shader": "ClusterBuilder.ClusterZBinPack", "csId": 8568},
+    {"eid": 89, "shader": "ClusterBuilder.ClusterTileExpand", "csId": 8570}
+  ],
+  "resourceUsageThroughFirstOpaqueDraw": [
+    {"id": 8583, "name": "URP Z-Bin Buffer", "CS_RWResource": [46, 61, 75], "PS_Resource": [541]},
+    {"id": 8586, "name": "URP Tile Buffer", "CS_RWResource": [46, 89], "PS_Resource": [541]}
+  ],
+  "firstForwardOpaqueLitDraw": {
+    "markers": [{"eid": 502, "name": "DrawOpaqueObjects"}, {"eid": 503, "name": "RenderLoop.DrawSRPBatcher"}],
+    "eid": 541, "action": "indexed instanced draw", "indices": 2304, "instances": 1,
+    "shader": "Universal Render Pipeline/Lit", "vsId": 8702, "psId": 8705,
+    "distinction": "121 is an earlier DepthNormalPrepass draw; 502 and 503 are group markers. 541 is the first draw in the opaque batch and the first PS_Resource usage of both buffer IDs."
+  },
+  "shaderEvidence": "At 75 and 89 the CS DXBC contains store_structured to u1. At 541 the PS DXBC contains ld_structured from both t1 and t2 (instructions 113-114). Resource identity above comes from per-ID RenderDoc usage, not slot numbers or names. This verifies draw-level bindings, not per-pixel branch execution."
+}

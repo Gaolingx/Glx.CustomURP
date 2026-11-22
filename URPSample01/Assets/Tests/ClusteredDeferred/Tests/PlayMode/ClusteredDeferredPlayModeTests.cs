@@ -498,33 +498,210 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
         }
 
-        // The CPU list is the parity reference for the GPU builder, so it must be stable frame to
-        // frame and its item stream must describe exactly what the bits index. Pinned to the CPU
-        // writer: the GPU path has its own test below.
+        [UnityTest]
+        public IEnumerator ForwardPlusGpuMatchesFrozenCpuReference()
+        {
+            var api = SystemInfo.graphicsDeviceType;
+            if (api != GraphicsDeviceType.Direct3D11 && api != GraphicsDeviceType.Direct3D12)
+                Assert.Ignore("No independent 5d4bcca Forward+ capture for " + api);
+            var directory = System.IO.Path.Combine(Application.dataPath, "../PLAN/TODO/16-CleanupBaseline/c4/cpu-5d4bcca", api.ToString());
+            yield return SetUpRig(ForwardPlusPipelinePath, 640, 360, 24, transparent: true);
+            var cube = new Cubemap(16, TextureFormat.RGBA32, false);
+            var reference = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
+            try
+            {
+                ClusterListParityCapture.Reset();
+                var probe = m_Root.AddComponent<ReflectionProbe>();
+                probe.enabled = false;
+                probe.mode = ReflectionProbeMode.Custom;
+                for (int face = 0; face < 6; face++)
+                    cube.SetPixels(Enumerable.Repeat(Color.gray, 16 * 16).ToArray(), (CubemapFace)face);
+                cube.Apply();
+                probe.customBakedTexture = cube;
+                probe.size = Vector3.one * 20f;
+                foreach (bool populated in new[] { false, true })
+                {
+                    foreach (var light in m_Lights)
+                        light.enabled = populated;
+                    probe.enabled = populated;
+                    yield return RenderFrames(WarmupFrames);
+                    ClusterListParityCapture.Reset();
+                    ClusterListParityCapture.enabled = true;
+                    m_Camera.Render();
+                    ClusterListParityCapture.enabled = false; // Only request this camera/frame's readback.
+                    Assert.IsTrue(Shader.IsKeywordEnabled("_FORWARD_PLUS"));
+                    var pixels = ReadPixels();
+                    yield return WaitForGpuSnapshot();
+                    var snapshot = ClusterListParityCapture.lastGpu;
+                    Assert.IsNotNull(snapshot.zBins, "Explicit Forward+ did not publish a fresh GPU list.");
+                    Assert.IsNotNull(snapshot.tileMasks);
+                    Assert.AreEqual(populated ? 24 : 0, snapshot.lightCount);
+                    Assert.AreEqual(populated ? 1 : 0, CountProbeItems(snapshot));
+                    var prefix = System.IO.Path.Combine(directory, populated ? "L24-P1" : "L0-P0");
+                    var cpu = ClusterListSnapshot.ReadFile(prefix + ".bin");
+                    ReorderFrozenBits(ref cpu, snapshot);
+                    var coverage = ClusterListSnapshot.Diff(cpu, snapshot);
+                    Assert.LessOrEqual(CountSetBits(snapshot.tileMasks, snapshot.TileUsedWords),
+                        4 * CountSetBits(cpu.tileMasks, cpu.TileUsedWords), "Conservative tile coverage grew too loose: " + prefix);
+                    Assert.IsTrue(coverage.CoversCpuBits, prefix + ": " + coverage);
+                    Assert.AreEqual(0, coverage.zBinMismatchBits, prefix + ": " + coverage);
+
+                    Assert.IsTrue(reference.LoadImage(System.IO.File.ReadAllBytes(prefix + ".png")), prefix);
+                    Assert.AreEqual(m_Target.width, reference.width);
+                    Assert.AreEqual(m_Target.height, reference.height);
+                    AssertImageUsable(pixels, prefix);
+                    // The exporter quantized the linear HDR target to RGBA32 before encoding the PNG.
+                    var expected = reference.GetPixels32();
+                    int max = 0;
+                    long total = 0;
+                    for (int i = 0; i < pixels.Length; ++i)
+                    {
+                        Color32 actual = pixels[i];
+                        int r = Mathf.Abs(expected[i].r - actual.r);
+                        int g = Mathf.Abs(expected[i].g - actual.g);
+                        int b = Mathf.Abs(expected[i].b - actual.b);
+                        total += r + g + b;
+                        max = Mathf.Max(max, Mathf.Max(r, Mathf.Max(g, b)));
+                    }
+                    Assert.LessOrEqual(max, kMaxThreshold, prefix);
+                    Assert.LessOrEqual(total / (3.0 * pixels.Length), kMeanThreshold, prefix);
+                }
+            }
+            finally
+            {
+                ClusterListParityCapture.Reset();
+                TearDownRig();
+                Object.Destroy(reference);
+                Object.Destroy(cube);
+            }
+        }
+
+        // The fixture fits in one mask word. Culling source indices are frame-local; match the
+        // complete spatial/type/layer records bijectively before comparing any indexed bits.
+        static void ReorderFrozenBits(ref ClusterListSnapshot cpu, ClusterListSnapshot gpu)
+        {
+            Assert.AreEqual(cpu.items.Length, gpu.items.Length);
+            if (cpu.items.Length == 0) return;
+            Assert.AreEqual(1, cpu.wordsPerTile);
+            Assert.LessOrEqual(cpu.items.Length, 32);
+            var map = new int[cpu.items.Length];
+            var used = new HashSet<int>();
+            for (int i = 0; i < map.Length; ++i)
+            {
+                var expected = cpu.items[i];
+                int match = System.Array.FindIndex(gpu.items, item =>
+                {
+                    item.sourceIndex = expected.sourceIndex;
+                    return item.Equals(expected);
+                });
+                Assert.IsTrue(match >= 0 && used.Add(match), "No unique GPU counterpart for frozen item " + i);
+                map[i] = match;
+            }
+
+            uint Permute(uint mask)
+            {
+                uint result = mask;
+                for (int i = 0; i < map.Length; ++i) result &= ~(1u << i);
+                for (int i = 0; i < map.Length; ++i)
+                    if ((mask & (1u << i)) != 0) result |= 1u << map[i];
+                return result;
+            }
+            uint Header(uint mask, int start, int end)
+            {
+                uint min = ushort.MaxValue, max = 0;
+                for (int i = start; i < end; ++i)
+                    if ((mask & (1u << i)) != 0) { min = System.Math.Min(min, (uint)i); max = (uint)i; }
+                return min | (max << 16);
+            }
+            for (int i = 0; i < cpu.TileUsedWords; ++i) cpu.tileMasks[i] = Permute(cpu.tileMasks[i]);
+            for (int i = 0; i < cpu.ZBinUsedWords; i += 3)
+            {
+                uint mask = cpu.zBins[i + 2], reordered = Permute(mask);
+                for (int group = 0; group < 2; ++group)
+                {
+                    int start = group == 0 ? 0 : cpu.lightCount;
+                    int end = group == 0 ? cpu.lightCount : map.Length;
+                    Assert.AreEqual(Header(mask, start, end), cpu.zBins[i + group], "Frozen bin header");
+                    cpu.zBins[i + group] = Header(reordered, start, end);
+                }
+                cpu.zBins[i + 2] = reordered;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ExplicitForwardPlusFallsBackBeforeCullWhenBuilderShaderIsMissing()
+        {
+            yield return SetUpRig(ForwardPlusPipelinePath, 640, 360, 3);
+            var pipeline = Object.Instantiate(m_Pipeline);
+            var source = (UniversalRendererData)m_Pipeline.scriptableRendererData;
+            var rendererData = Object.Instantiate(source);
+            var missing = Object.Instantiate(source);
+            var probe = ScriptableObject.CreateInstance<CameraRoutingProbe>();
+            try
+            {
+                rendererData.rendererFeatures.Add(probe);
+                missing.rendererFeatures.Add(probe);
+                // ShaderResources is an inline serializable class holding shader asset references.
+                missing.shaders = JsonUtility.FromJson<UniversalRendererData.ShaderResources>(JsonUtility.ToJson(source.shaders));
+                missing.shaders.clusterBuilderCS = null;
+                Assert.IsNotNull(rendererData.shaders.clusterBuilderCS);
+                Assert.IsNotNull(source.shaders.clusterBuilderCS);
+                pipeline.m_RendererDataList = new ScriptableRendererData[] { rendererData, missing };
+                GraphicsSettings.defaultRenderPipeline = pipeline;
+                QualitySettings.renderPipeline = pipeline;
+                yield return RenderFrames(WarmupFrames);
+                probe.primary = m_Camera;
+                const PerObjectData flags = PerObjectData.LightData | PerObjectData.LightIndices | PerObjectData.ReflectionProbes;
+                foreach (bool enabled in new[] { true, false, true })
+                {
+                    m_Camera.GetUniversalAdditionalCameraData().SetRenderer(enabled ? 0 : 1);
+                    if (!enabled)
+                        LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex(@"Forward\+ fell back to Forward.*ClusterBuilder\.compute"));
+                    probe.preCullModes.Clear();
+                    probe.lightFlags.Clear();
+                    m_Camera.Render();
+                    Assert.AreEqual(enabled ? RenderingMode.ForwardPlus : RenderingMode.Forward, probe.preCullModes.Single());
+                    Assert.AreEqual(enabled ? PerObjectData.None : flags, probe.lightFlags.Single() & flags);
+                    Assert.AreEqual(enabled, Shader.IsKeywordEnabled("_FORWARD_PLUS"));
+                }
+            }
+            finally
+            {
+                TearDownRig();
+                Object.Destroy(pipeline);
+                Object.Destroy(rendererData);
+                Object.Destroy(missing);
+                Object.Destroy(probe);
+            }
+        }
+
         [UnityTest]
         public IEnumerator ClusterListSnapshotIsDeterministicAndDescribesTheItemStream()
         {
             yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
-            ClusterListGpuBuilder.enabled = false;
-            ClusterListParityCapture.enabled = true;
             try
             {
                 yield return RenderFrames(WarmupFrames);
-                var first = ClusterListParityCapture.last;
-                yield return RenderFrames(2);
-                var second = ClusterListParityCapture.last;
+                yield return CaptureGpuFrame();
+                var first = ClusterListParityCapture.lastGpu;
+                yield return CaptureGpuFrame();
+                var second = ClusterListParityCapture.lastGpu;
 
                 Assert.IsNotNull(first.zBins, "The parity capture never ran; no eligible clustered camera reached Setup.");
                 Assert.IsNotNull(second.zBins);
 
                 var diff = ClusterListSnapshot.Diff(first, second);
                 Assert.IsTrue(diff.Exact,
-                    "Consecutive frames disagree, so the CPU list cannot serve as the parity reference. " + diff);
+                    "GPU lists from independent frames disagree. " + diff);
 
                 Assert.Greater(CountSetBits(first.tileMasks, first.TileUsedWords), 0,
                     "The tile bitmap is empty; parity would pass trivially.");
-                Assert.Greater(CountSetBits(first.zBins, first.ZBinUsedWords), 0,
-                    "The zbin bitmap is empty; parity would pass trivially.");
+                uint depthMask = 0;
+                for (int bin = 0; bin < first.ZBinUsedWords; bin += 2 + first.wordsPerTile)
+                    for (int word = 0; word < first.wordsPerTile; ++word)
+                        depthMask |= first.zBins[bin + 2 + word];
+                Assert.AreNotEqual(0u, depthMask, "No depth bin contains an item; empty-bin headers are not light bits.");
+                CollectionAssert.AreEqual(first.items, second.items, "Mask indices must address the same records on both frames.");
 
                 Assert.AreEqual(m_Lights.Count, first.lightCount, "Every rig point light should reach the item stream.");
                 Assert.AreEqual(first.lightCount, first.items.Length - CountProbeItems(first),
@@ -540,66 +717,55 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
                 var fp1 = Shader.GetGlobalVector("_FPParams1");
                 Assert.AreEqual(fp0.x, first.fpParams[0], 0f, "zBinScale drifted from _FPParams0.");
                 Assert.AreEqual(fp1.x, first.fpParams[4], 0f, "tileScale drifted from _FPParams1.");
-                Assert.AreEqual(fp1.z, first.fpParams[6], 0f, "wordsPerTile drifted from _FPParams1.");
+                Assert.AreEqual(fp1.w, first.fpParams[7], 0f, "wordsPerTile drifted from _FPParams1.");
                 Assert.AreEqual(Mathf.RoundToInt(640f / fp1.x), first.tileWidth,
                     "The captured tile width disagrees with the published _FPParams1.");
             }
             finally
             {
-                ClusterListGpuBuilder.enabled = true;
                 ClusterListParityCapture.Reset();
                 TearDownRig();
             }
         }
 
-        // G1b gate: the GPU builder must cover every bit the CPU jobs set (target/zbin bits are
-        // compared), with the conservative tile AABB allowed to add candidates the CPU rejects.
         [UnityTest]
-        public IEnumerator GpuClusterListCoversTheCpuList()
+        public IEnumerator ClusteredGpuSchedulesProduceIdenticalListsAndPixels()
         {
             yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
-            ClusterListParityCapture.enabled = true;
-            ClusterListGpuBuilder.enabled = true;
+            bool originalAsync = ClusterListGpuBuilder.asyncCompute;
             try
             {
                 yield return RenderFrames(WarmupFrames);
-                yield return WaitForGpuSnapshot();
-                var gpu = ClusterListParityCapture.lastGpu;
-                Assert.IsNotNull(gpu.zBins, "The GPU builder never published a snapshot (readback failed or the CPU path ran).");
-                Assert.IsNotNull(gpu.tileMasks);
-                var gpuImage = ReadPixels();
+                ClusterListGpuBuilder.asyncCompute = false;
+                yield return CaptureGpuFrame();
+                var sync = ClusterListParityCapture.lastGpu;
+                var syncImage = ReadPixels();
+                AssertImageUsable(syncImage, "Synchronous GPU list");
+                Assert.Greater(CountSetBits(sync.tileMasks, sync.TileUsedWords), 0);
 
-                ClusterListGpuBuilder.enabled = false;
-                ClusterListParityCapture.lastGpu = default;
-                yield return null;
-                yield return RenderFrames(2);
-                var cpu = ClusterListParityCapture.last;
-                Assert.IsNotNull(cpu.zBins, "The CPU fallback did not capture its bitmap.");
-                var cpuImage = ReadPixels();
-
-                var diff = ClusterListSnapshot.Diff(cpu, gpu);
-                int cpuBits = CountSetBits(cpu.tileMasks, cpu.TileUsedWords);
-                int gpuBits = CountSetBits(gpu.tileMasks, gpu.TileUsedWords);
-                Debug.Log($"Tile bits: cpu {cpuBits}, gpu {gpuBits}, extra {diff.tileMaskExtraBits} " +
-                          $"({100f * gpuBits / Mathf.Max(1, cpuBits):0.#}% of CPU). " + diff);
-                Assert.IsTrue(diff.CoversCpuBits, "The GPU list drops bits the CPU sets: " + diff);
-                Assert.AreEqual(0, diff.zBinMismatchBits,
-                    "The zbin path is the exact one and must match the CPU word for word: " + diff);
-                Assert.LessOrEqual(gpuBits, cpuBits * 4,
-                    "The conservative tile AABB is far looser than the hand-checked bound.");
-
-                // Extra candidates are only useful if they cost nothing visually: the lights they add
-                // are attenuated to zero, so the image must be bit-identical.
-                var imageDiff = Compare(cpuImage, gpuImage);
-                Assert.AreEqual(0f, imageDiff.max,
-                    $"The GPU list changed pixels (mean {imageDiff.mean:0.####}, max {imageDiff.max:0.####}).");
+                ClusterListGpuBuilder.asyncCompute = true;
+                yield return CaptureGpuFrame();
+                var diff = ClusterListSnapshot.Diff(sync, ClusterListParityCapture.lastGpu);
+                Assert.IsTrue(diff.Exact, diff.ToString());
+                Assert.AreEqual(0f, Compare(syncImage, ReadPixels()).max);
             }
             finally
             {
-                ClusterListGpuBuilder.enabled = true;
+                ClusterListGpuBuilder.asyncCompute = originalAsync;
                 ClusterListParityCapture.Reset();
                 TearDownRig();
             }
+        }
+
+        IEnumerator CaptureGpuFrame()
+        {
+            ClusterListParityCapture.Reset();
+            ClusterListParityCapture.enabled = true;
+            m_Camera.Render();
+            ClusterListParityCapture.enabled = false;
+            yield return WaitForGpuSnapshot();
+            Assert.IsNotNull(ClusterListParityCapture.lastGpu.zBins, "GPU readback timed out.");
+            Assert.IsNotNull(ClusterListParityCapture.lastGpu.tileMasks);
         }
 
         static IEnumerator WaitForGpuSnapshot()
@@ -615,7 +781,6 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         public IEnumerator DepthPruneKeepsPixelsIdentical()
         {
             yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
-            ClusterListGpuBuilder.enabled = true;
             ClusterListGpuBuilder.pruneByDepth = true;
             ClusterListGpuBuilder.pruneStatsEnabled = true;
             try
@@ -660,7 +825,6 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         public IEnumerator CompactListsKeepPixelsIdentical()
         {
             yield return SetUpRig(ClusteredPipelinePath, 640, 360, 24);
-            ClusterListGpuBuilder.enabled = true;
             ClusterListGpuBuilder.compactLists = true;
             ClusterListGpuBuilder.compactStatsEnabled = true;
             try

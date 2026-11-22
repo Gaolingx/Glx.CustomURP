@@ -105,6 +105,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ _LIGHT_LAYERS
             #pragma multi_compile _ _FORWARD_PLUS
+            #pragma target 4.5 _FORWARD_PLUS _CLUSTERED_DEFERRED_LIGHTS
             #pragma multi_compile _ _CLUSTERED_DEFERRED_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT

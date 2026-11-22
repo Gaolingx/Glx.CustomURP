@@ -10,7 +10,7 @@ using UnityEngine.Rendering;
 public static class ClusteredDeferredArenaBuild
 {
     const string ScenePath = "Assets/Tests/ClusteredDeferred/Scenes/ClusteredDeferredArena.unity";
-    const string ValidationRoot = "PLAN/TODO/16-CleanupBaseline/validation/c3";
+    const string ValidationRoot = "PLAN/TODO/16-CleanupBaseline/c4/player";
     const string T4ValidationRoot = ValidationRoot + "/t4";
 
     public static void BuildD3D11AndExit()
@@ -45,7 +45,7 @@ public static class ClusteredDeferredArenaBuild
 
         var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
         var apiName = api.ToString();
-        var buildRoot = t4 ? "ClusteredDeferredArenaT4" : "ClusteredDeferredArena";
+        var buildRoot = t4 ? "ClusteredDeferredArenaC4T4" : "ClusteredDeferredArenaC4";
         var executableName = t4 ? "CdArenaT4.exe" : "CdArena.exe";
         var outputDirectory = Path.Combine(projectRoot, "Builds", buildRoot, apiName);
         Directory.CreateDirectory(outputDirectory);

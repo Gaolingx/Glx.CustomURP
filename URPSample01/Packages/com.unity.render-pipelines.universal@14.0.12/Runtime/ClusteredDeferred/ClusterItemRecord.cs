@@ -4,13 +4,9 @@ using Unity.Mathematics;
 namespace UnityEngine.Rendering.Universal.Internal
 {
     // Frozen input stream for the G1 GPU list builder (HANDOFF §3.4). One record per bitmap item, in
-    // the order the CPU jobs index them: non-directional visible lights in culling order, then the
-    // reflection probes after PreSetup's stable importance sort.
-    //
-    // The light fields are the raw VisibleLight inputs TilingJob reads, not the packed
-    // _AdditionalLights* constants: the CPU job derives cos(radians(spotAngle / 2)) and
-    // sqrt(range^2 - coneHeight^2) from them, so a GPU port has to start from the same authored
-    // values to have any chance of bit-equal output.
+    // bitmap order: non-directional visible lights in culling order, then the reflection probes
+    // after PreSetup's stable importance sort. The bounds kernel consumes authored light ranges
+    // and spot angles, not packed _AdditionalLights* constants.
     [StructLayout(LayoutKind.Sequential)]
     internal struct ClusterItemRecord
     {

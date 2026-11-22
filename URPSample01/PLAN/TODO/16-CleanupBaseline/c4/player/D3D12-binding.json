@@ -1,0 +1,25 @@
+{
+  "result": "pass",
+  "capture": "forward-plus-d3d12_frame151.rdc",
+  "replay": {"tool": "renderdoc-cli.exe v0.3.0 package", "api": "D3D12", "driver": "D3D12", "degraded": false},
+  "ordered_compute": [
+    {"eid": 141, "kernel": "ClusterBuilder.ClusterItemBounds", "CS_RWResource": [806, 807]},
+    {"eid": 146, "kernel": "ClusterBuilder.ClusterZBinClear", "CS_RWResource": [794, 795, 808]},
+    {"eid": 151, "kernel": "ClusterBuilder.ClusterZBinScatter", "CS_RWResource": [794, 806, 808]},
+    {"eid": 157, "kernel": "ClusterBuilder.ClusterZBinPack", "CS_RWResource": [794, 808], "store": "store_structured u1.x (instructions 12, 17)"},
+    {"eid": 162, "kernel": "ClusterBuilder.ClusterTileExpand", "CS_RWResource": [795, 807], "store": "store_structured u1.x (instruction 22)"}
+  ],
+  "buffers": [
+    {"id": 794, "name": "URP Z-Bin Buffer", "bytes": 16384, "last_compute_rw_eid": 157, "barrier_before_draw_eid": 668, "first_PS_Resource_eid": 694},
+    {"id": 795, "name": "URP Tile Buffer", "bytes": 65536, "last_compute_rw_eid": 162, "barrier_before_draw_eid": 668, "first_PS_Resource_eid": 694}
+  ],
+  "scratch_ids": {"806": "CD Cluster MinMaxZ", "807": "CD Cluster Tile Ranges", "808": "CD Cluster Bin Headers"},
+  "first_forward_opaque_lit_draw": {
+    "pass_marker": [538, "DrawOpaqueObjects"], "batch_marker": [671, "RenderLoop.DrawSRPBatcher"],
+    "eid": 694, "action": "indexed draw", "indices": 2304, "instances": 1,
+    "ps_id": 908, "color_target_id": 798, "PS_Resource": [794, 795],
+    "ps_loads": "ld_structured from t1 at instruction 85 and t2 at 113",
+    "distinction": "193 is the first frame draw, in DepthNormalPrepass. 538 and 671 are markers. 694 is the first indexed draw in the opaque batch and the first reported pixel-stage use of both compute output IDs."
+  },
+  "scope": "Replay resource usage and shader instructions establish binding identity and access order, not which conditional loads executed for an individual pixel. CS_RWResource denotes a UAV binding, not necessarily a store to every listed resource."
+}

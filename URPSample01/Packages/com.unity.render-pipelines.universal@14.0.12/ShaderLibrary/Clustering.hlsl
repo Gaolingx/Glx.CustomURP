@@ -6,25 +6,14 @@
 #if USE_CLUSTER_LIGHTS
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
-// Forward+ stores the bitmaps in constant buffers as float4 words; clustered deferred stores the
-// same words in structured buffers (one uint per word) because its compute build writes them as
-// UAVs. Both accessors return the word the iterator expects.
 uint URPClusterWord(uint wordIndex)
 {
-#if USE_FORWARD_PLUS
-    return Select4(asuint(URP_ZBins[wordIndex / 4]), wordIndex % 4);
-#else
     return URP_ZBins[wordIndex];
-#endif
 }
 
 uint URPClusterTileWord(uint wordIndex)
 {
-#if USE_FORWARD_PLUS
-    return Select4(asuint(urp_Tiles[wordIndex / 4]), wordIndex % 4);
-#else
     return urp_Tiles[wordIndex];
-#endif
 }
 
 // Debug switches for disabling parts of the algorithm. Not implemented for mobile.

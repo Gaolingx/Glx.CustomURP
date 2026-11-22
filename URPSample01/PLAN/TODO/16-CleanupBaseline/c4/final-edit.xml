@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="19" result="Passed" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.4130642">
+  <test-suite type="TestSuite" id="1557" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="488" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.413064" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="2102" name="Unity.RenderPipelines.Universal.Editor.Tests.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll" runstate="Runnable" testcasecount="488" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.379090" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="66328" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="2104" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="252" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.369974" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2105" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="252" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.364884" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2106" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="252" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.359938" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="2107" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="252" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.354797" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1777" name="ClusteredDeferredGpuListParityTests" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.137208" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1778" name="ClusterItemRecordLayoutIsFrozen" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests.ClusterItemRecordLayoutIsFrozen" methodname="ClusterItemRecordLayoutIsFrozen" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests" runstate="Runnable" seed="1027157364" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.028742" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1782" name="DiffIgnoresTheTailBeyondTheUsedRegion" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests.DiffIgnoresTheTailBeyondTheUsedRegion" methodname="DiffIgnoresTheTailBeyondTheUsedRegion" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests" runstate="Runnable" seed="1761872472" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.009842" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1781" name="DiffLocalizesAPlantedBitFlip" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests.DiffLocalizesAPlantedBitFlip" methodname="DiffLocalizesAPlantedBitFlip" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests" runstate="Runnable" seed="1675413516" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.004143" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1783" name="DiffRejectsParameterDrift" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests.DiffRejectsParameterDrift" methodname="DiffRejectsParameterDrift" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests" runstate="Runnable" seed="1373495413" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.001717" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1779" name="FreshBuilderPublishesEmptyBinsWithoutAnItemUpload" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests.FreshBuilderPublishesEmptyBinsWithoutAnItemUpload" methodname="FreshBuilderPublishesEmptyBinsWithoutAnItemUpload" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests" runstate="Runnable" seed="1329933800" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.020175" asserts="0">
+                  <properties />
+                  <output><![CDATA[Shader warning in 'ClusterBuilder': use of potentially uninitialized variable (CdItemMinMaxZ) at kernel ClusterItemBounds at ClusterBuilder.compute(129) (on d3d11)
+]]></output>
+                </test-case>
+                <test-case id="1780" name="SnapshotRoundTripsThroughDisk" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests.SnapshotRoundTripsThroughDisk" methodname="SnapshotRoundTripsThroughDisk" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredGpuListParityTests" runstate="Runnable" seed="1973183211" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.046471" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1765" name="ClusteredDeferredModeGateTests" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredModeGateTests" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredModeGateTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.035928" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1767" name="OnlyBaseGameCamerasAreEligible" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredModeGateTests.OnlyBaseGameCamerasAreEligible" methodname="OnlyBaseGameCamerasAreEligible" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredModeGateTests" runstate="Runnable" seed="1066194231" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.000854" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1768" name="OracleAndClusteredFixturesUseComparableRendererSettings" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredModeGateTests.OracleAndClusteredFixturesUseComparableRendererSettings" methodname="OracleAndClusteredFixturesUseComparableRendererSettings" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredModeGateTests" runstate="Runnable" seed="1297824059" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.029722" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1766" name="SupportedDeviceRequiresComputeGBufferAndReadableMaskAndLightingTargets" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredModeGateTests.SupportedDeviceRequiresComputeGBufferAndReadableMaskAndLightingTargets" methodname="SupportedDeviceRequiresComputeGBufferAndReadableMaskAndLightingTargets" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredModeGateTests" runstate="Runnable" seed="135957490" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.000868" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1769" name="ClusteredDeferredRendererTests" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.047390" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1773" name="ClusteredRendererToleratesRepeatedDispose" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests.ClusteredRendererToleratesRepeatedDispose" methodname="ClusteredRendererToleratesRepeatedDispose" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests" runstate="Runnable" seed="525663396" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.017758" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1774" name="CullingUsesCurrentCameraModeNotPreviousCameraMode" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests.CullingUsesCurrentCameraModeNotPreviousCameraMode" methodname="CullingUsesCurrentCameraModeNotPreviousCameraMode" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests" runstate="Runnable" seed="2046258720" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.006146" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1775" name="MissingComputeResourceForcesForwardEvenForBaseGame" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests.MissingComputeResourceForcesForwardEvenForBaseGame" methodname="MissingComputeResourceForcesForwardEvenForBaseGame" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests" runstate="Runnable" seed="430803892" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.006570" asserts="0">
+                  <properties />
+                  <output><![CDATA[Clustered deferred fell back to Forward for camera 'Cluster culling fixture'. Assign a supported ClusterBuilder.compute with the required kernels in the renderer shader resources.
+]]></output>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1772" name="NonDeferredRenderersUseDeviceAppropriateCulling" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests.NonDeferredRenderersUseDeviceAppropriateCulling" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.009241" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1770" name="NonDeferredRenderersUseDeviceAppropriateCulling(Forward)" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests.NonDeferredRenderersUseDeviceAppropriateCulling(Forward)" methodname="NonDeferredRenderersUseDeviceAppropriateCulling" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests" runstate="Runnable" seed="1372515137" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.003519" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1771" name="NonDeferredRenderersUseDeviceAppropriateCulling(ForwardPlus)" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests.NonDeferredRenderersUseDeviceAppropriateCulling(ForwardPlus)" methodname="NonDeferredRenderersUseDeviceAppropriateCulling" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests" runstate="Runnable" seed="158277068" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.003261" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-case id="1776" name="XRBaseGameUsesForwardWithoutAHeadset" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests.XRBaseGameUsesForwardWithoutAHeadset" methodname="XRBaseGameUsesForwardWithoutAHeadset" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredRendererTests" runstate="Runnable" seed="214669138" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.003641" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1760" name="ClusteredDeferredShaderTests" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.123996" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1762" name="ComputeDeclaresTheDocumentedKeywordMatrix" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.ComputeDeclaresTheDocumentedKeywordMatrix" methodname="ComputeDeclaresTheDocumentedKeywordMatrix" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" runstate="Runnable" seed="1577208730" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.018646" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1761" name="ComputeKernelAndMaskResolveShadersCompile" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.ComputeKernelAndMaskResolveShadersCompile" methodname="ComputeKernelAndMaskResolveShadersCompile" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" runstate="Runnable" seed="1028880514" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.029838" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1763" name="ForwardLitShadersDeclareTheClusteredDeferredVariant" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.ForwardLitShadersDeclareTheClusteredDeferredVariant" methodname="ForwardLitShadersDeclareTheClusteredDeferredVariant" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" runstate="Runnable" seed="1688532407" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.029737" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1764" name="KernelDoesNotUseTheStructuredBufferLightPath" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.KernelDoesNotUseTheStructuredBufferLightPath" methodname="KernelDoesNotUseTheStructuredBufferLightPath" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" runstate="Runnable" seed="1967657597" result="Passed" start-time="2026-11-22 12:47:07Z" end-time="2026-11-22 12:47:07Z" duration="0.042443" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1,0 +1,521 @@
+{
+    "utcTimestamp": "2026-11-22T13:13:40.5172553Z",
+    "unityVersion": "2022.3.62f1",
+    "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsDeviceType": "Direct3D11",
+    "graphicsDeviceVersion": "Direct3D 11.0 [level 11.1]",
+    "error": "",
+    "entries": [
+        {
+            "feature": "MainShadowCascade",
+            "featureActive": true,
+            "passed": false,
+            "states": [
+                {
+                    "name": "ForwardPlusOff",
+                    "forwardPlusKeyword": true,
+                    "file": "MainShadowCascade_ForwardPlusOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOff",
+                    "forwardPlusKeyword": false,
+                    "file": "MainShadowCascade_ClusteredOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ForwardPlusOn",
+                    "forwardPlusKeyword": true,
+                    "file": "MainShadowCascade_ForwardPlusOn.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOn",
+                    "forwardPlusKeyword": false,
+                    "file": "MainShadowCascade_ClusteredOn.png",
+                    "magentaPixelFraction": 0.0
+                }
+            ],
+            "comparisons": [
+                {
+                    "name": "forward_plus_vs_clustered_on",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.19264829282407409,
+                    "meanChannelDiffNormalized": 0.0007554835012708788,
+                    "maxChannelDiff": 81,
+                    "pixelsOverThreshold": 452,
+                    "pixelsOverThresholdFraction": 0.0004904513888888889,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_vs_clustered_off",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.19376663773148149,
+                    "meanChannelDiffNormalized": 0.0007598691675744372,
+                    "maxChannelDiff": 81,
+                    "pixelsOverThreshold": 452,
+                    "pixelsOverThresholdFraction": 0.0004904513888888889,
+                    "passed": false
+                },
+                {
+                    "name": "clustered_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.4451392505787037,
+                    "meanChannelDiffNormalized": 0.0017456441199164852,
+                    "maxChannelDiff": 41,
+                    "pixelsOverThreshold": 22904,
+                    "pixelsOverThresholdFraction": 0.024852430555555556,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.44404984085648149,
+                    "meanChannelDiffNormalized": 0.0017413719249273785,
+                    "maxChannelDiff": 42,
+                    "pixelsOverThreshold": 22887,
+                    "pixelsOverThresholdFraction": 0.024833984375,
+                    "passed": false
+                }
+            ]
+        },
+        {
+            "feature": "ReceiveShadowsOff",
+            "featureActive": true,
+            "passed": false,
+            "states": [
+                {
+                    "name": "ForwardPlusOff",
+                    "forwardPlusKeyword": true,
+                    "file": "ReceiveShadowsOff_ForwardPlusOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOff",
+                    "forwardPlusKeyword": false,
+                    "file": "ReceiveShadowsOff_ClusteredOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ForwardPlusOn",
+                    "forwardPlusKeyword": true,
+                    "file": "ReceiveShadowsOff_ForwardPlusOn.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOn",
+                    "forwardPlusKeyword": false,
+                    "file": "ReceiveShadowsOff_ClusteredOn.png",
+                    "magentaPixelFraction": 0.0
+                }
+            ],
+            "comparisons": [
+                {
+                    "name": "forward_plus_vs_clustered_on",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.19264214409722223,
+                    "meanChannelDiffNormalized": 0.0007554593886165578,
+                    "maxChannelDiff": 81,
+                    "pixelsOverThreshold": 452,
+                    "pixelsOverThresholdFraction": 0.0004904513888888889,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_vs_clustered_off",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.19264829282407409,
+                    "meanChannelDiffNormalized": 0.0007554835012708788,
+                    "maxChannelDiff": 81,
+                    "pixelsOverThreshold": 452,
+                    "pixelsOverThresholdFraction": 0.0004904513888888889,
+                    "passed": false
+                },
+                {
+                    "name": "clustered_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.0021929253472222226,
+                    "meanChannelDiffNormalized": 0.000008599707244008716,
+                    "maxChannelDiff": 41,
+                    "pixelsOverThreshold": 109,
+                    "pixelsOverThresholdFraction": 0.00011827256944444445,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.002185329861111111,
+                    "meanChannelDiffNormalized": 0.00000856992102396514,
+                    "maxChannelDiff": 42,
+                    "pixelsOverThreshold": 107,
+                    "pixelsOverThresholdFraction": 0.00011610243055555556,
+                    "passed": false
+                }
+            ]
+        },
+        {
+            "feature": "MainShadowScreen",
+            "featureActive": true,
+            "passed": false,
+            "states": [
+                {
+                    "name": "ForwardPlusOff",
+                    "forwardPlusKeyword": true,
+                    "file": "MainShadowScreen_ForwardPlusOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOff",
+                    "forwardPlusKeyword": false,
+                    "file": "MainShadowScreen_ClusteredOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ForwardPlusOn",
+                    "forwardPlusKeyword": true,
+                    "file": "MainShadowScreen_ForwardPlusOn.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOn",
+                    "forwardPlusKeyword": false,
+                    "file": "MainShadowScreen_ClusteredOn.png",
+                    "magentaPixelFraction": 0.0
+                }
+            ],
+            "comparisons": [
+                {
+                    "name": "forward_plus_vs_clustered_on",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.19279369212962964,
+                    "meanChannelDiffNormalized": 0.0007560536946259986,
+                    "maxChannelDiff": 81,
+                    "pixelsOverThreshold": 452,
+                    "pixelsOverThresholdFraction": 0.0004904513888888889,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_vs_clustered_off",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.19376663773148149,
+                    "meanChannelDiffNormalized": 0.0007598691675744372,
+                    "maxChannelDiff": 81,
+                    "pixelsOverThreshold": 452,
+                    "pixelsOverThresholdFraction": 0.0004904513888888889,
+                    "passed": false
+                },
+                {
+                    "name": "clustered_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.3901851851851852,
+                    "meanChannelDiffNormalized": 0.0015301379811183734,
+                    "maxChannelDiff": 41,
+                    "pixelsOverThreshold": 19899,
+                    "pixelsOverThresholdFraction": 0.021591796875,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.3892556423611111,
+                    "meanChannelDiffNormalized": 0.0015264927151416122,
+                    "maxChannelDiff": 42,
+                    "pixelsOverThreshold": 19884,
+                    "pixelsOverThresholdFraction": 0.021575520833333335,
+                    "passed": false
+                }
+            ]
+        },
+        {
+            "feature": "AdditionalShadowAtlas",
+            "featureActive": true,
+            "passed": false,
+            "states": [
+                {
+                    "name": "ForwardPlusOff",
+                    "forwardPlusKeyword": true,
+                    "file": "AdditionalShadowAtlas_ForwardPlusOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOff",
+                    "forwardPlusKeyword": false,
+                    "file": "AdditionalShadowAtlas_ClusteredOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ForwardPlusOn",
+                    "forwardPlusKeyword": true,
+                    "file": "AdditionalShadowAtlas_ForwardPlusOn.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOn",
+                    "forwardPlusKeyword": false,
+                    "file": "AdditionalShadowAtlas_ClusteredOn.png",
+                    "magentaPixelFraction": 0.0
+                }
+            ],
+            "comparisons": [
+                {
+                    "name": "forward_plus_vs_clustered_on",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.1361451099537037,
+                    "meanChannelDiffNormalized": 0.0005339023919753087,
+                    "maxChannelDiff": 46,
+                    "pixelsOverThreshold": 85,
+                    "pixelsOverThresholdFraction": 0.00009223090277777778,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_vs_clustered_off",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.136904296875,
+                    "meanChannelDiffNormalized": 0.0005368795955882353,
+                    "maxChannelDiff": 46,
+                    "pixelsOverThreshold": 85,
+                    "pixelsOverThresholdFraction": 0.00009223090277777778,
+                    "passed": false
+                },
+                {
+                    "name": "clustered_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.9623813657407407,
+                    "meanChannelDiffNormalized": 0.0037740445715323167,
+                    "maxChannelDiff": 68,
+                    "pixelsOverThreshold": 25261,
+                    "pixelsOverThresholdFraction": 0.02740993923611111,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.9619809751157408,
+                    "meanChannelDiffNormalized": 0.0037724744122185915,
+                    "maxChannelDiff": 68,
+                    "pixelsOverThreshold": 25259,
+                    "pixelsOverThresholdFraction": 0.027407769097222223,
+                    "passed": false
+                }
+            ]
+        },
+        {
+            "feature": "LightCookie",
+            "featureActive": true,
+            "passed": false,
+            "states": [
+                {
+                    "name": "ForwardPlusOff",
+                    "forwardPlusKeyword": true,
+                    "file": "LightCookie_ForwardPlusOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOff",
+                    "forwardPlusKeyword": false,
+                    "file": "LightCookie_ClusteredOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ForwardPlusOn",
+                    "forwardPlusKeyword": true,
+                    "file": "LightCookie_ForwardPlusOn.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOn",
+                    "forwardPlusKeyword": false,
+                    "file": "LightCookie_ClusteredOn.png",
+                    "magentaPixelFraction": 0.0
+                }
+            ],
+            "comparisons": [
+                {
+                    "name": "forward_plus_vs_clustered_on",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.13108723958333333,
+                    "meanChannelDiffNormalized": 0.0005140676062091503,
+                    "maxChannelDiff": 46,
+                    "pixelsOverThreshold": 73,
+                    "pixelsOverThresholdFraction": 0.00007921006944444444,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_vs_clustered_off",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.138095703125,
+                    "meanChannelDiffNormalized": 0.0005415517769607843,
+                    "maxChannelDiff": 53,
+                    "pixelsOverThreshold": 87,
+                    "pixelsOverThresholdFraction": 0.00009440104166666666,
+                    "passed": false
+                },
+                {
+                    "name": "clustered_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 3.02412109375,
+                    "meanChannelDiffNormalized": 0.011859298406862744,
+                    "maxChannelDiff": 186,
+                    "pixelsOverThreshold": 187682,
+                    "pixelsOverThresholdFraction": 0.20364800347222224,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 3.017939453125,
+                    "meanChannelDiffNormalized": 0.011835056678921569,
+                    "maxChannelDiff": 192,
+                    "pixelsOverThreshold": 187361,
+                    "pixelsOverThresholdFraction": 0.20329969618055555,
+                    "passed": false
+                }
+            ]
+        },
+        {
+            "feature": "LightLayers",
+            "featureActive": true,
+            "passed": false,
+            "states": [
+                {
+                    "name": "ForwardPlusOff",
+                    "forwardPlusKeyword": true,
+                    "file": "LightLayers_ForwardPlusOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOff",
+                    "forwardPlusKeyword": false,
+                    "file": "LightLayers_ClusteredOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ForwardPlusOn",
+                    "forwardPlusKeyword": true,
+                    "file": "LightLayers_ForwardPlusOn.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOn",
+                    "forwardPlusKeyword": false,
+                    "file": "LightLayers_ClusteredOn.png",
+                    "magentaPixelFraction": 0.0
+                }
+            ],
+            "comparisons": [
+                {
+                    "name": "forward_plus_vs_clustered_on",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.13723090277777778,
+                    "meanChannelDiffNormalized": 0.0005381604030501089,
+                    "maxChannelDiff": 59,
+                    "pixelsOverThreshold": 82,
+                    "pixelsOverThresholdFraction": 0.00008897569444444445,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_vs_clustered_off",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.14302408854166669,
+                    "meanChannelDiffNormalized": 0.0005608787785947712,
+                    "maxChannelDiff": 59,
+                    "pixelsOverThreshold": 119,
+                    "pixelsOverThresholdFraction": 0.00012912326388888888,
+                    "passed": false
+                },
+                {
+                    "name": "clustered_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 2.871354166666667,
+                    "meanChannelDiffNormalized": 0.011260212418300655,
+                    "maxChannelDiff": 245,
+                    "pixelsOverThreshold": 136281,
+                    "pixelsOverThresholdFraction": 0.14787434895833335,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 2.8674967447916668,
+                    "meanChannelDiffNormalized": 0.01124508527369281,
+                    "maxChannelDiff": 245,
+                    "pixelsOverThreshold": 136127,
+                    "pixelsOverThresholdFraction": 0.1477072482638889,
+                    "passed": false
+                }
+            ]
+        },
+        {
+            "feature": "ScreenSpaceAO",
+            "featureActive": true,
+            "passed": false,
+            "states": [
+                {
+                    "name": "ForwardPlusOff",
+                    "forwardPlusKeyword": true,
+                    "file": "ScreenSpaceAO_ForwardPlusOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOff",
+                    "forwardPlusKeyword": false,
+                    "file": "ScreenSpaceAO_ClusteredOff.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ForwardPlusOn",
+                    "forwardPlusKeyword": true,
+                    "file": "ScreenSpaceAO_ForwardPlusOn.png",
+                    "magentaPixelFraction": 0.0
+                },
+                {
+                    "name": "ClusteredOn",
+                    "forwardPlusKeyword": false,
+                    "file": "ScreenSpaceAO_ClusteredOn.png",
+                    "magentaPixelFraction": 0.0
+                }
+            ],
+            "comparisons": [
+                {
+                    "name": "forward_plus_vs_clustered_on",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.19175166377314815,
+                    "meanChannelDiffNormalized": 0.0007519673089143064,
+                    "maxChannelDiff": 81,
+                    "pixelsOverThreshold": 448,
+                    "pixelsOverThresholdFraction": 0.0004861111111111111,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_vs_clustered_off",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.19348307291666667,
+                    "meanChannelDiffNormalized": 0.0007587571486928104,
+                    "maxChannelDiff": 81,
+                    "pixelsOverThreshold": 452,
+                    "pixelsOverThresholdFraction": 0.0004904513888888889,
+                    "passed": false
+                },
+                {
+                    "name": "clustered_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.47664930555555559,
+                    "meanChannelDiffNormalized": 0.001869212962962963,
+                    "maxChannelDiff": 203,
+                    "pixelsOverThreshold": 18635,
+                    "pixelsOverThresholdFraction": 0.020220269097222224,
+                    "passed": false
+                },
+                {
+                    "name": "forward_plus_feature_effect",
+                    "pixels": 921600,
+                    "meanChannelDiff": 0.4752955005787037,
+                    "meanChannelDiffNormalized": 0.0018639039238380537,
+                    "maxChannelDiff": 205,
+                    "pixelsOverThreshold": 18602,
+                    "pixelsOverThresholdFraction": 0.020184461805555558,
+                    "passed": false
+                }
+            ]
+        }
+    ]
+}

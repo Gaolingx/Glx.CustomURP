@@ -1,11 +1,11 @@
 # 16-CleanupBaseline：Light Culling 善后 C0（基线冻结）
 
 > 建立：2026-11-22。前置：[`PLAN/Done/12-GpuLightList/clean.md`](../../Done/12-GpuLightList/clean.md)（C0–C8）、[`15-ForwardClusterLights`](../../Done/15-ForwardClusterLights/HANDOFF.md)（C2 落地）。
-> 当前状态（2026-11-22）：**C3 PASS（验收例外）**。T4 CLOSED；T5 OPEN，不阻塞 C3；C4a 未启动。C0 与 C0.5 已通过。
+> 当前状态（2026-11-22）：**C3 PASS（验收例外）**。T4 CLOSED；T5 OPEN，不阻塞 C3；**C4a PASS（仅 D3D11 上限夹具采用局部差异例外）**。C0 与 C0.5 已通过。
 > 冻结决策：[DECISIONS.md](DECISIONS.md)（D-C1–D-C8 及 clean.md 的三处修正）。
 > 基线 tag：`pre-cleanup` → `f0c7ec4`（C0 脚手架提交；渲染代码与 `0ffc46c` 相同）。
 > 验证记录：[validation/README.md](validation/README.md)（全部数字与证据）。
-> 下一步：[C4 交接：HDRP 源码证据、分工与验收顺序](HANDOFF.md)（仅计划，未实施）。
+> C4a：[最终验收、独立参照和双 API 玩家证据](c4/HANDOFF.md#c4a-最终验收pass限定例外)。
 
 ## 1. 范围
 

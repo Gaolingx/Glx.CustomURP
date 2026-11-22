@@ -534,6 +534,18 @@ namespace UnityEditor.Rendering.Universal
 
                 // Add the features from the renderer to the combined feature set for this URP Asset
                 combinedURPAssetShaderFeatures |= rendererShaderFeatures;
+
+                // Explicit Forward+ can fall back per camera/device. Evaluate Forward separately:
+                // the Forward+ profile deliberately removes per-object additional-light variants.
+                if (rendererRequirements.renderingMode == RenderingMode.ForwardPlus)
+                {
+                    var fallback = GetRendererRequirements(ref urpAsset, ref renderer, ref rendererData, RenderingMode.Forward);
+                    var fallbackFeatures = GetSupportedShaderFeaturesFromRenderer(ref fallback, ref rendererData, ref containsForwardRenderer, urpAssetShaderFeatures);
+                    rendererFeaturesList.Add(fallbackFeatures);
+                    combinedURPAssetShaderFeatures |= fallbackFeatures;
+                    if (rendererRequirements.needsAdditionalLightShadows && !fallback.needsAdditionalLightShadows)
+                        combinedURPAssetShaderFeatures |= ShaderFeatures.ShadowsKeepOffVariants;
+                }
             }
 
             return combinedURPAssetShaderFeatures;
@@ -548,7 +560,7 @@ namespace UnityEditor.Rendering.Universal
             #endif
         }
 
-        internal static RendererRequirements GetRendererRequirements(ref UniversalRenderPipelineAsset urpAsset, ref ScriptableRenderer renderer, ref ScriptableRendererData rendererData)
+        internal static RendererRequirements GetRendererRequirements(ref UniversalRenderPipelineAsset urpAsset, ref ScriptableRenderer renderer, ref ScriptableRendererData rendererData, RenderingMode? modeOverride = null)
         {
             UniversalRenderer universalRenderer = renderer as UniversalRenderer;
             UniversalRendererData universalRendererData = rendererData as UniversalRendererData;
@@ -556,7 +568,7 @@ namespace UnityEditor.Rendering.Universal
             RendererRequirements rsd = new();
             rsd.isUniversalRenderer               = universalRendererData != null && universalRenderer != null;
             rsd.msaaSampleCount                   = urpAsset.msaaSampleCount;
-            rsd.renderingMode                     = rsd.isUniversalRenderer ? universalRendererData.renderingMode : RenderingMode.Forward;
+            rsd.renderingMode                     = modeOverride ?? (rsd.isUniversalRenderer ? universalRendererData.renderingMode : RenderingMode.Forward);
             rsd.needsMainLightShadows             = urpAsset.supportsMainLightShadows && urpAsset.mainLightRenderingMode == LightRenderingMode.PerPixel;
             rsd.needsAdditionalLightShadows       = urpAsset.supportsAdditionalLightShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || rsd.renderingMode == RenderingMode.ForwardPlus);
             rsd.needsSoftShadows                  = urpAsset.supportsSoftShadows && (rsd.needsMainLightShadows || rsd.needsAdditionalLightShadows);

@@ -33,10 +33,8 @@
 #define SSL_MAX_ZBIN_VEC4S 1024
 #if SSL_MAX_VISIBLE_LIGHTS <= 32
     #define SSL_MAX_REFLECTION_PROBES SSL_MAX_VISIBLE_LIGHTS
-    #define SSL_MAX_TILE_VEC4S 1024
 #else
     #define SSL_MAX_REFLECTION_PROBES 64
-    #define SSL_MAX_TILE_VEC4S 4096
 #endif
 
 float4 _FPParams0;
@@ -52,12 +50,8 @@ float4 _FPParams2;
 #define URP_FP_ZBIN_COUNT ((uint)_FPParams2.x)
 #define URP_FP_TILE_COUNT ((uint)_FPParams2.y)
 
-CBUFFER_START(URP_ZBinBuffer)
-    float4 URP_ZBins[SSL_MAX_ZBIN_VEC4S];
-CBUFFER_END
-CBUFFER_START(urp_TileBuffer)
-    float4 urp_Tiles[SSL_MAX_TILE_VEC4S];
-CBUFFER_END
+StructuredBuffer<uint> URP_ZBins;
+StructuredBuffer<uint> urp_Tiles;
 
 TEXTURE2D(urp_ReflProbes_Atlas);
 SAMPLER(samplerurp_ReflProbes_Atlas);
@@ -76,17 +70,6 @@ CBUFFER_END
 
 // x: 1 for a perspective projection, 0 for orthographic.
 float4 _SsgiProbeAtlasParams;
-
-// Select uint4 component by index. Copied from ShaderVariablesFunctions.hlsl because that file pulls
-// the fragment-only URP state and cannot be included from a compute kernel.
-uint SslSelect4(uint4 v, uint i)
-{
-    uint mask0 = uint(int(i << 31) >> 31);
-    uint mask1 = uint(int(i << 30) >> 31);
-    return
-        (((v.w & mask0) | (v.z & ~mask0)) & mask1) |
-        (((v.y & mask0) | (v.x & ~mask0)) & ~mask1);
-}
 
 struct SslProbeClusterIterator
 {
@@ -126,7 +109,7 @@ SslProbeClusterIterator SslProbeClusterInit(float2 normalizedScreenSpaceUV, floa
     // Header 1 is the reflection probe list; header 0 is the punctual light list.
     uint zBinHeaderIndex = zBinBaseIndex + 1;
     state.zBinOffset = zBinBaseIndex + 2;
-    state.entityIndexNextMax = SslSelect4(asuint(URP_ZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
+    state.entityIndexNextMax = URP_ZBins[zBinHeaderIndex];
 
     return state;
 }
@@ -140,8 +123,8 @@ bool SslProbeClusterNext(inout SslProbeClusterIterator it, out uint entityIndex)
         uint tileIndex = it.tileOffset + wordIndex;
         uint zBinIndex = it.zBinOffset + wordIndex;
         it.tileMask =
-            SslSelect4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
-            SslSelect4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4) &
+            urp_Tiles[tileIndex] &
+            URP_ZBins[zBinIndex] &
             (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) &
             (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));
         it.entityIndexNextMax = (it.entityIndexNextMax + 32) & ~31;
