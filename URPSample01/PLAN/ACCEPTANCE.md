@@ -35,7 +35,7 @@
 | 13-GpuLightList256 | ✅ PASS | 1 PASS（G2/G3 仍 NO-GO） | 256 灯 parity 成立、zbin 409 档；clustered GPU 1.270 vs stencil 1.763 ms；256 灯 A/B 需改用 Forward+ 参照 |
 | 14-TransparentLightPath | ✅ PASS | 探针（4 闸门 PASS/FAIL 如实记录） | 透明像素 256 灯 89.4% 与 cluster 语义差 >8；上限 8 只降到 66.5%；帧时间增量在噪声内；决定 GO C2 |
 | 15-ForwardClusterLights | ✅ PASS | C2 实现（8 闸门） | 透明/forward-only 改读结构化 cluster 位图；256 灯 footprint >8 从 87.9%→0.18%、48 灯 15.4%→0.11%；control A/B 不回归 |
-| 16-CleanupBaseline | ✅ PASS（C0） | 8 闸门 | 冻结点 `f0c7ec4`：4/4 构建、491+41 测试、48 灯 S/C 0.822/0.814、变体 6144/1280；C0.5 变体补齐与 C3 删除未开始 |
+| 16-CleanupBaseline | C3 PASS（验收例外） | T4 CLOSED；T5 OPEN | [C3 决策](TODO/16-CleanupBaseline/DECISIONS.md)：接受既有材质与 T4 跨路径差异；T5 D3D11 256 灯未关闭。C4a 未启动。 |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -580,7 +580,9 @@ PY
 
 **边界**：只覆盖 Lit 透明夹具（其余 4 个 shader 变体已声明但无独立像素夹具）；256 灯为最坏重叠场；只测 D3D11 720p 单卡；Lit ForwardLit 片元变体 3072→6144，冷构建 918.6 s。
 
-## 20. 16-CleanupBaseline（C0 PASS，2026-11-22）
+## 20. 16-CleanupBaseline（C3 PASS，2026-11-22）
+
+当前结论：按[所有者批准的例外](TODO/16-CleanupBaseline/DECISIONS.md)通过 C3，T4 CLOSED，T5 OPEN，未启动 C4a。以下保留 C0 冻结时的验收快照。
 
 > 范围：clean.md C0——冻结清理前基线与 D-C1–D-C8，不删任何渲染代码。C0.5（Terrain/SpeedTree/ShaderGraph 的 cluster 变体、forward-only 不透明夹具）尚未开始。
 > 计划/结果：[PLAN/TODO/16-CleanupBaseline/README.md](TODO/16-CleanupBaseline/README.md)、[DECISIONS.md](TODO/16-CleanupBaseline/DECISIONS.md)；证据：[validation/README.md](TODO/16-CleanupBaseline/validation/README.md)。

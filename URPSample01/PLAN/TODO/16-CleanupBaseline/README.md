@@ -1,10 +1,11 @@
 # 16-CleanupBaseline：Light Culling 善后 C0（基线冻结）
 
 > 建立：2026-11-22。前置：[`PLAN/Done/12-GpuLightList/clean.md`](../../Done/12-GpuLightList/clean.md)（C0–C8）、[`15-ForwardClusterLights`](../../Done/15-ForwardClusterLights/HANDOFF.md)（C2 落地）。
-> 状态：**C0 PASS（2026-11-22）**。基线可复现，决策已冻结，未删代码。
+> 当前状态（2026-11-22）：**C3 PASS（验收例外）**。T4 CLOSED；T5 OPEN，不阻塞 C3；C4a 未启动。C0 与 C0.5 已通过。
 > 冻结决策：[DECISIONS.md](DECISIONS.md)（D-C1–D-C8 及 clean.md 的三处修正）。
 > 基线 tag：`pre-cleanup` → `f0c7ec4`（C0 脚手架提交；渲染代码与 `0ffc46c` 相同）。
 > 验证记录：[validation/README.md](validation/README.md)（全部数字与证据）。
+> 下一步：[C4 交接：HDRP 源码证据、分工与验收顺序](HANDOFF.md)（仅计划，未实施）。
 
 ## 1. 范围
 
@@ -110,7 +111,7 @@ RDC="E:/GitHub/renderdoc-mcp/_dist/package/renderdoc-mcp-windows-x64-v0.3.0/bin/
 
 独立限制：首轮零附加灯夹具在两 API 的正交测试报 `ClusterBuilder` 未绑定 `_CdClusterItems`，同轮另有 6 个 SSL 相机历史计数断言失败（[D3D11](validation/c3-fog/PlayMode-D3D11.xml) / [D3D12](validation/c3-fog/PlayMode-D3D12.xml)）。单附加灯复跑未复现，不宣称零附加灯通过；本提交未改灯表或缓冲布局。尚未删除 stencil 或执行删除后的 player / T4 / T5 / RenderDoc 验收。
 
-**C3 第二阶段（`646f75a`，未通过最终验收）**。删除 stencil 后的四组 T4/T5 玩家均已构建，最后补跑的 [T4 D3D12](validation/c3/t4/CdArenaT4BuildSummary-Direct3D12.json) 为 0 error。保留原始阈值，未将以下失败改判为通过。
+**C3 第二阶段（`646f75a`）：里程碑 PASS，非全项通过。** 所有者依据[验收例外](DECISIONS.md#c3-验收例外2026-11-22)关闭 T4 删除回归项，接受既有材质跨路径失败；T5 保持 OPEN，不阻塞 C3。以下为 `6575585` 记录的原始结果。删除 stencil 后的四组 T4/T5 玩家均已构建，最后补跑的 [T4 D3D12](validation/c3/t4/CdArenaT4BuildSummary-Direct3D12.json) 为 0 error。保留原始阈值，未将以下失败改判为通过。
 
 | 闸门 | 实测结果 |
 |---|---|
