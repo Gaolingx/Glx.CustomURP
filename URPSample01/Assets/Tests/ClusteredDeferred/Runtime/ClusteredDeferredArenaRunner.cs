@@ -65,6 +65,12 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     readonly List<Quaternion> m_LightRotations = new List<Quaternion>();
     readonly List<Renderer> m_ReceiverRenderers = new List<Renderer>();
     readonly List<Material> m_ReceiverMaterials = new List<Material>();
+    readonly List<Renderer> m_TransparentRenderers = new List<Renderer>();
+    readonly HashSet<int> m_ScreenshotCounts = new HashSet<int>();
+    RectInt m_TransparentRect;
+    Material m_TransparentMaterial;
+    bool m_TransparentEnabled;
+    int m_PerObjectLightLimit = -1;
     readonly List<ModeReport> m_Modes = new List<ModeReport>();
     readonly Dictionary<string, Texture2D> m_Screenshots = new Dictionary<string, Texture2D>();
 #if !UNITY_EDITOR
@@ -101,8 +107,30 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         }
 
         var screenshotLightsArgument = GetArgument("--cd-screenshot-lights");
-        if (!string.IsNullOrEmpty(screenshotLightsArgument) && int.TryParse(screenshotLightsArgument, out var parsedScreenshotLights))
-            screenshotLightCount = parsedScreenshotLights;
+        if (!string.IsNullOrEmpty(screenshotLightsArgument))
+        {
+            var counts = new List<int>();
+            foreach (var token in screenshotLightsArgument.Split(','))
+            {
+                if (int.TryParse(token, out var count) && count >= 0)
+                    counts.Add(count);
+            }
+            if (counts.Count > 0)
+            {
+                screenshotLightCount = counts[0];
+                m_ScreenshotCounts.UnionWith(counts);
+            }
+        }
+        if (m_ScreenshotCounts.Count == 0)
+            m_ScreenshotCounts.Add(screenshotLightCount);
+
+        m_TransparentEnabled = HasArgument("--cd-transparent");
+        if (m_TransparentEnabled)
+            m_TransparentMaterial = Resources.Load<Material>("CdTransparent");
+        var perObjectLimitArgument = GetArgument("--cd-per-object-limit");
+        if (!string.IsNullOrEmpty(perObjectLimitArgument) && int.TryParse(perObjectLimitArgument, out var parsedPerObjectLimit))
+            ApplyPerObjectLightLimit(Mathf.Clamp(parsedPerObjectLimit, 0, UniversalRenderPipeline.maxPerObjectLights));
+        m_PerObjectLightLimit = clusteredDeferredPipeline != null ? clusteredDeferredPipeline.maxAdditionalLightsCount : 0;
 
         var samplesArgument = GetArgument("--cd-samples");
         if (!string.IsNullOrEmpty(samplesArgument) && int.TryParse(samplesArgument, out var parsedSamples))
@@ -273,9 +301,13 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             sampleFrames = sampleFrames,
             lightCounts = lightCounts,
             screenshotLightCount = screenshotLightCount,
+            screenshotLightCounts = SortedScreenshotCounts(),
+            transparentFixture = m_TransparentEnabled,
+            perObjectLightLimit = m_PerObjectLightLimit,
             captureOnly = captureOnly,
             modes = m_Modes,
             diffs = new List<DiffReport>(),
+            forwardPlusDiffs = new List<DiffReport>(),
         };
 
         var routine = captureOnly
@@ -316,6 +348,12 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
 
         report.width = Screen.width;
         report.height = Screen.height;
+        // Global keywords drive the variant selection for every forward draw, including the
+        // transparent group; record them next to the capture so the .rdc's pass structure can be
+        // tied to the light path that was actually compiled.
+        report.additionalLightsPixelKeyword = Shader.IsKeywordEnabled("_ADDITIONAL_LIGHTS");
+        report.additionalLightsVertexKeyword = Shader.IsKeywordEnabled("_ADDITIONAL_LIGHTS_VERTEX");
+        report.forwardPlusKeyword = Shader.IsKeywordEnabled("_FORWARD_PLUS");
         report.completed = true;
         WriteReport(outputRoot, report);
 
@@ -668,7 +706,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                 var cpuTimes = new List<double>(sampleFrames);
                 var gpuTimes = new List<double>(sampleFrames);
                 var timings = new FrameTiming[1];
-                var screenshotRequested = lightCount == screenshotLightCount;
+                var screenshotRequested = m_ScreenshotCounts.Contains(lightCount);
 
                 if (m_ClusterAccess != null && m_ClusterAccess.pruneStatsEnabled)
                 {
@@ -709,6 +747,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                 if (screenshotRequested)
                 {
                     yield return new WaitForEndOfFrame();
+                    if (m_TransparentRect.width == 0)
+                        m_TransparentRect = ComputeProjectedRect();
                     var key = mode.name + "_L" + lightCount;
                     var texture = ScreenCapture.CaptureScreenshotAsTexture();
                     m_Screenshots[key] = texture;
@@ -740,7 +780,11 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             }
         }
 
-        ComputeDiffs(report.diffs);
+        ComputeDiffs(report.diffs, report.forwardPlusDiffs);
+        report.transparentRectX = m_TransparentRect.x;
+        report.transparentRectY = m_TransparentRect.y;
+        report.transparentRectWidth = m_TransparentRect.width;
+        report.transparentRectHeight = m_TransparentRect.height;
         WriteReport(outputRoot, report);
         WriteCsv(outputRoot, report);
 
@@ -1012,7 +1056,7 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
 
     static FeatureComparison CompareFeature(string name, Texture2D reference, Texture2D candidate)
     {
-        var diff = Compare(0, reference, candidate);
+        var diff = Compare(0, name, reference, name, candidate, new RectInt(0, 0, 0, 0));
         return new FeatureComparison
         {
             name = name,
@@ -1048,6 +1092,24 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         QualitySettings.renderPipeline = pipeline;
         yield return null;
         yield return null;
+    }
+
+    // Forward+ ignores the per-object cap; setting it there too keeps the three assets identical.
+    void ApplyPerObjectLightLimit(int limit)
+    {
+        var pipelines = new[] { stencilDeferredPipeline, clusteredDeferredPipeline, forwardPlusPipeline };
+        for (var i = 0; i < pipelines.Length; i++)
+        {
+            if (pipelines[i] != null)
+                pipelines[i].maxAdditionalLightsCount = limit;
+        }
+    }
+
+    int[] SortedScreenshotCounts()
+    {
+        var counts = new List<int>(m_ScreenshotCounts);
+        counts.Sort();
+        return counts.ToArray();
     }
 
     IEnumerator WaitFrames(int frames)
@@ -1139,6 +1201,25 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             m_ReceiverMaterials.Add(box.GetComponent<Renderer>().sharedMaterial);
         }
 
+        // Probe fixture: a row of alpha-blended Lit spheres between the camera and the receivers.
+        // The deferred and stencil paths light them through per-object indices (<= 4 lights by
+        // default), while Forward+ lights them from the cluster list; the diff over this group's
+        // projected rect is the gap this round measures.
+        if (m_TransparentEnabled && m_TransparentMaterial != null)
+        {
+            for (var i = 0; i < 3; i++)
+            {
+                var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                sphere.name = "Transparent Receiver " + i;
+                sphere.transform.SetParent(root, false);
+                sphere.transform.position = new Vector3(-3.8f + i * 3.8f, 4.2f, -8f);
+                sphere.transform.localScale = Vector3.one * 3f;
+                UnityEngine.Object.Destroy(sphere.GetComponent<Collider>());
+                sphere.GetComponent<Renderer>().sharedMaterial = m_TransparentMaterial;
+                m_TransparentRenderers.Add(sphere.GetComponent<Renderer>());
+            }
+        }
+
         SetLightCount(0);
     }
 
@@ -1148,23 +1229,62 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             m_Lights[i].enabled = i < count;
     }
 
-    void ComputeDiffs(List<DiffReport> diffs)
+    // Union of the transparent group's projected bounds, in screen pixels (origin bottom-left, the
+    // same origin GetPixels32 and WorldToScreenPoint use). It is a bounding rect, so it also covers
+    // the background between the spheres.
+    RectInt ComputeProjectedRect()
+    {
+        if (m_TransparentRenderers.Count == 0 || arenaCamera == null)
+            return new RectInt(0, 0, 0, 0);
+
+        var min = new Vector2(float.MaxValue, float.MaxValue);
+        var max = new Vector2(float.MinValue, float.MinValue);
+        for (var r = 0; r < m_TransparentRenderers.Count; r++)
+        {
+            var bounds = m_TransparentRenderers[r].bounds;
+            for (var cornerIndex = 0; cornerIndex < 8; cornerIndex++)
+            {
+                var offset = new Vector3(
+                    (cornerIndex & 1) == 0 ? -bounds.extents.x : bounds.extents.x,
+                    (cornerIndex & 2) == 0 ? -bounds.extents.y : bounds.extents.y,
+                    (cornerIndex & 4) == 0 ? -bounds.extents.z : bounds.extents.z);
+                var screen = arenaCamera.WorldToScreenPoint(bounds.center + offset);
+                if (screen.z <= 0f)
+                    continue;
+                min = Vector2.Min(min, screen);
+                max = Vector2.Max(max, screen);
+            }
+        }
+
+        var xMin = Mathf.Clamp(Mathf.FloorToInt(min.x) - 2, 0, Screen.width);
+        var yMin = Mathf.Clamp(Mathf.FloorToInt(min.y) - 2, 0, Screen.height);
+        var xMax = Mathf.Clamp(Mathf.CeilToInt(max.x) + 2, 0, Screen.width);
+        var yMax = Mathf.Clamp(Mathf.CeilToInt(max.y) + 2, 0, Screen.height);
+        if (xMax <= xMin || yMax <= yMin)
+            return new RectInt(0, 0, 0, 0);
+        return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
+    }
+
+    void ComputeDiffs(List<DiffReport> diffs, List<DiffReport> forwardPlusDiffs)
     {
         foreach (var lightCount in lightCounts)
         {
             Texture2D stencil;
             Texture2D clustered;
-            if (!m_Screenshots.TryGetValue(StencilMode + "_L" + lightCount, out stencil) ||
-                !m_Screenshots.TryGetValue(ClusteredMode + "_L" + lightCount, out clustered))
-            {
-                continue;
-            }
+            Texture2D forwardPlus;
+            var hasStencil = m_Screenshots.TryGetValue(StencilMode + "_L" + lightCount, out stencil);
+            var hasClustered = m_Screenshots.TryGetValue(ClusteredMode + "_L" + lightCount, out clustered);
+            var hasForwardPlus = m_Screenshots.TryGetValue(ForwardPlusMode + "_L" + lightCount, out forwardPlus);
 
-            diffs.Add(Compare(lightCount, stencil, clustered));
+            if (hasStencil && hasClustered)
+                diffs.Add(Compare(lightCount, StencilMode, stencil, ClusteredMode, clustered, m_TransparentRect));
+            if (hasClustered && hasForwardPlus)
+                forwardPlusDiffs.Add(Compare(lightCount, ClusteredMode, clustered, ForwardPlusMode, forwardPlus, m_TransparentRect));
         }
     }
 
-    static DiffReport Compare(int lightCount, Texture2D reference, Texture2D candidate)
+    static DiffReport Compare(int lightCount, string referenceName, Texture2D reference, string candidateName,
+        Texture2D candidate, RectInt rect)
     {
         var a = reference.GetPixels32();
         var b = candidate.GetPixels32();
@@ -1186,9 +1306,11 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         }
 
         var mean = length > 0 ? sum / (length * 3.0) : 0.0;
-        return new DiffReport
+        var report = new DiffReport
         {
             lightCount = lightCount,
+            reference = referenceName,
+            candidate = candidateName,
             pixels = length,
             meanChannelDiff = mean,
             meanChannelDiffNormalized = mean / 255.0,
@@ -1197,6 +1319,46 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             pixelsOverThresholdFraction = length > 0 ? (double)overThreshold / length : 0.0,
             passed = mean <= 2.0 && max <= 24,
         };
+
+        if (rect.width <= 0 || rect.height <= 0 || reference.width != candidate.width || reference.height != candidate.height)
+            return report;
+
+        var width = reference.width;
+        double rectSum = 0.0;
+        var rectMax = 0;
+        var rectOver = 0;
+        var rectPixels = 0;
+        for (var y = rect.y; y < rect.yMax; y++)
+        {
+            for (var x = rect.x; x < rect.xMax; x++)
+            {
+                var index = y * width + x;
+                if (index >= length)
+                    continue;
+                var dr = Mathf.Abs(a[index].r - b[index].r);
+                var dg = Mathf.Abs(a[index].g - b[index].g);
+                var db = Mathf.Abs(a[index].b - b[index].b);
+                var pixelMax = Mathf.Max(dr, Mathf.Max(dg, db));
+                rectSum += dr + dg + db;
+                rectMax = Mathf.Max(rectMax, pixelMax);
+                if (pixelMax > 8)
+                    rectOver++;
+                rectPixels++;
+            }
+        }
+
+        report.hasTransparentRect = true;
+        report.rectX = rect.x;
+        report.rectY = rect.y;
+        report.rectWidth = rect.width;
+        report.rectHeight = rect.height;
+        report.rectPixels = rectPixels;
+        report.rectMeanChannelDiff = rectPixels > 0 ? rectSum / (rectPixels * 3.0) : 0.0;
+        report.rectMaxChannelDiff = rectMax;
+        report.rectPixelsOverThreshold = rectOver;
+        report.rectPixelsOverThresholdFraction = rectPixels > 0 ? (double)rectOver / rectPixels : 0.0;
+        report.rectPassed = report.rectMeanChannelDiff <= 2.0 && rectMax <= 24;
+        return report;
     }
 
     static float MagentaFraction(Color32[] pixels)
@@ -1638,6 +1800,8 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
     public sealed class DiffReport
     {
         public int lightCount;
+        public string reference;
+        public string candidate;
         public int pixels;
         public double meanChannelDiff;
         public double meanChannelDiffNormalized;
@@ -1645,6 +1809,18 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public int pixelsOverThreshold;
         public double pixelsOverThresholdFraction;
         public bool passed;
+        // Transparent-group bounding rect; zeroed when the fixture is off.
+        public bool hasTransparentRect;
+        public int rectX;
+        public int rectY;
+        public int rectWidth;
+        public int rectHeight;
+        public int rectPixels;
+        public double rectMeanChannelDiff;
+        public int rectMaxChannelDiff;
+        public int rectPixelsOverThreshold;
+        public double rectPixelsOverThresholdFraction;
+        public bool rectPassed;
     }
 
     [Serializable]
@@ -1709,11 +1885,22 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
         public int sampleFrames;
         public int[] lightCounts;
         public int screenshotLightCount;
+        public int[] screenshotLightCounts;
+        public bool transparentFixture;
+        public int perObjectLightLimit;
+        public bool additionalLightsPixelKeyword;
+        public bool additionalLightsVertexKeyword;
+        public bool forwardPlusKeyword;
+        public int transparentRectX;
+        public int transparentRectY;
+        public int transparentRectWidth;
+        public int transparentRectHeight;
         public bool captureOnly;
         public bool completed;
         public string error;
         public List<ModeReport> modes;
         public List<DiffReport> diffs;
+        public List<DiffReport> forwardPlusDiffs;
     }
 
     [Serializable]

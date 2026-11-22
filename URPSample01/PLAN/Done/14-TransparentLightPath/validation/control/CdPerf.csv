@@ -1,0 +1,13 @@
+Mode,LightCount,CpuSamples,CpuMeanMs,CpuMedianMs,CpuP95Ms,GpuSamples,GpuMeanMs,GpuMedianMs,GpuP95Ms,Screenshot,MagentaFraction
+StencilDeferred,0,150,0.8833,0.8481,1.3225,116,0.1915,0.1344,0.7035,StencilDeferred_L0.png,0.000000
+StencilDeferred,8,150,0.9815,0.9644,1.1715,134,0.2407,0.1759,0.5619,StencilDeferred_L8.png,0.000000
+StencilDeferred,48,150,1.5198,1.5127,1.8480,131,0.6188,0.5676,0.9976,StencilDeferred_L48.png,0.000000
+StencilDeferred,256,150,4.2435,4.2948,4.9236,132,1.9292,1.7080,3.3654,StencilDeferred_L256.png,0.000000
+ClusteredDeferred,0,150,0.9360,0.8956,1.1386,114,0.2218,0.1810,0.3850,ClusteredDeferred_L0.png,0.000000
+ClusteredDeferred,8,150,0.9297,0.9179,1.2590,122,0.2574,0.2143,0.4649,ClusteredDeferred_L8.png,0.000000
+ClusteredDeferred,48,150,1.1260,1.1013,1.3677,129,0.4101,0.3336,0.9518,ClusteredDeferred_L48.png,0.000000
+ClusteredDeferred,256,150,2.0573,1.9454,3.1814,119,1.2769,1.1430,2.8211,ClusteredDeferred_L256.png,0.000000
+ForwardPlus,0,150,1.0310,0.9896,1.2600,125,0.3319,0.2460,0.6674,ForwardPlus_L0.png,0.000000
+ForwardPlus,8,150,1.2138,1.1755,1.4450,114,0.3451,0.2644,0.7153,ForwardPlus_L8.png,0.000000
+ForwardPlus,48,150,1.4463,1.4033,1.8503,113,0.4552,0.3738,0.9487,ForwardPlus_L48.png,0.000000
+ForwardPlus,256,150,2.3320,2.2539,2.9426,113,1.2198,1.0857,1.8496,ForwardPlus_L256.png,0.000000

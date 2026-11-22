@@ -48,6 +48,10 @@ public static class ClusteredDeferredTestAssetSetup
     const string SourceForwardPlusRenderer = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationForwardPlusRenderer.asset";
     const string SourceForwardPlusPipeline = "Assets/Tests/ScreenSpaceLighting/Renderers/SslValidationForwardPlusPipeline.asset";
     const string ReceiveShadowsOffMaterialPath = Root + "/Materials/CdReceiveShadowsOff.mat";
+    // Loaded by name from ClusteredDeferredArenaRunner for the --cd-transparent probe; a Resources
+    // asset keeps the transparent Lit variants in the player without adding a scene field (the
+    // arena scene is regenerated on every build, so extra serialized fields churn its diff).
+    const string TransparentMaterialPath = Root + "/Resources/CdTransparent.mat";
     const string CookieTexturePath = TextureFolder + "/CdSpotCookie.png";
     const string FloorMaterial = "Assets/Tests/ScreenSpaceLighting/Materials/Ground.mat";
     const string SphereMaterial = "Assets/Tests/ScreenSpaceLighting/Materials/SmoothDielectric.mat";
@@ -82,6 +86,7 @@ public static class ClusteredDeferredTestAssetSetup
         EnsureFolder(Root, "Renderers");
         EnsureFolder(Root, "Materials");
         EnsureFolder(Root, "Textures");
+        EnsureFolder(Root, "Resources");
 
         var deferredRenderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(SourceDeferredRenderer);
         var deferredPipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(SourceDeferredPipeline);
@@ -339,6 +344,7 @@ public static class ClusteredDeferredTestAssetSetup
             throw new FileNotFoundException("Missing one of the arena materials.");
 
         var receiveShadowsOff = CreateReceiveShadowsOffMaterial(sphere);
+        CreateTransparentMaterial(sphere);
 
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -416,6 +422,40 @@ public static class ClusteredDeferredTestAssetSetup
 
         var material = AssetDatabase.LoadAssetAtPath<Material>(ReceiveShadowsOffMaterialPath);
         material.EnableKeyword("_RECEIVE_SHADOWS_OFF");
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssets();
+        return material;
+    }
+
+    // A transparent copy of the arena's Lit material. The runner spawns it only for the
+    // --cd-transparent probe, but the asset is in Resources so the player build keeps the
+    // _SURFACE_TYPE_TRANSPARENT variants of the forward and Forward+ passes.
+    static Material CreateTransparentMaterial(Material source)
+    {
+        AssetDatabase.DeleteAsset(TransparentMaterialPath);
+        var sourcePath = AssetDatabase.GetAssetPath(source);
+        if (!AssetDatabase.CopyAsset(sourcePath, TransparentMaterialPath))
+            throw new InvalidOperationException("Unable to copy " + sourcePath);
+
+        var material = AssetDatabase.LoadAssetAtPath<Material>(TransparentMaterialPath);
+        material.SetFloat("_Surface", 1f);
+        material.SetFloat("_Blend", 0f);
+        material.SetFloat("_BlendModePreserveSpecular", 0f);
+        material.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+        material.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+        material.SetFloat("_SrcBlendAlpha", (float)BlendMode.One);
+        material.SetFloat("_DstBlendAlpha", (float)BlendMode.OneMinusSrcAlpha);
+        material.SetFloat("_ZWrite", 0f);
+        material.SetFloat("_AlphaClip", 0f);
+        material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        material.DisableKeyword("_ALPHATEST_ON");
+        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        material.renderQueue = (int)RenderQueue.Transparent;
+        material.SetOverrideTag("RenderType", "Transparent");
+        var color = material.GetColor("_BaseColor");
+        color.a = 0.55f;
+        material.SetColor("_BaseColor", color);
+        material.SetColor("_Color", color);
         EditorUtility.SetDirty(material);
         AssetDatabase.SaveAssets();
         return material;

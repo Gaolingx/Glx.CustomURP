@@ -33,6 +33,7 @@
 | 11-LightCulling | ✅* | 5 PASS、2 PASS*、1 PARTIAL、1 ACCEPTED | mixed lighting-shadowmask 为 PARTIAL（无 baked shadowmask 数据）；T2/T3 的逐元素 parity JSON 未单列，由 T4/T5/PlayMode A/B 覆盖；T6 可选未补 GBuffer |
 | 12-GpuLightList | ✅ PASS | 2 PASS、2 ACCEPTED（NO-GO） | 默认同步 GPU 列表 + 位图；G2/G3 实现保留为默认关闭的 A/B；透明/forward-only 接管未覆盖 |
 | 13-GpuLightList256 | ✅ PASS | 1 PASS（G2/G3 仍 NO-GO） | 256 灯 parity 成立、zbin 409 档；clustered GPU 1.270 vs stencil 1.763 ms；256 灯 A/B 需改用 Forward+ 参照 |
+| 14-TransparentLightPath | ✅ PASS | 探针（4 闸门 PASS/FAIL 如实记录） | 透明像素 256 灯 89.4% 与 cluster 语义差 >8；上限 8 只降到 66.5%；帧时间增量在噪声内；决定 GO C2 |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -519,7 +520,7 @@ PY
 
 **判定说明**：G1 的 tile parity 按冻结时修订的闸门执行（CPU ⊆ GPU + 像素逐位一致），因为 HLSL 与 Burst `FloatMode.Fast` 的三角函数差 1 ulp 就会翻位；zbin 仍要求逐位相等。G2/G3 记为 ACCEPTED 而非 FAIL：两者都已完成实现、测量与回归，负结果被如实记录并保留为可复现的 A/B 与扩展性基础设施。
 
-**能力边界**：仍不覆盖透明/forward-only 灯路径（D-G4，clean.md C2）、XR/foveated、GLES、MSAA、`useStructuredBuffer=true`、GPU 灯注册表（C8）。CPU jobs 与 stencil deferred 因此保留为回退与 A/B 参照，C2–C8 的删除必须等透明接管与 D-C2/D-C3 决策。256+ 灯已由 [13-GpuLightList256](Done/13-GpuLightList256/HANDOFF.md) 实测为成立（见 §17）。
+**能力边界**：仍不覆盖透明/forward-only 灯路径（D-G4，clean.md C2）、XR/foveated、GLES、MSAA、`useStructuredBuffer=true`、GPU 灯注册表（C8）。CPU jobs 与 stencil deferred 因此保留为回退与 A/B 参照，C2–C8 的删除必须等透明接管与 D-C2/D-C3 决策。256+ 灯已由 [13-GpuLightList256](Done/13-GpuLightList256/HANDOFF.md) 实测为成立（见 §17）；透明路径的差距与 C2 决策见 §18。
 
 ## 17. 13-GpuLightList256（已归档，2026-11-22）
 
@@ -537,3 +538,20 @@ PY
 | 决策 | ✅ | HANDOFF §4.4 | 保持 GPU 列表默认；256 扩展性待证项关闭；下一缺口为透明/forward-only（D-G4 / C2） |
 
 **边界**：256 灯场是每 64 盏复用位置的最坏重叠场（96/256 item 整屏），不代表空间均匀分布；只测 D3D11 720p 单卡。跨运行像素噪声 mean ≈0.11 / 5,750 px >8，结论均取同一次运行内的对比。
+
+## 18. 14-TransparentLightPath（已归档，2026-11-22）
+
+> 范围：透明/forward-only 接管（12 轮 D-G4 / clean.md C2）的决策探针。只加夹具与 CLI，不改默认路径。
+> 计划/结果：[PLAN/Done/14-TransparentLightPath/HANDOFF.md](Done/14-TransparentLightPath/HANDOFF.md)；证据：[validation/README.md](Done/14-TransparentLightPath/validation/README.md)、`rdc/transparent-clustered-d3d11_frame228.rdc`。
+> 结论：**PASS（探针完成）；GO C2。** 只提高 `maxAdditionalLightsCount` 不足以免除分歧。
+
+| 项 | 结论 | 证据 | 说明 |
+|---|---|---|---|
+| 夹具与无回归 | ✅ PASS | `validation/control/` | 3 个半透明 Lit 球（alpha 0.55），`--cd-transparent` 开启；对照 48 灯 S/C 0.806/9、C/F 0.209，与 13 轮一致 |
+| G-T1 差异存在 | ✅ PASS | `validation/limit4/` | footprint（≈12–13% 屏幕）内 C/F：48 灯 mean 4.59、15.5% 像素 >8；256 灯 mean 51.4、89.4% 像素 >8；0/8 灯仅 0.02% |
+| G-T2 上限不可解 | ❌ FAIL（闸门） | `validation/limit8/` | 上限 4→8：48 灯 >8 比例 15.5%→4.2%，256 灯 89.4%→66.5%；残余远高于 2/255 |
+| G-T3 成本 | ○ 未达“可忽略” | 三组 `CdPerf.json` | per-object 路径（stencil/clustered）\|Δ\| ≤ 0.06 ms；Forward+ 256 灯 +0.17–0.18 ms（逐像素扫完整 cluster）；不影响 C2 的正确性结论 |
+| RenderDoc | ✅ | `rdc/` | 透明球在 `DrawTransparentObjects`（EID 677/680/683）；PS 无 structured buffer，cluster SRV 只在 EID 624 的光照 dispatch；抓帧进程关键字 `_ADDITIONAL_LIGHTS=1`、`_FORWARD_PLUS=0` |
+| 归档 | ✅ | 本节 | TODO→Done；`ValidationRoot` 指向 Done；构建副作用（场景/renderer/ProjectSettings 重序列化）已还原 |
+
+**边界**：footprint 用 on/off 差分近似；只覆盖 Lit 透明（forward-only 不透明物体按同一 per-object 路径外推）；256 灯场为最坏重叠场；只测 D3D11 720p 单卡。
