@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-23 20:40:39Z" end-time="2026-11-23 20:40:40Z" duration="0.8369872">
+  <test-suite type="TestSuite" id="1000" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="493" result="Passed" start-time="2026-11-23 20:40:39Z" end-time="2026-11-23 20:40:40Z" duration="0.836987" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1003" name="Assembly-CSharp-Editor.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Assembly-CSharp-Editor.dll" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-23 20:40:40Z" end-time="2026-11-23 20:40:40Z" duration="0.292148" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="29300" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestFixture" id="1001" name="ContactShadowFeatureImportTests" fullname="ContactShadowFeatureImportTests" classname="ContactShadowFeatureImportTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-23 20:40:40Z" end-time="2026-11-23 20:40:40Z" duration="0.290759" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1002" name="InspectorImportsSurviveDomainReload" fullname="ContactShadowFeatureImportTests.InspectorImportsSurviveDomainReload" methodname="InspectorImportsSurviveDomainReload" classname="ContactShadowFeatureImportTests" runstate="Runnable" seed="2039429536" result="Passed" start-time="2026-11-23 20:40:37Z" end-time="2026-11-23 20:40:40Z" duration="3.134251" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+        </test-case>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1551" name="Unity.RenderPipelines.Universal.Editor.Tests.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll" runstate="Runnable" testcasecount="492" result="Passed" start-time="2026-11-23 20:40:40Z" end-time="2026-11-23 20:40:40Z" duration="0.032182" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="29300" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1553" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="255" result="Passed" start-time="2026-11-23 20:40:40Z" end-time="2026-11-23 20:40:40Z" duration="0.026757" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1554" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="255" result="Passed" start-time="2026-11-23 20:40:40Z" end-time="2026-11-23 20:40:40Z" duration="0.024561" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1555" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="255" result="Passed" start-time="2026-11-23 20:40:40Z" end-time="2026-11-23 20:40:40Z" duration="0.021519" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1556" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="255" result="Passed" start-time="2026-11-23 20:40:40Z" end-time="2026-11-23 20:40:40Z" duration="0.018466" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1230" name="ContactShadowVolumeTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-23 20:40:40Z" end-time="2026-11-23 20:40:40Z" duration="0.012498" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1231" name="DefaultsAndParameterBoundsMatchContract" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests.DefaultsAndParameterBoundsMatchContract" methodname="DefaultsAndParameterBoundsMatchContract" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" runstate="Runnable" seed="415631544" result="Passed" start-time="2026-11-23 20:40:40Z" end-time="2026-11-23 20:40:40Z" duration="0.003311" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1232" name="DisabledStackDoesNotEnqueueAndMissingComputeWarnsOnce" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests.DisabledStackDoesNotEnqueueAndMissingComputeWarnsOnce" methodname="DisabledStackDoesNotEnqueueAndMissingComputeWarnsOnce" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" runstate="Runnable" seed="1841966711" result="Passed" start-time="2026-11-23 20:40:40Z" end-time="2026-11-23 20:40:40Z" duration="0.005014" asserts="0">
+                  <properties />
+                  <output><![CDATA[Screen Space Contact Shadows requires both a depth pyramid compute shader and a contact shadows compute shader.
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

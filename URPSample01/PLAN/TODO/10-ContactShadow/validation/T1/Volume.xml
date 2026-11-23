@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Passed" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-23 20:09:27Z" end-time="2026-11-23 20:09:27Z" duration="0.0734631">
+  <test-suite type="TestSuite" id="1562" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="492" result="Passed" start-time="2026-11-23 20:09:27Z" end-time="2026-11-23 20:09:27Z" duration="0.073463" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="2112" name="Unity.RenderPipelines.Universal.Editor.Tests.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll" runstate="Runnable" testcasecount="492" result="Passed" start-time="2026-11-23 20:09:27Z" end-time="2026-11-23 20:09:27Z" duration="0.054877" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="88128" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="2114" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="255" result="Passed" start-time="2026-11-23 20:09:27Z" end-time="2026-11-23 20:09:27Z" duration="0.049132" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2115" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="255" result="Passed" start-time="2026-11-23 20:09:27Z" end-time="2026-11-23 20:09:27Z" duration="0.045066" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2116" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="255" result="Passed" start-time="2026-11-23 20:09:27Z" end-time="2026-11-23 20:09:27Z" duration="0.041748" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="2117" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="255" result="Passed" start-time="2026-11-23 20:09:27Z" end-time="2026-11-23 20:09:27Z" duration="0.038167" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1791" name="ContactShadowVolumeTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-23 20:09:27Z" end-time="2026-11-23 20:09:27Z" duration="0.031398" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1792" name="DefaultsAndParameterBoundsMatchContract" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests.DefaultsAndParameterBoundsMatchContract" methodname="DefaultsAndParameterBoundsMatchContract" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" runstate="Runnable" seed="1555333444" result="Passed" start-time="2026-11-23 20:09:27Z" end-time="2026-11-23 20:09:27Z" duration="0.014595" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1793" name="DisabledStackDoesNotEnqueueAndMissingComputeWarnsOnce" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests.DisabledStackDoesNotEnqueueAndMissingComputeWarnsOnce" methodname="DisabledStackDoesNotEnqueueAndMissingComputeWarnsOnce" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" runstate="Runnable" seed="895026467" result="Passed" start-time="2026-11-23 20:09:27Z" end-time="2026-11-23 20:09:27Z" duration="0.004356" asserts="0">
+                  <properties />
+                  <output><![CDATA[Screen Space Contact Shadows requires both a depth pyramid compute shader and a contact shadows compute shader.
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

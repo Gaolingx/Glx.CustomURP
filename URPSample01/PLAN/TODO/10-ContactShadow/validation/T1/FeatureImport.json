@@ -1,0 +1,19 @@
+{
+    "pipeline": "Assets/T1ContactShadow_9fec1be228d845ab84af7fb5592087cd/Pipeline.asset#8009581bf4d57e440aaadc117be6f4f5:11400000",
+    "defaultRenderer": "Assets/T1ContactShadow_9fec1be228d845ab84af7fb5592087cd/Renderer.asset#496e6e3d63e93af4a88e2c904155ce8c:11400000",
+    "rendererFeature": "Assets/T1ContactShadow_9fec1be228d845ab84af7fb5592087cd/Renderer.asset#496e6e3d63e93af4a88e2c904155ce8c:-751542860190282873",
+    "debugMode": "Slot",
+    "rendererFeatureMap0": -751542860190282873,
+    "debugSlot": 17,
+    "contactShadowsCompute": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceCommon/BilateralUpsample.compute#d5ac01cf82505cd4595b75fe9fc6d47c:7200000",
+    "depthPyramidCompute": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceCommon/DepthPyramid.compute#e0af0549a8ee5484f995fb60630c4558:7200000",
+    "debugShader": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Blit.shader#c17132b1f77d20942aa75f8429c0f8bc:4800000",
+    "prefab": "Assets/T1ContactShadow_9fec1be228d845ab84af7fb5592087cd/Light.prefab#0079a2aa9d815bb46a6a4109ca049c20:9019734082675729034",
+    "light": "Assets/T1ContactShadow_9fec1be228d845ab84af7fb5592087cd/Light.prefab#0079a2aa9d815bb46a6a4109ca049c20:6867577577242720954",
+    "contactShadowLight": "Assets/T1ContactShadow_9fec1be228d845ab84af7fb5592087cd/Light.prefab#0079a2aa9d815bb46a6a4109ca049c20:7907251564970241167",
+    "sharedProfile": "Assets/T1ContactShadow_9fec1be228d845ab84af7fb5592087cd/Profile.asset#913d6f68b490bbf49aebeee45a17f5c6:11400000",
+    "profileComponent": "Assets/T1ContactShadow_9fec1be228d845ab84af7fb5592087cd/Profile.asset#913d6f68b490bbf49aebeee45a17f5c6:-7527191772399089729",
+    "castContactShadows": false,
+    "volumeEnabled": true,
+    "volumeEnabledOverride": true
+}
