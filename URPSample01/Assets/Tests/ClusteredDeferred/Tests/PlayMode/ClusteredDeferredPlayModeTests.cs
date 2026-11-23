@@ -29,7 +29,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         const int WarmupFrames = 3;
         const float kMeanThreshold = 2.0f;
         const float kMaxThreshold = 24.0f;
-        // Accepted deferred-vs-forward material difference (PLAN/TODO/19-C7Final/DECISIONS.md D-C7-2).
+        // Accepted deferred-vs-forward material difference (PLAN/Done/19-C7Final/DECISIONS.md D-C7-2).
         // The over-threshold mask is byte-identical since 5ab7626 on both APIs; the area may shrink
         // but any growth is a new difference and must fail.
         const int kKnownMaterialDifferencePixels = 1674;

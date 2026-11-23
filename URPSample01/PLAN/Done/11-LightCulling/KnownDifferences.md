@@ -1,6 +1,6 @@
 # 11-LightCulling 已知差异
 
-> **SUPERSEDED（旧 stencil 基线）**：历史 stencil 与 clustered 的差异不代表当前回退行为。双 API 256 灯跨版本图差与 1674 像素材质差已按 [D-C7-1](../../TODO/19-C7Final/DECISIONS.md) 记为 ACCEPTED 已知差异（1674 为冻结上限，256 灯跨版本比较因缺灯索引逐次随机而不作门槛）。见[当前验收口径](../../ACCEPTANCE.md#c7-decision)。
+> **SUPERSEDED（旧 stencil 基线）**：历史 stencil 与 clustered 的差异不代表当前回退行为。双 API 256 灯跨版本图差与 1674 像素材质差已按 [D-C7-1](../../Done/19-C7Final/DECISIONS.md) 记为 ACCEPTED 已知差异（1674 为冻结上限，256 灯跨版本比较因缺灯索引逐次随机而不作门槛）。见[当前验收口径](../../ACCEPTANCE.md#c7-decision)。
 
 Clustered Deferred (URP BRDF) 与 stencil deferred / Forward+ 的已知差异、边界与未验证项。验收阈值与证据见 `report.md`、`validation/`。
 

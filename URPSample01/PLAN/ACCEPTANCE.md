@@ -38,6 +38,9 @@
 | 14-TransparentLightPath | ✅ PASS | 探针（4 闸门 PASS/FAIL 如实记录） | 透明像素 256 灯 89.4% 与 cluster 语义差 >8；上限 8 只降到 66.5%；帧时间增量在噪声内；决定 GO C2 |
 | 15-ForwardClusterLights | ✅ PASS | C2 实现（8 闸门） | 透明/forward-only 改读结构化 cluster 位图；256 灯 footprint >8 从 87.9%→0.18%、48 灯 15.4%→0.11%；control A/B 不回归 |
 | 16-CleanupBaseline | 已归档，C4a 限定例外 | T4 56/56；T5 24/32，OPEN | [C3 决策](Done/16-CleanupBaseline/DECISIONS.md)：接受既有材质与 T4 跨路径差异；复测双 API 各四张 L256 同路径图超阈，未扩大例外。 |
+| 17-C4bLightLayout | ✅ PASS（定向） | 双 API 定向 EditMode 20/20、PlayMode 16/17；T4 56/56、T5 24/32 | 唯一失败为 1674 像素材质差（后按 D-C7-1 ACCEPTED）；L256 图差按 D-C7-1 不作门槛。 |
+| 18-C5Cleanup | ✅ PASS | 双 API 全量 EditMode 489/489、PlayMode 45/46；构建 0 error；变体 6144/1280 Δ0 | 唯一失败为 1674 像素材质差（后按 D-C7-1 ACCEPTED）。 |
+| 19-C7Final | ○ ACCEPTED（带已知差异） | 结构、变体、T12、边界与 Forward+ 对父版回收 75–77% 通过 | Forward+ 256 对 C0 +0.20 ms、1674、256 灯跨版本图差按 [D-C7-1](Done/19-C7Final/DECISIONS.md) 接受 |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -614,8 +617,8 @@ PY
 
 | 阶段 | 当前判定 | 证据 |
 |---|---|---|
-| C4b `10ed839` | Forward+ 与 clustered deferred 共用一个结构化 word buffer；双 API 已验证 compute 写、首个 Forward+ draw 读。T4 同路径 56/56，T5 24/32，双 API 的 L256 仍 OPEN。 | [定向验收与边界](TODO/17-C4bLightLayout/RESULTS.txt) |
-| C5 `6023d29` | 移除四组无引用 stencil 测试资产；双 API 玩家构建 0 error，Lit/ForwardLit(fp) 6144、compute 1280，均 Δ0。两 API 全量 EditMode 各 489/489；PlayMode 各 45/46，材质跨路径 1674 px 超阈（限 230），仍 FAIL。 | [资产依据、剥离计数与 XML](TODO/18-C5Cleanup/report.md) |
+| C4b `10ed839` | Forward+ 与 clustered deferred 共用一个结构化 word buffer；双 API 已验证 compute 写、首个 Forward+ draw 读。T4 同路径 56/56，T5 24/32；双 API 的 L256 图差后按 D-C7-1 不作门槛。 | [定向验收与边界](Done/17-C4bLightLayout/RESULTS.txt) |
+| C5 `6023d29` | 移除四组无引用 stencil 测试资产；双 API 玩家构建 0 error，Lit/ForwardLit(fp) 6144、compute 1280，均 Δ0。两 API 全量 EditMode 各 489/489；PlayMode 各 45/46，材质跨路径 1674 px 超阈，后按 D-C7-1 ACCEPTED。 | [资产依据、剥离计数与 XML](Done/18-C5Cleanup/report.md) |
 | C6 | **SUPERSEDED**：11 轮的 stencil A/B、旧构建和变体报告不再是当前执行步骤或预算。历史证据不覆盖；现有 Forward+ 对照和冻结的逐路径参照仍有效，不能互相替代。 | [已知差异](Done/11-LightCulling/KnownDifferences.md)、[历史报告](Done/11-LightCulling/report.md)、[交接](Done/11-LightCulling/HANDOFF.md)、[清理计划](Done/12-GpuLightList/clean.md) |
 
 ## 22. C7 最终验收：FAIL（2026-11-23，已被 §23 取代：ACCEPTED，带已知差异）
@@ -626,14 +629,14 @@ PY
 - 严格用原 C0 参照，T4 clustered 两端各 13/14，原 C0 无 Forward+ 图；匹配夹具对照另为 56/56。T5 正式轮 26/32，6 张失败均为 256 灯，独立首轮另为 24/32。
 - 同机三轮配对中，D3D12 透明 Forward+、256 灯的 CPU 中位数增加 0.9463 ms，GPU 增加 0.9285 ms；三轮同向，不作噪声豁免，尚未定位到具体改动。
 
-[最终报告与证据口径](TODO/19-C7Final/report.md) · [逐图矩阵](TODO/19-C7Final/matrix.csv) · [逐轮性能](TODO/19-C7Final/performance.csv)。报告中的工作树判定是提交证据前的快照，不是渲染门槛。
+[最终报告与证据口径](Done/19-C7Final/report.md) · [逐图矩阵](Done/19-C7Final/matrix.csv) · [逐轮性能](Done/19-C7Final/performance.csv)。报告中的工作树判定是提交证据前的快照，不是渲染门槛。
 
-**主线 `1bcc731` 复验：C7 仍 FAIL。** 父版 `61e3859` 双 API 均只漏末行、末列与角点；候选共享粗筛/常规 expand 各 5/5，实际 Forward+ expand 各 11/11。候选 256 灯 Forward+ GPU 对父版每帧回收 **0.6093–0.6835 ms**，但四格仍比同轮冻结 C0 慢 **0.1976–0.2089 ms**。双 API 候选每端多一个实际 compute 程序，Lit/ForwardLit 与 ClusteredDeferred 的原预算未超。原生 T5 与冻结 PNG 三轮对照，0/8/48 灯 72/72，256 灯仅 2/24；另行同帧诊断的八对跨版本图均有一盏上传灯 ID 替换，不能作为等灯集渲染对照。候选两端 EditMode 各 490/490、PlayMode 各 45/46；24 灯材质超阈的 1674 个位置与历史基线逐像素一致，仍超过 230 的上限。候选 RenderDoc 结构双 API 通过，T12 同路径各 85/85。T4 对冻结 C0 各 13/14（同一张 ReceiveShadowsOff，peak 240），对匹配夹具各 28/28；玩家自身跨路径各 0/7。[T4/T12 原始判定](TODO/19-C7Final/main-extra/results.json) · [主线原始证据与分项判定](TODO/19-C7Final/report.md#main-1bcc731) · [主线配对性能](TODO/19-C7Final/main-performance.csv)。
+**主线 `1bcc731` 复验：C7 仍 FAIL。** 父版 `61e3859` 双 API 均只漏末行、末列与角点；候选共享粗筛/常规 expand 各 5/5，实际 Forward+ expand 各 11/11。候选 256 灯 Forward+ GPU 对父版每帧回收 **0.6093–0.6835 ms**，但四格仍比同轮冻结 C0 慢 **0.1976–0.2089 ms**。双 API 候选每端多一个实际 compute 程序，Lit/ForwardLit 与 ClusteredDeferred 的原预算未超。原生 T5 与冻结 PNG 三轮对照，0/8/48 灯 72/72，256 灯仅 2/24；另行同帧诊断的八对跨版本图均有一盏上传灯 ID 替换，不能作为等灯集渲染对照。候选两端 EditMode 各 490/490、PlayMode 各 45/46；24 灯材质超阈的 1674 个位置与历史基线逐像素一致，仍超过 230 的上限。候选 RenderDoc 结构双 API 通过，T12 同路径各 85/85。T4 对冻结 C0 各 13/14（同一张 ReceiveShadowsOff，peak 240），对匹配夹具各 28/28；玩家自身跨路径各 0/7。[T4/T12 原始判定](Done/19-C7Final/main-extra/results.json) · [主线原始证据与分项判定](Done/19-C7Final/report.md#main-1bcc731) · [主线配对性能](Done/19-C7Final/main-performance.csv)。
 
 <a id="c7-decision"></a>
 ## 23. C7 验收口径调整：ACCEPTED（带已知差异，2026-11-23）
 
-所有者决定降低 C7 签收门槛：不再追求逐像素一致，并接受 Forward+ 256 相对 C0 的性能差。原始测量与 §22 的 FAIL 字面记录不改写；当前状态以 [D-C7-1](TODO/19-C7Final/DECISIONS.md) 为准，C7 不再阻塞后续阶段。
+所有者决定降低 C7 签收门槛：不再追求逐像素一致，并接受 Forward+ 256 相对 C0 的性能差。原始测量与 §22 的 FAIL 字面记录不改写；当前状态以 [D-C7-1](Done/19-C7Final/DECISIONS.md) 为准，C7 不再阻塞后续阶段。
 
 | 项 | 原判定 | 现判定 | 依据 |
 |---|---|---|---|
