@@ -618,7 +618,7 @@ PY
 | C5 `6023d29` | 移除四组无引用 stencil 测试资产；双 API 玩家构建 0 error，Lit/ForwardLit(fp) 6144、compute 1280，均 Δ0。两 API 全量 EditMode 各 489/489；PlayMode 各 45/46，材质跨路径 1674 px 超阈（限 230），仍 FAIL。 | [资产依据、剥离计数与 XML](TODO/18-C5Cleanup/report.md) |
 | C6 | **SUPERSEDED**：11 轮的 stencil A/B、旧构建和变体报告不再是当前执行步骤或预算。历史证据不覆盖；现有 Forward+ 对照和冻结的逐路径参照仍有效，不能互相替代。 | [已知差异](Done/11-LightCulling/KnownDifferences.md)、[历史报告](Done/11-LightCulling/report.md)、[交接](Done/11-LightCulling/HANDOFF.md)、[清理计划](Done/12-GpuLightList/clean.md) |
 
-## 22. C7 最终验收：FAIL（2026-11-23）
+## 22. C7 最终验收：FAIL（2026-11-23，已被 §23 取代：ACCEPTED，带已知差异）
 
 代码 `6023d29`，C0 `f0c7ec4`。旧 stencil 灯体积实现与关键字零命中，Shader.Find 实测为空；双 API 构建、变体及最终玩家 RenderDoc 结构通过。C0 对最终版的 SSL T12 同路径图像均为 85/85。**不签全绿，不放宽阈值**：
 
@@ -629,3 +629,17 @@ PY
 [最终报告与证据口径](TODO/19-C7Final/report.md) · [逐图矩阵](TODO/19-C7Final/matrix.csv) · [逐轮性能](TODO/19-C7Final/performance.csv)。报告中的工作树判定是提交证据前的快照，不是渲染门槛。
 
 **主线 `1bcc731` 复验：C7 仍 FAIL。** 父版 `61e3859` 双 API 均只漏末行、末列与角点；候选共享粗筛/常规 expand 各 5/5，实际 Forward+ expand 各 11/11。候选 256 灯 Forward+ GPU 对父版每帧回收 **0.6093–0.6835 ms**，但四格仍比同轮冻结 C0 慢 **0.1976–0.2089 ms**。双 API 候选每端多一个实际 compute 程序，Lit/ForwardLit 与 ClusteredDeferred 的原预算未超。原生 T5 与冻结 PNG 三轮对照，0/8/48 灯 72/72，256 灯仅 2/24；另行同帧诊断的八对跨版本图均有一盏上传灯 ID 替换，不能作为等灯集渲染对照。候选两端 EditMode 各 490/490、PlayMode 各 45/46；24 灯材质超阈的 1674 个位置与历史基线逐像素一致，仍超过 230 的上限。候选 RenderDoc 结构双 API 通过，T12 同路径各 85/85。T4 对冻结 C0 各 13/14（同一张 ReceiveShadowsOff，peak 240），对匹配夹具各 28/28；玩家自身跨路径各 0/7。[T4/T12 原始判定](TODO/19-C7Final/main-extra/results.json) · [主线原始证据与分项判定](TODO/19-C7Final/report.md#main-1bcc731) · [主线配对性能](TODO/19-C7Final/main-performance.csv)。
+
+<a id="c7-decision"></a>
+## 23. C7 验收口径调整：ACCEPTED（带已知差异，2026-11-23）
+
+所有者决定降低 C7 签收门槛：不再追求逐像素一致，并接受 Forward+ 256 相对 C0 的性能差。原始测量与 §22 的 FAIL 字面记录不改写；当前状态以 [D-C7-1](TODO/19-C7Final/DECISIONS.md) 为准，C7 不再阻塞后续阶段。
+
+| 项 | 原判定 | 现判定 | 依据 |
+|---|---|---|---|
+| 24 灯材质跨路径 1674 px | FAIL（限 230） | **ACCEPTED，上限冻结为 1674，只允许减少** | 双 API 同值；掩码自 `5ab7626` 逐字节相同；四个接收物内部的 mean/peak 仍按原阈值；改后双 API 实测通过 |
+| Forward+ 256 相对 C0 +0.1976–0.2089 ms | FAIL | **ACCEPTED 结构性成本** | 反推建表成本 0.2040–0.2161 ms；C0 的 Forward+ 走 CPU jobs，候选走五次 dispatch；候选 clustered 相对 C0 未退化 |
+| 256 灯 C0↔候选图 2/24 | FAIL | **不作为渲染门槛**；等灯集夹具为可选诊断 | 八对失败图均替换一盏上传灯且缺灯索引逐次随机，跨版本比较不可解释 |
+| T4 对冻结 C0 各 13/14 | FAIL | **ACCEPTED 参照漂移**；权威对照为匹配夹具 28/28 | 原 C0 与最终夹具输入不同，原 C0 无 Forward+ 图；不覆盖原图 |
+
+仍保留的回归门槛：0/8/48 灯冻结图 72/72、T12 双 API 85/85、T4 匹配夹具 28/28、expand 几何双 API 11/11、玩家 GPU 结构与变体预算、Forward+ 对父版回收 0.6093–0.6835 ms。测试侧 `ClusteredMatchesForwardPlusAcrossMaterialTypes` 的 `over8` 上限已改为 1674，其余断言不变。

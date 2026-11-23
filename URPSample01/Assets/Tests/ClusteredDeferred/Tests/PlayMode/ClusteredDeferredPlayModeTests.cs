@@ -29,6 +29,10 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         const int WarmupFrames = 3;
         const float kMeanThreshold = 2.0f;
         const float kMaxThreshold = 24.0f;
+        // Accepted deferred-vs-forward material difference (PLAN/TODO/19-C7Final/DECISIONS.md D-C7-2).
+        // The over-threshold mask is byte-identical since 5ab7626 on both APIs; the area may shrink
+        // but any growth is a new difference and must fail.
+        const int kKnownMaterialDifferencePixels = 1674;
 
         public struct TileCase
         {
@@ -117,10 +121,12 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
                 Assert.LessOrEqual(diff.mean, kMeanThreshold,
                     $"mean channel difference {diff.mean:0.###}/255 exceeds {kMeanThreshold}");
                 // C0 control measured isolated Forward+/GBuffer peaks up to 86/255. Allow those
-                // outliers only in the whole frame; keep the tight interior, mean and area gates.
+                // outliers only in the whole frame; keep the tight interior and mean gates. The
+                // over-threshold area is the frozen known difference, not a pixel-identity gate.
                 Assert.LessOrEqual(diff.max, 96f, "Whole-frame Forward+ peak (in 1/255 units).");
-                Assert.LessOrEqual(diff.over8, clustered.Length / 1000,
-                    $"{diff.over8} pixels differ by more than 8/255; expected sparse raster/shading differences.");
+                Assert.LessOrEqual(diff.over8, kKnownMaterialDifferencePixels,
+                    $"{diff.over8} pixels differ by more than 8/255, above the accepted known difference " +
+                    $"of {kKnownMaterialDifferencePixels} (frozen since 5ab7626).");
             }
             finally
             {
