@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "researchHead": "cedd1bb3149ebbca4b2e7fe72a54830c6aa4acc1",
+  "implementationHead": "cfbb3d44d46250f81665e163b6752b8235f6b50d",
+  "initialWorkingTreeClean": true,
+  "unity": "2022.3.62f1 (4af31df58517)",
+  "urp": "14.0.12",
+  "installedGpu": "NVIDIA GeForce RTX 5060 Ti",
+  "driver": "32.0.15.7680",
+  "graphicsDeviceType": "Direct3D11",
+  "captures": {"tracked": 75, "workingTreeBytes": 1241118141, "ignoredButTracked": 0, "historicalBudgetMiB": 1024, "newCaptureBudgetBytes": 0},
+  "regression": {
+    "EditMode": {"passed": 184, "total": 184, "evidence": "EditMode.xml"},
+    "PlayMode": {"passed": 6, "total": 6, "evidence": "PlayMode.xml"},
+    "T12": {"Forward": "34/34", "ForwardPlus": "34/34", "Deferred": "35/35", "evidence": "T12/T12Verification.json", "localPngDirectory": "Logs/contact-shadow-p0-t12"}
+  },
+  "allSettingsRestored": true
+}

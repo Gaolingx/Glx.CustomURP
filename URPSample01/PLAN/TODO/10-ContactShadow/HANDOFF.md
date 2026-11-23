@@ -1,6 +1,6 @@
 # 10-ContactShadow 交接：HDRP Contact Shadows 调研与 URP 包内 Renderer Feature 迁移计划
 
-> 状态：**调研完成，计划按“包内 Renderer Feature”复核后定稿，未实施**
+> 状态：**T0 已通过，下一步 T1**。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
 > 建立：2026-11-19
 > 基线：`cedd1bb`（Run SSR approximation at half resolution when enabled）
 > 结果入口：本文件；实施后追加 `report.md` 与 `validation/`
