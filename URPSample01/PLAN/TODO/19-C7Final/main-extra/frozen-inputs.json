@@ -1,0 +1,40 @@
+{
+  "sha256AgainstHistoricalSHA256SUMS": {
+    "compare.py": "dc5598264e2a52a0fbbb8e86558d3f37d3858a3300edadbeff3d998b799d9ab2",
+    "matrix.csv": "a0f7025c25ab2ce8b83603d801b12d6d41ccce8c91de5db6426fede83b569022",
+    "raw.zip": "d5a4006a0c3f045983af5558393ff087bd3e8efebf1b2e8ec75a6c73f9f3ece6",
+    "pixels-a.zip": "8c90b2d364001dc475d1540c24203001050e8b00c4fc8b39eb023abd2327d5f6",
+    "pixels-b.zip": "da083bf3ab46c3cf4f3db34fdafe3c44a679c078fbc71e873639fc0606f0a139",
+    "run.py": "c130c4aaa7468c98b1feabe7a4216e85c5136495f7314dfb60a27b08351824d1"
+  },
+  "verifiedReferenceSets": {
+    "T4-C0/11": {
+      "directory": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\Done\\16-CleanupBaseline\\validation\\baseline\\t4\\player-d3d11",
+      "verifiedPNGs": 14
+    },
+    "T4-matched-5ab7626/11": {
+      "directory": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\Done\\16-CleanupBaseline\\validation\\c3\\t4-baseline\\player-d3d11",
+      "verifiedPNGs": 28
+    },
+    "T12-C0/11": {
+      "directory": "E:\\tmp\\C7Final\\T12-frozen-11",
+      "verifiedPNGs": 85
+    },
+    "T4-C0/12": {
+      "directory": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\Done\\16-CleanupBaseline\\validation\\baseline\\t4\\player-d3d12",
+      "verifiedPNGs": 14
+    },
+    "T4-matched-5ab7626/12": {
+      "directory": "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\Done\\16-CleanupBaseline\\validation\\c3\\t4-baseline\\player-d3d12",
+      "verifiedPNGs": 28
+    },
+    "T12-C0/12": {
+      "directory": "E:\\tmp\\C7Final\\T12-frozen-12",
+      "verifiedPNGs": 85
+    }
+  },
+  "T12ReferenceReportsSHA256": {
+    "11": "d0f59094a44aa06ac04b8a6ec4c38f43e29014cc5683016c03bf5adb79635d33",
+    "12": "5fcf3dda60665b4ae543b6b657bd2d5f0e62feddaac8ee513751564225254f45"
+  }
+}

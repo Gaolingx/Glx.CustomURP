@@ -1,0 +1,1423 @@
+{
+  "reference": "Frozen stock T5 player; not T4 or a material probe.",
+  "frozenCommit": "f0c7ec45cdcc20aa21b96bb3c5c47ff58fb0ac44",
+  "interpretation": "Graphics sum counts printed stage blocks with multiplicity, not unique GPU binaries. Null means not observed; [0] is a printed zero. Compute retained counts include cache hits. Kernel bytecode counts are from finished player slices, not dispatch evidence. ClusterBuilder 7 is a measured C0 reference, not an explicit cap in budget.json.",
+  "byPlayerAPI": {
+    "11": {
+      "C0": {
+        "build": "Succeeded",
+        "successLine": 11583,
+        "logSHA256": "c7d8f77e1817075dea3ce147ec9c2b333b94dcd8f475c60012628247dabb7ba2",
+        "shaderWarnings": 4641,
+        "shaderErrors": 0,
+        "graphicsHeaders": 412,
+        "afterScriptableRows": 412,
+        "reportedZeroRows": 23,
+        "graphicsSum": 8716,
+        "litVP": [
+          32
+        ],
+        "litFP": [
+          6144
+        ],
+        "computeAssetSum": 1608,
+        "compute": {
+          "ScreenSpaceGlobalIllumination": {
+            "headerLine": 2758,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 96,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ClusteredDeferred": {
+            "headerLine": 3509,
+            "retained": 1280,
+            "declared": 1280,
+            "localHits": 1280,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOSpatialDenoise": {
+            "headerLine": 4154,
+            "retained": 8,
+            "declared": 8,
+            "localHits": 8,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOCopyHistory": {
+            "headerLine": 4159,
+            "retained": 2,
+            "declared": 2,
+            "localHits": 2,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ClusterBuilder": {
+            "headerLine": 4164,
+            "retained": 7,
+            "declared": 7,
+            "localHits": 7,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ScreenSpaceReflections": {
+            "headerLine": 4170,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 96,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ReflectionDenoiser": {
+            "headerLine": 7346,
+            "retained": 28,
+            "declared": 28,
+            "localHits": 28,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "TemporalFilter": {
+            "headerLine": 7351,
+            "retained": 16,
+            "declared": 16,
+            "localHits": 16,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAO": {
+            "headerLine": 7356,
+            "retained": 32,
+            "declared": 32,
+            "localHits": 32,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "BilateralUpsample": {
+            "headerLine": 7441,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOTemporalDenoise": {
+            "headerLine": 7446,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "DiffuseDenoiser": {
+            "headerLine": 7451,
+            "retained": 24,
+            "declared": 24,
+            "localHits": 24,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "DepthPyramid": {
+            "headerLine": 7456,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOBlurAndUpsample": {
+            "headerLine": 7461,
+            "retained": 6,
+            "declared": 6,
+            "localHits": 6,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ScreenSpaceLightingBindingProbe": {
+            "headerLine": 7466,
+            "retained": 1,
+            "declared": 1,
+            "localHits": 1,
+            "remoteHits": 0,
+            "compiledNow": 0
+          }
+        }
+      },
+      "base": {
+        "build": "Succeeded",
+        "successLine": 27326,
+        "logSHA256": "6e3bad7f0ea681690356205690c3f51446fcd0598ee514efbef89ea9769788b4",
+        "shaderWarnings": 722,
+        "shaderErrors": 0,
+        "graphicsHeaders": 398,
+        "afterScriptableRows": 398,
+        "reportedZeroRows": 23,
+        "graphicsSum": 8462,
+        "litVP": [
+          32
+        ],
+        "litFP": [
+          6144
+        ],
+        "computeAssetSum": 1608,
+        "compute": {
+          "ScreenSpaceGlobalIllumination": {
+            "headerLine": 22428,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 96
+          },
+          "ClusteredDeferred": {
+            "headerLine": 22433,
+            "retained": 1280,
+            "declared": 1280,
+            "localHits": 1,
+            "remoteHits": 0,
+            "compiledNow": 1279
+          },
+          "GTAOSpatialDenoise": {
+            "headerLine": 23078,
+            "retained": 8,
+            "declared": 8,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 8
+          },
+          "GTAOCopyHistory": {
+            "headerLine": 23083,
+            "retained": 2,
+            "declared": 2,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 2
+          },
+          "ClusterBuilder": {
+            "headerLine": 23088,
+            "retained": 7,
+            "declared": 7,
+            "localHits": 7,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ScreenSpaceReflections": {
+            "headerLine": 23094,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 1,
+            "remoteHits": 0,
+            "compiledNow": 95
+          },
+          "ReflectionDenoiser": {
+            "headerLine": 23099,
+            "retained": 28,
+            "declared": 28,
+            "localHits": 1,
+            "remoteHits": 0,
+            "compiledNow": 27
+          },
+          "TemporalFilter": {
+            "headerLine": 23104,
+            "retained": 16,
+            "declared": 16,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 16
+          },
+          "GTAO": {
+            "headerLine": 23109,
+            "retained": 32,
+            "declared": 32,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 32
+          },
+          "BilateralUpsample": {
+            "headerLine": 23194,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 4
+          },
+          "GTAOTemporalDenoise": {
+            "headerLine": 23199,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 4
+          },
+          "DiffuseDenoiser": {
+            "headerLine": 23204,
+            "retained": 24,
+            "declared": 24,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 24
+          },
+          "DepthPyramid": {
+            "headerLine": 23209,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 4
+          },
+          "GTAOBlurAndUpsample": {
+            "headerLine": 23214,
+            "retained": 6,
+            "declared": 6,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 6
+          },
+          "ScreenSpaceLightingBindingProbe": {
+            "headerLine": 23219,
+            "retained": 1,
+            "declared": 1,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 1
+          }
+        },
+        "buildErrors": 0,
+        "builderProgramSHA256ByKernel": {
+          "ClusterItemBounds": [
+            "c0fce9bef14d836acf30092abe4d4e1355a739b3b623154fd06eacaa514564c6"
+          ],
+          "ClusterZBinClear": [
+            "91200f9711195f0623b23a95f4ed3569d9f9a472ed0e546d8c9d1836bcc58fae"
+          ],
+          "ClusterZBinScatter": [
+            "9078fbc1bb031a16969cdcd97704d7cc5fd54df070e0e9195363a37dceb96df9"
+          ],
+          "ClusterZBinPack": [
+            "373d6e5a6a7c1a6869c7ed2c7cec02fccf08404a50f4999e01198333a28ce610"
+          ],
+          "ClusterTileExpand": [
+            "f0e10f0d8cd447db66fd19d9225742fcba3ffe0838cf9b04fe6825cbbebdbe3a"
+          ],
+          "ClusterTilePrune": [
+            "605910940b6361361e28945e2ab999ffd123ecd00079d3416bafc557458f8b17"
+          ],
+          "ClusterCellBuild": [
+            "8364f067cc9447c6eb3605303ccdcaebe5adc451cd0243c3a392b371ae0bde61"
+          ]
+        },
+        "newKernelProgramsInPlayer": 0,
+        "computeDeltasVsC0": {},
+        "verdicts": {
+          "graphicsSumNotAboveC0": "PASS",
+          "litVPNotAboveC0": "PASS",
+          "litFPNotAboveC0": "PASS",
+          "clusteredDeferredNotAboveC0": "PASS",
+          "noObservedComputeAssetGrowthVsC0": "PASS"
+        },
+        "graphicsDeltaVsC0": -254
+      },
+      "candidate": {
+        "build": "Succeeded",
+        "successLine": 27323,
+        "logSHA256": "0b26b14d4eb197ece29a7b22b78c3df0e88e0996be7a01cef8665cd55de38021",
+        "shaderWarnings": 722,
+        "shaderErrors": 0,
+        "graphicsHeaders": 398,
+        "afterScriptableRows": 398,
+        "reportedZeroRows": 23,
+        "graphicsSum": 8462,
+        "litVP": [
+          32
+        ],
+        "litFP": [
+          6144
+        ],
+        "computeAssetSum": 1609,
+        "compute": {
+          "ScreenSpaceGlobalIllumination": {
+            "headerLine": 22425,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 96
+          },
+          "ClusteredDeferred": {
+            "headerLine": 22430,
+            "retained": 1280,
+            "declared": 1280,
+            "localHits": 1,
+            "remoteHits": 0,
+            "compiledNow": 1279
+          },
+          "GTAOSpatialDenoise": {
+            "headerLine": 23075,
+            "retained": 8,
+            "declared": 8,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 8
+          },
+          "GTAOCopyHistory": {
+            "headerLine": 23080,
+            "retained": 2,
+            "declared": 2,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 2
+          },
+          "ClusterBuilder": {
+            "headerLine": 23085,
+            "retained": 8,
+            "declared": 8,
+            "localHits": 8,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ScreenSpaceReflections": {
+            "headerLine": 23091,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 1,
+            "remoteHits": 0,
+            "compiledNow": 95
+          },
+          "ReflectionDenoiser": {
+            "headerLine": 23096,
+            "retained": 28,
+            "declared": 28,
+            "localHits": 1,
+            "remoteHits": 0,
+            "compiledNow": 27
+          },
+          "TemporalFilter": {
+            "headerLine": 23101,
+            "retained": 16,
+            "declared": 16,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 16
+          },
+          "GTAO": {
+            "headerLine": 23106,
+            "retained": 32,
+            "declared": 32,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 32
+          },
+          "BilateralUpsample": {
+            "headerLine": 23191,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 4
+          },
+          "GTAOTemporalDenoise": {
+            "headerLine": 23196,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 4
+          },
+          "DiffuseDenoiser": {
+            "headerLine": 23201,
+            "retained": 24,
+            "declared": 24,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 24
+          },
+          "DepthPyramid": {
+            "headerLine": 23206,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 4
+          },
+          "GTAOBlurAndUpsample": {
+            "headerLine": 23211,
+            "retained": 6,
+            "declared": 6,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 6
+          },
+          "ScreenSpaceLightingBindingProbe": {
+            "headerLine": 23216,
+            "retained": 1,
+            "declared": 1,
+            "localHits": 0,
+            "remoteHits": 0,
+            "compiledNow": 1
+          }
+        },
+        "buildErrors": 0,
+        "builderProgramSHA256ByKernel": {
+          "ClusterItemBounds": [
+            "3d1d83f6592dcd426a506b3bca04c52f1d183674d00931bcabd2d48a4197230e"
+          ],
+          "ClusterZBinClear": [
+            "91200f9711195f0623b23a95f4ed3569d9f9a472ed0e546d8c9d1836bcc58fae"
+          ],
+          "ClusterZBinScatter": [
+            "9078fbc1bb031a16969cdcd97704d7cc5fd54df070e0e9195363a37dceb96df9"
+          ],
+          "ClusterZBinPack": [
+            "373d6e5a6a7c1a6869c7ed2c7cec02fccf08404a50f4999e01198333a28ce610"
+          ],
+          "ClusterTileExpand": [
+            "f0e10f0d8cd447db66fd19d9225742fcba3ffe0838cf9b04fe6825cbbebdbe3a"
+          ],
+          "ClusterTileExpandForwardPlus": [
+            "ea9b5e82ca93804cc86e807a978ac82b60389d61e2bd1a4f6e1269c1b088f266"
+          ],
+          "ClusterTilePrune": [
+            "605910940b6361361e28945e2ab999ffd123ecd00079d3416bafc557458f8b17"
+          ],
+          "ClusterCellBuild": [
+            "8364f067cc9447c6eb3605303ccdcaebe5adc451cd0243c3a392b371ae0bde61"
+          ]
+        },
+        "newKernelProgramsInPlayer": 1,
+        "computeDeltasVsC0": {
+          "ClusterBuilder": 1
+        },
+        "verdicts": {
+          "graphicsSumNotAboveC0": "PASS",
+          "litVPNotAboveC0": "PASS",
+          "litFPNotAboveC0": "PASS",
+          "clusteredDeferredNotAboveC0": "PASS",
+          "noObservedComputeAssetGrowthVsC0": "FAIL"
+        },
+        "graphicsDeltaVsC0": -254
+      },
+      "graphicsRowChangesC0ToBase": [
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "AmbientOcclusionOnly",
+          "stage": "fp",
+          "before": [
+            4
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "AmbientOcclusionOnly",
+          "stage": "vp",
+          "before": [
+            4
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "ClearStencilPartial",
+          "stage": "fp",
+          "before": [
+            2
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "ClearStencilPartial",
+          "stage": "vp",
+          "before": [
+            2
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Directional Light (Lit)",
+          "stage": "fp",
+          "before": [
+            128
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Directional Light (Lit)",
+          "stage": "vp",
+          "before": [
+            2
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Directional Light (SimpleLit)",
+          "stage": "fp",
+          "before": [
+            128
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Directional Light (SimpleLit)",
+          "stage": "vp",
+          "before": [
+            2
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Punctual Light (Lit)",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Punctual Light (Lit)",
+          "stage": "vp",
+          "before": [
+            4
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Punctual Light (SimpleLit)",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Punctual Light (SimpleLit)",
+          "stage": "vp",
+          "before": [
+            4
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Fog",
+          "stage": "vp",
+          "before": [
+            0
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Stencil Volume",
+          "stage": "fp",
+          "before": [
+            2
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Stencil Volume",
+          "stage": "vp",
+          "before": [
+            4
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal/ClusteredDeferredResolve",
+          "shaderPass": "Clustered Deferred Fog",
+          "stage": "vp",
+          "before": null,
+          "after": [
+            0
+          ]
+        }
+      ],
+      "graphicsRowChangesBaseToCandidate": []
+    },
+    "12": {
+      "C0": {
+        "build": "Succeeded",
+        "successLine": 11583,
+        "logSHA256": "a692f08b7ef95ae2f44a6fc2fd3acf02609a59e27ffb7a13a72281e160834cfd",
+        "shaderWarnings": 4641,
+        "shaderErrors": 0,
+        "graphicsHeaders": 412,
+        "afterScriptableRows": 412,
+        "reportedZeroRows": 23,
+        "graphicsSum": 8716,
+        "litVP": [
+          32
+        ],
+        "litFP": [
+          6144
+        ],
+        "computeAssetSum": 1608,
+        "compute": {
+          "ScreenSpaceGlobalIllumination": {
+            "headerLine": 2749,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 96,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ClusteredDeferred": {
+            "headerLine": 3500,
+            "retained": 1280,
+            "declared": 1280,
+            "localHits": 1280,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOSpatialDenoise": {
+            "headerLine": 4145,
+            "retained": 8,
+            "declared": 8,
+            "localHits": 8,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOCopyHistory": {
+            "headerLine": 4150,
+            "retained": 2,
+            "declared": 2,
+            "localHits": 2,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ClusterBuilder": {
+            "headerLine": 4155,
+            "retained": 7,
+            "declared": 7,
+            "localHits": 7,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ScreenSpaceReflections": {
+            "headerLine": 4161,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 96,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ReflectionDenoiser": {
+            "headerLine": 7337,
+            "retained": 28,
+            "declared": 28,
+            "localHits": 28,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "TemporalFilter": {
+            "headerLine": 7342,
+            "retained": 16,
+            "declared": 16,
+            "localHits": 16,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAO": {
+            "headerLine": 7347,
+            "retained": 32,
+            "declared": 32,
+            "localHits": 32,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "BilateralUpsample": {
+            "headerLine": 7432,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOTemporalDenoise": {
+            "headerLine": 7437,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "DiffuseDenoiser": {
+            "headerLine": 7442,
+            "retained": 24,
+            "declared": 24,
+            "localHits": 24,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "DepthPyramid": {
+            "headerLine": 7447,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOBlurAndUpsample": {
+            "headerLine": 7452,
+            "retained": 6,
+            "declared": 6,
+            "localHits": 6,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ScreenSpaceLightingBindingProbe": {
+            "headerLine": 7457,
+            "retained": 1,
+            "declared": 1,
+            "localHits": 1,
+            "remoteHits": 0,
+            "compiledNow": 0
+          }
+        }
+      },
+      "base": {
+        "build": "Succeeded",
+        "successLine": 7301,
+        "logSHA256": "7008200d7a4422ff3849fa3c70b1b30f5dc37e21fb6724e05810c50e0d9589e8",
+        "shaderWarnings": 722,
+        "shaderErrors": 0,
+        "graphicsHeaders": 398,
+        "afterScriptableRows": 398,
+        "reportedZeroRows": 23,
+        "graphicsSum": 8462,
+        "litVP": [
+          32
+        ],
+        "litFP": [
+          6144
+        ],
+        "computeAssetSum": 1608,
+        "compute": {
+          "ScreenSpaceGlobalIllumination": {
+            "headerLine": 2418,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 96,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ClusteredDeferred": {
+            "headerLine": 2423,
+            "retained": 1280,
+            "declared": 1280,
+            "localHits": 1280,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOSpatialDenoise": {
+            "headerLine": 3068,
+            "retained": 8,
+            "declared": 8,
+            "localHits": 8,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOCopyHistory": {
+            "headerLine": 3073,
+            "retained": 2,
+            "declared": 2,
+            "localHits": 2,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ClusterBuilder": {
+            "headerLine": 3078,
+            "retained": 7,
+            "declared": 7,
+            "localHits": 7,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ScreenSpaceReflections": {
+            "headerLine": 3084,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 96,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ReflectionDenoiser": {
+            "headerLine": 3089,
+            "retained": 28,
+            "declared": 28,
+            "localHits": 28,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "TemporalFilter": {
+            "headerLine": 3094,
+            "retained": 16,
+            "declared": 16,
+            "localHits": 16,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAO": {
+            "headerLine": 3099,
+            "retained": 32,
+            "declared": 32,
+            "localHits": 32,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "BilateralUpsample": {
+            "headerLine": 3184,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOTemporalDenoise": {
+            "headerLine": 3189,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "DiffuseDenoiser": {
+            "headerLine": 3194,
+            "retained": 24,
+            "declared": 24,
+            "localHits": 24,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "DepthPyramid": {
+            "headerLine": 3199,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOBlurAndUpsample": {
+            "headerLine": 3204,
+            "retained": 6,
+            "declared": 6,
+            "localHits": 6,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ScreenSpaceLightingBindingProbe": {
+            "headerLine": 3209,
+            "retained": 1,
+            "declared": 1,
+            "localHits": 1,
+            "remoteHits": 0,
+            "compiledNow": 0
+          }
+        },
+        "buildErrors": 0,
+        "builderProgramSHA256ByKernel": {
+          "ClusterItemBounds": [
+            "c0fce9bef14d836acf30092abe4d4e1355a739b3b623154fd06eacaa514564c6"
+          ],
+          "ClusterZBinClear": [
+            "91200f9711195f0623b23a95f4ed3569d9f9a472ed0e546d8c9d1836bcc58fae"
+          ],
+          "ClusterZBinScatter": [
+            "9078fbc1bb031a16969cdcd97704d7cc5fd54df070e0e9195363a37dceb96df9"
+          ],
+          "ClusterZBinPack": [
+            "373d6e5a6a7c1a6869c7ed2c7cec02fccf08404a50f4999e01198333a28ce610"
+          ],
+          "ClusterTileExpand": [
+            "f0e10f0d8cd447db66fd19d9225742fcba3ffe0838cf9b04fe6825cbbebdbe3a"
+          ],
+          "ClusterTilePrune": [
+            "605910940b6361361e28945e2ab999ffd123ecd00079d3416bafc557458f8b17"
+          ],
+          "ClusterCellBuild": [
+            "8364f067cc9447c6eb3605303ccdcaebe5adc451cd0243c3a392b371ae0bde61"
+          ]
+        },
+        "newKernelProgramsInPlayer": 0,
+        "computeDeltasVsC0": {},
+        "verdicts": {
+          "graphicsSumNotAboveC0": "PASS",
+          "litVPNotAboveC0": "PASS",
+          "litFPNotAboveC0": "PASS",
+          "clusteredDeferredNotAboveC0": "PASS",
+          "noObservedComputeAssetGrowthVsC0": "PASS"
+        },
+        "graphicsDeltaVsC0": -254
+      },
+      "candidate": {
+        "build": "Succeeded",
+        "successLine": 7303,
+        "logSHA256": "e451ad31092be945cec02f1e6a9a8f44bf8328476516809e572ce3daa435de94",
+        "shaderWarnings": 722,
+        "shaderErrors": 0,
+        "graphicsHeaders": 398,
+        "afterScriptableRows": 398,
+        "reportedZeroRows": 23,
+        "graphicsSum": 8462,
+        "litVP": [
+          32
+        ],
+        "litFP": [
+          6144
+        ],
+        "computeAssetSum": 1609,
+        "compute": {
+          "ScreenSpaceGlobalIllumination": {
+            "headerLine": 2420,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 96,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ClusteredDeferred": {
+            "headerLine": 2425,
+            "retained": 1280,
+            "declared": 1280,
+            "localHits": 1280,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOSpatialDenoise": {
+            "headerLine": 3070,
+            "retained": 8,
+            "declared": 8,
+            "localHits": 8,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOCopyHistory": {
+            "headerLine": 3075,
+            "retained": 2,
+            "declared": 2,
+            "localHits": 2,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ClusterBuilder": {
+            "headerLine": 3080,
+            "retained": 8,
+            "declared": 8,
+            "localHits": 8,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ScreenSpaceReflections": {
+            "headerLine": 3086,
+            "retained": 96,
+            "declared": 96,
+            "localHits": 96,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ReflectionDenoiser": {
+            "headerLine": 3091,
+            "retained": 28,
+            "declared": 28,
+            "localHits": 28,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "TemporalFilter": {
+            "headerLine": 3096,
+            "retained": 16,
+            "declared": 16,
+            "localHits": 16,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAO": {
+            "headerLine": 3101,
+            "retained": 32,
+            "declared": 32,
+            "localHits": 32,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "BilateralUpsample": {
+            "headerLine": 3186,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOTemporalDenoise": {
+            "headerLine": 3191,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "DiffuseDenoiser": {
+            "headerLine": 3196,
+            "retained": 24,
+            "declared": 24,
+            "localHits": 24,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "DepthPyramid": {
+            "headerLine": 3201,
+            "retained": 4,
+            "declared": 4,
+            "localHits": 4,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "GTAOBlurAndUpsample": {
+            "headerLine": 3206,
+            "retained": 6,
+            "declared": 6,
+            "localHits": 6,
+            "remoteHits": 0,
+            "compiledNow": 0
+          },
+          "ScreenSpaceLightingBindingProbe": {
+            "headerLine": 3211,
+            "retained": 1,
+            "declared": 1,
+            "localHits": 1,
+            "remoteHits": 0,
+            "compiledNow": 0
+          }
+        },
+        "buildErrors": 0,
+        "builderProgramSHA256ByKernel": {
+          "ClusterItemBounds": [
+            "3d1d83f6592dcd426a506b3bca04c52f1d183674d00931bcabd2d48a4197230e"
+          ],
+          "ClusterZBinClear": [
+            "91200f9711195f0623b23a95f4ed3569d9f9a472ed0e546d8c9d1836bcc58fae"
+          ],
+          "ClusterZBinScatter": [
+            "9078fbc1bb031a16969cdcd97704d7cc5fd54df070e0e9195363a37dceb96df9"
+          ],
+          "ClusterZBinPack": [
+            "373d6e5a6a7c1a6869c7ed2c7cec02fccf08404a50f4999e01198333a28ce610"
+          ],
+          "ClusterTileExpand": [
+            "f0e10f0d8cd447db66fd19d9225742fcba3ffe0838cf9b04fe6825cbbebdbe3a"
+          ],
+          "ClusterTileExpandForwardPlus": [
+            "ea9b5e82ca93804cc86e807a978ac82b60389d61e2bd1a4f6e1269c1b088f266"
+          ],
+          "ClusterTilePrune": [
+            "605910940b6361361e28945e2ab999ffd123ecd00079d3416bafc557458f8b17"
+          ],
+          "ClusterCellBuild": [
+            "8364f067cc9447c6eb3605303ccdcaebe5adc451cd0243c3a392b371ae0bde61"
+          ]
+        },
+        "newKernelProgramsInPlayer": 1,
+        "computeDeltasVsC0": {
+          "ClusterBuilder": 1
+        },
+        "verdicts": {
+          "graphicsSumNotAboveC0": "PASS",
+          "litVPNotAboveC0": "PASS",
+          "litFPNotAboveC0": "PASS",
+          "clusteredDeferredNotAboveC0": "PASS",
+          "noObservedComputeAssetGrowthVsC0": "FAIL"
+        },
+        "graphicsDeltaVsC0": -254
+      },
+      "graphicsRowChangesC0ToBase": [
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit",
+          "shaderPass": "TerrainDetailVertex",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": [
+            64
+          ]
+        },
+        {
+          "shader": "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass",
+          "shaderPass": "",
+          "stage": "vp",
+          "before": [
+            8
+          ],
+          "after": [
+            16
+          ]
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "AmbientOcclusionOnly",
+          "stage": "fp",
+          "before": [
+            4
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "AmbientOcclusionOnly",
+          "stage": "vp",
+          "before": [
+            4
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "ClearStencilPartial",
+          "stage": "fp",
+          "before": [
+            2
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "ClearStencilPartial",
+          "stage": "vp",
+          "before": [
+            2
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Directional Light (Lit)",
+          "stage": "fp",
+          "before": [
+            128
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Directional Light (Lit)",
+          "stage": "vp",
+          "before": [
+            2
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Directional Light (SimpleLit)",
+          "stage": "fp",
+          "before": [
+            128
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Directional Light (SimpleLit)",
+          "stage": "vp",
+          "before": [
+            2
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Punctual Light (Lit)",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Punctual Light (Lit)",
+          "stage": "vp",
+          "before": [
+            4
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Punctual Light (SimpleLit)",
+          "stage": "fp",
+          "before": [
+            32
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Deferred Punctual Light (SimpleLit)",
+          "stage": "vp",
+          "before": [
+            4
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Fog",
+          "stage": "vp",
+          "before": [
+            0
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Stencil Volume",
+          "stage": "fp",
+          "before": [
+            2
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal Render Pipeline/StencilDeferred",
+          "shaderPass": "Stencil Volume",
+          "stage": "vp",
+          "before": [
+            4
+          ],
+          "after": null
+        },
+        {
+          "shader": "Hidden/Universal/ClusteredDeferredResolve",
+          "shaderPass": "Clustered Deferred Fog",
+          "stage": "vp",
+          "before": null,
+          "after": [
+            0
+          ]
+        }
+      ],
+      "graphicsRowChangesBaseToCandidate": []
+    }
+  }
+}

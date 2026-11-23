@@ -1,0 +1,6 @@
+# Preserve the bytes used by the acquisition manifests on every checkout.
+main-extra/** -text
+main-ids/** -text
+main-build/** -text
+forward-expand/** -text
+main-structure/** -text

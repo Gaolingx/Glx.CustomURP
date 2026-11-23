@@ -1,0 +1,181 @@
+{
+  "commit": "1bcc7317fe37ab57ceb13c257b7b8ab346ba3811",
+  "archiveFilesCheckedBeforeUnity": 3098,
+  "scratch": "D:\\C7extra-fY4zKe",
+  "imageRule": "Same API, route, case and state; original compare.py, RGB8 mean <= 2 and peak <= 24; pixels with max-channel difference >8 reported separately.",
+  "originalT4Coverage": "14 clustered states per API; original Stencil is not a Forward+ reference. Matched 5ab7626 covers all 28 states.",
+  "runs": {
+    "T12-11": {
+      "status": "finished",
+      "exit": 0,
+      "start": "2026-11-23T04:43:57.217100+08:00",
+      "end": "2026-11-23T04:47:04.158873+08:00",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceType": "Direct3D11",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "error": "",
+      "completed": true,
+      "internalPassed": true,
+      "checksByRoute": {
+        "Forward": [
+          34,
+          34
+        ],
+        "ForwardPlus": [
+          34,
+          34
+        ],
+        "Deferred": [
+          35,
+          35
+        ]
+      }
+    },
+    "T4build-11": {
+      "status": "finished",
+      "exit": 0,
+      "start": "2026-11-23T04:48:33.017671+08:00",
+      "end": "2026-11-23T05:11:36.945396+08:00",
+      "result": "Succeeded",
+      "totalErrors": 0,
+      "graphicsApis": "Direct3D11",
+      "playerFileSHA256": {
+        "CdArenaT4.exe": "d2e1444d0c4420c5d628cccc5700b61e9f2efac0d8d4478b5e9dc50b79d5e42f",
+        "CdArenaT4_Data\\Managed\\Assembly-CSharp.dll": "eca3348f5da81f424c64ae5de2b4cc36281ade9a83e921bb9e5c20071832ab89",
+        "CdArenaT4_Data\\resources.assets": "b7fa8831b0b7fcd7a5e5eb1af64531f5e52f5d679b93e56963e8234e376af1f4"
+      }
+    },
+    "T4-11": {
+      "status": "finished",
+      "exit": 2,
+      "start": "2026-11-23T05:11:36.946008+08:00",
+      "end": "2026-11-23T05:11:48.040424+08:00",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceType": "Direct3D11",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "error": "",
+      "internalFeaturePassCount": [
+        0,
+        7
+      ]
+    },
+    "T12-12": {
+      "status": "finished",
+      "exit": 0,
+      "start": "2026-11-23T04:47:04.159525+08:00",
+      "end": "2026-11-23T04:48:33.016739+08:00",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceType": "Direct3D12",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "error": "",
+      "completed": true,
+      "internalPassed": true,
+      "checksByRoute": {
+        "Forward": [
+          34,
+          34
+        ],
+        "ForwardPlus": [
+          34,
+          34
+        ],
+        "Deferred": [
+          35,
+          35
+        ]
+      }
+    },
+    "T4build-12": {
+      "status": "finished",
+      "exit": 0,
+      "start": "2026-11-23T05:11:48.040944+08:00",
+      "end": "2026-11-23T05:13:03.797459+08:00",
+      "result": "Succeeded",
+      "totalErrors": 0,
+      "graphicsApis": "Direct3D12",
+      "playerFileSHA256": {
+        "CdArenaT4.exe": "d2e1444d0c4420c5d628cccc5700b61e9f2efac0d8d4478b5e9dc50b79d5e42f",
+        "CdArenaT4_Data\\Managed\\Assembly-CSharp.dll": "eca3348f5da81f424c64ae5de2b4cc36281ade9a83e921bb9e5c20071832ab89",
+        "CdArenaT4_Data\\resources.assets": "b7fa8831b0b7fcd7a5e5eb1af64531f5e52f5d679b93e56963e8234e376af1f4"
+      }
+    },
+    "T4-12": {
+      "status": "finished",
+      "exit": 2,
+      "start": "2026-11-23T05:13:03.798088+08:00",
+      "end": "2026-11-23T05:13:12.865337+08:00",
+      "unityVersion": "2022.3.62f1",
+      "graphicsDeviceType": "Direct3D12",
+      "graphicsDeviceName": "NVIDIA GeForce RTX 5060 Ti",
+      "error": "",
+      "internalFeaturePassCount": [
+        0,
+        7
+      ]
+    }
+  },
+  "imageGates": {
+    "T12-C0/11": {
+      "passed": 85,
+      "total": 85,
+      "maxMeanRGB8": 0.01925709,
+      "maxPeakRGB8": 1,
+      "maxPxGT8": 0,
+      "sumPxGT8": 0,
+      "failedImages": []
+    },
+    "T4-C0/11": {
+      "passed": 13,
+      "total": 14,
+      "maxMeanRGB8": 0.38068721,
+      "maxPeakRGB8": 240,
+      "maxPxGT8": 5432,
+      "sumPxGT8": 5432,
+      "failedImages": [
+        "ReceiveShadowsOff_ClusteredOn.png"
+      ]
+    },
+    "T4-matched-5ab7626/11": {
+      "passed": 28,
+      "total": 28,
+      "maxMeanRGB8": 1.45e-06,
+      "maxPeakRGB8": 1,
+      "maxPxGT8": 0,
+      "sumPxGT8": 0,
+      "failedImages": []
+    },
+    "T12-C0/12": {
+      "passed": 85,
+      "total": 85,
+      "maxMeanRGB8": 0.01926866,
+      "maxPeakRGB8": 1,
+      "maxPxGT8": 0,
+      "sumPxGT8": 0,
+      "failedImages": []
+    },
+    "T4-C0/12": {
+      "passed": 13,
+      "total": 14,
+      "maxMeanRGB8": 0.38068685,
+      "maxPeakRGB8": 240,
+      "maxPxGT8": 5432,
+      "sumPxGT8": 5432,
+      "failedImages": [
+        "ReceiveShadowsOff_ClusteredOn.png"
+      ]
+    },
+    "T4-matched-5ab7626/12": {
+      "passed": 28,
+      "total": 28,
+      "maxMeanRGB8": 1.09e-06,
+      "maxPeakRGB8": 1,
+      "maxPxGT8": 0,
+      "sumPxGT8": 0,
+      "failedImages": []
+    }
+  },
+  "uniquePNGHashes": {
+    "fromExistingArchives": 204,
+    "includedNew": 17
+  }
+}

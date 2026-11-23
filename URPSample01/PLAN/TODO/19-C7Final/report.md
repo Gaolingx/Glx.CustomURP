@@ -32,6 +32,52 @@
 
 历史调查摘要表、回放分段、采样脚本与 CPU 反例：[tile-investigation.zip](tile-investigation.zip)。玩家回归命令：`CdArena.exe -force-d3d11 --cd-edge-tiles --cd-output <独立目录>`，D3D12 用 `-force-d3d12`。夹具使用正交 257×129 参数直接派发产品 bounds / expand 核并读回 tile 位；不是最终像素颜色测试。末列、末行、角点、内部各应仅置一个指定 tile，屏外应全零。失败写 `CdEdgeTiles.json` 并退出 2；通过退出 0。
 
+<a id="main-1bcc731"></a>
+
+### 主线 `1bcc731` 复验（父版 `61e3859`，冻结 C0 `f0c7ec4`）
+
+- **死代码：PASS。** 对候选 Git 树复跑相同搜索，旧 stencil deferred 实现与关键字零命中；隔离 D3D11 Editor 实际返回 `removed=null positive=Universal Render Pipeline/Lit`。[搜索命令及退出码](main-source.json) · [探针与完整 Editor 日志](main-find.zip)。
+
+- **共享粗筛 + 常规 expand：PASS。** D3D11、D3D12 原生玩家各有一组红绿对照。父版产品代码搭载相同测试入口，两端退出 2：末行、末列、角点都漏掉唯一应置位的 tile，内部正确命中、屏外全零。候选两端退出 0，五项均符合预期，没有额外置位。[四份原始 JSON、玩家日志、退出记录与源/玩家指纹](main-edge.zip)。
+- **Forward+ 专用 expand：PASS（所测几何夹具，不是全场景无漏灯证明）。** 在候选玩家的独立副本中只替换测试程序集及符号，保留实际序列化 shader 和原生二进制；直接派发 `ClusterItemBounds` 与两种 expand，读回 bitmap。旋转相机下的点光/旋转聚光、近裁面相交、正交和五个边界/控制案例，双 API 各 11/11。每端 626,525 个物理受光采样给出 213 个案例/tile 正例，零漏位；Forward+ 位集都是常规 expand 的子集，共少置 284 位，两端逐案例掩码一致。不是通过“位越少越好”来判正确。[D3D11](forward-expand/Direct3D11/CdForwardExpand.json) · [D3D12](forward-expand/Direct3D12/CdForwardExpand.json) · [玩家文件哈希与命令](forward-expand/provenance.json)。
+- **Development T5 构建与变体：PASS（现有命名预算）。** 双 API 各自 C0/父版/候选的 graphics after-scriptable 总数 8716/8462/8462，Lit/ForwardLit(fp) 均 6144，ClusteredDeferred compute 均 1280。ClusterBuilder 7/7/8；每个候选玩家确实多一个 `ClusterTileExpandForwardPlus` GPU 程序，15 项 compute 合计 1608/1608/1609。7 是 C0 实测而非显式硬上限；不把命中缓存的 8 个变体说成新编译了 8 个。父版和候选四次构建均成功、0 build error、0 shader error，各有 722 行 shader warning。[原始输入](main-build/inputs.zip) · [可复算判定](main-build/verdicts.json)。
+
+#### 原生性能：父版改善，冻结 C0 门槛 FAIL
+
+同机 RTX 5060 Ti，独立进程、三轮、双 API、透明开关、1280×720，40 帧预热 / 150 帧采样；每次运行均采 0/8/48/256 灯、Forward+ 与 clustered（C0 另有 stencil，不混入比较）。每格内顺序为 C0/父/候、候/父/C0、父/候/C0。36 次退出 0，共 115 次编译进程抽查无命中，不代表连续追踪。三轮进程帧中位数再取中位数，单位 ms；Δ=候选减参照，负为更快。以下只列 256 灯 GPU：
+
+| API / 透明 | Forward+ C0 | 父版 | 候选 | Δ父 | ΔC0 | clustered Δ父 | clustered ΔC0 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| D3D11 / 关 | 1.0870 | 1.9228 | 1.2959 | −0.6269 | +0.2089 | +0.0010 | −0.0041 |
+| D3D11 / 开 | 1.2050 | 2.0897 | 1.4062 | −0.6835 | +0.2012 | −0.0043 | −0.0028 |
+| D3D12 / 关 | 1.0980 | 1.9049 | 1.2956 | −0.6093 | +0.1976 | −0.0013 | −0.0185 |
+| D3D12 / 开 | 1.2401 | 2.1143 | 1.4390 | −0.6753 | +0.1989 | +0.0007 | −0.0126 |
+
+Forward+ GPU 相对父版：0 灯 Δ −0.0046～+0.0013；8 灯节省 0.0123～0.0239；48 灯节省 0.0728～0.0914；256 灯节省 0.6093～0.6835，回收父版相对 C0 损失的 75.0%～77.3%；四格共 12 个单轮配对均比父版快、均比 C0 慢。256 灯 CPU 节省 0.5790～0.6926，仍比 C0 慢 0.1923～0.2762。在全部 32 格，候选相对父版有 11 格 CPU、11 格 GPU 更慢；相对 C0 有 11 格 CPU、16 格 GPU 更慢。不放宽阈值，不以 C4a 隔离收益抵扣。[完整逐格三轮表](main-performance.csv) · [原生报告、命令、环境抽查与图像索引](main-native.zip) · [去重原图](main-pixels.zip) · [采集脚本](main-perf.py)。
+
+#### 图像（与性能独立）
+
+原生计时玩家没有同帧灯 ID，不对这些 PNG 倒推漏灯或灯选择原因。与冻结原 C0 PNG 对照，首轮 24/32：0/8/48 灯全通过，256 灯八张全失败。三轮合计 0/8/48 灯 72/72 通过（peak≤1）；256 灯仅 2/24 通过。换成同轮重建 C0，256 灯 4/24 通过；换成父版，2/24。没有挑帧或改阈值。[逐图哈希、mean、peak、>8 面积](main-images.csv) · [图差复算](main-images.py)。历史固定帧和材质原图的独立复核另存 [历史帧复核包](historical-frame-audit.zip)，不把 C4a 或旧 C7 的灯 ID 当作 `1bcc731` 的帧回执。
+
+**256 灯同帧诊断（新采，不是追认上一批 PNG）。** 在冻结 C0 与候选各自的玩家副本中，只替换测试程序集/符号。在截图的同一帧末回调内取 `_AdditionalLightsPosition`、`_AdditionalLightsColor`，以运行 UUID、`Time.frameCount` 和双 SHA-256 绑定 PNG、数组；这是 Unity 全局上传镜像，不是回放 GPU 描述符。20 份回执中，两条被比路径均解出 255 个唯一夹具 ID + 1 个空槽，C0 stencil 校验对照为 256 个唯一 ID。先比集合，再比图像：
+
+| API / 透明 | C0 独有 → 候选独有 ID | 改变的槽位数 | 同路径 RGB8 peak：clustered / Forward+ |
+|---|---|---:|---:|
+| D3D11 / 关 | 183 → 247 | 193 | 93 / 93 |
+| D3D11 / 开 | 119 → 247 | 205 | 78 / 78 |
+| D3D12 / 关 | 183 → 240 | 184 | 72 / 71 |
+| D3D12 / 开 | 48 → 112 | 187 | 31 / 31 |
+
+八对跨版本失败图全都同时改变了一盏灯，没有一个跨版本等 ID 对；不能据此断言是 tile 漏灯、CPU 剔除原因、或灯替换解释了全部图差。同一版本各自的两条路径 ID 槽序完全相同，跨路径 peak 仍为 control 86 / 透明 80；那也不是下述 24 灯材质夹具。[逐槽 ID 与逐图指标](main-ids/results.json) · [同帧采集入口](main-ids/acquire.py)。
+
+**全量测试 FAIL；材质独立追踪。** 两端的 `ForwardPlusGpuMatchesFrozenCpuReference` 均通过，和只派发 expand 的几何样本分开计。 独立工程从 `git archive 1bcc731` 取 Assets/Packages/ProjectSettings 和冻结 CPU 夹具，仅复制 Library 作缓存。双 API 各 EditMode **490/490**、PlayMode **45/46**；仅 `ClusteredMatchesForwardPlusAcrossMaterialTypes` 失败，各 1674 px >8/255，限 230。两端在失败断言前写出的 640×360 RGBA32F 原帧重算后，超阈掩码与历史 `5ab7626` 匹配夹具逐字节相同（SHA-256 `8601f3ffffb28d5b70924b842b04f9e360737f602a66547d6f29c81b3eab694b`）。未扩大容差、未更新金图、不归因给 256 灯选择差异。[四份完整 XML、日志、命令、浮点原帧与掩码摘要](main-tests.zip)。
+
+**玩家 GPU 结构 PASS（候选双 API，256 灯、透明、clustered）。** 使用未替换测试程序集的原始玩家。各帧均有五次建表 dispatch、134 次 GBuffer draw、CopyDepth、clustered lighting、resolve、Forward Only 空 pass、三次透明 draw 和 FinalBlit；无旧 stencil 灯体积绘制。D3D11/D3D12 的 lighting dispatch EID 为 628/1298（80×45 组，各 16×16）；resolve 读取该 dispatch 的输出，透明像素阶段读取同一建表缓冲。实际绑定的 lighting CS 常量缓冲每帧解出 255 个唯一灯 ID 加一个空槽，分别缺 240/48；这些 RDC 并非上述原生诊断的同一帧，不用来追认原生截图的灯序。[事件与资源绑定](main-structure/proof.txt) · [两份 RDC 和回放导出](main-structure/candidate-structure.zip)。
+
+**SSL T12 PASS。** `1bcc731` 在 D3D11/12 各通过 103/103 个内部检查；另与哈希核过的冻结 C0 同路径图像逐张比较，两端各 85/85，RGB8 peak≤1、零像素 >8。**T4 对冻结 C0：FAIL。** 双 API 均实际构建成功（0 errors），原 C0 的 clustered 同路径图各 13/14；两端唯一失败均为 `ReceiveShadowsOff_ClusteredOn`，peak 240/255，5432 px >8。原 C0 没有 Forward+ 图。另与 `5ab7626` 匹配夹具比，各 API 两条路径合计 28/28，peak≤1、零像素 >8。这排除了所测匹配夹具的同路径新图差，但不能令冻结比较过关。两端玩家自身的跨路径功能矩阵各 0/7，均退出 2；不与上述同路径计数相加。[两端构建、玩家与逐项判定](main-extra/results.json) · [逐图指标](main-extra/images.csv) · [原始日志与报告](main-extra/raw.zip)。
+
+**本轮交付范围。** 仅增加玩家回归、采集/复算和报告，没有修改产品核、FPTL 索引、金图或阈值。`clean.md` §7.6 的 TODO/Done 直接阶段目录无重名；验收采集结束时归档尚未提交；随后按要求提交回归与证据。工作树状态不是渲染门槛，不改变 C7 的 FAIL 判定。旧 `SHA256SUMS.txt` 固定于 `e52985e` 的原始交付（其中 `report.md` 对应历史版本）。
+
 ## 证据口径
 
 - 性能首轮发现默认旧 `Builds/ClusteredDeferredArena` 指向的不是 C0：输出只有 ClusteredDeferred 和 ForwardPlus，而冻结原始报告有第三个 StencilDeferred。**整轮不计性能**。重新从 `git archive f0c7ec4` 建独立工程，用历史 Library 的物理副本作为编译缓存而不复用其产品源码/配置，重建双 API；记录中 `C0-*` 是被排除的首轮，`frozen-*` 才是重建冻结代码的结果。重建玩家不宣称和已覆盖的原 EXE 逐字节相同。`provenance.json` 比对关键文件与 Git blob。

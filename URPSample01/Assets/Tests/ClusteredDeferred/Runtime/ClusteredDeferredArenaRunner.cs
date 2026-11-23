@@ -90,6 +90,11 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
             RunEdgeTiles(outputRoot);
             yield break;
         }
+        if (HasArgument("--cd-forward-expand"))
+        {
+            RunForwardExpand(outputRoot);
+            yield break;
+        }
         Directory.CreateDirectory(outputRoot);
 
         var totalLightsArgument = GetArgument("--cd-total-lights");
@@ -472,6 +477,145 @@ public sealed class ClusteredDeferredArenaRunner : MonoBehaviour
                 c.expectedTileHit = (masks[c.expectedY * columns + c.expectedX] & bit) != 0;
             c.passed = c.expectedX < 0 ? c.actualTileCount == 0 : c.expectedTileHit && c.actualTileCount == 1;
         }
+    }
+
+    [Serializable]
+    sealed class ForwardCase
+    {
+        public string name;
+        public Vector3 centerWS, axisWS;
+        public float range, angle;
+        public bool orthographic, passed;
+        // Row-major tile index lists: physical witnesses vs the two actual GPU readbacks.
+        public List<int> receivers = new List<int>(), plain = new List<int>(), forward = new List<int>();
+        public int receiverSamples, missingTiles, addedTiles, prunedTiles;
+    }
+
+    [Serializable]
+    sealed class ForwardReport
+    {
+        public string utc = DateTime.UtcNow.ToString("O"), unity = Application.unityVersion,
+            api = SystemInfo.graphicsDeviceType.ToString(), device = SystemInfo.graphicsDeviceName,
+            driver = SystemInfo.graphicsDeviceVersion, shader, error;
+        public bool passed;
+        public List<ForwardCase> cases = new List<ForwardCase>();
+    }
+
+    void RunForwardExpand(string outputRoot)
+    {
+        var report = new ForwardReport();
+        try
+        {
+            var prop = typeof(UniversalRenderPipelineAsset).GetProperty("scriptableRendererData", BindingFlags.Instance | BindingFlags.NonPublic);
+            var data = prop?.GetValue(clusteredDeferredPipeline) as UniversalRendererData;
+            var shader = data?.shaders?.clusterBuilderCS;
+            if (!SystemInfo.supportsComputeShaders || shader == null) throw new InvalidOperationException("Missing renderer compute shader");
+            report.shader = shader.name;
+            foreach (bool ortho in new[] { false, true })
+            {
+                foreach (bool spot in new[] { false, true })
+                    ForwardFixture(shader, report, (ortho ? "orthographic" : "perspective") + (spot ? "Spot" : "Point"),
+                        ortho, new Vector3(-1.2f, 0.8f, -6), 2.7f, spot ? 44 : 0);
+            }
+            foreach (bool spot in new[] { false, true })
+                ForwardFixture(shader, report, spot ? "nearSpot" : "nearPoint", false, new Vector3(0.53f, -0.08f, -0.7f), 0.8f, spot ? 60 : 0, near: true);
+            foreach (var edge in new EdgeReport().cases)
+                ForwardFixture(shader, report, edge.name, true, new Vector3((edge.pixelX - 128.5f) / 10,
+                    (64.5f - edge.pixelY) / 10, -6), 0.025f, 0, edge: edge);
+            report.passed = report.cases.TrueForAll(c => c.passed);
+        }
+        catch (Exception ex) { report.error = ex.ToString(); Debug.LogException(ex); }
+        try
+        {
+            Directory.CreateDirectory(outputRoot);
+            File.WriteAllText(Path.Combine(outputRoot, "CdForwardExpand.json"), JsonUtility.ToJson(report, true));
+        }
+        catch (Exception ex) { report.passed = false; Debug.LogException(ex); }
+        Application.Quit(report.passed ? 0 : 2);
+    }
+
+    static void ForwardFixture(ComputeShader shader, ForwardReport report, string name, bool ortho, Vector3 centerVS,
+        float radius, float angle, bool near = false, EdgeCase edge = null)
+    {
+        const int w = 257, h = 129, cols = 17, rows = 9, tile = 16;
+        var camera = Matrix4x4.TRS(new Vector3(3,-4,2), Quaternion.Euler(23,37,-16), Vector3.one);
+        var axis = camera.MultiplyVector(new Vector3(0.73f,0.32f,-0.6f)).normalized;
+        var c = new ForwardCase { name = name, orthographic = ortho, centerWS = camera.MultiplyPoint3x4(centerVS),
+            axisWS = axis, range = radius, angle = angle };
+        report.cases.Add(c);
+        float focal = ortho ? 10 : 90, cx = ortho ? 128.5f : 119.5f, cy = ortho ? 64.5f : 69.5f;
+        var item = new EdgeItem { positionRange = new Vector4(c.centerWS.x,c.centerWS.y,c.centerWS.z,radius),
+            directionExtent = new Vector4(axis.x,axis.y,axis.z,angle), lightType = (int)(angle > 0 ? LightType.Spot : LightType.Point) };
+        using (var input = new ComputeBuffer(1,48))
+        using (var depths = new ComputeBuffer(1,8))
+        using (var ranges = new ComputeBuffer(1,16))
+        using (var words = new ComputeBuffer(cols*rows,4))
+        {
+            int bounds = shader.FindKernel("ClusterItemBounds");
+            input.SetData(new[] { item });
+            shader.SetInt("_CdClusterItemCount",1);
+            shader.SetInts("_CdClusterTileCount",cols,rows);
+            shader.SetVector("_CdClusterTileScale",new Vector4((float)w/tile,(float)h/tile,0,0));
+            shader.SetVector("_CdClusterViewToViewportScaleBias",new Vector4(focal/w,-focal/h,cx/w,cy/h));
+            shader.SetMatrix("_CdClusterWorldToView",camera.inverse);
+            shader.SetFloat("_CdClusterNear",0.1f);
+            shader.SetInt("_CdClusterOrthographic",ortho ? 1 : 0);
+            shader.SetBuffer(bounds,"_CdClusterItems",input);
+            shader.SetBuffer(bounds,"_CdClusterMinMaxZ",depths);
+            shader.SetBuffer(bounds,"_CdClusterTileRanges",ranges);
+            shader.Dispatch(bounds,1,1,1);
+            shader.SetVector("_FPParams1",new Vector4(0,0,0,1));
+            shader.SetInt("_URPClusterTileOffset",0);
+            foreach (bool forward in new[] { false, true })
+            {
+                int kernel = shader.FindKernel(forward ? "ClusterTileExpandForwardPlus" : "ClusterTileExpand");
+                var masks = new uint[rows*cols];
+                words.SetData(masks);
+                if (forward) shader.SetBuffer(kernel,"_CdClusterItems",input);
+                shader.SetBuffer(kernel,"_CdClusterTileRanges",ranges);
+                shader.SetBuffer(kernel,"_URPClusterWords",words);
+                shader.Dispatch(kernel,(cols+7)/8,(rows+7)/8,1);
+                words.GetData(masks);
+                for (int i=0; i<masks.Length; i++)
+                {
+                    if (masks[i] > 1) throw new InvalidOperationException("Unexpected item bit");
+                    if (masks[i] == 1) (forward ? c.forward : c.plain).Add(i);
+                }
+            }
+        }
+        // Independent receiver oracle: unproject pixel centers on depth slices and test actual
+        // world-space range and outer cone, not the shader's shifted sphere or tile planes.
+        float cos = Mathf.Cos(angle * Mathf.Deg2Rad * 0.5f);
+        var witness = new bool[cols*rows];
+        for (int s=-16; s<=16; s++)
+        {
+            float z = -centerVS.z + s * radius / 16;
+            if (z < 0.1f) continue;
+            float k = (ortho ? 1 : z) / focal;
+            for (int y=0; y<h; y++)
+                for (int x=0; x<w; x++)
+                {
+                    var delta = camera.MultiplyPoint3x4(new Vector3((x+0.5f-cx)*k,(cy-y-0.5f)*k,-z)) - c.centerWS;
+                    if (delta.sqrMagnitude >= radius*radius || (angle > 0 && Vector3.Dot(axis,delta) <= cos*delta.magnitude)) continue;
+                    c.receiverSamples++;
+                    witness[(y/tile)*cols+x/tile] = true;
+                }
+        }
+        for (int i=0; i<witness.Length; i++)
+        {
+            if (witness[i]) c.receivers.Add(i);
+            bool f = c.forward.Contains(i), p = c.plain.Contains(i);
+            if (witness[i] && !f) c.missingTiles++;
+            if (f && !p) c.addedTiles++;
+            if (p && !f) c.prunedTiles++;
+        }
+        c.passed = c.missingTiles == 0 && c.addedTiles == 0;
+        if (edge == null)
+            c.passed &= c.receivers.Count > 1 && c.prunedTiles > 0 && (!near || c.plain.Count == cols*rows);
+        else if (edge.expectedX < 0)
+            c.passed &= c.receivers.Count == 0 && c.forward.Count == 0;
+        else
+            c.passed &= c.receivers.Count == 1 && c.forward.Count == 1 && c.forward[0] == edge.expectedY*cols+edge.expectedX;
     }
 
     IEnumerator RunCaptureOnly(string outputRoot, PerfReport report)

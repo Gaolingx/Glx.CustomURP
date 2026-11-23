@@ -627,3 +627,5 @@ PY
 - 同机三轮配对中，D3D12 透明 Forward+、256 灯的 CPU 中位数增加 0.9463 ms，GPU 增加 0.9285 ms；三轮同向，不作噪声豁免，尚未定位到具体改动。
 
 [最终报告与证据口径](TODO/19-C7Final/report.md) · [逐图矩阵](TODO/19-C7Final/matrix.csv) · [逐轮性能](TODO/19-C7Final/performance.csv)。报告中的工作树判定是提交证据前的快照，不是渲染门槛。
+
+**主线 `1bcc731` 复验：C7 仍 FAIL。** 父版 `61e3859` 双 API 均只漏末行、末列与角点；候选共享粗筛/常规 expand 各 5/5，实际 Forward+ expand 各 11/11。候选 256 灯 Forward+ GPU 对父版每帧回收 **0.6093–0.6835 ms**，但四格仍比同轮冻结 C0 慢 **0.1976–0.2089 ms**。双 API 候选每端多一个实际 compute 程序，Lit/ForwardLit 与 ClusteredDeferred 的原预算未超。原生 T5 与冻结 PNG 三轮对照，0/8/48 灯 72/72，256 灯仅 2/24；另行同帧诊断的八对跨版本图均有一盏上传灯 ID 替换，不能作为等灯集渲染对照。候选两端 EditMode 各 490/490、PlayMode 各 45/46；24 灯材质超阈的 1674 个位置与历史基线逐像素一致，仍超过 230 的上限。候选 RenderDoc 结构双 API 通过，T12 同路径各 85/85。T4 对冻结 C0 各 13/14（同一张 ReceiveShadowsOff，peak 240），对匹配夹具各 28/28；玩家自身跨路径各 0/7。[T4/T12 原始判定](TODO/19-C7Final/main-extra/results.json) · [主线原始证据与分项判定](TODO/19-C7Final/report.md#main-1bcc731) · [主线配对性能](TODO/19-C7Final/main-performance.csv)。

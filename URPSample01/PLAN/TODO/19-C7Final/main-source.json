@@ -1,0 +1,19 @@
+{
+ "cmd": [
+  "git",
+  "grep",
+  "-nI",
+  "-E",
+  "PrecomputeLights|RenderStencilLights|StencilDeferred|stencilDeferredPS|_DEFERRED_FIRST_LIGHT|_DEFERRED_STENCIL|k_DeferredStencilPass|m_ProfilingSamplerDeferredStencilPass",
+  "1bcc731",
+  "--",
+  "URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime",
+  "URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Editor",
+  "URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders",
+  "URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary",
+  "URPSample01/Assets"
+ ],
+ "exit": 1,
+ "stdout": "",
+ "stderr": ""
+}

@@ -1,0 +1,45 @@
+{
+ "run": "d22772279f494f10a00308cf293af646",
+ "frame": 1405,
+ "api": "Direct3D12",
+ "route": "ForwardPlus",
+ "transparent": true,
+ "lights": 256,
+ "version": "candidate",
+ "positions": 256,
+ "colors": 256,
+ "forwardPlusKeyword": true,
+ "command": [
+  "D:\\NativeIDs-rhv3mbsi\\candidate\\Direct3D12\\CdArena.exe",
+  "-force-d3d12",
+  "--cd-total-lights",
+  "256",
+  "--cd-light-counts",
+  "0,8,48,256",
+  "--cd-screenshot-lights",
+  "256",
+  "--cd-warmup",
+  "40",
+  "--cd-samples",
+  "150",
+  "--cd-output",
+  "D:\\NativeIDs-rhv3mbsi\\candidate\\candidate-12-1",
+  "-logFile",
+  "D:\\NativeIDs-rhv3mbsi\\candidate\\candidate-12-1\\player.log",
+  "--cd-transparent"
+ ],
+ "fixture": "ClusteredDeferredArena/256",
+ "source": "Unity global vector array upload mirror; not a GPU binding readback",
+ "ids": {
+  "run": "d22772279f494f10a00308cf293af646",
+  "frame": 1405,
+  "path": "0c46fda119663d3fea6beddba6081edec4095cdbf76a57b5a5803101c393408a.bin",
+  "sha256": "0c46fda119663d3fea6beddba6081edec4095cdbf76a57b5a5803101c393408a"
+ },
+ "native": {
+  "run": "d22772279f494f10a00308cf293af646",
+  "frame": 1405,
+  "path": "89a7e7e5073117c646d06dcb09d7ec5ed268e5962a05aad1d908fe5488776ee6.png",
+  "sha256": "89a7e7e5073117c646d06dcb09d7ec5ed268e5962a05aad1d908fe5488776ee6"
+ }
+}
