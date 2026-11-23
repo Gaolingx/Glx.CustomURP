@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
@@ -16,8 +17,8 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
     // T5/T7 runtime regression for the clustered deferred lighting path.
     //
     // The suite drives real cameras through clustered deferred and Forward+ against a rig with one of
-    // every material type that matters to the mask pass (Lit, SimpleLit, Unlit/forward-only,
-    // ComplexLit/skipped), so the A/B covers lighting, the material mask and the forward-only
+    // every material type classified by stencil (Lit, SimpleLit, Unlit/forward-only,
+    // ComplexLit/skipped), so the A/B covers lighting, material classification and the forward-only
     // fallback at once. The player-only arena runner keeps the large light-count sweep; this suite
     // is the in-editor gate that runs with the normal EditMode/PlayMode batch.
     public class ClusteredDeferredPlayModeTests
@@ -79,7 +80,6 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             try
             {
                 yield return RenderFrames(WarmupFrames);
-                Assert.AreEqual(2, CountClusterTargets());
                 var clustered = ReadPixels();
                 AssertImageUsable(clustered, "clustered");
                 var receivers = m_Root.GetComponentsInChildren<Renderer>()
@@ -142,7 +142,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
 
         IEnumerator CompareFogReceivers(bool orthographic)
         {
-            yield return SetUpRig(ForwardPlusPipelinePath, 640, 360, 1);
+            yield return SetUpRig(ForwardPlusPipelinePath, 640, 360, 1, comparesDeferred: true);
             bool fog = RenderSettings.fog;
             var mode = RenderSettings.fogMode;
             var color = RenderSettings.fogColor;
@@ -208,11 +208,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
                         yield return RenderFrames(WarmupFrames);
                         var regions = CaptureRegions(receivers);
                         if (m == 0)
-                        {
                             off = regions;
-                            if (clustered)
-                                Assert.AreEqual(2, CountClusterTargets(), "Expected the eligible deferred camera to allocate both cluster targets.");
-                        }
                         if (!clustered)
                             reference[m] = regions;
                         for (int i = 0; i < receivers.Length; i++)
@@ -465,23 +461,65 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
         }
 
+        sealed class ColorHandoffProbe : ScriptableRendererFeature
+        {
+            public Camera camera;
+            public RTHandle source, destination, downstream;
+            public bool completed;
+
+            sealed class Observe : ScriptableRenderPass
+            {
+                public System.Action<UniversalRenderer> record;
+                public override void Execute(ScriptableRenderContext context, ref RenderingData data) =>
+                    record((UniversalRenderer)data.cameraData.renderer);
+            }
+
+            Observe before, after;
+            public override void Create()
+            {
+                before = new Observe { renderPassEvent = RenderPassEvent.BeforeRenderingDeferredLights,
+                    record = r => { source = r.cameraColorTargetHandle; destination = r.deferredColorDestination; } };
+                after = new Observe { renderPassEvent = RenderPassEvent.AfterRenderingDeferredLights,
+                    record = r => { downstream = r.cameraColorTargetHandle; completed = r.deferredColorDestination == null; } };
+            }
+
+            public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData data)
+            {
+                if (data.cameraData.camera != camera) return;
+                renderer.EnqueuePass(before);
+                renderer.EnqueuePass(after);
+            }
+        }
+
         [UnityTest]
-        public IEnumerator TemporaryTargetsAreReleasedWhenThePathIsRemoved()
+        public IEnumerator LightingHandsItsUavToDownstreamPasses()
         {
             yield return SetUpRig(ClusteredPipelinePath, 640, 360, 8);
+            var pipeline = Object.Instantiate(m_Pipeline);
+            var rendererData = Object.Instantiate(m_Pipeline.scriptableRendererData);
+            var probe = ScriptableObject.CreateInstance<ColorHandoffProbe>();
             try
             {
-                yield return RenderFrames(2);
-                Assert.AreEqual(2, CountClusterTargets(), "The clustered pass did not allocate its mask/lighting targets.");
-
-                SwitchPipeline(ForwardPlusPipelinePath);
+                rendererData.rendererFeatures.Add(probe);
+                pipeline.m_RendererDataList = new[] { rendererData };
+                GraphicsSettings.defaultRenderPipeline = pipeline;
+                QualitySettings.renderPipeline = pipeline;
                 yield return null;
-                yield return null;
-                Assert.AreEqual(0, CountClusterTargets(), "Clustered deferred render targets survived the renderer disposal.");
+                probe.camera = m_Camera;
+                m_Camera.Render();
+                Assert.IsNotNull(probe.source);
+                Assert.IsNotNull(probe.destination, "No deferred lighting dispatch was scheduled.");
+                Assert.AreNotSame(probe.source.rt, probe.destination.rt, "Lighting must not sample its output UAV.");
+                Assert.IsTrue(probe.destination.rt.enableRandomWrite);
+                Assert.IsTrue(probe.completed, "Lighting did not complete the color handoff.");
+                Assert.AreSame(probe.destination, probe.downstream);
             }
             finally
             {
                 TearDownRig();
+                Object.Destroy(pipeline);
+                Object.Destroy(rendererData);
+                Object.Destroy(probe);
             }
         }
 
@@ -773,6 +811,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             ClusterListParityCapture.enabled = true;
             m_Camera.Render();
             ClusterListParityCapture.enabled = false;
+            AssertCameraMode();
             yield return WaitForGpuSnapshot();
             Assert.IsNotNull(ClusterListParityCapture.lastGpu.zBins, "GPU readback timed out.");
             Assert.IsNotNull(ClusterListParityCapture.lastGpu.tileMasks);
@@ -907,8 +946,18 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         // Harness
         // ---------------------------------------------------------------------------------------------
 
-        IEnumerator SetUpRig(string pipelinePath, int width, int height, int additionalLights, bool transparent = false)
+        RenderingMode m_ExpectedMode;
+
+        IEnumerator SetUpRig(string pipelinePath, int width, int height, int additionalLights, bool transparent = false, bool comparesDeferred = false)
         {
+            m_ExpectedMode = pipelinePath == ClusteredPipelinePath ? RenderingMode.Deferred : RenderingMode.ForwardPlus;
+            // Preserve the linear float target used to generate the frozen Forward+ reference.
+            var target = new RenderTextureDescriptor(width, height, GraphicsFormat.R32G32B32A32_SFloat, 24) { msaaSamples = 1 };
+            if (!ClusterListGpuBuilder.IsSupportedDevice)
+                Assert.Ignore("The GPU cluster list builder is not supported on this device.");
+            if ((m_ExpectedMode == RenderingMode.Deferred || comparesDeferred) &&
+                (!ClusteredDeferredPass.IsSupportedDevice || !UniversalRenderer.SupportsDeferredAttachments(target)))
+                Assert.Ignore($"Single-dispatch deferred does not support {target.graphicsFormat} on {SystemInfo.graphicsDeviceType}.");
             m_PreviousPipeline = GraphicsSettings.defaultRenderPipeline;
             m_PreviousQualityPipeline = QualitySettings.renderPipeline;
 
@@ -967,11 +1016,11 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             cameraData.renderShadows = false;
             cameraData.antialiasing = AntialiasingMode.None;
 
-            m_Target = new RenderTexture(width, height, 24, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear)
+            m_Target = new RenderTexture(target)
             {
                 name = "Clustered Deferred PlayMode Target",
             };
-            m_Target.Create();
+            Assert.IsTrue(m_Target.Create(), "Could not allocate the linear fixture target.");
             m_Camera.targetTexture = m_Target;
 
             DynamicGI.UpdateEnvironment();
@@ -1012,6 +1061,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
         void SwitchPipeline(string pipelinePath)
         {
 #if UNITY_EDITOR
+            m_ExpectedMode = pipelinePath == ClusteredPipelinePath ? RenderingMode.Deferred : RenderingMode.ForwardPlus;
             var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(pipelinePath);
             Assert.IsNotNull(pipeline, "Missing pipeline asset " + pipelinePath);
             GraphicsSettings.defaultRenderPipeline = pipeline;
@@ -1080,6 +1130,7 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             for (int i = 0; i < frames; i++)
             {
                 m_Camera.Render();
+                AssertCameraMode();
                 yield return null;
             }
         }
@@ -1102,11 +1153,10 @@ namespace Unity.ClusteredDeferred.Tests.PlayMode
             }
         }
 
-        static int CountClusterTargets()
+        void AssertCameraMode()
         {
-            return Resources.FindObjectsOfTypeAll<RenderTexture>()
-                .Count(rt => rt != null &&
-                             (rt.name == "Clustered Deferred Material Mask" || rt.name == "Clustered Deferred Lighting"));
+            var renderer = (UniversalRenderer)m_Camera.GetUniversalAdditionalCameraData().scriptableRenderer;
+            Assert.AreEqual(m_ExpectedMode, renderer.renderingModeActual, "Fixture camera rendered via an unexpected path.");
         }
 
         static DiffStats Compare(Color[] a, Color[] b)

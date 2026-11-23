@@ -81,6 +81,8 @@ namespace UnityEngine.Rendering.Universal
         internal bool clusteredDeferredEnabled => renderingModeActual == RenderingMode.Deferred;
         bool usesClusters => clusteredDeferredEnabled || renderingModeActual == RenderingMode.ForwardPlus;
         ClusteredDeferredPass m_ClusteredDeferredPass;
+        RTHandle m_DeferredColorSource;
+        internal RTHandle deferredColorDestination { get; private set; }
         readonly HashSet<string> m_ClusterWarnings = new HashSet<string>();
 
         internal void UpdateCameraRenderingMode(ref CameraData cameraData, bool useRenderGraph)
@@ -115,9 +117,22 @@ namespace UnityEngine.Rendering.Universal
 
             if (useRenderGraph || m_ClusteredDeferredPass == null || !m_ClusteredDeferredPass.isAvailable ||
                 !ClusteredDeferredPass.IsEligibleCamera(ref cameraData) || IsOffscreenDepthTexture(in cameraData) ||
-                cameraData.cameraTargetDescriptor.msaaSamples > 1 || GL.wireframe ||
+                !SupportsDeferredAttachments(cameraData.cameraTargetDescriptor) || GL.wireframe ||
                 (DebugHandler != null && DebugHandler.IsActiveModeUnsupportedForDeferred) || !SupportsCameraGBuffer())
                 renderingModeActual = RenderingMode.Forward;
+        }
+
+        internal static bool SupportsDeferredAttachments(in RenderTextureDescriptor desc)
+        {
+            // Never silently substitute a linear UAV for an sRGB camera render target.
+            return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan) &&
+                desc.msaaSamples == 1 && desc.dimension == TextureDimension.Tex2D && desc.volumeDepth == 1 &&
+                desc.memoryless == RenderTextureMemoryless.None && !desc.useDynamicScale && !desc.sRGB &&
+                !GraphicsFormatUtility.IsIntegerFormat(desc.graphicsFormat) &&
+                SystemInfo.IsFormatSupported(desc.graphicsFormat, FormatUsage.LoadStore) &&
+                SystemInfo.IsFormatSupported(desc.graphicsFormat, FormatUsage.Render) &&
+                SystemInfo.IsFormatSupported(k_DepthStencilFormat, FormatUsage.Render);
         }
 
         bool SupportsCameraGBuffer()
@@ -291,10 +306,8 @@ namespace UnityEngine.Rendering.Universal
             forwardInitParams.forwardPlus = data.renderingMode == RenderingMode.ForwardPlus;
             forwardInitParams.publishProbeAtlas = false;
             bool clusteredAvailable = data.renderingMode == RenderingMode.Deferred && ClusteredDeferredPass.IsSupportedDevice &&
-                data.shaders.clusteredDeferredCS != null && data.shaders.clusteredDeferredCS.HasKernel("ClusteredDeferred") &&
-                data.shaders.clusteredDeferredMaskPS != null && data.shaders.clusteredDeferredMaskPS.isSupported &&
-                data.shaders.clusteredDeferredResolvePS != null && data.shaders.clusteredDeferredResolvePS.isSupported;
-            // The mask, compute and resolve passes require sampleable attachments rather than framebuffer fetch.
+                data.shaders.clusteredDeferredCS != null && data.shaders.clusteredDeferredCS.HasKernel("ClusteredDeferred");
+            // Compute reads the GBuffer and stencil plane as textures rather than framebuffer inputs.
             if (clusteredAvailable)
                 useRenderPassEnabled = false;
 
@@ -352,8 +365,7 @@ namespace UnityEngine.Rendering.Universal
                 int forwardOnlyStencilRef = stencilData.stencilReference | (int)StencilUsage.MaterialUnlit;
                 m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingGbuffer + 1, m_CopyDepthMaterial, true);
                 m_ClusteredDeferredPass = new ClusteredDeferredPass(RenderPassEvent.BeforeRenderingDeferredLights,
-                    m_DeferredLights, m_ForwardLights, data.shaders.clusteredDeferredCS,
-                    data.shaders.clusteredDeferredMaskPS, data.shaders.clusteredDeferredResolvePS);
+                    m_DeferredLights, m_ForwardLights, data.shaders.clusteredDeferredCS);
                 m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
             }
 
@@ -428,7 +440,6 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ForwardLights.Cleanup();
             m_GBufferPass?.Dispose();
-            m_ClusteredDeferredPass?.Dispose();
             m_PostProcessPasses.Dispose();
             m_FinalBlitPass?.Dispose();
             m_DrawOffscreenUIPass?.Dispose();
@@ -604,6 +615,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            m_DeferredColorSource = deferredColorDestination = null;
             m_ForwardLights.PreSetup(ref renderingData);
 
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -852,11 +864,14 @@ namespace UnityEngine.Rendering.Universal
             colorDescriptor.useMipMap = false;
             colorDescriptor.autoGenerateMips = false;
             colorDescriptor.depthBufferBits = (int)DepthBits.None;
-            m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
+            createColorTexture |= clusteredDeferredEnabled;
 
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
+                // Overlays inherit the base descriptor and physical UAV; changing usage mid-stack
+                // could reallocate the very texture containing the base camera's color.
+                m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear, clusteredDeferredEnabled);
                 // Scene filtering redraws the objects on top of the resulting frame. It has to draw directly to the sceneview buffer.
                 bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
                 bool intermediateRenderTexture = (createColorTexture || createDepthTexture) && !sceneViewFilterEnabled;
@@ -1495,6 +1510,12 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_GBufferCopyDepthPass);
             EnqueuePass(m_ClusteredDeferredPass);
 
+            // Downstream Setup calls capture explicit handles before any pass executes. Reserve
+            // their result now, but leave the physical swap until the dispatch has written it.
+            m_DeferredColorSource = m_ActiveCameraColorAttachment;
+            deferredColorDestination = m_ColorBufferSystem.GetFrontBuffer(renderingData.commandBuffer);
+            m_ActiveCameraColorAttachment = deferredColorDestination;
+            ConfigureCameraColorTarget(deferredColorDestination);
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
         }
 
@@ -1721,6 +1742,25 @@ namespace UnityEngine.Rendering.Universal
                 return false;
 
             return supportsDepthCopy || msaaDepthResolve;
+        }
+
+        internal override void SelectCameraColorForPass(ScriptableRenderPass pass)
+        {
+            if (m_DeferredColorSource == null)
+                return;
+            // Feature passes at the same event are enqueued before the built-in lighting pass.
+            m_ActiveCameraColorAttachment = pass.renderPassEvent <= m_ClusteredDeferredPass.renderPassEvent
+                ? m_DeferredColorSource : deferredColorDestination;
+            ConfigureCameraColorTarget(m_ActiveCameraColorAttachment);
+        }
+
+        // Call after recording DispatchCompute, before executing/clearing its command buffer.
+        internal void CompleteDeferredColorHandoff(CommandBuffer cmd)
+        {
+            SwapColorBuffer(cmd);
+            Debug.Assert(m_ActiveCameraColorAttachment == deferredColorDestination);
+            SetRenderTarget(cmd, m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment, ClearFlag.None, Color.clear);
+            m_DeferredColorSource = deferredColorDestination = null;
         }
 
         internal override void SwapColorBuffer(CommandBuffer cmd)

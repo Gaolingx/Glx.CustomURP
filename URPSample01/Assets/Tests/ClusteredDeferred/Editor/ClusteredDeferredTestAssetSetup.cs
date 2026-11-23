@@ -125,8 +125,7 @@ public static class ClusteredDeferredTestAssetSetup
         AssetDatabase.CreateAsset(renderer, path);
 
         var saved = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(path);
-        if (saved == null || saved.shaders.clusteredDeferredCS == null ||
-            saved.shaders.clusteredDeferredMaskPS == null || saved.shaders.clusteredDeferredResolvePS == null)
+        if (saved == null || saved.shaders.clusteredDeferredCS == null)
         {
             throw new InvalidOperationException("Clustered deferred shader resources did not reload on " + path);
         }

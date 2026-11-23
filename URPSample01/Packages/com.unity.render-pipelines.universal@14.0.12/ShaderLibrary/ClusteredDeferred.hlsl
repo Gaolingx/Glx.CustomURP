@@ -41,8 +41,8 @@ TEXTURE2D(_CameraDepthTexture);
 TEXTURE2D(_GBuffer0);
 TEXTURE2D(_GBuffer1);
 TEXTURE2D(_GBuffer2);
-// URP has no generic UINT texture macro; SSGI declares Texture2D<uint> the same way.
-Texture2D<uint> _MaterialTypeMask; // R8_UInt: 0 = skip, 1 = Lit, 2 = SimpleLit
+Texture2D<uint2> _CdStencilTexture;
+TEXTURE2D(_CdBakedColor); // Lighting attachment before deferred shading; never aliases the output UAV.
 
 float4 _ScreenSize;          // (width, height, 1/width, 1/height)
 float4 _CdCameraPositionWS;  // xyz = camera position
@@ -52,6 +52,47 @@ float4 _CdCameraParams;      // x = 1 perspective, 0 orthographic
 // Unity's per-camera globals are not declared by the core headers inside a compute include;
 // the pipeline still uploads them (same pattern as ScreenSpaceLightingCommon.hlsl:66-67).
 float4x4 unity_MatrixInvVP;
+
+int _CdFogMode;             // 0 = off; otherwise UnityEngine.FogMode.
+float4 _CdFogProjection;    // GPU projection m22, m23, near, far
+float4 _ZBufferParams;
+float4 unity_FogParams;
+half4 unity_FogColor;
+
+float3 CdApplyFog(float3 color, float rawDepth)
+{
+    // The old fullscreen draw was perspective-only, ZTest NotEqual against far,
+    // with no material stencil test. The caller already excluded far pixels.
+    if (_CdFogMode == 0 || _CdCameraParams.x == 0.0)
+        return color;
+
+    float eyeZ = LinearEyeDepth(rawDepth, _ZBufferParams);
+    float clipZ = _CdFogProjection.x * -eyeZ + _CdFogProjection.y;
+    float nearZ = _CdFogProjection.z, farZ = _CdFogProjection.w;
+    // Core.hlsl: UNITY_Z_0_FAR_FROM_CLIPSPACE.
+#if UNITY_REVERSED_Z
+    #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
+        float z = max((clipZ - nearZ) / (-farZ - nearZ) * farZ, 0.0);
+    #else
+        float z = max((1.0 - clipZ / nearZ) * farZ, 0.0);
+    #endif
+#elif UNITY_UV_STARTS_AT_TOP
+    float z = clipZ;
+#else
+    float z = max((clipZ + nearZ) / (farZ + nearZ) * farZ, 0.0);
+#endif
+
+    // Mirror ComputeFogFactorZ0ToFar / ComputeFogIntensity (both exp modes use x).
+    half visibility;
+    if (_CdFogMode == 1)
+        visibility = half(saturate(z * unity_FogParams.z + unity_FogParams.w));
+    else
+    {
+        half factor = half(unity_FogParams.x * z);
+        visibility = saturate(exp2(_CdFogMode == 2 ? -factor : -factor * factor));
+    }
+    return unity_FogColor.rgb * (1.0 - visibility) + color * visibility;
+}
 
 // ----------------------------------------------------------------------------
 // Cluster buffers (same layout/binding names as Input.hlsl).
@@ -63,7 +104,6 @@ float4 _FPParams2;
 
 #define URP_FP_ZBIN_SCALE (_FPParams0.x)
 #define URP_FP_ZBIN_OFFSET (_FPParams0.y)
-#define URP_FP_PROBES_BEGIN ((uint)_FPParams0.z)
 #define URP_FP_DIRECTIONAL_LIGHTS_COUNT ((uint)_FPParams0.w)
 #define URP_FP_TILE_SCALE ((float2)_FPParams1.xy)
 #define URP_FP_TILE_COUNT_X ((uint)_FPParams1.z)
@@ -577,8 +617,7 @@ half CdDirectAmbientOcclusion(float2 normalizedScreenSpaceUV)
 #endif
 }
 
-// The GBuffer already includes baked occlusion. Emit a factor for the resolve's SrcAlpha
-// blend so GBuffer3 ends up with min(baked, screen-space) instead of their product.
+// Baked color already includes surface occlusion; scale to min(baked, screen-space) instead of their product.
 half CdIndirectAmbientOcclusionCancel(float2 normalizedScreenSpaceUV, half surfaceOcclusion)
 {
 #if defined(_SCREEN_SPACE_OCCLUSION)

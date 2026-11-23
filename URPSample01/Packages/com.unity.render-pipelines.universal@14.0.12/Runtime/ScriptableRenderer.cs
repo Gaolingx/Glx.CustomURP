@@ -560,6 +560,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         RTHandleRenderTargetIdentifierCompat m_CameraColorTarget;
+        // SetupRenderPasses runs once per feature. Use the last scheduled pass as its target
+        // lifetime; features spanning a swap can query per-pass handles in OnCameraSetup.
+        readonly List<ScriptableRenderPass> m_FeatureLastPass = new List<ScriptableRenderPass>();
         RTHandleRenderTargetIdentifierCompat m_CameraDepthTarget;
         RTHandleRenderTargetIdentifierCompat m_CameraResolveTarget;
 
@@ -1146,7 +1149,10 @@ namespace UnityEngine.Rendering.Universal
                 using (new ProfilingScope(null, Profiling.RenderPass.configure))
                 {
                     foreach (var pass in activeRenderPassQueue)
+                    {
+                        SelectCameraColorForPass(pass);
                         pass.Configure(cmd, cameraData.cameraTargetDescriptor);
+                    }
 
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
@@ -1366,10 +1372,12 @@ namespace UnityEngine.Rendering.Universal
         internal void AddRenderPasses(ref RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(null, Profiling.addRenderPasses);
+            m_FeatureLastPass.Clear();
 
             // Add render passes from custom renderer features
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
+                m_FeatureLastPass.Add(null);
                 if (!rendererFeatures[i].isActive)
                 {
                     continue;
@@ -1378,8 +1386,15 @@ namespace UnityEngine.Rendering.Universal
                 if (!rendererFeatures[i].SupportsNativeRenderPass())
                     disableNativeRenderPassInFeatures = true;
 
+                int first = activeRenderPassQueue.Count;
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
                 disableNativeRenderPassInFeatures = false;
+                for (int p = first; p < activeRenderPassQueue.Count; ++p)
+                {
+                    var pass = activeRenderPassQueue[p];
+                    if (pass != null && (m_FeatureLastPass[i] == null || pass.renderPassEvent >= m_FeatureLastPass[i].renderPassEvent))
+                        m_FeatureLastPass[i] = pass;
+                }
             }
 
             // Remove any null render pass that might have been added by user by mistake
@@ -1410,6 +1425,8 @@ namespace UnityEngine.Rendering.Universal
                 if (!rendererFeatures[i].isActive)
                     continue;
 
+                if (i < m_FeatureLastPass.Count && m_FeatureLastPass[i] != null)
+                    SelectCameraColorForPass(m_FeatureLastPass[i]);
                 rendererFeatures[i].SetupRenderPasses(this, in renderingData);
             }
         }
@@ -1515,6 +1532,8 @@ namespace UnityEngine.Rendering.Universal
             return renderPass.useNativeRenderPass && renderPass.m_UsesRTHandles && useRenderPassEnabled;
         }
 
+        internal virtual void SelectCameraColorForPass(ScriptableRenderPass pass) { }
+
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass,
             ref RenderingData renderingData)
         {
@@ -1535,6 +1554,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            SelectCameraColorForPass(renderPass);
             // Track CPU only as GPU markers for this scope were "too noisy".
             using (new ProfilingScope(null, Profiling.RenderPass.setRenderPassAttachments))
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
@@ -2134,6 +2154,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
+                    SelectCameraColorForPass(m_ActiveRenderPassQueue[i]);
                     m_ActiveRenderPassQueue[i].OnCameraSetup(renderingData.commandBuffer, ref renderingData);
                 }
             }

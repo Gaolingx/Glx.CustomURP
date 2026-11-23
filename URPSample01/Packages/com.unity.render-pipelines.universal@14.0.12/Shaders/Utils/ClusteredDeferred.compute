@@ -2,8 +2,7 @@
 //
 // Dispatch is pixel-parallel: ceil(viewport / 16) groups of 16x16 threads, one pixel per thread.
 // The tile id is derived per pixel from _FPParams1.xy, so the kernel does not care whether the CPU
-// picked an 8/16/32/64-wide tile. Output goes to a UAV because compute dispatches have no
-// fixed-function blending; ClusteredDeferredResolve adds it into GBuffer3 with Blend One One.
+// picked an 8/16/32/64-wide tile. Each thread composes direct + baked lighting and fog into the final UAV.
 //
 // Shadows are the T4 shadow subset: main light (cascade or screen space) and additional-light
 // atlas shadows, disabled per pixel by the GBuffer receive-shadows-off flag. Cookies, light
@@ -23,28 +22,8 @@
 
 RWTexture2D<float4> _CdLightingTextureRW;
 
-[numthreads(16, 16, 1)]
-void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
+float4 CdDeferredLighting(uint2 pixel, uint materialType, float rawDepth)
 {
-    uint2 pixel = dispatchThreadId.xy;
-    if (any(pixel >= (uint2)_ScreenSize.xy))
-        return;
-
-    // 0 = Unlit/ComplexLit/forward-only/sky, 1 = Lit, 2 = SimpleLit.
-    uint materialType = LOAD_TEXTURE2D(_MaterialTypeMask, pixel).r;
-    if (materialType == 0u)
-    {
-        _CdLightingTextureRW[pixel] = float4(0.0, 0.0, 0.0, 1.0);
-        return;
-    }
-
-    float rawDepth = LOAD_TEXTURE2D(_CameraDepthTexture, pixel).x;
-    if (rawDepth == UNITY_RAW_FAR_CLIP_VALUE)
-    {
-        _CdLightingTextureRW[pixel] = float4(0.0, 0.0, 0.0, 1.0);
-        return;
-    }
-
     float2 uv = (pixel + 0.5) * _ScreenSize.zw;
     float3 positionWS = ComputeWorldSpacePosition(uv, rawDepth, unity_MatrixInvVP);
 
@@ -129,6 +108,30 @@ void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Direct AO is a per-pixel factor; apply it once to the sum rather than to each light.
     color *= CdDirectAmbientOcclusion(uv);
 
-    // Alpha carries the SrcAlpha factor the resolve applies to the baked indirect in GBuffer3.
-    _CdLightingTextureRW[pixel] = float4(color, CdIndirectAmbientOcclusionCancel(uv, gbuffer1.a));
+    return float4(color, CdIndirectAmbientOcclusionCancel(uv, gbuffer1.a));
+}
+
+[numthreads(16, 16, 1)]
+void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 pixel = dispatchThreadId.xy;
+    if (any(pixel >= (uint2)_ScreenSize.xy))
+        return;
+
+    float4 result = LOAD_TEXTURE2D(_CdBakedColor, pixel);
+    float rawDepth = LOAD_TEXTURE2D(_CameraDepthTexture, pixel).x;
+    if (rawDepth != UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        // StencilUsage.MaterialMask occupies bits 5 and 6; ignore user and reserved bits.
+        uint materialType = (GetStencilValue(LOAD_TEXTURE2D(_CdStencilTexture, pixel)) >> 5) & 3u;
+        if (materialType == 1u || materialType == 2u)
+        {
+            // Reproduce the R16G16B16A16_SFloat store/load before Blend One SrcAlpha.
+            // A half cast alone is a no-op on desktop backends where half maps to float.
+            float4 light = f16tof32(f32tof16(CdDeferredLighting(pixel, materialType, rawDepth)));
+            result.rgb = light.rgb + result.rgb * light.a;
+        }
+        result.rgb = CdApplyFog(result.rgb, rawDepth);
+    }
+    _CdLightingTextureRW[pixel] = result;
 }

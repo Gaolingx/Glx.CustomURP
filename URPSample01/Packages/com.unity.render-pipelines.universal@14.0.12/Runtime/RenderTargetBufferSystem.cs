@@ -17,9 +17,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             public int msaa;
         }
         SwapBuffer m_A, m_B;
-        static bool m_AisBackBuffer = true;
+        bool m_AisBackBuffer = true;
+        bool m_ARequiresStorage, m_BRequiresStorage;
 
-        static RenderTextureDescriptor m_Desc;
+        RenderTextureDescriptor m_Desc;
         FilterMode m_FilterMode;
         bool m_AllowMSAA = true;
 
@@ -79,7 +80,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderingUtils.ReAllocateIfNeeded(ref m_B.rtMSAA, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_B.name);
 
             desc.msaaSamples = 1;
+            desc.enableRandomWrite = m_Desc.enableRandomWrite || m_ARequiresStorage;
             RenderingUtils.ReAllocateIfNeeded(ref m_A.rtResolve, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_A.name);
+            desc.enableRandomWrite = m_Desc.enableRandomWrite || m_BRequiresStorage;
             RenderingUtils.ReAllocateIfNeeded(ref m_B.rtResolve, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_B.name);
             cmd.SetGlobalTexture(m_A.name, m_A.rtResolve);
             cmd.SetGlobalTexture(m_B.name, m_B.rtResolve);
@@ -91,8 +94,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AllowMSAA = m_A.msaa > 1 || m_B.msaa > 1;
         }
 
-        public void SetCameraSettings(RenderTextureDescriptor desc, FilterMode filterMode)
+        public void SetCameraSettings(RenderTextureDescriptor desc, FilterMode filterMode, bool frontRequiresStorage = false)
         {
+            // Attach the usage to the physical texture, not its role after a swap.
+            m_ARequiresStorage = frontRequiresStorage && !m_AisBackBuffer;
+            m_BRequiresStorage = frontRequiresStorage && m_AisBackBuffer;
             desc.depthBufferBits = 0;
             m_Desc = desc;
             m_FilterMode = filterMode;
@@ -102,11 +108,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_Desc.msaaSamples > 1)
                 EnableMSAA(true);
-        }
-
-        public RTHandle GetBufferA()
-        {
-            return (m_AllowMSAA && m_A.msaa > 1) ? m_A.rtMSAA : m_A.rtResolve;
         }
 
         public void EnableMSAA(bool enable)

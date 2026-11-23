@@ -91,18 +91,6 @@ namespace UnityEngine.Rendering.Universal
             public ComputeShader clusterBuilderCS;
 
             /// <summary>
-            /// Material type mask shader used by clustered deferred.
-            /// </summary>
-            [Reload("Shaders/Utils/ClusteredDeferredMask.shader")]
-            public Shader clusteredDeferredMaskPS;
-
-            /// <summary>
-            /// Additive resolve shader used by clustered deferred.
-            /// </summary>
-            [Reload("Shaders/Utils/ClusteredDeferredResolve.shader")]
-            public Shader clusteredDeferredResolvePS;
-
-            /// <summary>
             /// Fallback error shader.
             /// </summary>
             [Reload("Shaders/Utils/FallbackError.shader")]

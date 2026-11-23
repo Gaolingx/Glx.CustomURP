@@ -8,7 +8,7 @@ using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-// Compiles the clustered deferred compute/include and the two helper shaders on the current
+// Checks the single-dispatch clustered deferred kernel and its include on the current
 // graphics API and writes T3ShaderCheck.txt. T2/T3 evidence; cross-API coverage is a player-build
 // task (AC-9), not available from a single editor batch run.
 public static class ClusteredDeferredShaderCheck
@@ -84,6 +84,11 @@ public static class ClusteredDeferredShaderCheck
             var count = ShaderUtil.GetComputeShaderMessageCount(compute);
             var messages = ShaderUtil.GetComputeShaderMessages(compute);
             builder.AppendLine("[compute] " + path + " messages=" + count);
+            if (!compute.HasKernel("ClusteredDeferred"))
+            {
+                builder.AppendLine("  Missing ClusteredDeferred kernel");
+                failed = true;
+            }
             AppendMessages(builder, messages, ref failed);
             builder.AppendLine();
         }
@@ -91,36 +96,6 @@ public static class ClusteredDeferredShaderCheck
         if (computeCount == 0)
         {
             builder.AppendLine("[compute] ClusteredDeferred.compute NOT FOUND");
-            failed = true;
-        }
-
-        var shaderCount = 0;
-        foreach (var shaderName in new[] { "ClusteredDeferredMask", "ClusteredDeferredResolve" })
-        {
-            // Load by known package path first; FindAssets alone can miss freshly imported package
-            // shaders in a batch run.
-            var shaderPath = "Packages/com.unity.render-pipelines.universal/Shaders/Utils/" + shaderName + ".shader";
-            var shaders = new List<Shader>();
-            var direct = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
-            if (direct != null)
-                shaders.Add(direct);
-            shaders.AddRange(FindAssets<Shader>(shaderName));
-
-            foreach (var shader in shaders.Distinct())
-            {
-                shaderCount++;
-                var path = AssetDatabase.GetAssetPath(shader);
-                var count = ShaderUtil.GetShaderMessageCount(shader);
-                var messages = ShaderUtil.GetShaderMessages(shader);
-                builder.AppendLine("[shader] " + path + " messages=" + count);
-                AppendMessages(builder, messages, ref failed);
-                builder.AppendLine();
-            }
-        }
-
-        if (shaderCount < 2)
-        {
-            builder.AppendLine("[shader] expected 2 helper shaders, found " + shaderCount);
             failed = true;
         }
 

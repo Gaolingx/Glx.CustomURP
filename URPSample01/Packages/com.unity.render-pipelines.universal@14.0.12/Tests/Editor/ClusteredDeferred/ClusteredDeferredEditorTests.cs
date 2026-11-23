@@ -72,23 +72,15 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void ComputeKernelAndMaskResolveShadersCompile()
+        public void ClusteredDeferredKernelCompiles()
         {
             var compute = AssetDatabase.LoadAssetAtPath<ComputeShader>(ComputePath);
             Assert.IsNotNull(compute, "Missing " + ComputePath);
-            Assert.GreaterOrEqual(compute.FindKernel("ClusteredDeferred"), 0, "The compute shader has no ClusteredDeferred kernel.");
+            Assert.IsTrue(compute.HasKernel("ClusteredDeferred"), "The compute shader has no ClusteredDeferred kernel.");
             Assert.AreEqual(0, ShaderUtil.GetComputeShaderMessageCount(compute), "Compute shader reported compile messages.");
 
-            foreach (var shaderName in new[]
-                     {
-                         "Hidden/Universal/ClusteredDeferredMask",
-                         "Hidden/Universal/ClusteredDeferredResolve",
-                     })
-            {
-                var shader = Shader.Find(shaderName);
-                Assert.IsNotNull(shader, "Missing shader " + shaderName);
-                Assert.AreEqual(0, ShaderUtil.GetShaderMessageCount(shader), shaderName + " reported compile messages.");
-            }
+            compute.GetKernelThreadGroupSizes(compute.FindKernel("ClusteredDeferred"), out uint x, out uint y, out uint z);
+            CollectionAssert.AreEqual(new uint[] { 16, 16, 1 }, new[] { x, y, z }, "Dispatch dimensions must cover one 16x16 pixel group.");
         }
 
         // ShaderUtil under-reported broken compute variants in the T4 shadow round, so the player
@@ -155,17 +147,19 @@ namespace UnityEditor.Rendering.Universal.Tests
     class ClusteredDeferredModeGateTests
     {
         [Test]
-        public void SupportedDeviceRequiresComputeGBufferAndReadableMaskAndLightingTargets()
+        public void LinearCameraTargetRequiresSampleableStencilAndWritableColor()
         {
+            const GraphicsFormat color = GraphicsFormat.R16G16B16A16_SFloat;
+            var target = new RenderTextureDescriptor(64, 64, color, 0) { msaaSamples = 1 };
             var api = SystemInfo.graphicsDeviceType;
-            bool expected = SystemInfo.supportsComputeShaders &&
-                            !RenderingUtils.useStructuredBuffer &&
-                            (api == GraphicsDeviceType.Direct3D11 || api == GraphicsDeviceType.Direct3D12 ||
-                             api == GraphicsDeviceType.Vulkan || api == GraphicsDeviceType.Metal) &&
-                            SystemInfo.graphicsShaderLevel >= 45 && SystemInfo.supportedRenderTargetCount >= 4 &&
-                            SystemInfo.IsFormatSupported(GraphicsFormat.R8_UInt, FormatUsage.Render) &&
-                            SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.LoadStore);
-            Assert.AreEqual(expected, ClusteredDeferredPass.IsSupportedDevice);
+            bool expected = (api == GraphicsDeviceType.Direct3D11 || api == GraphicsDeviceType.Direct3D12 ||
+                             api == GraphicsDeviceType.Metal || api == GraphicsDeviceType.Vulkan) &&
+                            SystemInfo.IsFormatSupported(GraphicsFormat.D32_SFloat_S8_UInt, FormatUsage.Render) &&
+                            SystemInfo.IsFormatSupported(color, FormatUsage.Render) &&
+                            SystemInfo.IsFormatSupported(color, FormatUsage.LoadStore);
+            Assert.AreEqual(expected, UniversalRenderer.SupportsDeferredAttachments(target));
+            target.msaaSamples = 4;
+            Assert.IsFalse(UniversalRenderer.SupportsDeferredAttachments(target));
         }
 
         [Test]
@@ -201,8 +195,6 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.IsNotNull(oracle.shaders.clusterBuilderCS, "Forward+ renderer has no list builder.");
             Assert.IsNotNull(clustered.shaders.clusterBuilderCS, "Clustered renderer has no list builder.");
             Assert.IsNotNull(clustered.shaders.clusteredDeferredCS, "Clustered renderer has no compute shader reference.");
-            Assert.IsNotNull(clustered.shaders.clusteredDeferredMaskPS, "Clustered renderer has no mask shader reference.");
-            Assert.IsNotNull(clustered.shaders.clusteredDeferredResolvePS, "Clustered renderer has no resolve shader reference.");
         }
     }
 
@@ -269,7 +261,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             renderType = renderType,
             xr = XRSystem.emptyPass,
             maxShadowDistance = 25f,
-            cameraTargetDescriptor = new RenderTextureDescriptor(64, 64) { msaaSamples = 1 },
+            cameraTargetDescriptor = new RenderTextureDescriptor(64, 64, GraphicsFormat.R16G16B16A16_SFloat, 0) { msaaSamples = 1 },
         };
 
         static void AssertCulling(UniversalRenderer renderer, CameraData camera, RenderingMode expected, bool renderGraph = false)
@@ -292,7 +284,10 @@ namespace UnityEditor.Rendering.Universal.Tests
             using (var renderer = new UniversalRenderer(ClusteredDeferredAssets.ClusteredRenderer))
             {
                 var game = Camera(CameraType.Game);
-                var gameMode = ClusteredDeferredPass.IsSupportedDevice ? RenderingMode.Deferred : RenderingMode.Forward;
+                if (!ClusterListGpuBuilder.IsSupportedDevice || !ClusteredDeferredPass.IsSupportedDevice ||
+                    !UniversalRenderer.SupportsDeferredAttachments(game.cameraTargetDescriptor))
+                    Assert.Ignore("Mode transitions require a device supporting the linear deferred fixture target.");
+                const RenderingMode gameMode = RenderingMode.Deferred;
                 AssertCulling(renderer, game, gameMode);
                 AssertCulling(renderer, Camera(CameraType.Game, CameraRenderType.Overlay), RenderingMode.Forward);
                 AssertCulling(renderer, game, gameMode);
@@ -314,9 +309,15 @@ namespace UnityEditor.Rendering.Universal.Tests
             try
             {
                 copied.shaders = JsonUtility.FromJson<UniversalRendererData.ShaderResources>(JsonUtility.ToJson(copied.shaders));
+                var game = Camera(CameraType.Game);
+                if (!ClusterListGpuBuilder.IsSupportedDevice || !ClusteredDeferredPass.IsSupportedDevice ||
+                    !UniversalRenderer.SupportsDeferredAttachments(game.cameraTargetDescriptor))
+                    Assert.Ignore("The missing-resource test needs an otherwise eligible deferred camera.");
+                using (var control = new UniversalRenderer(copied))
+                    AssertCulling(control, game, RenderingMode.Deferred);
                 copied.shaders.clusteredDeferredCS = null;
                 using (var renderer = new UniversalRenderer(copied))
-                    AssertCulling(renderer, Camera(CameraType.Game), RenderingMode.Forward);
+                    AssertCulling(renderer, game, RenderingMode.Forward);
             }
             finally
             {
