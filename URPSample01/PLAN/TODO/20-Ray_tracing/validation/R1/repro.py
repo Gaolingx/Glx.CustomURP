@@ -24,12 +24,15 @@ inputs = [pkg, Path('Packages/manifest.json'), Path('Packages/packages-lock.json
 archive = subprocess.check_output(['git','-C',str(repo),'archive','--format=zip',base,*['URPSample01/'+s.as_posix() for s in inputs]])
 zipfile.ZipFile(io.BytesIO(archive)).extractall(scratch)
 work = scratch/'URPSample01'
-runtime = pkg/'Runtime/RendererFeatures/ScreenSpaceLighting/Passes'
-shaders = pkg/'Shaders/Utils/ScreenSpaceLighting'
-files = [runtime/'SsrPass.cs', shaders/'ScreenSpaceReflections.compute', tests/'SSR.meta']
-for parent, pattern in [(runtime,'SsrRequestQueue*'),(shaders,'SsrRequestQueue*'),(tests/'SSR','*')]:
-    files.extend(f.relative_to(project) for f in (project/parent).glob(pattern) if f.is_file())
-hashes = {}
+# Replay current kernels with their matching runtime/ABI, not a partial overlay on W1.
+shutil.rmtree(work/pkg)
+shutil.copytree(project/pkg, work/pkg)
+files = [tests/'SSR.meta', *(f.relative_to(project) for f in (project/tests/'SSR').glob('*') if f.is_file())]
+digest = hashlib.sha256()
+for asset in sorted((work/pkg).rglob('*')):
+    if asset.is_file():
+        digest.update(asset.relative_to(work/pkg).as_posix().encode() + b'\0' + hashlib.sha256(asset.read_bytes()).digest())
+hashes = {'workingPackageTree': digest.hexdigest()}
 for f in files:
     (work/f).parent.mkdir(exist_ok=True, parents=True)
     shutil.copyfile(project/f,work/f)

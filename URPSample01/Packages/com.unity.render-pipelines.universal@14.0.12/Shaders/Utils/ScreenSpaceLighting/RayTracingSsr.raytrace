@@ -1,0 +1,37 @@
+#pragma max_recursion_depth 2
+
+#include "SsrRayRequest.hlsl"
+#include "../../RayTracing/GlxHitLightCounters.hlsl"
+
+StructuredBuffer<R1Sample> _R1Queue;
+StructuredBuffer<uint> _R1Counts;
+RWStructuredBuffer<GlxBasicPayload> _R2Hits;
+uint _R2K;
+
+[shader("raygeneration")]
+void TraceSsrRequests()
+{
+    uint index = DispatchRaysIndex().x;
+    if (index >= min(_R1Counts[2], _R2K)) return;
+    R1Sample q = _R1Queue[index];
+    GlxBasicPayload p = GlxEmptyPayload(GlxReflectionMode);
+    if (all(isfinite(q.position)) && all(isfinite(q.direction)) && dot(q.direction,q.direction) > 0 &&
+        q.tMax > q.tMin && q.tMin >= 0)
+    {
+        RayDesc ray;
+        ray.Origin = q.position;
+        ray.Direction = normalize(q.direction);
+        ray.TMin = q.tMin;
+        ray.TMax = q.tMax;
+        TraceRay(_GlxScene, RAY_FLAG_NONE, 0xff, 0, 1, 0, ray, p);
+        GlxRecordLightCounters(p);
+    }
+    _R2Hits[q.slot] = p;
+}
+
+[shader("miss")]
+void SsrMiss(inout GlxBasicPayload p : SV_RayPayload)
+{
+    p = GlxEmptyPayload(p.mode);
+    p.flags = GlxMiss; // Finite TMax: never claim sky radiance, including for a black sky.
+}

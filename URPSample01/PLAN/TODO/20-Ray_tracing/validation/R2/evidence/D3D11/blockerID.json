@@ -1,0 +1,16 @@
+{
+    "stage": "blockerID",
+    "api": "Direct3D11",
+    "guid": "31e9e82024664c12b2b6232c71a6794a",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "queue": false,
+    "produced": true,
+    "rtSupport": false,
+    "owner": false,
+    "frame": 6,
+    "w": 160,
+    "h": 120,
+    "screenW": 160,
+    "screenH": 120,
+    "visible": false
+}

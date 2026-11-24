@@ -26,6 +26,9 @@
 #pragma kernel R1Tiles
 #pragma kernel R1Offsets
 #pragma kernel R1Scatter
+#pragma kernel R2Clear
+#pragma kernel R2Composite SSR_R2_COMPOSITE
+#pragma kernel R2CompositeCold SSR_R2_COLD
 
 #pragma multi_compile _ SSR_APPROX
 #pragma multi_compile _ SSR_HALF_RES
@@ -59,7 +62,7 @@ SSGI_TEXTURE2D_FLOAT4(_SsrColorPyramid);
 // Trace output: ndc of the hit point, or (99, 0) for a miss.
 #if defined(SSR_TRACE)
 SSGI_RW_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
-#elif defined(SSR_REPROJECT) || defined(SSR_R1_HISTORY)
+#elif defined(SSR_REPROJECT) || defined(SSR_R1_HISTORY) || defined(SSR_R2_COMPOSITE)
 SSGI_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
 #endif
 // Approximation output: rgb = radiance, a = blend weight.
@@ -244,6 +247,62 @@ bool SsrOriginalDirection(uint2 traceCoord, float3 normalWS, float3 viewWS, floa
 }
 
 #include "SsrRequestQueue.hlsl"
+
+// Matches the 24-byte GlxBasicPayload; no AS declaration in compute variants.
+struct R2Hit { float3 radiance; float hitT; uint flags, mode; };
+RWStructuredBuffer<R2Hit> _R2Hits;
+
+[numthreads(8,8,1)]
+void R2Clear(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint2)_SsrTraceSize.xy)) return;
+    _R2Hits[id.y * (uint)_SsrTraceSize.x + id.x] = (R2Hit)0;
+}
+
+#if defined(SSR_R2_COMPOSITE) || defined(SSR_R2_COLD)
+[numthreads(8,8,1)]
+#if defined(SSR_R2_COLD)
+void R2CompositeCold(uint3 id : SV_DispatchThreadID)
+#else
+void R2Composite(uint3 id : SV_DispatchThreadID)
+#endif
+{
+    SSGI_ASSIGN_VIEW_INDEX(id.z);
+    if (any(id.xy >= (uint2)_SsrScreenSize.xy)) return;
+#if defined(SSR_R2_COLD)
+    SSGI_STORE(_SsrOutputTextureRW, id.xy, 0);
+#endif
+    // Point-expand each original sample, including the last odd-size footprint. Never
+    // use spatially filtered RGB/alpha as SS evidence or spread HW into another slot.
+    uint2 coord = ((id.xy + 1u) * (uint2)_SsrTraceSize.xy - 1u) / (uint2)_SsrScreenSize.xy;
+    uint slot = coord.y * (uint)_SsrTraceSize.x + coord.x;
+    R1Sample q = _R1Original[slot];
+    if (q.reason < 2u) return; // outside the hybrid domain: preserve regular SSR
+    float4 n = SSGI_LOAD(_SsrNormalTexture, id.xy);
+    float3 normal; float roughness;
+    float depth = SSGI_LOAD(_SsrDepthTexture, id.xy);
+    if (!isfinite(depth) || !all(isfinite(n)) || SsgiIsBackgroundDepth(depth) || n.a < 0.825 || !SsrDecodeMaterial(n, normal, roughness) ||
+        abs(roughness-q.roughness) > 0.02 || dot(normal,q.normal) < 0.95 || roughness > _SsrRoughnessFadeEnd) return;
+    float3 position = SsrReconstructPositionWS(id.xy, depth);
+    if (abs(dot(position - q.position, q.normal)) > max(0.002, 0.001 * distance(q.position, SSL_SSR_CAMERA_POSITION_WS))) return;
+
+    float s = saturate(q.ssShare);
+    float3 ss = 0;
+#if defined(SSR_R2_COMPOSITE)
+    if (s > 0) ss = SsrSamplePreviousColor(SSGI_LOAD(_SsrHitPointTextureRW,coord),q.roughness,s);
+#endif
+    R2Hit hit = _R2Hits[slot];
+    bool resolved = (hit.flags & 2u) != 0 && hit.hitT >= q.tMin && hit.hitT <= q.tMax &&
+        all(isfinite(hit.radiance)) && all(hit.radiance >= 0);
+    // requestShare already equals (1-s)*r for a resolved request (roughness fade
+    // minus the SS share). Unserved, invalid and finite misses resolve nothing.
+    float hw = resolved ? min(1.0-s, q.requestShare) : 0;
+    float a = s + hw;
+    float3 sum = s * ss;
+    if (hw > 0) sum += hw * hit.radiance;
+    SSGI_STORE(_SsrOutputTextureRW, id.xy, float4(a > 0 ? sum / a : float3(0,0,0), a));
+}
+#endif
 
 //--------------------------------------------------------------------------------------------------
 // Trace

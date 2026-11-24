@@ -1,13 +1,6 @@
 // R1 records an unresolved opportunity, never radiance or a valid environment hit.
 // reason: invalid, rough, reliable SS, missing history, trace miss, rejected history, edge.
-struct R1Sample
-{
-    uint slot, sequenceFrame, reason, sourcePixel;
-    float3 position; float roughness;
-    float3 normal; float tMin;
-    float3 direction; float tMax;
-    float ssShare, requestShare; uint materialId, instanceId;
-};
+#include "SsrRayRequest.hlsl"
 RWStructuredBuffer<R1Sample> _R1Original, _R1Queue;
 RWStructuredBuffer<uint2> _R1Tile; // count then exclusive base in rotated tile order
 RWStructuredBuffer<uint> _R1Counts; // eligible, requested, served, overflow, then histogram

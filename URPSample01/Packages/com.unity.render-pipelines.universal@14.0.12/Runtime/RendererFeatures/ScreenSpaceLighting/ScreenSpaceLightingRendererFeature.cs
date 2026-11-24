@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingSetupPass m_SetupPass;
         ScreenSpaceLightingSsgiPass m_SsgiPass;
         ScreenSpaceLightingSsrPass m_SsrPass;
+        SsrRayTracingCameras m_HybridCameras;
         ScreenSpaceLightingTransparentDepthNormalsPass m_TransparentDepthNormalsPass;
         ScreenSpaceLightingTransparentSsrPass m_TransparentSsrPass;
         ScreenSpaceLightingRefractionPass m_RefractionPass;
@@ -28,6 +29,12 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         ScreenSpaceEditorCameraMotionPass m_EditorMotionPass;
 #endif
+
+        /// <summary>Registers a newly spawned light with the active reflection scene. Authored lights are discovered on first use.</summary>
+        public void RegisterRayTracingLight(Light light) => m_HybridCameras?.RegisterLight(light);
+
+        /// <summary>Removes a runtime light from the active reflection scene without rebuilding its geometry.</summary>
+        public void UnregisterRayTracingLight(Light light) => m_HybridCameras?.UnregisterLight(light);
 
         internal ScreenSpaceLightingSettings settings => m_Settings;
         internal ScreenSpaceLightingSetupPass setupPass => m_SetupPass;
@@ -70,6 +77,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_Settings.EnsureResources();
 
+            m_HybridCameras?.Dispose();
+            m_HybridCameras = null;
             m_HistoryStore?.Dispose();
             m_HistoryStore = new CameraHistoryStore<ScreenSpaceLightingHistory>();
             m_CameraViews.Clear();
@@ -100,6 +109,13 @@ namespace UnityEngine.Rendering.Universal
 
             var cameraData = renderingData.cameraData;
             int frameIndex = Time.frameCount;
+            m_SsrPass.SetHybrid(null, null, null);
+            var stack = VolumeManager.instance.stack;
+            bool hybrid = SsrRayTracingCameras.Eligible(cameraData, m_Settings, stack?.GetComponent<ScreenSpaceReflection>());
+            if (!m_Settings.rayTracingReflections || m_Settings.reflectionRayBudget <= 0)
+                m_HybridCameras?.Clear();
+            else if (!hybrid)
+                m_HybridCameras?.Forget(cameraData.camera);
 
             m_HistoryStore.PruneDestroyedCameras();
             m_HistoryStore.PruneUnused(frameIndex, m_Settings.maxUnusedFrames);
@@ -111,7 +127,6 @@ namespace UnityEngine.Rendering.Universal
             if (!ScreenSpaceCapability.EvaluateCamera(cameraData).supported)
                 return;
 
-            var stack = VolumeManager.instance.stack;
             bool anyEffectEnabled = HasAnyEffectEnabled(stack);
             if (!anyEffectEnabled && !m_Settings.debugEnabled)
                 return;
@@ -163,6 +178,11 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             history.depthPyramidSource = depthPyramid;
+            if (hybrid)
+            {
+                m_HybridCameras ??= new SsrRayTracingCameras(this);
+                m_HybridCameras.Prepare(cameraData, m_Settings, m_SsrPass);
+            }
 
             m_SsgiPass.Setup(history, m_Settings.resources);
             m_SsrPass.Setup(history, m_Settings.resources, m_Settings);
@@ -222,6 +242,8 @@ namespace UnityEngine.Rendering.Universal
         {
             if (disposing)
             {
+                m_HybridCameras?.Dispose();
+                m_HybridCameras = null;
                 ScreenSpaceDepthPyramidSystem.UnregisterOwner(this);
                 m_HistoryStore?.Dispose();
                 m_HistoryStore = null;

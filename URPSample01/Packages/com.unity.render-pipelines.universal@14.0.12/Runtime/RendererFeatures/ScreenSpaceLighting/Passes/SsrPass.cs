@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -29,11 +30,18 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingHistory m_History;
         ScreenSpaceLightingResources m_Resources;
         ScreenSpaceLightingSettings m_Settings;
-        // Internal injection only. R1 does not opt any renderer into unfinished RT.
-        internal SsrRequestQueue requestQueue;
-        bool WantsRequests(ref CameraData camera, ScreenSpaceReflection settings) =>
-            requestQueue != null && requestQueue.budget > 0 && !settings.fullResolution.value &&
-            !camera.xr.enabled && camera.renderType == CameraRenderType.Base && camera.cameraType == CameraType.Game;
+        internal SsrRequestQueue requestQueue { get; private set; }
+        RayTracingSceneResources m_Scene;
+        RayTracingAccelerationStructure m_Snapshot;
+        static readonly ProfilingSampler s_HybridComposite = new ProfilingSampler("SSR DXR Composite");
+        bool m_LoggedHybridFailure;
+
+        internal void SetHybrid(SsrRequestQueue queue, RayTracingSceneResources scene, RayTracingAccelerationStructure snapshot)
+        {
+            requestQueue = queue;
+            m_Scene = scene;
+            m_Snapshot = snapshot;
+        }
         RTHandle m_OutputTexture;
         bool m_ProducedOutput;
         bool m_LoggedMissingResources;
@@ -236,33 +244,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            // Both algorithms sample the previous frame color pyramid. Without it (first frame,
-            // camera cut, renderer creation) the only correct output is none, which keeps the
-            // reflection probe / sky the material already computed.
             ref var cameraData = ref renderingData.cameraData;
-            if (m_History.readColorPyramid == null)
-            {
-                if (WantsRequests(ref cameraData, settings))
-                {
-                    var depth = ScreenSpaceRenderUtils.GetCameraDepthTexture(cameraData.renderer);
-                    var normals = ScreenSpaceLightingRenderUtils.GetNormalTexture(cameraData.renderer);
-                    if (depth != null && normals != null)
-                    {
-                        var cs = m_Resources.ssrCompute;
-                        var buffer = renderingData.commandBuffer;
-                        int w = Mathf.Max(1,cameraData.cameraTargetDescriptor.width), h = Mathf.Max(1,cameraData.cameraTargetDescriptor.height);
-                        int tw = Mathf.Max(1,w >> 1), th = Mathf.Max(1,h >> 1);
-                        SetKeyword(cs, ScreenSpaceShaderIDs.XrArrayKeyword, false);
-                        SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, ScreenSpaceLightingSsgiPass.UseOctEncodedNormals(cameraData.renderer));
-                        SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, settings.usedAlgorithm.value != ScreenSpaceReflectionAlgorithm.PBRAccumulation);
-                        SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, true);
-                        SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
-                        PushShaderVariables(buffer,cs,CreateShaderVariables(ref cameraData,settings,w,h,tw,th,false));
-                        RecordOriginals(buffer,cs,depth,normals,null,null,tw,th);
-                    }
-                }
-                return;
-            }
+            bool cold = m_History.readColorPyramid == null;
+            if (cold && requestQueue == null) return;
 
             var descriptor = cameraData.cameraTargetDescriptor;
             int viewCount = ScreenSpaceLightingXr.GetViewCount(cameraData);
@@ -271,7 +255,8 @@ namespace UnityEngine.Rendering.Universal
             var depthTexture = ScreenSpaceRenderUtils.GetCameraDepthTexture(cameraData.renderer);
             var normalTexture = ScreenSpaceLightingRenderUtils.GetNormalTexture(cameraData.renderer);
             var motionTexture = ScreenSpaceLightingRenderUtils.GetMotionTexture(cameraData.renderer);
-            if (depthTexture == null || normalTexture == null || motionTexture == null)
+            cold |= motionTexture == null;
+            if (depthTexture == null || normalTexture == null || (cold && requestQueue == null))
                 return;
 
             int screenWidth = Mathf.Max(1, descriptor.width);
@@ -311,6 +296,23 @@ namespace UnityEngine.Rendering.Universal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
+                if (cold)
+                {
+                    var cs = m_Resources.ssrCompute;
+                    SetKeyword(cs, ScreenSpaceShaderIDs.XrArrayKeyword, false);
+                    SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
+                    SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, true);
+                    SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, true);
+                    PushShaderVariables(cmd, cs, CreateShaderVariables(ref cameraData, settings,
+                        screenWidth, screenHeight, traceWidth, traceHeight, false));
+                    if (TryTrace(cmd, cs, depthTexture, normalTexture, null, null, traceWidth, traceHeight))
+                    {
+                        Composite(cmd, cs, depthTexture, normalTexture, null, true, screenWidth, screenHeight);
+                        m_OutputTexture = m_History.ssrOutput;
+                        m_ProducedOutput = true;
+                    }
+                    return;
+                }
                 Dispatch(cmd, ref cameraData, settings, depthTexture, normalTexture, motionTexture,
                     screenWidth, screenHeight, traceWidth, traceHeight, viewCount, useTextureArray, octNormals,
                     pbr, halfResolution, debugParams);
@@ -336,6 +338,47 @@ namespace UnityEngine.Rendering.Universal
                     : string.Empty;
             }
 #endif
+        }
+
+        bool TryTrace(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
+            RTHandle motion, RTHandle hit, int w, int h)
+        {
+            if (requestQueue == null || m_Snapshot == null || m_Scene == null) return false;
+            try
+            {
+                RecordOriginals(cmd, cs, depth, normals, motion, hit, w, h);
+                requestQueue.Trace(cmd, cs, m_Resources.rayTracingSsr, m_Scene, m_Snapshot, w, h);
+                m_LoggedHybridFailure = false;
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                // Only private scratch may have been written: don't composite or publish it.
+                if (!m_LoggedHybridFailure) Debug.LogWarning($"SSR DXR unavailable; retaining screen-space output: {ex.Message}");
+                m_LoggedHybridFailure = true;
+                return false;
+            }
+        }
+
+        void Composite(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
+            RTHandle motion, bool cold, int w, int h)
+        {
+            using (new ProfilingScope(cmd, s_HybridComposite))
+            {
+                int kernel = cs.FindKernel(cold ? "R2CompositeCold" : "R2Composite");
+                cmd.SetComputeBufferParam(cs, kernel, "_R1Original", requestQueue.originals);
+                cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
+                cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depth);
+                cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normals);
+                cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW, m_History.ssrOutput);
+                if (!cold)
+                {
+                    cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW, m_History.ssrHitPoint);
+                    cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrMotionTexture, motion);
+                    cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrColorPyramid, m_History.readColorPyramid);
+                }
+                cmd.DispatchCompute(cs, kernel, (w + 7) / 8, (h + 7) / 8, 1);
+            }
         }
 
         void RecordOriginals(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
@@ -442,9 +485,8 @@ namespace UnityEngine.Rendering.Universal
             s_EditorTraceDispatchCount++;
 #endif
 
-            if (WantsRequests(ref cameraData, settings))
-                RecordOriginals(cmd, compute, depthTexture, normalTexture, motionTexture,
-                    pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint, traceWidth, traceHeight);
+            bool traced = !pbr && halfResolution && TryTrace(cmd, compute, depthTexture, normalTexture,
+                motionTexture, m_History.ssrHitPoint, traceWidth, traceHeight);
 
             var reprojectKernel = compute.FindKernel("ScreenSpaceReflectionsReprojection");
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,
@@ -502,6 +544,8 @@ namespace UnityEngine.Rendering.Universal
                     screenWidth, screenHeight, traceWidth, traceHeight, screenGroupsX, screenGroupsY,
                     viewCount, useTextureArray);
             }
+
+            if (traced) Composite(cmd, compute, depthTexture, normalTexture, motionTexture, false, screenWidth, screenHeight);
         }
 
         // The reflection denoiser reuses the geometry helpers of the SSGI temporal filter, so it reads

@@ -1,0 +1,16 @@
+{
+    "stage": "cold",
+    "api": "Direct3D12",
+    "guid": "9a52ded9ec4743c0a9fc8ecfcaf0ea52",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "queue": true,
+    "produced": true,
+    "rtSupport": true,
+    "owner": true,
+    "frame": 1,
+    "w": 160,
+    "h": 120,
+    "screenW": 160,
+    "screenH": 120,
+    "visible": false
+}

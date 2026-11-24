@@ -1,0 +1,157 @@
+{
+  "passed": false,
+  "guids": [
+    "30484ed0a361469fb921c805bab16eb8"
+  ],
+  "errors": [
+    "12/cold camera queue",
+    "12/cold ssr silhouette",
+    "12/cold camera silhouette",
+    "12/cold FileNotFoundError(2, 'No such file or directory')",
+    "12/warm camera queue",
+    "12/warm ssr silhouette",
+    "12/warm camera silhouette",
+    "12/warm FileNotFoundError(2, 'No such file or directory')",
+    "12/occluded camera queue",
+    "12/occluded FileNotFoundError(2, 'No such file or directory')",
+    "12/removed camera queue",
+    "12/removed FileNotFoundError(2, 'No such file or directory')",
+    "12/far camera queue",
+    "12/far FileNotFoundError(2, 'No such file or directory')",
+    "12/inside camera queue",
+    "12/inside FileNotFoundError(2, 'No such file or directory')"
+  ],
+  "results": {
+    "11/cold": {
+      "peakSsrAlpha": 0
+    },
+    "11/warm": {
+      "peakSsrAlpha": 0.0,
+      "maxCameraDifferenceVsSSOnly": 0.0
+    },
+    "11/id": {
+      "peakSsrAlpha": 0.0
+    },
+    "11/occluded": {
+      "peakSsrAlpha": 0.0
+    },
+    "11/blockerID": {
+      "peakSsrAlpha": 0.0
+    },
+    "11/removed": {
+      "peakSsrAlpha": 0.0
+    },
+    "11/far": {
+      "peakSsrAlpha": 0.0
+    },
+    "11/inside": {
+      "peakSsrAlpha": 1.0
+    },
+    "11/ssOnly": {
+      "peakSsrAlpha": 0.0
+    },
+    "12/cold": {
+      "peakSsrAlpha": 0,
+      "ssrSilhouette": {
+        "referencePixels": 1536,
+        "detected": 0,
+        "recall": 0.0,
+        "falsePositiveFraction": 0.0
+      },
+      "cameraSilhouette": {
+        "referencePixels": 1536,
+        "detected": 0,
+        "recall": 0.0,
+        "falsePositiveFraction": 0.0
+      }
+    },
+    "12/warm": {
+      "peakSsrAlpha": 0.0,
+      "ssrSilhouette": {
+        "referencePixels": 1536,
+        "detected": 0,
+        "recall": 0.0,
+        "falsePositiveFraction": 0.0
+      },
+      "cameraSilhouette": {
+        "referencePixels": 1536,
+        "detected": 0,
+        "recall": 0.0,
+        "falsePositiveFraction": 0.0
+      }
+    },
+    "12/id": {
+      "peakSsrAlpha": 1.0,
+      "counts": [
+        4800,
+        4800,
+        640,
+        4160,
+        0,
+        0,
+        0,
+        0,
+        4800,
+        0,
+        0
+      ],
+      "unserved": 4160,
+      "badUnserved": 0,
+      "analyticHits": 52,
+      "wrong": 0,
+      "beyondTMax": 0,
+      "maxDistanceError": 9.291252442977793e-07,
+      "maxRgbRelativeError": 0.0
+    },
+    "12/occluded": {
+      "peakSsrAlpha": 0.0
+    },
+    "12/blockerID": {
+      "peakSsrAlpha": 1.0,
+      "counts": [
+        4800,
+        4800,
+        640,
+        4160,
+        0,
+        0,
+        0,
+        0,
+        4800,
+        0,
+        0
+      ],
+      "unserved": 4160,
+      "badUnserved": 0,
+      "analyticHits": 129,
+      "wrong": 0,
+      "beyondTMax": 0,
+      "maxDistanceError": 7.065048124310636e-07,
+      "maxRgbRelativeError": 0.0
+    },
+    "12/removed": {
+      "peakSsrAlpha": 0.0
+    },
+    "12/far": {
+      "peakSsrAlpha": 0.0
+    },
+    "12/inside": {
+      "peakSsrAlpha": 1.0
+    },
+    "12/ssOnly": {
+      "peakSsrAlpha": 0.0,
+      "ssrSilhouette": {
+        "referencePixels": 1536,
+        "detected": 0,
+        "recall": 0.0,
+        "falsePositiveFraction": 0.0
+      },
+      "cameraSilhouette": {
+        "referencePixels": 1536,
+        "detected": 0,
+        "recall": 0.0,
+        "falsePositiveFraction": 0.0
+      }
+    }
+  }
+}

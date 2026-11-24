@@ -1,0 +1,236 @@
+{
+  "passed": true,
+  "guids": [
+    "31e9e82024664c12b2b6232c71a6794a"
+  ],
+  "errors": [],
+  "results": {
+    "11/cold": {
+      "peakSsrAlpha": 0
+    },
+    "11/warm": {
+      "peakSsrAlpha": 0.0,
+      "maxCameraDifferenceVsSSOnly": 0.0
+    },
+    "11/id": {
+      "peakSsrAlpha": 0.0
+    },
+    "11/occluded": {
+      "peakSsrAlpha": 0.0
+    },
+    "11/blockerID": {
+      "peakSsrAlpha": 0.0
+    },
+    "11/removed": {
+      "peakSsrAlpha": 0.0
+    },
+    "11/far": {
+      "peakSsrAlpha": 0.0
+    },
+    "11/inside": {
+      "peakSsrAlpha": 1.0
+    },
+    "11/ssOnly": {
+      "peakSsrAlpha": 0.0
+    },
+    "12/cold": {
+      "peakSsrAlpha": 1.0,
+      "ssrSilhouette": {
+        "referencePixels": 1536,
+        "servedHitPixels": 204,
+        "coverage": 0.1328125,
+        "servedFraction": 0.13333333333333333,
+        "detected": 204,
+        "recallServed": 1.0,
+        "recallFull": 0.1328125,
+        "falsePositiveFraction": 0.0
+      },
+      "cameraSilhouette": {
+        "referencePixels": 1536,
+        "servedHitPixels": 204,
+        "coverage": 0.1328125,
+        "servedFraction": 0.13333333333333333,
+        "detected": 204,
+        "recallServed": 1.0,
+        "recallFull": 0.1328125,
+        "falsePositiveFraction": 0.0
+      }
+    },
+    "12/warm": {
+      "peakSsrAlpha": 1.0,
+      "ssrSilhouette": {
+        "referencePixels": 1536,
+        "servedHitPixels": 208,
+        "coverage": 0.13541666666666666,
+        "servedFraction": 0.13333333333333333,
+        "detected": 208,
+        "recallServed": 1.0,
+        "recallFull": 0.13541666666666666,
+        "falsePositiveFraction": 0.0
+      },
+      "cameraSilhouette": {
+        "referencePixels": 1536,
+        "servedHitPixels": 208,
+        "coverage": 0.13541666666666666,
+        "servedFraction": 0.13333333333333333,
+        "detected": 208,
+        "recallServed": 1.0,
+        "recallFull": 0.13541666666666666,
+        "falsePositiveFraction": 0.0
+      }
+    },
+    "12/id": {
+      "peakSsrAlpha": 1.0,
+      "counts": [
+        4800,
+        4800,
+        640,
+        4160,
+        0,
+        0,
+        0,
+        0,
+        4800,
+        0,
+        0
+      ],
+      "unserved": 4160,
+      "badUnserved": 0,
+      "analyticHits": 52,
+      "wrong": 0,
+      "beyondTMax": 0,
+      "maxDistanceError": 9.291252442977793e-07,
+      "maxRgbRelativeError": 0.0
+    },
+    "12/occluded": {
+      "peakSsrAlpha": 1.0,
+      "counts": [
+        4800,
+        4800,
+        640,
+        4160,
+        0,
+        0,
+        0,
+        0,
+        4800,
+        0,
+        0
+      ],
+      "unserved": 4160,
+      "badUnserved": 0,
+      "analyticHits": 130,
+      "wrong": 0,
+      "beyondTMax": 0,
+      "maxDistanceError": 7.065048124310636e-07,
+      "maxRgbRelativeError": 0.0
+    },
+    "12/blockerID": {
+      "peakSsrAlpha": 1.0,
+      "counts": [
+        4800,
+        4800,
+        640,
+        4160,
+        0,
+        0,
+        0,
+        0,
+        4800,
+        0,
+        0
+      ],
+      "unserved": 4160,
+      "badUnserved": 0,
+      "analyticHits": 129,
+      "wrong": 0,
+      "beyondTMax": 0,
+      "maxDistanceError": 7.065048124310636e-07,
+      "maxRgbRelativeError": 0.0
+    },
+    "12/removed": {
+      "peakSsrAlpha": 0.0,
+      "counts": [
+        4800,
+        4800,
+        640,
+        4160,
+        0,
+        0,
+        0,
+        0,
+        4800,
+        0,
+        0
+      ],
+      "unserved": 4160,
+      "badUnserved": 0,
+      "analyticHits": 0,
+      "wrong": 0,
+      "beyondTMax": 0,
+      "maxDistanceError": 0.0,
+      "maxRgbRelativeError": 0.0
+    },
+    "12/far": {
+      "peakSsrAlpha": 0.0,
+      "counts": [
+        4800,
+        4800,
+        640,
+        4160,
+        0,
+        0,
+        0,
+        0,
+        4800,
+        0,
+        0
+      ],
+      "unserved": 4160,
+      "badUnserved": 0,
+      "analyticHits": 0,
+      "wrong": 0,
+      "beyondTMax": 171,
+      "maxDistanceError": 0.0,
+      "maxRgbRelativeError": 0.0
+    },
+    "12/inside": {
+      "peakSsrAlpha": 1.0,
+      "counts": [
+        4343,
+        4318,
+        608,
+        3710,
+        0,
+        457,
+        25,
+        0,
+        4318,
+        0,
+        0
+      ],
+      "unserved": 3710,
+      "badUnserved": 0,
+      "analyticHits": 2,
+      "wrong": 0,
+      "beyondTMax": 0,
+      "maxDistanceError": 3.0795504790681605e-07,
+      "maxRgbRelativeError": 0.0
+    },
+    "12/ssOnly": {
+      "peakSsrAlpha": 0.0,
+      "ssrSilhouette": {
+        "referencePixels": 1536,
+        "detected": 0,
+        "recall": 0.0,
+        "falsePositiveFraction": 0.0
+      },
+      "cameraSilhouette": {
+        "referencePixels": 1536,
+        "detected": 0,
+        "recall": 0.0,
+        "falsePositiveFraction": 0.0
+      }
+    }
+  }
+}

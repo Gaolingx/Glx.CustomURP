@@ -20,6 +20,12 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Publishes the reflection probe atlas in Forward and Deferred so the SSGI miss fallback can sample local reflection probes. Ignored in Forward+, which always publishes the atlas.")]
         internal bool publishProbeAtlas = false;
 
+        [SerializeField, Tooltip("High Fidelity / Win64 DXR only. Resolve smooth opaque half-resolution Approximation SSR against registered scene meshes.")]
+        internal bool rayTracingReflections = false;
+
+        [SerializeField, Range(0, 32768), Tooltip("Fixed ray dispatch width per eligible camera. Zero disables hardware reflection requests.")]
+        internal int reflectionRayBudget = 32768;
+
         [SerializeField]
         [Tooltip("Intermediate resource view. Off leaves the final image unchanged.")]
         internal ScreenSpaceLightingDebugMode debugMode = ScreenSpaceLightingDebugMode.Off;
@@ -40,6 +46,12 @@ namespace UnityEngine.Rendering.Universal
             if (resources == null)
                 resources = new ScreenSpaceLightingResources();
 
+#if UNITY_EDITOR_WIN && UNITY_STANDALONE_WIN
+            if (rayTracingReflections && resources.rayTracingSsr == null &&
+                UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64)
+                resources.rayTracingSsr = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.Rendering.RayTracingShader>(
+                    "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace");
+#endif
             if (!resources.isComplete)
                 ScreenSpaceLightingResourceLocator.AssignDefaults(resources);
         }

@@ -21,6 +21,13 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal ComputeShader ssrCompute;
         [SerializeField] internal ComputeShader ssrReflectionDenoiserCompute;
 
+        // Not in Resources, and no serialized reference in non-Windows players.
+#if UNITY_STANDALONE_WIN && (UNITY_EDITOR || UNITY_64)
+        [SerializeField] internal UnityEngine.Experimental.Rendering.RayTracingShader rayTracingSsr;
+#else
+        internal UnityEngine.Experimental.Rendering.RayTracingShader rayTracingSsr => null;
+#endif
+
         // Seeds the private transparent depth target from the opaque camera depth. The URP
         // CopyDepth shader is reused so the _OUTPUT_DEPTH (SV_Depth) path is identical.
         [SerializeField] internal Shader transparentDepthCopyShader;
