@@ -1,0 +1,66 @@
+{
+  "api": {
+    "D3D11": {
+      "denial": "Backend",
+      "buildCount": 0
+    },
+    "D3D12": {
+      "instances": 1,
+      "dispatches": 6,
+      "ambientExpected": 0.6111549814728781,
+      "probeExpected": 1.8334649444186342,
+      "shots": [
+        {
+          "name": "ambient",
+          "expected": "ambient",
+          "actual": 0.6111549139022827,
+          "reference": 0.6111549735069275,
+          "hit": true,
+          "passed": true
+        },
+        {
+          "name": "probe published",
+          "expected": "probe",
+          "actual": 1.8334647417068481,
+          "reference": 1.8334648609161377,
+          "hit": true,
+          "passed": true
+        },
+        {
+          "name": "version mismatch",
+          "expected": "ambient",
+          "actual": 0.6111549139022827,
+          "reference": 0.6111549735069275,
+          "hit": true,
+          "passed": true
+        },
+        {
+          "name": "unpublished neighbours",
+          "expected": "ambient",
+          "actual": 0.6111549139022827,
+          "reference": 0.6111549735069275,
+          "hit": true,
+          "passed": true
+        },
+        {
+          "name": "inactive neighbours",
+          "expected": "ambient",
+          "actual": 0.6111549139022827,
+          "reference": 0.6111549735069275,
+          "hit": true,
+          "passed": true
+        },
+        {
+          "name": "probe restored",
+          "expected": "probe",
+          "actual": 1.8334647417068481,
+          "reference": 1.8334648609161377,
+          "hit": true,
+          "passed": true
+        }
+      ]
+    }
+  },
+  "status": "passed",
+  "errors": []
+}
