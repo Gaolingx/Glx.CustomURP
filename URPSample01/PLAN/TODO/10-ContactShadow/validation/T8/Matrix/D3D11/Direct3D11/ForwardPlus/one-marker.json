@@ -1,0 +1,32 @@
+{
+    "api": "Direct3D11",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/one-marker",
+    "regions": [
+        {
+            "name": "local",
+            "x": 135,
+            "y": 66,
+            "width": 18,
+            "height": 14,
+            "changedRGBA": 163,
+            "darkened": 153,
+            "brightened": 0,
+            "meanOffLuma": 88.83333587646485,
+            "meanOnLuma": 69.01190185546875
+        },
+        {
+            "name": "receiver24",
+            "x": 223,
+            "y": 155,
+            "width": 12,
+            "height": 8,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 78.92708587646485,
+            "meanOnLuma": 78.92708587646485
+        }
+    ]
+}

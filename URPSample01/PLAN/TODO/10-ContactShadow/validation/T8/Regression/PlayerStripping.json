@@ -1,0 +1,52 @@
+{
+  "computeBuildTotals": {
+    "ClusteredDeferred": {
+      "total": 5120,
+      "kept": 5120,
+      "localCache": 5120,
+      "remoteCache": 0,
+      "compiled": 0
+    },
+    "ContactShadows": {
+      "total": 4,
+      "kept": 4,
+      "localCache": 4,
+      "remoteCache": 0,
+      "compiled": 0
+    },
+    "ClusterBuilder": {
+      "total": 16,
+      "kept": 16,
+      "localCache": 16,
+      "remoteCache": 0,
+      "compiled": 0
+    },
+    "DepthPyramid": {
+      "total": 8,
+      "kept": 8,
+      "localCache": 8,
+      "remoteCache": 0,
+      "compiled": 0
+    }
+  },
+  "source": "T8 development Windows player, Direct3D11/12 enabled; build log shared by both runtimes",
+  "shader": "Universal Render Pipeline/Lit",
+  "pass": "ForwardLit",
+  "stages": [
+    {
+      "stage": "vp",
+      "full": "147456",
+      "settings": "24576",
+      "builtin": "96",
+      "scriptable": "16"
+    },
+    {
+      "stage": "fp",
+      "full": "24159191040",
+      "settings": "6291456",
+      "builtin": "24576",
+      "scriptable": "4096"
+    }
+  ],
+  "reference": "C0VariantBaseline.json T5 budget: 32 vertex / 6144 fragment after scriptable stripping. Not the shadow-matrix T4 configuration."
+}

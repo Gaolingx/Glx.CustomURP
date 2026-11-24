@@ -1,0 +1,141 @@
+{
+  "passed": false,
+  "expectedFailureContractMet": true,
+  "legacySourceBlob": "0dcb37e513aac80eb68c5705cf899586910265c7",
+  "suites": {
+    "Direct3D11": {
+      "ContactShadowShaderCompileTests": {
+        "Passed": 19
+      },
+      "ClusteredDeferredShaderTests": {
+        "Passed": 3,
+        "Failed": 1
+      },
+      "ContactShadowShaderBudgetTests": {
+        "Passed": 2
+      }
+    },
+    "Direct3D12": {
+      "ContactShadowShaderCompileTests": {
+        "Passed": 19
+      },
+      "ClusteredDeferredShaderTests": {
+        "Passed": 3,
+        "Failed": 1
+      },
+      "ContactShadowShaderBudgetTests": {
+        "Passed": 2
+      }
+    }
+  },
+  "expectedLegacyFailures": [
+    {
+      "api": "Direct3D11",
+      "test": "UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.ComputeDeclaresTheDocumentedKeywordMatrix"
+    },
+    {
+      "api": "Direct3D12",
+      "test": "UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.ComputeDeclaresTheDocumentedKeywordMatrix"
+    }
+  ],
+  "unexpectedFailures": [],
+  "declaredComputeMatrix": {
+    "baselineGroups": [
+      2,
+      4,
+      2,
+      5,
+      2,
+      2,
+      2,
+      2
+    ],
+    "baselineCombinations": 1280,
+    "addedAxis": "_CONTACT_SHADOWS_DEFERRED (compute only; off kernel must not declare the contact texture)",
+    "currentCombinations": 2560
+  },
+  "materialComparison": "ShaderComparison.json",
+  "regressionContract": "Original eight widths and 1280 product retained; additionally assert exact nine declarations and 2560 product. Frozen source compared by token and position.",
+  "frozenDeclarations": [
+    [
+      "_",
+      "_GBUFFER_NORMALS_OCT"
+    ],
+    [
+      "_",
+      "_MAIN_LIGHT_SHADOWS",
+      "_MAIN_LIGHT_SHADOWS_CASCADE",
+      "_MAIN_LIGHT_SHADOWS_SCREEN"
+    ],
+    [
+      "_",
+      "_ADDITIONAL_LIGHT_SHADOWS"
+    ],
+    [
+      "_",
+      "_SHADOWS_SOFT",
+      "_SHADOWS_SOFT_LOW",
+      "_SHADOWS_SOFT_MEDIUM",
+      "_SHADOWS_SOFT_HIGH"
+    ],
+    [
+      "_",
+      "_LIGHT_COOKIES"
+    ],
+    [
+      "_",
+      "_LIGHT_LAYERS"
+    ],
+    [
+      "_",
+      "_SCREEN_SPACE_OCCLUSION"
+    ],
+    [
+      "_",
+      "_DEFERRED_MIXED_LIGHTING"
+    ]
+  ],
+  "actualDeclarations": [
+    [
+      "_",
+      "_GBUFFER_NORMALS_OCT"
+    ],
+    [
+      "_",
+      "_MAIN_LIGHT_SHADOWS",
+      "_MAIN_LIGHT_SHADOWS_CASCADE",
+      "_MAIN_LIGHT_SHADOWS_SCREEN"
+    ],
+    [
+      "_",
+      "_ADDITIONAL_LIGHT_SHADOWS"
+    ],
+    [
+      "_",
+      "_SHADOWS_SOFT",
+      "_SHADOWS_SOFT_LOW",
+      "_SHADOWS_SOFT_MEDIUM",
+      "_SHADOWS_SOFT_HIGH"
+    ],
+    [
+      "_",
+      "_LIGHT_COOKIES"
+    ],
+    [
+      "_",
+      "_LIGHT_LAYERS"
+    ],
+    [
+      "_",
+      "_SCREEN_SPACE_OCCLUSION"
+    ],
+    [
+      "_",
+      "_DEFERRED_MIXED_LIGHTING"
+    ],
+    [
+      "_",
+      "_CONTACT_SHADOWS_DEFERRED"
+    ]
+  ]
+}

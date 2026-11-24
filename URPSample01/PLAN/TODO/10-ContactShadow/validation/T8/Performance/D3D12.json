@@ -1,0 +1,772 @@
+{
+  "unity": "2022.3.62f1",
+  "cpu": "AMD Eng Sample: 100-000000897-03 ",
+  "gpu": "NVIDIA GeForce RTX 5060 Ti",
+  "driver": "Direct3D 12 [level 12.1]",
+  "api": "Direct3D12",
+  "os": "Windows 10  (10.0.20348) 64bit",
+  "build": "69e15bc26ac143a5a6d6792374e60266",
+  "warmup": 60,
+  "sampled": 120,
+  "width": 1920,
+  "height": 1080,
+  "rows": [
+    {
+      "mode": "Forward",
+      "lights": 1,
+      "slots": 1,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.09574399888515472,
+        "p95": 0.09676799923181534
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011500000022351742,
+        "p95": 0.011699999682605267
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 1,
+      "slots": 1,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.151296004652977,
+        "p95": 0.152319997549057
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011500000022351742,
+        "p95": 0.011800000444054604
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 1,
+      "slots": 1,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.5757439732551575,
+        "p95": 0.5775359869003296
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011500000022351742,
+        "p95": 0.011900000274181366
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 4,
+      "slots": 4,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.2885119915008545,
+        "p95": 0.2905600070953369
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.01140000019222498,
+        "p95": 0.011699999682605267
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 4,
+      "slots": 4,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.5227519869804382,
+        "p95": 0.5263360142707825
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.01140000019222498,
+        "p95": 0.011699999682605267
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 4,
+      "slots": 4,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 2.132863998413086,
+        "p95": 2.4245760440826416
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011599999852478504,
+        "p95": 0.01209999993443489
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 24,
+      "slots": 24,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 1.5582720041275024,
+        "p95": 1.7533440589904785
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011800000444054604,
+        "p95": 0.012400000356137753
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 24,
+      "slots": 24,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 3.0346239805221558,
+        "p95": 3.512320041656494
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011900000274181366,
+        "p95": 0.013500000350177288
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 24,
+      "slots": 24,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 13.840127944946289,
+        "p95": 14.536704063415527
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.012799999676644802,
+        "p95": 0.013500000350177288
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 25,
+      "slots": 24,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 1.5600639581680298,
+        "p95": 1.7154560089111328
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011699999682605267,
+        "p95": 0.012199999764561653
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 25,
+      "slots": 24,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 3.002239942550659,
+        "p95": 3.384063959121704
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.012000000104308128,
+        "p95": 0.014499999582767487
+      }
+    },
+    {
+      "mode": "Forward",
+      "lights": 25,
+      "slots": 24,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 13.809792041778564,
+        "p95": 14.522368431091309
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.013050000183284283,
+        "p95": 0.019099999219179153
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 1,
+      "slots": 1,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.09625600278377533,
+        "p95": 0.09651199728250504
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011099999770522118,
+        "p95": 0.01140000019222498
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 1,
+      "slots": 1,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.1520639955997467,
+        "p95": 0.152319997549057
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010999999940395355,
+        "p95": 0.01140000019222498
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 1,
+      "slots": 1,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.5749760270118713,
+        "p95": 0.5772799849510193
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011099999770522118,
+        "p95": 0.011500000022351742
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 4,
+      "slots": 4,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.28646400570869446,
+        "p95": 0.289792001247406
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.009650000371038914,
+        "p95": 0.01080000028014183
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 4,
+      "slots": 4,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.5184000134468079,
+        "p95": 0.5207039713859558
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.009600000455975533,
+        "p95": 0.00989999994635582
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 4,
+      "slots": 4,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 2.235648036003113,
+        "p95": 2.6204159259796143
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.009700000286102295,
+        "p95": 0.010200000368058681
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 24,
+      "slots": 24,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 1.5678719878196716,
+        "p95": 1.8060799837112427
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.00989999994635582,
+        "p95": 0.010400000028312206
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 24,
+      "slots": 24,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 3.2467199563980103,
+        "p95": 3.5494399070739746
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.00989999994635582,
+        "p95": 0.010400000028312206
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 24,
+      "slots": 24,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 11.519999980926514,
+        "p95": 14.52569580078125
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010400000028312206,
+        "p95": 0.01209999993443489
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 25,
+      "slots": 24,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 1.5252480506896973,
+        "p95": 1.6762880086898804
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.00989999994635582,
+        "p95": 0.010300000198185444
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 25,
+      "slots": 24,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 3.0120959281921387,
+        "p95": 3.345151901245117
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.009999999776482582,
+        "p95": 0.010400000028312206
+      }
+    },
+    {
+      "mode": "ForwardPlus",
+      "lights": 25,
+      "slots": 24,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 12.386688232421875,
+        "p95": 14.543871879577637
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010499999858438969,
+        "p95": 0.012500000186264515
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 1,
+      "slots": 1,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.09728000313043594,
+        "p95": 0.09753599762916565
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011500000022351742,
+        "p95": 0.011900000274181366
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 1,
+      "slots": 1,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.1528320014476776,
+        "p95": 0.15334400534629822
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011599999852478504,
+        "p95": 0.012000000104308128
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 1,
+      "slots": 1,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.5708799958229065,
+        "p95": 0.577023983001709
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011599999852478504,
+        "p95": 0.01209999993443489
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 4,
+      "slots": 4,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.28787198662757874,
+        "p95": 0.2895359992980957
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010200000368058681,
+        "p95": 0.010499999858438969
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 4,
+      "slots": 4,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 0.502016007900238,
+        "p95": 0.5209599733352661
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010200000368058681,
+        "p95": 0.010599999688565731
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 4,
+      "slots": 4,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 1.9752960205078125,
+        "p95": 2.2650880813598633
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010300000198185444,
+        "p95": 0.010599999688565731
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 24,
+      "slots": 24,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 1.524224042892456,
+        "p95": 1.696768045425415
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010499999858438969,
+        "p95": 0.011099999770522118
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 24,
+      "slots": 24,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 3.0101760625839233,
+        "p95": 3.5842559337615967
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010599999688565731,
+        "p95": 0.012199999764561653
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 24,
+      "slots": 24,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 11.826560020446777,
+        "p95": 14.36467170715332
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010999999940395355,
+        "p95": 0.013199999928474426
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 25,
+      "slots": 24,
+      "steps": 4,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 1.5267839431762695,
+        "p95": 1.6739840507507324
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010499999858438969,
+        "p95": 0.010900000110268593
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 25,
+      "slots": 24,
+      "steps": 10,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 2.9219839572906494,
+        "p95": 3.2573440074920654
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.010599999688565731,
+        "p95": 0.013700000010430813
+      }
+    },
+    {
+      "mode": "Deferred",
+      "lights": 25,
+      "slots": 24,
+      "steps": 64,
+      "gpuMs": {
+        "validFrames": 120,
+        "median": 11.736447811126709,
+        "p95": 13.918463706970215
+      },
+      "cmdCpuMs": {
+        "validFrames": 0,
+        "median": null,
+        "p95": null
+      },
+      "inlineCpuMs": {
+        "validFrames": 120,
+        "median": 0.011099999770522118,
+        "p95": 0.01360000018030405
+      }
+    }
+  ],
+  "sampling": "Windowed development player (batchmode produced no GPU marker samples). One explicit T7 stress camera render per frame to 1920x1080 RT. Contact Shadows compute-pass marker only (no pyramid/cleanup). 60 warm frames, then 120 previous-frame recorder reads per cell. Keep positive durations with exactly one block; null = unavailable, not zero. CPU command-buffer and inline timings are distinct; neither is GPU or whole-frame time."
+}

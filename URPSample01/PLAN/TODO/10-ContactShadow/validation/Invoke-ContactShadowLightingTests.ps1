@@ -17,7 +17,11 @@ if ($GraphicsApi -eq 'd3d11' -and $Filter -eq 'ContactShadowTests.PlayMode') {
     $baseline = Get-Content -Raw (Join-Path $PSScriptRoot 'P5/PreIntegration.json') | ConvertFrom-Json
     foreach ($mode in 'Forward','ForwardPlus','Deferred') {
         $off = Join-Path $output "Direct3D11/$mode/Baseline-off.png"
-        if ((Get-FileHash $off).Hash -ne $baseline.controls.$mode.offSha256) { throw "$mode inactive image differs from $($baseline.commit)" }
+        # Fresh output is per-mode; archived controls are shared only when byte-identical.
+        $control = $baseline.controls.$mode
+        $archived = Join-Path $PSScriptRoot $control.archivedOff
+        if ((Get-FileHash -LiteralPath $archived).Hash -ne $control.offSha256 -or
+            (Get-FileHash -LiteralPath $off).Hash -ne $control.offSha256) { throw "$mode inactive image differs from $($baseline.commit)" }
     }
 }
 Write-Host "$GraphicsApi lighting: $($r.passed)/$($r.total)"

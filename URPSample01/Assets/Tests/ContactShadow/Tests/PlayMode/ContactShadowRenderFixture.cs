@@ -21,7 +21,7 @@ namespace ContactShadowTests.PlayMode
     {
         protected const int W = 256, H = 192;
         const string Root = "Assets/Tests/ContactShadow/";
-        const string ScenePath = Root + "Scenes/ContactShadowBaseline.unity";
+        const string SceneRoot = Root + "Scenes/ContactShadow";
         protected static readonly RectInt Contact = new RectInt(115, 123, 28, 14);
         protected static readonly RectInt Facing = new RectInt(157, 123, 28, 14);
         protected static readonly RectInt Full = new RectInt(0, 0, W, H);
@@ -45,10 +45,12 @@ namespace ContactShadowTests.PlayMode
         static readonly PropertyInfo Actual = typeof(UniversalRenderer).GetProperty("renderingModeActual",
             BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
-        protected IEnumerator Open(RenderingMode mode, bool additionalShadows = true)
+        protected IEnumerator Open(RenderingMode mode, bool additionalShadows = true, bool msaa = false, bool stress = false)
         {
             Mode = mode;
-            var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>($"{Root}Pipelines/{mode}.asset");
+            string ScenePath = SceneRoot + (stress ? "Stress" : "Baseline") + ".unity";
+            string pipelineName = msaa ? "ForwardMSAA4x" : mode.ToString();
+            var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>($"{Root}Pipelines/{pipelineName}.asset");
             Assert.That(pipeline, Is.Not.Null, "Missing T7 pipeline: " + mode);
             Assert.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null, "Generate/import the T7 baseline scene first.");
             Assert.That(SceneManager.GetSceneByPath(ScenePath).isLoaded, Is.False, "Start from the Test Runner's empty scene.");
@@ -101,7 +103,7 @@ namespace ContactShadowTests.PlayMode
         protected T Named<T>(string name) where T : Component => scene.GetRootGameObjects()
             .SelectMany(root => root.GetComponentsInChildren<T>(true)).Single(x => x.name == name);
 
-        protected Color32[] Capture(Camera camera = null)
+        protected Color32[] Capture(Camera camera = null, Texture2D scaledReadback = null)
         {
             camera = camera ? camera : View;
             var previous = RenderTexture.active;
@@ -112,8 +114,9 @@ namespace ContactShadowTests.PlayMode
                 Assert.That(Actual, Is.Not.Null, "Update actual camera-path probe for this URP version.");
                 Assert.That(Actual.GetValue(camera.GetUniversalAdditionalCameraData().scriptableRenderer), Is.EqualTo(Mode));
                 RenderTexture.active = camera.targetTexture;
-                readback.ReadPixels(new Rect(0, 0, W, H), 0, 0, false);
-                return readback.GetPixels32();
+                var dst = scaledReadback ? scaledReadback : readback;
+                dst.ReadPixels(new Rect(0, 0, dst.width, dst.height), 0, 0, false);
+                return dst.GetPixels32();
             }
             finally { RenderTexture.active = previous; }
         }

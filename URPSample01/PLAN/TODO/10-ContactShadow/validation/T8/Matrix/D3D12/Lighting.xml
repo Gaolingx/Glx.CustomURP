@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="13" result="Passed" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:45Z" duration="1.8618205">
+  <test-suite type="TestSuite" id="1000" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="79" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:45Z" duration="1.861821" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1071" name="Unity.ContactShadow.Tests.PlayMode.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.ContactShadow.Tests.PlayMode.dll" runstate="Runnable" testcasecount="33" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:45Z" duration="1.854137" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="67976" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1072" name="ContactShadowTests" fullname="ContactShadowTests" runstate="Runnable" testcasecount="33" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:45Z" duration="1.853004" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1073" name="PlayMode" fullname="ContactShadowTests.PlayMode" runstate="Runnable" testcasecount="33" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:45Z" duration="1.852013" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1055" name="ContactShadowT8MatrixTests" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:45Z" duration="1.850526" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1070" name="CameraConfigurations" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.CameraConfigurations" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:43Z" duration="0.329744" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <test-case id="1067" name="CameraConfigurations(&quot;ortho&quot;)" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.CameraConfigurations(&quot;ortho&quot;)" methodname="CameraConfigurations" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="1326654093" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:43Z" duration="0.264049" asserts="0">
+                <properties />
+                <output><![CDATA[scaledWidth=256
+targetSamples=1
+darkened=286
+]]></output>
+              </test-case>
+              <test-case id="1068" name="CameraConfigurations(&quot;msaa&quot;)" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.CameraConfigurations(&quot;msaa&quot;)" methodname="CameraConfigurations" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="1032732370" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:43Z" duration="0.031605" asserts="0">
+                <properties />
+                <output><![CDATA[scaledWidth=256
+targetSamples=4
+darkened=279
+]]></output>
+              </test-case>
+              <test-case id="1069" name="CameraConfigurations(&quot;dynamic&quot;)" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.CameraConfigurations(&quot;dynamic&quot;)" methodname="CameraConfigurations" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="321182951" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:43Z" duration="0.026947" asserts="0">
+                <properties />
+                <output><![CDATA[scaledWidth=192
+targetSamples=1
+darkened=188
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-case id="1061" name="DistanceSequence" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.DistanceSequence" methodname="DistanceSequence" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="256187909" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:43Z" duration="0.032815" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[distance/2.5=0
+distance/4=127
+distance/5=255
+distance/6=127
+distance/9.5=0
+]]></output>
+            </test-case>
+            <test-case id="1062" name="EdgeBands" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.EdgeBands" methodname="EdgeBands" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="422680174" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:43Z" duration="0.030630" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[edge/151=255
+edge/177=247.0323
+edge/182=193.8065
+edge/186=112.7813
+edge/190=19.1875
+]]></output>
+            </test-case>
+            <test-case id="1064" name="MaskAcrossModes" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.MaskAcrossModes" methodname="MaskAcrossModes" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="1875516098" result="Passed" start-time="2026-11-24 07:11:43Z" end-time="2026-11-24 07:11:44Z" duration="0.119379" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[Shader warning in 'ClusterBuilder': use of potentially uninitialized variable (CdItemMinMaxZ) at kernel ClusterItemBounds at ClusterBuilder.compute(130) (on d3d11)
+ForwardPlus/differentMaskPixels=0
+Deferred/differentMaskPixels=0
+]]></output>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1059" name="OpacityAndMaterials" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.OpacityAndMaterials" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-24 07:11:44Z" end-time="2026-11-24 07:11:44Z" duration="0.109833" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <test-case id="1056" name="OpacityAndMaterials(Forward)" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.OpacityAndMaterials(Forward)" methodname="OpacityAndMaterials" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="892917832" result="Passed" start-time="2026-11-24 07:11:44Z" end-time="2026-11-24 07:11:44Z" duration="0.034557" asserts="0">
+                <properties />
+                <output><![CDATA[opacity/0/lumaDrop=0
+opacity/0.5/lumaDrop=9.964285
+opacity/1/lumaDrop=19.21684
+]]></output>
+              </test-case>
+              <test-case id="1057" name="OpacityAndMaterials(ForwardPlus)" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.OpacityAndMaterials(ForwardPlus)" methodname="OpacityAndMaterials" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="665312831" result="Passed" start-time="2026-11-24 07:11:44Z" end-time="2026-11-24 07:11:44Z" duration="0.033446" asserts="0">
+                <properties />
+                <output><![CDATA[opacity/0/lumaDrop=0
+opacity/0.5/lumaDrop=9.964285
+opacity/1/lumaDrop=19.21684
+]]></output>
+              </test-case>
+              <test-case id="1058" name="OpacityAndMaterials(Deferred)" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.OpacityAndMaterials(Deferred)" methodname="OpacityAndMaterials" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="1020648024" result="Passed" start-time="2026-11-24 07:11:44Z" end-time="2026-11-24 07:11:44Z" duration="0.040782" asserts="0">
+                <properties />
+                <output><![CDATA[opacity/0/lumaDrop=0
+opacity/0.5/lumaDrop=9.635204
+opacity/1/lumaDrop=19.21684
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-case id="1066" name="SceneViewCamera" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.SceneViewCamera" methodname="SceneViewCamera" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="789126795" result="Passed" start-time="2026-11-24 07:11:44Z" end-time="2026-11-24 07:11:44Z" duration="0.846921" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/SceneView",
+    "regions": [
+        {
+            "name": "behind",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 279,
+            "darkened": 279,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 9.783163070678711
+        },
+        {
+            "name": "whole",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 393,
+            "darkened": 393,
+            "brightened": 0,
+            "meanOffLuma": 29.44500732421875,
+            "meanOnLuma": 29.2291316986084
+        }
+    ]
+}
+]]></output>
+            </test-case>
+            <test-case id="1065" name="SlotIdentityAndOverflow" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.SlotIdentityAndOverflow" methodname="SlotIdentityAndOverflow" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="1648578381" result="Passed" start-time="2026-11-24 07:11:44Z" end-time="2026-11-24 07:11:45Z" duration="0.290196" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[active/1/slotToFixture=0
+active/4/slotToFixture=0,5,3,7
+active/24/slotToFixture=0,2,22,11,14,20,6,1,12,13,18,10,5,8,16,19,15,4,17,21,23,3,7,9
+active/24/slotToFixture=2,22,11,14,20,6,1,12,13,18,10,5,8,16,19,15,24,4,17,21,23,3,7,9
+active/25/slotToFixture=0,2,22,11,14,20,6,1,12,13,18,10,5,8,16,19,15,24,4,17,21,23,3,7
+overflow/removed=9/10
+receiver24/crowdedChanged=3
+receiver24/x,y/fadeOn,Off=225,158/255,246
+receiver24/x,y/fadeOn,Off=229,159/255,244
+receiver24/x,y/fadeOn,Off=226,160/255,242
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/one-marker",
+    "regions": [
+        {
+            "name": "local",
+            "x": 135,
+            "y": 66,
+            "width": 18,
+            "height": 14,
+            "changedRGBA": 163,
+            "darkened": 153,
+            "brightened": 0,
+            "meanOffLuma": 88.83333587646485,
+            "meanOnLuma": 69.01190185546875
+        },
+        {
+            "name": "receiver24",
+            "x": 223,
+            "y": 155,
+            "width": 12,
+            "height": 8,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 78.92708587646485,
+            "meanOnLuma": 78.92708587646485
+        }
+    ]
+}
+]]></output>
+            </test-case>
+            <test-case id="1060" name="ThreeViews" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.ThreeViews" methodname="ThreeViews" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="786581090" result="Passed" start-time="2026-11-24 07:11:45Z" end-time="2026-11-24 07:11:45Z" duration="0.043738" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/view0",
+    "regions": [
+        {
+            "name": "behind",
+            "x": 123,
+            "y": 126,
+            "width": 16,
+            "height": 8,
+            "changedRGBA": 121,
+            "darkened": 121,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 3.4765625
+        },
+        {
+            "name": "facing",
+            "x": 163,
+            "y": 126,
+            "width": 16,
+            "height": 8,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 29.0
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/view-12",
+    "regions": [
+        {
+            "name": "behind",
+            "x": 123,
+            "y": 126,
+            "width": 16,
+            "height": 8,
+            "changedRGBA": 123,
+            "darkened": 123,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 3.0546875
+        },
+        {
+            "name": "facing",
+            "x": 164,
+            "y": 127,
+            "width": 16,
+            "height": 8,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 29.0
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/view12",
+    "regions": [
+        {
+            "name": "behind",
+            "x": 123,
+            "y": 126,
+            "width": 16,
+            "height": 8,
+            "changedRGBA": 116,
+            "darkened": 116,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 4.53125
+        },
+        {
+            "name": "facing",
+            "x": 160,
+            "y": 125,
+            "width": 16,
+            "height": 8,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.125,
+            "meanOnLuma": 29.125
+        }
+    ]
+}
+]]></output>
+            </test-case>
+            <test-case id="1063" name="TraceBoundaries" fullname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests.TraceBoundaries" methodname="TraceBoundaries" classname="ContactShadowTests.PlayMode.ContactShadowT8MatrixTests" runstate="Runnable" seed="1022563664" result="Passed" start-time="2026-11-24 07:11:45Z" end-time="2026-11-24 07:11:45Z" duration="0.039060" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[samples,thickness,bias/(4.00, 0.15, 0.20)=131
+samples,thickness,bias/(10.00, 0.15, 0.20)=279
+samples,thickness,bias/(64.00, 0.15, 0.20)=318
+samples,thickness,bias/(10.00, 0.02, 0.20)=252
+samples,thickness,bias/(10.00, 1.00, 0.20)=279
+samples,thickness,bias/(10.00, 0.15, 0.00)=303
+samples,thickness,bias/(10.00, 0.15, 1.00)=186
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

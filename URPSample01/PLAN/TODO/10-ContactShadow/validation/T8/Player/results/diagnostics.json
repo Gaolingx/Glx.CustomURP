@@ -1,0 +1,34 @@
+{
+  "localLogDirectory": "C:\\Users\\GAOLIN~1\\AppData\\Local\\Temp\\1\\T8PlayerLogs-cn472z9m",
+  "diagnosticLineGroups": {
+    "Development-D3D11/build.log.gz": {
+      "[Licensing::Module] Error: Access token is unavailable; failed to update": 1,
+      "shader warning: ClusterBuilder: use of potentially uninitialized variable (CdItemMinMaxZ)": 2,
+      "shader warning: ClusteredDeferred: use of potentially uninitialized variable (CdMixRealtimeAndBakedShadows)": 1280
+    },
+    "Development-D3D11/player.log.gz": {},
+    "Development-D3D12/build.log.gz": {
+      "[Licensing::Module] Error: Access token is unavailable; failed to update": 1,
+      "shader warning: ClusterBuilder: use of potentially uninitialized variable (CdItemMinMaxZ)": 4,
+      "shader warning: ClusteredDeferred: use of potentially uninitialized variable (CdMixRealtimeAndBakedShadows)": 2560
+    },
+    "Development-D3D12/player.log.gz": {},
+    "Release-D3D11/build.log.gz": {
+      "[Licensing::Module] Error: Access token is unavailable; failed to update": 1,
+      "WARNING: Shader Unsupported: 'Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)' - All subshaders removed": 6,
+      "WARNING: Shader Did you use #pragma only_renderers and omit this platform?": 12,
+      "WARNING: Shader If subshaders removal was intentional, you may have forgotten turning Fallback off?": 12,
+      "WARNING: Shader Unsupported: 'Universal Render Pipeline/Terrain/Lit' - All subshaders removed": 6,
+      "Warning in Graph at Packages/com.unity.render-pipelines.universal/Shaders/FullscreenInvertColors.shadergraph on line 26: 'USE_CLUSTER_LIGHTS': macro redefinition. Previous definition found at C:/Users/Gaolingxiang/AppData/Local/Temp/1/T8Contact-d8r59fj6/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Input.hlsl:17.": 1,
+      "shader warning: ClusterBuilder: use of potentially uninitialized variable (CdItemMinMaxZ)": 2,
+      "shader warning: ClusteredDeferred: use of potentially uninitialized variable (CdMixRealtimeAndBakedShadows)": 1280
+    },
+    "Release-D3D11/player.log.gz": {},
+    "Release-D3D12/build.log.gz": {
+      "[Licensing::Module] Error: Access token is unavailable; failed to update": 1,
+      "shader warning: ClusterBuilder: use of potentially uninitialized variable (CdItemMinMaxZ)": 4,
+      "shader warning: ClusteredDeferred: use of potentially uninitialized variable (CdMixRealtimeAndBakedShadows)": 2560
+    },
+    "Release-D3D12/player.log.gz": {}
+  }
+}

@@ -1,0 +1,267 @@
+{
+  "relativeTo": "validation",
+  "images": [
+    {
+      "canonical": "P3/D3D11/FarFadeFade.png",
+      "sha256": "a919a99becb9cacff34a46e72f755e05f9708eeec6383f6cc91e02a2bcde99cf",
+      "bytes": 1335,
+      "aliases": [
+        "P3/D3D11/NearFadeFade.png",
+        "P3/D3D12/FarFadeFade.png",
+        "P3/D3D12/NearFadeFade.png"
+      ]
+    },
+    {
+      "canonical": "P3/D3D11/Horizontal10Mask.png",
+      "sha256": "a2f574fc8b1316365ca067a2d7add0759db4115743ed4f77280a5ecdd3d00213",
+      "bytes": 1167,
+      "aliases": [
+        "P3/D3D11/FarFadeMask.png",
+        "P3/D3D11/NearFadeMask.png",
+        "P3/D3D12/FarFadeMask.png",
+        "P3/D3D12/Horizontal10Mask.png",
+        "P3/D3D12/NearFadeMask.png"
+      ]
+    },
+    {
+      "canonical": "P3/D3D11/Horizontal10Fade.png",
+      "sha256": "188dff2699d19741672032d3c327d8addcbded077998f4a77e8b43f31ad052ad",
+      "bytes": 1330,
+      "aliases": [
+        "P3/D3D12/Horizontal10Fade.png"
+      ]
+    },
+    {
+      "canonical": "P3/D3D11/Horizontal4Fade.png",
+      "sha256": "8ffe966fc27fd79e2819db231549aee4b7f04c532a49f7de6497d908a62d4b0d",
+      "bytes": 1772,
+      "aliases": [
+        "P3/D3D12/Horizontal4Fade.png"
+      ]
+    },
+    {
+      "canonical": "P3/D3D11/Horizontal4Mask.png",
+      "sha256": "401ad11e0e4053205839b0a91b6ad7448c7b45eac5861d68fdf52054f30a99dd",
+      "bytes": 1683,
+      "aliases": [
+        "P3/D3D12/Horizontal4Mask.png"
+      ]
+    },
+    {
+      "canonical": "P3/D3D11/Horizontal64Fade.png",
+      "sha256": "0864f7ef647adf5129604cfa4578a092108dbe9671dcd50829b70c15a63b082b",
+      "bytes": 1006,
+      "aliases": [
+        "P3/D3D12/Horizontal64Fade.png"
+      ]
+    },
+    {
+      "canonical": "P3/D3D11/Horizontal64Mask.png",
+      "sha256": "274c3477720c9455881c312e1d490ff8898749d3c78c8b1acbab324c65178923",
+      "bytes": 889,
+      "aliases": [
+        "P3/D3D12/Horizontal64Mask.png"
+      ]
+    },
+    {
+      "canonical": "P3/D3D11/PlaneOnlyFade.png",
+      "sha256": "60b88508fe7f9ad86b5344f36e8a561e3190e0967733f800c4b1e8405edd4554",
+      "bytes": 725,
+      "aliases": [
+        "P3/D3D11/PlaneOnlyMask.png",
+        "P3/D3D12/PlaneOnlyFade.png",
+        "P3/D3D12/PlaneOnlyMask.png"
+      ]
+    },
+    {
+      "canonical": "P3/D3D11/Vertical10Fade.png",
+      "sha256": "46d451571cfb5b5967509e3bcb8324312f9270ee0fbcb67a1d8a67b2df6658ef",
+      "bytes": 1895,
+      "aliases": [
+        "P3/D3D12/Vertical10Fade.png"
+      ]
+    },
+    {
+      "canonical": "P3/D3D11/Vertical10Mask.png",
+      "sha256": "79fb6fd198e3d8253befe25342da79f887694db5b530a5a11fd3a2683c9ced17",
+      "bytes": 1304,
+      "aliases": [
+        "P3/D3D12/Vertical10Mask.png"
+      ]
+    },
+    {
+      "canonical": "P3/Player/Direct3D11/MaskFade.png",
+      "sha256": "f2e69ec03c36779ee6f87371eeb1d3262b323ea7b5706cb45df249e96044a168",
+      "bytes": 139,
+      "aliases": [
+        "P3/Player/Direct3D12/MaskFade.png",
+        "T4/Player/Direct3D11/MaskFade.png",
+        "T4/Player/Direct3D12/MaskFade.png"
+      ]
+    },
+    {
+      "canonical": "P5/D3D11/Direct3D11/Deferred/Baseline-diff.png",
+      "sha256": "cf3b6317afb0dda53aa0a78d9cb090ca9dd0592b3e933fe2bce28b802c561d16",
+      "bytes": 3802,
+      "aliases": [
+        "P5/D3D12/Direct3D12/Deferred/Baseline-diff.png",
+        "T6/D3D11/Direct3D11/Deferred/Baseline-diff.png",
+        "T6/D3D12/Direct3D12/Deferred/Baseline-diff.png"
+      ]
+    },
+    {
+      "canonical": "P5/D3D11/Direct3D11/Deferred/Baseline-off.png",
+      "sha256": "74c97098a27a997f62e7d2ed3af5a329afb1b36a75c9f6d27ab859dc9b1427f5",
+      "bytes": 12953,
+      "aliases": [
+        "P5/D3D12/Direct3D12/Deferred/Baseline-off.png",
+        "T6/D3D11/Direct3D11/Deferred/Baseline-off.png",
+        "T6/D3D12/Direct3D12/Deferred/Baseline-off.png"
+      ]
+    },
+    {
+      "canonical": "P5/D3D11/Direct3D11/Deferred/Baseline-on.png",
+      "sha256": "e5c58049c321443318bb9bf1b01357af5169a91b9d693e06f90ee1149df12b6e",
+      "bytes": 14612,
+      "aliases": [
+        "P5/D3D12/Direct3D12/Deferred/Baseline-on.png",
+        "T6/D3D11/Direct3D11/Deferred/Baseline-on.png",
+        "T6/D3D12/Direct3D12/Deferred/Baseline-on.png"
+      ]
+    },
+    {
+      "canonical": "P5/D3D11/Direct3D11/Forward/Baseline-diff.png",
+      "sha256": "ef7243ecd97e6305da5dfff4e82ca6b8d1ac08500dda6871d35c665194765dd9",
+      "bytes": 3815,
+      "aliases": [
+        "P5/D3D11/Direct3D11/ForwardPlus/Baseline-diff.png",
+        "P5/D3D12/Direct3D12/Forward/Baseline-diff.png",
+        "P5/D3D12/Direct3D12/ForwardPlus/Baseline-diff.png",
+        "T6/D3D11/Direct3D11/Forward/Baseline-diff.png",
+        "T6/D3D11/Direct3D11/ForwardPlus/Baseline-diff.png",
+        "T6/D3D12/Direct3D12/Forward/Baseline-diff.png",
+        "T6/D3D12/Direct3D12/ForwardPlus/Baseline-diff.png"
+      ]
+    },
+    {
+      "canonical": "P5/D3D11/Direct3D11/Forward/Baseline-off.png",
+      "sha256": "5e9a3d7b0b7bdb5738a26e6ad8db6071467ba93d59397730cbcdba3998907542",
+      "bytes": 12808,
+      "aliases": [
+        "P5/D3D11/Direct3D11/ForwardPlus/Baseline-off.png",
+        "P5/D3D12/Direct3D12/Forward/Baseline-off.png",
+        "P5/D3D12/Direct3D12/ForwardPlus/Baseline-off.png",
+        "T6/D3D11/Direct3D11/Forward/Baseline-off.png",
+        "T6/D3D11/Direct3D11/ForwardPlus/Baseline-off.png",
+        "T6/D3D12/Direct3D12/Forward/Baseline-off.png",
+        "T6/D3D12/Direct3D12/ForwardPlus/Baseline-off.png"
+      ]
+    },
+    {
+      "canonical": "P5/D3D11/Direct3D11/Forward/Baseline-on.png",
+      "sha256": "3ecca817baae1a89606c07451819f136670cf6a682fcfcd1c74fb43b09ec4e0f",
+      "bytes": 14572,
+      "aliases": [
+        "P5/D3D11/Direct3D11/ForwardPlus/Baseline-on.png",
+        "P5/D3D12/Direct3D12/Forward/Baseline-on.png",
+        "P5/D3D12/Direct3D12/ForwardPlus/Baseline-on.png",
+        "T6/D3D11/Direct3D11/Forward/Baseline-on.png",
+        "T6/D3D11/Direct3D11/ForwardPlus/Baseline-on.png",
+        "T6/D3D12/Direct3D12/Forward/Baseline-on.png",
+        "T6/D3D12/Direct3D12/ForwardPlus/Baseline-on.png"
+      ]
+    },
+    {
+      "canonical": "T1/T1_FeatureInspector.png",
+      "sha256": "c26a43449816f895fd8e16419af0ada62799f4f1f6a727669277eba87ab98040",
+      "bytes": 50379,
+      "aliases": []
+    },
+    {
+      "canonical": "T1/T1_LightInspector.png",
+      "sha256": "18ac92466aeda54baa8c09152d4c4ea5ed2318e4c7fb0fed403f259ee1c472b4",
+      "bytes": 32909,
+      "aliases": []
+    },
+    {
+      "canonical": "T1/T1_VolumeInspector.png",
+      "sha256": "d997ed07ad545fa480417e7a772436ee30718e6a445c64d7559794b99bfd4fec",
+      "bytes": 68795,
+      "aliases": []
+    },
+    {
+      "canonical": "T2/ContactOnlyDepthAtlas.png",
+      "sha256": "29ddc96c51757cc18a89869b32c0650d8c7e74ffedd6a9f065c66bb7f9f4236b",
+      "bytes": 369,
+      "aliases": [
+        "T2/ContactSslGtaoDepthAtlas.png"
+      ]
+    },
+    {
+      "canonical": "T4/D3D11/SlotMapping.png",
+      "sha256": "775b14d9287d7b0a7444de93976b65046b17bef27effcaf5bbacda2d7fb2b6e3",
+      "bytes": 1553,
+      "aliases": [
+        "T4/D3D12/SlotMapping.png"
+      ]
+    },
+    {
+      "canonical": "T6/D3D11/Direct3D11/Debug/Mask.png",
+      "sha256": "9bdf4aad46738fdf8778f0a5f4f86ba8f12521ac6a6665b23fbdc62627f95e7f",
+      "bytes": 2402,
+      "aliases": [
+        "T6/D3D11/Direct3D11/Debug/CameraA.png",
+        "T6/D3D11/Direct3D11/Debug/Slot0.png",
+        "T6/D3D12/Direct3D12/Debug/CameraA.png",
+        "T6/D3D12/Direct3D12/Debug/Mask.png",
+        "T6/D3D12/Direct3D12/Debug/Slot0.png"
+      ]
+    },
+    {
+      "canonical": "T6/D3D11/Direct3D11/Debug/CameraB.png",
+      "sha256": "eabd6f707823c19a15b2cdf6d47b56eb783647a824985cd6e5bae3fcbe696528",
+      "bytes": 2400,
+      "aliases": [
+        "T6/D3D12/Direct3D12/Debug/CameraB.png"
+      ]
+    },
+    {
+      "canonical": "T6/D3D11/Direct3D11/Debug/CameraBInactive.png",
+      "sha256": "0c7ea7385d0bc73e43bbdf341a556bdc926986401204af2267a5932b8062a104",
+      "bytes": 2017,
+      "aliases": [
+        "T6/D3D12/Direct3D12/Debug/CameraBInactive.png"
+      ]
+    },
+    {
+      "canonical": "T6/D3D11/Direct3D11/Debug/Fade.png",
+      "sha256": "a5ccd3a1a988f4cd961b8b2dbc7ed850061d350f56a2acfd6497f6f4b2559564",
+      "bytes": 2425,
+      "aliases": [
+        "T6/D3D12/Direct3D12/Debug/Fade.png"
+      ]
+    },
+    {
+      "canonical": "T6/D3D11/Direct3D11/Debug/Raw.png",
+      "sha256": "24f4ffa37d042a16812e4f931d8d6b7fb021b4ac2df3e68379fcec2395ec301d",
+      "bytes": 1937,
+      "aliases": [
+        "T6/D3D12/Direct3D12/Debug/Raw.png"
+      ]
+    },
+    {
+      "canonical": "T6/D3D11/Direct3D11/Debug/Slot1.png",
+      "sha256": "ad3c352b0a2bce10f710d11d4ca0c6d24858a3f047e2f908d5ef0d33c4a33b95",
+      "bytes": 2780,
+      "aliases": [
+        "T6/D3D12/Direct3D12/Debug/Slot1.png"
+      ]
+    },
+    {
+      "canonical": "T8/Matrix/D3D11/ThreeViews.png",
+      "sha256": "b40882fc41580696c781a362d710d5fc3966f3a68dfff43bb67d414d093dcdc1",
+      "bytes": 5499,
+      "aliases": []
+    }
+  ]
+}

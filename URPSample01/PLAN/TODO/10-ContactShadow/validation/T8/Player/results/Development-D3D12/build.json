@@ -1,0 +1,1 @@
+{"target":"StandaloneWindows64","options":"CompressTextures, StripDebugSymbols, ForceOptimizeScriptCompilation, Il2CPP, Development","guid":"af10e454824947ae8c13e644d2e5481b","scene":"Assets/Tests/ContactShadow/Scenes/ContactShadowBaseline.unity","qualityPipelines":["Forward","ForwardPlus","Deferred"],"errorMessages":[],"errors":0,"warnings":2564}

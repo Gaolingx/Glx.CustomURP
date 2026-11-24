@@ -1,0 +1,61 @@
+{
+    "api": "Direct3D12",
+    "platform": "WindowsPlayer",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "buildGuid": "af10e454824947ae8c13e644d2e5481b",
+    "error": "",
+    "development": true,
+    "passed": true,
+    "warnings": [],
+    "paths": [
+        {
+            "requested": "Forward",
+            "actual": "Forward",
+            "depth": "DepthPyramid",
+            "contact": "ContactShadows",
+            "debug": "Hidden/Universal Render Pipeline/Contact Shadow Debug",
+            "kernels": true,
+            "debugSupported": true,
+            "debugChanged": 49152,
+            "darkenedByTwo": 279,
+            "facingChangedRGBA": 0,
+            "inactiveChangedRGBA": 0,
+            "meanOffLuma": 29.000097274780275,
+            "meanOnLuma": 9.783177375793457,
+            "passed": true
+        },
+        {
+            "requested": "ForwardPlus",
+            "actual": "ForwardPlus",
+            "depth": "DepthPyramid",
+            "contact": "ContactShadows",
+            "debug": "Hidden/Universal Render Pipeline/Contact Shadow Debug",
+            "kernels": true,
+            "debugSupported": true,
+            "debugChanged": 49152,
+            "darkenedByTwo": 279,
+            "facingChangedRGBA": 0,
+            "inactiveChangedRGBA": 0,
+            "meanOffLuma": 29.000097274780275,
+            "meanOnLuma": 9.783177375793457,
+            "passed": true
+        },
+        {
+            "requested": "Deferred",
+            "actual": "Deferred",
+            "depth": "DepthPyramid",
+            "contact": "ContactShadows",
+            "debug": "Hidden/Universal Render Pipeline/Contact Shadow Debug",
+            "kernels": true,
+            "debugSupported": true,
+            "debugChanged": 49152,
+            "darkenedByTwo": 279,
+            "facingChangedRGBA": 0,
+            "inactiveChangedRGBA": 0,
+            "meanOffLuma": 29.000097274780275,
+            "meanOnLuma": 9.783177375793457,
+            "passed": true
+        }
+    ]
+}

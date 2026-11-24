@@ -13,7 +13,7 @@ namespace ContactShadowTests.PlayMode
     public sealed class ContactShadowDebugRenderTests : ContactShadowRenderFixture
     {
         // Change the live T1 settings, not the serialized renderer asset. Restore even on assertion failure.
-        sealed class DebugSettings : IDisposable
+        internal sealed class DebugSettings : IDisposable
         {
             readonly object settings, originalMode, originalSlot;
             readonly FieldInfo mode, slot;

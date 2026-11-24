@@ -1,0 +1,46 @@
+{
+  "scratch": "C:\\Users\\Gaolingxiang\\AppData\\Local\\Temp\\1\\T8Contact-d8r59fj6",
+  "sourceHEAD": "305d6f4d7b3a67752da4927b99ee5dc7455b0ebb",
+  "rows": [
+    {
+      "config": "Release",
+      "api": "Direct3D11",
+      "passed": true,
+      "editorExit": 0,
+      "buildWarnings": 1282,
+      "buildErrors": 0,
+      "exeSHA256": "0b62e9914456f6315d2d5799314c3cdcd398bd59f15ea24662c41a356a4e8669",
+      "playerExit": 0
+    },
+    {
+      "config": "Release",
+      "api": "Direct3D12",
+      "passed": true,
+      "editorExit": 0,
+      "buildWarnings": 2564,
+      "buildErrors": 0,
+      "exeSHA256": "0b62e9914456f6315d2d5799314c3cdcd398bd59f15ea24662c41a356a4e8669",
+      "playerExit": 0
+    },
+    {
+      "config": "Development",
+      "api": "Direct3D11",
+      "passed": true,
+      "editorExit": 0,
+      "buildWarnings": 1282,
+      "buildErrors": 0,
+      "exeSHA256": "d2e1444d0c4420c5d628cccc5700b61e9f2efac0d8d4478b5e9dc50b79d5e42f",
+      "playerExit": 0
+    },
+    {
+      "config": "Development",
+      "api": "Direct3D12",
+      "passed": true,
+      "editorExit": 0,
+      "buildWarnings": 2564,
+      "buildErrors": 0,
+      "exeSHA256": "d2e1444d0c4420c5d628cccc5700b61e9f2efac0d8d4478b5e9dc50b79d5e42f",
+      "playerExit": 0
+    }
+  ]
+}

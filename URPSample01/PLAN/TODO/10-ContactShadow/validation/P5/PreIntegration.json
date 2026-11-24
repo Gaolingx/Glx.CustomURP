@@ -16,7 +16,8 @@
         "brightened": 0,
         "meanOffLuma": 57.77806091308594,
         "meanOnLuma": 57.77806091308594
-      }
+      },
+      "archivedOff": "P5/D3D11/Direct3D11/Deferred/Baseline-off.png"
     },
     "Forward": {
       "offSha256": "5e9a3d7b0b7bdb5738a26e6ad8db6071467ba93d59397730cbcdba3998907542",
@@ -32,7 +33,8 @@
         "brightened": 0,
         "meanOffLuma": 57.3979606628418,
         "meanOnLuma": 57.3979606628418
-      }
+      },
+      "archivedOff": "P5/D3D11/Direct3D11/Forward/Baseline-off.png"
     },
     "ForwardPlus": {
       "offSha256": "5e9a3d7b0b7bdb5738a26e6ad8db6071467ba93d59397730cbcdba3998907542",
@@ -48,7 +50,8 @@
         "brightened": 0,
         "meanOffLuma": 57.3979606628418,
         "meanOnLuma": 57.3979606628418
-      }
+      },
+      "archivedOff": "P5/D3D11/Direct3D11/Forward/Baseline-off.png"
     }
   }
 }

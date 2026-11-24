@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="25" result="Failed(Child)" total="25" passed="24" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:22Z" duration="5.2072745">
+  <test-suite type="TestSuite" id="1679" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="581" result="Failed" site="Child" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:22Z" duration="5.207275" total="25" passed="24" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="2345" name="Unity.RenderPipelines.Universal.Editor.Tests.dll" fullname="E:/tmp/csT8-xftj962f/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll" runstate="Runnable" testcasecount="573" result="Failed" site="Child" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:22Z" duration="5.189831" total="25" passed="24" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="37920" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="2347" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="325" result="Failed" site="Child" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:22Z" duration="5.181371" total="25" passed="24" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="2348" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="325" result="Failed" site="Child" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:22Z" duration="5.178305" total="25" passed="24" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="2349" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="325" result="Failed" site="Child" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:22Z" duration="5.174345" total="25" passed="24" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="2350" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="325" result="Failed" site="Child" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:22Z" duration="5.170605" total="25" passed="24" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1894" name="ClusteredDeferredShaderTests" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" runstate="Runnable" testcasecount="4" result="Failed" site="Child" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:17Z" duration="0.089327" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1895" name="ClusteredDeferredKernelCompiles" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.ClusteredDeferredKernelCompiles" methodname="ClusteredDeferredKernelCompiles" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" runstate="Runnable" seed="168872930" result="Passed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:17Z" duration="0.029438" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1896" name="ComputeDeclaresTheDocumentedKeywordMatrix" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.ComputeDeclaresTheDocumentedKeywordMatrix" methodname="ComputeDeclaresTheDocumentedKeywordMatrix" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" runstate="Runnable" seed="906746816" result="Failed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:17Z" duration="0.014952" asserts="0">
+                  <properties />
+                  <failure>
+                    <message><![CDATA[  The clustered deferred keyword groups changed; update the variant budget and evidence.
+  Expected is <System.Int32[8]>, actual is <System.Collections.Generic.List`1[System.Int32]> with 9 elements
+  Values differ at index [8]
+  Extra:    < 2 >]]></message>
+                    <stack-trace><![CDATA[at NUnit.Framework.CollectionAssert.AreEqual (System.Collections.IEnumerable expected, System.Collections.IEnumerable actual, System.String message, System.Object[] args) [0x00008] in <10b6135e63434fdba4fc6c109928ab3b>:0
+at UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.ComputeDeclaresTheDocumentedKeywordMatrix () [0x0006d] in .\Packages\com.unity.render-pipelines.universal@14.0.12\Tests\Editor\ClusteredDeferred\ClusteredDeferredEditorTests.cs:103
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1897" name="ForwardLitShadersDeclareTheClusteredDeferredVariant" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.ForwardLitShadersDeclareTheClusteredDeferredVariant" methodname="ForwardLitShadersDeclareTheClusteredDeferredVariant" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" runstate="Runnable" seed="534484656" result="Passed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:17Z" duration="0.014660" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1898" name="KernelDoesNotUseTheStructuredBufferLightPath" fullname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests.KernelDoesNotUseTheStructuredBufferLightPath" methodname="KernelDoesNotUseTheStructuredBufferLightPath" classname="UnityEditor.Rendering.Universal.Tests.ClusteredDeferredShaderTests" runstate="Runnable" seed="796442042" result="Passed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:17Z" duration="0.017447" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1964" name="ContactShadowShaderBudgetTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderBudgetTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderBudgetTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:17Z" duration="0.017917" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1966" name="ContactAxisDoublesFrozenBudget" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderBudgetTests.ContactAxisDoublesFrozenBudget" methodname="ContactAxisDoublesFrozenBudget" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderBudgetTests" runstate="Runnable" seed="1425563544" result="Passed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:17Z" duration="0.008735" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1965" name="OnlyContactAxisFollowsFrozenDeclarations" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderBudgetTests.OnlyContactAxisFollowsFrozenDeclarations" methodname="OnlyContactAxisFollowsFrozenDeclarations" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderBudgetTests" runstate="Runnable" seed="555883056" result="Passed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:17Z" duration="0.006627" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1967" name="ContactShadowShaderCompileTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" testcasecount="19" result="Passed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:22Z" duration="5.050664" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="ParameterizedMethod" id="1983" name="LightingVariantCompilesWithExpectedContactTexture" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:22Z" duration="5.036133" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1968" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;&quot;,True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;&quot;,True)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="2058398419" result="Passed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:17Z" duration="0.183875" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1969" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS&quot;,True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS&quot;,True)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="2068478489" result="Passed" start-time="2026-11-24 07:18:17Z" end-time="2026-11-24 07:18:18Z" duration="0.554570" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1970" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _FORWARD_PLUS&quot;,True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _FORWARD_PLUS&quot;,True)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="173311150" result="Passed" start-time="2026-11-24 07:18:18Z" end-time="2026-11-24 07:18:18Z" duration="0.915709" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1971" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _SURFACE_TYPE_TRANSPARENT&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _SURFACE_TYPE_TRANSPARENT&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="1666674182" result="Passed" start-time="2026-11-24 07:18:18Z" end-time="2026-11-24 07:18:19Z" duration="0.535173" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1972" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _RECEIVE_SHADOWS_OFF&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _RECEIVE_SHADOWS_OFF&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="496860958" result="Passed" start-time="2026-11-24 07:18:19Z" end-time="2026-11-24 07:18:19Z" duration="0.258362" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1973" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _SURFACE_TYPE_TRANSPARENT _RECEIVE_SHADOWS_OFF&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _SURFACE_TYPE_TRANSPARENT _RECEIVE_SHADOWS_OFF&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="171302804" result="Passed" start-time="2026-11-24 07:18:19Z" end-time="2026-11-24 07:18:20Z" duration="0.260117" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1974" name="LightingVariantCompilesWithExpectedContactTexture(&quot;SimpleLit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS&quot;,True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;SimpleLit.shader&quot;,&quot;ForwardLit&quot;,D3D,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS&quot;,True)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="445386700" result="Passed" start-time="2026-11-24 07:18:20Z" end-time="2026-11-24 07:18:20Z" duration="0.524194" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1975" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;GBuffer&quot;,D3D,StandaloneWindows64,&quot;_RECEIVE_SHADOWS_OFF&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;GBuffer&quot;,D3D,StandaloneWindows64,&quot;_RECEIVE_SHADOWS_OFF&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="430499708" result="Passed" start-time="2026-11-24 07:18:20Z" end-time="2026-11-24 07:18:20Z" duration="0.139090" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1976" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES3x,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES3x,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="1227293200" result="Passed" start-time="2026-11-24 07:18:20Z" end-time="2026-11-24 07:18:20Z" duration="0.279171" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1977" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES3x,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _SURFACE_TYPE_TRANSPARENT&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES3x,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _SURFACE_TYPE_TRANSPARENT&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="309108103" result="Passed" start-time="2026-11-24 07:18:20Z" end-time="2026-11-24 07:18:21Z" duration="0.278491" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1978" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES3x,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _RECEIVE_SHADOWS_OFF&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES3x,StandaloneWindows64,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _RECEIVE_SHADOWS_OFF&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="727797969" result="Passed" start-time="2026-11-24 07:18:21Z" end-time="2026-11-24 07:18:21Z" duration="0.216402" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1979" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES20,StandaloneWindows64,&quot;&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES20,StandaloneWindows64,&quot;&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="523540865" result="Passed" start-time="2026-11-24 07:18:21Z" end-time="2026-11-24 07:18:21Z" duration="0.183851" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1980" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES20,StandaloneWindows64,&quot;_ADDITIONAL_LIGHTS&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES20,StandaloneWindows64,&quot;_ADDITIONAL_LIGHTS&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="1295212296" result="Passed" start-time="2026-11-24 07:18:21Z" end-time="2026-11-24 07:18:21Z" duration="0.205060" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1981" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES3x,WebGL,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES3x,WebGL,&quot;_MAIN_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="1070669654" result="Passed" start-time="2026-11-24 07:18:21Z" end-time="2026-11-24 07:18:22Z" duration="0.275406" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1982" name="LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES20,WebGL,&quot;_ADDITIONAL_LIGHTS&quot;,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.LightingVariantCompilesWithExpectedContactTexture(&quot;Lit.shader&quot;,&quot;ForwardLit&quot;,GLES20,WebGL,&quot;_ADDITIONAL_LIGHTS&quot;,False)" methodname="LightingVariantCompilesWithExpectedContactTexture" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="1064252558" result="Passed" start-time="2026-11-24 07:18:22Z" end-time="2026-11-24 07:18:22Z" duration="0.220062" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1988" name="ProductionKernelIsUsableOnEditorDevice" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.ProductionKernelIsUsableOnEditorDevice" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-24 07:18:22Z" end-time="2026-11-24 07:18:22Z" duration="0.012996" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1984" name="ProductionKernelIsUsableOnEditorDevice(&quot;Utils/ContactShadows/ContactShadows.compute&quot;,&quot;KContactShadow&quot;,&quot;&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.ProductionKernelIsUsableOnEditorDevice(&quot;Utils/ContactShadows/ContactShadows.compute&quot;,&quot;KContactShadow&quot;,&quot;&quot;)" methodname="ProductionKernelIsUsableOnEditorDevice" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="63215593" result="Passed" start-time="2026-11-24 07:18:22Z" end-time="2026-11-24 07:18:22Z" duration="0.002680" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1985" name="ProductionKernelIsUsableOnEditorDevice(&quot;Utils/ScreenSpaceCommon/DepthPyramid.compute&quot;,&quot;KDepthPyramidCopy&quot;,&quot;&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.ProductionKernelIsUsableOnEditorDevice(&quot;Utils/ScreenSpaceCommon/DepthPyramid.compute&quot;,&quot;KDepthPyramidCopy&quot;,&quot;&quot;)" methodname="ProductionKernelIsUsableOnEditorDevice" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="455648641" result="Passed" start-time="2026-11-24 07:18:22Z" end-time="2026-11-24 07:18:22Z" duration="0.000639" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1986" name="ProductionKernelIsUsableOnEditorDevice(&quot;Utils/ScreenSpaceCommon/DepthPyramid.compute&quot;,&quot;KDepthPyramidDownsample&quot;,&quot;&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.ProductionKernelIsUsableOnEditorDevice(&quot;Utils/ScreenSpaceCommon/DepthPyramid.compute&quot;,&quot;KDepthPyramidDownsample&quot;,&quot;&quot;)" methodname="ProductionKernelIsUsableOnEditorDevice" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="578874336" result="Passed" start-time="2026-11-24 07:18:22Z" end-time="2026-11-24 07:18:22Z" duration="0.000382" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1987" name="ProductionKernelIsUsableOnEditorDevice(&quot;Utils/ClusteredDeferred.compute&quot;,&quot;ClusteredDeferred&quot;,&quot;_CONTACT_SHADOWS_DEFERRED _ADDITIONAL_LIGHT_SHADOWS&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests.ProductionKernelIsUsableOnEditorDevice(&quot;Utils/ClusteredDeferred.compute&quot;,&quot;ClusteredDeferred&quot;,&quot;_CONTACT_SHADOWS_DEFERRED _ADDITIONAL_LIGHT_SHADOWS&quot;)" methodname="ProductionKernelIsUsableOnEditorDevice" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowShaderCompileTests" runstate="Runnable" seed="809775977" result="Passed" start-time="2026-11-24 07:18:22Z" end-time="2026-11-24 07:18:22Z" duration="0.007315" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

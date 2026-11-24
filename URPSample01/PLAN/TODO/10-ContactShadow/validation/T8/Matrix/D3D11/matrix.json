@@ -1,0 +1,129 @@
+{
+  "apiRequested": "D3D11",
+  "finishedUtc": "2026-11-24T07:11:31.2971471Z",
+  "allSettingsRestored": true,
+  "nunit": "Skipped:Ignored",
+  "cases": [
+    {
+      "name": "CameraConfigurations(\"ortho\")",
+      "result": "Passed",
+      "metrics": [
+        "scaledWidth=256",
+        "targetSamples=1",
+        "darkened=286"
+      ]
+    },
+    {
+      "name": "CameraConfigurations(\"msaa\")",
+      "result": "Passed",
+      "metrics": [
+        "scaledWidth=256",
+        "targetSamples=4",
+        "darkened=279"
+      ]
+    },
+    {
+      "name": "CameraConfigurations(\"dynamic\")",
+      "result": "Skipped",
+      "message": "Requested 75% DRS; camera remained at native width 256",
+      "metrics": [
+        "scaledWidth=256",
+        "targetSamples=1"
+      ]
+    },
+    {
+      "name": "DistanceSequence",
+      "result": "Passed",
+      "metrics": [
+        "distance/2.5=0",
+        "distance/4=127",
+        "distance/5=255",
+        "distance/6=127",
+        "distance/9.5=0"
+      ]
+    },
+    {
+      "name": "EdgeBands",
+      "result": "Passed",
+      "metrics": [
+        "edge/151=255",
+        "edge/177=247.0323",
+        "edge/182=193.8065",
+        "edge/186=112.7813",
+        "edge/190=19.1875"
+      ]
+    },
+    {
+      "name": "MaskAcrossModes",
+      "result": "Passed",
+      "metrics": [
+        "ForwardPlus/differentMaskPixels=0",
+        "Deferred/differentMaskPixels=0"
+      ]
+    },
+    {
+      "name": "OpacityAndMaterials(Forward)",
+      "result": "Passed",
+      "metrics": [
+        "opacity/0/lumaDrop=0",
+        "opacity/0.5/lumaDrop=9.964285",
+        "opacity/1/lumaDrop=19.21684"
+      ]
+    },
+    {
+      "name": "OpacityAndMaterials(ForwardPlus)",
+      "result": "Passed",
+      "metrics": [
+        "opacity/0/lumaDrop=0",
+        "opacity/0.5/lumaDrop=9.964285",
+        "opacity/1/lumaDrop=19.21684"
+      ]
+    },
+    {
+      "name": "OpacityAndMaterials(Deferred)",
+      "result": "Passed",
+      "metrics": [
+        "opacity/0/lumaDrop=0",
+        "opacity/0.5/lumaDrop=9.635204",
+        "opacity/1/lumaDrop=19.21684"
+      ]
+    },
+    {
+      "name": "SceneViewCamera",
+      "result": "Passed"
+    },
+    {
+      "name": "SlotIdentityAndOverflow",
+      "result": "Passed",
+      "metrics": [
+        "active/1/slotToFixture=0",
+        "active/4/slotToFixture=0,5,3,7",
+        "active/24/slotToFixture=0,2,5,11,15,19,1,20,17,12,9,22,4,10,6,13,3,16,23,7,8,18,14,21",
+        "active/24/slotToFixture=2,5,11,15,19,1,20,17,12,9,22,4,10,6,13,3,16,23,7,8,18,14,21,24",
+        "active/25/slotToFixture=0,2,5,11,15,19,1,20,17,12,9,22,4,10,6,13,3,16,23,7,8,18,14,21",
+        "overflow/removed=24/10",
+        "receiver24/crowdedChanged=3",
+        "receiver24/x,y/fadeOn,Off=225,158/255,246",
+        "receiver24/x,y/fadeOn,Off=229,159/255,244",
+        "receiver24/x,y/fadeOn,Off=226,160/255,242"
+      ]
+    },
+    {
+      "name": "ThreeViews",
+      "result": "Passed"
+    },
+    {
+      "name": "TraceBoundaries",
+      "result": "Passed",
+      "metrics": [
+        "samples,thickness,bias/(4.00, 0.15, 0.20)=131",
+        "samples,thickness,bias/(10.00, 0.15, 0.20)=279",
+        "samples,thickness,bias/(64.00, 0.15, 0.20)=318",
+        "samples,thickness,bias/(10.00, 0.02, 0.20)=252",
+        "samples,thickness,bias/(10.00, 1.00, 0.20)=279",
+        "samples,thickness,bias/(10.00, 0.15, 0.00)=303",
+        "samples,thickness,bias/(10.00, 0.15, 1.00)=186"
+      ]
+    }
+  ]
+}

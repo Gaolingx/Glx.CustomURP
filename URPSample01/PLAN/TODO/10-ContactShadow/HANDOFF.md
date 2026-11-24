@@ -1009,11 +1009,11 @@ T8 ─> T9 文档/清理/归档
 
 **T2 实测（D3D11，2026-11-24）**：[专项 24/24](validation/T2/EditMode.xml)、[既有 EditMode 184/184](validation/T2/Regression.xml)、[PlayMode 6/6](validation/T2/PlayMode.xml)。
 
-- 真实 `Camera.Render()`（96×64）：[Contact 单独开启](validation/T2/ContactOnlyDepthAtlas.png)和[叠加 SSL + GTAO](validation/T2/ContactSslGtaoDepthAtlas.png)均只执行一次 pass 203、一次 mip 0 拷贝；组合配置的三个 history 引用同一图集。GPU 读回 mip 0/1 中心均为 0.18750003、背景为 0，逐像素核对 mip 1 是对应 2×2 最近深度。
+- 真实 `Camera.Render()`（96×64）：[Contact 单独开启](validation/T2/ContactOnlyDepthAtlas.png)和[叠加 SSL + GTAO](validation/T2/ContactOnlyDepthAtlas.png)均只执行一次 pass 203、一次 mip 0 拷贝；组合配置的三个 history 引用同一图集。GPU 读回 mip 0/1 中心均为 0.18750003、背景为 0，逐像素核对 mip 1 是对应 2×2 最近深度。
 - pass 208 仅在共享深度就绪后分配 packed RT；未 dispatch 接触阴影、未写材质全局量。未标记灯不会为 Contact 分配 history 或触发独立构建。奇数尺寸、双眼独立条目、数组布局切换与释放已测；不是头显实机测试。射线先读 mip 1、同一 t 读 mip 0 的执行验证属于 T3。
 - 当前交付尚无 T3 contact compute；测试用未 dispatch 的 compute 引用满足 T1 资源门禁，深度生产使用真正的共享 kernel。保留缺少引用时只警告、不分配的行为。
 - 按 §8.1.6，Frame Debugger 事件列表为 **PARTIAL**：batch editor 回报 `locallySupported=False, eventCount=0`，不声称有交互式捕获。使用上述执行/dispatch 计数和 GPU 图像作替代证据。组合配置有一条临时纹理绑定警告及 GTAO 编译警告，保留在 XML；未把组合效果自身的画质列入本轮结论。
-- 从仓库根目录复现：`./URPSample01/PLAN/TODO/10-ContactShadow/validation/Invoke-ContactShadowTests.ps1 -OutputRoot URPSample01/PLAN/TODO/10-ContactShadow/validation/T2 -Filter 'ContactShadowPyramidRenderTests;ContactShadowCapabilityTests;ContactShadowHistoryTests;ContactShadowVolumeTests;ContactShadowFeatureImportTests' -RecordDepthEvidence`。
+- 从仓库根目录复现：`& (Resolve-Path ./URPSample01/PLAN/*/10-ContactShadow/validation/Invoke-ContactShadowTests.ps1) -OutputRoot ./URPSample01/Logs/contact-shadow-replay/T2 -Filter 'ContactShadowPyramidRenderTests;ContactShadowCapabilityTests;ContactShadowHistoryTests;ContactShadowVolumeTests;ContactShadowFeatureImportTests' -RecordDepthEvidence`。
 
 #### T3 Compute raymarch
 
@@ -1046,7 +1046,7 @@ T8 ─> T9 文档/清理/归档
 | mip 1 首采，mip 0 同一 t 确认 | 单独粗命中/单独细命中均读回 0；一条恰好一个步长宽的遮挡条，两级均命中时读回 `FF000007`（手工方向/点/聚光记录）。另测数组切片隔离；不是 XR 头显实测。专项 [D3D11 30/30](validation/P3/D3D11/EditMode.xml)、[D3D12 30/30](validation/P3/D3D12/EditMode.xml)，无跳过；[既有 EditMode 184/184](validation/P3/Regression/Regression.xml)、[PlayMode 6/6](validation/P3/Regression/PlayMode.xml)。 |
 | 非 Development Win64 Player | [一次构建](validation/P3/Player/BuildSummary.json)，同一 EXE 各以 [D3D11](validation/P3/Player/Direct3D11/Probe.json)、[D3D12](validation/P3/Player/Direct3D12/Probe.json) 运行。序列化引用实际 kernel，合成图集直接 dispatch：指定 bit 5 命中 `FF000020`，朝光/镜像/零灯对照为 0。Player 验证打包与执行，不替代上面的真实相机测试。 |
 
-复现：在仓库根目录的 PowerShell 中，令 `$v='./URPSample01/PLAN/TODO/10-ContactShadow/validation'`，运行 `foreach ($api in 'd3d11','d3d12') { & "$v/Invoke-ContactShadowTests.ps1" -OutputRoot "$v/P3/$($api.ToUpperInvariant())" -Filter 'ContactShadowRaymarchRenderTests;ContactShadowMipConfirmationTests;ContactShadowPyramidRenderTests;ContactShadowFeatureImportTests;ContactShadowVolumeTests;ContactShadowHistoryTests;ContactShadowCapabilityTests' -GraphicsApi $api -RecordRaymarchEvidence }`；Player 用 `& "$v/P3/tooling/Invoke-T3KernelPlayer.ps1"`，默认输出至本地新目录并清理临时工程/EXE。Vulkan、Metal 未实测。
+复现：在仓库根目录的 PowerShell 中，令 `$v=(Resolve-Path ./URPSample01/PLAN/*/10-ContactShadow/validation).Path; $out="./URPSample01/Logs/contact-shadow-replay/$([guid]::NewGuid())"`，运行 `foreach ($api in 'd3d11','d3d12') { & "$v/Invoke-ContactShadowTests.ps1" -OutputRoot "$out/P3/$($api.ToUpperInvariant())" -Filter 'ContactShadowRaymarchRenderTests;ContactShadowMipConfirmationTests;ContactShadowPyramidRenderTests;ContactShadowFeatureImportTests;ContactShadowVolumeTests;ContactShadowHistoryTests;ContactShadowCapabilityTests' -GraphicsApi $api -RecordRaymarchEvidence }`；Player 用 `& "$v/P3/tooling/Invoke-T3KernelPlayer.ps1"`，默认输出至本地新目录并清理临时工程/EXE。Vulkan、Metal 未实测。
 
 #### T4 灯组件发现 + 槽位/掩码
 
@@ -1075,7 +1075,7 @@ T8 ─> T9 文档/清理/归档
 |---|---|
 | 灯发现与槽位 | [D3D11 59/59](validation/T4/D3D11/EditMode.xml)、[D3D12 59/59](validation/T4/D3D12/EditMode.xml)，均无跳过（本轮新增 29 例，既有专项 30 例）。覆盖主光有/无、未标记或不在索引 0；0/1/23/24/25 盏、URP 平台附加灯上限、跨快照清零、Prefab 覆盖及非 Light 组件只警告一次。 |
 | 掩码与记录 | 三灯型编码 0/1/2；32 B 记录字段偏移 0/12/16/28。临时测试 kernel 用独立全局名上传完整 float 数组，GPU `asuint` 读回 bit 0…23、前导空位及溢出后的零，与预期逐项一致；不是 T5 的生产绑定验收。 |
-| [槽位图](validation/T4/D3D11/SlotMapping.png) | 来自 CPU 构建结果，不是材质渲染图。行按 visible 顺序（首行未标记、次行主光、末行溢出），白格从左至右表示 bit 0…23；首末行都无白格。[D3D12 图](validation/T4/D3D12/SlotMapping.png)与 D3D11 逐字节一致。 |
+| [槽位图](validation/T4/D3D11/SlotMapping.png) | 来自 CPU 构建结果，不是材质渲染图。行按 visible 顺序（首行未标记、次行主光、末行溢出），白格从左至右表示 bit 0…23；首末行都无白格。[D3D12 图](validation/T4/D3D11/SlotMapping.png)与 D3D11 逐字节一致。 |
 | 回归 | D3D11 [EditMode 184/184](validation/T4/Regression/Regression.xml)、[PlayMode 6/6](validation/T4/Regression/PlayMode.xml)。[非 Development Win64 构建](validation/T4/Player/BuildSummary.json) 0 error / 0 warning；同一 Player 的 T3 kernel 在 [D3D11](validation/T4/Player/Direct3D11/Probe.json) / [D3D12](validation/T4/Player/Direct3D12/Probe.json) 均读回 `FF000020`，零灯对照无非零像素。 |
 
 复现：沿用 T3 专项命令，将输出目录改为 `T4/<API>`，在 `-Filter` 追加 `;ContactShadowLightTests;ContactShadowSlotMappingTests`，并以 `-RecordSlotEvidence` 替换 `-RecordRaymarchEvidence`。
@@ -1104,7 +1104,7 @@ T8 ─> T9 文档/清理/归档
 
 | 测量 | 结果 |
 |---|---|
-| 三模式 × 三灯 | [D3D11 18/18](validation/P5/D3D11/Lighting.xml)、[D3D12 18/18](validation/P5/D3D12/Lighting.xml)。392 像素背光 ROI 内，隔离 Main / Point / Spot 分别有 **279 / 320 / 320** 像素暗化至少 2 个亮度码值；三灯一起 321。三条路径和两个 API 均一致。三模式差值：[Forward](validation/P5/D3D11/Direct3D11/Forward/Baseline-diff.png)、[Forward+](validation/P5/D3D11/Direct3D11/ForwardPlus/Baseline-diff.png)、[Deferred](validation/P5/D3D11/Direct3D11/Deferred/Baseline-diff.png)；双 API 的 9 对 off/on/diff PNG 分别字节相同。 |
+| 三模式 × 三灯 | [D3D11 18/18](validation/P5/D3D11/Lighting.xml)、[D3D12 18/18](validation/P5/D3D12/Lighting.xml)。392 像素背光 ROI 内，隔离 Main / Point / Spot 分别有 **279 / 320 / 320** 像素暗化至少 2 个亮度码值；三灯一起 321。三条路径和两个 API 均一致。三模式差值：[Forward](validation/P5/D3D11/Direct3D11/Forward/Baseline-diff.png)、[Forward+](validation/P5/D3D11/Direct3D11/Forward/Baseline-diff.png)、[Deferred](validation/P5/D3D11/Direct3D11/Deferred/Baseline-diff.png)；双 API 的 9 对 off/on/diff PNG 分别字节相同。 |
 | 阴性对照 | 朝光面、透明、Receive Off、BakedLit、自定义 shader ROI 的 A/B 变动像素均为 0；同一 Receive Off 面板改用接收材质后有 174 个像素暗化。D3D11 三张关闭图与[接入前哈希](validation/P5/PreIntegration.json)相等；两 API 各路径逐灯的 Feature 禁用与 Active→Volume 禁用整帧差为 0。 |
 | 聚类 Deferred | 单独启用 compute 关键字 `_CONTACT_SHADOWS_DEFERRED`，未装 Feature 的默认 kernel 不声明 contact 纹理；没有新增材质关键字。主光不需要 shadow map；[Asset 关](validation/P5/D3D11/Direct3D11/Deferred/D10-asset-off-point.json)、[当前点光 None 而聚光投影](validation/P5/D3D11/Direct3D11/Deferred/D10-point-none-spot-casts.json)整帧差为 0，同一聚光标记后仍能压暗。无既有核心 URP C# 修改；既有 shader 仅 `Shadows.hlsl` 与 `ClusteredDeferred.compute`。 |
 | 资源与编译 | [D3D11 86/86](validation/P5/D3D11/EditMode.xml)、[D3D12 86/86](validation/P5/D3D12/EditMode.xml)，无跳过。209/301 的 GPU draw 分别读回当前相机纹理/掩码与 1×1 全零中性状态；覆盖关闭及缺资源的重复帧。Lit 等使用实际 compiler 编译 D3D 及 GLES2/3（含 WebGL target）；不等同于 WebGL Player 实测。既有 [EditMode 184/184](validation/P5/Regression/Regression.xml)、[PlayMode 6/6](validation/P5/Regression/PlayMode.xml)。 |
@@ -1113,7 +1113,7 @@ T8 ─> T9 文档/清理/归档
 
 **上传格式修正（取代 §4.6/§4.8 的生产上传描述）**：T4 的 32 B 记录和 CPU 位模式均不变。T4 简单 kernel 的 `asuint` 读回不能证明动态聚类光照循环也保留非规格化浮点值。[隔离点光三组诊断](validation/P5/MaskEncodingControl.json)：用位模式 + 动态索引时 Forward 有 320 个暗像素，Forward+ / Deferred 为 0；固定槽 0 读同一数组或改用整数数值上传，三路径都通过。因此发布时将低 24 位掩码转换为**精确的 float 整数值**（不是把灯序号写成 float），shader 转回 `uint`；未标记项仍传 0，位 23 不丢精度。不改主光整数/packed RT 格式。
 
-复现：在仓库根目录 PowerShell 中，`$v='./URPSample01/PLAN/TODO/10-ContactShadow/validation'`；`foreach ($api in 'd3d11','d3d12') { & "$v/Invoke-ContactShadowLightingTests.ps1" -OutputRoot "$v/P5/$($api.ToUpperInvariant())" -GraphicsApi $api }`。既有回归用 `& "$v/Invoke-ContactShadowRegression.ps1" -OutputRoot "$v/P5/Regression"`。
+复现：在仓库根目录 PowerShell 中，`$v=(Resolve-Path ./URPSample01/PLAN/*/10-ContactShadow/validation).Path; $out="./URPSample01/Logs/contact-shadow-replay/$([guid]::NewGuid())"`；`foreach ($api in 'd3d11','d3d12') { & "$v/Invoke-ContactShadowLightingTests.ps1" -OutputRoot "$out/P5/$($api.ToUpperInvariant())" -GraphicsApi $api }`。既有回归用 `& "$v/Invoke-ContactShadowRegression.ps1" -OutputRoot "$out/P5/Regression"`。
 
 #### T6 Cleanup、UI、Debug、序列化检查
 

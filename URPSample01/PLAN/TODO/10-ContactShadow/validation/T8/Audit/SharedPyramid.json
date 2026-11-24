@@ -1,0 +1,20 @@
+{
+  "criterion": "AC-14",
+  "status": "PARTIAL",
+  "relativeTo": "validation",
+  "executions": {
+    "source": "T2/EditMode.xml",
+    "scope": "96x64 offscreen Camera.Render, non-XR Direct3D11",
+    "ContactOnly": {"pass203Executions": 1, "mip0Copies": 1},
+    "ContactSslGtao": {"pass203Executions": 1, "mip0Copies": 1},
+    "atlasForBothConfigurations": "T2/ContactOnlyDepthAtlas.png",
+    "observation": "Both readbacks: mip 0/1 center 0.18750003 and corner 0; combined histories reference the same atlas. Original capture names and byte identity are recorded in T8/Audit/PngArchive.json."
+  },
+  "coarseThenFine": {
+    "evidence": ["P3/D3D11/EditMode.xml", "P3/D3D12/EditMode.xml"],
+    "fixture": "ContactShadowMipConfirmationTests",
+    "passedPerApi": 5,
+    "observation": "Same-step mip 0 confirmation is required for a mip 1 candidate; a coarse-only hit or a fine-only hit without a candidate does not set a bit."
+  },
+  "notProven": ["Interactive Frame Debugger event list: batch editor reported locallySupported=False and eventCount=0 for both configurations.", "XR eye-by-eye execution cardinality: the rendered pyramid test explicitly disables allowXRRendering. CPU key isolation is not a stereo capture.", "Single execution in the two tested configurations is not a universal measurement for every camera/backend/frame."]
+}

@@ -1,0 +1,32 @@
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/SceneView",
+    "regions": [
+        {
+            "name": "behind",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 279,
+            "darkened": 279,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 9.783163070678711
+        },
+        {
+            "name": "whole",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 393,
+            "darkened": 393,
+            "brightened": 0,
+            "meanOffLuma": 29.44500732421875,
+            "meanOnLuma": 29.2291316986084
+        }
+    ]
+}
