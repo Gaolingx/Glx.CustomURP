@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.Universal.Tests
 
         GameObject m_Rig, m_Environment, m_Cube;
         Camera m_Camera;
+        Light m_PreviousSun;
         VolumeProfile m_Profile;
         RenderTexture m_Target, m_PreviousActive;
         RenderPipelineAsset m_PreviousQuality;
@@ -28,6 +29,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         [SetUp]
         public void SetUp()
         {
+            m_PreviousSun = RenderSettings.sun;
             m_PreviousActive = RenderTexture.active;
             m_PreviousQuality = QualitySettings.renderPipeline;
             m_PreviousAsyncCompilation = ShaderUtil.allowAsyncCompilation;
@@ -36,6 +38,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         [TearDown]
         public void TearDown()
         {
+            RenderSettings.sun = m_PreviousSun;
             QualitySettings.renderPipeline = m_PreviousQuality;
             ShaderUtil.allowAsyncCompilation = m_PreviousAsyncCompilation;
             RenderTexture.active = m_PreviousActive;
@@ -81,15 +84,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             using (var so = new SerializedObject(contact))
             {
                 ScreenSpaceContactShadowsEditor.AssignDefaults(so);
-                // T3 supplies the contact kernel; this placeholder is never dispatched.
-                var kernel = so.FindProperty("m_Resources.contactShadowsCompute");
-                if (!kernel.objectReferenceValue)
-                {
-                    kernel.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>(
-                        UniversalRenderPipelineAsset.packagePath + "/Shaders/Utils/ScreenSpaceCommon/BilateralUpsample.compute");
-                    Assert.IsNotNull(kernel.objectReferenceValue);
-                    so.ApplyModifiedPropertiesWithoutUndo();
-                }
+                Assert.IsNotNull(so.FindProperty("m_Resources.contactShadowsCompute").objectReferenceValue);
             }
             m_Pipeline = UniversalRenderPipelineAsset.Create(m_Renderer);
             m_Pipeline.msaaSampleCount = 1;
@@ -195,7 +190,9 @@ namespace UnityEditor.Rendering.Universal.Tests
             var volume = environment.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = m_Profile;
-            environment.AddComponent<Light>().type = LightType.Directional;
+            var sun = environment.AddComponent<Light>();
+            sun.type = LightType.Directional;
+            RenderSettings.sun = sun;
             environment.AddComponent<ContactShadowLight>();
 
             var cube = m_Cube = new GameObject("T2 Depth Target", typeof(MeshFilter), typeof(MeshRenderer)) { hideFlags = HideFlags.DontSave };

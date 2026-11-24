@@ -89,8 +89,7 @@ public class ContactShadowFeatureImportTests
                 new[] { typeof(SerializedObject) }, null).Invoke(null, new object[] { so });
             so.Update();
             CheckDefault<ComputeShader>(so, "depthPyramidCompute", "ScreenSpaceCommon/DepthPyramid.compute");
-            CheckDefault<ComputeShader>(so, "contactShadowsCompute", "ContactShadows/ContactShadows.compute",
-                "ScreenSpaceCommon/BilateralUpsample.compute");
+            CheckDefault<ComputeShader>(so, "contactShadowsCompute", "ContactShadows/ContactShadows.compute");
             CheckDefault<Shader>(so, "debugShader", "ContactShadows/ContactShadowDebug.shader", "Blit.shader");
             var mode = so.FindProperty("m_Settings.debugMode");
             int slotMode = Array.IndexOf(mode.enumNames, "Slot");

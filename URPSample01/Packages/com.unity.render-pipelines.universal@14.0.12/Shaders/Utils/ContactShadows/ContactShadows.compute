@@ -1,0 +1,129 @@
+#pragma kernel KContactShadow
+#pragma only_renderers d3d11 vulkan metal
+#pragma multi_compile _ SSL_XR_ARRAY
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+
+#ifdef SSL_XR_ARRAY
+Texture2DArray<float> _ContactShadowDepthPyramid;
+RWTexture2DArray<uint> _ContactShadowOutput;
+#define LOAD_DEPTH(p, eye) _ContactShadowDepthPyramid.Load(int4(p, eye, 0))
+#define OUTPUT(id) _ContactShadowOutput[id]
+#else
+Texture2D<float> _ContactShadowDepthPyramid;
+RWTexture2D<uint> _ContactShadowOutput;
+#define LOAD_DEPTH(p, eye) _ContactShadowDepthPyramid.Load(int3(p, 0))
+#define OUTPUT(id) _ContactShadowOutput[id.xy]
+#endif
+
+struct ContactLight
+{
+    float3 position;
+    uint type;
+    float3 direction;
+    uint mask;
+};
+StructuredBuffer<ContactLight> _ContactShadowLightBuffer;
+float4 _ContactShadowMip0, _ContactShadowMip1, _ContactShadowScreenSize;
+float4 _ContactShadowTraceParams, _ContactShadowDistanceParams;
+float4x4 _ContactShadowView[2], _ContactShadowViewProjection[2], _ContactShadowInvViewProjection[2], _ContactShadowProjection[2];
+float4 _ContactShadowCameraPosWS[2];
+uint _ContactShadowLightCount, _ContactShadowSampleCount, _ContactShadowFrameIndex, _ContactShadowTaaEnabled;
+
+float SampleDepth(float2 uv, bool coarse, uint eye)
+{
+    uint2 pixel = (uint2)(uv * _ContactShadowMip0.zw);
+    float4 rect = coarse ? _ContactShadowMip1 : _ContactShadowMip0;
+    pixel = min(coarse ? (pixel >> 1) : pixel, (uint2)rect.zw - 1u);
+    return LOAD_DEPTH((uint2)rect.xy + pixel, eye);
+}
+
+float3 ClipToUvZ(float4 clip)
+{
+    float3 ndc = clip.xyz / clip.w;
+#if UNITY_UV_STARTS_AT_TOP
+    ndc.y = -ndc.y;
+#endif
+    return float3(ndc.xy * 0.5 + 0.5, ndc.z);
+}
+
+bool Trace(float3 position, float3 direction, float lengthWS, uint3 id, out float fade)
+{
+    fade = 0;
+    uint eye = id.z;
+    float3 origin = position - (position - _ContactShadowCameraPosWS[eye].xyz) * (_ContactShadowTraceParams.z * 0.01);
+    float4 originCS = mul(_ContactShadowViewProjection[eye], float4(origin, 1));
+    float4 endCS = mul(_ContactShadowViewProjection[eye], float4(origin + direction * lengthWS, 1));
+    float4 orthoCS = originCS + mul(_ContactShadowProjection[eye], float4(0, 0, lengthWS, 0));
+    if (originCS.w <= 0 || endCS.w <= 0 || abs(orthoCS.w) < 1e-6)
+        return false;
+
+    float3 start = ClipToUvZ(originCS);
+    float3 delta = ClipToUvZ(endCS) - start;
+    float stepSize = rcp((float)_ContactShadowSampleCount);
+    float threshold = abs(orthoCS.z / orthoCS.w - start.z) * (_ContactShadowTraceParams.w * 10) * max(0.07, stepSize);
+    float t = stepSize * (0.5 + InterleavedGradientNoise(id.xy, (_ContactShadowFrameIndex % 8u) * _ContactShadowTaaEnabled));
+    bool coarse = true;
+    [loop] for (uint i = 0; i < _ContactShadowSampleCount; )
+    {
+        float3 samplePos = start + t * delta;
+        if (any(samplePos.xy < 0) || any(samplePos.xy >= 1))
+            break;
+        float diff = SampleDepth(samplePos.xy, coarse, eye) - samplePos.z;
+#if !UNITY_REVERSED_Z
+        diff = -diff;
+#endif
+        if (diff > 0 && diff < 2 * threshold && samplePos.z > 0 && samplePos.z <= 1)
+        {
+            if (coarse)
+            {
+                // Confirm this same t, then stay at full resolution for the rest of the ray.
+                coarse = false;
+                continue;
+            }
+            float2 vignette = max(6 * abs(2 * samplePos.xy - 1) - 5, 0);
+            fade = saturate(1 - dot(vignette, vignette));
+            return true;
+        }
+        ++i;
+        t += stepSize;
+    }
+    return false;
+}
+
+[numthreads(8, 8, 1)]
+void KContactShadow(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint2)_ContactShadowScreenSize.xy))
+        return;
+    float2 uv = (id.xy + 0.5) * _ContactShadowScreenSize.zw;
+    float depth = SampleDepth(uv, false, id.z);
+    uint mask = 0;
+    float fade = 0;
+    if (depth != UNITY_RAW_FAR_CLIP_VALUE && _ContactShadowTraceParams.x > 0)
+    {
+        float3 position = ComputeWorldSpacePosition(uv, depth, _ContactShadowInvViewProjection[id.z]);
+        float linearDepth = -mul(_ContactShadowView[id.z], float4(position, 1)).z;
+        float maxDistance = _ContactShadowDistanceParams.y;
+        float minDistance = min(_ContactShadowDistanceParams.x, maxDistance);
+        if (linearDepth >= minDistance && linearDepth <= maxDistance + 1)
+        {
+            float lengthWS = _ContactShadowTraceParams.x * max(0.5, linearDepth * _ContactShadowTraceParams.y);
+            [loop] for (uint i = 0; i < _ContactShadowLightCount; ++i)
+            {
+                ContactLight light = _ContactShadowLightBuffer[i];
+                float3 dir = light.type == 0 ? light.direction : SafeNormalize(light.position - position);
+                float hitFade;
+                if (Trace(position, dir, lengthWS, id, hitFade))
+                {
+                    mask |= light.mask;
+                    fade = max(fade, hitFade);
+                }
+            }
+            fade *= saturate((linearDepth - minDistance) / max(1e-6, min(_ContactShadowDistanceParams.z, maxDistance)));
+            fade *= saturate((maxDistance - linearDepth) / max(1e-6, min(_ContactShadowDistanceParams.w, maxDistance)));
+        }
+    }
+    OUTPUT(id) = (mask & 0x00ffffffu) | ((uint)(fade * 255) << 24);
+}

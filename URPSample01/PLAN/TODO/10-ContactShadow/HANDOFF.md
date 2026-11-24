@@ -1,6 +1,6 @@
 # 10-ContactShadow 交接：HDRP Contact Shadows 调研与 URP 包内 Renderer Feature 迁移计划
 
-> 状态：**T0、T1 已通过；T2 资源门禁通过，Frame Debugger 取证 PARTIAL；下一步 T3**（[T2 证据](#t2-evidence)）。已核验 [Feature Inspector](validation/T1/T1_FeatureInspector.png)、[Volume Inspector](validation/T1/T1_VolumeInspector.png) 和 [Light Inspector](validation/T1/T1_LightInspector.png)。T1：[菜单添加、移除与域重载 3/3](validation/T1/EditMode.xml)、[序列化引用](validation/T1/FeatureImport.json)、[既有 EditMode 184/184](validation/T1/Regression.xml)、[PlayMode 6/6](validation/T1/PlayMode.xml)。临时资产已删除；尚未接入 Compute。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
+> 状态：**T0、T1、T3 已通过；T2 资源门禁通过，Frame Debugger 取证 PARTIAL；下一步 T4**（[T2 证据](#t2-evidence)、[T3 单灯 GPU 验收](#t3-evidence)）。已核验 [Feature Inspector](validation/T1/T1_FeatureInspector.png)、[Volume Inspector](validation/T1/T1_VolumeInspector.png) 和 [Light Inspector](validation/T1/T1_LightInspector.png)。T1：[菜单添加、移除与域重载 3/3](validation/T1/EditMode.xml)、[序列化引用](validation/T1/FeatureImport.json)、[既有 EditMode 184/184](validation/T1/Regression.xml)、[PlayMode 6/6](validation/T1/PlayMode.xml)。临时资产已删除；尚未接入 Compute。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
 > 建立：2026-11-19
 > 基线：`cedd1bb`（Run SSR approximation at half resolution when enabled）
 > 结果入口：本文件；实施后追加 `report.md` 与 `validation/`
@@ -1033,6 +1033,19 @@ T8 ─> T9 文档/清理/归档
   - 单灯 dispatch 可被 Frame Debugger/计数器观察到。
 - **证据**：`validation/P3/` packed RT 的 mask/fade PNG + 指标 JSON（readback 或临时 debug blit）；**不产出三模式最终 A/B**（那属于 T5）。
 - **依赖**：T2。
+
+<a id="t3-evidence"></a>
+
+**T3 实测（2026-11-24）：通过。** pass 208 写每相机 packed RT，不写全局掩码、不改材质。临时输入为 URP 选出的方向性主光（bit 0，不要求 marker，显式关闭的 marker 仍跳过）；不是最终的逐灯分配或三路径光照接入。
+
+| 实测 | 结果 |
+|---|---|
+| 真实相机，256×192，离世界原点，主光 `shadows=None` | [D3D11](validation/P3/D3D11/Raymarch.json) / [D3D12](validation/P3/D3D12/Raymarch.json) 均为 7 次渲染、每次 1 个 contact dispatch。水平背光/朝光 ROI 为 392/0，垂直为 200/0；默认 bias 的纯平面 0 个遮挡，细边粗级误命中 0。见[水平 mask](validation/P3/D3D11/Horizontal10Mask.png)、[垂直 mask](validation/P3/D3D11/Vertical10Mask.png)。|
+| 步数与 fade | 4→10、10→64 步分别改变 1260、64 个 mask 像素；[屏幕中心→边缘](validation/P3/D3D11/Horizontal10Fade.png)命中像素的平均 fade 字节为 255→233.3→98.3，近端和远端 50% 距离坡均为 127。两 API 的 14 对 mask/fade PNG 逐字节相同。 |
+| mip 1 首采，mip 0 同一 t 确认 | 单独粗命中/单独细命中均读回 0；一条恰好一个步长宽的遮挡条，两级均命中时读回 `FF000007`（手工方向/点/聚光记录）。另测数组切片隔离；不是 XR 头显实测。专项 [D3D11 30/30](validation/P3/D3D11/EditMode.xml)、[D3D12 30/30](validation/P3/D3D12/EditMode.xml)，无跳过；[既有 EditMode 184/184](validation/P3/Regression/Regression.xml)、[PlayMode 6/6](validation/P3/Regression/PlayMode.xml)。 |
+| 非 Development Win64 Player | [一次构建](validation/P3/Player/BuildSummary.json)，同一 EXE 各以 [D3D11](validation/P3/Player/Direct3D11/Probe.json)、[D3D12](validation/P3/Player/Direct3D12/Probe.json) 运行。序列化引用实际 kernel，合成图集直接 dispatch：指定 bit 5 命中 `FF000020`，朝光/镜像/零灯对照为 0。Player 验证打包与执行，不替代上面的真实相机测试。 |
+
+复现：在仓库根目录的 PowerShell 中，令 `$v='./URPSample01/PLAN/TODO/10-ContactShadow/validation'`，运行 `foreach ($api in 'd3d11','d3d12') { & "$v/Invoke-ContactShadowTests.ps1" -OutputRoot "$v/P3/$($api.ToUpperInvariant())" -Filter 'ContactShadowRaymarchRenderTests;ContactShadowMipConfirmationTests;ContactShadowPyramidRenderTests;ContactShadowFeatureImportTests;ContactShadowVolumeTests;ContactShadowHistoryTests;ContactShadowCapabilityTests' -GraphicsApi $api -RecordRaymarchEvidence }`；Player 用 `& "$v/P3/tooling/Invoke-T3KernelPlayer.ps1"`，默认输出至本地新目录并清理临时工程/EXE。Vulkan、Metal 未实测。
 
 #### T4 灯组件发现 + 槽位/掩码
 

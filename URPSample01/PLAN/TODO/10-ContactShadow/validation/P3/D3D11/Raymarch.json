@@ -1,0 +1,19 @@
+{
+    "api": "Direct3D11",
+    "flippedReadback": false,
+    "dispatches": 7,
+    "behindX": 392,
+    "facingX": 0,
+    "behindY": 200,
+    "facingY": 0,
+    "coarseOnlyHits": 0,
+    "planeHits": 0,
+    "diff4To10": 1260,
+    "diff10To64": 64,
+    "diff4To64": 1324,
+    "centerFade": 255.0,
+    "innerEdgeFade": 233.3333282470703,
+    "outerEdgeFade": 98.33333587646485,
+    "nearHalfFade": 127.0,
+    "farHalfFade": 127.0
+}
