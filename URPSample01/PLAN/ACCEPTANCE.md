@@ -646,3 +646,9 @@ PY
 | T4 对冻结 C0 各 13/14 | FAIL | **ACCEPTED 参照漂移**；权威对照为匹配夹具 28/28 | 原 C0 与最终夹具输入不同，原 C0 无 Forward+ 图；不覆盖原图 |
 
 仍保留的回归门槛：0/8/48 灯冻结图 72/72、T12 双 API 85/85、T4 匹配夹具 28/28、expand 几何双 API 11/11、玩家 GPU 结构与变体预算、Forward+ 对父版回收 0.6093–0.6835 ms。测试侧 `ClusteredMatchesForwardPlusAcrossMaterialTypes` 的 `over8` 上限已改为 1674，其余断言不变。
+
+## 24. 10-ContactShadow（2026-11-24，已归档，带已知差异）
+
+[T8 验收与复现](Done/10-ContactShadow/report.md) · [已知差异](Done/10-ContactShadow/KnownDifferences.md)。Win64 Development/Release × D3D11/D3D12 四组 Player、共十二组三路径实际渲染验证通过；RTX 5060 Ti 的 1080p、4 灯/10 步 contact compute GPU p95 为 0.492–0.527 ms。
+
+AC-9 按共享最大 fade 的打包语义验收；AC-14 PARTIAL（计数取证，缺交互 Frame Debugger / XR）；AC-15 PARTIAL（旧测试 1280 与实际 compute 变体 2560 不符，两端各保留一次失败；D3D11 DRS 跳过）。其余 AC 通过，T10 未启动；归档未调整历史断言。

@@ -32,7 +32,7 @@ function Audit { python "$v/T8/Audit/audit.py" }
 | 13 无光追 | PASS | `T8/Audit/audit.py` 检查本轮包内新增源文件及既有文件的新增行；不以仓库其他功能（如 DDGI）的匹配判失败。 | `Audit` |
 | 14 共享深度 | PARTIAL | `T8/Audit/SharedPyramid.json`：D3D11 非 XR 96×64，Contact-only 和 Contact+SSL+GTAO 各一次 pass 203、一次 mip0 copy；双 API 粗命中须同一步 mip0 确认。Frame Debugger 不支持、事件数 0；未逐眼测 XR。 | `EditTest ContactShadowPyramidRenderTests; EditTest ContactShadowMipConfirmationTests d3d12; Audit` |
 | 15 回归与性能 | PARTIAL | P0 fixture 子集 `T8/Regression/EditMode.xml` 184/184、PlayMode 6/6；`T12.json` 三模式通过。它们不能替代被保留的旧 shader 测试；1280 与 2560 的分歧、配置矩阵、构建与性能见下。 | `python "$v/T8/Regression/replay.py" --stage regression; python "$v/T8/Regression/replay.py" --stage shader; python "$v/T8/Regression/replay.py" --stage performance` |
-| 16 证据与收尾 | PARTIAL | 归档预算与别名可独立核验：29 个唯一 PNG、249272 字节，历史路径按哈希解析；本轮新增 RDC 为零，不是全库为零。最终移动、ACCEPTANCE 同步及提交状态不由本报告代签。 | `Audit; git status --short; git ls-files '*.rdc'; git ls-files -ci --exclude-standard -- '*.rdc'` |
+| 16 证据与收尾 | PASS | 已移至 Done，与[总验收 §24](../../ACCEPTANCE.md)及[已知差异](KnownDifferences.md)同步。29 个唯一 PNG、249272 字节，历史路径按哈希解析；本轮新增 RDC 为零，不是全库为零。 | `Audit; git status --short; git ls-files '*.rdc'; git ls-files -ci --exclude-standard -- '*.rdc'` |
 
 ## 矩阵配置与 Player
 
