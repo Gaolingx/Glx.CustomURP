@@ -1,0 +1,15 @@
+#pragma max_recursion_depth 1
+RaytracingAccelerationStructure _Scene;
+RWStructuredBuffer<float4> _Result;
+float4 _Origin, _Direction;
+int _Mask, _Flags;
+struct Hit { float t; uint id; uint kind; };
+[shader("raygeneration")]
+void T2Ray() {
+ RayDesc ray; ray.Origin = _Origin.xyz; ray.Direction = _Direction.xyz; ray.TMin = 0.002; ray.TMax = 50;
+ Hit h = (Hit)0;
+ TraceRay(_Scene, _Flags, _Mask, 0, 1, 0, ray, h);
+ _Result[0] = float4(h.t, h.id, h.kind, 1);
+}
+[shader("miss")]
+void T2Miss(inout Hit h : SV_RayPayload) { h.t = -1; h.id = 0; h.kind = 0; }

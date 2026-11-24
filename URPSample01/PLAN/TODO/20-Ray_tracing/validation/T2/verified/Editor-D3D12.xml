@@ -1,0 +1,71 @@
+<tests api="12" exitCode="0" settingsRestored="True">
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.ActualEditorDeviceAndCameraDecisionWithoutClaimingShaderReadiness" result="Passed">
+    <output>Editor NVIDIA GeForce RTX 5060 Ti: Direct3D12, Win64 target=True, RT=True, compute=True, UAV=True, decision=MissingShaderOrPass
+original gate=MissingShaderOrPass, liveRTAS=0
+injected shader readiness only; native RTAS live=1, after unsubscribe=0
+</output>
+  </case>
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;Off&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;Quality&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;Target&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;Backend&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;RayTracingUnsupported&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;ComputeUnsupported&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;FormatUnsupported&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;CameraUnsupported&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;XrUnsupported&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;MissingShaderOrPass&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.ReplacementFailureCannotRetainPreviousResource(True)" result="Passed">
+    <output>RT scene allocation failed: injected failure
+</output>
+  </case>
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.ReplacementFailureCannotRetainPreviousResource(False)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.RequestsShareAcrossCameraEvaluationsAndReleaseOnLastSubscriber" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.SceneCloseFilterChangeAndOwnerDisposalReleaseExactlyOnce" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests.ManualSceneKnownVectors" result="Passed">
+    <output>api=Direct3D12 GPU=NVIDIA GeForce RTX 5060 Ti supportsRT=True
+opt-in off: zero builds/resources
+pass=1 queue=2000 alpha=True opaque=Enabled, ClosestHitOnly cut=Enabled
+frame=5 revision=1 build=1 instances=2 disabledSubmeshes=1
+rev=1 origin=(20,0,0) dz=1 mask=128 flags=0 expected=(4,71,254) gpu=(4,71,254)
+frame=5 revision=1 build=1 instances=2 disabledSubmeshes=1
+rev=1 origin=(20,0,0) dz=1 mask=128 flags=0 expected=(4,71,254) gpu=(4,71,254)
+frame=5 revision=1 build=1 instances=2 disabledSubmeshes=1
+rev=1 origin=(20,0,0) dz=1 mask=128 flags=0 expected=(4,71,254) gpu=(4,71,254)
+rev=1 origin=(20,0,8) dz=-1 mask=128 flags=0 expected=(4,71,255) gpu=(4,71,255)
+rev=1 origin=(20,0,0) dz=1 mask=128 flags=16 expected=(4,71,254) gpu=(4,71,254)
+rev=1 origin=(20,0,8) dz=-1 mask=128 flags=16 expected=(-1,0,0) gpu=(-1,0,0)
+frame=5 revision=2 build=2 instances=2 disabledSubmeshes=1
+rev=2 origin=(20,0,0) dz=1 mask=128 flags=0 expected=(4,71,254) gpu=(4,71,254)
+rev=2 origin=(20,0,8) dz=-1 mask=128 flags=0 expected=(4,71,255) gpu=(4,71,255)
+rev=2 origin=(20,0,0) dz=1 mask=128 flags=16 expected=(4,71,254) gpu=(4,71,254)
+rev=2 origin=(20,0,8) dz=-1 mask=128 flags=16 expected=(4,71,255) gpu=(4,71,255)
+rev=2 origin=(30,0,4) dz=1 mask=1 flags=0 expected=(0.5,92,255) gpu=(0.5,92,255)
+rev=2 origin=(30,0,4) dz=1 mask=1 flags=16 expected=(-1,0,0) gpu=(-1,0,0)
+rev=2 origin=(20,0,0) dz=1 mask=1 flags=0 expected=(-1,0,0) gpu=(-1,0,0)
+rev=2 origin=(23,0,0) dz=1 mask=128 flags=0 expected=(-1,0,0) gpu=(-1,0,0)
+frame=5 revision=3 build=2 instances=2 disabledSubmeshes=1
+frame=5 revision=4 build=3 instances=2 disabledSubmeshes=1
+frame=5 revision=4 build=3 instances=2 disabledSubmeshes=1
+rev=4 origin=(20,0,0) dz=1 mask=128 flags=0 expected=(5,71,254) gpu=(5,71,254)
+frame=5 revision=5 build=4 instances=2 disabledSubmeshes=1
+rev=5 origin=(20,0,0) dz=1 mask=128 flags=0 expected=(-1,0,0) gpu=(-1,0,0)
+rev=5 origin=(20,0,0) dz=1 mask=2 flags=0 expected=(5,71,254) gpu=(5,71,254)
+frame=5 revision=6 build=5 instances=2 disabledSubmeshes=1
+rev=6 origin=(20,0,0) dz=1 mask=2 flags=0 expected=(-1,0,0) gpu=(-1,0,0)
+rev=6 origin=(23,0,0) dz=1 mask=2 flags=0 expected=(5,71,254) gpu=(5,71,254)
+frame=5 revision=7 build=6 instances=1 disabledSubmeshes=0
+rev=7 origin=(23,0,0) dz=1 mask=2 flags=0 expected=(-1,0,0) gpu=(-1,0,0)
+frame=5 revision=8 build=7 instances=2 disabledSubmeshes=1
+rev=8 origin=(23,0,0) dz=1 mask=2 flags=0 expected=(5,71,254) gpu=(5,71,254)
+frame=5 revision=9 build=8 instances=1 disabledSubmeshes=1
+rev=9 origin=(30,0,4) dz=1 mask=1 flags=0 expected=(-1,0,0) gpu=(-1,0,0)
+frame=5 revision=10 build=9 instances=0 disabledSubmeshes=0
+rev=10 origin=(23,0,0) dz=1 mask=2 flags=0 expected=(-1,0,0) gpu=(-1,0,0)
+frame=5 revision=11 build=10 instances=1 disabledSubmeshes=0
+rev=11 origin=(30,0,5) dz=1 mask=1 flags=0 expected=(0.5,92,255) gpu=(0.5,92,255)
+frame=5 revision=12 build=11 instances=0 disabledSubmeshes=0
+rev=12 origin=(30,0,5) dz=1 mask=1 flags=0 expected=(-1,0,0) gpu=(-1,0,0)
+</output>
+  </case>
+</tests>

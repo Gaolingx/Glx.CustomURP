@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.Universal.Tests
                 service.SetRequests(RayTracingRequests.GI);
                 Assert.AreEqual(RayTracingDecision.Accepted, service.Prepare(Eligible, scene, 0, -1));
                 for (int i = 0; i != 2; ++i)
-                    Assert.AreEqual(RayTracingDecision.AllocationFailed, service.Prepare(Eligible, scene, 1, -1));
+                    Assert.AreEqual(RayTracingDecision.AllocationFailed, service.Prepare(Eligible, scene, 1, int.MinValue));
                 Assert.AreEqual(1, first.releases);
                 Assert.AreEqual(0, service.liveResources);
                 Assert.AreEqual(2, attempts);

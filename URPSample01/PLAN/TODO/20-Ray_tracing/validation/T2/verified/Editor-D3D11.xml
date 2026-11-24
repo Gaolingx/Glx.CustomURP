@@ -1,0 +1,30 @@
+<tests api="11" exitCode="0" settingsRestored="True">
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.ActualEditorDeviceAndCameraDecisionWithoutClaimingShaderReadiness" result="Passed">
+    <output>Editor NVIDIA GeForce RTX 5060 Ti: Direct3D11, Win64 target=True, RT=False, compute=True, UAV=True, decision=Backend
+original gate=Backend, liveRTAS=0
+</output>
+  </case>
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;Off&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;Quality&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;Target&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;Backend&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;RayTracingUnsupported&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;ComputeUnsupported&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;FormatUnsupported&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;CameraUnsupported&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;XrUnsupported&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;MissingShaderOrPass&quot;)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.ReplacementFailureCannotRetainPreviousResource(True)" result="Passed">
+    <output>RT scene allocation failed: injected failure
+</output>
+  </case>
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.ReplacementFailureCannotRetainPreviousResource(False)" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.RequestsShareAcrossCameraEvaluationsAndReleaseOnLastSubscriber" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.SceneCloseFilterChangeAndOwnerDisposalReleaseExactlyOnce" result="Passed" />
+  <case name="UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests.ManualSceneKnownVectors" result="Passed">
+    <output>api=Direct3D11 GPU=NVIDIA GeForce RTX 5060 Ti supportsRT=False
+opt-in off: zero builds/resources
+D3D11 denied, zero builds/resources
+</output>
+  </case>
+</tests>

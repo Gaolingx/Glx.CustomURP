@@ -53,8 +53,56 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // Only this return value applies to this camera invocation. An allocated RTAS is not a
-        // built or dispatchable TLAS. T1 has no build/publication state or shader-visible handles.
+        // Prepare alone never publishes a built structure. T2 is opt-in via TryBuild below.
+        RayTracingSceneInstances m_Instances;
+        internal int instanceCount => m_Instances?.count ?? 0;
+        internal int disabledSubmeshes => m_Instances?.disabledSubmeshes ?? 0;
+        bool m_Built;
+        int m_BuiltRevision;
+        internal int buildCount { get; private set; }
+
+        // The owner maintains a complete explicit registration set and advances revision for
+        // geometry/membership/filter changes, not camera or lighting changes. No scene searches.
+        internal bool TryBuild(in CameraData camera, bool enabled, bool highQuality, RayTracingShader shader,
+            Material hitMaterial, int revision, int layers, RayTracingRequests demand,
+            System.Collections.Generic.IReadOnlyList<RayTracingMember> members, out RayTracingAccelerationStructure snapshot)
+        {
+            snapshot = null;
+            if (Prepare(camera, enabled, highQuality, shader, hitMaterial, revision, layers, demand) != RayTracingDecision.Accepted)
+                return false;
+            var native = (RayTracingAccelerationStructure)m_Resource;
+            try
+            {
+                if (!m_Built || revision != m_BuiltRevision)
+                {
+                    if (m_Instances == null) m_Instances = new RayTracingSceneInstances();
+                    if (m_Instances.Sync(native, m_Scene, layers, members) || !m_Built)
+                    {
+                        var cmd = CommandBufferPool.Get("T2 Build scene RTAS");
+                        try
+                        {
+                            cmd.BuildRayTracingAccelerationStructure(native);
+                            Graphics.ExecuteCommandBuffer(cmd);
+                            ++buildCount;
+                        }
+                        finally { CommandBufferPool.Release(cmd); }
+                    }
+                    m_Built = true;
+                    m_BuiltRevision = revision;
+                }
+                snapshot = native;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                var scene = m_Scene;
+                Release();
+                m_Scene = scene;
+                m_AllocationFailed = true;
+                Debug.LogWarning($"RT scene build failed: {ex.Message}");
+                return false;
+            }
+        }
         internal RayTracingDecision Prepare(in CameraData camera, bool enabled, bool highQuality,
             RayTracingShader shader, Material hitMaterial, int revision, int layers, RayTracingRequests cameraRequests)
         {
@@ -77,9 +125,10 @@ namespace UnityEngine.Rendering.Universal
             if (!scene.IsValid() || !scene.isLoaded || (m_Resource != null && scene != m_Scene))
                 return RayTracingDecision.IncompatibleScene;
             // World origin is fixed at zero in v1. Never lend a stale revision/filter to a caller.
-            if (scene == m_Scene && revision == m_Revision && layers == m_LayerMask)
+            if (scene == m_Scene && layers == m_LayerMask)
             {
-                if (m_AllocationFailed) return RayTracingDecision.AllocationFailed;
+                if (m_AllocationFailed && revision == m_Revision) return RayTracingDecision.AllocationFailed;
+                m_Revision = revision;
                 if (m_Resource != null) return RayTracingDecision.Accepted;
             }
             Release();
@@ -107,6 +156,8 @@ namespace UnityEngine.Rendering.Universal
         {
             var resource = m_Resource;
             m_Resource = null;
+            m_Built = false;
+            m_Instances = null;
             m_Scene = default;
             m_AllocationFailed = false;
             resource?.Dispose();

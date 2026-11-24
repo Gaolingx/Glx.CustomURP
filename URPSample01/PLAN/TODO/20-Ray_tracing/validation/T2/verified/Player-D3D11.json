@@ -1,0 +1,23 @@
+{
+  "guid": "b7f96181ece14c6b905fe5c8733337b5",
+  "api": "Direct3D11",
+  "development": true,
+  "passed": true,
+  "vectors": [
+    "api=Direct3D11 GPU=NVIDIA GeForce RTX 5060 Ti supportsRT=False",
+    "opt-in off: zero builds/resources",
+    "D3D11 denied, zero builds/resources"
+  ],
+  "exitCode": 0,
+  "base": "f916303",
+  "inputs": {
+    "T2KeepFixture.cs": "086e91beaf87bf1f429f86ba05323e652525137f913a58f493906f4403b0a0b7",
+    "RayTracingSceneGate.cs": "3a13cdbd4802e52fe56308591aedff7909f5922ba061ceded93dda30661433bb",
+    "RayTracingSceneInstances.cs": "9bfc32583f683548c5eca2cf1660616eff413a07f2d3836ea22966ac12a67962",
+    "RayTracingSceneResources.cs": "ed2cf25ea84dd7159c5379392a40994914470f3b6374ccf548cd98e1567507a5",
+    "T2Player.cs": "c4c1b7673e47b1d787f3b23a77bd38ba256b573f61191f1310a682af2ee984ad",
+    "T2VectorSuite.cs": "ac888d3cdc0c95e1c4c8ac6a72ad8d065558a07bd0c533e763bc995ed80d56a0",
+    "T2Fixture.raytrace": "1ccd0bb159839322b7341d0b4d612f6d11c02792b621a5e5681dce944bfcf5d8",
+    "T2Fixture.shader": "ac4cd7fccace94262ab3614e34e5192646a03caa48234a731ae41585f1adc0f5"
+  }
+}

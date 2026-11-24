@@ -1,0 +1,24 @@
+{
+  "stage": "W2/T2: verified for explicit static/rigid registration and build scheduling on this host",
+  "base": "f916303",
+  "host": "Unity 2022.3.62f1, embedded URP 14.0.12, Windows x64, NVIDIA GeForce RTX 5060 Ti",
+  "controls": {
+    "Editor": "16/16 EditMode cases on each forced API: 15 W1 T1 cases plus one T2 vector suite. W1 replacement-allocation failure now changes the layer filter: a revision-only change must no longer replace the RTAS. W1 runner unchanged.",
+    "Player": "One isolated Win64 Development build, two processes, Direct3D11 and Direct3D12. Both validate opt-in off. D3D11 also rejects opt-in on with zero builds/resources. D3D12 runs the shared vector suite with the actual W1 device/camera/material gate, not injected readiness.",
+    "geometry": "25 D3D12 dispatch/readbacks per environment. Distances are CPU analytic constants: triangle plane t=(zPlane-zOrigin)/dz or cube exit at half extent. B0 absolute tolerance 0.001 m; all observed distances, IDs and HitKind exactly match, including misses. Same tuples across Editor/Player.",
+    "winding": "Triangle (-1,-1,0),(0,1,0),(1,-1,0), translated to (20,0,4). frontTriangleCounterClockwise=false. With instance triangle culling enabled, ray flags 0 hit either side (254 front, 255 back); flags 16 reject back only. With instance culling disabled, flags 16 still hit back. On the same culling-enabled box, a no-cull probe ray gets the 0.5 m inside/back hit; a reflection ray with flags 16 misses.",
+    "schedule": "One persistent RTAS, 12 revisions / 11 Build submissions, down to zero instances; camera in/out of frustum and GI/reflection demand share the same state. Light-only revision submits no Build. Tests cover mixed material slots, disable/re-enable, high layer and high mask bit, stable IDs on movement/mask/slot changes, unregister and destruction. W1 covers scene close and owner release.",
+    "settings": "All top-level main ProjectSettings files hash-equal before/after both Editor runs; isolated build generates its own settings. Raw Unity logs remain local, not review artifacts."
+  },
+  "rerun": [
+    "From this directory on Windows, with the main project closed: python -B run.py --out E:/tmp/T2-new-results",
+    "Set T2_SCRATCH_PARENT to an existing directory with space, then: python -B run.py --player --out E:/tmp/T2-new-results",
+    "UNITY_EDITOR optionally overrides the default 2022.3.62f1 executable. Player starts from git archive f916303, overlays only the RT scene runtime and T2 fixture; it does not copy R1 or main Assets/ProjectSettings. Compare verified/Editor-*.xml, Restoration-*.json and Player-*.json."
+  ],
+  "limits": [
+    "Explicit owner API: caller provides a complete authoritative member list, stable unique 24-bit IDs and a revision for membership, material slots, layer/mask or transform edits. No global enumeration or automatic LOD/scene discovery. Dirty revisions reconcile the registered subset, not a per-camera full-scene scan. Single scene/fixed origin; a changed layer-filter configuration replaces the resource.",
+    "Only MeshRenderer + MeshFilter triangle submeshes in Static/DynamicTransform mode; no skinned/dynamic geometry, in-place topology deformation or blended transparency. Cutout registration/flags are tested; texture alpha discard, AHS invocation counts, production material shading and light tables are not.",
+    "Test-only closest hit reports distance/ID/kind, not the production ABI. Initial scratch Player build stripped the named hit pass to zero variants after scriptable stripping. T2KeepFixture.cs retains only the debug shader's named pass in the isolated build. No production stripping settings, packages or Player release behavior are certified by this fixture.",
+    "Build counters are CPU command-buffer submissions, not BLAS/refit or GPU performance measurements. The vector suite advances revisions synchronously within a frame, using blocking readback for correctness only. No rendered production camera, GI/SSR output, T3, consoles or release claim. Production path remains unhooked."
+  ]
+}
