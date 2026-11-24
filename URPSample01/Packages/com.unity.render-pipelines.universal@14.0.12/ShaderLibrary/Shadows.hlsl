@@ -6,6 +6,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
 #include "Core.hlsl"
 #include "Shadows.deprecated.hlsl"
+#if defined(SHADER_STAGE_FRAGMENT) && !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_RECEIVE_SHADOWS_OFF)
+#include "ContactShadows.hlsl"
+#endif
 
 #define MAX_SHADOW_CASCADES 4
 
@@ -437,7 +440,11 @@ half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, ha
     half shadowFade = half(1.0);
 #endif
 
-    return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
+    half shadow = MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
+#ifdef URP_CONTACT_SHADOWS_SUPPORTED
+    shadow = min(shadow, GetContactShadowAttenuation(positionWS, _MainLightContactShadowMask));
+#endif
+    return shadow;
 }
 
 half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels)
@@ -456,7 +463,11 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
     half shadowFade = half(1.0);
 #endif
 
-    return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
+    half shadow = MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
+#ifdef URP_CONTACT_SHADOWS_SUPPORTED
+    shadow = min(shadow, GetContactShadowAttenuation(positionWS, GetAdditionalLightContactShadowMask(lightIndex)));
+#endif
+    return shadow;
 }
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput)

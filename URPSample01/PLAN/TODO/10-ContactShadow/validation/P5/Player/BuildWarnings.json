@@ -1,0 +1,16 @@
+{
+  "buildGuid": "3c19fa4dfe3648c4ad1f720681cc7753",
+  "shaderErrors": 0,
+  "shaderWarnings": [
+    {
+      "shader": "ClusteredDeferred",
+      "diagnostic": "use of potentially uninitialized variable (CdMixRealtimeAndBakedShadows)",
+      "count": 2560
+    },
+    {
+      "shader": "ClusterBuilder",
+      "diagnostic": "use of potentially uninitialized variable (CdItemMinMaxZ)",
+      "count": 3
+    }
+  ]
+}

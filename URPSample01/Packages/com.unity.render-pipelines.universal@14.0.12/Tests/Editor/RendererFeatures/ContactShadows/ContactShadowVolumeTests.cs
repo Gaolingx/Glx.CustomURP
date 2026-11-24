@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
-        public void DisabledStackDoesNotEnqueueAndMissingComputeWarnsOnce()
+        public void DisabledStackDoesNotEnqueueOrOverwriteGlobals()
         {
             var manager = VolumeManager.instance;
             var original = manager.stack;
@@ -57,20 +57,11 @@ namespace UnityEditor.Rendering.Universal.Tests
             try
             {
                 manager.stack = stack;
-                var volume = stack.GetComponent<ContactShadowsVolume>();
                 var rendering = default(RenderingData);
                 Shader.SetGlobalFloat(id, 0.375f);
                 feature.AddRenderPasses(null, ref rendering);
                 Assert.AreEqual(0.375f, Shader.GetGlobalFloat(id));
                 LogAssert.NoUnexpectedReceived();
-                if (ScreenSpaceContactShadowsCapability.SupportsApi(SystemInfo.graphicsDeviceType))
-                {
-                    volume.enabled.value = true;
-                    LogAssert.Expect(LogType.Warning, "Screen Space Contact Shadows requires both a depth pyramid compute shader and a contact shadows compute shader.");
-                    feature.AddRenderPasses(null, ref rendering);
-                    feature.AddRenderPasses(null, ref rendering);
-                    LogAssert.NoUnexpectedReceived();
-                }
             }
             finally
             {

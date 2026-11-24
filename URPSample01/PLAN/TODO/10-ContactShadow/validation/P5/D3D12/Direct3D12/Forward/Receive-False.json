@@ -1,0 +1,20 @@
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Receive-False",
+    "regions": [
+        {
+            "name": "receiver-under-its-own-blocker",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.94468688964844,
+            "meanOnLuma": 35.94468688964844
+        }
+    ]
+}

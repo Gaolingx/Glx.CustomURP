@@ -1,0 +1,3 @@
+Base: cfbb3d4 (pre-feature); tracked files present at baseline, modified through T5
+URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/Shadows.hlsl
+URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ClusteredDeferred.compute

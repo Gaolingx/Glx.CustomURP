@@ -174,6 +174,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             var env = Child("Volume and main light");
             m_Sun = env.AddComponent<Light>();
             m_Sun.type = LightType.Directional;
+            env.AddComponent<ContactShadowLight>();
             m_Sun.shadows = LightShadows.None;
             RenderSettings.sun = m_Sun;
             m_Profile = ScriptableObject.CreateInstance<VolumeProfile>();

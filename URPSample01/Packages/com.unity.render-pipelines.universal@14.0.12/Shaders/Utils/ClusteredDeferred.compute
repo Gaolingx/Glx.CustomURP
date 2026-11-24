@@ -17,10 +17,27 @@
 #pragma multi_compile _ _LIGHT_LAYERS
 #pragma multi_compile _ _SCREEN_SPACE_OCCLUSION
 #pragma multi_compile _ _DEFERRED_MIXED_LIGHTING
+// Cameras without the feature never bind a contact texture. The off kernel must not declare it.
+#pragma multi_compile _ _CONTACT_SHADOWS_DEFERRED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ClusteredDeferred.hlsl"
+#if defined(_CONTACT_SHADOWS_DEFERRED)
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ContactShadows.hlsl"
+#endif
 
 RWTexture2D<float4> _CdLightingTextureRW;
+
+half CdAdditionalShadowAtPixel(uint2 pixel, uint lightIndex, float3 positionWS, half3 direction, half4 shadowMask)
+{
+    half shadow = CdAdditionalLightShadow(lightIndex, positionWS, direction, shadowMask, _AdditionalLightsOcclusionProbes[lightIndex]);
+#if defined(URP_CONTACT_SHADOWS_SUPPORTED) && defined(CD_ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+    // A shadow-casting neighbour can enable the variant; check this light's atlas slice and strength.
+    half4 params = CdGetAdditionalLightShadowParams(lightIndex);
+    if (params.w >= 0.0h && params.x > 0.0h)
+        shadow = min(shadow, GetContactShadowAtPixel(pixel, GetAdditionalLightContactShadowMask(lightIndex)));
+#endif
+    return shadow;
+}
 
 float4 CdDeferredLighting(uint2 pixel, uint materialType, float rawDepth)
 {
@@ -61,6 +78,9 @@ float4 CdDeferredLighting(uint2 pixel, uint materialType, float rawDepth)
         {
             float4 shadowCoord = CdTransformWorldToShadowCoord(positionWS, uv);
             mainLight.shadowAttenuation = CdMainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
+#ifdef URP_CONTACT_SHADOWS_SUPPORTED
+            mainLight.shadowAttenuation = min(mainLight.shadowAttenuation, GetContactShadowAtPixel(pixel, _MainLightContactShadowMask));
+#endif
         }
         color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, mainLight, inputData);
     }
@@ -80,7 +100,7 @@ float4 CdDeferredLighting(uint2 pixel, uint materialType, float rawDepth)
             continue;
 
         if (!receiveShadowsOff)
-            light.shadowAttenuation = CdAdditionalLightShadow(directionalIndex, positionWS, light.direction, shadowMask, _AdditionalLightsOcclusionProbes[directionalIndex]);
+            light.shadowAttenuation = CdAdditionalShadowAtPixel(pixel, directionalIndex, positionWS, light.direction, shadowMask);
         color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, light, inputData);
     }
 
@@ -101,7 +121,7 @@ float4 CdDeferredLighting(uint2 pixel, uint materialType, float rawDepth)
             continue;
 
         if (!receiveShadowsOff)
-            light.shadowAttenuation = CdAdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, _AdditionalLightsOcclusionProbes[lightIndex]);
+            light.shadowAttenuation = CdAdditionalShadowAtPixel(pixel, lightIndex, positionWS, light.direction, shadowMask);
         color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, light, inputData);
     }
 

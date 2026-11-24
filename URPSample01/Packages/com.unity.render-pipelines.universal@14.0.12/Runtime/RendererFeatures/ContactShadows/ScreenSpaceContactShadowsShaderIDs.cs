@@ -2,6 +2,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal static class ScreenSpaceContactShadowsShaderIDs
     {
+        internal const string deferredKeyword = "_CONTACT_SHADOWS_DEFERRED";
         internal static readonly int texture = Shader.PropertyToID("_ContactShadowTexture");
         internal static readonly int output = Shader.PropertyToID("_ContactShadowOutput");
         internal static readonly int depthPyramid = Shader.PropertyToID("_ContactShadowDepthPyramid");

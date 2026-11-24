@@ -26,20 +26,23 @@ namespace UnityEngine.Rendering.Universal
         internal bool EnsurePackedTexture()
         {
             var pyramid = depthPyramidSource;
-            if (pyramid == null || !pyramid.ready || pyramid.mipCount < 2)
+            if (pyramid == null || !pyramid.ready || pyramid.texture.rt == null || !pyramid.texture.rt.IsCreated() || pyramid.mipCount < 2)
             {
                 ReleasePackedTexture();
                 return false;
             }
-            if (packedTexture != null && packedTexture.rt.dimension == pyramid.dimension &&
-                packedTexture.rt.volumeDepth == pyramid.viewCount)
+            if (packedTexture?.rt != null && packedTexture.rt.IsCreated() &&
+                packedTexture.rt.dimension == pyramid.dimension && packedTexture.rt.volumeDepth == pyramid.viewCount)
                 return true;
 
             ReleasePackedTexture();
             packedTexture = RTHandles.Alloc(m_Width, m_Height, slices: pyramid.viewCount,
                 colorFormat: GraphicsFormat.R32_UInt, filterMode: FilterMode.Point,
                 dimension: pyramid.dimension, enableRandomWrite: true, name: "_ContactShadowTexture");
-            return true;
+            if (packedTexture?.rt != null && packedTexture.rt.IsCreated())
+                return true;
+            ReleasePackedTexture();
+            return false;
         }
 
         void ReleasePackedTexture()

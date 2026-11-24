@@ -1,0 +1,54 @@
+{
+  "commit": "bf45c0f",
+  "api": "Direct3D11",
+  "controls": {
+    "Deferred": {
+      "offSha256": "74c97098a27a997f62e7d2ed3af5a329afb1b36a75c9f6d27ab859dc9b1427f5",
+      "onSha256": "74c97098a27a997f62e7d2ed3af5a329afb1b36a75c9f6d27ab859dc9b1427f5",
+      "contactROI": {
+        "name": "ground-behind-blocker",
+        "x": 115,
+        "y": 123,
+        "width": 28,
+        "height": 14,
+        "changedRGBA": 0,
+        "darkened": 0,
+        "brightened": 0,
+        "meanOffLuma": 57.77806091308594,
+        "meanOnLuma": 57.77806091308594
+      }
+    },
+    "Forward": {
+      "offSha256": "5e9a3d7b0b7bdb5738a26e6ad8db6071467ba93d59397730cbcdba3998907542",
+      "onSha256": "5e9a3d7b0b7bdb5738a26e6ad8db6071467ba93d59397730cbcdba3998907542",
+      "contactROI": {
+        "name": "ground-behind-blocker",
+        "x": 115,
+        "y": 123,
+        "width": 28,
+        "height": 14,
+        "changedRGBA": 0,
+        "darkened": 0,
+        "brightened": 0,
+        "meanOffLuma": 57.3979606628418,
+        "meanOnLuma": 57.3979606628418
+      }
+    },
+    "ForwardPlus": {
+      "offSha256": "5e9a3d7b0b7bdb5738a26e6ad8db6071467ba93d59397730cbcdba3998907542",
+      "onSha256": "5e9a3d7b0b7bdb5738a26e6ad8db6071467ba93d59397730cbcdba3998907542",
+      "contactROI": {
+        "name": "ground-behind-blocker",
+        "x": 115,
+        "y": 123,
+        "width": 28,
+        "height": 14,
+        "changedRGBA": 0,
+        "darkened": 0,
+        "brightened": 0,
+        "meanOffLuma": 57.3979606628418,
+        "meanOnLuma": 57.3979606628418
+      }
+    }
+  }
+}

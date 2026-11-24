@@ -6,7 +6,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ScreenSpaceContactShadowsSettings m_Settings = new ScreenSpaceContactShadowsSettings();
         [SerializeField] ScreenSpaceContactShadowsResources m_Resources = new ScreenSpaceContactShadowsResources();
         CameraHistoryStore<ScreenSpaceContactShadowsHistory> m_Histories;
+        ScreenSpaceContactShadowLights m_Lights;
         ScreenSpaceContactShadowsPass m_Pass;
+        ScreenSpaceContactShadowsCleanupPass m_Cleanup;
         bool m_LoggedMissingResources, m_LoggedUnsupported;
         ScreenSpaceCapabilityResult m_Platform;
 
@@ -14,7 +16,9 @@ namespace UnityEngine.Rendering.Universal
         {
             ScreenSpaceDepthPyramidSystem.RegisterOwner(this);
             m_Histories ??= new CameraHistoryStore<ScreenSpaceContactShadowsHistory>();
-            m_Pass ??= new ScreenSpaceContactShadowsPass();
+            m_Lights ??= new ScreenSpaceContactShadowLights();
+            m_Pass ??= new ScreenSpaceContactShadowsPass(m_Lights);
+            m_Cleanup ??= new ScreenSpaceContactShadowsCleanupPass(m_Lights.additionalMasks.Length);
             m_Platform = ScreenSpaceContactShadowsCapability.EvaluatePlatform();
         }
 
@@ -39,7 +43,20 @@ namespace UnityEngine.Rendering.Universal
                 m_LoggedUnsupported = true;
                 return;
             }
-            if (!m_Resources.hasComputeResources)
+            var camera = renderingData.cameraData;
+            if (!ScreenSpaceCapability.EvaluateCamera(camera).supported)
+                return;
+            m_Lights.Build(renderingData.lightData);
+            if (m_Lights.count == 0)
+                return;
+
+            // Event sorting places cleanup after opaque lighting. Queue it before any active-path
+            // early return, even when there is no packed target or dispatch for this camera.
+            renderer.EnqueuePass(m_Cleanup);
+            if (m_Resources == null || !m_Resources.hasComputeResources ||
+                !m_Resources.depthPyramidCompute.HasKernel("KDepthPyramidCopy") ||
+                !m_Resources.depthPyramidCompute.HasKernel("KDepthPyramidDownsample") ||
+                !m_Resources.contactShadowsCompute.HasKernel("KContactShadow"))
             {
                 if (!m_LoggedMissingResources)
                 {
@@ -50,9 +67,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_LoggedMissingResources = false;
-            var camera = renderingData.cameraData;
-            if (!ScreenSpaceCapability.EvaluateCamera(camera).supported || !TryGetMainLightDirection(renderingData.lightData, out var direction))
-                return;
             var pyramid = ScreenSpaceDepthPyramidSystem.Acquire(renderer, renderingData, m_Resources.depthPyramidCompute,
                 m_Settings.maxUnusedFrames, m_Settings.maxCachedCameras);
             if (pyramid == null)
@@ -64,22 +78,8 @@ namespace UnityEngine.Rendering.Universal
             var descriptor = camera.cameraTargetDescriptor;
             var history = m_Histories.GetOrCreate(camera.camera, eye, descriptor.width, descriptor.height, frame, 0, out _);
             history.depthPyramidSource = pyramid;
-            m_Pass.Setup(volume, history, m_Resources.contactShadowsCompute, direction);
+            m_Pass.Setup(volume, history, m_Resources.contactShadowsCompute);
             renderer.EnqueuePass(m_Pass);
-        }
-
-        static bool TryGetMainLightDirection(in LightData data, out Vector3 direction)
-        {
-            direction = default;
-            if (data.mainLightIndex < 0 || data.mainLightIndex >= data.visibleLights.Length)
-                return false;
-            var main = data.visibleLights[data.mainLightIndex];
-            var light = main.light;
-            if (main.lightType != LightType.Directional || light == null ||
-                (light.TryGetComponent<ContactShadowLight>(out var marker) && (!marker.isActiveAndEnabled || !marker.castContactShadows)))
-                return false;
-            direction = -light.transform.forward;
-            return true;
         }
 
         protected override void Dispose(bool disposing)
@@ -88,6 +88,9 @@ namespace UnityEngine.Rendering.Universal
             m_Histories = null;
             m_Pass?.Dispose();
             m_Pass = null;
+            m_Lights = null;
+            m_Cleanup?.Dispose();
+            m_Cleanup = null;
             ScreenSpaceDepthPyramidSystem.UnregisterOwner(this);
         }
     }

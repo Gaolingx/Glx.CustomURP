@@ -1,0 +1,28 @@
+{
+  "api": "Direct3D11",
+  "scene": "ContactShadowBaseline",
+  "isolatedLight": "Point",
+  "regionBottomLeft": [
+    115,
+    123,
+    28,
+    14
+  ],
+  "darkenedByAtLeastTwoLumaCodes": {
+    "bitcast_dynamic": {
+      "Forward": 320,
+      "ForwardPlus": 0,
+      "Deferred": 0
+    },
+    "bitcast_constant0": {
+      "Forward": 320,
+      "ForwardPlus": 320,
+      "Deferred": 320
+    },
+    "numeric_dynamic": {
+      "Forward": 320,
+      "ForwardPlus": 320,
+      "Deferred": 320
+    }
+  }
+}
