@@ -21,7 +21,7 @@
 | 背景/无效深度法线/超出支持粗糙度 | 不进入 HW 队列，沿用材质 Reflection Probe / Sky |
 | 有可靠屏幕命中且回投成功 | 使用已有 SS 辐亮度；保留边缘/粗糙度规则。若旧边缘淡出故意弃用一部分屏幕信号，该份额可在预算内交 HW；不要把粗糙度不合格也当成洞 |
 | 可反射，但出屏/被遮挡/历史无效 | 用**同一射线方向**、接收点和稳定 texel/sample 标识请求 DXR：Approximation 用镜向，PBR 用原 GGX 样本方向/种子 |
-| 首帧仅缺颜色历史 | 只要当前深度/法线/材质输入有效，允许独立生成 HW 请求；当前几何输入缺失则回环境 |
+| 首帧仅缺颜色历史 | 只要当前深度/法线/材质输入有效，允许独立生成 HW 请求；但现有 pass 在 `readColorPyramid == null` 时整体返回（`U/.../SsrPass.cs:237–238`），实现必须把分类/派发放在该早退之前，只生成 HW 请求（SS 份额为 0）；当前几何输入缺失则回环境 |
 | 命中受支持几何 | 返回线性 HDR、hit distance、来源与材质有效位；用命中点材质、自发光及最小直接光算 radiance；不再乘接收面 Fresnel；不默认依赖 GI 探针或 Surface Cache |
 | 真正的环境 miss / 未服务 | 只有环境可见性可信的远处 miss 才允许直接用方向 sky；有限 TMax、未服务/无预算、无有效着色或数据过期均保持材质 Reflection Probe / Sky |
 
@@ -31,7 +31,7 @@
 
 1. **请求缓冲**：在 206 的 SS trace/回投分类完成后、邻域填洞/聚合之前，把合格样本写入有界列表：sample slot、receiver P/N、direction、roughness/TMin/TMax、seed、材质/实例 id。记录 `requested/served/overflow`。用确定性空间分布/轮转避免边缘长期饿死。
 2. **派发**：Unity 2022.3 没有 GPU 计数间接 `DispatchRays`。使用 CPU 已知宽度 `K` 的固定派发，raygen 读 GPU 有效数 `min(count,K)` 后早退；散写回原槽。`K=0` 时 CPU 不提交。**不是精确按 N 间接派发，也不保证满 wave**；先与同预算固定派发/掩码方案计时对比，不引入阻塞读回。
-3. **命中着色**：用材质 `LightMode = "RayTracing"` pass（closest-hit）读取命中点 UV/法线/albedo/emission，加最小直接光与可选遮挡射线；输出与 [TLAS](TLAS.md) 的共同 ABI 一致。TMin 从原表面做 bias；不把 Hi-Z 走过的距离当世界空间安全距离。有限 TMax 的截断不等于天空可见。
+3. **命中着色**：用材质中与 `SetRayTracingShaderPass` 同名的 DXR pass（closest-hit；不是 `LightMode="RayTracing"` tag）读取命中点 UV/法线/albedo/emission，加最小直接光与可选遮挡射线；输出与 [TLAS](TLAS.md) 的共同 ABI 一致。TMin 从原表面做 bias；不把 Hi-Z 走过的距离当世界空间安全距离。有限 TMax 的截断不等于天空可见。
 4. **合成**：保持现有 unpremultiplied 合同。令 `s` 为原 SS 权重、`Lss` 为原 SS 辐亮度、`r` 为已解决 HW 份额、`Lhw` 为 HW 辐亮度、`Lenv` 为材质环境反射：
    - `a = s + (1 − s) · r`
    - `rgb = (s · Lss + (1 − s) · r · Lhw) / a`，`a=0` 时 RGB 写零
@@ -43,7 +43,7 @@
 
 | 顺序 | 内容 | 约束 |
 |---|---|---|
-| 201 | 共享 RT 场景服务构建/复用 TLAS | `AfterRenderingPrePasses+1`；202 已用于 early motion，203 是共享 Hi-Z。在第一个 RT 消费者之前；相机无关；失败则本帧所有 RT 消费者回原路径 |
+| 201 | 共享 RT 场景服务构建/复用 TLAS | `AfterRenderingPrePasses+1`；203 是共享 Hi-Z 与 Editor motion 同 slot；201/202 在包内未占用。在第一个 RT 消费者之前；相机无关；失败则本帧所有 RT 消费者回原路径 |
 | 206a | SS trace + reproject + 原始样本分类/请求列表 | 必须保留原始状态，不读最终 alpha |
 | 206b | 固定 K 的 `DispatchRays` | raygen 早退；不阻塞读回 |
 | 206c | HW 结果合成到 SSR 输出纹理 | 仍为 206 内、207 绑定之前 |
@@ -64,7 +64,7 @@ v1 不建 Surface Cache、不做 mesh cards/atlas、不做多跳。屏幕命中�
 
 | 层级 | 方案 | 采用条件 | 边界 |
 |---|---|---|---|
-| H-A（v1） | per-material minimal hit lighting | 默认 | 只支持登记不透明 Lit/自发光；每材质一个 `RayTracing` pass；不支持 ShaderGraph/透明/alpha test/蒙皮 |
+| H-A（v1） | per-material minimal hit lighting | 默认 | 只支持登记不透明 Lit/自发光；每材质一个命名 DXR pass；不支持 ShaderGraph/透明/alpha test/蒙皮 |
 | H-B（v1.5 候选） | 共享 CHS + 材质 buffer（Surface-Cache-lite） | H-A 的 pass/variant 或 hit shading 成本成为瓶颈 | 仍不做 atlas 捕获；Unity 2022.3 仍需每材质 pass；只覆盖简单材质 |
 | H-C（v2 候选） | 完整 Surface Cache | 需要广材质覆盖/多跳/稳定降噪，且接受 mesh cards/atlas 系统工程 | 不是 v1 承诺 |
 

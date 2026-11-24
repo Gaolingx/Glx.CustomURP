@@ -26,7 +26,7 @@ irradiance 八面体 atlas、距离矩 atlas、每 probe 有效位/更新时间�
 
 ## 实现落点与维护
 
-- **落点**：共享 RT 场景服务在 201（`AfterRenderingPrePasses+1`）构建/复用 TLAS；probe 生产者在 SSGI dispatch 之前（可作为 SSGI pass 的 205 前置子阶段，避免占用 202 early motion 与 204 GTAO）；材质端查询在 `ScreenSpaceLightingApplyIndirectDiffuse` 的调用点（需要把接收点 P/N 传入）。三种 renderer 共用同一材质合同。
+- **落点**：共享 RT 场景服务在 201（`AfterRenderingPrePasses+1`）构建/复用 TLAS；probe 生产者在 SSGI dispatch 之前（可作为 SSGI pass 的 205 前置子阶段，避免占用 203 的 Hi-Z/Editor motion 与 204 GTAO）；材质端查询在 `ScreenSpaceLightingApplyIndirectDiffuse` 的调用点（需要把接收点 P/N 传入）。三种 renderer 共用同一材质合同。
 - **开关**：独立 feature/Volume 选项 + 全局 keyword；默认关，关闭时不分配 atlas、不订阅 TLAS、不派发 probe 射线，原 SSGI/SSR 图像逐像素不变。
 - **依赖**：GI 不引用 SSR Volume，SSR 不启动 probe 更新；基础设施失败只关闭 GI 扩展。probe 是辐照度缓存，不是 Surface Cache；SSR 的 H-A/H-B/H-C 选择不改变 G1–G3；GI 不分配 mesh card/atlas。
 - **变体**：probe 查询/命中 shader 只对高端档构建；非目标平台剥离资源与变体，并验证无 shader 错误。

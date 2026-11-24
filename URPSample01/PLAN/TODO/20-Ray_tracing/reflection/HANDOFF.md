@@ -8,7 +8,7 @@
 |---|---|
 | 接收面无效/背景/超出支持粗糙度 | 不进入 HW 队列，沿用既有材质反射 |
 | 有可靠屏幕命中且回投成功 | 使用已有 SS 辐亮度；保留已有边缘和粗糙度规则。若旧边缘淡出故意弃用一部分屏幕信号，该份额在预算内可交 HW，不要把粗糙度不合格也当成洞 |
-| 可反射，但出屏/被遮挡/历史无效 | 使用**同一射线方向**、接收点和稳定的 texel/sample 标识请求 DXR：光滑 Approximation 用镜向，PBR 用原 GGX 样本方向/种子。首帧仅缺颜色历史时，允许从当前深度/法线独立生成 HW 请求；当前几何输入缺失则回环境 |
+| 可反射，但出屏/被遮挡/历史无效 | 使用**同一射线方向**、接收点和稳定的 texel/sample 标识请求 DXR：光滑 Approximation 用镜向，PBR 用原 GGX 样本方向/种子。首帧仅缺颜色历史时，允许从当前深度/法线独立生成 HW 请求，但现有 pass 在 `readColorPyramid == null` 时整体返回（`SsrPass.cs:237–238`），因此必须把分类/派发放到该早退之前；当前几何输入缺失则回环境 |
 | 命中受支持几何 | 返回线性 HDR、hit distance、来源与材质有效位。用命中点材质、自发光及最小直接光算 radiance；不再乘接收面 Fresnel。不默认依赖 GI 探针或 Surface Cache |
 | 真正的环境 miss / 未解决 | 只有环境可见性可信的远处 miss 才允许直接用方向 sky；有限 TMax、未服务/无预算、无有效着色或数据过期均保持材质 Reflection Probe / Sky。未入库的物体没有可恢复的轮廓，不宣称所有洞都能补 |
 
@@ -16,7 +16,7 @@
 
 - 在 206 内 SS trace/回投分类完成后，邻域填洞/聚合**之前**保留原始样本状态，不从最终 alpha 或邻像素补出来的颜色倒推。请求列表必须记录 sample slot、接收面 P/N、方向、粗糙度、TMin/TMax、seed 与材质/实例 ID，并有界、可计数。v1 先做光滑单射线；PBR 支持须另证重建权重，不冒充完整粗糙镜面支持。连续像素/采样槽记录请求，预算上限 `K`，将合格请求压入有界列表并记录溢出；以确定性空间分布/轮转避免边缘长期饿死。
 - Unity 2022.3 使用 CPU 已知宽度 `K` 的直接 DispatchRays，raygen 根据 GPU 有效数 `min(count,K)` 早退，散写回原槽；`K=0` 时 CPU 不提交。**并非精确按 N 间接派发，也不保证满 wave**；先与同预算固定派发/掩码方案计时对比；不引入阻塞读回。TMin 从原表面做 bias；不把 Hi-Z 走过的距离当世界空间安全距离。
-- 命中着色使用材质 `LightMode = "RayTracing"` pass 与共同 ABI；只对进入 TLAS 的受支持不透明子集宣称可恢复。未入库材质/透明/蒙皮/alpha test 不能靠“有 DXR”自动补洞。
+- 命中着色使用材质中与 `SetRayTracingShaderPass` 同名的 DXR pass（不是 `LightMode="RayTracing"` tag）与共同 ABI；只对进入 TLAS 的受支持不透明子集宣称可恢复。未入库材质/透明/蒙皮/alpha test 不能靠“有 DXR”自动补洞。
 - 合成目标：`s·Lss + (1−s)·[r·Lhw + (1−r)·Lenv]`（强度 1）。对材质导出 `a=s+(1−s)r`、`rgb=(s·Lss+(1−s)r·Lhw)/a`；`a=0` 时 RGB 写零。这样旧非预乘 SSR 合同、点采样、强度和 clear-coat 各 lobe 的 BRDF/环境权重仍只应用一次。`r` 仅表示已解决 HW 份额；HW 不再乘一次 SS 屏幕边缘淡出，否则离屏洞会重新出现。
 - 保留 SSR 自己的 motion、粗糙度、深度/法线 history；HW 距离及分类用于历史拒绝。SS→HW 来源变化且距离/亮度不一致时降历史权重；相机切换、尺寸/后端切换要失效；禁止回灌已空间模糊的历史。205 的 GI history 不能借给 206。SS 读历史 scene color，HW 命中着色较简单，观察高亮物体出屏会不会从“空洞”变成“亮度台阶”。
 
@@ -26,7 +26,7 @@ v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世�
 
 | 层级 | 方案 | 采用条件 | 边界 |
 |---|---|---|---|
-| H-A（v1） | per-material minimal hit lighting | 默认 | 只支持登记不透明 Lit/自发光；每材质一个 `RayTracing` pass；不支持 ShaderGraph/透明/alpha test/蒙皮 |
+| H-A（v1） | per-material minimal hit lighting | 默认 | 只支持登记不透明 Lit/自发光；每材质一个命名 DXR pass；不支持 ShaderGraph/透明/alpha test/蒙皮 |
 | H-B（v1.5 候选） | 共享 CHS + 材质 buffer（Surface-Cache-lite） | H-A 的 pass/variant 或 hit shading 成本成为瓶颈 | 仍不做 atlas 捕获；Unity 2022.3 仍需每材质 pass；只覆盖简单材质 |
 | H-C（v2 候选） | 完整 Surface Cache | 需要广材质覆盖/多跳/稳定降噪，且接受 mesh cards/atlas 系统工程 | 不是 v1 承诺 |
 

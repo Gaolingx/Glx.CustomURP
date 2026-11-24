@@ -1,6 +1,6 @@
 # 动态更新探针：只作 SSGI 漫反射回退的研究与数学
 
-2026-11-24｜调研与设计，未实现、未测。范围：高端 RT 配置下，相机启用 SSGI 且选择动态回退时，用世界空间探针补屏幕外低频漫反射。**不交付完整 DDGI**：不做独立 DDGI 模式、relocation/classification、多 volume、滚动、多跳递归、透明/蒙皮命中或逐像素 GI DXR。平台与共享 TLAS 见 [TLAS](../research/TLAS.md)，合成合同见 [GI HANDOFF](HANDOFF.md)。
+2026-11-24｜调研与设计，未实现、未测。范围：高端 RT 配置下，相机启用 SSGI 且选择动态回退时，用世界空间探针补屏幕外低频漫反射。**不交付完整 DDGI**：不做独立 DDGI 模式、relocation/classification、多 volume、滚动、多跳递归、透明/蒙皮命中或逐像素 GI DXR。平台与共享 TLAS 见 [TLAS](../research/TLAS.md)，合成合同见 [GI HANDOFF](HANDOFF.md)，本轮总报告（平台/API、HDRP、Lumen、Surface Cache 取舍与总验收）见 [research/report.md](../research/report.md)。
 
 ## 0. 结论先行
 
@@ -34,17 +34,25 @@
 | 采样 | 8 邻居三线性 × 法线 wrap shading × Chebyshev 可见性；低权重 crush | `DDGIFuncs.hlsl:348–422` |
 | Chebyshev | `variance = |μ² − E[d²]|`；`chebyshev = variance/(variance + (μ−d)²)`，下限 0.05 | 同上 `389–403` |
 | 八面体布局 | probe base texel = 坐标 × (interior+2)，内容从 +1,+1 开始 | `Lib/DDGIProbeIndexing.hlsl:107–168` |
-| 调度 | 每帧全量派发（示例 10,648 probes × 256 rays），收敛后跳过；没有轮转预算 | `DDGIFeature.cs:451–486,652` |
-| 构建 | 自动管理实例，每帧 Build → bind → DispatchRays；不是按脏帧增量 | `DDGIFeature.cs:309–311,474–486` |
+| 调度 | 每帧全量派发（默认 22³ = 10,648 probes × **144** rays，范围 32–256）；无轮转预算；只有可选 variability 回读达标才允许收敛跳过 | `Runtime/DDGIFeature.cs:468–520,983–984`；`Runtime/Overrides/DDGI.cs:91–96` |
+| 构建 | `ManagementMode.Automatic` + `RayTracingModeMask.Everything` + layer 255，自动收集全部 Renderer；每帧（未收敛时）Build → bind → DispatchRays，不是按脏帧增量 | `Runtime/DDGIFeature.cs:309–311,472–486` |
+| 光线缓冲 | `MaxNumRays = 512` 固定 stride；buffer = probes × 512 × float4，实际每 probe 只发 `NumRays` 条 | `Runtime/DDGIFeature.cs:333–340` |
+| 消费者 | 材质采样读 `_ProbeIrradianceHistory` / `_ProbeDistanceHistory`；写完 `CopyTexture` 到 history，因此显示晚一帧 | `Lib/DDGIFuncs.hlsl:394,418`；`DDGIFeature.cs:639–640` |
+| 命中材质 | `Custom/LitRayTracing` 的 `DDGIRayTracing` pass（`LightMode="DDGIRayTracing"`）；emission 只读 `_EmissionColor`，`_EmissionMap` 未接 | `Shaders/LitRayTracing.shader:124–194`（`:190`） |
+| 死参数 | `_NormalBias` / `_EnergyPreservation` 在 CBUFFER 声明并 push，但 shader 未读 | `Lib/DDGIInputs.hlsl:90,92`；`DDGIFeature.cs:702,704` |
 
-**参考参数不是项目默认值**。v1 的探针数、间距、每 probe 射线数、hysteresis 与 tile 尺寸都在 B0 冻结，并用 G1/G2 的 fixture 先证数学与调度。
+**参考参数不是项目默认值**。v1 的探针数、间距、每 probe 射线数、hysteresis 与 tile 尺寸都在 B0 冻结，并用 G1/G2 的 fixture 先证数学与调度。三个易错点：
+
+- 代码默认是 22³ probes、144 rays（32–256）；asset 里的 256 不是代码默认值。
+- `enableProbeVariability` 默认 OFF，走 else 分支每帧强制 `mIsConverged = false`，示例默认**不会**停更；`DDGIFeature.cs:652` 是 `Release()`，不是收敛跳过。
+- 收敛判据是 CPU 异步回读平均 variability（阈值 0.025、最少 16 个样本），且收敛门同时包住 RTAS Build 与 irradiance/distance 两个 dispatch。
 
 ## 2. v1 数据面
 
 | 资源 | 建议格式/尺寸 | 说明 |
 |---|---|---|
-| irradiance atlas | `Tex2DArray` RGBA16F；每 probe 8×8（6×6 内容 + 1px border） | 存 irradiance `E`；未更新 tile 保留上一次有效值 |
-| distance atlas | `Tex2DArray` RG16F；每 probe 16×16（14×14 内容 + 2px border） | 存 `(μ, E[d²])`；用于 Chebyshev 与薄墙拒绝 |
+| irradiance atlas | `Tex2DArray` RGBA16F；每 probe 8×8（6×6 内容 + 1 texel border + 4 重复角） | 存 irradiance `E`；未更新 tile 保留上一次有效值 |
+| distance atlas | `Tex2DArray` RG16F；每 probe 16×16（14×14 内容 + 1 texel border + 4 重复角） | 存 `(μ, E[d²])`；用于 Chebyshev 与薄墙拒绝。border 由 `BORDER_TEXELS = 16×4+4 = 68` 逐 texel 复制，不是 2px 宽 |
 | probe state | `GraphicsBuffer` 或 `Tex2DArray` R8/RGBA8 | 有效位、更新时间/版本、可选手动禁用；不做自动 relocation |
 | update scratch | 有界 `GraphicsBuffer` | 本批 `B × R` 条主射线的 radiance/distance；不跨帧复用为历史 |
 | probe 参数 | CBUFFER | 体积原点、间距、数量、旋转、每批预算、接收点 bias |
@@ -73,6 +81,8 @@
 - 因此 `w=1` 只取 SSGI；`w=0,c=1` 只取 probe；`w=c=0` 回 bakedGI。**不要**把 probe 先乘 `w` 或在 SSGI 纹理里再混一次；也不要用预乘的 `S` 做 `lerp(base,S,w)` 造成二次加权。
 - 强度 `I>0` 定义为 `lerp(base, Lss·I, w)` 的等价形式（颜色乘 I，权重不乘 I）；`I=0` 沿用原路径的精确 no-op。接收面 albedo、AO 在既有材质链只应用一次。
 
+**`Pgi=Eprobe/π` 是本项目的设计约定，不是参考实现的能量链**。参考链是 atlas `1/(2Σw)` → `pow(x,2.5)` 解码 → `×Σ⁻¹` → 平方 → `×2π` → 材质 `×albedo/π`（`Lib/DDGIFuncs.hlsl:424–430`；`DDGIUpdateIrradiance.compute:102–108`）。在均匀球面采样下它大致落到 `0.5·albedo·E/π` 附近，并带“对 √E 求均值再平方”的方差偏差。照抄这条链会把 variance bias 和 `×2π` 一起带进我们的材质端，因此 G1 必须先钉死 atlas 单位与 `E/π` 的换算，再允许 G3 比较 ROI。
+
 **与现有 SSGI fallback 的互斥**：动态 probe 回退启用时，SSGI 的 `rayMiss` 不能同时写 Reflection Probes/Sky 到 SS 信号；否则 miss 像素会先拿到旧 fallback，再被材质 probe 覆盖/叠加。v1 在启用 probe 回退时把 SSGI 的 fallback 设为 `None`，miss 写 `weight=0`，由 `base` 负责填充；关闭 probe 回退则恢复原 `rayMiss` 设置。若 SSGI 本身未启用，不引入独立 DDGI。
 
 ## 5. 验证向量（与 [GI HANDOFF](HANDOFF.md) 的 G1–G3 对应）
@@ -99,3 +109,5 @@ G1 只证数学，G2 只证更新，G3 只证合成；证据分开提交，不�
 - RTXGI 1.x 是 DDGI；RTXGI 2.x 转向 NRC + SHaRC，不再是 DDGI。RTXDI 是 ReSTIR 采样库，NRD 是降噪器；三者都不能混称。
 - Lumen 走 surface cache + world radiance cache + screen probe final gather，不是探针 DDGI，也不是 ReSTIR；其“infinite bounces”是跨帧累积而非同帧多跳。
 - HDRP 的 APV 是烘焙 SH，不提供动态更新；HDRP 的 SSGI/RTGI fallback 与探针是两回事。详见 [HDRP14](../research/HDRP14.md)。
+- 参考实现逐行事实、默认值、死参数与能量链差异汇总在 [总报告 §6](../research/report.md)；本文件只保留探针决策所需的最小证据。
+- Unity 6.7 LTS 的 URP Surface Cache GI（[Unite Seoul 2026](https://unity.com/blog/unite-seoul-keynote-2026-recap)）是官方动态 GI，未来升级优先评估它，而不是自建完整 Surface Cache。

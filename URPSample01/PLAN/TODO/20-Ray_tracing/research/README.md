@@ -6,6 +6,7 @@
 
 | 文档 | 回答的问题 |
 |---|---|
+| [report.md](report.md) | 本轮总报告：平台/API 边界、URP 合同、HDRP/Lumen 对照、Surface Cache 取舍、无缓存 recipe、探针回退与总验收；含引用等级、风险与勘误 |
 | [HDRP14.md](HDRP14.md) | HDRP 14 的 SSGI/RTGI/RTR 如何交接屏幕与世界空间，哪些做法值得借鉴，哪些与 URP 不兼容 |
 | [TLAS.md](TLAS.md) | Unity 2022.3 的 RTAS 构建、实例维护、材质命中合同、生命周期与可独立测试项 |
 | [SSR-DXR.md](SSR-DXR.md) | 现有 opaque SSR 的未解决样本如何接入 DXR，预算、派发、合成与历史如何不破坏原契约 |
@@ -20,7 +21,7 @@ v1 采用**无 Surface Cache** 的 hybrid recipe：屏幕 SS + 固定 K 的 DXR 
 | Unity `2022.3.62f1`；URP 为仓库内嵌 `Packages/com.unity.render-pipelines.universal@14.0.12` | `URPSample01/ProjectSettings/ProjectVersion.txt`；`URPSample01/Packages/` |
 | 公开 API 存在 `RayTracingAccelerationStructure`、`RayTracingShader`、`CommandBuffer.BuildRayTracingAccelerationStructure`、`CommandBuffer.DispatchRays`、`SystemInfo.supportsRayTracing` | `D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Data/Managed/UnityEngine/UnityEngine.CoreModule.xml`：11325、11969、35216、35509、49424 |
 | RTAS 实例支持 8 位 ray mask、实例 ID、逐实例 transform/mask 更新、`CullInstances` | 同上：11330–11536、11641–11704 |
-| 2022.3 公开接口中没有找到 GPU 计数驱动的间接 `DispatchRays` 或 inline ray query 的能力查询 | 同 XML 全量检索无 `InlineRayTracing`；v1 因此固定宽度派发 + GPU 早退 |
+| 2022.3 公开接口中没有找到 GPU 计数驱动的间接 `DispatchRays` 或 inline ray query 的能力查询 | 同 XML 全量检索无 `supportsInlineRayTracing`/`RayQuery`/`inlineraytracing`；inline RT 到 2023.1 才进计算着色器；v1 因此固定宽度派发 + GPU 早退 |
 | 项目 Windows 默认图形 API 为 D3D12（`m_APIs: 12000000` = `Direct3D12`） | `URPSample01/ProjectSettings/ProjectSettings.asset:531–533` |
 | 现有质量档为 Performant / Balanced / High Fidelity | `URPSample01/ProjectSettings/QualitySettings.asset` |
 | 现有回归基线为 `720bedd` 的 **D3D11** 证据，不能证明本 HEAD 或 DXR | [../validation/P0/Baseline.json](../validation/P0/Baseline.json) |

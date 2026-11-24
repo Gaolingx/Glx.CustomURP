@@ -5,6 +5,7 @@
 | 阅读顺序 | 决策归属 |
 |---|---|
 | [可行性核查](#可行性核查2026-11-24) | 本轮在本地 API/源码/项目设置中核实的事实与未闭环风险 |
+| [本轮调研总报告](research/report.md) | 平台/API 边界、URP 合同、HDRP/Lumen 对照、Surface Cache 取舍、无缓存 recipe、探针与总验收；含引用等级、风险与勘误 |
 | [HDRP 14 源码研究](research/HDRP14.md) | SSGI/RTGI/RTR 的真实数据流、最佳实践与不可移植部分 |
 | [共享 RT 场景与 TLAS](research/TLAS.md) | 平台门控、实例、材质命中、构建/失效、生命周期、直接派发 |
 | [SSR × DXR 集成](research/SSR-DXR.md) | 未解决样本、固定预算派发、合成、历史与独立测试 |
@@ -24,7 +25,7 @@
 
 未闭环/必须按计划处理：
 
-1. **材质命中入口**：Unity closest-hit 需要材质 shader 的 `LightMode = "RayTracing"` pass；URP Lit/ComplexLit/ShaderGraph 默认没有。v1 只给进入 TLAS 的受支持不透明子集加最小 pass，并显式统计不支持材质。
+1. **材质命中入口**：Unity closest-hit 需要材质 shader 中与 `SetRayTracingShaderPass` 同名的 DXR pass（HDRP 用 `IndirectDXR`/`GBufferDXR` 等；**不是** `LightMode="RayTracing"` tag）；URP Lit/ComplexLit/ShaderGraph 默认没有。v1 只给进入 TLAS 的受支持不透明子集加最小命名 pass，并显式统计不支持材质。
 2. **没有 GPU 间接派发**：2022.3 只能用 CPU 已知宽度 `K` 的固定 `DispatchRays` + GPU 早退；预算与溢出必须在 B0 冻结。
 3. **探针回退与现有 SSGI fallback 互斥**：启用动态 probe 时 SSGI 的 `rayMiss` 必须为 `None`，miss 写 weight 0，由材质端 `base` 填充；否则会先写旧 reflection/sky 再叠加 probe。
 4. **主机未验证**：PS5/Xbox 的 Unity RT 支持、SKU/质量档/性能均无本地证据；PC 通过不默认开启主机。
@@ -65,7 +66,7 @@
 | 模块 | 建议落点 | 边界 |
 |---|---|---|
 | 共享 RT 场景/TLAS | 内嵌 URP 包 `Runtime/RendererFeatures/RayTracing/`（与 SSL 同仓） | 拥有能力判定、RTAS、实例登记、Build 策略、清理；不被 GI/SSR Volume 反向引用 |
-| 命中着色 ABI | 包内 `ShaderLibrary/RayTracing/` + 受支持材质的 `LightMode="RayTracing"` pass | v1 采用 H-A（per-material 最小 hit lighting）；只覆盖登记子集；不支持材质/子网格显式计数；H-B/H-C 见 recipe |
+| 命中着色 ABI | 包内 `ShaderLibrary/RayTracing/` + 受支持材质的命名 DXR pass（如 `GlxDXR`；与 `SetRayTracingShaderPass` 一致） | v1 采用 H-A（per-material 最小 hit lighting）；只覆盖登记子集；不支持材质/子网格显式计数；H-B/H-C 见 recipe |
 | GI 探针 | `Runtime/RendererFeatures/RayTracing/GI/` + 包内 HLSL；材质查询在 `ScreenSpaceLightingApplyIndirectDiffuse` 调用点 | 只在 SSGI 启用时工作；不拥有 TLAS |
 | SSR × DXR | `SsrPass.cs` 子阶段 + `ScreenSpaceReflections.compute` 请求 kernel + `RayTracingSsr.raytrace`/合成 | 只在 opaque SSR 启用时工作；不启动 GI |
 | Fixture/Player 测试 | `URPSample01/Assets/Tests/RayTracing/{TLAS,GI,SSR,Integration}/` | 输入、计数、图像、已知差异分开提交 |
@@ -89,7 +90,7 @@ v1 明确不建 Surface Cache、不做 mesh cards/atlas、不做多跳。用“�
        -> 不乘接收面 Fresnel，不重复 BRDF
 
 [合成] unpremultiplied (radiance, weight) 写回原 slot
-       材质端 lerp(env, radiance, weight)，BRDF 只应用一次
+       材质端 SSR: lerp(env, radiance, weight)；GI: lerp(base, Lss, w)；BRDF 只应用一次
 
 [GI]   动态 probe：B probes × R rays/帧 -> irradiance atlas
        材质端按接收点 P/N 查询；SS 高频 + probe 低频
@@ -99,7 +100,7 @@ v1 明确不建 Surface Cache、不做 mesh cards/atlas、不做多跳。用“�
 
 | 层级 | 方案 | 采用条件 | 边界 |
 |---|---|---|---|
-| H-A（v1） | 受支持不透明材质 + 最小 hit lighting | 默认 | 只支持登记材质；每材质一个 `RayTracing` pass；不做 Surface Cache |
+| H-A（v1） | 受支持不透明材质 + 最小 hit lighting | 默认 | 只支持登记材质；每材质一个命名 DXR pass；不做 Surface Cache |
 | H-B（v1.5 候选） | 共享 CHS + 材质 buffer（Surface-Cache-lite） | H-A 的 pass/variant 或 hit shading 成本成为瓶颈 | 仍不做 atlas 捕获；Unity 仍需每材质 pass；只覆盖简单材质 |
 | H-C（v2 候选） | 完整 Surface Cache | 需要广材质覆盖、多跳或稳定降噪，且接受 mesh cards/atlas 系统工程 | 不是 v1 承诺；需独立立项与验收 |
 
