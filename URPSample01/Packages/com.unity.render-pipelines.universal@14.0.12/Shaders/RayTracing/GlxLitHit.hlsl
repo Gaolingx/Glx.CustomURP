@@ -6,6 +6,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.hlsl"
 #include "UnityRayTracingMeshUtils.cginc"
 #include "GlxBasicPayload.hlsl"
+#include "GlxProbeSampling.hlsl"
 
 struct GlxHitSurface { BRDFData brdf; float3 albedo; };
 float3 GlxLightBrdf(GlxHitSurface s, float3 n, float3 l, uint mode)
@@ -88,6 +89,17 @@ void GlxLitClosestHit(inout GlxBasicPayload payload : SV_RayPayload,
         return;
     }
 
+    if (payload.mode == GlxProbeGeoMode)
+    {
+        uint3 gt = UnityRayTracingFetchTriangleIndices(PrimitiveIndex());
+        float3 gw = GlxWeights(attr.barycentrics);
+        float2 guv = GlxBaseUV(gt, gw);
+        payload.flags = GlxHit;
+        payload.hitT = RayTCurrent();
+        payload.radiance = GlxNormalWS(gt, gw, guv);
+        return;
+    }
+
     uint3 tri = UnityRayTracingFetchTriangleIndices(PrimitiveIndex());
     float3 w = GlxWeights(attr.barycentrics);
     float2 uv = GlxBaseUV(tri, w);
@@ -116,6 +128,7 @@ void GlxLitClosestHit(inout GlxBasicPayload payload : SV_RayPayload,
 
     if (GlxUsesLightTable(payload.mode))
     {
+        uint mode = payload.mode;
         payload.flags = GlxHit;
         payload.hitT = RayTCurrent();
         payload.radiance = emission;
@@ -123,7 +136,16 @@ void GlxLitClosestHit(inout GlxBasicPayload payload : SV_RayPayload,
         surface.albedo = base.rgb;
         half alpha = base.a;
         InitializeBRDFData(base.rgb, metallic, 0, smoothness, alpha, surface.brdf);
-        GlxShadeLights(payload, dot(n, WorldRayDirection()) > 0 ? -n : n, surface);
+        float3 hitNormal = dot(n, WorldRayDirection()) > 0 ? -n : n;
+        GlxShadeLights(payload, hitNormal, surface);
+        // Reflection hits only: the probe cache must not feed itself in probe mode (G5 owns
+        // that feedback). Ambient/probe selection is explicit, and only one of them is added.
+        if (mode == GlxReflectionMode)
+        {
+            float3 hitPosition = WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
+            payload.radiance += surface.brdf.diffuse *
+                (GlxHitLowFrequencyIrradiance(hitPosition, hitNormal) * 0.31830988618);
+        }
         return;
     }
     float3 toLight = normalize(float3(f16tof32(payload.flags & 0xffffu), f16tof32(payload.flags >> 16), payload.hitT));

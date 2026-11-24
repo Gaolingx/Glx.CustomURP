@@ -1,0 +1,58 @@
+#pragma max_recursion_depth 2
+
+#include "GlxBasicPayload.hlsl"
+#include "GlxHitLightCounters.hlsl"
+
+// Prepared on the GPU from the published probe offset/state: ray origins never need a
+// CPU readback of the relocation offsets. meta = (mode, probeSlot, rayIndex, valid).
+struct GlxProbeRay
+{
+    float4 originTMin;
+    float4 directionTMax;
+    uint4 meta;
+};
+
+StructuredBuffer<GlxProbeRay> _GlxProbeRays;
+RWStructuredBuffer<GlxBasicPayload> _GlxProbeResults;
+// traced, fixed, rotated, hits, misses, activeProbes, inactiveProbes, reserved
+RWStructuredBuffer<uint> _GlxProbeCounters;
+
+[shader("raygeneration")]
+void TraceProbeRays()
+{
+    uint i = DispatchRaysIndex().x;
+    GlxProbeRay request = _GlxProbeRays[i];
+    GlxBasicPayload payload = GlxEmptyPayload(request.meta.x);
+    if (request.meta.w != 0)
+    {
+        RayDesc ray;
+        ray.Origin = request.originTMin.xyz;
+        ray.Direction = request.directionTMax.xyz;
+        ray.TMin = request.originTMin.w;
+        ray.TMax = request.directionTMax.w;
+        TraceRay(_GlxScene, RAY_FLAG_NONE, 0xff, 0, 1, 0, ray, payload);
+        InterlockedAdd(_GlxProbeCounters[0], 1);
+        InterlockedAdd(_GlxProbeCounters[request.meta.z < 32u ? 1u : 2u], 1);
+        if ((payload.flags & GlxHit) != 0)
+            InterlockedAdd(_GlxProbeCounters[3], 1);
+        else if ((payload.flags & GlxMiss) != 0)
+            InterlockedAdd(_GlxProbeCounters[4], 1);
+        if (request.meta.x == GlxProbeMode)
+        {
+            GlxRecordLightCounters(payload); // Also resets mode; indices carry ray identity.
+        }
+        else
+        {
+            payload.mode = request.meta.x; // Maintenance result keeps its mode for the reader.
+        }
+    }
+    _GlxProbeResults[i] = payload;
+}
+
+[shader("miss")]
+void GlxProbeMiss(inout GlxBasicPayload payload : SV_RayPayload)
+{
+    uint mode = payload.mode;
+    payload = GlxEmptyPayload(mode);
+    payload.flags = GlxMiss; // Finite TMax: an unresolved ray is never sky or measured black.
+}

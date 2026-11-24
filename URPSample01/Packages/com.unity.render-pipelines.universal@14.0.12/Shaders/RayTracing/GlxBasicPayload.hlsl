@@ -16,6 +16,9 @@ static const uint GlxPrimaryWithShadow = 2u;
 // Table modes: direct light comes from GlxHitLightTable, not the outbound payload slots.
 static const uint GlxReflectionMode = 3u;
 static const uint GlxProbeMode = 4u;
+// Maintenance mode: the first 32 fixed probe rays return the shading normal instead of
+// radiance so relocation/classification can test front/back faces inside the 24-byte ABI.
+static const uint GlxProbeGeoMode = 5u;
 static const uint GlxInvalid = 0u;
 static const uint GlxMiss = 1u;
 static const uint GlxHit = 2u;

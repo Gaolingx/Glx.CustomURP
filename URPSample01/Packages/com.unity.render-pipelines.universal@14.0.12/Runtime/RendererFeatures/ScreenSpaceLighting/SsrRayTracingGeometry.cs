@@ -22,6 +22,13 @@ namespace UnityEngine.Rendering.Universal
             set => m_InstanceId = Mathf.Clamp(value, 0, 0xffffff);
         }
 
+        /// <summary>Back-face culling for this instance; disabled instances can be hit from inside.</summary>
+        public bool enableTriangleCulling
+        {
+            get => m_EnableTriangleCulling;
+            set => m_EnableTriangleCulling = value;
+        }
+
         MeshRenderer m_Renderer;
         MeshFilter m_Filter;
         Mesh m_Mesh;

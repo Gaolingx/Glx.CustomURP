@@ -11,3 +11,6 @@ R2/evidence*/**/*.requests
 R2/evidence*/**/*.original
 R2/evidence*/**/*.log
 T4/evidence/*.log
+G2/evidence/**/*.log
+R3/evidence/**/*.log
+R4/evidence/**/*.log

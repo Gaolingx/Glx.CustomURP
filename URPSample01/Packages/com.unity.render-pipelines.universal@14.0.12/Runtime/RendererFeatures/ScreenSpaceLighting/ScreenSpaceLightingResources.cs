@@ -24,9 +24,13 @@ namespace UnityEngine.Rendering.Universal
         // Not in Resources, and no serialized reference in non-Windows players.
 #if UNITY_STANDALONE_WIN && (UNITY_EDITOR || UNITY_64)
         [SerializeField] internal UnityEngine.Experimental.Rendering.RayTracingShader rayTracingSsr;
+        [SerializeField] internal UnityEngine.Experimental.Rendering.RayTracingShader rayTracingGi;
 #else
         internal UnityEngine.Experimental.Rendering.RayTracingShader rayTracingSsr => null;
+        internal UnityEngine.Experimental.Rendering.RayTracingShader rayTracingGi => null;
 #endif
+
+        [SerializeField] internal ComputeShader giProbeUpdateCompute;
 
         // Seeds the private transparent depth target from the opaque camera depth. The URP
         // CopyDepth shader is reused so the _OUTPUT_DEPTH (SV_Depth) path is identical.
@@ -274,6 +278,13 @@ namespace UnityEngine.Rendering.Universal
                 resources.ssrReflectionDenoiserCompute = FindPackageAsset<ComputeShader>(
                     "ReflectionDenoiser t:ComputeShader",
                     "/Denoising/ReflectionDenoiser.compute");
+            }
+
+            if (resources.giProbeUpdateCompute == null)
+            {
+                resources.giProbeUpdateCompute = FindPackageAsset<ComputeShader>(
+                    "GlxProbeUpdate t:ComputeShader",
+                    "/RayTracing/GlxProbeUpdate.compute");
             }
 
             if (resources.transparentDepthCopyShader == null)

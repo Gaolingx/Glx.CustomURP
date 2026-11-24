@@ -57,6 +57,13 @@ Shader "Hidden/Universal Render Pipeline/GlxBasicHit"
                     payload.flags = GlxHit;
                     return;
                 }
+                if (payload.mode == GlxProbeGeoMode)
+                {
+                    payload.flags = GlxHit;
+                    payload.hitT = RayTCurrent();
+                    payload.radiance = GlxGeometricNormalWS();
+                    return;
+                }
                 if (GlxUsesLightTable(payload.mode))
                 {
                     payload.flags = GlxHit;

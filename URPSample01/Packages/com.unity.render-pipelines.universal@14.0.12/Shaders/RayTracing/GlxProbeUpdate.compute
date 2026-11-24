@@ -1,0 +1,304 @@
+// G2 probe producer: GPU ray preparation from the published probe state, irradiance and
+// distance-moment convolution with hysteresis, relocation/classification from the 32 fixed
+// maintenance rays, and a readback kernel used by the validation player.
+//
+// Kept free of raytracing headers: a compute shader cannot declare the acceleration
+// structure, so the 24-byte payload and the mode/flag words are mirrored here.
+// Keep in sync with Shaders/RayTracing/GlxBasicPayload.hlsl.
+
+#pragma kernel ProbePrepare
+#pragma kernel ProbeCopyState
+#pragma kernel ProbeIrradiance
+#pragma kernel ProbeDistance
+#pragma kernel ProbeMaintain
+#pragma kernel ProbePublishMask
+#pragma kernel ProbeReadbackIrr
+#pragma kernel ProbeReadbackDist
+#pragma kernel ProbeReadbackMeta
+
+#define GLX_HIT 2u
+#define GLX_MISS 1u
+#define GLX_PROBE_MODE 4u
+#define GLX_PROBE_GEO_MODE 5u
+#define PI 3.14159265358979323846
+#define IRR_INTERIOR 6
+#define IRR_TILE 8
+#define DIST_INTERIOR 14
+#define DIST_TILE 16
+#define PROBES_PER_ROW 8
+
+struct GlxProbePayload { float3 radiance; float hitT; uint flags, mode; };
+struct GlxProbeRay { float4 originTMin; float4 directionTMax; uint4 meta; };
+
+uint _GlxProbeBudget, _GlxProbeRaysPerProbe, _GlxProbeFrame;
+uint _GlxProbeCountX, _GlxProbeCountY, _GlxProbeCountZ;
+uint _GlxProbeCount;
+float3 _GlxProbeOrigin;
+float _GlxProbeSpacing, _GlxProbeTMin, _GlxProbeTMax;
+float _GlxProbePreviousWeight, _GlxProbeRelocationLimit, _GlxProbeMinFront, _GlxProbeInsideBackface, _GlxProbeMomentCap;
+uint _GlxProbeRelocate, _GlxProbeClassify;
+
+RWStructuredBuffer<GlxProbeRay> _GlxProbeRays;
+StructuredBuffer<GlxProbePayload> _GlxProbeResults;
+StructuredBuffer<float4> _GlxProbeData;
+RWStructuredBuffer<float4> _GlxProbeDataNext;
+StructuredBuffer<uint> _GlxProbePublished;
+RWStructuredBuffer<uint> _GlxProbeUpdated;
+RWStructuredBuffer<uint> _GlxProbePublishedNext;
+StructuredBuffer<uint> _GlxProbeBatch;
+RWStructuredBuffer<uint> _GlxProbeCounters;
+
+RWTexture2D<float4> _GlxProbeIrrWrite;
+Texture2D<float4> _GlxProbeIrrPrev;
+RWTexture2D<float2> _GlxProbeDistWrite;
+Texture2D<float2> _GlxProbeDistPrev;
+
+RWStructuredBuffer<float4> _GlxProbeReadbackIrr;
+RWStructuredBuffer<float4> _GlxProbeReadbackDist;
+RWStructuredBuffer<uint2> _GlxProbeReadbackMeta;
+uint _GlxProbeReadbackProbe;
+
+float3 GlxFibonacci(uint i, uint n)
+{
+    float y = 1.0 - 2.0 * ((float)i + 0.5) / (float)n;
+    float r = sqrt(saturate(1.0 - y * y));
+    float phi = (float)i * 2.39996322972865332;
+    return float3(cos(phi) * r, y, sin(phi) * r);
+}
+
+float3 GlxRotateY(float3 d, float angle)
+{
+    float c = cos(angle), s = sin(angle);
+    return float3(c * d.x - s * d.z, d.y, s * d.x + c * d.z);
+}
+
+// G1 ProbeHalfAtlas.Normal: the octahedral texel centre direction for an interior texel.
+float3 GlxOctNormal(uint n, int x, int y)
+{
+    float u = (2.0 * x + 1.0) / (float)n - 1.0;
+    float v = (2.0 * y + 1.0) / (float)n - 1.0;
+    float z = 1.0 - abs(u) - abs(v);
+    return normalize(float3(u - (u >= 0 ? 1.0 : -1.0) * max(0.0, -z),
+                            v - (v >= 0 ? 1.0 : -1.0) * max(0.0, -z), z));
+}
+
+// G1 ProbeHalfAtlas.FillGutter: fold the one-texel border onto the interior seam.
+int2 GlxFold(int n, int x, int y)
+{
+    int sx = clamp(x, 0, n - 1), sy = clamp(y, 0, n - 1);
+    if (y < 0 || y >= n) sx = n - 1 - sx;
+    if (x < 0 || x >= n) sy = n - 1 - sy;
+    return int2(sx, sy);
+}
+
+float3 GlxGridPosition(uint probe)
+{
+    uint xy = _GlxProbeCountX * _GlxProbeCountY;
+    return _GlxProbeOrigin + float3(probe % _GlxProbeCountX,
+        (probe / _GlxProbeCountX) % _GlxProbeCountY, probe / xy) * _GlxProbeSpacing;
+}
+
+// The next generation starts as a copy of the published one: only scheduled tiles change,
+// and unscheduled probes keep their offset/state and publication bit.
+[numthreads(64, 1, 1)]
+void ProbeCopyState(uint3 id : SV_DispatchThreadID)
+{
+    uint probe = id.x;
+    if (probe >= _GlxProbeCount) return;
+    _GlxProbeDataNext[probe] = _GlxProbeData[probe];
+    _GlxProbePublishedNext[probe] = _GlxProbePublished[probe];
+}
+
+[numthreads(64, 1, 1)]
+void ProbePrepare(uint3 group : SV_GroupID, uint lane : SV_GroupIndex)
+{
+    uint index = group.x * 64u + lane;
+    if (index >= _GlxProbeBudget * _GlxProbeRaysPerProbe) return;
+    uint slot = index / _GlxProbeRaysPerProbe;
+    uint rayIndex = index % _GlxProbeRaysPerProbe;
+    uint probe = _GlxProbeBatch[slot];
+    float4 data = _GlxProbeData[probe];
+    bool active = data.w > 0.5;
+    bool maintenance = rayIndex < 32u;
+    bool valid = maintenance || active;
+
+    float3 origin = GlxGridPosition(probe) + data.xyz;
+    float3 direction = maintenance
+        ? GlxFibonacci(rayIndex, 32u)
+        : GlxRotateY(GlxFibonacci(rayIndex - 32u, _GlxProbeRaysPerProbe - 32u), _GlxProbeFrame * 0.61803398874989485);
+
+    GlxProbeRay ray;
+    ray.originTMin = float4(origin, _GlxProbeTMin);
+    ray.directionTMax = float4(direction, _GlxProbeTMax);
+    ray.meta = uint4(maintenance ? GLX_PROBE_GEO_MODE : GLX_PROBE_MODE, slot, rayIndex, valid ? 1u : 0u);
+    _GlxProbeRays[index] = ray;
+    if (rayIndex == 0) InterlockedAdd(_GlxProbeCounters[active ? 5u : 6u], 1);
+}
+
+// Cosine-weighted convolution, G1 convention: E = pi * sum(w L) / sum(w).
+// Only rays 32..R-1 contribute; the fixed maintenance prefix is excluded.
+[numthreads(IRR_TILE, IRR_TILE, 1)]
+void ProbeIrradiance(uint3 id : SV_DispatchThreadID)
+{
+    uint slot = id.z;
+    if (slot >= _GlxProbeBudget) return;
+    uint probe = _GlxProbeBatch[slot];
+    if (_GlxProbeData[probe].w <= 0.5) return; // inactive: keep the previous tile
+
+    int2 folded = GlxFold(IRR_INTERIOR, (int)id.x - 1, (int)id.y - 1);
+    float3 normal = GlxOctNormal(IRR_INTERIOR, folded.x, folded.y);
+    float3 sum = 0;
+    float denominator = 0;
+    uint base = slot * _GlxProbeRaysPerProbe;
+    [loop] for (uint i = 32u; i < _GlxProbeRaysPerProbe; ++i)
+    {
+        GlxProbePayload p = _GlxProbeResults[base + i];
+        if ((p.flags & GLX_HIT) == 0) continue; // no sky input in G2: unresolved carries no sample
+        if (!all(isfinite(p.radiance)) || any(p.radiance < 0)) continue;
+        float w = saturate(dot(normal, _GlxProbeRays[base + i].directionTMax.xyz));
+        if (w <= 0) continue;
+        sum += w * p.radiance;
+        denominator += w;
+    }
+    if (denominator <= 0) return;
+
+    uint2 texel = uint2((probe % PROBES_PER_ROW) * IRR_TILE + id.x, (probe / PROBES_PER_ROW) * IRR_TILE + id.y);
+    float3 current = PI * sum / denominator;
+    bool published = _GlxProbePublished[probe] != 0;
+    float3 value = published ? lerp(current, _GlxProbeIrrPrev[texel].rgb, _GlxProbePreviousWeight) : current;
+    if (!all(isfinite(value))) value = 0;
+    _GlxProbeIrrWrite[texel] = float4(value, 1);
+    InterlockedOr(_GlxProbeUpdated[probe], 1u);
+}
+
+[numthreads(DIST_TILE, DIST_TILE, 1)]
+void ProbeDistance(uint3 id : SV_DispatchThreadID)
+{
+    uint slot = id.z;
+    if (slot >= _GlxProbeBudget) return;
+    uint probe = _GlxProbeBatch[slot];
+    if (_GlxProbeData[probe].w <= 0.5) return;
+
+    int2 folded = GlxFold(DIST_INTERIOR, (int)id.x - 1, (int)id.y - 1);
+    float3 normal = GlxOctNormal(DIST_INTERIOR, folded.x, folded.y);
+    float sum = 0, sumSq = 0, denominator = 0;
+    uint base = slot * _GlxProbeRaysPerProbe;
+    [loop] for (uint i = 32u; i < _GlxProbeRaysPerProbe; ++i)
+    {
+        GlxProbePayload p = _GlxProbeResults[base + i];
+        if ((p.flags & GLX_HIT) == 0) continue;
+        float w = saturate(dot(normal, _GlxProbeRays[base + i].directionTMax.xyz));
+        if (w <= 0) continue;
+        float d = min(max(p.hitT, 0.0), _GlxProbeMomentCap);
+        sum += w * d;
+        sumSq += w * d * d;
+        denominator += w;
+    }
+    if (denominator <= 0) return;
+
+    uint2 texel = uint2((probe % PROBES_PER_ROW) * DIST_TILE + id.x, (probe / PROBES_PER_ROW) * DIST_TILE + id.y);
+    float2 current = float2(sum, sumSq) / denominator;
+    bool published = _GlxProbePublished[probe] != 0;
+    float2 value = published ? lerp(current, _GlxProbeDistPrev[texel], _GlxProbePreviousWeight) : current;
+    if (!all(isfinite(value))) value = 0;
+    _GlxProbeDistWrite[texel] = value;
+}
+
+// Reads only the fixed 32 maintenance rays, which return the shading normal in radiance.
+// This batch traced from the published offset/state; the result is consumed by the next batch.
+[numthreads(64, 1, 1)]
+void ProbeMaintain(uint3 id : SV_DispatchThreadID)
+{
+    uint slot = id.x;
+    if (slot >= _GlxProbeBudget) return;
+    uint probe = _GlxProbeBatch[slot];
+    float4 data = _GlxProbeData[probe];
+    float3 gridPosition = GlxGridPosition(probe);
+    float3 origin = gridPosition + data.xyz;
+
+    uint traced = 0, back = 0, front = 0;
+    bool frontWithinCell = false;
+    float minFront = 1e30;
+    float3 normalSum = 0, hitSum = 0, backNormalSum = 0;
+    uint base = slot * _GlxProbeRaysPerProbe;
+    [loop] for (uint i = 0u; i < 32u; ++i)
+    {
+        GlxProbePayload p = _GlxProbeResults[base + i];
+        if ((p.flags & GLX_HIT) == 0) continue;
+        float3 direction = _GlxProbeRays[base + i].directionTMax.xyz;
+        float3 normal = p.radiance;
+        if (dot(normal, normal) < 0.25) continue; // geometry shader misses a degenerate normal
+        normal = normalize(normal);
+        ++traced;
+        if (dot(normal, direction) > 0)
+        {
+            ++back; // ray leaves the surface: the probe is inside closed geometry
+            backNormalSum += normal;
+            continue;
+        }
+        ++front;
+        minFront = min(minFront, p.hitT);
+        if (p.hitT <= _GlxProbeSpacing) frontWithinCell = true;
+        normalSum += normal;
+        hitSum += origin + direction * p.hitT;
+    }
+
+    bool inside = _GlxProbeRelocate != 0 && traced > 0 && (float)back / (float)traced > _GlxProbeInsideBackface;
+    bool near = _GlxProbeRelocate != 0 && front > 0 && minFront < _GlxProbeMinFront;
+    float3 offset = data.xyz;
+    if (inside || near)
+    {
+        // Fully enclosed probes have no front hits; the average back-face normal points
+        // towards the nearest exit side and is the only usable push direction.
+        float3 normal = dot(normalSum, normalSum) > 0 ? normalize(normalSum)
+            : dot(backNormalSum, backNormalSum) > 0 ? normalize(backNormalSum) : float3(0, 1, 0);
+        float3 target = front > 0
+            ? (inside ? hitSum / (float)front + normal * 0.05
+                      : origin + normal * (_GlxProbeMinFront - minFront + 0.01))
+            : origin + normal * min(_GlxProbeSpacing * 0.25, _GlxProbeRelocationLimit);
+        offset = target - gridPosition;
+        float lengthOffset = length(offset);
+        if (lengthOffset > _GlxProbeRelocationLimit)
+            offset *= _GlxProbeRelocationLimit / lengthOffset;
+    }
+    else
+    {
+        offset = 0;
+    }
+
+    float state = data.w;
+    if (_GlxProbeClassify != 0) state = (!inside && frontWithinCell) ? 1.0 : 0.0;
+    _GlxProbeDataNext[probe] = float4(offset, state);
+}
+
+[numthreads(64, 1, 1)]
+void ProbePublishMask(uint3 id : SV_DispatchThreadID)
+{
+    uint slot = id.x;
+    if (slot >= _GlxProbeBudget) return;
+    uint probe = _GlxProbeBatch[slot];
+    _GlxProbePublishedNext[probe] = _GlxProbePublished[probe] | _GlxProbeUpdated[probe];
+}
+
+[numthreads(IRR_TILE, IRR_TILE, 1)]
+void ProbeReadbackIrr(uint3 id : SV_DispatchThreadID)
+{
+    uint2 texel = uint2((_GlxProbeReadbackProbe % PROBES_PER_ROW) * IRR_TILE + id.x,
+                        (_GlxProbeReadbackProbe / PROBES_PER_ROW) * IRR_TILE + id.y);
+    _GlxProbeReadbackIrr[id.y * IRR_TILE + id.x] = float4(_GlxProbeIrrPrev[texel].rgb, 1);
+}
+
+[numthreads(DIST_TILE, DIST_TILE, 1)]
+void ProbeReadbackDist(uint3 id : SV_DispatchThreadID)
+{
+    uint2 texel = uint2((_GlxProbeReadbackProbe % PROBES_PER_ROW) * DIST_TILE + id.x,
+                        (_GlxProbeReadbackProbe / PROBES_PER_ROW) * DIST_TILE + id.y);
+    float2 value = _GlxProbeDistPrev[texel];
+    _GlxProbeReadbackDist[id.y * DIST_TILE + id.x] = float4(value, 0, 0);
+}
+
+[numthreads(1, 1, 1)]
+void ProbeReadbackMeta(uint3 id : SV_DispatchThreadID)
+{
+    _GlxProbeReadbackMeta[0] = uint2(_GlxProbePublished[_GlxProbeReadbackProbe], _GlxProbeData[_GlxProbeReadbackProbe].w > 0.5 ? 1u : 0u);
+}

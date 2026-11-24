@@ -26,6 +26,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Range(0, 32768), Tooltip("Fixed ray dispatch width per eligible camera. Zero disables hardware reflection requests.")]
         internal int reflectionRayBudget = 32768;
 
+        [SerializeField, Tooltip("High Fidelity / Win64 DXR only. Update the scene probe cache from the shared RT scene as the SSGI diffuse fallback.")]
+        internal bool rayTracingProbeFallback = false;
+
         [SerializeField]
         [Tooltip("Intermediate resource view. Off leaves the final image unchanged.")]
         internal ScreenSpaceLightingDebugMode debugMode = ScreenSpaceLightingDebugMode.Off;
@@ -51,6 +54,10 @@ namespace UnityEngine.Rendering.Universal
                 UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64)
                 resources.rayTracingSsr = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.Rendering.RayTracingShader>(
                     "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace");
+            if (rayTracingProbeFallback && resources.rayTracingGi == null &&
+                UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64)
+                resources.rayTracingGi = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.Rendering.RayTracingShader>(
+                    "Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxProbeTrace.raytrace");
 #endif
             if (!resources.isComplete)
                 ScreenSpaceLightingResourceLocator.AssignDefaults(resources);
