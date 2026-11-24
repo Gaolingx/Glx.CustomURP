@@ -1,0 +1,20 @@
+{
+    "api": "Direct3D11",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Point-inactive",
+    "regions": [
+        {
+            "name": "feature-disabled-vs-volume-disabled-after-active",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.6963005065918,
+            "meanOnLuma": 35.6963005065918
+        }
+    ]
+}

@@ -1,0 +1,80 @@
+{
+    "api": "Direct3D11",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Main",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 279,
+            "darkened": 279,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 9.783163070678711
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 29.0
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.94468688964844,
+            "meanOnLuma": 35.94468688964844
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 49.453060150146487,
+            "meanOnLuma": 49.453060150146487
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 37.5487174987793,
+            "meanOnLuma": 37.5487174987793
+        }
+    ]
+}

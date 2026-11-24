@@ -6,6 +6,8 @@ namespace UnityEngine.Rendering.Universal
     {
         internal ScreenSpaceDepthPyramid depthPyramidSource { get; set; }
         internal RTHandle packedTexture { get; private set; }
+        // Valid only after this render's compute dispatch has been recorded.
+        internal bool packedReady { get; set; }
         internal RectInt traceMip => GetMipRect(1);
         internal RectInt confirmMip => GetMipRect(0);
         int m_Width, m_Height;
@@ -47,6 +49,7 @@ namespace UnityEngine.Rendering.Universal
 
         void ReleasePackedTexture()
         {
+            packedReady = false;
             RTHandles.Release(packedTexture);
             packedTexture = null;
         }

@@ -1,0 +1,20 @@
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/marker-disabled",
+    "regions": [
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.36043357849121,
+            "meanOnLuma": 29.36043357849121
+        }
+    ]
+}

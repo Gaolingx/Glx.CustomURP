@@ -51,6 +51,8 @@ public class ContactShadowValidationAssetTests
             Is.EqualTo(Load<ComputeShader>(Utils + "ScreenSpaceCommon/DepthPyramid.compute")));
         Assert.That(f.FindProperty("m_Resources.contactShadowsCompute").objectReferenceValue,
             Is.EqualTo(Load<ComputeShader>(Utils + "ContactShadows/ContactShadows.compute")));
+        Assert.That(f.FindProperty("m_Resources.debugShader").objectReferenceValue,
+            Is.EqualTo(Load<Shader>(Utils + "ContactShadows/ContactShadowDebug.shader")));
     }
 
     [Test]

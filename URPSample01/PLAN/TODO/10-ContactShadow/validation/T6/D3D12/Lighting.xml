@@ -1,0 +1,1710 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="20" result="Passed" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:15Z" duration="1.0650193">
+  <test-suite type="TestSuite" id="1000" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="66" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:15Z" duration="1.065019" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1055" name="Unity.ContactShadow.Tests.PlayMode.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.ContactShadow.Tests.PlayMode.dll" runstate="Runnable" testcasecount="20" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:15Z" duration="1.056558" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="67208" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1056" name="ContactShadowTests" fullname="ContactShadowTests" runstate="Runnable" testcasecount="20" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:15Z" duration="1.055623" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1057" name="PlayMode" fullname="ContactShadowTests.PlayMode" runstate="Runnable" testcasecount="20" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:15Z" duration="1.054866" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1025" name="ContactShadowDebugRenderTests" fullname="ContactShadowTests.PlayMode.ContactShadowDebugRenderTests" classname="ContactShadowTests.PlayMode.ContactShadowDebugRenderTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:14Z" duration="0.388171" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1027" name="ConsecutiveCamerasUseTheirOwnDebugImage" fullname="ContactShadowTests.PlayMode.ContactShadowDebugRenderTests.ConsecutiveCamerasUseTheirOwnDebugImage" methodname="ConsecutiveCamerasUseTheirOwnDebugImage" classname="ContactShadowTests.PlayMode.ContactShadowDebugRenderTests" runstate="Runnable" seed="1261595854" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:14Z" duration="0.317801" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[E:\GitHub\Glx.CustomURP\URPSample01\PLAN\TODO\10-ContactShadow\validation\T6\D3D12\Direct3D12\Debug\CameraA.png
+E:\GitHub\Glx.CustomURP\URPSample01\PLAN\TODO\10-ContactShadow\validation\T6\D3D12\Direct3D12\Debug\CameraB.png
+E:\GitHub\Glx.CustomURP\URPSample01\PLAN\TODO\10-ContactShadow\validation\T6\D3D12\Direct3D12\Debug\CameraBInactive.png
+]]></output>
+            </test-case>
+            <test-case id="1026" name="DebugModesDecodeTheSameContactPixels" fullname="ContactShadowTests.PlayMode.ContactShadowDebugRenderTests.DebugModesDecodeTheSameContactPixels" methodname="DebugModesDecodeTheSameContactPixels" classname="ContactShadowTests.PlayMode.ContactShadowDebugRenderTests" runstate="Runnable" seed="1616736739" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:14Z" duration="0.057690" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[E:\GitHub\Glx.CustomURP\URPSample01\PLAN\TODO\10-ContactShadow\validation\T6\D3D12\Direct3D12\Debug\Mask.png
+E:\GitHub\Glx.CustomURP\URPSample01\PLAN\TODO\10-ContactShadow\validation\T6\D3D12\Direct3D12\Debug\Fade.png
+E:\GitHub\Glx.CustomURP\URPSample01\PLAN\TODO\10-ContactShadow\validation\T6\D3D12\Direct3D12\Debug\Slot0.png
+E:\GitHub\Glx.CustomURP\URPSample01\PLAN\TODO\10-ContactShadow\validation\T6\D3D12\Direct3D12\Debug\Raw.png
+E:\GitHub\Glx.CustomURP\URPSample01\PLAN\TODO\10-ContactShadow\validation\T6\D3D12\Direct3D12\Debug\Slot1.png
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1028" name="ContactShadowDeferredLimitationTests" fullname="ContactShadowTests.PlayMode.ContactShadowDeferredLimitationTests" classname="ContactShadowTests.PlayMode.ContactShadowDeferredLimitationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:14Z" duration="0.138958" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1029" name="AdditionalShadowsDisabledOnPipeline" fullname="ContactShadowTests.PlayMode.ContactShadowDeferredLimitationTests.AdditionalShadowsDisabledOnPipeline" methodname="AdditionalShadowsDisabledOnPipeline" classname="ContactShadowTests.PlayMode.ContactShadowDeferredLimitationTests" runstate="Runnable" seed="1242053571" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:14Z" duration="0.078810" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[Shader warning in 'ClusterBuilder': use of potentially uninitialized variable (CdItemMinMaxZ) at kernel ClusterItemBounds at ClusterBuilder.compute(130) (on d3d11)
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/D10-asset-off-main",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 279,
+            "darkened": 279,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 9.783163070678711
+        },
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 393,
+            "darkened": 393,
+            "brightened": 0,
+            "meanOffLuma": 29.518667221069337,
+            "meanOnLuma": 29.302785873413087
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/D10-asset-off-point",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 16.456632614135743,
+            "meanOnLuma": 16.456632614135743
+        },
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.83761215209961,
+            "meanOnLuma": 35.83761215209961
+        }
+    ]
+}
+]]></output>
+            </test-case>
+            <test-case id="1030" name="ShadowlessPointCannotBorrowSpotsShadowVariant" fullname="ContactShadowTests.PlayMode.ContactShadowDeferredLimitationTests.ShadowlessPointCannotBorrowSpotsShadowVariant" methodname="ShadowlessPointCannotBorrowSpotsShadowVariant" classname="ContactShadowTests.PlayMode.ContactShadowDeferredLimitationTests" runstate="Runnable" seed="226501214" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:14Z" duration="0.057922" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/D10-point-casts",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 320,
+            "darkened": 320,
+            "brightened": 0,
+            "meanOffLuma": 30.806121826171876,
+            "meanOnLuma": 18.43622398376465
+        },
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 1222,
+            "darkened": 978,
+            "brightened": 0,
+            "meanOffLuma": 51.71934509277344,
+            "meanOnLuma": 51.45554733276367
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/D10-point-none-spot-casts",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 30.806121826171876,
+            "meanOnLuma": 30.806121826171876
+        },
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 51.71934509277344,
+            "meanOnLuma": 51.71934509277344
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/D10-spot-casts-point-none",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 320,
+            "darkened": 320,
+            "brightened": 0,
+            "meanOffLuma": 30.806121826171876,
+            "meanOnLuma": 18.538265228271486
+        },
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 1369,
+            "darkened": 1107,
+            "brightened": 0,
+            "meanOffLuma": 51.71934509277344,
+            "meanOnLuma": 51.49041748046875
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/D10-all-none",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 30.806121826171876,
+            "meanOnLuma": 30.806121826171876
+        },
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 51.71934509277344,
+            "meanOnLuma": 51.71934509277344
+        }
+    ]
+}
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1031" name="ContactShadowIntegrationTests" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:15Z" duration="0.393284" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1047" name="BaselineScene" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.BaselineScene" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:15Z" duration="0.123152" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <test-case id="1044" name="BaselineScene(Forward)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.BaselineScene(Forward)" methodname="BaselineScene" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="1805255589" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:14Z" duration="0.036004" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Baseline",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 321,
+            "darkened": 321,
+            "brightened": 0,
+            "meanOffLuma": 57.3979606628418,
+            "meanOnLuma": 13.862244606018067
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 105.48979949951172,
+            "meanOnLuma": 105.48979949951172
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 39.9358024597168,
+            "meanOnLuma": 39.9358024597168
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 65.4441146850586,
+            "meanOnLuma": 65.4441146850586
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 37.5487174987793,
+            "meanOnLuma": 37.5487174987793
+        }
+    ]
+}
+]]></output>
+              </test-case>
+              <test-case id="1045" name="BaselineScene(ForwardPlus)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.BaselineScene(ForwardPlus)" methodname="BaselineScene" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="574051498" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:14Z" duration="0.053341" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/Baseline",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 321,
+            "darkened": 321,
+            "brightened": 0,
+            "meanOffLuma": 57.3979606628418,
+            "meanOnLuma": 13.862244606018067
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 105.48979949951172,
+            "meanOnLuma": 105.48979949951172
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 39.9358024597168,
+            "meanOnLuma": 39.9358024597168
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 65.4441146850586,
+            "meanOnLuma": 65.4441146850586
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 37.5487174987793,
+            "meanOnLuma": 37.5487174987793
+        }
+    ]
+}
+]]></output>
+              </test-case>
+              <test-case id="1046" name="BaselineScene(Deferred)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.BaselineScene(Deferred)" methodname="BaselineScene" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="1317176045" result="Passed" start-time="2026-11-24 06:04:14Z" end-time="2026-11-24 06:04:15Z" duration="0.032107" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/Baseline",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 321,
+            "darkened": 321,
+            "brightened": 0,
+            "meanOffLuma": 57.77806091308594,
+            "meanOnLuma": 13.915816307067871
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 106.2551040649414,
+            "meanOnLuma": 106.2551040649414
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 40.47015380859375,
+            "meanOnLuma": 40.47015380859375
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 65.4441146850586,
+            "meanOnLuma": 65.4441146850586
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 37.5487174987793,
+            "meanOnLuma": 37.5487174987793
+        }
+    ]
+}
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1035" name="Main" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Main" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.087054" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <test-case id="1032" name="Main(Forward)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Main(Forward)" methodname="Main" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="693644511" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.027494" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Main",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 279,
+            "darkened": 279,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 9.783163070678711
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 29.0
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.94468688964844,
+            "meanOnLuma": 35.94468688964844
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 49.453060150146487,
+            "meanOnLuma": 49.453060150146487
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 37.5487174987793,
+            "meanOnLuma": 37.5487174987793
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Main-inactive",
+    "regions": [
+        {
+            "name": "feature-disabled-vs-volume-disabled-after-active",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.36043357849121,
+            "meanOnLuma": 29.36043357849121
+        }
+    ]
+}
+]]></output>
+              </test-case>
+              <test-case id="1033" name="Main(ForwardPlus)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Main(ForwardPlus)" methodname="Main" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="256045572" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.029832" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/Main",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 279,
+            "darkened": 279,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 9.783163070678711
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 29.0
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.94468688964844,
+            "meanOnLuma": 35.94468688964844
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 49.453060150146487,
+            "meanOnLuma": 49.453060150146487
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 37.5487174987793,
+            "meanOnLuma": 37.5487174987793
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/Main-inactive",
+    "regions": [
+        {
+            "name": "feature-disabled-vs-volume-disabled-after-active",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.36043357849121,
+            "meanOnLuma": 29.36043357849121
+        }
+    ]
+}
+]]></output>
+              </test-case>
+              <test-case id="1034" name="Main(Deferred)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Main(Deferred)" methodname="Main" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="141835540" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.028496" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/Main",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 279,
+            "darkened": 279,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 9.783163070678711
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 29.0
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 36.157222747802737,
+            "meanOnLuma": 36.157222747802737
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 49.453060150146487,
+            "meanOnLuma": 49.453060150146487
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 37.5487174987793,
+            "meanOnLuma": 37.5487174987793
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/Main-inactive",
+    "regions": [
+        {
+            "name": "feature-disabled-vs-volume-disabled-after-active",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.518667221069337,
+            "meanOnLuma": 29.518667221069337
+        }
+    ]
+}
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1039" name="Point" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Point" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.087104" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <test-case id="1036" name="Point(Forward)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Point(Forward)" methodname="Point" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="1678200359" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.027166" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Point",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 320,
+            "darkened": 320,
+            "brightened": 0,
+            "meanOffLuma": 16.400510787963868,
+            "meanOnLuma": 4.0790815353393559
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 40.47193908691406,
+            "meanOnLuma": 40.47193908691406
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 4.757184982299805,
+            "meanOnLuma": 4.757184982299805
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 13.475556373596192,
+            "meanOnLuma": 13.475556373596192
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 8.978020668029786,
+            "meanOnLuma": 8.978020668029786
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Point-inactive",
+    "regions": [
+        {
+            "name": "feature-disabled-vs-volume-disabled-after-active",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.6963005065918,
+            "meanOnLuma": 35.6963005065918
+        }
+    ]
+}
+]]></output>
+              </test-case>
+              <test-case id="1037" name="Point(ForwardPlus)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Point(ForwardPlus)" methodname="Point" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="1390890580" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.029951" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/Point",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 320,
+            "darkened": 320,
+            "brightened": 0,
+            "meanOffLuma": 16.400510787963868,
+            "meanOnLuma": 4.0790815353393559
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 40.47193908691406,
+            "meanOnLuma": 40.47193908691406
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 4.757184982299805,
+            "meanOnLuma": 4.757184982299805
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 13.475556373596192,
+            "meanOnLuma": 13.475556373596192
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 8.978020668029786,
+            "meanOnLuma": 8.978020668029786
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/Point-inactive",
+    "regions": [
+        {
+            "name": "feature-disabled-vs-volume-disabled-after-active",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.6963005065918,
+            "meanOnLuma": 35.6963005065918
+        }
+    ]
+}
+]]></output>
+              </test-case>
+              <test-case id="1038" name="Point(Deferred)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Point(Deferred)" methodname="Point" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="1087825277" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.028859" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/Point",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 320,
+            "darkened": 320,
+            "brightened": 0,
+            "meanOffLuma": 16.456632614135743,
+            "meanOnLuma": 4.0790815353393559
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 40.71428680419922,
+            "meanOnLuma": 40.71428680419922
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 4.890652179718018,
+            "meanOnLuma": 4.890652179718018
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 13.475556373596192,
+            "meanOnLuma": 13.475556373596192
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 8.978020668029786,
+            "meanOnLuma": 8.978020668029786
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/Point-inactive",
+    "regions": [
+        {
+            "name": "feature-disabled-vs-volume-disabled-after-active",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.83761215209961,
+            "meanOnLuma": 35.83761215209961
+        }
+    ]
+}
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1043" name="Spot" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Spot" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.094234" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <test-case id="1040" name="Spot(Forward)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Spot(Forward)" methodname="Spot" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="274347537" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.027864" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Spot",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 320,
+            "darkened": 320,
+            "brightened": 0,
+            "meanOffLuma": 16.31122398376465,
+            "meanOnLuma": 4.0790815353393559
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 40.01785659790039,
+            "meanOnLuma": 40.01785659790039
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 4.688840389251709,
+            "meanOnLuma": 4.688840389251709
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 12.923104286193848,
+            "meanOnLuma": 12.923104286193848
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 8.978020668029786,
+            "meanOnLuma": 8.978020668029786
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Spot-inactive",
+    "regions": [
+        {
+            "name": "feature-disabled-vs-volume-disabled-after-active",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 28.986360549926759,
+            "meanOnLuma": 28.986360549926759
+        }
+    ]
+}
+]]></output>
+              </test-case>
+              <test-case id="1041" name="Spot(ForwardPlus)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Spot(ForwardPlus)" methodname="Spot" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="976619268" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.029790" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/Spot",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 320,
+            "darkened": 320,
+            "brightened": 0,
+            "meanOffLuma": 16.31122398376465,
+            "meanOnLuma": 4.0790815353393559
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 40.01785659790039,
+            "meanOnLuma": 40.01785659790039
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 4.688840389251709,
+            "meanOnLuma": 4.688840389251709
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 12.923104286193848,
+            "meanOnLuma": 12.923104286193848
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 8.978020668029786,
+            "meanOnLuma": 8.978020668029786
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/Spot-inactive",
+    "regions": [
+        {
+            "name": "feature-disabled-vs-volume-disabled-after-active",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 28.986360549926759,
+            "meanOnLuma": 28.986360549926759
+        }
+    ]
+}
+]]></output>
+              </test-case>
+              <test-case id="1042" name="Spot(Deferred)" fullname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests.Spot(Deferred)" methodname="Spot" classname="ContactShadowTests.PlayMode.ContactShadowIntegrationTests" runstate="Runnable" seed="164016549" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.035440" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/Spot",
+    "regions": [
+        {
+            "name": "ground-behind-blocker",
+            "x": 115,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 320,
+            "darkened": 320,
+            "brightened": 0,
+            "meanOffLuma": 16.354591369628908,
+            "meanOnLuma": 4.0790815353393559
+        },
+        {
+            "name": "ground-light-facing",
+            "x": 157,
+            "y": 123,
+            "width": 28,
+            "height": 14,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 40.242347717285159,
+            "meanOnLuma": 40.242347717285159
+        },
+        {
+            "name": "ReceiverOff",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 4.726438045501709,
+            "meanOnLuma": 4.726438045501709
+        },
+        {
+            "name": "Transparent",
+            "x": 77,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 12.923104286193848,
+            "meanOnLuma": 12.923104286193848
+        },
+        {
+            "name": "BakedLit",
+            "x": 137,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 5.716418743133545,
+            "meanOnLuma": 5.716418743133545
+        },
+        {
+            "name": "Custom",
+            "x": 197,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 8.978020668029786,
+            "meanOnLuma": 8.978020668029786
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/Spot-inactive",
+    "regions": [
+        {
+            "name": "feature-disabled-vs-volume-disabled-after-active",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.091402053833009,
+            "meanOnLuma": 29.091402053833009
+        }
+    ]
+}
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1048" name="ContactShadowReceiveShadowsTests" fullname="ContactShadowTests.PlayMode.ContactShadowReceiveShadowsTests" classname="ContactShadowTests.PlayMode.ContactShadowReceiveShadowsTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.082066" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1052" name="MaterialSwitchControlsSameReceiver" fullname="ContactShadowTests.PlayMode.ContactShadowReceiveShadowsTests.MaterialSwitchControlsSameReceiver" classname="ContactShadowTests.PlayMode.ContactShadowReceiveShadowsTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.081020" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <test-case id="1049" name="MaterialSwitchControlsSameReceiver(Forward)" fullname="ContactShadowTests.PlayMode.ContactShadowReceiveShadowsTests.MaterialSwitchControlsSameReceiver(Forward)" methodname="MaterialSwitchControlsSameReceiver" classname="ContactShadowTests.PlayMode.ContactShadowReceiveShadowsTests" runstate="Runnable" seed="808305988" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.026038" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Receive-False",
+    "regions": [
+        {
+            "name": "receiver-under-its-own-blocker",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.94468688964844,
+            "meanOnLuma": 35.94468688964844
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/Receive-True",
+    "regions": [
+        {
+            "name": "receiver-under-its-own-blocker",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 174,
+            "darkened": 174,
+            "brightened": 0,
+            "meanOffLuma": 28.362499237060548,
+            "meanOnLuma": 9.149999618530274
+        }
+    ]
+}
+]]></output>
+              </test-case>
+              <test-case id="1050" name="MaterialSwitchControlsSameReceiver(ForwardPlus)" fullname="ContactShadowTests.PlayMode.ContactShadowReceiveShadowsTests.MaterialSwitchControlsSameReceiver(ForwardPlus)" methodname="MaterialSwitchControlsSameReceiver" classname="ContactShadowTests.PlayMode.ContactShadowReceiveShadowsTests" runstate="Runnable" seed="412321981" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.026942" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/Receive-False",
+    "regions": [
+        {
+            "name": "receiver-under-its-own-blocker",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 35.94468688964844,
+            "meanOnLuma": 35.94468688964844
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "ForwardPlus/Receive-True",
+    "regions": [
+        {
+            "name": "receiver-under-its-own-blocker",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 174,
+            "darkened": 174,
+            "brightened": 0,
+            "meanOffLuma": 28.362499237060548,
+            "meanOnLuma": 9.149999618530274
+        }
+    ]
+}
+]]></output>
+              </test-case>
+              <test-case id="1051" name="MaterialSwitchControlsSameReceiver(Deferred)" fullname="ContactShadowTests.PlayMode.ContactShadowReceiveShadowsTests.MaterialSwitchControlsSameReceiver(Deferred)" methodname="MaterialSwitchControlsSameReceiver" classname="ContactShadowTests.PlayMode.ContactShadowReceiveShadowsTests" runstate="Runnable" seed="834925780" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.026677" asserts="0">
+                <properties />
+                <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/Receive-False",
+    "regions": [
+        {
+            "name": "receiver-under-its-own-blocker",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 36.157222747802737,
+            "meanOnLuma": 36.157222747802737
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Deferred/Receive-True",
+    "regions": [
+        {
+            "name": "receiver-under-its-own-blocker",
+            "x": 17,
+            "y": 54,
+            "width": 24,
+            "height": 10,
+            "changedRGBA": 174,
+            "darkened": 174,
+            "brightened": 0,
+            "meanOffLuma": 29.0,
+            "meanOnLuma": 9.425000190734864
+        }
+    ]
+}
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1053" name="ContactShadowRuntimeToggleTests" fullname="ContactShadowTests.PlayMode.ContactShadowRuntimeToggleTests" classname="ContactShadowTests.PlayMode.ContactShadowRuntimeToggleTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.050164" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1054" name="MarkerVolumeFeatureAndNextCameraDoNotLeak" fullname="ContactShadowTests.PlayMode.ContactShadowRuntimeToggleTests.MarkerVolumeFeatureAndNextCameraDoNotLeak" methodname="MarkerVolumeFeatureAndNextCameraDoNotLeak" classname="ContactShadowTests.PlayMode.ContactShadowRuntimeToggleTests" runstate="Runnable" seed="931849611" result="Passed" start-time="2026-11-24 06:04:15Z" end-time="2026-11-24 06:04:15Z" duration="0.049112" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/marker-disabled",
+    "regions": [
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.36043357849121,
+            "meanOnLuma": 29.36043357849121
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/marker-restored",
+    "regions": [
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.14455223083496,
+            "meanOnLuma": 29.14455223083496
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/feature-disabled",
+    "regions": [
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.36043357849121,
+            "meanOnLuma": 29.36043357849121
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/feature-restored",
+    "regions": [
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.14455223083496,
+            "meanOnLuma": 29.14455223083496
+        }
+    ]
+}
+{
+    "api": "Direct3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "unity": "2022.3.62f1",
+    "comparison": "Forward/volume-disabled",
+    "regions": [
+        {
+            "name": "whole-frame",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 192,
+            "changedRGBA": 0,
+            "darkened": 0,
+            "brightened": 0,
+            "meanOffLuma": 29.36043357849121,
+            "meanOnLuma": 29.36043357849121
+        }
+    ]
+}
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

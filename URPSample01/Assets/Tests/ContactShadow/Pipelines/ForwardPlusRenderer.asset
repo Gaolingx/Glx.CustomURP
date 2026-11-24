@@ -89,4 +89,4 @@ MonoBehaviour:
   m_Resources:
     depthPyramidCompute: {fileID: 7200000, guid: e0af0549a8ee5484f995fb60630c4558, type: 3}
     contactShadowsCompute: {fileID: 7200000, guid: 420607891eaaa67449698b0a249c77a2, type: 3}
-    debugShader: {fileID: 0}
+    debugShader: {fileID: 4800000, guid: 8de19b40f8254bbd930680e22d47fd63, type: 3}

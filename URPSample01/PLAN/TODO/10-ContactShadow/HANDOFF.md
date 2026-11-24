@@ -1,6 +1,6 @@
 # 10-ContactShadow 交接：HDRP Contact Shadows 调研与 URP 包内 Renderer Feature 迁移计划
 
-> 状态：**T0、T1、T3、T4、T7、T5 已通过；T2 资源门禁通过，Frame Debugger 取证 PARTIAL；下一步 T6 清理、Inspector 与 Debug**（[T2 证据](#t2-evidence)、[T3 单灯 GPU 验收](#t3-evidence)、[T4 逐灯映射](#t4-evidence)）。已核验 [Feature Inspector](validation/T1/T1_FeatureInspector.png)、[Volume Inspector](validation/T1/T1_VolumeInspector.png) 和 [Light Inspector](validation/T1/T1_LightInspector.png)。T1：[菜单添加、移除与域重载 3/3](validation/T1/EditMode.xml)、[序列化引用](validation/T1/FeatureImport.json)、[既有 EditMode 184/184](validation/T1/Regression.xml)、[PlayMode 6/6](validation/T1/PlayMode.xml)。临时资产已删除；尚未接入 Compute。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
+> 状态：**T0、T1、T3、T4、T7、T5、T6 已通过；T2 资源门禁通过，Frame Debugger 取证 PARTIAL；下一步 T8 矩阵、Player 与性能回归**（[T2 证据](#t2-evidence)、[T3 单灯 GPU 验收](#t3-evidence)、[T4 逐灯映射](#t4-evidence)）。已核验 [Feature Inspector](validation/T1/T1_FeatureInspector.png)、[Volume Inspector](validation/T1/T1_VolumeInspector.png) 和 [Light Inspector](validation/T1/T1_LightInspector.png)。T1：[菜单添加、移除与域重载 3/3](validation/T1/EditMode.xml)、[序列化引用](validation/T1/FeatureImport.json)、[既有 EditMode 184/184](validation/T1/Regression.xml)、[PlayMode 6/6](validation/T1/PlayMode.xml)。临时资产已删除；尚未接入 Compute。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
 > **2026-11-24 所有者修订（优先于下方旧 stencil 描述）**：本 fork 的 Deferred 是聚类 compute，不存在 stencil 路径。T7 只接受真实 `renderingModeActual`，不接受 Forward fallback。T5 允许在 `Shadows.hlsl` 外最少量修改聚类 Deferred shader；仍不修改已有核心 C#、不加材质关键字。D10 对本 fork 按“Asset 允许附加阴影且该灯有有效阴影切片”执行，主光不限；不引入 T10。
 > 建立：2026-11-19
 > 基线：`cedd1bb`（Run SSR approximation at half resolution when enabled）
@@ -1129,7 +1129,7 @@ T8 ─> T9 文档/清理/归档
   - debug 模式 Mask/Fade/Slot/Raw 可用；DebugPass 在 `Execute` 时按当前相机取 per-camera RT 句柄，多相机 debug 图不串帧；
   - 多相机连续渲染不串状态；Inactive 相机依赖上一 Active 相机的 Cleanup；
   - Feature 资产中 compute/shader/depthPyramidCompute 引用均已序列化，Inspector 无 missing。
-- **证据**：`ContactShadowCleanupTests`；debug PNG；Feature 资产序列化检查。
+- **实测通过**：缺 Compute 的 Active 相机仍清理；连续相机不串状态；三种 Renderer 资产的三个 Shader 引用均可解析。[D3D11 EditMode](validation/T6/D3D11/EditMode.xml) / [D3D12 EditMode](validation/T6/D3D12/EditMode.xml) 各 89/89；[D3D11 画面对照](validation/T6/D3D11/Lighting.xml) / [D3D12 画面对照](validation/T6/D3D12/Lighting.xml) 各 20/20，包含 Mask/Fade/Slot/Raw 像素校验与同帧 A→B→A。[D3D11 调试 PNG](validation/T6/D3D11/Direct3D11/Debug/) / [D3D12 调试 PNG](validation/T6/D3D12/Direct3D12/Debug/)。
 - **依赖**：T5。
 
 #### T7 验证资产（矩阵执行归 T8）

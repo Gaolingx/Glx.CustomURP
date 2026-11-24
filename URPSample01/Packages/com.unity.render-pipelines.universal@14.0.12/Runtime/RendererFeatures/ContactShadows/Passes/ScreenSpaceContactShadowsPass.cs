@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal
         internal void Setup(ContactShadowsVolume volume, ScreenSpaceContactShadowsHistory history, ComputeShader compute)
         {
             m_History = history;
+            history.packedReady = false;
             if (m_Compute != compute)
             {
                 m_Compute = compute;
@@ -85,6 +86,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeVectorArrayParam(m_Compute, IDs.cameraPosWS, m_CameraPosition);
                 cmd.DispatchCompute(m_Compute, m_Kernel, (width + 7) / 8, (height + 7) / 8, atlas.viewCount);
 
+                m_History.packedReady = true;
                 cmd.SetGlobalTexture(IDs.texture, output);
                 cmd.SetGlobalFloat(IDs.opacity, m_Opacity);
                 cmd.SetGlobalInteger(IDs.mainLightMask, (int)m_LightData.mainMask);

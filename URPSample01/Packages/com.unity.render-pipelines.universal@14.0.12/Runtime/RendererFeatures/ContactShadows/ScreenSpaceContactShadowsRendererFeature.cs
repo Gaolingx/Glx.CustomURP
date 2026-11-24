@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceContactShadowLights m_Lights;
         ScreenSpaceContactShadowsPass m_Pass;
         ScreenSpaceContactShadowsCleanupPass m_Cleanup;
+        ScreenSpaceContactShadowsDebugPass m_Debug;
         bool m_LoggedMissingResources, m_LoggedUnsupported;
         ScreenSpaceCapabilityResult m_Platform;
 
@@ -80,10 +81,18 @@ namespace UnityEngine.Rendering.Universal
             history.depthPyramidSource = pyramid;
             m_Pass.Setup(volume, history, m_Resources.contactShadowsCompute);
             renderer.EnqueuePass(m_Pass);
+            if (m_Settings.debugMode != ContactShadowDebugMode.Off && m_Resources.debugShader != null && m_Resources.debugShader.isSupported)
+            {
+                m_Debug ??= new ScreenSpaceContactShadowsDebugPass(this);
+                m_Debug.Setup(m_Resources.debugShader, m_Settings.debugMode, m_Settings.debugSlot);
+                renderer.EnqueuePass(m_Debug);
+            }
         }
 
         protected override void Dispose(bool disposing)
         {
+            m_Debug?.Dispose();
+            m_Debug = null;
             m_Histories?.Dispose();
             m_Histories = null;
             m_Pass?.Dispose();
