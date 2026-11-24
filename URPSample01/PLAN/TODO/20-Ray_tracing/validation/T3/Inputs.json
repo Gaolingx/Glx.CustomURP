@@ -1,0 +1,41 @@
+{
+  "base": "676f003edfca1d2541891139e610e76f2584f03c",
+  "archivePaths": [
+    "Packages",
+    "ProjectSettings/ProjectVersion.txt",
+    "ProjectSettings/ProjectSettings.asset",
+    "ProjectSettings/GraphicsSettings.asset",
+    "ProjectSettings/QualitySettings.asset",
+    "Assets/Settings",
+    "Assets/Settings.meta",
+    "Assets/UniversalRenderPipelineGlobalSettings.asset",
+    "Assets/UniversalRenderPipelineGlobalSettings.asset.meta"
+  ],
+  "archiveSha256": "4819b5f05e7f33beef19c03e38b56410171e62e7babd89d1208dbc0b64ff128e",
+  "runnerSha256": "087bd22a58704ea4d68840c42f73ebfd602ba8702d01fa70dfea0f00736aca37",
+  "overlaidAndGeneratedSha256": {
+    "Packages/manifest.json": "3e0473682b97cd5c31269e75f225f78319856138673fac2a8d5b752381870f64",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing.meta": "929ad27ab4fa7fb2c621e7b9c53849f20b19dba57370d005a82b08ee700e65f2",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicHit.raytrace": "2459bfe71826b15280ef7ea9538951c855dd872b4aef71e18e42fe827db058b0",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicHit.raytrace.meta": "6da314b1f89a22d05d137e85555e100f6f8967cf521dc786eca51c5db4d63415",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicHit.shader": "b2233bb9e199289780190c629e93c8c98a9bd0b14850f9402e3a9f9334dfbb8a",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicHit.shader.meta": "d1ef4667747989b5766bc54778c2402207b2ce18cf78439a0143d1d247280cdb",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicPayload.hlsl": "a64aab68a01b0f032d1f3ec9b5c45df06baed1c748fd07f25c6c34e194456cac",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicPayload.hlsl.meta": "2ad9d29d5826bf2a28079152ff90ecfe7ef065c7c26305f3380a019f81f104ab",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing.meta": "b33c16f4dd90d704d7f2296cd773344711ac45d18417386fc4512b7393a4af2a",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/GlxBasicHitTrace.cs": "6a2c0a91a4f3a117ffba8b64dc37e80c3a21a220377556fa3b6c1900d8513431",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/GlxBasicHitTrace.cs.meta": "937641cba4fff90469adc91dacd64790585c76f19a4e3f67f695c7b2312b3a30",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneGate.cs": "3a13cdbd4802e52fe56308591aedff7909f5922ba061ceded93dda30661433bb",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneGate.cs.meta": "481bccfcf74e92fa006d4adc44fca44d59635eeabcce6d8c7cff4d40b28e8352",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneInstances.cs": "9bfc32583f683548c5eca2cf1660616eff413a07f2d3836ea22966ac12a67962",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneInstances.cs.meta": "4e6ef57cd1b07e355696cfae4074ccb67870f151eb5aaa5d1fad3ce4da15668d",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneResources.cs": "ed2cf25ea84dd7159c5379392a40994914470f3b6374ccf548cd98e1567507a5",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneResources.cs.meta": "409c80a5652a60cd855f76c21e2ca9b1172769481e304631654a5a85fff36da8",
+    "Assets/Fixture/T3.asmdef": "ef74846adb96c3e49f043e90bcfe0d0f0f57fc6a9b9bb95bb7df59389d173454",
+    "Assets/Fixture/T3Player.cs": "07a3bdb653d75dfbe8c72b35774e38e46bd9b53de676f7dc98342143751d968e"
+  },
+  "shader": "Hidden/Universal Render Pipeline/GlxBasicHit",
+  "pass": "GlxDXR",
+  "shaderStripperBypass": false,
+  "retention": "Baseline URP GraphicsSettings, QualitySettings, renderers and global stripping settings; no fixture callback restores variants."
+}

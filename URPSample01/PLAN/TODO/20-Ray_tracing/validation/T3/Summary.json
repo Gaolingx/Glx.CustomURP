@@ -1,0 +1,13 @@
+{
+  "stage": "W3/T3 passed: isolated Win64 Development Player, Unity 2022.3.62f1, embedded URP 14.0.12, GeForce RTX 5060 Ti",
+  "sameBuildGuid": "3de1cbc6da564b73ad508f2c09f0e70a",
+  "reports": ["Inputs.json", "Player-D3D11.json", "Player-D3D12.json"],
+  "rerun": "From this directory: python -B run.py --scratch-parent E:/tmp --out E:/tmp/T3-fresh --keep. Use an empty output directory. UNITY_EDITOR can override the 2022.3.62f1 executable.",
+  "stripping": "Build.log: Hidden/Universal Render Pipeline/GlxBasicHit, GlxDXR (rs): full=1, after settings=1, after built-in=1, after scriptable=1. Baseline URP settings, no variant restoration hook.",
+  "geometry": "Three XY receiver triangles at z=4 (emitter, white diffuse, black) and one small opaque triangle at z=2, x=1.5. Primary rays never cross the blocker. The secondary ray from white center to the directional light crosses the blocker; the ray from y=-0.7 does not.",
+  "reference": "Linear RGB, unit exposure, no camera shading or GI/SSR. Outgoing = emission + albedo * lightRgb * max(0,N.L) / pi when visible. N.L=0.8, lightRgb=(3,2,1). Blocker disables only the direct term. Nonfinite, distance, status and each channel checked independently.",
+  "d3d12": {"vectorsPassed":18,"buildSubmissions":2,"dispatchSubmissions":3,"measuredGpuBlocks":3,"nonFiniteComponents":0,"maxAbsDistanceErrorMeters":0,"maxChannelRelativeError":0.000234418,"b0MaxChannelRelativeError":0.03,"buffersAllocatedAndReleased":2,"retainedSceneResources":0},
+  "d3d11": "Opt-in disabled and enabled controls: zero RTAS, zero ray buffers, zero builds and zero dispatches. Not a claim that the whole Player allocates nothing.",
+  "binding": "First build: CHS read the expected normal and material emission but read zero direction/light RGB from loose raygen shader parameters; six white-board vectors failed. The one directional sample now travels on the incoming leg of the 24-byte payload (XY direction FP16, Z and RGB FP32); CHS and miss overwrite it with the specified result ABI. No global binding or enlarged payload.",
+  "limits": "Explicit known rays, solid opaque materials, geometric face normal, both masks fixed to 0xff, one directional light and at most one shadow ray per primary hit. No Lit textures, cutout, scene light list, GI/SSR integration, console or release build claim. Three GPU marker blocks are execution evidence only; profiler warned of unstable power state. Blocking readback, no performance or VRAM claim."
+}

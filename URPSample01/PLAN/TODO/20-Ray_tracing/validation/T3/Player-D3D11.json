@@ -1,0 +1,146 @@
+{
+  "guid": "3de1cbc6da564b73ad508f2c09f0e70a",
+  "api": "Direct3D11",
+  "adapter": "NVIDIA GeForce RTX 5060 Ti",
+  "driver": "Direct3D 11.0 [level 11.1]",
+  "colorSpace": "Linear",
+  "error": "",
+  "development": true,
+  "supportsRayTracing": false,
+  "passed": true,
+  "toLight": {
+    "x": 0.6000000238418579,
+    "y": 0.0,
+    "z": -0.800000011920929
+  },
+  "lightRgb": {
+    "x": 3.0,
+    "y": 2.0,
+    "z": 1.0
+  },
+  "nDotL": 0.800000011920929,
+  "rgbTolerance": 0.029999999329447746,
+  "tToleranceMeters": 0.0010000000474974513,
+  "materials": [
+    {
+      "renderer": "White diffuse",
+      "shader": "Hidden/Universal Render Pipeline/GlxBasicHit",
+      "emission": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "albedo": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0,
+        "w": 0.0
+      },
+      "pass": -1,
+      "queue": 2000
+    },
+    {
+      "renderer": "Emission only",
+      "shader": "Hidden/Universal Render Pipeline/GlxBasicHit",
+      "emission": {
+        "x": 2.0,
+        "y": 0.5,
+        "z": 0.125,
+        "w": 0.0
+      },
+      "albedo": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "pass": -1,
+      "queue": 2000
+    },
+    {
+      "renderer": "Valid black",
+      "shader": "Hidden/Universal Render Pipeline/GlxBasicHit",
+      "emission": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "albedo": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "pass": -1,
+      "queue": 2000
+    },
+    {
+      "renderer": "Secondary blocker",
+      "shader": "Hidden/Universal Render Pipeline/GlxBasicHit",
+      "emission": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "albedo": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "pass": -1,
+      "queue": 2000
+    }
+  ],
+  "gates": [
+    {
+      "name": "Disabled",
+      "decision": "Off",
+      "accepted": false,
+      "hasSnapshot": false,
+      "builds": 0,
+      "instances": 0,
+      "liveResources": 0,
+      "buffersAllocated": 0,
+      "submittedDispatches": 0
+    },
+    {
+      "name": "D3D11 opt-in",
+      "decision": "Backend",
+      "accepted": false,
+      "hasSnapshot": false,
+      "builds": 0,
+      "instances": 0,
+      "liveResources": 0,
+      "buffersAllocated": 0,
+      "submittedDispatches": 0
+    }
+  ],
+  "vectors": [],
+  "buildCount": 0,
+  "instancesWithBlocker": 0,
+  "instancesWithoutBlocker": 0,
+  "buffersAllocated": 0,
+  "buffersReleased": 0,
+  "submittedDispatches": 0,
+  "submittedRequests": 0,
+  "failedVectors": 0,
+  "nonFiniteComponents": 0,
+  "liveSceneResourcesAfterRelease": 0,
+  "subscribersAfterRelease": 0,
+  "instancesAfterRelease": 0,
+  "released": true,
+  "marker": "Glx Basic Hit Trace",
+  "markerNote": "No dispatch requested.",
+  "markerGpuBlocks": 0,
+  "markerGpuMs": 0.0,
+  "gpuTimingMeasured": false,
+  "exitCode": 0,
+  "base": "676f003edfca1d2541891139e610e76f2584f03c",
+  "expectedApi": "Direct3D11",
+  "validationErrors": [],
+  "inputsSha256": "8c78abc059e91e083b08b5f9c19a46cf985187b293b73c5bad367cdf5f30e751"
+}

@@ -104,7 +104,9 @@ T,G,R 全绿 ── I1 ── I2
 
 **W2 / T2 通过（显式登记的静态及刚体网格）**：[范围、复跑与限制](validation/T2/Summary.json)。同一 Development Player 在 D3D11 拒绝创建资源；[D3D12 的 25 条解析对照](validation/T2/verified/Player-D3D12.json)验证离屏、移动、mask、绕序和盒内背面。12 个 revision 共 11 次 Build，同 revision 跨相机及仅灯光变化不重复 Build。独立保留测试命中 pass，不等于生产材质变体已验证。
 
-**W2 / R1 通过（半分辨率不透明 SSR 的请求阶段）**：[D3D11](validation/R1/D3D11/Summary.json)、[D3D12](validation/R1/D3D12/Summary.json) 各 6/6。无历史时从当前深度/法线生成候选，有历史时在邻域填洞前分类；混合图样 135 个合格样本、126 个请求、11 个入队、115 个未服务。`K=0` 无分配/派发。`served` 仅表示占有队列槽，不表示射线命中；预通道无材质/实例 ID，显式记未知。默认关闭路径的 [D3D11 Editor T12](validation/R1/D3D11/OffRegression.json) 为 103/103，85 个采样哈希与 B0 相同。未改变默认资产，不包含 R2 射线、生产相机级 DXR 或完整 Player 画面验收。下一波为 W3/T3。
+**W2 / R1 通过（半分辨率不透明 SSR 的请求阶段）**：[D3D11](validation/R1/D3D11/Summary.json)、[D3D12](validation/R1/D3D12/Summary.json) 各 6/6。无历史时从当前深度/法线生成候选，有历史时在邻域填洞前分类；混合图样 135 个合格样本、126 个请求、11 个入队、115 个未服务。`K=0` 无分配/派发。`served` 仅表示占有队列槽，不表示射线命中；预通道无材质/实例 ID，显式记未知。默认关闭路径的 [D3D11 Editor T12](validation/R1/D3D11/OffRegression.json) 为 103/103，85 个采样哈希与 B0 相同。未改变默认资产，不包含 R2 射线、生产相机级 DXR 或完整 Player 画面验收。
+
+**W3 / T3 通过（Windows 基础命中着色）**：[同一 Player 的 D3D12 输出](validation/T3/Player-D3D12.json) 18/18，含自发光、白板直射、阴影开关/移除遮挡、有效黑色、miss 与无效区间。最大线性 RGB 相对误差 0.02345%（B0 ≤3%），距离误差 0 m，非有限分量 0。2 次 Build、3 次直接派发、Recorder 实测 3 个 GPU marker；[D3D11](validation/T3/Player-D3D11.json) 为 0 RTAS、0 射线缓冲和 0 派发。无剥离回调，默认相机路径未接入；下一步 W4/T3b 验证 Lit 贴图、法线和 cutout，不将本轮结果外推到完整 Lit 或主机。复跑见 [run.py](validation/T3/run.py)，记录见 [Summary.json](validation/T3/Summary.json)。
 
 **关键路径**：`B0 → T1 → T2 → T3 → T3b → T4 → G2 → G5/G3 → I1 → I2`。这是最长链，WS4 的 G2 是整条链的汇聚点。
 

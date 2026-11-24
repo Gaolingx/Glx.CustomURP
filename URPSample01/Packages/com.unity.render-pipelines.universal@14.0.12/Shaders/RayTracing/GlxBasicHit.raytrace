@@ -1,0 +1,51 @@
+#pragma max_recursion_depth 2
+
+#include "GlxBasicPayload.hlsl"
+
+struct GlxRayRequest
+{
+    float4 originTMin;
+    float4 directionTMax;
+};
+
+float4 _GlxToLight;
+float4 _GlxLightRgb;
+StructuredBuffer<GlxRayRequest> _GlxRays;
+RWStructuredBuffer<GlxBasicPayload> _GlxResults;
+
+[shader("raygeneration")]
+void GlxBasicTrace()
+{
+    uint index = DispatchRaysIndex().x;
+    GlxRayRequest request = _GlxRays[index];
+    GlxBasicPayload result = GlxEmptyPayload(GlxPrimaryMode);
+    float3 d = request.directionTMax.xyz;
+    float scale = max(abs(d.x), max(abs(d.y), abs(d.z)));
+    float tMin = request.originTMin.w;
+    float tMax = request.directionTMax.w;
+
+    if (all(isfinite(request.originTMin)) && all(isfinite(request.directionTMax)) &&
+        tMin >= 0.0 && tMax > tMin && scale > 0.0)
+    {
+        RayDesc ray;
+        ray.Origin = request.originTMin.xyz;
+        // Keep tMin, tMax and hitT in world units even for non-unit input.
+        ray.Direction = normalize(d / scale);
+        ray.TMin = tMin;
+        ray.TMax = tMax;
+        // Raygen parameters are not material CHS constants; reuse the return slots on the outbound leg.
+        result.radiance = _GlxLightRgb.rgb;
+        result.hitT = _GlxToLight.z;
+        result.flags = f32tof16(_GlxToLight.x) | (f32tof16(_GlxToLight.y) << 16);
+        result.mode = _GlxToLight.w != 0.0 ? GlxPrimaryWithShadow : GlxPrimaryMode;
+        TraceRay(_GlxScene, RAY_FLAG_FORCE_OPAQUE, 0xff, 0, 1, 0, ray, result);
+    }
+    _GlxResults[index] = result;
+}
+
+[shader("miss")]
+void GlxBasicMiss(inout GlxBasicPayload payload : SV_RayPayload)
+{
+    payload = GlxEmptyPayload(payload.mode == GlxShadowMode ? GlxShadowMode : GlxPrimaryMode);
+    payload.flags = GlxMiss;
+}
