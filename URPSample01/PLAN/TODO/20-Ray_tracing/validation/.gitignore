@@ -1,2 +1,13 @@
 # Editor startup logs can include Unity licensing and machine identifiers.
 Unity.log.txt
+
+# R2 raw readbacks (camera/SSR images and request/hit buffers) stay local; the
+# tracked evidence is Summary.json plus the per-stage JSON and count files.
+# Rebuild them with R2/run.py and re-evaluate with R2/verify.py.
+R2/evidence*/**/*.camera
+R2/evidence*/**/*.ssr
+R2/evidence*/**/*.hits
+R2/evidence*/**/*.requests
+R2/evidence*/**/*.original
+R2/evidence*/**/*.log
+T4/evidence/*.log
