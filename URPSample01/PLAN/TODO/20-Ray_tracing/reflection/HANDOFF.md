@@ -9,7 +9,7 @@
 | 接收面无效/背景/超出支持粗糙度 | 不进入 HW 队列，沿用既有材质反射 |
 | 有可靠屏幕命中且回投成功 | 使用已有 SS 辐亮度；保留已有边缘和粗糙度规则。若旧边缘淡出故意弃用一部分屏幕信号，该份额在预算内可交 HW，不要把粗糙度不合格也当成洞 |
 | 可反射，但出屏/被遮挡/历史无效 | 使用**同一射线方向**、接收点和稳定的 texel/sample 标识请求 DXR：光滑 Approximation 用镜向，PBR 用原 GGX 样本方向/种子。首帧仅缺颜色历史时，允许从当前深度/法线独立生成 HW 请求，但现有 pass 在 `readColorPyramid == null` 时整体返回（`SsrPass.cs:237–238`），因此必须把分类/派发放到该早退之前；当前几何输入缺失则回环境 |
-| 命中受支持几何 | 返回线性 HDR、hit distance、来源与材质有效位。用命中点完整 PBR（albedo/normal/metallic/smoothness/emission）+ 灯表直接光 + 逐灯阴影算沿返回方向的 radiance；cutout 由 AHS 处理；不乘接收面 Fresnel，不做 probe 反馈，不依赖 Surface Cache |
+| 命中受支持几何 | 返回线性 HDR、hit distance、来源与材质有效位。用命中点完整 PBR（albedo/normal/metallic/smoothness/emission）+ 灯表直接光（含逐灯阴影）+ 命中点低频间接漫反射算沿返回方向的 radiance；cutout 由 AHS 处理；不乘接收面 Fresnel，不做 probe 反馈，不依赖 Surface Cache |
 | 真正的环境 miss / 未解决 | 只有环境可见性可信的远处 miss 才允许直接用方向 sky；有限 TMax、未服务/无预算、无有效着色或数据过期均保持材质 Reflection Probe / Sky。未入库的物体没有可恢复的轮廓，不宣称所有洞都能补 |
 
 ## 调度、重建和绑定
@@ -23,7 +23,9 @@
 
 ## 无 Surface Cache 的命中着色分级（v1 recipe）
 
-v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世界空间命中用 `GlxDXR` 的 **Fat CHS**：BLAS 顶点属性 + per-material 贴图解出完整 SurfaceData，AHS 处理 cutout，CHS 算命中点 PBR + 灯表直接光 + 逐灯阴影；不做 probe 反馈，不乘接收面 Fresnel。GI 用 probe，不是 Surface Cache。
+v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世界空间命中用 `GlxDXR` 的 **Fat CHS**：BLAS 顶点属性 + per-material 贴图解出完整 SurfaceData，AHS 处理 cutout，CHS 求命中点的直接光（含逐灯阴影）、自发光与低频间接漫反射，不乘接收面 Fresnel。
+
+低频项在**命中点** `(P,N)` 求值：GI 已启用、已发布快照与当前场景/布局版本匹配且该点有有效邻居时，取其辐照度 `Ehit`；否则按命中法线取独立于 GI 的 ambient 辐照度。两者只选一个，有效黑色不触发回退。对沿返回方向的辐亮度只加一次 `diffuseColor_hit × Ehit/π`（若 ambient 已表示 `E/π` 则不再除 π）；`diffuseColor_hit` 为命中材质的漫反射颜色，已计入金属度。这里是只读采样，不写回探针、不触发更新，也不是沿反射方向采 sky 的环境 miss。它不重现全部烘焙细节或遮蔽，接缝按 R3 实测判定。
 
 | 层级 | 方案 | 采用条件 | 边界 |
 |---|---|---|---|
@@ -35,11 +37,12 @@ v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世�
 
 ## 独立放行条件
 
-| ID / 前置 | 单模块实验（关闭 GI） | 通过条件 / 证据 |
+| ID / 前置 | 实验（默认关闭 GI；R3 另含快照对照） | 通过条件 / 证据 |
 |---|---|---|
 | R1 分类与预算 / B0 | 注入可反射/无效、命中/历史拒绝、边缘、零预算与溢出的确定性图案；测试方向重建、半分辨率奇数宽高 | 计数守恒、无重复/越界回写；只调度合格份额；延迟读回对照原坐标/方向；预算为零回原环境；无历史依然可分类。记录 requested/served/overflow |
 | R2 离屏求交与取色 / R1+T3 | 光滑镜面和有 ID 的离屏纯色发光板，再加遮挡/移除/超 TMax；摄像机内外两组 | 已服务射线命中正确实例、距离与颜色符合解析解；留出未服务负样本，不能误标为 sky 或黑色有效；DXR 实际派发和 marker 可见，SS-only 无法恢复的轮廓在混合模式恢复 |
 | R3 重建与回归 / R2 | 锁曝光/种子，让物体连续出入画；比较 SS-only、Hybrid 和同材质高采样 RT 参考；切镜、移动遮挡、粗糙边界、clear-coat、三种 renderer 和透明控制组 | 同一表面 ROI 统计参考轮廓召回率、错误轮廓率、源切换亮度峰值、历史拖尾帧和每 pass GPU ms，按 B0 预定阈值判定；不能用非黑像素率替代。关闭扩展和透明控制组与原图相同；clear-coat 不重复增亮，GI 更新计数为 0 |
+| R3 阴面源切换 / R2 | 固定光照、曝光和种子，让镜中同一块阴面连续出入屏；重放三组：SSR 单开无探针、GI+SSR 有有效快照、快照版本失效。给 ambient 与 probe 设置可区分的已知辐照度 | 记录命中点来源及低频项，三组分别匹配 ambient／probe／ambient，不叠加、不读失效快照。对同一阴面 ROI 逐帧交付线性亮度、SS↔HW 切换跳变峰值及相对高采样参考的误差，均按 B0 阈值判定。SSR 单开时 GI atlas 分配与 probe 更新计数均为 0；联合模式与 GI 单开对照，不因 SSR 增加更新 |
 | R4 命中着色分级与材质覆盖 / R2+T3b | H-A 登记 Lit/cutout/自发光；SimpleLit/ComplexLit/ShaderGraph/透明/蒙皮/多 submesh 另计；统计 pass/variant、payload、hit shading GPU ms | 只有登记子集参与；不支持材质显式计数，不静默当黑色/sky；无 Surface Cache/mesh card 资源；不重复接收面 Fresnel/BRDF；H-A 开关不改变 R1–R3 的正确性门槛；H-B 实现后再加入对照 |
 | R5 全材质反射与灯光预算 / R2+T3b+T4 | 命中点 PBR（metallic/smoothness/normal）+ cutout + 方向/点/聚光 + 逐灯阴影；与 SS-only/高采样参考比轮廓与亮度接缝；灯数/阴影/payload/overflow 计数 | 命中点材质与解析参考一致到 B0；cutout 轮廓正确；灯数/阴影在预算内；不做 probe 反馈；超预算回退并计数 |
 | R2b 压缩与 TMin 续传（v2 候选，不阻塞 v1） / R2 | 构造大量未解决射线与“屏外隐藏遮挡物”；对比固定 K、GPU 压缩、上一帧 N 估计 K、TMin 续传；记录 N/K、wave 利用率和 GPU ms | 隐藏遮挡物在 TMin 方案下不得漏遮挡；结果确定、可复跑；只有证明收益超过压缩/重追成本才建议进入 v2；任一失败只记录为 v2 NO-GO，不影响 R1–R5 |
@@ -50,6 +53,6 @@ v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世�
 
 - **帧序**：共享 TLAS 在 206 之前就绪；206 内依次为 SS trace/reproject 分类与请求、固定 K 的 DispatchRays、HW 合成；207 仍只做原绑定。206 的额外子阶段必须在 `SsrPass` 内可独立开关，失败时不破坏原 SSR 输出。
 - **代码落点**：`SsrPass.cs` 增加可选子阶段；`ScreenSpaceReflections.compute` 增加请求分类 kernel；新增 `RayTracingSsr.raytrace` 与材质命中 pass；合成保持 unpremultiplied radiance + weight。测试放 `URPSample01/Assets/Tests/RayTracing/SSR/`。
-- **独立性**：SSR 单独开启时不得启动 probe 更新、不得分配 GI atlas；GI 单独开启时不得派发射反射射线。两者共用 TLAS，但共享的只有场景/材质 ABI/ray mask/线性 HDR 单位，不共享方向分布、屏幕历史或滤波器。
+- **独立性**：SSR 单独开启时不得启动 probe 更新、不得分配 GI atlas；GI 单独开启时不得派发射反射射线。两者共用 TLAS、场景/材质 ABI、ray mask 与线性 HDR 单位；SSR 可只读 GI 已发布的世界空间快照，不拥有其生命周期，不共享方向分布、屏幕历史或滤波器。
 - **开关与剥离**：默认关；关闭时无 RTAS/请求缓冲/派发，原 SSR 图像逐像素不变。非目标平台剥离 RT 资源与变体，并验证无 shader 错误。
 - **证据与文档**：`validation/<R ID>/<platform>-<renderer>/` 记录 requested/served/overflow、DXR marker、图像和已知差异；不覆盖 P0。实现与 [SSR-DXR](../research/SSR-DXR.md) 口径不一致时先修文档再验收。

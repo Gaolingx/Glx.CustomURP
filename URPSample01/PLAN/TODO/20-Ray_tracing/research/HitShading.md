@@ -85,20 +85,21 @@ Pass
 - HDRP 的 AHS 就是 `_ALPHATEST_ON` + `IgnoreHit()`（`PathTracingIntegrator.hlsl:387–417`），可作同构参考。
 - v1 只支持 **cutout**（Lit + `_ALPHATEST_ON`）；透明混合、alpha-to-coverage、折射不在范围。
 - AHS 同时处理阴影遮挡：统一 payload 用 `mode/segment` 区分主射线与阴影射线；阴影射线命中不透明表面后置 occluded 并结束搜索。HDRP 用同一 `PathPayload` + `segmentID`（`PathTracingIntegrator.hlsl:387–440`），不需要第二套材质 pass。
-- 没有 AHS 的材质（未开 `_ALPHATEST_ON`）会直接进入 CHS；CHS 必须先检查 mode，置 occluded 后立即返回，不再解材质/算光照。
+- `_ALPHATEST_ON` 控制 AHS 内的裁剪逻辑，不控制遍历是否调用 AHS。cutout 必须按 [TLAS 的子网格映射](TLAS.md) 登记；不透明几何以 `ClosestHitOnly` 跳过 AHS。阴影命中进入 CHS 时先检查 mode，置 occluded 后立即返回，不再解材质/算光照。
 
 ### 3.4 payload 与两种消费者
 
-一个材质 pass、一个 payload，用 `mode` 区分：
+**CHS 局部数据**：位置、UV、切线框架、`worldNormal` 和 `SurfaceData` 留在命中着色器内。probe 用法线、albedo、emission 求漫反射与反馈；反射还用 metallic/smoothness 求命中点 BRDF。两者都在 CHS 算完 radiance，不把材质参数回传给 raygen。
 
-| 字段 | probe 主射线 | 反射主射线 | 阴影射线 |
+**跨阶段 payload**：一个材质 pass 共用同一布局；raygen 或发起阴影追踪的 CHS 写入 `mode`，调用方只消费以下返回值：
+
+| 返回字段 | probe 主射线 | 反射主射线 | 阴影射线 |
 |---|---|---|---|
-| `hitT` / valid | 需要（距离矩、历史拒绝） | 需要 | 不需要 |
-| `worldNormal` | 需要（probe 反馈/调试） | 需要（命中点 BRDF） | 不需要 |
-| `albedo` / `metallic` / `smoothness` / `emission` | 只要 albedo/emission（漫反射） | 全要（命中点 PBR） | 不要 |
-| `radiance` | 直接光 + emission + feedback | 命中点出射辐亮度 | 不要 |
-| `flags`（unsupported/backface/alpha） | 需要 | 需要 | 遮挡位 |
-| `instanceId/materialId` | 验证时可留 | 验证时可留 | 不需要 |
+| `radiance` | 直接光 + emission + feedback | 命中点出射辐亮度 | 不读 |
+| `hitT` | 距离矩、探针维护 | 历史拒绝 | 不读 |
+| `flags` | 有效性、背面、无效材质等状态 | 命中/未解决原因 | 遮挡位 |
+
+`instanceId/materialId` 仅供验证变体读回，不属于生产 payload。
 
 - **GI probe 模式**：CHS 算 Lambert 漫反射 + emission + 上一帧 probe 反馈（§5），不需要 roughness/metallic。
 - **反射模式**：CHS 用命中点完整 PBR（albedo/metallic/smoothness/normal）算沿 `-WorldRayDirection()` 的出射辐亮度；不做 probe 反馈，不乘接收面 Fresnel。
@@ -107,7 +108,7 @@ Pass
 ### 3.5 背面与 ray flags
 
 - **probe 射线不裁背面**：relocation/classification 需要背向命中（距离为负/单独 flag）判断 probe 是否卡进几何。
-- **反射射线可裁背面**：从背面看到的反射是无效样本，裁掉或当 miss；按消费者分别设置 `RAY_FLAG_CULL_BACK_FACING_TRIANGLES`。
+- probe 命中背面应在材质/灯光早退前写 `hitT` 和 backface 标志；反射可裁背面，或按既定策略记为无效。`AddInstance` 的 `enableTriangleCulling` 默认为 true；实例设置与 `RAY_FLAG_CULL_BACK_FACING_TRIANGLES` 的组合以 [T2 正反面 A/B](TLAS.md) 的 Player 结果为准，不能假设改一个 flag 就能满足两个消费者。
 - 阴影射线：alpha test 由 AHS 处理；命中即遮挡。TMin 用表面 bias，方向光 TMax 无限，点/聚光 TMax 为到灯距离。
 
 ## 4. 命中点光照：灯表、逐灯阴影与预算
@@ -117,12 +118,12 @@ Pass
 - **场景级灯表**，不是相机 `visibleLights`：射线可能打到屏幕外/相机后方；只依赖当前相机光照会漏灯。
 - 收录 **Directional / Point / Spot** 的实时灯；排除 Baked、Area/Rect/Disc；v1 不做 cookie、面光源、SSS、clear coat 的命中点求值。
 - 参考实现每帧 `FindObjectsOfType<Light>()`（`RTXGI-DDGI-URP/.../DDGIFeature.cs:752`）并把衰减烘到 CPU buffer；那是 demo 成本。本项目用**注册/脏标记**维护灯表，只在灯集合或参数变化时上传；移动灯按帧更新。
-- 灯表容量 `Lmax` 在 B0 冻结；超出时按确定规则选择并显式计 overflow，不静默丢灯。
+- CPU 登记全部符合上述条件的灯；`Lmax` 仅限制上传的 GPU 表，不限制登记数量。B0 冻结容量、排序和同分规则；超额时按该顺序截断，记录 `tableOverflow = registered − uploaded`。
 
 ### 4.2 逐灯阴影
 
-- **默认选中灯表内全部灯**；每个命中、每盏选中灯发一条阴影射线；点/聚光 TMax 到灯距离，方向光无限。
-- 每命中灯数 `LmaxHit`、阴影射线数 `Smax` 在 B0 冻结；只有超出预算才按影响排序降级（无阴影→跳过），并记录 `lights/overflow/shadowRays`；不静默丢灯。
+- 候选仅来自 GPU 表中影响命中点的灯。预算充足时全部参与且逐灯追阴影；点/聚光 TMax 到灯距离，方向光无限。
+- B0 冻结 `LmaxHit` 和 `Smax`。超额时按影响选至多 `LmaxHit` 盏，未选的灯不参与；选中灯最多发 `Smax` 条阴影射线，未获阴影预算的按既定无阴影降级处理。分别记录未选灯数、未获阴影预算灯数与实际 `shadowRays`，不与上传阶段的 `tableOverflow` 混计。
 - 阴影射线与主射线共用材质 pass 的 AHS，所以 cutout 叶子会正确遮挡；透明/未入库几何不会。
 - 不使用 Unity 的 shadow map 结果；RT 阴影与光栅阴影是两套数据，切换时可能出现亮度差，必须 A/B。
 

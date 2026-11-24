@@ -38,7 +38,7 @@
 
 - RT 是**可裁剪的扩展**：默认资产不启用；只允许高端质量档 + 显式启用的合格后端 + 运行时能力全部满足。首发验证目标 Windows x64 D3D12 DXR。PS5、Xbox Series 分开验收（各 SKU/质量档），不把主机 API 当作 Windows D3D12；没有 SDK/设备证据就保持关闭。移动、Web、D3D11、其余 PC 后端和低档位不出队、不分配 RT 资源、不变更原 SSGI/SSR fallback。功能不要求更改项目的默认 Graphics API。
 - 两个独立消费者：启用 SSGI 时可选动态 probe fallback（含全材质命中着色、逐灯阴影、1 跳反馈、relocation/classification）；启用 opaque SSR 时可选 DXR（同一 `GlxDXR` pass 的完整 PBR 命中着色与同一灯表，不做 probe 反馈）。仅反射不得触发探针更新，仅 GI 不派发反射射线。两者都关即为现有 URP。无独立 DDGI 模式、无 GI 接收面逐像素 DXR、无 Surface Cache、无 Thin CHS/材质表、无递归多跳 PT、无透明/ShaderGraph RT、无滚动/多 volume 或移动端替代后端。
-- 帧序（设计，不是实测）：确定合格 base camera 和场景版本 → **共同**准备实例与灯表并构建 TLAS（在第一个 RT 消费者之前）→ 预算内 probe 更新（含 relocation/classification、反馈读取上一帧快照），完成后发布一致的可读快照 → 既有 Hi-Z 203、SSGI 205、opaque SSR 206（含补追/resolve）→ 207 绑定 → GBuffer 210 / Forward opaque 250 只消费一次 BRDF → opaque 后复位。TLAS/探针/灯表属于场景；trace 输出、曝光/历史、关键词属于相机。v1 单视图不透明 game base camera；overlay、preview、反射相机、未验证的 XR 走原路径并显式清空本相机 RT 状态。
+- 帧序（设计，不是实测）：确定合格 base camera 和场景版本 → **共同**准备实例与灯表并构建 TLAS（在第一个 RT 消费者之前）→ 预算内 probe 更新（含 relocation/classification、反馈读取上一帧快照），完成后发布一致的可读快照 → 既有 Hi-Z 203、SSGI 205、opaque SSR 206（含补追/resolve）→ 207 绑定 → GBuffer 210 / Forward opaque 250 只消费一次 BRDF → opaque 后复位。TLAS/探针/灯表属于场景；trace 输出、曝光/历史、关键词属于相机。v1 的“单视图”指每台合格的非 XR game base camera 渲染一个不透明视图，不限制场景只能有一台 base camera。同一场景帧由首个启用 GI 的合格相机触发一次 probe 更新，其余合格相机复用已发布快照；各相机的 SS 输出、历史与绑定独立；overlay、preview、反射相机、未验证的 XR 走原路径并显式清空本相机 RT 状态。
 - 共享的是场景、材质命中 ABI、场景级灯表、ray mask 与线性 HDR 辐亮度单位，而不是方向分布、屏幕历史或滤波器。SS/HW 源切换时不得将噪声、缺预算或黑色当作天空；无资源必须回原路径。基础设施不引用 GI 或 SSR Volume；效果之间无启动依赖。调度失败/失去设备/管线销毁释放资源；不留上帧全局绑定。
 
 ## 需求与长期约束
@@ -125,8 +125,8 @@ v1 不建 Surface Cache、不做 mesh cards/atlas、不做递归多跳。用“�
 | B0 / 无 | 冻结目标设备、版本、场景、灯光、相机轨迹、阈值、光线/毫秒/显存上限；新增 `Lmax/LmaxHit/Smax`、payload 字节、variant 上限、32 条固定射线、feedback/relocation/classification 开关与阈值 | 同 HEAD 的 D3D11 和 D3D12 各自跑两遍 RT-off（项目默认 D3D12，需显式切 D3D11；P0 是 D3D11 记录）；关闭扩展与原路径同种子、同历史长度、同帧逐像素一致；记录现有测试筛选器及计数、`supportsRayTracing` 与目标 GPU；在相应 feature 启用时实测 201–203 的 pass 顺序，区分内置 early motion 与 Editor 相机 motion |
 | T1–T3 / B0 | 后端门控、RTAS 与基础命中着色 | 见 [TLAS 独立测试](research/TLAS.md)；用已知射线验证 emit/direct/shadow，**不要求打开 SSGI 或 SSR** |
 | T3b / T2+T3 | `GlxDXR` 全材质 pass：CHS/AHS、BLAS 顶点属性、贴图/法线/alpha、payload 布局 | 见 [HitShading](research/HitShading.md)；贴图/法线/cutout 与光栅一致到 B0 容差；payload 读回符合布局；supported/unsupported 材质显式计数；记录 payload 字节与 variant 数 |
-| T4 / T3b | 场景灯表与逐灯阴影 | 全 Directional/Point/Spot 注册；**默认选中灯表内全部灯**，超出 `LmaxHit/Smax` 才按影响降级；移动/删除/禁用灯更新；阴影开关影响正确；不依赖相机 `visibleLights`；记录灯数、每命中灯数、阴影射线条数与 overflow |
-| G1–G3 / B0；真实更新依赖 T3b | 数据面、分帧更新、SSGI 合成 | 见 [GI 验收](gi/HANDOFF.md)；关 SSR；G3 先用 feedback/relocation/classification 全关跑基线，能分别验证常量场、动态恢复和出屏转场 |
+| T4 / T3b | 场景灯表与逐灯阴影 | CPU 登记全部合格 Directional/Point/Spot；GPU 灯表按 B0 的稳定顺序最多上传 `Lmax` 盏，单独记录未上传数。命中点仅从已上传且影响该点的灯中选取至多 `LmaxHit` 盏、发至多 `Smax` 条阴影射线；分别记录命中筛选与阴影预算的溢出；移动/删除/禁用灯更新；阴影开关影响正确；不依赖相机 `visibleLights`；记录灯数、每命中灯数、阴影射线条数与 overflow |
+| G1–G3 / B0；G2 真实更新依赖 G1+T3b+T4，G3 真实集成依赖 G2 | 数据面、分帧更新、SSGI 合成 | 见 [GI 验收](gi/HANDOFF.md)；关 SSR；G3 先用 feedback/relocation/classification 全关跑基线，能分别验证常量场、动态恢复和出屏转场 |
 | G4 / G2 | relocation + classification（默认开） | 固定 32 条射线、offset/state 数据面、消费者跳过 inactive 并应用 offset；墙内 probe 被推出、空区域 probe 不更新、动态几何进入后能重新激活；记录 active/inactive/relocated 计数 |
 | G5 / G2+T3b+T4 | probe 1 跳反馈 | 灯光开/关阶跃、feedback on/off、无效/relocated/inactive 邻居、薄墙；与高采样参考的 ROI；旧光在 B0 时间窗内衰减；不能把反馈当递归多跳 |
 | R1–R3 / B0；真实补追依赖 T3 | 未解决状态、离屏着色、反射重建 | 见 [反射验收](reflection/HANDOFF.md)；关 GI，用自发光物体验证离屏轮廓；命中着色先用 T3 基线 |

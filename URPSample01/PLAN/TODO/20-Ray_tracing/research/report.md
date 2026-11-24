@@ -333,7 +333,7 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 - 区分 32 位 layer 过滤（`RASSettings`）、8 位 instance mask（`AddInstance`/`TraceRay`）、submesh enable/alpha 策略。
 - dirty/Build：静态成员不重复 Build；动态成员按 revision 只提交一次；`RayTracingMode.Static` 不因 transform 自动更新；刚体走 `UpdateInstanceTransform` + Build；灯光/发光参数影响着色或 probe 失效，不应无条件重建几何。记录“提交 Build 次数”，不声称显式 refit。
 - `TMin` 只做与尺度相符的表面偏移；Hi-Z 走过的距离不是世界空间安全距离；有限 TMax 的截断不等于天空可见。
-- 灯表：场景级 Directional/Point/Spot 注册表；容量 `Lmax`、每命中灯数 `LmaxHit`、阴影射线 `Smax` 在 B0 冻结；不使用相机 `visibleLights`；灯光变化只更新 buffer/着色输入，不重建几何；不应用 light layer mask/cookie/面光源。
+- 灯表：场景级注册表保存全部合格 Directional/Point/Spot；GPU 灯表容量 `Lmax`、每命中灯数 `LmaxHit`、阴影射线 `Smax` 在 B0 冻结；不使用相机 `visibleLights`；灯光变化只更新 buffer/着色输入，不重建几何；不应用 light layer mask/cookie/面光源。
 - 共同 ABI：世界空间 origin、归一化 direction、TMin/TMax、实例 mask；命中材质由 `GlxDXR` CHS/AHS 提供（BLAS 顶点属性 + per-material 贴图 + cutout）；payload 含 hitT/valid/flags；输出区分几何命中（距离、材质有效性、沿返回方向的线性 HDR 辐亮度）、范围内无交点、无效材质/未服务；不支持材质/背面约定显式计数。
 
 ## 8. 验收矩阵与独立证据
@@ -345,8 +345,8 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 | B0 / 无 | 冻结设备、版本、场景、灯光、相机轨迹、阈值、光线/毫秒/显存/`Lmax/LmaxHit/Smax`/payload/variant 上限 | 同 HEAD 的 D3D11 和 D3D12 各跑两遍 RT-off；项目默认 D3D12，需显式切 D3D11；关闭扩展与原路径同种子、同历史长度、同帧逐像素一致；记录筛选器/计数、`supportsRayTracing`、目标 GPU |
 | T1–T3 / B0 | 后端门控、RTAS、实例、基础命中着色 | 关 SSGI/SSR 也能用已知射线验证；T1 开关后资源净增长 0；T2 离屏/禁用/mask/移动/LOD 与 CPU 解析交点一致；T3 Player 证明确有 Build/bind/DispatchRays，emit/direct/shadow 与解析参考一致，非有限值 0 |
 | T3b / T2+T3 | `GlxDXR` 全材质 pass：CHS/AHS、BLAS 顶点、贴图/法线/cutout、payload | 贴图/法线/cutout 与光栅一致到 B0；payload 读回符合布局；supported/unsupported 显式计数；记录 payload 字节与 variant 数 |
-| T4 / T3b | 灯表与逐灯阴影 | 全 Directional/Point/Spot 注册；移动/删除/禁用更新；阴影开关正确；不依赖 `visibleLights`；记录灯数/每命中灯数/阴影数/overflow |
-| G1–G3 / B0；真实更新依赖 T3b | 探针数学、分帧更新、SSGI 合成 | G1 常量场/两色场/常距平面/非法/relocated/inactive/反馈项，先钉死 atlas 单位；G2 预算/轮转/发布/动态恢复/灯与阴影计数；G3 先 feedback/relocation/classification 全关跑基线，再扫权重/强度/首帧/切镜/薄墙/体积外/双相机，关 SSR |
+| T4 / T3b | 灯表与逐灯阴影 | CPU 登记全部合格 Directional/Point/Spot；GPU 表最多上传 `Lmax` 盏，每命中选灯和阴影各受 `LmaxHit`、`Smax` 限制，分别记录三层溢出；移动/删除/禁用更新；阴影开关正确；不依赖 `visibleLights`；记录灯数/每命中灯数/阴影数/overflow |
+| G1–G3 / B0；G2 真实更新依赖 G1+T3b+T4，G3 真实集成依赖 G2 | 探针数学、分帧更新、SSGI 合成 | G1 常量场/两色场/常距平面/非法/relocated/inactive/反馈项，先钉死 atlas 单位；G2 预算/轮转/发布/动态恢复/灯与阴影计数；G3 先 feedback/relocation/classification 全关跑基线，再扫权重/强度/首帧/切镜/薄墙/体积外/双相机，关 SSR |
 | G4 / G2 | relocation + classification（默认开） | offset 限幅、inactive 只追 32 且消费者跳过、动态几何重激活、无抖动/串索引；记录 active/inactive/relocated |
 | G5 / G2+T3b+T4 | probe 1 跳反馈 | 灯开/关阶跃、feedback on/off、无效/relocated/inactive 邻居、薄墙；与高采样参考 ROI；旧光在 B0 时间窗内衰减；不递归 |
 | R1–R3 / B0；真实补追依赖 T3 | 分类/预算、离屏求交、重建 | R1 计数守恒/无越界/无历史可分类；R2 命中正确实例/距离/颜色，未服务不误标 sky；R3 ROI 轮廓召回/错误率/源切换亮度/拖尾/GPU ms，透明控制组不变 |
