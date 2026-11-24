@@ -11,6 +11,8 @@
 | [SSR-DXR.md](SSR-DXR.md) | 现有 opaque SSR 的未解决样本如何接入 DXR，预算、派发、合成与历史如何不破坏原契约 |
 | [../gi/report.md](../gi/report.md) | 动态更新探针作为 SSGI 漫反射回退的数学、存储、更新调度与参考实现 |
 
+v1 采用**无 Surface Cache** 的 hybrid recipe：屏幕 SS + 固定 K 的 DXR 最小 hit lighting + 动态 probe 辐照度缓存 + 显式 Skylight/Reflection Probe 兜底。H-A（v1）/ H-B（v1.5 候选）/ H-C（v2 候选）的边界与验收映射见 [总计划](../HANDOFF.md) 和 [SSR-DXR](SSR-DXR.md) §5；本目录只保留依据与限制，不另立一套口径。
+
 ## 已核实的运行环境
 
 | 事实 | 证据 |

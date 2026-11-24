@@ -20,7 +20,7 @@ irradiance 八面体 atlas、距离矩 atlas、每 probe 有效位/更新时间�
 |---|---|---|
 | G1 数学与存储 / B0 | CPU 或 compute 注入恒定 L、两色场、常距平面、非法邻居；不启动 DXR/SSGI | 编解码后 E/π=L；矩还原 d、d²；断言内区、边界、八面接缝、全失效和有效黑色，非有限数 0；索引不串 probe。交付输入与读回值 |
 | G2 更新 / G1+T3 | 仅测试生产者；单体积、移动遮挡/发光板、两台相机 | 每帧调度 ≤B、主光线 ≤B×R；静态轮转周期 ≤ceil(N/B) 帧；动态变化在 B0 时间窗内回到参考误差，同帧只更新一次；未发布 tile 无效而非黑。记录更新时间、列表、GPU ms、显存和动态阶跃曲线 |
-| G3 合成 / B0 fixture，真实集成需 G2 | 固定接收面，扫 s,c 的 0/0.5/1 和强度 0/1；锁曝光移出红板、首帧/切镜、薄墙、体积外、双相机；关 SSR；启用 probe 回退时确认 SSGI rayMiss=None | 中间权重不暗边、不重复 BRDF；首帧已就绪显示 probe，冷启动回 baked；供体出屏后低频色溢保留，测线性 ROI 误差和亮度跳变峰值对旧 fallback；薄墙背面不超过 B0 漏光阈值；probe 与旧 reflection/sky 不叠加；三种 renderer 和 RT-off 对照通过 |
+| G3 合成 / B0 fixture，真实集成需 G2 | 固定接收面，扫 s,c 的 0/0.5/1 和强度 0/1；锁曝光移出红板、首帧/切镜、薄墙、体积外、双相机；关 SSR；启用 probe 回退时确认 SSGI rayMiss=None | 中间权重不暗边、不重复 BRDF；首帧已就绪显示 probe，冷启动回 baked；供体出屏后低频色溢保留，测线性 ROI 误差和亮度跳变峰值对旧 fallback；薄墙背面不超过 B0 漏光阈值；probe 与旧 reflection/sky 不叠加；三种 renderer 和 RT-off 对照通过；SSR 的 H-A/H-B/H-C 选择不改变 GI 计数/图像 |
 
 证据分开提交 G1 数值、G2 场景更新、G3 图像；不能拿调度计数代替画面证据。验收不通过只关该扩展，保留现有 SSGI。
 
@@ -28,7 +28,7 @@ irradiance 八面体 atlas、距离矩 atlas、每 probe 有效位/更新时间�
 
 - **落点**：共享 RT 场景服务在 201（`AfterRenderingPrePasses+1`）构建/复用 TLAS；probe 生产者在 SSGI dispatch 之前（可作为 SSGI pass 的 205 前置子阶段，避免占用 202 early motion 与 204 GTAO）；材质端查询在 `ScreenSpaceLightingApplyIndirectDiffuse` 的调用点（需要把接收点 P/N 传入）。三种 renderer 共用同一材质合同。
 - **开关**：独立 feature/Volume 选项 + 全局 keyword；默认关，关闭时不分配 atlas、不订阅 TLAS、不派发 probe 射线，原 SSGI/SSR 图像逐像素不变。
-- **依赖**：GI 不引用 SSR Volume，SSR 不启动 probe 更新；基础设施失败只关闭 GI 扩展。
+- **依赖**：GI 不引用 SSR Volume，SSR 不启动 probe 更新；基础设施失败只关闭 GI 扩展。probe 是辐照度缓存，不是 Surface Cache；SSR 的 H-A/H-B/H-C 选择不改变 G1–G3；GI 不分配 mesh card/atlas。
 - **变体**：probe 查询/命中 shader 只对高端档构建；非目标平台剥离资源与变体，并验证无 shader 错误。
 - **证据**：`validation/<G ID>/<platform>-<renderer>/` 记录输入、预算、计数、读回/图像和已知差异；不覆盖 P0。
 - **文档同步**：数学与参考改 [report.md](report.md)，场景/TLAS 改 [TLAS](../research/TLAS.md)；实现与文档口径不一致时先修文档再验收。

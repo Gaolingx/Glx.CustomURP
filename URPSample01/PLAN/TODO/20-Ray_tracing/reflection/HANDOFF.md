@@ -20,6 +20,18 @@
 - 合成目标：`s·Lss + (1−s)·[r·Lhw + (1−r)·Lenv]`（强度 1）。对材质导出 `a=s+(1−s)r`、`rgb=(s·Lss+(1−s)r·Lhw)/a`；`a=0` 时 RGB 写零。这样旧非预乘 SSR 合同、点采样、强度和 clear-coat 各 lobe 的 BRDF/环境权重仍只应用一次。`r` 仅表示已解决 HW 份额；HW 不再乘一次 SS 屏幕边缘淡出，否则离屏洞会重新出现。
 - 保留 SSR 自己的 motion、粗糙度、深度/法线 history；HW 距离及分类用于历史拒绝。SS→HW 来源变化且距离/亮度不一致时降历史权重；相机切换、尺寸/后端切换要失效；禁止回灌已空间模糊的历史。205 的 GI history 不能借给 206。SS 读历史 scene color，HW 命中着色较简单，观察高亮物体出屏会不会从“空洞”变成“亮度台阶”。
 
+## 无 Surface Cache 的命中着色分级（v1 recipe）
+
+v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世界空间命中只做“最小 hit lighting”：closest-hit 返回几何/UV/实例/材质 ID，shading 只算 emission + 一盏方向光（可选一条遮挡射线），不乘接收面 Fresnel。GI 用 probe，不是 Surface Cache。
+
+| 层级 | 方案 | 采用条件 | 边界 |
+|---|---|---|---|
+| H-A（v1） | per-material minimal hit lighting | 默认 | 只支持登记不透明 Lit/自发光；每材质一个 `RayTracing` pass；不支持 ShaderGraph/透明/alpha test/蒙皮 |
+| H-B（v1.5 候选） | 共享 CHS + 材质 buffer（Surface-Cache-lite） | H-A 的 pass/variant 或 hit shading 成本成为瓶颈 | 仍不做 atlas 捕获；Unity 2022.3 仍需每材质 pass；只覆盖简单材质 |
+| H-C（v2 候选） | 完整 Surface Cache | 需要广材质覆盖/多跳/稳定降噪，且接受 mesh cards/atlas 系统工程 | 不是 v1 承诺 |
+
+2022.3 没有 GPU 间接 `DispatchRays`：v1 固定 K + GPU 早退，不引入阻塞读回。压缩/TMin 续传不进 v1；作为 R2b 实验，必须用隐藏遮挡物证明不漏几何，且不影响 R1–R4 的通过。
+
 ## 独立放行条件
 
 | ID / 前置 | 单模块实验（关闭 GI） | 通过条件 / 证据 |
@@ -27,6 +39,8 @@
 | R1 分类与预算 / B0 | 注入可反射/无效、命中/历史拒绝、边缘、零预算与溢出的确定性图案；测试方向重建、半分辨率奇数宽高 | 计数守恒、无重复/越界回写；只调度合格份额；延迟读回对照原坐标/方向；预算为零回原环境；无历史依然可分类。记录 requested/served/overflow |
 | R2 离屏求交与取色 / R1+T3 | 光滑镜面和有 ID 的离屏纯色发光板，再加遮挡/移除/超 TMax；摄像机内外两组 | 已服务射线命中正确实例、距离与颜色符合解析解；留出未服务负样本，不能误标为 sky 或黑色有效；DXR 实际派发和 marker 可见，SS-only 无法恢复的轮廓在混合模式恢复 |
 | R3 重建与回归 / R2 | 锁曝光/种子，让物体连续出入画；比较 SS-only、Hybrid 和同材质高采样 RT 参考；切镜、移动遮挡、粗糙边界、clear-coat、三种 renderer 和透明控制组 | 同一表面 ROI 统计参考轮廓召回率、错误轮廓率、源切换亮度峰值、历史拖尾帧和每 pass GPU ms，按 B0 预定阈值判定；不能用非黑像素率替代。关闭扩展和透明控制组与原图相同；clear-coat 不重复增亮，GI 更新计数为 0 |
+| R4 命中着色分级与材质覆盖 / R2 | H-A 登记 Lit/自发光；不支持 SimpleLit/ShaderGraph/透明/alpha test/蒙皮/多 submesh；统计 pass/variant 与 hit shading GPU ms，切换材质与 H-A 开关 | 只有登记子集参与；不支持材质显式计数，不静默当黑色/sky；无 Surface Cache/mesh card 资源；不重复接收面 Fresnel/BRDF；H-A 开启/关闭不改变 R1–R3 的正确性门槛；H-B 实现后再加入对照；hit shading 预算按 B0 判定 |
+| R2b 压缩与 TMin 续传（v2 候选，不阻塞 v1） / R2 | 构造大量未解决射线与“屏外隐藏遮挡物”；对比固定 K、GPU 压缩、上一帧 N 估计 K、TMin 续传；记录 N/K、wave 利用率和 GPU ms | 隐藏遮挡物在 TMin 方案下不得漏遮挡；结果确定、可复跑；只有证明收益超过压缩/重追成本才建议进入 v2；任一失败只记录为 v2 NO-GO，不影响 R1–R4 |
 
 已知上限：被 SSR 当成有效命中的假交点不会自动触发 DXR；蒙皮/透明未入库、预算不足、简化灯光、镜中镜和有限距离仍可能产生错反射。超过预算时按模块回退，不为补洞默认开启多跳或扩大平台范围。
 

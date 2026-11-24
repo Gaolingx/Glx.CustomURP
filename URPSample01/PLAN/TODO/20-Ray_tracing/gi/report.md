@@ -7,7 +7,7 @@
 1. 参考实现 `E:/workspace/GitHub/RTXGI-DDGI-URP` 是 **DDGI（probe 射线 + 八面体辐照度/距离矩 + 时域 hysteresis + relocation/classification）**，不是 ReSTIR，也不是 SVGF/à-trous。它可作为数据面与采样数学的参考，但不能整包移植。
 2. 本项目 v1 只取“**固定探针网格 + 分帧更新 + 八面体 atlas + 三线性/Chebyshev 采样**”这一段，作为 SSGI 的 miss 回退；屏幕内仍由 SSGI 提供高频细节。
 3. 探针是**接收点估计**，不是精确射线交点；不能用它伪造逐像素可见性，也不能把 probe 更新做成独立效果或让 SSR 依赖它。
-4. 不搬：relocation/classification、每帧全量更新、probe 自反馈多跳、Surface Cache、自动布点、透明/蒙皮命中。
+4. 不搬：relocation/classification、每帧全量更新、probe 自反馈多跳、Surface Cache、自动布点、透明/蒙皮命中。**probe 是辐照度缓存，不是 Surface Cache**；SSR 的 H-A/H-B/H-C 选择不改变 GI 的 G1–G3。
 
 ## 1. 通用骨架与参考实现
 

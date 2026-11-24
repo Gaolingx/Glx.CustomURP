@@ -10,7 +10,7 @@
 validation/<ID>/<platform>-<renderer>/
 ```
 
-- `<ID>`：`B0`、`T1`…`T3`、`G1`…`G3`、`R1`…`R3`、`I1`、`I2`。
+- `<ID>`：`B0`、`T1`…`T3`、`G1`…`G3`、`R1`…`R4`、`R2b`（v2 候选）、`I1`、`I2`。
 - `<platform>`：`Win64-D3D12`、`Win64-D3D11`、`PS5`、`XSX`、`XSS` 等；主机按实际 SKU。
 - `<renderer>`：`Forward`、`ForwardPlus`、`Deferred`；不适用时省略。
 - 失败、阻塞、未复跑也入库；不要只留通过记录。
@@ -20,7 +20,7 @@ validation/<ID>/<platform>-<renderer>/
 1. 输入与命令：场景/资产版本、相机轨迹、种子、曝光、分辨率、质量档、预热帧、计时窗口。
 2. 环境：Unity/URP/HDRP 版本、GPU/SKU、驱动、图形 API、`SystemInfo.supportsRayTracing`。
 3. 结果：pass/fail/blocked、实际值 vs B0 门槛、已知差异、原始日志与截图/读回。
-4. 计数：TLAS Build/实例数、probe scheduled/updated/published、SSR requested/served/overflow/hit/miss、dispatch marker。
+4. 计数：TLAS Build/实例数、probe scheduled/updated/published、SSR requested/served/overflow/hit/miss、dispatch marker；R4 的 pass/variant 与 hit shading GPU ms；R2b 的 N/K、wave 利用率与 TMin A/B。
 5. 设置恢复：质量档、Graphics API、Volume/Feature 开关在测试后恢复；记录恢复结果。
 6. 哈希：基线/实现 SHA、输入资产与输出图像的 SHA（必要时）。
 

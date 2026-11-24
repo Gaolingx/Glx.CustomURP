@@ -102,5 +102,5 @@ HDRP 的 16×16 ray binning 是在 tile 内按方向分桶，改善相干性；�
 - 屏内继续用现有 Hi-Z SSGI / SSR；只在**未解决样本**上接入 HW。
 - 反射 HW 命中返回 `(unpremultiplied radiance, weight)`，与现有 `lerp(probe, radiance, weight)` 契约一致；详见 [SSR-DXR.md](SSR-DXR.md)。
 - GI 的屏外低频用世界空间探针，探针在材质端按接收点 `P/N` 查询；不让 HW 假装成精确交点。详见 [GI 研究](../gi/report.md)。
-- 需要新增材质侧 `RayTracing` pass 的只有**进入 TLAS 且可被命中**的 Lit/自发光子集；不支持材质显式排除并计数。
+- 需要新增材质侧 `RayTracing` pass 的只有**进入 TLAS 且可被命中**的 Lit/自发光子集；不支持材质显式排除并计数。v1 采用 H-A（per-material 最小 hit lighting），H-B/H-C 只是候选，见 [总计划](../HANDOFF.md)。
 - 主机（PS5/Xbox）不因 HDRP 文档或 PC 结果自动成立；按 SKU 单独验收，见 [总计划](../HANDOFF.md)。

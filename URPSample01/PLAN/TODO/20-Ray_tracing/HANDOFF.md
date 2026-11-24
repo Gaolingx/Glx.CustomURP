@@ -65,13 +65,45 @@
 | 模块 | 建议落点 | 边界 |
 |---|---|---|
 | 共享 RT 场景/TLAS | 内嵌 URP 包 `Runtime/RendererFeatures/RayTracing/`（与 SSL 同仓） | 拥有能力判定、RTAS、实例登记、Build 策略、清理；不被 GI/SSR Volume 反向引用 |
-| 命中着色 ABI | 包内 `ShaderLibrary/RayTracing/` + 受支持材质的 `LightMode="RayTracing"` pass | 只覆盖登记子集；不支持材质/子网格显式计数 |
+| 命中着色 ABI | 包内 `ShaderLibrary/RayTracing/` + 受支持材质的 `LightMode="RayTracing"` pass | v1 采用 H-A（per-material 最小 hit lighting）；只覆盖登记子集；不支持材质/子网格显式计数；H-B/H-C 见 recipe |
 | GI 探针 | `Runtime/RendererFeatures/RayTracing/GI/` + 包内 HLSL；材质查询在 `ScreenSpaceLightingApplyIndirectDiffuse` 调用点 | 只在 SSGI 启用时工作；不拥有 TLAS |
 | SSR × DXR | `SsrPass.cs` 子阶段 + `ScreenSpaceReflections.compute` 请求 kernel + `RayTracingSsr.raytrace`/合成 | 只在 opaque SSR 启用时工作；不启动 GI |
 | Fixture/Player 测试 | `URPSample01/Assets/Tests/RayTracing/{TLAS,GI,SSR,Integration}/` | 输入、计数、图像、已知差异分开提交 |
 | 证据 | `validation/<ID>/<platform>-<renderer>/` | 不覆盖 P0；失败/阻塞同样入库 |
 
 若改用 project-side feature 而非内嵌包，必须先证明不依赖 URP internal API；不要维护两套。内嵌包与 SSL 一致，但会增加 fork 差异；每次改包都在提交说明中列出受影响文件。
+
+## 推荐 recipe（v1，无 Surface Cache）
+
+v1 明确不建 Surface Cache、不做 mesh cards/atlas、不做多跳。用“屏幕优先 + 少量 hit lighting + probe 低频”组成最小闭环：
+
+```text
+[SS]   SSGI/SSR screen trace（现有 Hi-Z）
+       -> resolved：沿用现有 SS 取色/历史规则，毕业
+       -> needsHW：追加到请求列表（分类时 append）
+       -> invalid：回环境/反射探针
+
+[HW]   固定 K 的 DispatchRays + GPU 早退
+       -> CHS 返回 geomNormal / UV / instanceId / materialId / hitDistance
+       -> Shade：emission + 一盏方向光（可选一条遮挡射线）
+       -> 不乘接收面 Fresnel，不重复 BRDF
+
+[合成] unpremultiplied (radiance, weight) 写回原 slot
+       材质端 lerp(env, radiance, weight)，BRDF 只应用一次
+
+[GI]   动态 probe：B probes × R rays/帧 -> irradiance atlas
+       材质端按接收点 P/N 查询；SS 高频 + probe 低频
+
+[Miss] 仅可信的远处 miss 采 Skylight；其余保持 Reflection Probe / Sky
+```
+
+| 层级 | 方案 | 采用条件 | 边界 |
+|---|---|---|---|
+| H-A（v1） | 受支持不透明材质 + 最小 hit lighting | 默认 | 只支持登记材质；每材质一个 `RayTracing` pass；不做 Surface Cache |
+| H-B（v1.5 候选） | 共享 CHS + 材质 buffer（Surface-Cache-lite） | H-A 的 pass/variant 或 hit shading 成本成为瓶颈 | 仍不做 atlas 捕获；Unity 仍需每材质 pass；只覆盖简单材质 |
+| H-C（v2 候选） | 完整 Surface Cache | 需要广材质覆盖、多跳或稳定降噪，且接受 mesh cards/atlas 系统工程 | 不是 v1 承诺；需独立立项与验收 |
+
+2022.3 约束：没有 GPU 间接 `DispatchRays`，v1 用固定 K + GPU 早退；压缩/TMin 续传不作为 v1 基线，作为 R2b 性能实验（v2 候选）。probe 是辐照度缓存，不是 Surface Cache；SSR 不做 Surface Cache 不影响 GI。
 
 ## 里程碑与独立放行
 
@@ -83,6 +115,8 @@
 | T1–T3 / B0 | 后端门控、RTAS 与命中着色 | 见 [TLAS 独立测试](research/TLAS.md)；用已知射线验证，**不要求打开 SSGI 或 SSR** |
 | G1–G3 / B0；真实更新依赖 T3 | 数据面、分帧更新、SSGI 合成 | 见 [GI 验收](gi/HANDOFF.md)；关 SSR，能分别验证常量场、动态恢复和出屏转场 |
 | R1–R3 / B0；真实补追依赖 T3 | 未解决状态、离屏着色、反射重建 | 见 [反射验收](reflection/HANDOFF.md)；关 GI，用自发光物体验证离屏轮廓 |
+| R4 / R2 | 无 Surface Cache 的命中着色分级与材质覆盖 | 见 [反射验收](reflection/HANDOFF.md)；记录 supported/unsupported 材质、pass/variant 数、hit shading GPU ms；只有登记子集参与，不重复 BRDF，不分配 Surface Cache/mesh card 资源 |
+| R2b / R2（v2 候选，不阻塞 v1） | 光线压缩与 TMin 续传实验 | 见 [SSR-DXR](research/SSR-DXR.md)；记录 N/K、wave 利用率、隐藏遮挡物 A/B、TMin 漏遮挡与 GPU ms；未通过不影响 R1–R4 |
 | I1 / T、G、R | 四开关组合、相机与资源隔离 | 同一场景分别跑都关/GI/SSR/两者开，Forward、Forward+、Deferred；双开共用同一 TLAS 版本；单开无另一模块 dispatch；切镜、分辨率变化、动态物体、相机堆叠和运行时关闭无上一相机残影/泄漏 |
 | I2 / I1 | Player 画质/性能及平台签收 | Windows DXR 实派发 + 同机 D3D12 off + D3D11 off + 非目标构建剥离；记录下述指标。主机按目标分别构建、真机测量和批准，不阻塞 Windows 单独交付，不可据 PC 成绩默认开启 |
 
