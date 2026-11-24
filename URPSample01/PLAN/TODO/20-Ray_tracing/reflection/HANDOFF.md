@@ -1,6 +1,6 @@
 # 不透明 SSR × DXR：恢复离屏几何的单次反射
 
-**状态：R1 半分辨率分类与预算已在 [D3D11](../validation/R1/D3D11/Summary.json) 和 [D3D12](../validation/R1/D3D12/Summary.json) 计算夹具验证；R2 的离屏求交、命中取色与合成已在 [Win64 D3D12 Player](../validation/R2/evidence/Summary.json) 通过，并按拆分口径把全轮廓召回留给 R3（见下）。R3–R5 仍待实施。** 只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；命中着色见 [HitShading](../research/HitShading.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
+**状态：R1 半分辨率分类与预算已在 [D3D11](../validation/R1/D3D11/Summary.json) 和 [D3D12](../validation/R1/D3D12/Summary.json) 计算夹具验证；R2 的离屏求交、命中取色与合成已在 [Win64 D3D12 Player](../validation/R2/evidence/Summary.json) 通过，并按拆分口径把全轮廓召回留给 R3（见下）；R3 的阴面源切换已在 [Win64 D3D12 Player](../validation/R3/evidence/Summary.json) 通过，R4 的登记范围与材质覆盖计数已在 [Win64 D3D12 Player](../validation/R4/evidence/Summary.json) 通过。R3 的图像回归与 R5 仍待实施。** 只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；命中着色见 [HitShading](../research/HitShading.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
 
 ## 输入与分支
 
@@ -65,3 +65,20 @@ v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世�
 - 逐像素服务命中轮廓：204/208 个像素，`recallServed=1.0`、误报 0、覆盖率 13.3%；SS-only 对同一轮廓恢复 0。全轮廓召回 0.90 不在单帧 8/tile 预算内，按本轮确认的拆分口径移到 R3。
 - 首轮两处失败已修：材质 `_EMISSION` 在 `AssetDatabase.CreateAsset` 之前启用而未序列化，改为 CreateAsset → 设属性/关键字 → `SetDirty`；旧的失败轮次保留在 `evidence-pre-fix` 与 `evidence-emission-bug`。
 - 范围仍限于已登记不透明 Lit/cutout/自发光、mip 0、硬裁剪；透明、探针反馈、时间累积 HW 命中、R3–R5 未覆盖。
+
+## W6 / R3 阴面源切换（2026-11-25）
+
+- 同一 Win64 Development Player 的 [D3D12](../validation/R3/evidence/Summary.json) 与 [D3D11](../validation/R3/evidence/D3D11/Report.json) 记录；D3D11 以 `Backend` 拒绝，0 次 Build、0 次派发。
+- D3D12 单登记不透明面、6 次 1-ray 派发。ambient 辐照度 2 读回 `0.611155`，有效快照 6 读回 `1.833465`；快照版本失效、发布掩码为空、邻居全 inactive 三组都回 ambient；恢复后只加一次 probe（与 ambient+probe 之和差 >1e-3）。payload 24 B、请求 48 B；GI producer 未分配、SSR pass 未实例化，因此“SSR 单开不启动 GI”由该夹具显式签收。
+- 命中点低频项就是 `GlxHitLowFrequencyIrradiance`：源 0 用 ambient 辐照度，源 1 且快照有效/邻居已发布且 active 时用 probe 辐照度；缺失时回 ambient，不叠加。`0.96` 来自 URP metallic workflow 的 `brdf.diffuse = albedo × (1 − 0.04)`；基色用白色以避开 sRGB→linear 转换的歧义。
+- **图像回归未实施**：移动供体/时间并集的全轮廓召回、SS↔HW 切换亮度峰值、三种 renderer、透明与 clear-coat 对照仍缺证据；R2 的服务率/溢出与 R3 的源切换不能替代它们。
+- 夹具注意：场景材质资产在首次使用前只有 1 个占位 pass，`FindPass("GlxDXR")` 会返回 -1；先渲染一帧再建 TLAS。fixture raytrace 需用包路径 include，并显式绑定 `_R*Count`，否则 raygen 早退。
+
+## W6 / R4 登记范围与材质覆盖（2026-11-25）
+
+- 同一 Win64 Player 的 [D3D12](../validation/R4/evidence/Summary.json) 与 [D3D11](../validation/R4/evidence/D3D11/Report.json)；D3D11 为 `Backend`，0 TLAS/0 实例/0 派发。
+- 6 个登记组件得到 3 个成员/3 个 TLAS 实例：emission、cutout、多 submesh（Lit 子网格）。SimpleLit、ComplexLit、透明 Lit、未登记 Lit 以及多 submesh 的 SimpleLit 子网格全部不入 TLAS，并分别计入 unsupported instances（3）、disabled submeshes（1）与蒙皮跳过（1），不静默当黑色或天空。
+- 命中向量：emission `(2, .5, .125)`@2 m；cutout 实心 `(0, 1, 0)`@2 m，孔洞 miss（flags=1）；多 submesh 命中 Lit 子网格、SimpleLit 子网格 miss。payload 24 B、请求 48 B；GI producer 与 Surface Cache 均未分配。
+- 变体：该构建保留 Lit `GlxDXR` 的 16 个生产关键字集（`_NORMALMAP`/`_METALLICSPECGLOSSMAP`/`_EMISSION`/`_ALPHATEST_ON`），由 [Variants.json](../validation/R4/evidence/Variants.json) 与 `IPreprocessShaders` 回调计数交叉记录。
+- 成本：32 次 2048 射线派发的 CPU 提交均值 0.039 ms；**GPU ms 未测得**（Profiler 0 样本，`gpuTimingMeasured=false`），不以 CPU 时间代替。
+- 范围仍限于 H-A 登记不透明 Lit/cutout/自发光；ShaderGraph、透明混合、蒙皮、probe 反馈与 R5 的多灯/逐灯阴影材质扩展未覆盖。
