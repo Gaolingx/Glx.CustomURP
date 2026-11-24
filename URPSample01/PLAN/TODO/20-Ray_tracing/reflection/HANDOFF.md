@@ -1,6 +1,6 @@
 # 不透明 SSR × DXR：恢复离屏几何的单次反射
 
-2026-11-24｜计划，未实现。只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；HDRP 对比见[研究](../research/HDRP14.md)。
+2026-11-24｜计划，未实现。只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
 
 ## 输入与分支
 
@@ -14,8 +14,9 @@
 
 ## 调度、重建和绑定
 
-- 在 206 内 SS trace/回投分类完成后，邻域填洞/聚合**之前**保留原始样本状态，不从最终 alpha 或邻像素补出来的颜色倒推。v1 先做光滑单射线；PBR 支持须另证重建权重，不冒充完整粗糙镜面支持。连续像素/采样槽记录请求，预算上限 `K`，将合格请求压入有界列表并记录溢出；以确定性空间分布/轮转避免边缘长期饿死。
-- Unity 2022.3 使用 CPU 已知宽度 `K` 的直接 DispatchRays，raygen 根据 GPU 有效数 `min(count,K)` 早退，散写回原槽；`K=0` 时 CPU 不提交。**并非精确按 N 间接派发，也不保证满 wave**。先与同预算固定派发/掩码方案计时对比；不引入阻塞读回。TMin 从原表面做 bias；不把 Hi-Z 走过的距离当世界空间安全距离。
+- 在 206 内 SS trace/回投分类完成后，邻域填洞/聚合**之前**保留原始样本状态，不从最终 alpha 或邻像素补出来的颜色倒推。请求列表必须记录 sample slot、接收面 P/N、方向、粗糙度、TMin/TMax、seed 与材质/实例 ID，并有界、可计数。v1 先做光滑单射线；PBR 支持须另证重建权重，不冒充完整粗糙镜面支持。连续像素/采样槽记录请求，预算上限 `K`，将合格请求压入有界列表并记录溢出；以确定性空间分布/轮转避免边缘长期饿死。
+- Unity 2022.3 使用 CPU 已知宽度 `K` 的直接 DispatchRays，raygen 根据 GPU 有效数 `min(count,K)` 早退，散写回原槽；`K=0` 时 CPU 不提交。**并非精确按 N 间接派发，也不保证满 wave**；先与同预算固定派发/掩码方案计时对比；不引入阻塞读回。TMin 从原表面做 bias；不把 Hi-Z 走过的距离当世界空间安全距离。
+- 命中着色使用材质 `LightMode = "RayTracing"` pass 与共同 ABI；只对进入 TLAS 的受支持不透明子集宣称可恢复。未入库材质/透明/蒙皮/alpha test 不能靠“有 DXR”自动补洞。
 - 合成目标：`s·Lss + (1−s)·[r·Lhw + (1−r)·Lenv]`（强度 1）。对材质导出 `a=s+(1−s)r`、`rgb=(s·Lss+(1−s)r·Lhw)/a`；`a=0` 时 RGB 写零。这样旧非预乘 SSR 合同、点采样、强度和 clear-coat 各 lobe 的 BRDF/环境权重仍只应用一次。`r` 仅表示已解决 HW 份额；HW 不再乘一次 SS 屏幕边缘淡出，否则离屏洞会重新出现。
 - 保留 SSR 自己的 motion、粗糙度、深度/法线 history；HW 距离及分类用于历史拒绝。SS→HW 来源变化且距离/亮度不一致时降历史权重；相机切换、尺寸/后端切换要失效；禁止回灌已空间模糊的历史。205 的 GI history 不能借给 206。SS 读历史 scene color，HW 命中着色较简单，观察高亮物体出屏会不会从“空洞”变成“亮度台阶”。
 
@@ -28,3 +29,11 @@
 | R3 重建与回归 / R2 | 锁曝光/种子，让物体连续出入画；比较 SS-only、Hybrid 和同材质高采样 RT 参考；切镜、移动遮挡、粗糙边界、clear-coat、三种 renderer 和透明控制组 | 同一表面 ROI 统计参考轮廓召回率、错误轮廓率、源切换亮度峰值、历史拖尾帧和每 pass GPU ms，按 B0 预定阈值判定；不能用非黑像素率替代。关闭扩展和透明控制组与原图相同；clear-coat 不重复增亮，GI 更新计数为 0 |
 
 已知上限：被 SSR 当成有效命中的假交点不会自动触发 DXR；蒙皮/透明未入库、预算不足、简化灯光、镜中镜和有限距离仍可能产生错反射。超过预算时按模块回退，不为补洞默认开启多跳或扩大平台范围。
+
+## 落点与维护
+
+- **帧序**：共享 TLAS 在 206 之前就绪；206 内依次为 SS trace/reproject 分类与请求、固定 K 的 DispatchRays、HW 合成；207 仍只做原绑定。206 的额外子阶段必须在 `SsrPass` 内可独立开关，失败时不破坏原 SSR 输出。
+- **代码落点**：`SsrPass.cs` 增加可选子阶段；`ScreenSpaceReflections.compute` 增加请求分类 kernel；新增 `RayTracingSsr.raytrace` 与材质命中 pass；合成保持 unpremultiplied radiance + weight。测试放 `URPSample01/Assets/Tests/RayTracing/SSR/`。
+- **独立性**：SSR 单独开启时不得启动 probe 更新、不得分配 GI atlas；GI 单独开启时不得派发射反射射线。两者共用 TLAS，但共享的只有场景/材质 ABI/ray mask/线性 HDR 单位，不共享方向分布、屏幕历史或滤波器。
+- **开关与剥离**：默认关；关闭时无 RTAS/请求缓冲/派发，原 SSR 图像逐像素不变。非目标平台剥离 RT 资源与变体，并验证无 shader 错误。
+- **证据与文档**：`validation/<R ID>/<platform>-<renderer>/` 记录 requested/served/overflow、DXR marker、图像和已知差异；不覆盖 P0。实现与 [SSR-DXR](../research/SSR-DXR.md) 口径不一致时先修文档再验收。
