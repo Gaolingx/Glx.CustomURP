@@ -112,7 +112,7 @@ v1 明确不建 Surface Cache、不做 mesh cards/atlas、不做多跳。用“�
 
 | ID / 前置 | 交付 | 可单独复现的通过条件 |
 |---|---|---|
-| B0 / 无 | 冻结目标设备、版本、场景、灯光、相机轨迹、阈值、光线/毫秒/显存上限 | 同 HEAD 的 D3D11 和 D3D12 各自跑两遍 RT-off（项目默认 D3D12，需显式切 D3D11；P0 是 D3D11 记录）；关闭扩展与原路径同种子、同历史长度、同帧逐像素一致；记录现有测试筛选器及计数、`supportsRayTracing` 与目标 GPU |
+| B0 / 无 | 冻结目标设备、版本、场景、灯光、相机轨迹、阈值、光线/毫秒/显存上限 | 同 HEAD 的 D3D11 和 D3D12 各自跑两遍 RT-off（项目默认 D3D12，需显式切 D3D11；P0 是 D3D11 记录）；关闭扩展与原路径同种子、同历史长度、同帧逐像素一致；记录现有测试筛选器及计数、`supportsRayTracing` 与目标 GPU；在相应 feature 启用时实测 201–203 的 pass 顺序，区分内置 early motion 与 Editor 相机 motion |
 | T1–T3 / B0 | 后端门控、RTAS 与命中着色 | 见 [TLAS 独立测试](research/TLAS.md)；用已知射线验证，**不要求打开 SSGI 或 SSR** |
 | G1–G3 / B0；真实更新依赖 T3 | 数据面、分帧更新、SSGI 合成 | 见 [GI 验收](gi/HANDOFF.md)；关 SSR，能分别验证常量场、动态恢复和出屏转场 |
 | R1–R3 / B0；真实补追依赖 T3 | 未解决状态、离屏着色、反射重建 | 见 [反射验收](reflection/HANDOFF.md)；关 GI，用自发光物体验证离屏轮廓 |

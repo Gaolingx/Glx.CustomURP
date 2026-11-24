@@ -16,7 +16,7 @@
 | `RemoveInstance / ClearInstances / Dispose` | 11519,11545,11641 | 生命周期由调用方负责 |
 | `Update(relativeOrigin)` | 11661 | 更新全部实例 transform |
 | `CullInstances(RayTracingInstanceCullingConfig&)` | 11536 | 按 layer/ShadowCastingMode/Material/LOD/plane/sphere 配置过滤；结果含 `transformsChanged`/`materialsCRC`（11819–11824）。HDRP 可选 extended frustum，v1 不搬 |
-| `CommandBuffer.BuildRayTracingAccelerationStructure(rtas)` | 35216 | 唯一公开的构建提交入口 |
+| `CommandBuffer.BuildRayTracingAccelerationStructure(rtas)` | 35216 | 本项目选用的构建提交入口（另有对象方法 `Build()`/`Build(Vector3)`，11507、11513） |
 | `CommandBuffer.DispatchRays(RayTracingShader, string, uint, uint, uint, Camera)` | 35509 | 宽度/高度由 CPU 指定；没有 GPU 计数间接派发 |
 | `RayTracingShader.SetAccelerationStructure` | 11989 | 绑定 RTAS；配合 `CommandBuffer.SetRayTracingShaderPass` 选择材质命中 pass |
 

@@ -43,7 +43,7 @@
 
 | 顺序 | 内容 | 约束 |
 |---|---|---|
-| 201 | 共享 RT 场景服务构建/复用 TLAS | `AfterRenderingPrePasses+1`；203 是共享 Hi-Z 与 Editor motion 同 slot；201/202 在包内未占用。在第一个 RT 消费者之前；相机无关；失败则本帧所有 RT 消费者回原路径 |
+| 201 | 共享 RT 场景服务构建/复用 TLAS | `AfterRenderingPrePasses+1`；与 DBuffer、非 Deferred 的 ScreenSpaceShadows 共用 201，按入队顺序执行；TLAS 不读它们的输出，只须先于首个 RT 消费者就绪。202 是内置 early motion，203 是 Hi-Z 与 Editor 相机 motion（见[时序与源码](report.md#21-pass-顺序)）；相机无关；失败则本帧所有 RT 消费者回原路径 |
 | 206a | SS trace + reproject + 原始样本分类/请求列表 | 必须保留原始状态，不读最终 alpha |
 | 206b | 固定 K 的 `DispatchRays` | raygen 早退；不阻塞读回 |
 | 206c | HW 结果合成到 SSR 输出纹理 | 仍为 206 内、207 绑定之前 |

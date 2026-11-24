@@ -45,7 +45,7 @@
 | `RemoveInstance / ClearInstances / Dispose` | 11519,11545,11641 | 生命周期由调用方负责 |
 | `Update(relativeOrigin)` | 11661 | 更新全部实例 transform |
 | `CullInstances(RayTracingInstanceCullingConfig&)` | 11536 | 按 layer/ShadowCastingMode/Material/LOD/plane/sphere 配置过滤；结果含 `transformsChanged`/`materialsCRC`（11819–11824） |
-| `CommandBuffer.BuildRayTracingAccelerationStructure` | 35216 | 唯一公开的构建提交入口 |
+| `CommandBuffer.BuildRayTracingAccelerationStructure` | 35216 | 本项目选用的构建提交入口（渲染图内排队） |
 | `CommandBuffer.DispatchRays(RayTracingShader, string, uint, uint, uint, Camera)` | 35509 | 宽度/高度 CPU 指定；**没有 args-buffer 间接重载** |
 | `RayTracingShader.SetAccelerationStructure` | 11989 | 绑定 RTAS；配合 `CommandBuffer.SetRayTracingShaderPass` 选材质命中 pass |
 | `SystemInfo.supportsRayTracing` | 49424 | 运行时能力门控 |
@@ -55,6 +55,7 @@
 - 2022.3 没有 inline RayQuery：CoreModule XML 中查不到 `RayQuery` / `supportsInlineRayTracing` / `inlineraytracing` 符号，也没有 `ComputeShader.SetRayTracingAccelerationStructure`，因此 sandwich 配方不能直接实现。Unity 2023.1 先给 DXR1.1 平台的**计算着色器**加入 inline RT（`SystemInfo.supportsInlineRayTracing`、`#pragma require inlineraytracing`、`ComputeShader.SetRayTracingAccelerationStructure`），2023.2 再扩到光栅化着色器；Unity 6 追加 RTAS build flags 与 compute queue 异步构建。
 - 2022.3 没有通用 bindless；方案 A 的“Bindless 顶点/纹理数组”只能退化为材质 buffer/atlas + 每材质 pass。
 - 2022.3 没有 RT 间接派发；压缩后仍要固定 K 的 `DispatchRays` + raygen 早退，尾部 wave 会空转。
+- 构建入口不只一个：命令缓冲 `CommandBuffer.BuildRayTracingAccelerationStructure`（35216）与对象方法 `RayTracingAccelerationStructure.Build()` / `Build(Vector3)`（11507、11513）。v1 统一走命令缓冲，保证与渲染队列和帧序一致；不要写成“唯一公开入口”。
 - RTAS 的 Build/refit 由驱动/Unity 内部决定；公开 API 只记录“提交 Build 次数”，不要声称显式 refit 或 BLAS/TLAS 分离计数。
 
 ### 1.3 材质命中入口
@@ -71,6 +72,8 @@ URP 14 Lit/ComplexLit 只有 `UniversalForward`、`UniversalGBuffer`、`ShadowCa
 
 | 顺序 | 内容 | 证据 |
 |---|---|---|
+| 201 | DBuffer decal；非 Deferred 的 ScreenSpaceShadows（对应 pass 入队时） | `Runtime/Decal/DBuffer/DBufferRenderPass.cs:37`；`Runtime/RendererFeatures/ScreenSpaceShadows.cs:66-70` |
+| 202 | 内置 motion vectors：SSGI/opaque SSR 入队并请求 Motion 时，早于默认消费者时序 | `Runtime/UniversalRenderer.cs:163,1557-1559,1598`；`SsgiPass.cs:182`、`SsrPass.cs:199` |
 | 203 | 共享深度金字塔（`+3`） | `Runtime/RendererFeatures/ScreenSpaceCommon/ScreenSpaceDepthPyramidPass.cs:10`；由第一个消费者入队 `ScreenSpaceDepthPyramidSystem.cs:85` |
 | 203 | Editor Scene View 相机 motion（`+3`，仅 Editor） | `ScreenSpaceCommon/ScreenSpaceEditorCameraMotionPass.cs:37`；`ScreenSpaceLightingRendererFeature.cs:191` |
 | 204 | GTAO（`+4`） | `RendererFeatures/GroundTruthAmbientOcclusion/GroundTruthAmbientOcclusionPass.cs:10` |
@@ -81,7 +84,7 @@ URP 14 Lit/ComplexLit 只有 `UniversalForward`、`UniversalGBuffer`、`ShadowCa
 | 250 | Forward opaque | `Runtime/UniversalRenderer.cs:373` |
 | 300 | 清理/keyword off | `ScreenSpaceLightingSetupPass.cs:103,126-129,133-146` |
 
-**勘误**：early motion 不是 202，而是 203（与深度金字塔同 slot，按入队顺序执行）；包里没有 201/202 的 pass。TLAS 仍可放 201。
+**TLAS 拟放 201，不要求独占**：同槽按入队顺序执行，构建不读取 DBuffer 或屏幕空间阴影的输出，两者也不消费 TLAS。B0 记录现有 pass 的实际顺序；接入后再用 GPU 记录确认 Build 先于首个使用该快照的 DispatchRays。
 
 ### 2.2 SSGI
 
@@ -304,11 +307,11 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 - `base = lerp(bakedGI, Pgi, c)`；
 - 材质 `lerp(base, Lss, w)`，即 `(1−w)·base + w·Lss`。
 
-**必须标注**：`Pgi=Eprobe/π` 是我们的设计约定，不是参考实现的能量链。参考实现的链是 `1/(2Σw)`（atlas）→ `pow 2.5` → `×Σ⁻¹` → `×itself` → `×2π` → 材质 `×albedo/π`；在均匀球面采样下大致落到 `0.5·albedo·E/π` 附近，并带“对 √E 均值再平方”的方差偏差。G1 必须先把 atlas 单位钉死，否则后续 G3 的 ROI 对不上。
+**必须标注**：`Pgi=Eprobe/π` 是我们的设计约定，不是参考实现的能量链。参考实现的链是 `1/(2Σw)`（atlas，存 `E/(2π)`）→ `pow(x,1/5)` 编码 → `pow(x,2.5)` 解码 → `×Σ⁻¹` → `×itself` → `×2π` → 材质 `×albedo/π`。取常数场 `L` 走一遍：atlas 存 `L/2`，采样端平均 `√(L/2)` 再平方回 `L/2`，`×2π` 得 `πL=E`，材质端 `×albedo/π` 得 `albedo·L`——**没有额外的 0.5**；非均匀场“对 √E 均值再平方”才是真正的方差偏差。G1 必须先把 atlas 单位钉死，否则后续 G3 的 ROI 对不上；按 `0.5·albedo·E/π` 设参考基线会把正确实现判成亮一倍。
 
 ## 7. TLAS 与场景服务
 
-- RTAS 是场景级快照，不是相机资源；两个消费者在同一 revision/过滤配置/原点上共享。帧序上放在 **201**（`AfterRenderingPrePasses+1`，201/202 在包内未占用；203 是共享 Hi-Z 与 Editor motion 同 slot），在第一个 RT 消费者之前、且与相机无关地构建/复用。首帧无有效快照回原效果；卸载、管线重建、设备丢失、渲染器销毁时 Dispose。
+- RTAS 是场景级快照，不是相机资源；两个消费者在同一 revision/过滤配置/原点上共享。帧序上放在 **201**（`AfterRenderingPrePasses+1`，共槽条件见 §2.1），在第一个 RT 消费者之前、且与相机无关地构建/复用。首帧无有效快照回原效果；卸载、管线重建、设备丢失、渲染器销毁时 Dispose。
 - 成员登记：明确登记可贡献的 Renderer；不逐相机全场查找；**v1 不用 plane/frustum 裁剪**（HDRP 的 extended frustum 不搬），屏外几何仍可能被 GI/反射命中。`CullInstances` 可做 layer/material/LOD 过滤，并用 `transformsChanged`/`materialsCRC` 做 dirty 判定。
 - 区分 32 位 layer 过滤（`RASSettings`）、8 位 instance mask（`AddInstance`/`TraceRay`）、submesh enable/alpha 策略。
 - dirty/Build：静态成员不重复 Build；动态成员按 revision 只提交一次；`RayTracingMode.Static` 不因 transform 自动更新；刚体走 `UpdateInstanceTransform` + Build；灯光/发光参数影响着色或 probe 失效，不应无条件重建几何。记录“提交 Build 次数”，不声称显式 refit。
@@ -352,7 +355,7 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 | 旧说法 | 实际 | 证据 |
 |---|---|---|
 | HDRP 材质用 `LightMode="RayTracing"` pass | 实际 pass 名是 `IndirectDXR`/`GBufferDXR`/`ForwardDXR`/…；`SetRayTracingShaderPass` 按名字选 | `Lit.shader:1027-1035`；`DeferredLightLoop.cs:306` 等 |
-| early motion 在 202 | 在 203（与深度金字塔同 slot，入队顺序） | `ScreenSpaceEditorCameraMotionPass.cs:37` |
+| 混淆内置与 Editor 相机 motion | 内置 early motion 在 202；Editor 相机 motion 在 203，与深度金字塔共槽 | `UniversalRenderer.cs:163,1557-1559`；`ScreenSpaceEditorCameraMotionPass.cs:37` |
 | URP SSGI fallback 有 APV 步骤 | URP 只有 Reflection Probes → Sky；APV 是 HDRP 的 | `ScreenSpaceGlobalIllumination.compute:171-209` |
 | HDRP SSGI 写 `(radiance, weight)` | HDRP SSGI buffer 只写 radiance；URP fork 才写 `(radiance, weight)` | HDRP compute `:37,39,284,321-327`；URP blend `:24-25` |
 | HDRP 只在脏帧 Build RTAS | `Automatic` 下每帧每相机重建 | `HDRaytracingManager.cs:538-599`；`HDRenderPipeline.cs:2282-2289` |
@@ -363,6 +366,8 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 | Surface Cache 只服务老显卡/SDF | Lumen HWRT 也默认用它；HWRT 只替换几何求交 | Epic Lumen 文档 |
 | Lumen single CHS/no AHS/Sort+Retrace 是 Epic 文档 | 属 SIGGRAPH 2022 talk 细节 | SIGGRAPH 2022 slides |
 | 2077 直接等于 bindless G-buffer + DDGI | 2077 path tracing 更典型是 ReSTIR + NRD + SHaRC/NRC；具体归因部分未官方确认 | NVIDIA GDC 2024 session；RTG 章节 |
+| 参考实现能量链约 `0.5·albedo·E/π` | 常数场往返得到 `albedo·L = albedo·E/π`，无额外 0.5；0.5 来自把 atlas 的 `1/(2Σw)` 与采样端 `×2π` 拆开看 | `DDGIUpdateIrradiance.compute:102–108`；`DDGIFuncs.hlsl:416–430` |
+| `CommandBuffer.BuildRayTracingAccelerationStructure` 是唯一公开构建入口 | 对象方法 `RayTracingAccelerationStructure.Build()` / `Build(Vector3)` 同样公开；v1 选命令缓冲是为了对齐渲染队列 | CoreModule XML：11507、11513、35216 |
 
 ## 11. 参考索引
 

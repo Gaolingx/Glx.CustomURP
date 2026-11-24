@@ -4,6 +4,8 @@
 
 [P0](P0/Baseline.json) 是 `720bedd` 的 **D3D11** 记录（EditMode 184、PlayMode 6、T12 34/34/35），用于保留历史入口、命令与哈希；它不证明当前 HEAD、D3D12、DXR 或主机。不要改写 `round`，不要覆盖 `P0/`。
 
+`Baseline.json` 的 `commands` 保留原始调用。从 `URPSample01/` 复跑时，三个 `PLAN/Done/01-ScreenSpaceLighting/validation/T14/` 脚本入口不变；只替换 `-LogPath`、`-ResultsPath`、`-OutputRoot` 中的旧前缀 `PLAN/TODO/09-DDGI_improve/validation/P0/`。历史证据现归档在 `PLAN/TODO/20-Ray_tracing/validation/P0/`；新结果改写到独立目录，例如 `PLAN/TODO/20-Ray_tracing/validation/B0/Win64-D3D11/run-01/`，保留 `EditMode/`、`PlayMode/`、`T12/` 后缀。每次另选运行目录；目录名不会切换图形 API，复跑 P0 时须确认实际使用 D3D11。
+
 ## 新证据路径
 
 ```

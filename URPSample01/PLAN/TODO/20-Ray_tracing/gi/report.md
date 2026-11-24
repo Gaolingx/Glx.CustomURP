@@ -81,7 +81,7 @@
 - 因此 `w=1` 只取 SSGI；`w=0,c=1` 只取 probe；`w=c=0` 回 bakedGI。**不要**把 probe 先乘 `w` 或在 SSGI 纹理里再混一次；也不要用预乘的 `S` 做 `lerp(base,S,w)` 造成二次加权。
 - 强度 `I>0` 定义为 `lerp(base, Lss·I, w)` 的等价形式（颜色乘 I，权重不乘 I）；`I=0` 沿用原路径的精确 no-op。接收面 albedo、AO 在既有材质链只应用一次。
 
-**`Pgi=Eprobe/π` 是本项目的设计约定，不是参考实现的能量链**。参考链是 atlas `1/(2Σw)` → `pow(x,2.5)` 解码 → `×Σ⁻¹` → 平方 → `×2π` → 材质 `×albedo/π`（`Lib/DDGIFuncs.hlsl:424–430`；`DDGIUpdateIrradiance.compute:102–108`）。在均匀球面采样下它大致落到 `0.5·albedo·E/π` 附近，并带“对 √E 求均值再平方”的方差偏差。照抄这条链会把 variance bias 和 `×2π` 一起带进我们的材质端，因此 G1 必须先钉死 atlas 单位与 `E/π` 的换算，再允许 G3 比较 ROI。
+**`Pgi=Eprobe/π` 是本项目的设计约定，不是参考实现的能量链**。参考链是 atlas `1/(2Σw)`（存 `E/(2π)`）→ `pow(x,1/5)` 编码 → `pow(x,2.5)` 解码 → `×Σ⁻¹` → 平方 → `×2π` → 材质 `×albedo/π`（`Lib/DDGIFuncs.hlsl:424–430`；`DDGIUpdateIrradiance.compute:102–108`）。常数场 `L` 的往返：atlas 存 `L/2`，采样端平均 `√(L/2)` 后平方回 `L/2`，`×2π` 得 `πL=E`，材质端得 `albedo·L`，**没有额外的 0.5**；非均匀场“对 √E 求均值再平方”才是方差偏差。照抄这条链会把 variance bias 和 `×2π` 一起带进我们的材质端，因此 G1 必须先钉死 atlas 单位与 `E/π` 的换算，再允许 G3 比较 ROI。
 
 **与现有 SSGI fallback 的互斥**：动态 probe 回退启用时，SSGI 的 `rayMiss` 不能同时写 Reflection Probes/Sky 到 SS 信号；否则 miss 像素会先拿到旧 fallback，再被材质 probe 覆盖/叠加。v1 在启用 probe 回退时把 SSGI 的 fallback 设为 `None`，miss 写 `weight=0`，由 `base` 负责填充；关闭 probe 回退则恢复原 `rayMiss` 设置。若 SSGI 本身未启用，不引入独立 DDGI。
 
