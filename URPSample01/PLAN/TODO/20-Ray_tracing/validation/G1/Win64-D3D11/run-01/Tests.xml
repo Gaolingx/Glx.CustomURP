@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="11" result="Passed" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.1350419">
+  <test-suite type="TestSuite" id="1700" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="592" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.135042" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1730" name="Unity.RayTracing.Tests.Editor.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RayTracing.Tests.Editor.dll" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.103137" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="16080" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1731" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.101567" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1732" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.098801" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1733" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.095829" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1734" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.091729" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1714" name="RayTracingProbeMathTests" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.088032" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="ParameterizedMethod" id="1720" name="DistanceMoments" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.DistanceMoments" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.033915" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1718" name="DistanceMoments(False)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.DistanceMoments(False)" methodname="DistanceMoments" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1555812897" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.024406" asserts="0">
+                    <properties />
+                    <output><![CDATA[distance=[3.7,3.7,3.7,3.7]; prefix d=29
+n=14 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH; HSBTMU=96,0,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=7,7 wordAddress=10320 fp16=4366/4AD8 decoded=(3.699219, 13.687500, 0.000000, 0.000000)
+]]></output>
+                  </test-case>
+                  <test-case id="1719" name="DistanceMoments(True)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.DistanceMoments(True)" methodname="DistanceMoments" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1143599563" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.002844" asserts="0">
+                    <properties />
+                    <output><![CDATA[distance=[1.5,3.7,3.7,3.7]; prefix d=29
+n=14 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH; HSBTMU=96,0,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=7,7 wordAddress=10320 fp16=40E3/4727 decoded=(2.443359, 7.152344, 0.000000, 0.000000)
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-case id="1729" name="EightNeighborValidityAndRelocation" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.EightNeighborValidityAndRelocation" methodname="EightNeighborValidityAndRelocation" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="491529115" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.003454" asserts="0">
+                  <properties />
+                  <output><![CDATA[probe=106 xy=3,3 wordAddress=27728 fp16=4648/4648/4648/4648 decoded=(6.281250, 6.281250, 6.281250, 6.281250)
+probe=107 xy=3,3 wordAddress=27760 fp16=0000/0000/0000/0000 decoded=(0.000000, 0.000000, 0.000000, 0.000000)
+probe=114 xy=3,3 wordAddress=29776 fp16=4CB6/4CB6/4CB6/4CB6 decoded=(18.843750, 18.843750, 18.843750, 18.843750)
+probe=115 xy=3,3 wordAddress=29808 fp16=58E9/58E9/58E9/58E9 decoded=(157.125000, 157.125000, 157.125000, 157.125000)
+probe=138 xy=3,3 wordAddress=35920 fp16=58E9/58E9/58E9/58E9 decoded=(157.125000, 157.125000, 157.125000, 157.125000)
+probe=139 xy=3,3 wordAddress=35952 fp16=58E9/58E9/58E9/58E9 decoded=(157.125000, 157.125000, 157.125000, 157.125000)
+probe=146 xy=3,3 wordAddress=37968 fp16=58E9/58E9/58E9/58E9 decoded=(157.125000, 157.125000, 157.125000, 157.125000)
+probe=147 xy=3,3 wordAddress=38000 fp16=58E9/58E9/58E9/58E9 decoded=(157.125000, 157.125000, 157.125000, 157.125000)
+cell=(2, 1, 3) f=(0.25, 0.50, 0.50) offset114=(0.00, 0.00, 0.00) valid=True E/pi=(3.427515, 3.427515, 3.427515)
+cell=(2, 1, 3) f=(0.25, 0.50, 0.50) offset114=(0.00, 0.45, 0.00) valid=True E/pi=(1.499538, 1.499538, 1.499538)
+cell=(2, 1, 3) f=(0.25, 0.50, 0.50) offset114=(0.00, 0.45, 0.00) valid=True E/pi=(0.000000, 0.000000, 0.000000)
+cell=(2, 1, 3) f=(0.25, 0.50, 0.50) offset114=(0.00, 0.45, 0.00) valid=False E/pi=(0.000000, 0.000000, 0.000000)
+]]></output>
+                </test-case>
+                <test-case id="1721" name="FeedbackAddsCappedPreviousIrradianceOnce" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.FeedbackAddsCappedPreviousIrradianceOnce" methodname="FeedbackAddsCappedPreviousIrradianceOnce" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="269756722" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.002366" asserts="0">
+                  <properties />
+                  <output><![CDATA[direct=(2.00, 0.38, 1.25) albedo=(1,.25,0) cap=.9 Eprev=(4,6,2)
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH; HSBTMU=96,0,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=48F1/415B/43DB/3C00 decoded=(9.882813, 2.677734, 3.927734, 1.000000)
+]]></output>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1724" name="KnownSky" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.KnownSky" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.008431" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1722" name="KnownSky(False)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.KnownSky(False)" methodname="KnownSky" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1973551264" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.002164" asserts="0">
+                    <properties />
+                    <output><![CDATA[sky L=(2.00, 0.38, 1.25); blocked L=0; window=False
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS; HSBTMU=0,96,0,0,0,0; skyReads=72; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=4648/3CB6/43DB/3C00 decoded=(6.281250, 1.177734, 3.927734, 1.000000)
+]]></output>
+                  </test-case>
+                  <test-case id="1723" name="KnownSky(True)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.KnownSky(True)" methodname="KnownSky" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="408928579" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.001372" asserts="0">
+                    <properties />
+                    <output><![CDATA[sky L=(2.00, 0.38, 1.25); blocked L=0; window=True
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBB; HSBTMU=0,24,72,0,0,0; skyReads=24; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=3F2E/3563/3C7D/3C00 decoded=(1.794922, 0.336670, 1.122070, 1.000000)
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1728" name="OctahedralInteriorAndFoldedGutters" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.OctahedralInteriorAndFoldedGutters" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.018330" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1726" name="OctahedralInteriorAndFoldedGutters(6,4)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.OctahedralInteriorAndFoldedGutters(6,4)" methodname="OctahedralInteriorAndFoldedGutters" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="171805272" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.004950" asserts="0">
+                    <properties />
+                    <output><![CDATA[probe=9 xy=-1,-1 wordAddress=2080 fp16=5080/D080/5480/4C80 decoded=(36.000000, -36.000000, 72.000000, 18.000000)
+probe=9 xy=6,3 wordAddress=3132 fp16=4C80/CC80/5080/4880 decoded=(18.000000, -18.000000, 36.000000, 9.000000)
+]]></output>
+                  </test-case>
+                  <test-case id="1727" name="OctahedralInteriorAndFoldedGutters(14,2)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.OctahedralInteriorAndFoldedGutters(14,2)" methodname="OctahedralInteriorAndFoldedGutters" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="171847073" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.007819" asserts="0">
+                    <properties />
+                    <output><![CDATA[probe=9 xy=-1,-1 wordAddress=4128 fp16=5A20/DA20 decoded=(196.000000, -196.000000, 0.000000, 0.000000)
+probe=9 xy=14,7 wordAddress=6206 fp16=5620/D620 decoded=(98.000000, -98.000000, 0.000000, 0.000000)
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1717" name="SurfaceField" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.SurfaceField" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.007296" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1715" name="SurfaceField(False)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.SurfaceField(False)" methodname="SurfaceField" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="230684180" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.001830" asserts="0">
+                    <properties />
+                    <output><![CDATA[L0=(2.00, 0.38, 1.25) L1=(2.00, 0.38, 1.25) prefix L=500
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH; HSBTMU=96,0,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=4648/3CB6/43DB/3C00 decoded=(6.281250, 1.177734, 3.927734, 1.000000)
+]]></output>
+                  </test-case>
+                  <test-case id="1716" name="SurfaceField(True)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.SurfaceField(True)" methodname="SurfaceField" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1451179167" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.000837" asserts="0">
+                    <properties />
+                    <output><![CDATA[L0=(2.00, 0.38, 1.25) L1=(0.25, 3.00, 0.50) prefix L=500
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH; HSBTMU=96,0,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=43DB/44B6/41D6/3C00 decoded=(3.927734, 4.710938, 2.917969, 1.000000)
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-case id="1725" name="UnresolvedIsNeitherSkyNorMeasuredBlack" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.UnresolvedIsNeitherSkyNorMeasuredBlack" methodname="UnresolvedIsNeitherSkyNorMeasuredBlack" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="797669743" result="Passed" start-time="2026-11-24 16:46:19Z" end-time="2026-11-24 16:46:19Z" duration="0.002644" asserts="0">
+                  <properties />
+                  <output><![CDATA[n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUU; HSBTMU=0,0,0,24,24,48; skyReads=0; valid=False
+probe=18 xy=3,3 wordAddress=5200 fp16=4500/4400/4200/3C00 decoded=(5.000000, 4.000000, 3.000000, 1.000000)
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUU; HSBTMU=0,24,0,0,24,48; skyReads=24; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=4648/3CB6/43DB/3C00 decoded=(6.281250, 1.177734, 3.927734, 1.000000)
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS; HSBTMU=0,96,0,0,0,0; skyReads=72; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=0000/0000/0000/3C00 decoded=(0.000000, 0.000000, 0.000000, 1.000000)
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

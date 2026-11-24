@@ -1,0 +1,11 @@
+{
+  "api": "Direct3D11",
+  "comparison": "bitwise little-endian RGBA16F, run-01 vs run-02",
+  "rawSHA256": [
+    "a7b046df7acd2fb5899e258957a1d38123adbcba5c3b7737511f68f025000211",
+    "a7b046df7acd2fb5899e258957a1d38123adbcba5c3b7737511f68f025000211"
+  ],
+  "channelsCompared": 8294400,
+  "differentChannels": 0,
+  "passed": true
+}

@@ -1,6 +1,6 @@
 # 20 · 高端平台可选光追：实施与签收入口
 
-**状态：研究与计划，未实现、未做 GPU 测量。** 结论：在 Unity 2022.3 / URP 14 上，Windows D3D12 有可验证的直接 DXR 派发路径；当前屏幕效果的时序允许接入，但不是移植 HDRP Mixed 的四张命中 GBuffer。主机是候选后端，不是已支持平台。研究索引与证据口径见 [research/README.md](research/README.md)。
+**状态：W0 基线与 W1 的 T1/G1 夹具已通过（见[任务实施记录](todolist.md)）；真实 Build/DispatchRays、GPU 命中着色和性能尚未验证。** 结论：在 Unity 2022.3 / URP 14 上，Windows D3D12 有可验证的直接 DXR 派发路径；当前屏幕效果的时序允许接入，但不是移植 HDRP Mixed 的四张命中 GBuffer。主机是候选后端，不是已支持平台。研究索引与证据口径见 [research/README.md](research/README.md)。
 
 | 阅读顺序 | 决策归属 |
 |---|---|
@@ -141,6 +141,6 @@ v1 不建 Surface Cache、不做 mesh cards/atlas、不做递归多跳。用“�
 - [迁移的旧 P0](validation/P0/Baseline.json) 是 `720bedd` 的 **D3D11** 记录（EditMode 184、PlayMode 6、T12 34/34/35），不证明当前 HEAD、DXR 或主机。保留原始记录/哈希和当时命令，不改写 `round`。新结果放 `validation/<ID>/<platform>-<renderer>/`，不覆盖 P0。实施时从 `URPSample01` 运行原有 [EditMode](../../Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14EditModeTests.ps1)、[PlayMode](../../Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14PlayModeTests.ps1)、[T12](../../Done/01-ScreenSpaceLighting/validation/T14/Invoke-T14GraphicsRegression.ps1)；新 DXR 合同另加 development Player，记录构建设置恢复结果。
 - 每个证据包记录基线/实现 SHA、设备/SKU/驱动/API/质量档、分辨率、场景版本、种子、曝光、帧号、预热帧数、计时窗口、输入/输出路径、实际值/门槛、pass/fail/blocked。图像对比在线性 HDR、同轨迹同帧；高采样参考与低预算候选用相同材质和光源。GI 比 ROI 误差和出屏亮度跳变；反射比正确轮廓覆盖率和 SS/HW 切换亮度差，而不是只看非黑像素。命中着色另记 payload 字节、pass/variant 数、每次派发灯数/阴影射线条数、supported/unsupported 材质、cutout A/B、feedback/relocation/classification 计数。
 - 性能按 TLAS CPU/GPU、probe trace/update、hit shading（材质解包/灯光/阴影/反馈）、relocation/classification、SSR trace/shade、重建分别计，另记总帧差、峰值显存、合格/请求/派发/命中/真 miss/未服务数。建议基线 1080p、固定轨迹、预热后 120 帧 × 3，给中位数和 P95；冷启动另列。B0 在看候选结果**之前**签定数值预算，未定预算不报性能通过。计数为零、全黑、无 NaN 或 Editor 截图都不能单独证明 DXR 生效。
-- 每个模块独立关回原路径，无 shader error、无 RT build/dispatch/常驻图集；失败优先收窄支持材质、实例范围、灯光/阴影预算或光线预算，不静默扩大适用平台，也不静默把 `LmaxHit/Smax` 抬到全场景。每个里程碑更新状态和证据指针；只在真实 Player 通过后把“计划”改为“支持”。当前仅交付 Markdown 和原证据迁移。
+- 每个模块独立关回原路径，无 shader error、无 RT build/dispatch/常驻图集；失败优先收窄支持材质、实例范围、灯光/阴影预算或光线预算，不静默扩大适用平台，也不静默把 `LmaxHit/Smax` 抬到全场景。每个里程碑更新状态和证据指针；只在真实 Player 通过后把“计划”改为“支持”。W0 的输入与预算见 [B0 冻结契约](validation/B0/Freeze.json)，执行状态见[任务清单](todolist.md)；原 P0 保持不变。
 - **停止条件**：若 T3/T3b/T4 无法在目标后端证明真实 Build/bind/DispatchRays、材质 pass/AHS 与灯表，G/R 只保留 fixture 结果，真实 RT 路径保持禁用；若 B0 无法冻结新增预算（灯数/阴影/payload/variant/反馈），不进入 I2；若某项通过需要扩大平台/材质/透明范围，按未通过记录，不修改门槛。
 - **文档同步**：研究行号/API 变更先更新 [research](research/README.md)，再改里程碑；验收证据与计划口径冲突时以证据为准并修文档，不保留两套说法。

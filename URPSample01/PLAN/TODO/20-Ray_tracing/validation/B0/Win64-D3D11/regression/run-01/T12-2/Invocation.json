@@ -1,0 +1,18 @@
+{
+    "executable":  "D:\\Program Files\\Unity\\Hub\\Editor\\2022.3.62f1\\Editor\\Unity.exe",
+    "workingDirectory":  "E:\\GitHub\\Glx.CustomURP\\URPSample01",
+    "arguments":  [
+                      "-batchmode",
+                      "-projectPath",
+                      "E:\\GitHub\\Glx.CustomURP\\URPSample01",
+                      "-logFile",
+                      "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\TODO\\20-Ray_tracing\\validation\\B0\\Win64-D3D11\\regression\\run-01\\T12-2\\Unity.log.txt",
+                      "-force-d3d11",
+                      "-executeMethod",
+                      "ScreenSpaceLightingT12Verification.RunT12Verification",
+                      "-quit",
+                      "-ssl-t12-output",
+                      "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\TODO\\20-Ray_tracing\\validation\\B0/Win64-D3D11/regression/run-01/T12-2"
+                  ],
+    "head":  "d4592ac68d154bd3657c0e475c643e27ed86bb3b"
+}

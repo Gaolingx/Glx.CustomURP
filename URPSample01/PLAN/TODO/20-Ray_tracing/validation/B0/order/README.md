@@ -1,0 +1,17 @@
+# B0: what actually ran at events 201–203?
+
+**Result: PASS for CPU pass order, 8/8 renders.** Unity 2022.3.62f1, NVIDIA GeForce RTX 5060 Ti, both D3D11 and D3D12. On both cameras event 201 ran CopyDepth → DBuffer → ScreenSpaceShadows (no RT/TLAS). At 202 Game ran the built-in camera and object motion calls; SceneView entered the same pass but returned without motion data. At 203 both recorded Hi-Z copy + seven downsample dispatches; only SceneView then executed Editor camera motion (seed on pose 0, draw on pose 1). Both logs contain a `SetComputeTextureParam` temporary-render-texture diagnostic at submit. The trace does not identify its source or establish GPU texture validity. This passes the order check, not image correctness.
+
+Run from this directory on Windows with Git and Python 3.12+:
+
+```powershell
+python run.py 'D:\Program Files\Unity\Hub\Editor\2022.3.62f1\Editor\Unity.exe' 'E:\tmp'
+```
+
+The runner exports only `Assets`, `Packages` and `ProjectSettings` from immutable Git object `d4592ac68d154bd3657c0e475c643e27ed86bb3b` into a newly allocated external scratch directory. No checkout, shared Library, junction, main-project launch or baseline evidence reuse. It applies exact-match trace insertions only to the disposable embedded URP, then runs separate graphical batch Editors with explicitly selected D3D11 and D3D12. Full Editor logs remain beside the disposable project; `execution.json` records their hashes, commands, ordered samples and exit status. Remove that unique scratch directory after review if desired.
+
+**Measurement.** The driver starts with the SSL-only `SslT10ForwardRenderer`, then appends the baseline Decal feature from `SslT12ForwardRenderer` and the ScreenSpaceShadows feature from `CdScreenShadowForwardPlusRenderer` in that order, in the disposable Editor only. This activates existing Forward event-201 occupants without implementing an RT pass. The driver creates an empty scene with one cube, a hard-shadow directional sun, a global enabled SSGI volume and a 128×96 target. It synchronously renders two translated poses each for a Game base camera with UniversalAdditionalCameraData and a real Editor SceneView's own camera. Pose index is a render ordinal, not necessarily a distinct `Time.frameCount`. The `ssl:` row confirms this camera passed feature gates and acquired the pyramid with SSGI enabled; it is **not** a pass-execution row.
+
+`B0Trace.Pass` samples the concrete pass type and its **runtime** event immediately at both URP compatibility-path calls to `renderPass.Execute`. It does not scan or modify the queue. The trace is filtered by camera identity and the inclusive event range. Additional markers in the actual implementations distinguish returned built-in camera/object draw calls from the missing-motion-data return, Editor history seeding from recording the procedural draw, and Hi-Z recording the copy plus downsample dispatches from an empty `Execute`. No sentinel or fake 201 pass is installed. An absent event means no observed pass at that event for the measured render, not a reserved/executed RT slot.
+
+**Limits.** CPU render-pass execution and command recording only: not a GPU capture, pixel/readback test, GPU timing or evidence that any particular object emitted motion pixels. Only the stated non-XR Editor Forward fixture is measured, not every renderer/feature combination, RT support path, standalone Player or legacy regression suite. In particular, order between passes sharing event 203 is empirical for this fixture, not a universal priority guarantee.

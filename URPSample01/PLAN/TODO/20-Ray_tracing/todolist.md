@@ -87,6 +87,21 @@ T,G,R 全绿 ── I1 ── I2
 | W8 | **I1** | 都关/GI/SSR/双开 × Forward/Forward+/Deferred，再扫各开关 |
 | W9 | **I2** | Windows DXR 实派发 + 同机 D3D12/D3D11 off + 非目标构建剥离；主机单独验收 |
 
+**W0 执行记录**：`d4592ac` 的 [B0 冻结契约](validation/B0/Freeze.json) 已固定目标机、原路径输入、每帧预算与验收阈值；数值是门槛，不是实测成绩。同一 Development Player（GUID `a00234cc70ff4afba3b476f5186a71b7`）做了四次独立进程回放：[D3D11](validation/B0/Win64-D3D11-Forward/run-02/Pair.json) 和 [D3D12](validation/B0/Win64-D3D12-Forward/run-02/Pair.json) 各自第 33 帧的 8,294,400 个 RGBA16F 通道逐位相同，`supportsRayTracing` 分别为 false/true。这里签收的是 RT-off 原路径可复现，不是候选关闭后的回归或真实 DXR 派发。
+
+**W0 判定：B0 通过（限冻结的 Forward Player、Windows 目标机及原路径）。** W1 的 T1/G1 前置条件已满足。
+
+**W1 判定：T1/G1 夹具通过，W2 未开始。** [专用 EditMode 复跑入口](validation/Invoke-W1.ps1)。
+
+- T1：[D3D11](validation/T1/Win64-D3D11/run-04/Tests.xml)、[D3D12](validation/T1/Win64-D3D12/run-04/Tests.xml) 各 15/15。验证相机/质量/后端门控、共享单份资源、重复开关、场景关闭及释放。RTX 5060 Ti 的 D3D11 实测 `Backend`，D3D12 实测 `MissingShaderOrPass`，两者均 0 RTAS；仅在 D3D12 夹具注入 shader-ready 后使用原生构造器，live RTAS 为 0→1→0。未实现实例登记、Build、命中或 Player 派发。早期 D3D11 run-01 是编译中间态；run-02/03 记录了未保存场景不能新增加载、预览场景关闭不触发普通场景回调的差异。最终用已保存的场景测真实关闭事件，不手动伪造通知。
+- G1：[CPU 数学与 FP16 读回](validation/G1/Win64-D3D11/run-04/Tests.xml) 13/13。常量/两色场、距离矩、反馈、已知天空/未解决、固定方向排除、接缝与邻居有效性均按 B0 容差验证。没有派发 SSGI、probe 更新或 DXR；数值夹具不是 GPU atlas 画质证据。
+
+| 独立检查 | 结果与边界 |
+|---|---|
+| 既有功能回归 | [D3D11](validation/B0/Win64-D3D11/regression/run-01/Summary.json)、[D3D12](validation/B0/Win64-D3D12/regression/run-01/Summary.json) 各 EditMode 184/184、PlayMode 6/6；两次 T12 各 Forward 34/34、ForwardPlus 34/34、Deferred 35/35。8 次 Editor 调用的设置恢复报告均通过。 |
+| 附加 Editor 跨进程采样哈希 | D3D11 的 85/85 相同；D3D12 仅 29/85 相同，ForwardPlus 与 Deferred 各有 28 项不同，原因未定位。每轮内部三个 renderer 的 `AllOffAgain` 均与各自 `Reference` 采样哈希相同。不得把 D3D12 这两条 Editor 路径当跨进程位精确金图；不以此放宽冻结的 Player 原始帧零差异门槛。 |
+| [201–203 实际执行](validation/B0/order/execution.json) | 双 API × Game/SceneView × 两姿态，8/8。201 为 CopyDepth → DBuffer → ScreenSpaceShadows（无 RT）；202 内置 motion 在 Game 记录绘制，在 SceneView 因无 motion 数据返回；203 Hi-Z 后，SceneView 首次建立历史、第二次记录 Editor motion 绘制。两个后端均出现临时渲染纹理警告；此证据只证明 CPU Execute 顺序与命令记录，不证明 GPU 输出。 |
+
 **关键路径**：`B0 → T1 → T2 → T3 → T3b → T4 → G2 → G5/G3 → I1 → I2`。这是最长链，WS4 的 G2 是整条链的汇聚点。
 
 ## 5. 停止条件（按计划原文）

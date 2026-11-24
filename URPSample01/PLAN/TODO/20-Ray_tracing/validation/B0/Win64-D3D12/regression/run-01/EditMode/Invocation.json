@@ -1,0 +1,20 @@
+{
+    "executable":  "D:\\Program Files\\Unity\\Hub\\Editor\\2022.3.62f1\\Editor\\Unity.exe",
+    "workingDirectory":  "E:\\GitHub\\Glx.CustomURP\\URPSample01",
+    "arguments":  [
+                      "-batchmode",
+                      "-projectPath",
+                      "E:\\GitHub\\Glx.CustomURP\\URPSample01",
+                      "-logFile",
+                      "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\TODO\\20-Ray_tracing\\validation\\B0\\Win64-D3D12\\regression\\run-01\\EditMode\\Unity.log.txt",
+                      "-force-d3d12",
+                      "-runTests",
+                      "-testPlatform",
+                      "EditMode",
+                      "-testResults",
+                      "E:\\GitHub\\Glx.CustomURP\\URPSample01\\PLAN\\TODO\\20-Ray_tracing\\validation\\B0/Win64-D3D12/regression/run-01/EditMode/Tests.xml",
+                      "-testFilter",
+                      "UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests;UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests;UnityEditor.Rendering.Universal.Tests.PluginIsolationTests;UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests;UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests;UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests;UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests;UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests;UnityEditor.Rendering.Universal.Tests.AccurateGbufferNormalsTests"
+                  ],
+    "head":  "d4592ac68d154bd3657c0e475c643e27ed86bb3b"
+}

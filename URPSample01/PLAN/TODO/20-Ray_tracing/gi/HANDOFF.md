@@ -1,6 +1,6 @@
 # GI 子模块：动态更新 probe，只作 SSGI 的漫反射回退
 
-**状态：设计，未实现。** 平台见[总计划](../HANDOFF.md)，数学与参考见[采样研究](report.md)，共享场景见[TLAS](../research/TLAS.md)，命中着色见[HitShading](../research/HitShading.md)。仅在高端 RT 配置、相机启用 SSGI 且选择动态回退时订阅共享场景；关闭扩展沿用原 rayMiss 设置，SSR 不依赖本模块。**SSGI 未启用时不引入独立 DDGI。**
+**状态：G1 CPU 数学与存储夹具已实现，13/13 通过；GPU 生产者与材质消费者尚未实现。** [实际向量、分类计数与 FP16 读回](../validation/G1/Win64-D3D11/run-04/Tests.xml)覆盖常量与两色场、窗口天空、反馈、固定方向排除、八面接缝及邻居失效。G1 不启用 SSGI 或 DXR。 平台见[总计划](../HANDOFF.md)，数学与参考见[采样研究](report.md)，共享场景见[TLAS](../research/TLAS.md)，命中着色见[HitShading](../research/HitShading.md)。仅在高端 RT 配置、相机启用 SSGI 且选择动态回退时订阅共享场景；关闭扩展沿用原 rayMiss 设置，SSR 不依赖本模块。**SSGI 未启用时不引入独立 DDGI。**
 
 ## 两个不同生命周期
 

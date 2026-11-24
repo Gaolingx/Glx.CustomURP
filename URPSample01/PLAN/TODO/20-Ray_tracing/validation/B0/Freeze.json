@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "round": "20-Ray_tracing/W0/B0",
+  "baselineCommit": "d4592ac68d154bd3657c0e475c643e27ed86bb3b",
+  "status": "frozen-before-RT-implementation; limits are acceptance inputs, not measurements",
+  "platform": {
+    "target": "StandaloneWindows64",
+    "os": "Windows Server 2022 Datacenter 10.0.20348",
+    "cpu": "AMD Eng Sample: 100-000000897-03",
+    "ramBytes": 68391575552,
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "driver": "576.80",
+    "dedicatedMemoryMiBReportedByNvidiaSmi": 16311,
+    "unity": "2022.3.62f1 (4af31df58517)",
+    "embeddedUrp": "14.0.12",
+    "urpTree": "d8b37f965ba07720db0b68a7f79d0a2ca3ac4790",
+    "packagesLockBlob": "1d2d75cbdbf91ee21ddb6435fea85d81f615e7b4",
+    "hdrpReferenceOnly": "14.0.12 (not loaded in the Player)",
+    "rtEligibleApi": "Direct3D12 with runtime capability gates; capability is not dispatch proof",
+    "controls": ["Direct3D11", "Direct3D12"],
+    "excluded": ["consoles pending separate approval", "XR", "non-base/preview/reflection cameras"]
+  },
+  "originalPathReplay": {
+    "build": "one development Win64 build, same GUID, two fresh processes per forced API; compare within API only",
+    "scene": "Assets/Tests/ContactShadow/Scenes/ContactShadowBaseline.unity",
+    "sceneBlob": "05035dc185ec707e22ce44242f5ab411b764090b",
+    "assetTrees": {"Materials": "aaa721cf371517ecf623af2af24ae9a31ad74f26", "Pipelines": "a9abef0bd9764f1b0de6551b405362da52b245e9", "Profiles": "6dc370d67a6d592de25b86995117b2374798ab70"},
+    "pipeline": "Assets/Tests/ContactShadow/Pipelines/Forward.asset",
+    "camera": "ContactCamera; static base camera for all 33 renders",
+    "position": [0,5,0], "rotationQuaternionXYZW": [0.7071068,0,0,0.7071068], "verticalFovDeg": 50,
+    "lighting": "authored Main white directional intensity 2; Point and Spot disabled; no shadow maps or contact shadows",
+    "rtExtensionsEnabled": false,
+    "postProcessing": false, "exposureGain": 1, "antialiasing": "none", "dynamicResolution": false,
+    "seed": 20261125, "timeStepHz": 60, "resolution": [1920,1080], "attachment": "linear RGBA16F",
+    "warmupCameraRenders": 32, "captureCameraRenderOneBased": 33,
+    "maxDifferentPixelsWithinApi": 0, "maxDifferentChannelBits": 0, "maxNonFiniteSamples": 0, "rejectUniformRgb": true,
+    "evidence": "record actual API/GPU/supportsRayTracing, build GUID, seed, frame and pixel hashes; keep the raw linear reference for future candidate-off comparisons. B0 pre-dates the extension."
+  },
+  "lightingBudget": {
+    "Lmax": 64, "LmaxHit": 4, "Smax": 2,
+    "tableOrder": "Directional before Point before Spot, then ascending stable scene-registration key (serialized hierarchy sibling-index path + component ordinal). No camera-distance or process instance-ID tie-break.",
+    "hitOrder": "eligible uploaded lights by descending linear Rec.709 luminance times URP distance/spot attenuation at hit; ties by table slot. Top LmaxHit contribute; first Smax shadow-enabled contributors trace. Remaining selected lights contribute unshadowed.",
+    "overflowCounters": ["registered - uploaded", "eligibleAtHit - selected", "shadowEligibleSelected - shadowRays"]
+  },
+  "hitAbi": {
+    "pass": "GlxDXR", "productionPayloadBytes": 24, "hardPayloadCapBytes": 64,
+    "layout": "float3 radiance @0, float hitT @12, uint flags @16, uint mode @20; scalar 32-bit fields; debug IDs excluded and measured separately",
+    "maxRecursionDepth": 2, "maxNamedHitPassesPerSupportedShader": 1,
+    "maxProductionHitKeywordCombinationsPerWindowsDxrBuild": 16,
+    "variantScope": "one metallic Lit hit pass; four independent local toggles: normal map, metallic/gloss map, emission, alpha test. Count retained distinct keyword sets; report debug separately. No specular workflow/clear-coat hit shader. Non-target count = 0."
+  },
+  "probes": {
+    "gridXYZ": [8, 4, 8], "spacingMeters": 1, "count": 256, "B": 16, "R": 128,
+    "fixedNonRotatingPrefix": 32, "activePrimaryRaysPerBatchMax": 2048, "inactiveRaysPerProbe": 32,
+    "rule": "fixed prefix is INCLUDED in R, not added; maintenance-only directions are excluded from irradiance/distance convolution",
+    "maxRevisitFrames": 16, "updatesPerSceneFrameMax": 1,
+    "irradiance": "RGBA16F 6x6 interior + 1 border", "moments": "RG16F 14x14 interior + 1 border", "publication": "double-buffered coherent generation; preserve untouched tiles",
+    "hysteresisPreviousWeight": 0.75, "coldStartPreviousWeight": 0,
+    "featureDefault": false, "feedbackWhenEnabled": true, "relocationWhenEnabled": true, "classificationWhenEnabled": true,
+    "baselineG3": "all three maintenance/feedback toggles OFF first; compare controls independently",
+    "feedbackAlbedoCap": 0.9, "feedbackSnapshotQueriesPerGiHitMax": 1, "neighborsPerQueryMax": 8,
+    "relocationNormOverSpacingMax": 0.45, "minFrontDistanceMeters": 0.2, "insideBackfaceFractionStrictlyAbove": 0.25,
+    "classification": "inactive if inside by fixed backface test or no fixed front hit inside its cell (one spacing on each axis); check fixed rays on every revisit even when inactive",
+    "reactivationFramesMaxAfterGeometryChange": 17, "primaryTMaxMeters": 30, "rayOriginBiasMeters": 0.002
+  },
+  "reflections": {
+    "featureDefault": false, "KperBaseCamera1080p": 32768, "maxEligibleRaysPerHalfResPixel": 1, "halfResTileWidth": 8, "maxServedPerTile": 8,
+    "validPerceptualRoughnessInclusive": [0, 0.35], "TMinMeters": 0.002, "TMaxMeters": 50,
+    "overflow": "rotate tile start and sample slot by frame and seed; serve no more than K; unserved is unresolved (environment fallback), not sky. K=0 submits nothing.",
+    "reflectionFeedbackWritesOrProbeUpdates": 0
+  },
+  "combinedBudgetSingleBaseCamera": {
+    "primaryRaysMax": 34816, "shadowRaysMax": 69632, "primaryPlusShadowMax": 104448, "feedbackNeighborTapsMax": 16384
+  },
+  "qualityThresholds": {
+    "relativeErrorDefinition": "abs(candidate-reference)/max(abs(reference),0.01); evaluate linear RGB or linear Rec.709 Y as specified; no tonemap",
+    "analyticIntersectionAbsMetersMax": 0.001, "wrongInstanceOrClassificationCountMax": 0,
+    "decodedConstantFieldOrMomentRelativeErrorMax": 0.005, "normalAngleDegreesMax": 2,
+    "analyticHitInteriorRgbRelativeErrorMax": 0.03, "cutoutWrongKnownRaysMax": 0,
+    "roiDefinition": "fixed receiver/target ID masks from high-sample reference; exclude one-pixel silhouette ring only for interior radiometry, never for silhouette recall. Empty ROI invalidates test.",
+    "reference": "analytic geometry/direct light where available; otherwise same pose, geometry, materials, lights, seed and exposure, >=1024 samples per receiver for converged offline reference",
+    "giReceiverMeanYRelativeErrorMax": 0.10, "thinWallRearYDividedByLitFaceYMax": 0.05,
+    "ssToWorldPeakStepOverReferenceYMax": 0.10, "stepMetric": "abs((candidateY[t]-candidateY[t-1])-(refY[t]-refY[t-1]))/max(abs(refY[t]),0.01) on same tracked surface ROI",
+    "dynamicSettleFramesMax": 256, "lightsOffOldSignalFractionMax": 0.05, "feedbackDecayWindowFrames": 256,
+    "stepFixture": "diffuse 0.5 red donor, zero emission/ambient after lights out; normalize residual by pre-step steady lit minus dark reference (must exceed 0.01). Test cap separately with G1 analytic vector.",
+    "reflectionSilhouetteRecallMin": 0.90, "falsePositivePixelsDividedByReferenceSilhouettePixelsMax": 0.05, "historyTrailFramesMax": 2,
+    "counterErrorsOrNonFiniteMax": 0, "rtOffRetainedBytesOrBuildsOrDispatchesMax": 0
+  },
+  "candidateWorkload": {
+    "scope": "normative inputs for later GI/SSR/I2; procedural fixture to be realized at those milestones, NOT the measured B0 off replay",
+    "coordinates": "Unity meters; right-handed rotations not assumed; camera looks along local +Z, +Y up; all dimensions below are world-axis aligned",
+    "materials": "URP metallic-workflow Lit; opaque non-emissive matte surfaces linear RGB (0.5,0.5,0.5), metallic 0, smoothness 0.2; black sky/no baked output; fixed exposure gain 1",
+    "geometry": "closed 8x4x8 room centered at (0,2,0), six inward-facing quads; 2x2 mirror centered (0,2,3.98) facing -Z, metallic 1 smoothness 1; 1x1 donor at (-2,2,-2) facing +Z, diffuse (0.5,0,0), emission (2,0,0) for reflection, emission 0 for GI light-step; 0.1x2x2 opaque wall centered (2,1,0); 0.5m matte cube centered (-1,1,1)",
+    "probeGridFirstCenter": [-3.5,0.5,-3.5],
+    "lights": "white directional intensity 1 with Euler (50,30,0); white point intensity 4 at (-2,2,0), range 6m; white spot intensity 4 at (2,3,-2) aimed at origin, range 8m, full cone 40deg. Enable all three and RT shadows for combined timing. For GI step disable all at t=0 after steady state; use no emissive donor in this case.",
+    "camera": "base, perspective 60deg, near/far 0.1/50m, at (0,1.6,-2.5), pitch/roll 0; fixed 60Hz. During warmup hold yaw 0. During timed repeat t=0..119 yaw=50*sin(2*pi*t/120) degrees; identical trajectory across off/on and repeats.",
+    "dynamicObject": "timed repeats translate cube on X to -1 + 0.5*sin(2*pi*t/120) each frame; capture static-build control separately with cube frozen",
+    "sourceSwitchControl": "separate R3 trajectory, not timed: hold camera yaw 0; move 0.3m emissive two-sided cube center from (1,1.6,0) to (1,1.6,-2.4) linearly in 120 frames and back. Track reflected ID in mirror; donor crosses right screen edge while virtual image remains inside mirror. For shade-source A/B use the same cube with emission zero and known ambient or probe E. Reject any sequence missing both SS and HW samples in the common reflected ROI.",
+    "matrix": "Forward/ForwardPlus/Deferred, RT-off, GI-only, SSR-only, both; same workload and high-tier settings within each renderer. Spotlight/point overflow and backface/cutout negative controls are separate analytic fixtures, not timed here."
+  },
+  "performanceThresholds": {
+    "scope": "future I2 only, same PC/API/build settings, 1080p, single base camera; paired RT-on/off sequences; no timed readback, capture, profiler deep mode or concurrent jobs",
+    "warmupFrames": 120, "measuredFramesPerRepeat": 120, "repeats": 3, "statistic": "per repeat median and nearest-rank P95; worst repeat P95 must meet each cap. Report cold start separately.",
+    "gpuFrameDeltaP95MsMax": 4, "cpuTlasSubmitP95MsMax": 0.5, "gpuTlasBuildP95MsMaxDirtyFrames": 1,
+    "gpuProbeTraceAndUpdateP95MsMax": 1.25, "gpuRelocateClassifyP95MsMax": 0.25, "gpuSsrTraceShadeP95MsMax": 1.75, "gpuSsrReconstructionP95MsMax": 0.5,
+    "timingScope": "relocate/classify separate from probe trace/update; hit shading, shadows and feedback are nested breakdowns not additive costs. Report dirty TLAS only on frames with Build; limits per stage and total must each hold.",
+    "peakExtraResidentGpuMiBMax": 256, "memoryScope": "peak live RT allocations including acceleration structures, scratch, both atlas generations, request lists and intermediate targets relative to matched off; missing backend counters => blocked, not 0"
+  }
+}

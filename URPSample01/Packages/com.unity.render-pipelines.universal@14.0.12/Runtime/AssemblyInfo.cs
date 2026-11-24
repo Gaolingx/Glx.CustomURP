@@ -7,3 +7,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Runtime.Tests")]
 [assembly: InternalsVisibleTo("Unity.GraphicTests.Performance.Universal.Runtime")]
 [assembly: InternalsVisibleTo("Unity.ClusteredDeferred.Tests.PlayMode")]
+[assembly: InternalsVisibleTo("Unity.RayTracing.Tests.Editor")]

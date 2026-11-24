@@ -1,0 +1,221 @@
+{
+  "baseline": "d4592ac68d154bd3657c0e475c643e27ed86bb3b",
+  "runs": [
+    {
+      "command": [
+        "D:\\Program Files\\Unity\\Hub\\Editor\\2022.3.62f1\\Editor\\Unity.exe",
+        "-batchmode",
+        "-quit",
+        "-force-d3d11",
+        "-job-worker-count",
+        "2",
+        "-projectPath",
+        "E:\\tmp\\b0order-pmmsm2ol\\URPSample01",
+        "-executeMethod",
+        "B0Driver.Run",
+        "-logFile",
+        "E:\\tmp\\b0order-pmmsm2ol\\d3d11.log"
+      ],
+      "exitCode": 0,
+      "logSha256": "b4596e121e350b515d07063a26e21f13919a29e59273e799a12a534e4d780e4b",
+      "commandBufferDiagnostics": [
+        "CommandBuffer: temporary render texture  not found while executing  (SetComputeTextureParam)"
+      ],
+      "samples": [
+        {
+          "camera": "Game",
+          "id": -112166,
+          "additionalData": true,
+          "frame": 1,
+          "pose": 0,
+          "trace": [
+            "ssl:Base:ssgi=True",
+            "201:CopyDepthPass",
+            "201:DBufferRenderPass",
+            "201:ScreenSpaceShadowsPass",
+            "202:MotionVectorRenderPass",
+            "builtinCameraAndObjectCallsReturned",
+            "203:ScreenSpaceDepthPyramidPass",
+            "hizCopy+downsamples:7"
+          ],
+          "passed": true
+        },
+        {
+          "camera": "Game",
+          "id": -112166,
+          "additionalData": true,
+          "frame": 1,
+          "pose": 1,
+          "trace": [
+            "ssl:Base:ssgi=True",
+            "201:CopyDepthPass",
+            "201:DBufferRenderPass",
+            "201:ScreenSpaceShadowsPass",
+            "202:MotionVectorRenderPass",
+            "builtinCameraAndObjectCallsReturned",
+            "203:ScreenSpaceDepthPyramidPass",
+            "hizCopy+downsamples:7"
+          ],
+          "passed": true
+        },
+        {
+          "camera": "SceneView",
+          "id": -112218,
+          "additionalData": false,
+          "frame": 1,
+          "pose": 0,
+          "trace": [
+            "ssl:Base:ssgi=True",
+            "201:CopyDepthPass",
+            "201:DBufferRenderPass",
+            "201:ScreenSpaceShadowsPass",
+            "202:MotionVectorRenderPass",
+            "noMotionData",
+            "203:ScreenSpaceDepthPyramidPass",
+            "hizCopy+downsamples:7",
+            "203:ScreenSpaceEditorCameraMotionPass",
+            "historySeed"
+          ],
+          "passed": true
+        },
+        {
+          "camera": "SceneView",
+          "id": -112218,
+          "additionalData": false,
+          "frame": 1,
+          "pose": 1,
+          "trace": [
+            "ssl:Base:ssgi=True",
+            "201:CopyDepthPass",
+            "201:DBufferRenderPass",
+            "201:ScreenSpaceShadowsPass",
+            "202:MotionVectorRenderPass",
+            "noMotionData",
+            "203:ScreenSpaceDepthPyramidPass",
+            "hizCopy+downsamples:7",
+            "203:ScreenSpaceEditorCameraMotionPass",
+            "editorDrawRecorded"
+          ],
+          "passed": true
+        }
+      ],
+      "utc": "2026-11-24T16:28:27.6936271Z",
+      "unity": "2022.3.62f1",
+      "api": "Direct3D11",
+      "gpu": "NVIDIA GeForce RTX 5060 Ti",
+      "driver": "Direct3D 11.0 [level 11.1]",
+      "supportsRayTracing": "False",
+      "pipeline": "SslT10ForwardPipeline",
+      "feature": "SslT10ForwardRendererssl",
+      "passed": true
+    },
+    {
+      "command": [
+        "D:\\Program Files\\Unity\\Hub\\Editor\\2022.3.62f1\\Editor\\Unity.exe",
+        "-batchmode",
+        "-quit",
+        "-force-d3d12",
+        "-job-worker-count",
+        "2",
+        "-projectPath",
+        "E:\\tmp\\b0order-pmmsm2ol\\URPSample01",
+        "-executeMethod",
+        "B0Driver.Run",
+        "-logFile",
+        "E:\\tmp\\b0order-pmmsm2ol\\d3d12.log"
+      ],
+      "exitCode": 0,
+      "logSha256": "c3fce162e6382b6931e9458b44224ce53bf822f3136d4225328f7440e654e4ca",
+      "commandBufferDiagnostics": [
+        "CommandBuffer: temporary render texture  not found while executing  (SetComputeTextureParam)"
+      ],
+      "samples": [
+        {
+          "camera": "Game",
+          "id": -1606,
+          "additionalData": true,
+          "frame": 1,
+          "pose": 0,
+          "trace": [
+            "ssl:Base:ssgi=True",
+            "201:CopyDepthPass",
+            "201:DBufferRenderPass",
+            "201:ScreenSpaceShadowsPass",
+            "202:MotionVectorRenderPass",
+            "builtinCameraAndObjectCallsReturned",
+            "203:ScreenSpaceDepthPyramidPass",
+            "hizCopy+downsamples:7"
+          ],
+          "passed": true
+        },
+        {
+          "camera": "Game",
+          "id": -1606,
+          "additionalData": true,
+          "frame": 1,
+          "pose": 1,
+          "trace": [
+            "ssl:Base:ssgi=True",
+            "201:CopyDepthPass",
+            "201:DBufferRenderPass",
+            "201:ScreenSpaceShadowsPass",
+            "202:MotionVectorRenderPass",
+            "builtinCameraAndObjectCallsReturned",
+            "203:ScreenSpaceDepthPyramidPass",
+            "hizCopy+downsamples:7"
+          ],
+          "passed": true
+        },
+        {
+          "camera": "SceneView",
+          "id": -1656,
+          "additionalData": false,
+          "frame": 1,
+          "pose": 0,
+          "trace": [
+            "ssl:Base:ssgi=True",
+            "201:CopyDepthPass",
+            "201:DBufferRenderPass",
+            "201:ScreenSpaceShadowsPass",
+            "202:MotionVectorRenderPass",
+            "noMotionData",
+            "203:ScreenSpaceDepthPyramidPass",
+            "hizCopy+downsamples:7",
+            "203:ScreenSpaceEditorCameraMotionPass",
+            "historySeed"
+          ],
+          "passed": true
+        },
+        {
+          "camera": "SceneView",
+          "id": -1656,
+          "additionalData": false,
+          "frame": 1,
+          "pose": 1,
+          "trace": [
+            "ssl:Base:ssgi=True",
+            "201:CopyDepthPass",
+            "201:DBufferRenderPass",
+            "201:ScreenSpaceShadowsPass",
+            "202:MotionVectorRenderPass",
+            "noMotionData",
+            "203:ScreenSpaceDepthPyramidPass",
+            "hizCopy+downsamples:7",
+            "203:ScreenSpaceEditorCameraMotionPass",
+            "editorDrawRecorded"
+          ],
+          "passed": true
+        }
+      ],
+      "utc": "2026-11-24T16:28:41.3110123Z",
+      "unity": "2022.3.62f1",
+      "api": "Direct3D12",
+      "gpu": "NVIDIA GeForce RTX 5060 Ti",
+      "driver": "Direct3D 12 [level 12.1]",
+      "supportsRayTracing": "True",
+      "pipeline": "SslT10ForwardPipeline",
+      "feature": "SslT10ForwardRendererssl",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+    "startedUtc":  "2026-11-24T16:32:58.7496310Z",
+    "finishedUtc":  "2026-11-24T16:34:25.6071796Z",
+    "exitCode":  0,
+    "allRestored":  true,
+    "files":  [
+                  {
+                      "file":  "ProjectSettings/GraphicsSettings.asset",
+                      "before":  "89077326F1EDD9B2595E9C79F3C7E30EA250EE1ABC32D00D9006E2FB995781FE",
+                      "afterUnity":  "89077326F1EDD9B2595E9C79F3C7E30EA250EE1ABC32D00D9006E2FB995781FE",
+                      "restored":  "89077326F1EDD9B2595E9C79F3C7E30EA250EE1ABC32D00D9006E2FB995781FE",
+                      "ok":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "ProjectSettings/QualitySettings.asset",
+                      "before":  "0772C5FC9AEA0F7F549F3C462DC07EA7C03568FDC0837B9F4E470601E12B85C1",
+                      "afterUnity":  "B4D4586D14750F94AC81C51247A07E98BC025C486DFFE7ABD6B83DA272EB186B",
+                      "restored":  "0772C5FC9AEA0F7F549F3C462DC07EA7C03568FDC0837B9F4E470601E12B85C1",
+                      "ok":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "ProjectSettings/ProjectSettings.asset",
+                      "before":  "D29C1720F4D8B63B15C6CB1FDF493FADEEFEE872D2AC36E91235400A980CDD1C",
+                      "afterUnity":  "D29C1720F4D8B63B15C6CB1FDF493FADEEFEE872D2AC36E91235400A980CDD1C",
+                      "restored":  "D29C1720F4D8B63B15C6CB1FDF493FADEEFEE872D2AC36E91235400A980CDD1C",
+                      "ok":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "ProjectSettings/EditorSettings.asset",
+                      "before":  "2702F317D35952146794D4B795D5A202D5139EE2A5A4540AC5DF015FF4D89A86",
+                      "afterUnity":  "2702F317D35952146794D4B795D5A202D5139EE2A5A4540AC5DF015FF4D89A86",
+                      "restored":  "2702F317D35952146794D4B795D5A202D5139EE2A5A4540AC5DF015FF4D89A86",
+                      "ok":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "Assets/Tests/ScreenSpaceLighting/Renderers/SslT12DeferredPipeline.asset",
+                      "before":  "EC54A00252CEFB1E31C7184767A38BC70306F119AD48AAE5217E137BA47415CE",
+                      "afterUnity":  "EC54A00252CEFB1E31C7184767A38BC70306F119AD48AAE5217E137BA47415CE",
+                      "restored":  "EC54A00252CEFB1E31C7184767A38BC70306F119AD48AAE5217E137BA47415CE",
+                      "ok":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "Assets/Tests/ScreenSpaceLighting/Renderers/SslT12DeferredRenderer.asset",
+                      "before":  "98499071E931D0C690547FB7E0C451456CF7DC68F1E22CE5DDB376578EB54362",
+                      "afterUnity":  "004EE00C67E5FC7979520FFB3ABF66003023D48206454D48B46AFD8AF72817BE",
+                      "restored":  "98499071E931D0C690547FB7E0C451456CF7DC68F1E22CE5DDB376578EB54362",
+                      "ok":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPipeline.asset",
+                      "before":  "B75E2D67408BB3086C56696C461A6901DAF008E6F9A8DB03722D7200DA5E7136",
+                      "afterUnity":  "B75E2D67408BB3086C56696C461A6901DAF008E6F9A8DB03722D7200DA5E7136",
+                      "restored":  "B75E2D67408BB3086C56696C461A6901DAF008E6F9A8DB03722D7200DA5E7136",
+                      "ok":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPlusPipeline.asset",
+                      "before":  "7FE74C0F5648F553F2BDDB2C11EBF321BBE0D7D78CD83A0ACFD98FC03B7635D5",
+                      "afterUnity":  "7FE74C0F5648F553F2BDDB2C11EBF321BBE0D7D78CD83A0ACFD98FC03B7635D5",
+                      "restored":  "7FE74C0F5648F553F2BDDB2C11EBF321BBE0D7D78CD83A0ACFD98FC03B7635D5",
+                      "ok":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardPlusRenderer.asset",
+                      "before":  "969B30515709747815D4D3731D8769F0F1990611DDB009CD621BB30C6CB579A9",
+                      "afterUnity":  "C15E7DE7F9084999D493307DF015A479E7EE2ACA80FC878E4062D2D60F4179C0",
+                      "restored":  "969B30515709747815D4D3731D8769F0F1990611DDB009CD621BB30C6CB579A9",
+                      "ok":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "Assets/Tests/ScreenSpaceLighting/Renderers/SslT12ForwardRenderer.asset",
+                      "before":  "64099EC2DB731CA6C5329C275DBA283C6AABDBEA9AE4C5974DBCFE414B296933",
+                      "afterUnity":  "021415D453D3C162371E09EDEDA3F24156EA228ED0A0D782A752712232CC1E38",
+                      "restored":  "64099EC2DB731CA6C5329C275DBA283C6AABDBEA9AE4C5974DBCFE414B296933",
+                      "ok":  true,
+                      "error":  null
+                  }
+              ]
+}

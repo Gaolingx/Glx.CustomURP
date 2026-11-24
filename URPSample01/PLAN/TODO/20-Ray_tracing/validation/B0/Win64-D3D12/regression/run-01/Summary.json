@@ -1,0 +1,256 @@
+{
+    "head":  "d4592ac68d154bd3657c0e475c643e27ed86bb3b",
+    "api":  "D3D12",
+    "force":  "-force-d3d12",
+    "scope":  "T14 filtered Editor tests and T12 Editor verification only; no Player gate or budgets",
+    "scene":  "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingT3Verification.unity",
+    "sceneSha256":  "83D2F0741BA2E56E610743AA570B553136CA14DD5E0BE8785C76265B1C552C37",
+    "defaultSize":  "1280x720",
+    "defaultWarmupRenders":  10,
+    "filters":  {
+                    "EditMode":  [
+                                     "UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests",
+                                     "UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests",
+                                     "UnityEditor.Rendering.Universal.Tests.PluginIsolationTests",
+                                     "UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests",
+                                     "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests",
+                                     "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests",
+                                     "UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests",
+                                     "UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests",
+                                     "UnityEditor.Rendering.Universal.Tests.AccurateGbufferNormalsTests"
+                                 ],
+                    "PlayMode":  [
+                                     "Unity.ScreenSpaceLighting.Tests.PlayMode"
+                                 ]
+                },
+    "stages":  {
+                   "EditMode":  {
+                                    "status":  "passed",
+                                    "device":  {
+                                                   "exitCode":  0,
+                                                   "observedApi":  "D3D12",
+                                                   "apiVerified":  true,
+                                                   "renderer":  "NVIDIA GeForce RTX 5060 Ti (ID=0x2d04)",
+                                                   "driver":  "32.0.15.7680"
+                                               },
+                                    "missingFilters":  [
+
+                                                       ],
+                                    "counts":  {
+                                                   "total":  184,
+                                                   "passed":  184,
+                                                   "failed":  0,
+                                                   "skipped":  0,
+                                                   "inconclusive":  0
+                                               }
+                                },
+                   "PlayMode":  {
+                                    "status":  "passed",
+                                    "device":  {
+                                                   "exitCode":  0,
+                                                   "observedApi":  "D3D12",
+                                                   "apiVerified":  true,
+                                                   "renderer":  "NVIDIA GeForce RTX 5060 Ti (ID=0x2d04)",
+                                                   "driver":  "32.0.15.7680"
+                                               },
+                                    "missingFilters":  [
+
+                                                       ],
+                                    "counts":  {
+                                                   "total":  6,
+                                                   "passed":  6,
+                                                   "failed":  0,
+                                                   "skipped":  0,
+                                                   "inconclusive":  0
+                                               }
+                                },
+                   "T12-1":  {
+                                 "status":  "passed",
+                                 "device":  {
+                                                "exitCode":  0,
+                                                "observedApi":  "D3D12",
+                                                "apiVerified":  true,
+                                                "renderer":  "NVIDIA GeForce RTX 5060 Ti (ID=0x2d04)",
+                                                "driver":  "32.0.15.7680"
+                                            },
+                                 "unityVersion":  "2022.3.62f1",
+                                 "reportApi":  "Direct3D12",
+                                 "modes":  {
+                                               "Forward":  {
+                                                               "passed":  34,
+                                                               "total":  34,
+                                                               "issues":  [
+
+                                                                          ]
+                                                           },
+                                               "ForwardPlus":  {
+                                                                   "passed":  34,
+                                                                   "total":  34,
+                                                                   "issues":  [
+
+                                                                              ]
+                                                               },
+                                               "Deferred":  {
+                                                                "passed":  35,
+                                                                "total":  35,
+                                                                "issues":  [
+
+                                                                           ]
+                                                            }
+                                           },
+                                 "pngs":  [
+                                              {
+                                                  "file":  "T12_Deferred_AllOffAgain.png",
+                                                  "sha256":  "9BE8E6B59F56420C22E36B1572B4715A47774AD7ABF83FE777456E8CB0AB7DDA"
+                                              },
+                                              {
+                                                  "file":  "T12_Deferred_AllOn.png",
+                                                  "sha256":  "8BDA6417EC8727ABEC31E98308CF150BDEA93009C39C5F8495CAA5B7D3E40F79"
+                                              },
+                                              {
+                                                  "file":  "T12_Deferred_Reference.png",
+                                                  "sha256":  "9BE8E6B59F56420C22E36B1572B4715A47774AD7ABF83FE777456E8CB0AB7DDA"
+                                              },
+                                              {
+                                                  "file":  "T12_ForwardPlus_AllOffAgain.png",
+                                                  "sha256":  "BF291D260D7C0CDEB9241B0142E5254515CC136CBB6FB0F80E0CB30CEF0D89C7"
+                                              },
+                                              {
+                                                  "file":  "T12_ForwardPlus_AllOn.png",
+                                                  "sha256":  "101A9355A1EFEDFAD1C728658118B653A00EAF75263EF38D238418F0548B99FD"
+                                              },
+                                              {
+                                                  "file":  "T12_ForwardPlus_Reference.png",
+                                                  "sha256":  "BF291D260D7C0CDEB9241B0142E5254515CC136CBB6FB0F80E0CB30CEF0D89C7"
+                                              },
+                                              {
+                                                  "file":  "T12_Forward_AllOffAgain.png",
+                                                  "sha256":  "BF291D260D7C0CDEB9241B0142E5254515CC136CBB6FB0F80E0CB30CEF0D89C7"
+                                              },
+                                              {
+                                                  "file":  "T12_Forward_AllOn.png",
+                                                  "sha256":  "4CEE5DBAFA75AE748967EFF50A6AFFD977C694B18BED1853E5FF400D8DA4032A"
+                                              },
+                                              {
+                                                  "file":  "T12_Forward_Reference.png",
+                                                  "sha256":  "BF291D260D7C0CDEB9241B0142E5254515CC136CBB6FB0F80E0CB30CEF0D89C7"
+                                              }
+                                          ]
+                             },
+                   "T12-2":  {
+                                 "status":  "passed",
+                                 "device":  {
+                                                "exitCode":  0,
+                                                "observedApi":  "D3D12",
+                                                "apiVerified":  true,
+                                                "renderer":  "NVIDIA GeForce RTX 5060 Ti (ID=0x2d04)",
+                                                "driver":  "32.0.15.7680"
+                                            },
+                                 "unityVersion":  "2022.3.62f1",
+                                 "reportApi":  "Direct3D12",
+                                 "modes":  {
+                                               "Forward":  {
+                                                               "passed":  34,
+                                                               "total":  34,
+                                                               "issues":  [
+
+                                                                          ]
+                                                           },
+                                               "ForwardPlus":  {
+                                                                   "passed":  34,
+                                                                   "total":  34,
+                                                                   "issues":  [
+
+                                                                              ]
+                                                               },
+                                               "Deferred":  {
+                                                                "passed":  35,
+                                                                "total":  35,
+                                                                "issues":  [
+
+                                                                           ]
+                                                            }
+                                           },
+                                 "pngs":  [
+
+                                          ]
+                             }
+               },
+    "status":  "passed",
+    "editorReplay":  {
+                         "cases":  103,
+                         "pairedSampleHashes":  85,
+                         "identicalSampleHashes":  29,
+                         "mismatchedOrMissing":  [
+                                                     "Deferred/AlgorithmSwitch",
+                                                     "Deferred/AllOffAgain",
+                                                     "Deferred/AllOn",
+                                                     "Deferred/CameraCut",
+                                                     "Deferred/CameraVolumeMask",
+                                                     "Deferred/DecalDBuffer",
+                                                     "Deferred/DecalScreenSpace",
+                                                     "Deferred/DepthPrimingForced",
+                                                     "Deferred/GtaoAndSsl",
+                                                     "Deferred/GtaoFirst",
+                                                     "Deferred/GtaoOnly",
+                                                     "Deferred/MotionBlur",
+                                                     "Deferred/MSAA4x",
+                                                     "Deferred/NoVolumeComponents",
+                                                     "Deferred/OpaqueTexture",
+                                                     "Deferred/OverrideStateOff",
+                                                     "Deferred/PostProcessingOn",
+                                                     "Deferred/Reference",
+                                                     "Deferred/RefractionOnly",
+                                                     "Deferred/RenderScale75",
+                                                     "Deferred/RuntimeToggleOff",
+                                                     "Deferred/SameFrameDoubleRender",
+                                                     "Deferred/SsgiOnly",
+                                                     "Deferred/SsgiSsr",
+                                                     "Deferred/SsrOnly",
+                                                     "Deferred/TargetResize",
+                                                     "Deferred/TemporalAA",
+                                                     "Deferred/TwoVolumes",
+                                                     "ForwardPlus/AlgorithmSwitch",
+                                                     "ForwardPlus/AllOffAgain",
+                                                     "ForwardPlus/AllOn",
+                                                     "ForwardPlus/CameraCut",
+                                                     "ForwardPlus/CameraVolumeMask",
+                                                     "ForwardPlus/DecalDBuffer",
+                                                     "ForwardPlus/DecalScreenSpace",
+                                                     "ForwardPlus/DepthPrimingForced",
+                                                     "ForwardPlus/GtaoAndSsl",
+                                                     "ForwardPlus/GtaoFirst",
+                                                     "ForwardPlus/GtaoOnly",
+                                                     "ForwardPlus/MotionBlur",
+                                                     "ForwardPlus/MSAA4x",
+                                                     "ForwardPlus/NoVolumeComponents",
+                                                     "ForwardPlus/OpaqueTexture",
+                                                     "ForwardPlus/OverrideStateOff",
+                                                     "ForwardPlus/PostProcessingOn",
+                                                     "ForwardPlus/Reference",
+                                                     "ForwardPlus/RefractionOnly",
+                                                     "ForwardPlus/RenderScale75",
+                                                     "ForwardPlus/RuntimeToggleOff",
+                                                     "ForwardPlus/SameFrameDoubleRender",
+                                                     "ForwardPlus/SsgiOnly",
+                                                     "ForwardPlus/SsgiSsr",
+                                                     "ForwardPlus/SsrOnly",
+                                                     "ForwardPlus/TargetResize",
+                                                     "ForwardPlus/TemporalAA",
+                                                     "ForwardPlus/TwoVolumes"
+                                                 ],
+                         "note":  "SHA256 from T12 HashSamples; cases without image samples have no hash. Not a development Player raw HDR comparison."
+                     }
+}

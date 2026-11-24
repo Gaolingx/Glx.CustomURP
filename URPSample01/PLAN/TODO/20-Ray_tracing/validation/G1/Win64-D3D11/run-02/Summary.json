@@ -1,0 +1,33 @@
+{
+    "sourceBase":  "d4592ac68d154bd3657c0e475c643e27ed86bb3b",
+    "freezeSha256":  "F478598DF2C04EC72C51935FC0C6BBD0A53048D6431227548CD4945A71F84BC5",
+    "inputs":  {
+                   "Assets/Tests/RayTracing/GI.meta":  "83010E0D105647A921E088468F02EFD577A81292C9470EA1608D69B0EC82BAFE",
+                   "Assets/Tests/RayTracing/GI/ProbeMathReference.cs":  "4A1D1AE8F0A5DC810A19280620C98DB6F39875F9F2FE162F55966133D8F1F23C",
+                   "Assets/Tests/RayTracing/GI/ProbeMathReference.cs.meta":  "5073BBE84304453FA17604C87468B27FECF5B276E9EC1716D8E2637F7C276BA1",
+                   "Assets/Tests/RayTracing/GI/RayTracingProbeMathTests.cs":  "7734705CAEA0EEBBB91C14F063D3B62645F3B31CDD885C64EC553A22ACC099D7",
+                   "Assets/Tests/RayTracing/GI/RayTracingProbeMathTests.cs.meta":  "E0D7A4B1C48842F394724440EF76504B45CD5C72A5B1EF9763C12E5020C595CC",
+                   "Assets/Tests/RayTracing/TLAS.meta":  "1026B0543A4A614DC84BC63B48D08A1DAD7C069E3995CE4EAFEFF6FD3E090E95",
+                   "Assets/Tests/RayTracing/TLAS/RayTracingSceneGateTests.cs":  "AF404244923298020840C99AEC980994A3D8D667F35968DB576415C58846DAB7",
+                   "Assets/Tests/RayTracing/Unity.RayTracing.Tests.Editor.asmdef":  "F4171EA92A198A4E4F9882EDB0FCD288ABBFE5F2B06DB03564241B9D94A4BF76",
+                   "Assets/Tests/RayTracing/Unity.RayTracing.Tests.Editor.asmdef.meta":  "80C3728C55008281DBE663F5E6E1E48D0D4FDEEF4C7B66D895AD0E802FF11793",
+                   "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/AssemblyInfo.cs":  "E06EFBA71E46501593EB4BC66E9A0D0B412B142C0B1F18B86CF9B27502E7863E",
+                   "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneGate.cs":  "3A13CDBD4802E52FE56308591AEDFF7909F5922BA061CEDED93DDA30661433BB",
+                   "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneGate.cs.meta":  "481BCCFCF74E92FA006D4ADC44FCA44D59635EEABCCE6D8C7CFF4D40B28E8352",
+                   "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneResources.cs":  "BEEE8E9D8D2D0CA6A4F79528FA4226632E485BF2B1620B11DD02D4A08956811A",
+                   "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneResources.cs.meta":  "409C80A5652A60CD855F76C21E2CA9B1172769481E304631654A5A85FFF36DA8"
+               },
+    "fixture":  "UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests",
+    "api":  "Direct3D 11",
+    "status":  "passed",
+    "scope":  "EditMode fixture, not standalone Player or GPU dispatch proof",
+    "exitCode":  0,
+    "settingsRestored":  true,
+    "actualDevice":  "Direct3D 11.0 [level 11.1]",
+    "gpu":  "NVIDIA GeForce RTX 5060 Ti (ID=0x2d04)",
+    "total":  13,
+    "passed":  13,
+    "failedTests":  [
+
+                    ]
+}
