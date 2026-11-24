@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory = $true)][string]$OutputRoot,
     [string]$Filter = 'ContactShadowVolumeTests;ContactShadowFeatureImportTests',
-    [switch]$RecordImportEvidence
+    [switch]$RecordImportEvidence,
+    [switch]$RecordDepthEvidence
 )
 $ErrorActionPreference = 'Stop'
 $project = Resolve-Path (Join-Path $PSScriptRoot '../../../..')
@@ -9,6 +10,7 @@ $output = [IO.Directory]::CreateDirectory($ExecutionContext.SessionState.Path.Ge
 $results = Join-Path $output 'EditMode.xml'
 $start = [DateTime]::UtcNow
 $arguments = @('-runTests', '-testPlatform', 'EditMode', '-testFilter', $Filter, '-testResults', ('"{0}"' -f $results))
+if ($RecordDepthEvidence) { $arguments += @('-force-d3d11', '-contactShadowT2Evidence', ('"{0}"' -f $output)) }
 if ($RecordImportEvidence) { $arguments += @('-contactShadowT1Evidence', ('"{0}"' -f $output)) }
 & (Join-Path $project 'PLAN/Done/01-ScreenSpaceLighting/validation/T1/Invoke-T1Unity.ps1') -LogPath (Join-Path $output 'EditMode.log') -ReportPath (Join-Path $output 'EditModeSettings.json') -AdditionalArguments $arguments
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

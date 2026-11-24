@@ -1,6 +1,6 @@
 # 10-ContactShadow 交接：HDRP Contact Shadows 调研与 URP 包内 Renderer Feature 迁移计划
 
-> 状态：**T0、T1 已通过；下一步 T2**。已核验 [Feature Inspector](validation/T1/T1_FeatureInspector.png)、[Volume Inspector](validation/T1/T1_VolumeInspector.png) 和 [Light Inspector](validation/T1/T1_LightInspector.png)。T1：[菜单添加、移除与域重载 3/3](validation/T1/EditMode.xml)、[序列化引用](validation/T1/FeatureImport.json)、[既有 EditMode 184/184](validation/T1/Regression.xml)、[PlayMode 6/6](validation/T1/PlayMode.xml)。临时资产已删除；尚未接入 Compute。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
+> 状态：**T0、T1 已通过；T2 资源门禁通过，Frame Debugger 取证 PARTIAL；下一步 T3**（[T2 证据](#t2-evidence)）。已核验 [Feature Inspector](validation/T1/T1_FeatureInspector.png)、[Volume Inspector](validation/T1/T1_VolumeInspector.png) 和 [Light Inspector](validation/T1/T1_LightInspector.png)。T1：[菜单添加、移除与域重载 3/3](validation/T1/EditMode.xml)、[序列化引用](validation/T1/FeatureImport.json)、[既有 EditMode 184/184](validation/T1/Regression.xml)、[PlayMode 6/6](validation/T1/PlayMode.xml)。临时资产已删除；尚未接入 Compute。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
 > 建立：2026-11-19
 > 基线：`cedd1bb`（Run SSR approximation at half resolution when enabled）
 > 结果入口：本文件；实施后追加 `report.md` 与 `validation/`
@@ -1003,6 +1003,16 @@ T8 ─> T9 文档/清理/归档
   - 深度 pyramid 不可用时：Compute 不入队、packed RT 不分配；归零状态由 T6 的 CleanupPass 验证（T2 只验证 History/RT 不泄漏）。
 - **证据**：EditMode `ContactShadowHistoryTests`、`ContactShadowCapabilityTests`；Frame Debugger 203 pass；金字塔 debug 图。
 - **依赖**：T1。
+
+<a id="t2-evidence"></a>
+
+**T2 实测（D3D11，2026-11-24）**：[专项 24/24](validation/T2/EditMode.xml)、[既有 EditMode 184/184](validation/T2/Regression.xml)、[PlayMode 6/6](validation/T2/PlayMode.xml)。
+
+- 真实 `Camera.Render()`（96×64）：[Contact 单独开启](validation/T2/ContactOnlyDepthAtlas.png)和[叠加 SSL + GTAO](validation/T2/ContactSslGtaoDepthAtlas.png)均只执行一次 pass 203、一次 mip 0 拷贝；组合配置的三个 history 引用同一图集。GPU 读回 mip 0/1 中心均为 0.18750003、背景为 0，逐像素核对 mip 1 是对应 2×2 最近深度。
+- pass 208 仅在共享深度就绪后分配 packed RT；未 dispatch 接触阴影、未写材质全局量。未标记灯不会为 Contact 分配 history 或触发独立构建。奇数尺寸、双眼独立条目、数组布局切换与释放已测；不是头显实机测试。射线先读 mip 1、同一 t 读 mip 0 的执行验证属于 T3。
+- 当前交付尚无 T3 contact compute；测试用未 dispatch 的 compute 引用满足 T1 资源门禁，深度生产使用真正的共享 kernel。保留缺少引用时只警告、不分配的行为。
+- 按 §8.1.6，Frame Debugger 事件列表为 **PARTIAL**：batch editor 回报 `locallySupported=False, eventCount=0`，不声称有交互式捕获。使用上述执行/dispatch 计数和 GPU 图像作替代证据。组合配置有一条临时纹理绑定警告及 GTAO 编译警告，保留在 XML；未把组合效果自身的画质列入本轮结论。
+- 从仓库根目录复现：`./URPSample01/PLAN/TODO/10-ContactShadow/validation/Invoke-ContactShadowTests.ps1 -OutputRoot URPSample01/PLAN/TODO/10-ContactShadow/validation/T2 -Filter 'ContactShadowPyramidRenderTests;ContactShadowCapabilityTests;ContactShadowHistoryTests;ContactShadowVolumeTests;ContactShadowFeatureImportTests' -RecordDepthEvidence`。
 
 #### T3 Compute raymarch
 

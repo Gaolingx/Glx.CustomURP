@@ -1,0 +1,42 @@
+{
+    "startedUtc":  "2026-11-24T04:10:06.9087505Z",
+    "finishedUtc":  "2026-11-24T04:10:22.0228399Z",
+    "executeMethod":  "",
+    "unityExitCode":  0,
+    "invocationError":  null,
+    "allSettingsRestored":  true,
+    "files":  [
+                  {
+                      "file":  "ProjectSettings/GraphicsSettings.asset",
+                      "beforeSha256":  "89077326f1edd9b2595e9c79f3c7e30ea250ee1abc32d00d9006e2fb995781fe",
+                      "afterUnitySha256":  "89077326f1edd9b2595e9c79f3c7e30ea250ee1abc32d00d9006e2fb995781fe",
+                      "restoredSha256":  "89077326f1edd9b2595e9c79f3c7e30ea250ee1abc32d00d9006e2fb995781fe",
+                      "restored":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "ProjectSettings/QualitySettings.asset",
+                      "beforeSha256":  "0772c5fc9aea0f7f549f3c462dc07ea7c03568fdc0837b9f4e470601e12b85c1",
+                      "afterUnitySha256":  "0772c5fc9aea0f7f549f3c462dc07ea7c03568fdc0837b9f4e470601e12b85c1",
+                      "restoredSha256":  "0772c5fc9aea0f7f549f3c462dc07ea7c03568fdc0837b9f4e470601e12b85c1",
+                      "restored":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "ProjectSettings/ProjectSettings.asset",
+                      "beforeSha256":  "d29c1720f4d8b63b15c6cb1fdf493fadeefee872d2ac36e91235400a980cdd1c",
+                      "afterUnitySha256":  "d29c1720f4d8b63b15c6cb1fdf493fadeefee872d2ac36e91235400a980cdd1c",
+                      "restoredSha256":  "d29c1720f4d8b63b15c6cb1fdf493fadeefee872d2ac36e91235400a980cdd1c",
+                      "restored":  true,
+                      "error":  null
+                  },
+                  {
+                      "file":  "ProjectSettings/EditorSettings.asset",
+                      "beforeSha256":  "2702f317d35952146794d4b795d5a202d5139ee2a5a4540ac5df015ff4d89a86",
+                      "afterUnitySha256":  "2702f317d35952146794d4b795d5a202d5139ee2a5a4540ac5df015ff4d89a86",
+                      "restoredSha256":  "2702f317d35952146794d4b795d5a202d5139ee2a5a4540ac5df015ff4d89a86",
+                      "restored":  true,
+                      "error":  null
+                  }
+              ]
+}

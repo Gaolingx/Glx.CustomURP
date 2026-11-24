@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="184" result="Passed" total="184" passed="184" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-24 04:09:34Z" end-time="2026-11-24 04:10:04Z" duration="30.0229045">
+  <test-suite type="TestSuite" id="1593" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="514" result="Passed" start-time="2026-11-24 04:09:34Z" end-time="2026-11-24 04:10:04Z" duration="30.022905" total="184" passed="184" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="2173" name="Unity.RenderPipelines.Universal.Editor.Tests.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll" runstate="Runnable" testcasecount="513" result="Passed" start-time="2026-11-24 04:09:34Z" end-time="2026-11-24 04:10:04Z" duration="30.004575" total="184" passed="184" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="83424" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="2175" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="276" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:10:04Z" duration="29.955332" total="184" passed="184" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2176" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="276" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:10:04Z" duration="29.951748" total="184" passed="184" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2177" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="276" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:10:04Z" duration="29.948122" total="184" passed="184" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="2178" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="276" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:10:04Z" duration="29.944193" total="184" passed="184" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1961" name="AccurateGbufferNormalsTests" fullname="UnityEditor.Rendering.Universal.Tests.AccurateGbufferNormalsTests" classname="UnityEditor.Rendering.Universal.Tests.AccurateGbufferNormalsTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.051119" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1962" name="OpaqueDepthNormalsPassesDeclareTheOctahedronKeyword" fullname="UnityEditor.Rendering.Universal.Tests.AccurateGbufferNormalsTests.OpaqueDepthNormalsPassesDeclareTheOctahedronKeyword" methodname="OpaqueDepthNormalsPassesDeclareTheOctahedronKeyword" classname="UnityEditor.Rendering.Universal.Tests.AccurateGbufferNormalsTests" runstate="Runnable" seed="307276188" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.036982" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1963" name="ScreenSpaceEffectDecodersKeepTheOctahedronBranch" fullname="UnityEditor.Rendering.Universal.Tests.AccurateGbufferNormalsTests.ScreenSpaceEffectDecodersKeepTheOctahedronBranch" methodname="ScreenSpaceEffectDecodersKeepTheOctahedronBranch" classname="UnityEditor.Rendering.Universal.Tests.AccurateGbufferNormalsTests" runstate="Runnable" seed="1885725423" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.001055" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1896" name="CameraHistoryStoreTests" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.019755" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1903" name="DestroyedCameraEntryIsPruned" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests.DestroyedCameraEntryIsPruned" methodname="DestroyedCameraEntryIsPruned" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" seed="744604544" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.009650" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1906" name="DisposeReleasesEntriesAndRejectsFurtherUse" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests.DisposeReleasesEntriesAndRejectsFurtherUse" methodname="DisposeReleasesEntriesAndRejectsFurtherUse" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" seed="1715644032" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.002258" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1897" name="FirstRequestCreatesAndResetsEntry" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests.FirstRequestCreatesAndResetsEntry" methodname="FirstRequestCreatesAndResetsEntry" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" seed="286162585" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000327" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1901" name="NegativeResetTokenHoldsResetEveryFrame" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests.NegativeResetTokenHoldsResetEveryFrame" methodname="NegativeResetTokenHoldsResetEveryFrame" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" seed="1906058637" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000260" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1900" name="ResetTokenResetsOnlyWhenItChanges" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests.ResetTokenResetsOnlyWhenItChanges" methodname="ResetTokenResetsOnlyWhenItChanges" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" seed="428381447" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000425" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1898" name="SameCameraReusesEntryWithoutReset" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests.SameCameraReusesEntryWithoutReset" methodname="SameCameraReusesEntryWithoutReset" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" seed="1436077204" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000436" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1899" name="SizeChangeResetsEntry" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests.SizeChangeResetsEntry" methodname="SizeChangeResetsEntry" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" seed="983484184" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000297" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1905" name="TrimToCountReleasesLeastRecentlyUsedEntry" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests.TrimToCountReleasesLeastRecentlyUsedEntry" methodname="TrimToCountReleasesLeastRecentlyUsedEntry" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" seed="293518197" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000642" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1904" name="UnusedEntryAgesOutAfterConfiguredFrames" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests.UnusedEntryAgesOutAfterConfiguredFrames" methodname="UnusedEntryAgesOutAfterConfiguredFrames" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" seed="1338990069" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000570" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1902" name="XrEyesOwnIndependentEntries" fullname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests.XrEyesOwnIndependentEntries" methodname="XrEyesOwnIndependentEntries" classname="UnityEditor.Rendering.Universal.Tests.CameraHistoryStoreTests" runstate="Runnable" seed="315768784" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.001611" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1855" name="GroundTruthAmbientOcclusionCBufferTests" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.003990" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1859" name="GeneratedIncludeDeclaresEveryFieldInOrder" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests.GeneratedIncludeDeclaresEveryFieldInOrder" methodname="GeneratedIncludeDeclaresEveryFieldInOrder" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests" runstate="Runnable" seed="706913670" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.001002" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1858" name="NumericFieldsUseHlslFriendlyTypes" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests.NumericFieldsUseHlslFriendlyTypes" methodname="NumericFieldsUseHlslFriendlyTypes" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests" runstate="Runnable" seed="1011849867" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000212" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1856" name="StructFieldsMatchTheDeclaredHlslLayout" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests.StructFieldsMatchTheDeclaredHlslLayout" methodname="StructFieldsMatchTheDeclaredHlslLayout" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests" runstate="Runnable" seed="1573457821" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000763" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1857" name="StructSizeIsFifteenVectors" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests.StructSizeIsFifteenVectors" methodname="StructSizeIsFifteenVectors" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionCBufferTests" runstate="Runnable" seed="2123605385" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000182" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1863" name="GroundTruthAmbientOcclusionHistoryTests" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.016818" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1874" name="DisposeReleasesAllocatedResources" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.DisposeReleasesAllocatedResources" methodname="DisposeReleasesAllocatedResources" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="1772172428" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.003006" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1869" name="EffectFrameCounterSurvivesResets" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.EffectFrameCounterSurvivesResets" methodname="EffectFrameCounterSurvivesResets" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="1895456429" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000224" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1864" name="FirstFrameHasNoReadableHistoryButStillHasAWriteSlot" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.FirstFrameHasNoReadableHistoryButStillHasAWriteSlot" methodname="FirstFrameHasNoReadableHistoryButStillHasAWriteSlot" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="614370072" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000330" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1872" name="FullResolutionAllocatesTheCameraSize" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.FullResolutionAllocatesTheCameraSize" methodname="FullResolutionAllocatesTheCameraSize" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="1178702264" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.001079" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1871" name="HalfResolutionAllocatesCeiledAoBufferAndPrivatePlatformLayout" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.HalfResolutionAllocatesCeiledAoBufferAndPrivatePlatformLayout" methodname="HalfResolutionAllocatesCeiledAoBufferAndPrivatePlatformLayout" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="1828557673" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.002117" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1868" name="ResetInvalidatesHistoryAndRestartsThePingPong" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.ResetInvalidatesHistoryAndRestartsThePingPong" methodname="ResetInvalidatesHistoryAndRestartsThePingPong" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="716975814" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000310" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1870" name="SameSizeKeepsResourcesAndSizeChangeReallocates" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.SameSizeKeepsResourcesAndSizeChangeReallocates" methodname="SameSizeKeepsResourcesAndSizeChangeReallocates" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="388301472" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.002000" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1867" name="SlotsAlternateEveryFrameAndNeverOverlapInTheSameFrame" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.SlotsAlternateEveryFrameAndNeverOverlapInTheSameFrame" methodname="SlotsAlternateEveryFrameAndNeverOverlapInTheSameFrame" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="2049622723" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000386" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1866" name="SwappedHistoryIsReadFromTheSlotWrittenLastFrame" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.SwappedHistoryIsReadFromTheSlotWrittenLastFrame" methodname="SwappedHistoryIsReadFromTheSlotWrittenLastFrame" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="1460058683" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000288" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1865" name="TheFirstFrameCopiesIntoTheSlotThatIsNotWritten" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.TheFirstFrameCopiesIntoTheSlotThatIsNotWritten" methodname="TheFirstFrameCopiesIntoTheSlotThatIsNotWritten" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="619784365" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.000177" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1873" name="TogglingResolutionReallocatesTheAoResources" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests.TogglingResolutionReallocatesTheAoResources" methodname="TogglingResolutionReallocatesTheAoResources" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionHistoryTests" runstate="Runnable" seed="627870409" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.001882" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1881" name="GroundTruthAmbientOcclusionRendererFeatureTests" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.622092" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1890" name="CreateRebuildsPassesAndHistoryStore" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.CreateRebuildsPassesAndHistoryStore" methodname="CreateRebuildsPassesAndHistoryStore" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="374032401" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.051731" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1894" name="CreateRebuildsTheEditorMotionPass" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.CreateRebuildsTheEditorMotionPass" methodname="CreateRebuildsTheEditorMotionPass" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="788756760" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.042159" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1895" name="DebugPassIsOnlyEnqueuedWhileADebugViewIsSelected" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.DebugPassIsOnlyEnqueuedWhileADebugViewIsSelected" methodname="DebugPassIsOnlyEnqueuedWhileADebugViewIsSelected" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="11599193" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.047971" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1889" name="DestroyedCameraHistoryIsPrunedOnNextFrame" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.DestroyedCameraHistoryIsPrunedOnNextFrame" methodname="DestroyedCameraHistoryIsPrunedOnNextFrame" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="971081049" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.042839" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1893" name="EditorMotionPassCanBeSuppressedForBaselineRuns" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.EditorMotionPassCanBeSuppressedForBaselineRuns" methodname="EditorMotionPassCanBeSuppressedForBaselineRuns" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="1620507571" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.041340" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1891" name="EditorMotionPassIsEnqueuedForCamerasWithoutAdditionalCameraData" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.EditorMotionPassIsEnqueuedForCamerasWithoutAdditionalCameraData" methodname="EditorMotionPassIsEnqueuedForCamerasWithoutAdditionalCameraData" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="1162988063" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.043035" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1892" name="EditorMotionPassSkipsCamerasThatUrpAlreadyHandles" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.EditorMotionPassSkipsCamerasThatUrpAlreadyHandles" methodname="EditorMotionPassSkipsCamerasThatUrpAlreadyHandles" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="1242257577" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.042287" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1884" name="GameCameraEnqueuesBothPassesAndCreatesHistory" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.GameCameraEnqueuesBothPassesAndCreatesHistory" methodname="GameCameraEnqueuesBothPassesAndCreatesHistory" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="347997061" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.041162" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1883" name="PassesDeclareTheirDepthNormalAndMotionInputs" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.PassesDeclareTheirDepthNormalAndMotionInputs" methodname="PassesDeclareTheirDepthNormalAndMotionInputs" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="1277689286" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.041069" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1882" name="PassesUseTheReservedDispatchEvents" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.PassesUseTheReservedDispatchEvents" methodname="PassesUseTheReservedDispatchEvents" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="1317544140" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.046927" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1885" name="SameCameraFrameEnqueuesTheSharedPyramidOnce" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.SameCameraFrameEnqueuesTheSharedPyramidOnce" methodname="SameCameraFrameEnqueuesTheSharedPyramidOnce" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="1021652100" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.043874" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1886" name="SameCameraKeepsOneHistoryEntry" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.SameCameraKeepsOneHistoryEntry" methodname="SameCameraKeepsOneHistoryEntry" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="354430222" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.042788" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1887" name="UnsupportedCamerasDoNotEnqueueOrAllocateHistory" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.UnsupportedCamerasDoNotEnqueueOrAllocateHistory" methodname="UnsupportedCamerasDoNotEnqueueOrAllocateHistory" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="944805246" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.043255" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1888" name="ZeroIntensityDoesNotEnqueue" fullname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests.ZeroIntensityDoesNotEnqueue" methodname="ZeroIntensityDoesNotEnqueue" classname="UnityEditor.Rendering.Universal.Tests.GroundTruthAmbientOcclusionRendererFeatureTests" runstate="Runnable" seed="1931306771" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.043324" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1907" name="PackedMipChainInfoTests" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" testcasecount="29" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:10:02Z" duration="26.982027" total="29" passed="29" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1934" name="LastLevelIsOneByOne" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.LastLevelIsOneByOne" methodname="LastLevelIsOneByOne" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1776794968" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.001504" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1935" name="MipUvScaleAndOffsetMapTheExactPackedRegion" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.MipUvScaleAndOffsetMapTheExactPackedRegion" methodname="MipUvScaleAndOffsetMapTheExactPackedRegion" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1536418631" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.001224" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1937" name="OffsetBufferReceivesThePackedOffsets" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.OffsetBufferReceivesThePackedOffsets" methodname="OffsetBufferReceivesThePackedOffsets" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="936576052" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.001829" asserts="0">
+                  <properties />
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1933" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:10:02Z" duration="26.962621" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1908" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(320,180)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(320,180)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1331819477" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:35Z" duration="0.080910" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1909" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(320,360)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(320,360)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1710350338" result="Passed" start-time="2026-11-24 04:09:35Z" end-time="2026-11-24 04:09:36Z" duration="0.186899" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1910" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(320,719)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(320,719)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="37294727" result="Passed" start-time="2026-11-24 04:09:36Z" end-time="2026-11-24 04:09:36Z" duration="0.393962" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1911" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(320,720)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(320,720)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1329330136" result="Passed" start-time="2026-11-24 04:09:36Z" end-time="2026-11-24 04:09:36Z" duration="0.342173" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1912" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(320,1080)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(320,1080)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1688905532" result="Passed" start-time="2026-11-24 04:09:36Z" end-time="2026-11-24 04:09:37Z" duration="0.563708" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1913" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(640,180)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(640,180)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1073935848" result="Passed" start-time="2026-11-24 04:09:37Z" end-time="2026-11-24 04:09:37Z" duration="0.188482" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1914" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(640,360)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(640,360)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="87998950" result="Passed" start-time="2026-11-24 04:09:37Z" end-time="2026-11-24 04:09:37Z" duration="0.345498" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1915" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(640,719)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(640,719)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1030406985" result="Passed" start-time="2026-11-24 04:09:37Z" end-time="2026-11-24 04:09:38Z" duration="0.719983" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1916" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(640,720)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(640,720)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1981997155" result="Passed" start-time="2026-11-24 04:09:38Z" end-time="2026-11-24 04:09:39Z" duration="0.760162" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1917" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(640,1080)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(640,1080)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1726667852" result="Passed" start-time="2026-11-24 04:09:39Z" end-time="2026-11-24 04:09:40Z" duration="1.248298" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1918" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1279,180)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1279,180)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1390261145" result="Passed" start-time="2026-11-24 04:09:40Z" end-time="2026-11-24 04:09:41Z" duration="0.363570" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1919" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1279,360)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1279,360)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="585561000" result="Passed" start-time="2026-11-24 04:09:41Z" end-time="2026-11-24 04:09:41Z" duration="0.702689" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1920" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1279,719)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1279,719)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="203866150" result="Passed" start-time="2026-11-24 04:09:41Z" end-time="2026-11-24 04:09:43Z" duration="1.420751" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1921" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1279,720)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1279,720)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1164974127" result="Passed" start-time="2026-11-24 04:09:43Z" end-time="2026-11-24 04:09:44Z" duration="1.625703" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1922" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1279,1080)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1279,1080)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="669622085" result="Passed" start-time="2026-11-24 04:09:44Z" end-time="2026-11-24 04:09:46Z" duration="2.125718" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1923" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1280,180)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1280,180)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="958599396" result="Passed" start-time="2026-11-24 04:09:46Z" end-time="2026-11-24 04:09:47Z" duration="0.334465" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1924" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1280,360)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1280,360)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="787681023" result="Passed" start-time="2026-11-24 04:09:47Z" end-time="2026-11-24 04:09:48Z" duration="0.720906" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1925" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1280,719)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1280,719)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1582409725" result="Passed" start-time="2026-11-24 04:09:48Z" end-time="2026-11-24 04:09:49Z" duration="1.628851" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1926" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1280,720)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1280,720)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="2042083030" result="Passed" start-time="2026-11-24 04:09:49Z" end-time="2026-11-24 04:09:51Z" duration="1.403931" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1927" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1280,1080)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1280,1080)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1069445424" result="Passed" start-time="2026-11-24 04:09:51Z" end-time="2026-11-24 04:09:53Z" duration="2.131743" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1928" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1920,180)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1920,180)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1167698066" result="Passed" start-time="2026-11-24 04:09:53Z" end-time="2026-11-24 04:09:53Z" duration="0.741566" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1929" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1920,360)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1920,360)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1157760185" result="Passed" start-time="2026-11-24 04:09:53Z" end-time="2026-11-24 04:09:54Z" duration="1.063791" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1930" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1920,719)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1920,719)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="847007446" result="Passed" start-time="2026-11-24 04:09:54Z" end-time="2026-11-24 04:09:57Z" duration="2.113631" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1931" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1920,720)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1920,720)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="863399477" result="Passed" start-time="2026-11-24 04:09:57Z" end-time="2026-11-24 04:09:59Z" duration="2.342615" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1932" name="PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1920,1080)" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.PackedLevelsStayInsideTheAtlasAndDoNotOverlap(1920,1080)" methodname="PackedLevelsStayInsideTheAtlasAndDoNotOverlap" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="335317409" result="Passed" start-time="2026-11-24 04:09:59Z" end-time="2026-11-24 04:10:02Z" duration="3.394870" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-case id="1936" name="SameSizeDoesNotRepackButDifferentSizeDoes" fullname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests.SameSizeDoesNotRepackButDifferentSizeDoes" methodname="SameSizeDoesNotRepackButDifferentSizeDoes" classname="UnityEditor.Rendering.Universal.Tests.PackedMipChainInfoTests" runstate="Runnable" seed="1642230672" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:02Z" duration="0.000899" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1938" name="PluginIsolationTests" fullname="UnityEditor.Rendering.Universal.Tests.PluginIsolationTests" classname="UnityEditor.Rendering.Universal.Tests.PluginIsolationTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:02Z" duration="0.047672" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1939" name="CoreRuntimeSourcesDoNotReferencePluginTypes" fullname="UnityEditor.Rendering.Universal.Tests.PluginIsolationTests.CoreRuntimeSourcesDoNotReferencePluginTypes" methodname="CoreRuntimeSourcesDoNotReferencePluginTypes" classname="UnityEditor.Rendering.Universal.Tests.PluginIsolationTests" runstate="Runnable" seed="436539857" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:02Z" duration="0.045578" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1940" name="ScreenSpaceCapabilityTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:02Z" duration="0.006532" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1946" name="EmptyTargetSizeIsRejected" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests.EmptyTargetSizeIsRejected" methodname="EmptyTargetSizeIsRejected" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests" runstate="Runnable" seed="696517051" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:02Z" duration="0.000523" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1941" name="GameCameraIsSupported" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests.GameCameraIsSupported" methodname="GameCameraIsSupported" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests" runstate="Runnable" seed="863004522" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:02Z" duration="0.000297" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1945" name="MissingCameraIsRejected" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests.MissingCameraIsRejected" methodname="MissingCameraIsRejected" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests" runstate="Runnable" seed="2060442528" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:02Z" duration="0.000227" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1944" name="OverlayCameraIsRejected" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests.OverlayCameraIsRejected" methodname="OverlayCameraIsRejected" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests" runstate="Runnable" seed="210709854" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:02Z" duration="0.000228" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1942" name="PreviewCameraIsRejected" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests.PreviewCameraIsRejected" methodname="PreviewCameraIsRejected" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests" runstate="Runnable" seed="2010378977" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:02Z" duration="0.000293" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1943" name="ReflectionCameraIsRejected" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests.ReflectionCameraIsRejected" methodname="ReflectionCameraIsRejected" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceCapabilityTests" runstate="Runnable" seed="1523588689" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:02Z" duration="0.000232" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1947" name="ScreenSpaceDepthPyramidSharingTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:03Z" duration="0.742996" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1951" name="BothFeaturesBindTheSameAttachment" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.BothFeaturesBindTheSameAttachment" methodname="BothFeaturesBindTheSameAttachment" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="254655329" result="Passed" start-time="2026-11-24 04:10:02Z" end-time="2026-11-24 04:10:03Z" duration="0.135106" asserts="0">
+                  <properties />
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1950" name="BothFeaturesEnqueueThePyramidOnce" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.BothFeaturesEnqueueThePyramidOnce" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.191690" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1948" name="BothFeaturesEnqueueThePyramidOnce(True)" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.BothFeaturesEnqueueThePyramidOnce(True)" methodname="BothFeaturesEnqueueThePyramidOnce" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="1693295989" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.089643" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1949" name="BothFeaturesEnqueueThePyramidOnce(False)" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.BothFeaturesEnqueueThePyramidOnce(False)" methodname="BothFeaturesEnqueueThePyramidOnce" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="338945699" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.099318" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-case id="1953" name="BuildTokenCombinesFrameAndViewProjection" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.BuildTokenCombinesFrameAndViewProjection" methodname="BuildTokenCombinesFrameAndViewProjection" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="651270354" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.099765" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1952" name="CameraPoseChangeRebuildsTheSharedPyramidInTheSameFrame" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.CameraPoseChangeRebuildsTheSharedPyramidInTheSameFrame" methodname="CameraPoseChangeRebuildsTheSharedPyramidInTheSameFrame" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="1345302712" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.100111" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1954" name="IdleSslDoesNotAffectTheGtaoPyramid" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.IdleSslDoesNotAffectTheGtaoPyramid" methodname="IdleSslDoesNotAffectTheGtaoPyramid" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="1889706398" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.104196" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1955" name="SslStillBuildsThePyramidWithoutGtao" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests.SslStillBuildsThePyramidWithoutGtao" methodname="SslStillBuildsThePyramidWithoutGtao" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceDepthPyramidSharingTests" runstate="Runnable" seed="1979306488" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.106585" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1956" name="ScreenSpaceEditorCameraMotionPassTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.008457" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1959" name="CamerasKeepIndependentEditorMotionPoses" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests.CamerasKeepIndependentEditorMotionPoses" methodname="CamerasKeepIndependentEditorMotionPoses" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests" runstate="Runnable" seed="552220774" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.002503" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1958" name="HistoryResetClearsTheRecordedPose" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests.HistoryResetClearsTheRecordedPose" methodname="HistoryResetClearsTheRecordedPose" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests" runstate="Runnable" seed="1223859907" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000591" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1957" name="PassRunsAfterUrpClearsMotionAndBeforeScreenSpaceConsumers" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests.PassRunsAfterUrpClearsMotionAndBeforeScreenSpaceConsumers" methodname="PassRunsAfterUrpClearsMotionAndBeforeScreenSpaceConsumers" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests" runstate="Runnable" seed="2139277657" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000346" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1960" name="ResetTokenInvalidatesThePose" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests.ResetTokenInvalidatesThePose" methodname="ResetTokenInvalidatesThePose" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceEditorCameraMotionPassTests" runstate="Runnable" seed="354014445" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000442" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1964" name="ScreenSpaceLightingHistoryTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.026178" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1970" name="AllocatedResourcesMatchTheRequestedLayout" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests.AllocatedResourcesMatchTheRequestedLayout" methodname="AllocatedResourcesMatchTheRequestedLayout" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests" runstate="Runnable" seed="1728934228" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.003497" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1972" name="ColorPyramidMipCountStopsBelowTheGaussianBlock" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests.ColorPyramidMipCountStopsBelowTheGaussianBlock" methodname="ColorPyramidMipCountStopsBelowTheGaussianBlock" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests" runstate="Runnable" seed="687745822" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000254" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1971" name="DisposeReleasesAllocatedResources" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests.DisposeReleasesAllocatedResources" methodname="DisposeReleasesAllocatedResources" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests" runstate="Runnable" seed="172146356" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.001697" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1965" name="FirstFrameHasNoReadableHistoryButStillHasAWriteSlot" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests.FirstFrameHasNoReadableHistoryButStillHasAWriteSlot" methodname="FirstFrameHasNoReadableHistoryButStillHasAWriteSlot" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests" runstate="Runnable" seed="1744344906" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000292" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1968" name="ResetInvalidatesHistoryAndRestartsThePingPong" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests.ResetInvalidatesHistoryAndRestartsThePingPong" methodname="ResetInvalidatesHistoryAndRestartsThePingPong" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests" runstate="Runnable" seed="1553517813" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000245" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1969" name="SameSizeKeepsResourcesAndSizeChangeReallocates" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests.SameSizeKeepsResourcesAndSizeChangeReallocates" methodname="SameSizeKeepsResourcesAndSizeChangeReallocates" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests" runstate="Runnable" seed="810135610" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.002833" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1967" name="SlotsAlternateEveryFrameAndNeverOverlapInTheSameFrame" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests.SlotsAlternateEveryFrameAndNeverOverlapInTheSameFrame" methodname="SlotsAlternateEveryFrameAndNeverOverlapInTheSameFrame" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests" runstate="Runnable" seed="25735030" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000287" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1966" name="SwappedHistoryIsReadFromTheSlotWrittenLastFrame" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests.SwappedHistoryIsReadFromTheSlotWrittenLastFrame" methodname="SwappedHistoryIsReadFromTheSlotWrittenLastFrame" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingHistoryTests" runstate="Runnable" seed="930977425" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000216" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1973" name="ScreenSpaceLightingMaterialTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.023369" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1976" name="ClearCoatBlendUsesIndependentMaskAndRoughness" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests.ClearCoatBlendUsesIndependentMaskAndRoughness" methodname="ClearCoatBlendUsesIndependentMaskAndRoughness" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" seed="138896564" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.001500" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1979" name="CoatHierarchyKeepsAMissOnTheProbes" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests.CoatHierarchyKeepsAMissOnTheProbes" methodname="CoatHierarchyKeepsAMissOnTheProbes" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" seed="262492223" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000323" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1975" name="ComplexLitDepthNormalsTraceTheCoatRoughness" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests.ComplexLitDepthNormalsTraceTheCoatRoughness" methodname="ComplexLitDepthNormalsTraceTheCoatRoughness" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" seed="904476803" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.001010" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1981" name="LitDeclaresRefractionContractWithSafeDefaults" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests.LitDeclaresRefractionContractWithSafeDefaults" methodname="LitDeclaresRefractionContractWithSafeDefaults" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" seed="458030568" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.001151" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1974" name="LitDeclaresScreenSpaceLightingKeywordsForForwardAndGbuffer" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests.LitDeclaresScreenSpaceLightingKeywordsForForwardAndGbuffer" methodname="LitDeclaresScreenSpaceLightingKeywordsForForwardAndGbuffer" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" seed="354811621" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000566" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1982" name="RefractionMaterialPathFallsBackWithoutInputs" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests.RefractionMaterialPathFallsBackWithoutInputs" methodname="RefractionMaterialPathFallsBackWithoutInputs" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" seed="228002812" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.001073" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1983" name="ShaderGraphLitWiresRefractionAndTransparentPrepass" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests.ShaderGraphLitWiresRefractionAndTransparentPrepass" methodname="ShaderGraphLitWiresRefractionAndTransparentPrepass" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" seed="492487366" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.001937" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1977" name="ShaderGraphLitWiresScreenSpaceLighting" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests.ShaderGraphLitWiresScreenSpaceLighting" methodname="ShaderGraphLitWiresScreenSpaceLighting" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" seed="660953784" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.001626" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1980" name="TransparentSsrIsOptInAndUsesItsOwnResult" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests.TransparentSsrIsOptInAndUsesItsOwnResult" methodname="TransparentSsrIsOptInAndUsesItsOwnResult" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" seed="835887901" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.002302" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1978" name="UnsupportedMaterialsKeepZeroSmoothnessEncoding" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests.UnsupportedMaterialsKeepZeroSmoothnessEncoding" methodname="UnsupportedMaterialsKeepZeroSmoothnessEncoding" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingMaterialTests" runstate="Runnable" seed="303180998" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.001423" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="2003" name="ScreenSpaceLightingRefractionTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.077241" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2007" name="FeatureOwnsTheRefractionPass" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests.FeatureOwnsTheRefractionPass" methodname="FeatureOwnsTheRefractionPass" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests" runstate="Runnable" seed="1890973934" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.068584" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2006" name="KeywordStringsStayStable" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests.KeywordStringsStayStable" methodname="KeywordStringsStayStable" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests" runstate="Runnable" seed="884393325" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000254" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2008" name="PerCameraClearResetsTheRefractionMaterialBinding" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests.PerCameraClearResetsTheRefractionMaterialBinding" methodname="PerCameraClearResetsTheRefractionMaterialBinding" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests" runstate="Runnable" seed="1579239358" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.001933" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2005" name="RefractionBindingsRunBeforeTransparentDraw" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests.RefractionBindingsRunBeforeTransparentDraw" methodname="RefractionBindingsRunBeforeTransparentDraw" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests" runstate="Runnable" seed="1962382984" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000212" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2004" name="VolumeDefaultsMatchHDRPAndAreOptOut" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests.VolumeDefaultsMatchHDRPAndAreOptOut" methodname="VolumeDefaultsMatchHDRPAndAreOptOut" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRefractionTests" runstate="Runnable" seed="25933318" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.000341" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="2009" name="ScreenSpaceLightingRendererFeatureTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:04Z" duration="0.884346" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2020" name="CreateRebuildsPassAndHistoryStore" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.CreateRebuildsPassAndHistoryStore" methodname="CreateRebuildsPassAndHistoryStore" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="2127865129" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.065836" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2018" name="CreateRebuildsTheEditorMotionPass" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.CreateRebuildsTheEditorMotionPass" methodname="CreateRebuildsTheEditorMotionPass" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="350150859" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.063885" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2021" name="DisposeReleasesHistoryStore" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.DisposeReleasesHistoryStore" methodname="DisposeReleasesHistoryStore" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="210862517" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:03Z" duration="0.061993" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2017" name="EditorMotionPassCanBeSuppressedForBaselineRuns" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.EditorMotionPassCanBeSuppressedForBaselineRuns" methodname="EditorMotionPassCanBeSuppressedForBaselineRuns" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="473870945" result="Passed" start-time="2026-11-24 04:10:03Z" end-time="2026-11-24 04:10:04Z" duration="0.063859" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2014" name="EditorMotionPassIsEnqueuedWhenSsgiOrSsrNeedsIt" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.EditorMotionPassIsEnqueuedWhenSsgiOrSsrNeedsIt" methodname="EditorMotionPassIsEnqueuedWhenSsgiOrSsrNeedsIt" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="1274917505" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.071460" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2015" name="EditorMotionPassIsNotEnqueuedForRefractionOnly" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.EditorMotionPassIsNotEnqueuedForRefractionOnly" methodname="EditorMotionPassIsNotEnqueuedForRefractionOnly" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="2137491208" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.063808" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2016" name="EditorMotionPassSkipsCamerasThatUrpAlreadyHandles" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.EditorMotionPassSkipsCamerasThatUrpAlreadyHandles" methodname="EditorMotionPassSkipsCamerasThatUrpAlreadyHandles" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="35686456" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.068595" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2012" name="EnabledVolumeComponentEnqueuesPassAndCreatesHistory" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.EnabledVolumeComponentEnqueuesPassAndCreatesHistory" methodname="EnabledVolumeComponentEnqueuesPassAndCreatesHistory" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="540105786" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.073820" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2011" name="PassIsNotEnqueuedWhileEveryVolumeComponentIsDisabled" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.PassIsNotEnqueuedWhileEveryVolumeComponentIsDisabled" methodname="PassIsNotEnqueuedWhileEveryVolumeComponentIsDisabled" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="315167301" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.130695" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2022" name="PerCameraClearResetsTheMaterialBindings" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.PerCameraClearResetsTheMaterialBindings" methodname="PerCameraClearResetsTheMaterialBindings" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="1739908835" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.052931" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2019" name="PreviewAndOverlayCamerasDoNotEnqueue" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.PreviewAndOverlayCamerasDoNotEnqueue" methodname="PreviewAndOverlayCamerasDoNotEnqueue" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="366265362" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.050819" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2013" name="SameCameraKeepsOneHistoryEntry" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.SameCameraKeepsOneHistoryEntry" methodname="SameCameraKeepsOneHistoryEntry" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="1857237229" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.050038" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2010" name="SetupPassUsesReservedMaterialBindingEvent" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests.SetupPassUsesReservedMaterialBindingEvent" methodname="SetupPassUsesReservedMaterialBindingEvent" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingRendererFeatureTests" runstate="Runnable" seed="1863077879" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.050650" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="2023" name="ScreenSpaceLightingSsgiTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.075016" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2031" name="FeatureEnqueuesSsgiPassForEveryVolumeToggle" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests.FeatureEnqueuesSsgiPassForEveryVolumeToggle" methodname="FeatureEnqueuesSsgiPassForEveryVolumeToggle" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests" runstate="Runnable" seed="1733435970" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.055078" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2026" name="FirstSsgiFrameHasNoReadableHistoryButStillHasAWriteSlot" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests.FirstSsgiFrameHasNoReadableHistoryButStillHasAWriteSlot" methodname="FirstSsgiFrameHasNoReadableHistoryButStillHasAWriteSlot" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests" runstate="Runnable" seed="928891085" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000383" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2028" name="ResetInvalidatesSsgiHistory" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests.ResetInvalidatesSsgiHistory" methodname="ResetInvalidatesSsgiHistory" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests" runstate="Runnable" seed="1663376161" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000259" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2030" name="SsgiConstantBufferLayoutMatchesTheGeneratedInclude" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests.SsgiConstantBufferLayoutMatchesTheGeneratedInclude" methodname="SsgiConstantBufferLayoutMatchesTheGeneratedInclude" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests" runstate="Runnable" seed="1524611988" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000757" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2024" name="SsgiPassOrderIsTraceThenBindThenCleanup" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests.SsgiPassOrderIsTraceThenBindThenCleanup" methodname="SsgiPassOrderIsTraceThenBindThenCleanup" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests" runstate="Runnable" seed="1222158652" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000223" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2029" name="SsgiResourcesFollowTheTraceResolution" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests.SsgiResourcesFollowTheTraceResolution" methodname="SsgiResourcesFollowTheTraceResolution" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests" runstate="Runnable" seed="801318833" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.005590" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2027" name="SsgiSlotsAlternateAndNeverOverlapInTheSameFrame" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests.SsgiSlotsAlternateAndNeverOverlapInTheSameFrame" methodname="SsgiSlotsAlternateAndNeverOverlapInTheSameFrame" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests" runstate="Runnable" seed="1825076560" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000307" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2025" name="VolumeComponentExposesSsgiQualityControls" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests.VolumeComponentExposesSsgiQualityControls" methodname="VolumeComponentExposesSsgiQualityControls" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsgiTests" runstate="Runnable" seed="639263210" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000446" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="2043" name="ScreenSpaceLightingSsrPbrTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.038437" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2049" name="AlgorithmSwitchResetsTheAccumulationHistory" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests.AlgorithmSwitchResetsTheAccumulationHistory" methodname="AlgorithmSwitchResetsTheAccumulationHistory" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" seed="1606860898" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.002543" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2053" name="CameraResetInvalidatesThePbrAccumulation" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests.CameraResetInvalidatesThePbrAccumulation" methodname="CameraResetInvalidatesThePbrAccumulation" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" seed="153270315" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001485" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2047" name="EachHistorySlotOwnsItsSampleCountSlot" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests.EachHistorySlotOwnsItsSampleCountSlot" methodname="EachHistorySlotOwnsItsSampleCountSlot" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" seed="110326890" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001484" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2052" name="HalfResolutionPbrResourcesFollowTheTraceSize" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests.HalfResolutionPbrResourcesFollowTheTraceSize" methodname="HalfResolutionPbrResourcesFollowTheTraceSize" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" seed="144109321" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.002519" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2046" name="PbrResourcesCarryTheDenoiseIntermediatesAndSampleCounts" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests.PbrResourcesCarryTheDenoiseIntermediatesAndSampleCounts" methodname="PbrResourcesCarryTheDenoiseIntermediatesAndSampleCounts" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" seed="1938392293" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001353" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2051" name="PbrResourcesFollowTheCameraResolution" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests.PbrResourcesFollowTheCameraResolution" methodname="PbrResourcesFollowTheCameraResolution" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" seed="685610446" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.002567" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2048" name="PbrSampleCountsSurviveAHistorySwap" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests.PbrSampleCountsSurviveAHistorySwap" methodname="PbrSampleCountsSurviveAHistorySwap" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" seed="1434651644" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001417" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2050" name="PbrSlotsAlternateAndNeverOverlapInTheSameFrame" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests.PbrSlotsAlternateAndNeverOverlapInTheSameFrame" methodname="PbrSlotsAlternateAndNeverOverlapInTheSameFrame" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" seed="1621857090" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001451" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2045" name="ReflectionFilterMappingIsPackagedWithTheHdrpImportSettings" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests.ReflectionFilterMappingIsPackagedWithTheHdrpImportSettings" methodname="ReflectionFilterMappingIsPackagedWithTheHdrpImportSettings" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" seed="248830057" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.009930" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2044" name="VolumeExposesReflectionDenoiserControls" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests.VolumeExposesReflectionDenoiserControls" methodname="VolumeExposesReflectionDenoiserControls" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrPbrTests" runstate="Runnable" seed="1018855304" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000383" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="2054" name="ScreenSpaceLightingSsrTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.074086" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2062" name="FeatureEnqueuesSsrPassWhenOnlyTheReflectionVolumeIsEnabled" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests.FeatureEnqueuesSsrPassWhenOnlyTheReflectionVolumeIsEnabled" methodname="FeatureEnqueuesSsrPassWhenOnlyTheReflectionVolumeIsEnabled" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests" runstate="Runnable" seed="1249898599" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.058873" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2059" name="FirstFrameHasNoPreviousColorButStillAllocatesTheOutput" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests.FirstFrameHasNoPreviousColorButStillAllocatesTheOutput" methodname="FirstFrameHasNoPreviousColorButStillAllocatesTheOutput" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests" runstate="Runnable" seed="992950847" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001103" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2061" name="SsrConstantBufferLayoutMatchesTheGeneratedInclude" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests.SsrConstantBufferLayoutMatchesTheGeneratedInclude" methodname="SsrConstantBufferLayoutMatchesTheGeneratedInclude" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests" runstate="Runnable" seed="1732911597" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000727" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2055" name="SsrDepthPyramidMaxMipTracksTheBuiltChain" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests.SsrDepthPyramidMaxMipTracksTheBuiltChain" methodname="SsrDepthPyramidMaxMipTracksTheBuiltChain" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests" runstate="Runnable" seed="57129675" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000288" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2057" name="SsrPassRunsAfterSsgiAndBeforeMaterialBinding" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests.SsrPassRunsAfterSsgiAndBeforeMaterialBinding" methodname="SsrPassRunsAfterSsgiAndBeforeMaterialBinding" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests" runstate="Runnable" seed="867806352" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000189" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2060" name="SsrResourcesFollowTheCameraResolution" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests.SsrResourcesFollowTheCameraResolution" methodname="SsrResourcesFollowTheCameraResolution" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests" runstate="Runnable" seed="1103470990" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000928" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2056" name="SsrTraceUsesTheUploadedDepthPyramidMaxMip" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests.SsrTraceUsesTheUploadedDepthPyramidMaxMip" methodname="SsrTraceUsesTheUploadedDepthPyramidMaxMip" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests" runstate="Runnable" seed="726952054" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000750" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2058" name="VolumeComponentExposesApproximationControls" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests.VolumeComponentExposesApproximationControls" methodname="VolumeComponentExposesApproximationControls" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingSsrTests" runstate="Runnable" seed="1528489876" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000389" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="2063" name="ScreenSpaceLightingT12SchedulingTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.007834" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2067" name="ClearcoatAndRefractionKeywordsAreIndependentPerCamera" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests.ClearcoatAndRefractionKeywordsAreIndependentPerCamera" methodname="ClearcoatAndRefractionKeywordsAreIndependentPerCamera" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests" runstate="Runnable" seed="782476411" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000182" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2065" name="ConsumersInsideTheFallbackWindowAreRejectedByTheCriterion" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests.ConsumersInsideTheFallbackWindowAreRejectedByTheCriterion" methodname="ConsumersInsideTheFallbackWindowAreRejectedByTheCriterion" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests" runstate="Runnable" seed="599450552" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000162" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2064" name="ScreenSpaceConsumersDoNotTriggerTheAfterGbufferFallback" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests.ScreenSpaceConsumersDoNotTriggerTheAfterGbufferFallback" methodname="ScreenSpaceConsumersDoNotTriggerTheAfterGbufferFallback" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests" runstate="Runnable" seed="1006048096" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000724" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2066" name="ScreenSpacePassEventsStayBeforeMainRendering" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests.ScreenSpacePassEventsStayBeforeMainRendering" methodname="ScreenSpacePassEventsStayBeforeMainRendering" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingT12SchedulingTests" runstate="Runnable" seed="1168846159" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000170" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="2068" name="ScreenSpaceLightingTransparentSsrTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.095836" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2076" name="DepthSeedAppliesTheCopyDepthYFlipRule" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.DepthSeedAppliesTheCopyDepthYFlipRule" methodname="DepthSeedAppliesTheCopyDepthYFlipRule" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="216059369" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000815" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2080" name="FeatureQueuesTransparentPrepassBeforeTransparentTrace" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.FeatureQueuesTransparentPrepassBeforeTransparentTrace" methodname="FeatureQueuesTransparentPrepassBeforeTransparentTrace" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="317622384" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.063110" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2079" name="KeywordConstantsMatchTheShaderContract" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.KeywordConstantsMatchTheShaderContract" methodname="KeywordConstantsMatchTheShaderContract" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="823123276" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000922" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2073" name="TransparentOutputIsClearedEveryFrame" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.TransparentOutputIsClearedEveryFrame" methodname="TransparentOutputIsClearedEveryFrame" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="408563022" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001472" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2069" name="TransparentPassesRunBetweenColorPyramidAndTransparents" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.TransparentPassesRunBetweenColorPyramidAndTransparents" methodname="TransparentPassesRunBetweenColorPyramidAndTransparents" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="622578864" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000225" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2078" name="TransparentPassUsesAnIsolatedComputeInstance" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.TransparentPassUsesAnIsolatedComputeInstance" methodname="TransparentPassUsesAnIsolatedComputeInstance" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="422791779" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.006903" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2075" name="TransparentPrepassAndTraceShareTheRenderSerial" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.TransparentPrepassAndTraceShareTheRenderSerial" methodname="TransparentPrepassAndTraceShareTheRenderSerial" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="1657112248" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000306" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2071" name="TransparentResourcesAllocateIndependentlyFromTheOpaqueOutput" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.TransparentResourcesAllocateIndependentlyFromTheOpaqueOutput" methodname="TransparentResourcesAllocateIndependentlyFromTheOpaqueOutput" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="574135702" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001786" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2072" name="TransparentResourcesFollowTheCameraResolution" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.TransparentResourcesFollowTheCameraResolution" methodname="TransparentResourcesFollowTheCameraResolution" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="1432675787" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001513" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2074" name="TransparentResultIsNotExposedBeforeThePassProducesOne" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.TransparentResultIsNotExposedBeforeThePassProducesOne" methodname="TransparentResultIsNotExposedBeforeThePassProducesOne" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="240341755" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000286" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2077" name="TransparentTraceOwnsEverySharedKeyword" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.TransparentTraceOwnsEverySharedKeyword" methodname="TransparentTraceOwnsEverySharedKeyword" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="1045705345" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000534" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2070" name="VolumeExposesTransparentOptIn" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests.VolumeExposesTransparentOptIn" methodname="VolumeExposesTransparentOptIn" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingTransparentSsrTests" runstate="Runnable" seed="110967090" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000347" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="2081" name="ScreenSpaceLightingVolumeTests" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.012989" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2086" name="EachVolumeComponentCanEnableTheFeature" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests.EachVolumeComponentCanEnableTheFeature" methodname="EachVolumeComponentCanEnableTheFeature" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests" runstate="Runnable" seed="17940746" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001189" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2085" name="FeatureIsDisabledWhenNoVolumeComponentIsEnabled" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests.FeatureIsDisabledWhenNoVolumeComponentIsEnabled" methodname="FeatureIsDisabledWhenNoVolumeComponentIsEnabled" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests" runstate="Runnable" seed="2045297988" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000761" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2084" name="VolumeComponentsAreNotPostProcessComponents" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests.VolumeComponentsAreNotPostProcessComponents" methodname="VolumeComponentsAreNotPostProcessComponents" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests" runstate="Runnable" seed="786828899" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000721" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2083" name="VolumeComponentsDefaultToDisabled" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests.VolumeComponentsDefaultToDisabled" methodname="VolumeComponentsDefaultToDisabled" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests" runstate="Runnable" seed="1946966876" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000864" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2082" name="VolumeComponentsUseLightingMenu" fullname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests.VolumeComponentsUseLightingMenu" methodname="VolumeComponentsUseLightingMenu" classname="UnityEditor.Rendering.Universal.Tests.ScreenSpaceLightingVolumeTests" runstate="Runnable" seed="1771783384" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.001185" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="2106" name="UniversalRendererPassInputTests" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.022803" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2115" name="DepthConsumerAfterMainRenderingOnlyCopiesDepth" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.DepthConsumerAfterMainRenderingOnlyCopiesDepth" methodname="DepthConsumerAfterMainRenderingOnlyCopiesDepth" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="1483698700" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000275" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2119" name="DepthConsumerAfterMotionKeepsItsOwnEarliestEvent" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.DepthConsumerAfterMotionKeepsItsOwnEarliestEvent" methodname="DepthConsumerAfterMotionKeepsItsOwnEarliestEvent" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="2023075592" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000218" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2114" name="DepthConsumerBeforeMainRenderingRequestsPrepass" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.DepthConsumerBeforeMainRenderingRequestsPrepass" methodname="DepthConsumerBeforeMainRenderingRequestsPrepass" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="624931806" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000186" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2112" name="EarliestMotionConsumerWins" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.EarliestMotionConsumerWins" methodname="EarliestMotionConsumerWins" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="1876457166" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000148" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2107" name="EarlyMotionEventFitsBetweenDepthCopyAndGbuffer" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.EarlyMotionEventFitsBetweenDepthCopyAndGbuffer" methodname="EarlyMotionEventFitsBetweenDepthCopyAndGbuffer" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="624857291" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000296" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2117" name="LaterNormalConsumerKeepsDefaultDepthNormalEvent" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.LaterNormalConsumerKeepsDefaultDepthNormalEvent" methodname="LaterNormalConsumerKeepsDefaultDepthNormalEvent" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="1136893487" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000160" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2111" name="MotionConsumerAfterDefaultKeepsDefaultSchedule" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.MotionConsumerAfterDefaultKeepsDefaultSchedule" methodname="MotionConsumerAfterDefaultKeepsDefaultSchedule" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="1770546766" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000180" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2110" name="MotionConsumerAtDefaultEventKeepsDefaultSchedule" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.MotionConsumerAtDefaultEventKeepsDefaultSchedule" methodname="MotionConsumerAtDefaultEventKeepsDefaultSchedule" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="1650536184" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000156" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2109" name="MotionConsumerBeforeDefaultMovesMotionEarlier" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.MotionConsumerBeforeDefaultMovesMotionEarlier" methodname="MotionConsumerBeforeDefaultMovesMotionEarlier" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="21664410" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000171" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2118" name="MotionDependenciesPullDepthBeforeTheMotionPass" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.MotionDependenciesPullDepthBeforeTheMotionPass" methodname="MotionDependenciesPullDepthBeforeTheMotionPass" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="1591780735" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000224" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2108" name="NoInputKeepsDefaultMotionSchedule" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.NoInputKeepsDefaultMotionSchedule" methodname="NoInputKeepsDefaultMotionSchedule" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="1710939469" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000168" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2116" name="NormalConsumerAlwaysRequestsDepthNormalPrepass" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.NormalConsumerAlwaysRequestsDepthNormalPrepass" methodname="NormalConsumerAlwaysRequestsDepthNormalPrepass" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="407473487" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000160" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2113" name="TemporalAaAloneDoesNotRequestEarlyMotion" fullname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests.TemporalAaAloneDoesNotRequestEarlyMotion" methodname="TemporalAaAloneDoesNotRequestEarlyMotion" classname="UnityEditor.Rendering.Universal.Tests.UniversalRendererPassInputTests" runstate="Runnable" seed="1378521650" result="Passed" start-time="2026-11-24 04:10:04Z" end-time="2026-11-24 04:10:04Z" duration="0.000151" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
