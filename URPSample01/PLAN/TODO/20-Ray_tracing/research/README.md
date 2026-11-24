@@ -1,18 +1,19 @@
 # 20 · 光追研究索引与证据口径
 
-2026-11-24｜本目录只回答“能不能做、从哪里接、哪些不能搬”，不代替实现或真机验收。总计划与里程碑见 [HANDOFF](../HANDOFF.md)。
+本目录只回答“能不能做、从哪里接、哪些不能搬”，不代替实现或真机验收。总计划与里程碑见 [HANDOFF](../HANDOFF.md)。
 
 ## 文档分工
 
 | 文档 | 回答的问题 |
 |---|---|
-| [report.md](report.md) | 本轮总报告：平台/API 边界、URP 合同、HDRP/Lumen 对照、Surface Cache 取舍、无缓存 recipe、探针回退与总验收；含引用等级、风险与勘误 |
+| [report.md](report.md) | 调研总报告：平台/API 边界、URP 合同、HDRP/Lumen 对照、Surface Cache 取舍、无缓存 recipe、探针回退与总验收；含引用等级、风险与易错点 |
 | [HDRP14.md](HDRP14.md) | HDRP 14 的 SSGI/RTGI/RTR 如何交接屏幕与世界空间，哪些做法值得借鉴，哪些与 URP 不兼容 |
 | [TLAS.md](TLAS.md) | Unity 2022.3 的 RTAS 构建、实例维护、材质命中合同、生命周期与可独立测试项 |
 | [SSR-DXR.md](SSR-DXR.md) | 现有 opaque SSR 的未解决样本如何接入 DXR，预算、派发、合成与历史如何不破坏原契约 |
+| [HitShading.md](HitShading.md) | 无 bindless/inline RayQuery 的全材质 Fat CHS、AnyHit cutout、灯表与探针反馈 |
 | [../gi/report.md](../gi/report.md) | 动态更新探针作为 SSGI 漫反射回退的数学、存储、更新调度与参考实现 |
 
-v1 采用**无 Surface Cache** 的 hybrid recipe：屏幕 SS + 固定 K 的 DXR 最小 hit lighting + 动态 probe 辐照度缓存 + 显式 Skylight/Reflection Probe 兜底。H-A（v1）/ H-B（v1.5 候选）/ H-C（v2 候选）的边界与验收映射见 [总计划](../HANDOFF.md) 和 [SSR-DXR](SSR-DXR.md) §5；本目录只保留依据与限制，不另立一套口径。
+v1 采用**无 Surface Cache** 的 hybrid recipe：屏幕 SS + 固定 K/B×R 的全材质 Fat CHS（完整 SurfaceData + AHS cutout + 灯表/逐灯阴影）+ 动态 probe 辐照度缓存（1 跳反馈 + relocation/classification）+ 显式 Skylight/Reflection Probe 兜底。H-A（v1）/ H-B（v1.5 候选）/ H-C（v2 候选）的边界与验收映射见 [总计划](../HANDOFF.md)、[SSR-DXR](SSR-DXR.md) §5 与 [HitShading](HitShading.md)；本目录只保留依据与限制，不另立一套口径。
 
 ## 已核实的运行环境
 
@@ -33,7 +34,7 @@ v1 采用**无 Surface Cache** 的 hybrid recipe：屏幕 SS + 固定 K 的 DXR 
 - **推断**：由已验证事实组合得出，尚无运行证据；实施前必须用最小 fixture 闭环。
 - **未验证**：主机、驱动、特定 GPU、性能数字与画面结果；不得写进“支持”结论。
 
-本轮没有做 GPU 测量；所有性能上限都是待 B0 冻结的输入，不是已达成指标。
+尚未做 GPU 测量；所有性能上限都是待 B0 冻结的输入，不是已达成指标。
 
 ## 维护规则
 

@@ -1,8 +1,8 @@
 # 20-Ray_tracing 调研报告：Hybrid GI/Reflection、Surface Cache 与无缓存 Recipe
 
-2026-11-24｜调研与设计，**未实现、未做本轮 GPU 测量**。写入前 HEAD：`4b77b11`。源码快照：Unity `2022.3.62f1`、内嵌 URP `14.0.12`、HDRP `14.0.12`、参考仓库 `E:/workspace/GitHub/RTXGI-DDGI-URP`。行号只对当前快照有效，升级后按符号重查。
+**状态：调研与设计，未实现、未做 GPU 测量。** 源码快照：Unity `2022.3.62f1`、内嵌 URP `14.0.12`、HDRP `14.0.12`、参考仓库 `E:/workspace/GitHub/RTXGI-DDGI-URP`。行号只对当前快照有效，升级后按符号重查。命中着色方法见 [HitShading](HitShading.md)。
 
-本报告把本轮的可行性核查、HDRP/URP 源码研究、Lumen/SHaRC 对照、无 Surface Cache recipe、探针回退与验收口径集中到一处；模块级实施细节仍以 [HANDOFF](../HANDOFF.md)、[TLAS](TLAS.md)、[SSR-DXR](SSR-DXR.md)、[GI HANDOFF](../gi/HANDOFF.md)、[GI 研究](../gi/report.md) 为准。
+本报告把可行性核查、HDRP/URP 源码研究、Lumen/SHaRC 对照、无 Surface Cache recipe、探针回退与验收口径集中到一处；模块级实施细节仍以 [HANDOFF](../HANDOFF.md)、[TLAS](TLAS.md)、[SSR-DXR](SSR-DXR.md)、[GI HANDOFF](../gi/HANDOFF.md)、[GI 研究](../gi/report.md) 为准。
 
 **引用等级**：**A** = 本机源码或 Unity 安装包逐行核对；**B** = Unity/Epic/NVIDIA 官方文档或发布说明；**C** = 会议演讲或第三方复述，可能缺少厂商确认。源码行号默认 A；外部链接默认 B；标为 talk-attributed 的按 C 处理，不当作文档事实。
 
@@ -10,14 +10,14 @@
 
 1. **RT 是可选高端扩展**：默认资产不启用；Windows x64 D3D12 DXR 首发验证；PS5/Xbox 按 SKU 单独验收。移动/Web/D3D11/低档位不出队、不分配 RT 资源，原 SSGI/SSR/baked GI 不变。
 2. **Unity 2022.3 可做，但只有一种模型**：`RayTracingAccelerationStructure` + `RayTracingShader` + `CommandBuffer.BuildRayTracingAccelerationStructure/DispatchRays`；没有 inline RayQuery、没有通用 bindless、没有 GPU 间接 RT dispatch。inline RT 到 2023.1 才进**计算着色器**，2023.2 扩到光栅化；Unity 6 增加 RTAS build flags 与异步 build；Unity 6.7 LTS 在 URP 提供 Surface Cache GI + UnifiedRayTracing（可在 compute-only 平台运行），是升级后的首选方向，不在 2022.3 预支。
-3. **v1 采用无 Surface Cache recipe**：屏幕 SS 先行 → 固定 K 的 DXR 最小 hit lighting（少量受支持不透明材质）→ 动态 probe 辐照度（GI）→ 显式 Skylight/Reflection Probe 兜底。不做完整 DDGI、不做 mesh cards/atlas、不做多跳、不做逐像素 GI DXR。
+3. **v1 采用无 Surface Cache recipe**：屏幕 SS 先行 → 固定 K/B×R 的 DXR 全材质 Fat CHS（完整 SurfaceData + AHS cutout + 灯表/逐灯阴影）→ 动态 probe 辐照度（GI，含 1 跳反馈 + relocation/classification）→ 显式 Skylight/Reflection Probe 兜底。不做 Surface Cache/mesh cards/atlas、不做递归多跳、不做逐像素 GI DXR。
 4. **Surface Cache 不是“老显卡专用”**：Lumen 在 HWRT 下也把 Surface Cache 当默认/快速命中着色路径；HWRT 替换的是几何求交（SDF→BVH），不是 Surface Cache。我们不做它，是因为材质覆盖小、验证成本高，不是因为技术过时。
 5. **HDRP Mixed 不能直接搬**：`mixedTracing` 只在 Deferred 且 `tracing==Mixed` 时成立；Performance 不跑屏幕步进；Quality 是独立 raygen/递归路径。HDRP 的四张命中 GBuffer、LightLoop、LightCluster、递归都不进 URP v1。
 6. **HDRP 命中 pass 不叫 `LightMode="RayTracing"`**：实际是 `IndirectDXR` / `GBufferDXR` / `ForwardDXR` / `VisibilityDXR` 等，`SetRayTracingShaderPass` 按这个名字选 pass。URP Lit 没有任何 DXR pass；我们需要为受支持材质新增一个命名 pass，不是给一个通用 tag。
-7. **命中着色分三级**：H-A（v1，per-material 最小 hit lighting）、H-B（v1.5 候选，共享 CHS + 材质 buffer/atlas，Surface-Cache-lite）、H-C（v2 候选，完整 Surface Cache）。v1 只承诺 H-A。
-8. **probe 是辐照度缓存，不是 Surface Cache**：它只补 SSGI 的屏幕外低频漫反射；SSR 的光滑反射仍需 hit lighting。GI 的 G1–G3 不受 SSR 的 H-A/H-B/H-C 选择影响。
+7. **命中着色分三级**：H-A（v1，Fat CHS + per-material pass：完整 SurfaceData + AHS + 灯表/阴影）、H-B（v1.5 候选，Thin CHS + 共享材质表）、H-C（v2 候选，完整 Surface Cache）。v1 只承诺 H-A；全材质不需要 bindless/顶点池/atlas，但每材质 pass/variant 仍在。
+8. **probe 是辐照度缓存，不是 Surface Cache**：它只补 SSGI 的屏幕外低频漫反射；SSR 的光滑反射仍需 hit lighting。GI 的 G1–G5 不受 SSR 的 H-A/H-B/H-C 选择影响；反馈只读上一帧 atlas 一次，不递归追射线。
 9. **压缩/TMin 续传是 v2 性能实验**：Unity 2022.3 没有 RT 间接派发，固定 K + GPU 早退是 v1；压缩、上一帧 N 估计 K、TMin 续传只在 R2b 里用隐藏遮挡物验证，不阻塞 v1。
-10. **性能与主机未验证**：本轮没有 GPU 测量；B0 先冻结光线/毫秒/显存预算，T3 先证真实 Build/bind/DispatchRays，再谈 I2 通过。
+10. **性能与主机未验证**：尚未做 GPU 测量；B0 先冻结光线/毫秒/显存/灯数/阴影/payload/variant 预算，T3/T3b/T4 先证真实 Build/bind/DispatchRays、材质 pass/AHS 与灯表，再谈 I2 通过。
 
 ## 1. 平台、API 与项目边界
 
@@ -47,6 +47,8 @@
 | `CullInstances(RayTracingInstanceCullingConfig&)` | 11536 | 按 layer/ShadowCastingMode/Material/LOD/plane/sphere 配置过滤；结果含 `transformsChanged`/`materialsCRC`（11819–11824） |
 | `CommandBuffer.BuildRayTracingAccelerationStructure` | 35216 | 本项目选用的构建提交入口（渲染图内排队） |
 | `CommandBuffer.DispatchRays(RayTracingShader, string, uint, uint, uint, Camera)` | 35509 | 宽度/高度 CPU 指定；**没有 args-buffer 间接重载** |
+| `CommandBuffer.SetRayTracingShaderPass(RayTracingShader, string)` | 38147 | 按材质 pass 名选择 CHS/AHS；HDRP 用 `IndirectDXR`/`GBufferDXR`/`PathTracingDXR`，不是 `LightMode="RayTracing"` tag |
+| `RayTracingShader`（raygen/closest-hit/any-hit/miss） | 11969 | 材质命中由 per-material pass（SBT）提供，不是全局 CHS；AnyHit 可做 alpha test |
 | `RayTracingShader.SetAccelerationStructure` | 11989 | 绑定 RTAS；配合 `CommandBuffer.SetRayTracingShaderPass` 选材质命中 pass |
 | `SystemInfo.supportsRayTracing` | 49424 | 运行时能力门控 |
 
@@ -63,6 +65,8 @@
 Unity 的 closest-hit 来自**材质 shader 中与 `SetRayTracingShaderPass` 同名的 pass**，不是全局一个 CHS。HDRP 的 Lit 有 `IndirectDXR`、`GBufferDXR`、`ForwardDXR`、`VisibilityDXR`、`SubSurfaceDXR`、`DebugDXR`、`PathTracingDXR` 等 pass（`Runtime/Material/Lit/Lit.shader:1027–1035,1081–1082,1130–1131,1168–1169,1197–1198,1231–1232,1255–1256`），每个带 `#pragma raytracing surface_shader` 与 `#pragma only_renderers d3d11 xboxseries ps5`；`SetRayTracingShaderPass` 在 `HDRenderPipeline.RaytracingDeferredLightLoop.cs:306`、`HDRenderPipeline.RaytracingIndirectDiffuse.cs:390`、`HDRenderPipeline.RaytracingReflection.cs:521` 分别选 `GBufferDXR` / `IndirectDXR` / `IndirectDXR`。
 
 URP 14 Lit/ComplexLit 只有 `UniversalForward`、`UniversalGBuffer`、`ShadowCaster`、`DepthOnly`、`DepthNormals`、`UniversalTransparentDepthNormals`、`Meta`、`Universal2D`，**没有任何 DXR pass**。因此 v1 必须新增一个命名 pass（例如 `GlxDXR`）到受支持材质；名称是自由的，但要与 C# 的 `SetRayTracingShaderPass` 一致。不要写成 `LightMode="RayTracing"`；那只是早期讨论里的错误简称。
+
+v1 的 `GlxDXR` 采用 **Fat CHS**：CHS 内用 `UnityRayTracingFetchVertexAttribute3/4` 取 BLAS 顶点、per-material 贴图解 SurfaceData，AHS 用 `_ALPHATEST_ON` + `IgnoreHit()` 做 cutout；不需要 bindless/顶点池/atlas。HDRP 的 `PathTracingDXR` pass（`Lit.shader:1255–1261`）与 `PathTracingIntegrator.hlsl:339–385`/`:387–417` 是同构参考；HDRP 是 **Fat CHS + 瘦 raygen 循环**，不是 Thin CHS。详细 recipe、覆盖与易错点见 [HitShading.md](HitShading.md)。
 
 ## 2. 现有 URP SSGI/SSR 合同（已核实）
 
@@ -175,6 +179,7 @@ URP 14 Lit/ComplexLit 只有 `UniversalForward`、`UniversalGBuffer`、`ShadowCa
 
 - HDRP 的命中 pass 是 `IndirectDXR` / `GBufferDXR` / `ForwardDXR` / `VisibilityDXR` / `SubSurfaceDXR` / `DebugDXR` / `PathTracingDXR`，每个带 `#pragma raytracing surface_shader` 与 `#pragma only_renderers d3d11 xboxseries ps5`（`HDRP/Runtime/Material/Lit/Lit.shader:1027-1035,1081-1082,1130-1131,1168-1169,1197-1198,1231-1232,1255-1256`）。
 - `SetRayTracingShaderPass` 按 pass 名选择：`GBufferDXR`（`...DeferredLightLoop.cs:306`）、`IndirectDXR`（`...IndirectDiffuse.cs:390`、`...Reflection.cs:521`）。
+- 全材质参考：`PathTracingDXR` 的 CHS 在 `PathTracingIntegrator.hlsl:339–385` 解 SurfaceData/直接光/BSDF，AHS 在 `:387–417` 用 `_ALPHATEST_ON` + `IgnoreHit()`；顶点属性来自 BLAS（`RaytracingIntersection.hlsl:97–140`），payload 见 `PathTracingPayload.hlsl:22–56`。HDRP 是 **Fat CHS + 瘦 raygen**（`PathTracingMain.raytrace:189–229`），不是 Thin CHS。
 - HDRP 的 RTAS 在 `Automatic` 模式下**每帧每相机重建**（`HDRaytracingManager.cs:538-599`；`HDRenderPipeline.cs:2282-2289`；`RayTracingSettings.cs:9-15`）。**不要**再说“HDRP 只在脏帧 Build”；我们自己的 dirty 策略是项目设计，不是 HDRP 行为。
 - HDRP RTAS culling：per-effect `RayTracingInstanceCullingTest`、layer mask、`RayTracingRendererFlag` instance mask、HDRP shader tag、LOD culling、忽略 reflection probe（`HDRTASManager.cs:69-82,121-126,280-334,201-263`）。
 
@@ -189,7 +194,7 @@ URP 14 Lit/ComplexLit 只有 `UniversalForward`、`UniversalGBuffer`、`ShadowCa
 5. 1D tiled ray dispatch 让 invalid 便宜（思想可借，256-bin 实现不搬）。
 6. 按路径 gate denoise：透明不降噪、不 clamp。
 
-**不搬**：四张命中 GBuffer + `MINIMAL_GBUFFER` + 完整 HDRP LightLoop；LightCluster；Quality 的递归/多跳/`NO_RAY_RECURSION`；per-effect `ForwardDXR/GBufferDXR/PathTracingDXR/...`；APV-as-ray-miss；HDRP 的 color-pyramid mip-offset 技巧。
+**不搬**：四张命中 GBuffer + `MINIMAL_GBUFFER` + 完整 HDRP LightLoop；LightCluster；Quality 的递归/多跳/`NO_RAY_RECURSION`；HDRP 的 per-effect pass 与 HDRP `SurfaceData/BSDFData/LightList` 实现；APV-as-ray-miss；HDRP 的 color-pyramid mip-offset 技巧。**借** `PathTracingDXR` 的 CHS/AHS/顶点属性/payload 结构（见 [HitShading](HitShading.md)），不借它的 HDRP 材质体系。
 
 ## 4. Lumen：SWRT/HWRT、Surface Cache 与 Hit Lighting
 
@@ -228,17 +233,21 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
       -> needsHW：分类时 append 到请求列表
       -> invalid：回环境/反射探针
 
-[HW]  固定 K 的 DispatchRays + GPU 早退
-      -> CHS 返回 geomNormal / UV / instanceId / materialId / hitDistance
-      -> Shade：emission + 一盏方向光（可选一条遮挡射线）
-      -> 不乘接收面 Fresnel，不重复 BRDF
+[HW]  固定 K/B×R 的 DispatchRays + GPU 早退
+      -> GlxDXR CHS：SurfaceData(albedo/normal/metallic/smoothness/emission)
+         + 灯表（方向/点/聚光）+ 逐灯阴影
+      -> AHS：alpha test（_ALPHATEST_ON + IgnoreHit）；阴影命中即遮挡
+      -> probe 模式：+ 上一帧 atlas 反馈（1 次 8 邻居查询）
+         reflection 模式：命中点完整 PBR，不做反馈
+      -> 不乘接收面 Fresnel，不重复接收面 BRDF
 
 [合成] unpremultiplied (radiance, weight) 写回原 slot
        材质端 SSR: lerp(env, radiance, weight)；GI: lerp(base, Lss, w)
        BRDF 只应用一次
 
-[GI]  动态 probe：B probes × R rays/帧 -> irradiance atlas
-      材质端按接收点 P/N 查询；SS 高频 + probe 低频
+[GI]  动态 probe：B probes × R rays/帧（前 32 条固定）-> irradiance atlas
+      relocation/classification 默认开；inactive 只追 32 条
+      材质端按接收点 P/N 查询并应用 offset；SS 高频 + probe 低频
 
 [Miss] 仅可信的远处 miss 采 Skylight；其余保持 Reflection Probe / Sky
 ```
@@ -249,7 +258,7 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 
 **缺点**：bindless 顶点/纹理数组是引擎能力，Unity 2022.3 没有；每命中纹理采样/材质分支仍会分歧，cache miss/mip/aniso 都是成本；“20 行”是示意；强制 opaque 排除 alpha test/透明；probe 反弹只解决漫反射，且会漏光/滞后；hit point 出 probe 体积只能回退。
 
-**我们的对应**：H-A 是它的受约束版本（per-material 最小 hit lighting，无 bindless、无 hit-point 反弹）；H-B 是“bindless-lite”（共享 CHS + 材质 buffer/atlas，仍每材质 pass），是 v1.5 候选。
+**我们的对应**：H-A 是它的受约束版本（per-material Fat CHS：完整材质 + 灯表/阴影 + GI 1 跳反馈；无 bindless、无 Surface Cache）；H-B 是 Thin CHS + 共享材质表，是 v1.5 候选。
 
 ### 5.3 方案 B：Spatial Hash Radiance Cache（SHaRC 一类）
 
@@ -263,9 +272,9 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 
 | | A：bindless hit + probe | B：SHaRC | 我们 v1（H-A） |
 |---|---|---|---|
-| 核心 | 命中点取材质 + 直接光 + probe 反弹 | 世界空间哈希辐射缓存 | 每材质最小 hit lighting + 接收点 probe |
-| 材质覆盖 | 广（依赖 bindless） | 广（缓存） | 窄（登记 Lit/自发光） |
-| 多跳 | 1 跳（probe） | 多跳 | 无 |
+| 核心 | 命中点取材质 + 直接光 + probe 反弹 | 世界空间哈希辐射缓存 | per-material Fat CHS（全材质+灯表）+ 接收点 probe（含反馈） |
+| 材质覆盖 | 广（依赖 bindless） | 广（缓存） | 窄（登记 Lit/cutout/自发光；每材质 pass） |
+| 多跳 | 1 跳（probe） | 多跳 | 反馈跨帧迭代；无同帧递归 |
 | Unity 2022.3 | 只能 H-B 近似 | 可行但重 | 直接可行 |
 | 主要风险 | 分歧、漏光、无 bindless | 缓存复杂度、滞后、漏光 | 覆盖窄、无多跳 |
 
@@ -275,10 +284,10 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 
 ### 6.1 数据面与更新
 
-- 单一静态有界网格，位置固定；固定预算 `B probes × R rays`，轮转更新；多相机同一场景帧不重复；整批完成后发布一致快照；未更新 tile 保留上一次有效值；冷启动不做超预算预热。
-- 只取直接光、自发光、有效环境；v1 不做 probe 自反馈/多跳；不做 relocation/classification、多 volume、滚动、独立 DDGI、GI 逐像素 DXR。
-- 存储：irradiance `RGBA16F` 8×8 tile（6×6 内容 + 1 texel border + 4 个重复角）；distance `RG16F` 16×16（14×14 内容 + 1 texel border + 4 个重复角）；probe state/validity；本批 ray scratch。
-- 采样：8 邻居三线性 × 法线 wrap shading × Chebyshev；无效 probe 权重归零后重新归一化；薄墙用距离矩拒绝。
+- 单一静态有界网格，位置固定；固定预算 `B probes × R rays`（R ≥ 32），轮转更新；前 32 条固定射线供 relocation/classification；多相机同一场景帧不重复；整批完成后发布一致快照；未更新 tile 保留上一次有效值；冷启动不做超预算预热。
+- 命中点算方向光/点光/聚光 + 逐灯阴影 + 自发光，再读上一帧 atlas 做一次反馈；**不做递归多跳**。relocation/classification 默认开；多 volume、滚动、独立 DDGI、GI 逐像素 DXR 仍不做。
+- 存储：irradiance `RGBA16F` 8×8 tile（6×6 内容 + 1 texel border + 4 个重复角）；distance `RG16F` 16×16（14×14 内容 + 1 texel border + 4 个重复角）；probe data（offset + state）；上一帧已发布快照；有界灯表；本批 ray scratch。
+- 采样：8 邻居三线性 × 法线 wrap shading × Chebyshev；probe 世界位置 = 网格 + offset；inactive/无效 probe 权重归零后重新归一化；薄墙用距离矩拒绝。
 
 ### 6.2 参考实现的数学（`E:/workspace/GitHub/RTXGI-DDGI-URP`）
 
@@ -287,9 +296,15 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 | Irradiance 权重 `saturate(dot(probeDir,rayDir))`，归一化 `×1/max(2Σw,eps)` | `Assets/Features/Resources/Shaders/DDGIUpdateIrradiance.compute:90-92,102-108` |
 | 时域：历史黑→hysteresis 0；`Max(prev-cur)>0.2`→hysteresis−0.75；`Lum(delta)>1`→delta×0.25；最小 lerp 步长 1/1024 | 同上 `:110-139` |
 | 在 encode 空间（`pow(x,1/5)`）做 hysteresis；采样端 `pow(x,2.5)` 解码 | 同上 `:114`；`Lib/DDGIFuncs.hlsl:419` |
-| Distance：`min(abs(d),1.5·|probeSize|)`，权重 `pow(saturate(dot),64)`，累积 `(d,d²)·w`，`×1/(2Σw)` | `DDGIUpdateDistance.compute:87,91-95,104-116` |
+| Distance：`min(abs(d),1.5·abs(probeSize))`，权重 `pow(saturate(dot),64)`，累积 `(d,d²)·w`，`×1/(2Σw)` | `DDGIUpdateDistance.compute:87,91-95,104-116` |
 | 8 邻居采样 + wrap shading + Chebyshev + crush + 1e-6 floor + 重归一化 | `Lib/DDGIFuncs.hlsl:348-430` |
 | 方向 = 球面 Fibonacci + 逐帧随机旋转；32 条固定射线不旋转且不参与卷积 | `Lib/DDGIFuncs.hlsl:108-141`；`DDGIInputs.hlsl:29` |
+| 命中光照 = 方向光 + 点/聚光全部 + 逐灯阴影 + 自发光；每命中灯数无上限 | `Shaders/DDGIRayTracing.raytrace:71-114` |
+| 反馈 = 命中点读 `_ProbeIrradianceHistory` 8 邻居 × `min(albedo,0.9)·Lambert()`；跨帧迭代 | 同上 `:115`；`Lib/DDGIFuncs.hlsl:348-430` |
+| 灯表 = 每帧 `FindObjectsOfType<Light>()` 并重建 buffer；不用相机 visibleLights | `Runtime/DDGIFeature.cs:752-809` |
+| Relocation = 32 条固定射线；背向比例/近正面时偏移；offset 限 0.45×probe 间距 | `Shaders/DDGIRelocateProbe.compute:20-130`；`Runtime/Overrides/DDGI.cs:48-56` |
+| Classification = 背向比例高或 32 条射线都超出体素 → inactive；inactive 只追 32 条，消费者跳过 | `Shaders/DDGIProbeClassification.compute:11-100`；`DDGIRayTracing.raytrace:20-23`；`Lib/DDGIFuncs.hlsl:366` |
+| 参考限制 = 无 AnyHit/cutout、`_EmissionMap` 未接、灯光无预算上限、TLAS 每帧重建 | `LitRayTracing.shader:154-191`；`DDGIFeature.cs:472-486,752` |
 | 消费者读 `_ProbeIrradianceHistory` / `_ProbeDistanceHistory`，天然晚一帧 | `Lib/DDGIFuncs.hlsl:394,418` |
 | 代码默认 22³ probes、**144 rays/probe**（范围 32–256），ray buffer 按 `MaxNumRays=512` 固定 stride | `Runtime/Overrides/DDGI.cs:91-96`；`Runtime/DDGIFeature.cs:333,340` |
 | 默认 variability OFF ⇒ `mIsConverged` 强制 false，参考实现默认不会停更 | `Runtime/DDGIFeature.cs:634,983-984`；`Overrides/DDGI.cs:60` |
@@ -301,13 +316,15 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 
 我们的设计约定是：
 
-- `Eprobe` = 探针 irradiance（余弦半球积分量）；
+- `Eprobe` = 探针 irradiance（余弦半球积分量）= 命中点直接光 + 自发光 + 一次 `Eprev` 反馈；反馈在射线 radiance 上加 `min(albedo,cap)·Lambert()·Eprev(P,N)`，经积分后对 E 的贡献是 `min(albedo,cap)·Eprev`，只在 producer 加一次；
 - `Pgi = Eprobe / π` = 接收点入射漫反射辐亮度，与 URP `bakedGI` 同量纲；
 - `c` = 体积覆盖与有效位，只乘一次；
 - `base = lerp(bakedGI, Pgi, c)`；
 - 材质 `lerp(base, Lss, w)`，即 `(1−w)·base + w·Lss`。
 
 **必须标注**：`Pgi=Eprobe/π` 是我们的设计约定，不是参考实现的能量链。参考实现的链是 `1/(2Σw)`（atlas，存 `E/(2π)`）→ `pow(x,1/5)` 编码 → `pow(x,2.5)` 解码 → `×Σ⁻¹` → `×itself` → `×2π` → 材质 `×albedo/π`。取常数场 `L` 走一遍：atlas 存 `L/2`，采样端平均 `√(L/2)` 再平方回 `L/2`，`×2π` 得 `πL=E`，材质端 `×albedo/π` 得 `albedo·L`——**没有额外的 0.5**；非均匀场“对 √E 均值再平方”才是真正的方差偏差。G1 必须先把 atlas 单位钉死，否则后续 G3 的 ROI 对不上；按 `0.5·albedo·E/π` 设参考基线会把正确实现判成亮一倍。
+
+**反馈不是同帧 1 跳**：probe 分批轮转，反馈读上一帧已发布快照，跨帧迭代；G5 按阶跃/衰减判定，不能只测一帧，也不能把反馈当递归多跳。反馈读的是上一帧 irradiance atlas，不是正在写的 atlas；inactive/无效邻居为 0。
 
 ## 7. TLAS 与场景服务
 
@@ -316,7 +333,8 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 - 区分 32 位 layer 过滤（`RASSettings`）、8 位 instance mask（`AddInstance`/`TraceRay`）、submesh enable/alpha 策略。
 - dirty/Build：静态成员不重复 Build；动态成员按 revision 只提交一次；`RayTracingMode.Static` 不因 transform 自动更新；刚体走 `UpdateInstanceTransform` + Build；灯光/发光参数影响着色或 probe 失效，不应无条件重建几何。记录“提交 Build 次数”，不声称显式 refit。
 - `TMin` 只做与尺度相符的表面偏移；Hi-Z 走过的距离不是世界空间安全距离；有限 TMax 的截断不等于天空可见。
-- 共同 ABI：世界空间 origin、归一化 direction、TMin/TMax、实例 mask；输出区分几何命中（距离、材质有效性、沿返回方向的线性 HDR 辐亮度）、范围内无交点、无效材质/未服务；不支持材质/背面约定显式计数。
+- 灯表：场景级 Directional/Point/Spot 注册表；容量 `Lmax`、每命中灯数 `LmaxHit`、阴影射线 `Smax` 在 B0 冻结；不使用相机 `visibleLights`；灯光变化只更新 buffer/着色输入，不重建几何；不应用 light layer mask/cookie/面光源。
+- 共同 ABI：世界空间 origin、归一化 direction、TMin/TMax、实例 mask；命中材质由 `GlxDXR` CHS/AHS 提供（BLAS 顶点属性 + per-material 贴图 + cutout）；payload 含 hitT/valid/flags；输出区分几何命中（距离、材质有效性、沿返回方向的线性 HDR 辐亮度）、范围内无交点、无效材质/未服务；不支持材质/背面约定显式计数。
 
 ## 8. 验收矩阵与独立证据
 
@@ -324,35 +342,43 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 
 | ID / 前置 | 交付 | 通过条件 / 证据 |
 |---|---|---|
-| B0 / 无 | 冻结设备、版本、场景、灯光、相机轨迹、阈值、光线/毫秒/显存上限 | 同 HEAD 的 D3D11 和 D3D12 各跑两遍 RT-off；项目默认 D3D12，需显式切 D3D11；关闭扩展与原路径同种子、同历史长度、同帧逐像素一致；记录筛选器/计数、`supportsRayTracing`、目标 GPU |
-| T1–T3 / B0 | 后端门控、RTAS、实例、命中着色 | 关 SSGI/SSR 也能用已知射线验证；T1 开关后资源净增长 0；T2 离屏/禁用/mask/移动/LOD 与 CPU 解析交点一致；T3 Player 证明确有 Build/bind/DispatchRays，emit/direct/shadow 与解析参考一致，非有限值 0 |
-| G1–G3 / B0；真实更新依赖 T3 | 探针数学、分帧更新、SSGI 合成 | G1 常量场/两色场/常距平面/非法邻居，先钉死 atlas 单位；G2 预算/轮转/发布/动态恢复；G3 权重 0/0.5/1、强度 0/1、首帧/切镜/薄墙/体积外/双相机，关 SSR；启用 probe 回退时 SSGI `rayMiss=None` |
+| B0 / 无 | 冻结设备、版本、场景、灯光、相机轨迹、阈值、光线/毫秒/显存/`Lmax/LmaxHit/Smax`/payload/variant 上限 | 同 HEAD 的 D3D11 和 D3D12 各跑两遍 RT-off；项目默认 D3D12，需显式切 D3D11；关闭扩展与原路径同种子、同历史长度、同帧逐像素一致；记录筛选器/计数、`supportsRayTracing`、目标 GPU |
+| T1–T3 / B0 | 后端门控、RTAS、实例、基础命中着色 | 关 SSGI/SSR 也能用已知射线验证；T1 开关后资源净增长 0；T2 离屏/禁用/mask/移动/LOD 与 CPU 解析交点一致；T3 Player 证明确有 Build/bind/DispatchRays，emit/direct/shadow 与解析参考一致，非有限值 0 |
+| T3b / T2+T3 | `GlxDXR` 全材质 pass：CHS/AHS、BLAS 顶点、贴图/法线/cutout、payload | 贴图/法线/cutout 与光栅一致到 B0；payload 读回符合布局；supported/unsupported 显式计数；记录 payload 字节与 variant 数 |
+| T4 / T3b | 灯表与逐灯阴影 | 全 Directional/Point/Spot 注册；移动/删除/禁用更新；阴影开关正确；不依赖 `visibleLights`；记录灯数/每命中灯数/阴影数/overflow |
+| G1–G3 / B0；真实更新依赖 T3b | 探针数学、分帧更新、SSGI 合成 | G1 常量场/两色场/常距平面/非法/relocated/inactive/反馈项，先钉死 atlas 单位；G2 预算/轮转/发布/动态恢复/灯与阴影计数；G3 先 feedback/relocation/classification 全关跑基线，再扫权重/强度/首帧/切镜/薄墙/体积外/双相机，关 SSR |
+| G4 / G2 | relocation + classification（默认开） | offset 限幅、inactive 只追 32 且消费者跳过、动态几何重激活、无抖动/串索引；记录 active/inactive/relocated |
+| G5 / G2+T3b+T4 | probe 1 跳反馈 | 灯开/关阶跃、feedback on/off、无效/relocated/inactive 邻居、薄墙；与高采样参考 ROI；旧光在 B0 时间窗内衰减；不递归 |
 | R1–R3 / B0；真实补追依赖 T3 | 分类/预算、离屏求交、重建 | R1 计数守恒/无越界/无历史可分类；R2 命中正确实例/距离/颜色，未服务不误标 sky；R3 ROI 轮廓召回/错误率/源切换亮度/拖尾/GPU ms，透明控制组不变 |
-| R4 / R2 | H-A 命中着色分级与材质覆盖 | 只有登记子集参与；不支持材质显式计数；无 Surface Cache/mesh card 资源；不重复接收面 Fresnel/BRDF；H-A 开关不改变 R1–R3；hit shading 预算按 B0 |
-| R2b / R2（v2 候选） | 压缩、上一帧 N 估计 K、TMin 续传 | 隐藏遮挡物不漏遮挡；结果确定；收益超过压缩/重追成本才进 v2；失败只记 v2 NO-GO，不影响 R1–R4 |
-| I1 / T、G、R | 四开关组合、相机/资源隔离 | 都关/GI/SSR/双开 × Forward/Forward+/Deferred；双开共用同一 TLAS 版本；单开无另一模块 dispatch；切镜/分辨率/动态物体/相机堆叠/运行时关闭无残影/泄漏 |
+| R4 / R2+T3b | H-A 材质覆盖 | 只有登记子集参与；不支持材质显式计数；无 Surface Cache/mesh card 资源；不重复接收面 Fresnel/BRDF；H-A 开关不改变 R1–R3 |
+| R5 / R2+T3b+T4 | 反射全材质与灯光预算 | 命中点 PBR/cutout/灯表/阴影与参考一致；灯数/阴影/payload/overflow 计数；不做 probe 反馈；超预算回退并计数 |
+| R2b / R2（v2 候选） | 压缩、上一帧 N 估计 K、TMin 续传 | 隐藏遮挡物不漏遮挡；结果确定；收益超过压缩/重追成本才进 v2；失败只记 v2 NO-GO，不影响 R1–R5 |
+| I1 / T、G、R | 开关组合、相机/资源隔离 | 都关/GI/SSR/双开 × Forward/Forward+/Deferred；再扫 feedback/relocation/classification 与 T3b/T4；双开共用同一 TLAS/灯表版本；单开无另一模块 dispatch；切镜/分辨率/动态物体/相机堆叠/运行时关闭无残影/泄漏 |
 | I2 / I1 | Player 画质/性能与平台签收 | Windows DXR 实派发 + 同机 D3D12 off + D3D11 off + 非目标构建剥离；主机按目标单独构建/真机测量/批准；PC 成绩不默认开启主机 |
 
-每个证据包记录：基线/实现 SHA、设备/SKU/驱动/API/质量档、分辨率、场景版本、种子、曝光、帧号、预热帧、计时窗口、输入/输出路径、实际值/门槛、pass/fail/blocked；另记 TLAS Build/实例数、probe scheduled/updated/published、SSR requested/served/overflow/hit/miss、dispatch marker、R4 pass/variant 与 hit shading ms、R2b N/K/wave/TMin A/B。证据路径：`validation/<ID>/<platform>-<renderer>/`，不覆盖 P0。
+每个证据包记录：基线/实现 SHA、设备/SKU/驱动/API/质量档、分辨率、场景版本、种子、曝光、帧号、预热帧、计时窗口、输入/输出路径、实际值/门槛、pass/fail/blocked；另记 TLAS Build/实例数、probe scheduled/updated/published、active/inactive/relocated、SSR requested/served/overflow/hit/miss、dispatch marker、payload 字节、pass/variant、灯数/阴影数、hit shading ms、R2b N/K/wave/TMin A/B。证据路径：`validation/<ID>/<platform>-<renderer>/`，不覆盖 P0。
 
 ## 9. 风险与未决问题
 
 | 风险 | 说明 | 处理 |
 |---|---|---|
 | 引擎能力 | 2022.3 无 inline RayQuery / 通用 bindless / RT 间接派发 | v1 用 RayTracingShader + 固定 K + 早退；H-B/H-C 与 R2b 明确为候选 |
-| 材质覆盖 | URP Lit 无 DXR pass；每材质要新增命名 pass；ShaderGraph/透明/alpha test/蒙皮不支持 | v1 只登记 Lit/自发光；R4 统计 supported/unsupported；不支持不静默当黑/sky |
+| 材质覆盖 | URP Lit 无 DXR pass；每材质要新增命名 pass；全材质靠 per-material pass + BLAS 顶点属性，不需要 bindless；ShaderGraph/透明/蒙皮仍不支持 | v1 登记 Lit/cutout/自发光；R4/T3b 统计 supported/unsupported 与 variant；不支持不静默当黑/sky |
+| 命中成本 | 全灯 + 逐灯阴影 + 8 邻居反馈 + 材质解包会让命中成本远高于最小着色；payload/寄存器/SBT 分歧未测 | B0 冻结 `Lmax/LmaxHit/Smax/payload/variant`；T3b/T4/R5 分项计时；超预算收窄覆盖 |
+| 反馈稳定性 | 跨帧迭代可能过冲、残留、漏光；关灯后旧能量可能滞留 | G5 阶跃/衰减；不额外乘 albedo；inactive/无效为 0；不把反馈当递归多跳 |
+| Relocation/classification | offset 抖动、错误 inactive、动态几何重激活延迟 | G4 固定射线/阈值；调试可视化；动态进出用例；B0 帧数内重激活 |
 | 能量/单位 | 我们的 `Pgi=E/π` 是设计约定；参考实现能量链不同 | G1 先钉 atlas 单位；G3 用线性 ROI/亮度跳变；不要直接抄参考的 `×2π/平方` |
 | 探针可见性 | 薄墙漏光、体积外、probe 卡几何、动态光滞后 | 距离矩 Chebyshev + 法线；薄墙单测；人工布点/禁用；不靠更重的时域滤波掩盖 |
 | TMin 续传 | Hi-Z 距离不是世界空间安全距离，可能漏屏外遮挡 | 不进 v1；R2b 隐藏遮挡物 A/B；失败只记 v2 NO-GO |
 | SSR 复合 | PBR 的 radiance 来自 3×3 cross，alpha 是中心 opacity；不能当覆盖份额 | 保留原始样本状态；HW 只补未解决份额；unpremultiplied radiance + weight |
-| 性能 | TLAS Build、probe 更新、hit shading、shadow ray、denoise、显存都未测 | B0 冻结预算；I2 分项计时；未定预算不报通过 |
+| 性能 | TLAS Build、probe 更新、hit shading（材质/灯/阴影/反馈）、relocation/classification、denoise、显存都未测 | B0 冻结预算；I2 分项计时；未定预算不报通过 |
 | 主机 | PS5/Xbox 的 Unity RT 支持、SKU/质量档/性能无本地证据 | 单独构建/真机测量；PC 通过不默认开启 |
-| 维护 | 内嵌 URP fork 差异；每材质 pass/variant；文档行号漂移 | 提交说明列包内改动；research 行号版本化；R4 记录 variant；优先共享 include/材质表 |
+| 维护 | 内嵌 URP fork 差异；每材质 pass/variant；DXR pass 的 keyword 组合；文档行号漂移 | 提交说明列包内改动；research 行号版本化；R4/T3b 记录 variant；优先共享 include/材质表 |
 | 未来引擎 | 2023.1 计算 inline RT、2023.2 光栅化 inline RT；Unity 6 RTAS build flags/异步 build；Unity 6.7 LTS 的 URP Surface Cache GI + UnifiedRayTracing（含 compute-only 平台） | 不在 2022.3 预支；升级时优先评估官方 Surface Cache GI 而不是自建 H-C，再重评 H-B/B；不把未来能力写进 v1 |
 
-## 10. 勘误（本轮修正）
+## 10. 易错点与证据
 
-| 旧说法 | 实际 | 证据 |
+| 易错说法 | 实际 | 证据 |
 |---|---|---|
 | HDRP 材质用 `LightMode="RayTracing"` pass | 实际 pass 名是 `IndirectDXR`/`GBufferDXR`/`ForwardDXR`/…；`SetRayTracingShaderPass` 按名字选 | `Lit.shader:1027-1035`；`DeferredLightLoop.cs:306` 等 |
 | 混淆内置与 Editor 相机 motion | 内置 early motion 在 202；Editor 相机 motion 在 203，与深度金字塔共槽 | `UniversalRenderer.cs:163,1557-1559`；`ScreenSpaceEditorCameraMotionPass.cs:37` |
@@ -368,6 +394,13 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 | 2077 直接等于 bindless G-buffer + DDGI | 2077 path tracing 更典型是 ReSTIR + NRD + SHaRC/NRC；具体归因部分未官方确认 | NVIDIA GDC 2024 session；RTG 章节 |
 | 参考实现能量链约 `0.5·albedo·E/π` | 常数场往返得到 `albedo·L = albedo·E/π`，无额外 0.5；0.5 来自把 atlas 的 `1/(2Σw)` 与采样端 `×2π` 拆开看 | `DDGIUpdateIrradiance.compute:102–108`；`DDGIFuncs.hlsl:416–430` |
 | `CommandBuffer.BuildRayTracingAccelerationStructure` 是唯一公开构建入口 | 对象方法 `RayTracingAccelerationStructure.Build()` / `Build(Vector3)` 同样公开；v1 选命令缓冲是为了对齐渲染队列 | CoreModule XML：11507、11513、35216 |
+| HDRP 是 Thin CHS + Fat RayGen | 实际是 **Fat CHS + 瘦 raygen 循环**：CHS 解材质/直接光/BSDF，raygen 只循环 `TraceRay`/累加 | `PathTracingIntegrator.hlsl:78,162-164,339-385`；`PathTracingMain.raytrace:189-229` |
+| HDRP payload 48–64B | HDRP `PathPayload` 字段更多（PT/AOV/continuation），约百字节量级；48–64B 是我们自己的目标 | `PathTracingPayload.hlsl:22-56` |
+| URP ShaderGraph 原生兼容 RT | 只有 HDRP 有 RT target 且有限制；URP 没有 DXR target/pass | HDRP `Ray-Tracing-Getting-Started.md:288-293`；URP Lit pass 列表 |
+| SkinnedMesh 无条件兼容 | 有条件；RTAS 可含 SMR，但 vertex animation 是文档限制 | `HDRaytracingManager.cs:377`；HDRP 文档 `:273` |
+| SBT 只慢 10–20% | 无出处；hit-group 分歧、variant、payload 寄存器压力都可能反转 | 需实测 |
+| 全材质必须 bindless/顶点池/atlas | 不需要；per-material SBT + `UnityRayTracingFetchVertexAttribute3/4` + 材质自有贴图即可，代价是 pass/variant 覆盖 | `UnityRayTracingMeshUtils.cginc:220,274`；HDRP `Lit.shader:1255`；参考实现 `LitRayTracing.shader:154-191` |
+| 参考实现“只做直接光” | 它还做上一帧 atlas 反馈（1 次读取）、relocation/classification、全方向/点/聚光与逐灯阴影 | `DDGIRayTracing.raytrace:71-115`；`DDGIProbeClassification.compute`；`DDGIRelocateProbe.compute` |
 
 ## 11. 参考索引
 
@@ -378,9 +411,10 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
   - SSR：[ScreenSpaceReflections.compute](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute)、[SsrPass.cs](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs)
   - 合成：[ScreenSpaceLightingBlend.hlsl](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingBlend.hlsl)
   - Pass 顺序：[ScreenSpaceDepthPyramidPass.cs](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceCommon/ScreenSpaceDepthPyramidPass.cs)、[ScreenSpaceLightingSetupPass.cs](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/ScreenSpaceLightingSetupPass.cs)
-- Unity API：`D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Data/Managed/UnityEngine/UnityEngine.CoreModule.xml`（11325、11330–11536、11598、11944、11969、35216、35509、49424）
+- Unity API：`D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Data/Managed/UnityEngine/UnityEngine.CoreModule.xml`（11325、11330–11536、11598、11944、11969、35216、35509、38147、49424）
+- Unity 内置 RT 顶点属性：`D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Data/CGIncludes/UnityRayTracingMeshUtils.cginc:48–52,220,274`
 - 项目设置：`URPSample01/ProjectSettings/ProjectVersion.txt`、`ProjectSettings.asset:531–533`、`QualitySettings.asset`
-- 本计划：[HANDOFF](../HANDOFF.md)、[TLAS](TLAS.md)、[SSR-DXR](SSR-DXR.md)、[GI HANDOFF](../gi/HANDOFF.md)、[GI 研究](../gi/report.md)、[反射 HANDOFF](../reflection/HANDOFF.md)
+- 本计划：[HANDOFF](../HANDOFF.md)、[TLAS](TLAS.md)、[SSR-DXR](SSR-DXR.md)、[HitShading](HitShading.md)、[GI HANDOFF](../gi/HANDOFF.md)、[GI 研究](../gi/report.md)、[反射 HANDOFF](../reflection/HANDOFF.md)
 
 ### 本地源码（HDRP）
 
@@ -421,6 +455,6 @@ Lumen 的 screen probe/reflection tracing 主干可以概括为：
 
 ## 12. 一句话总结
 
-**我们做的是一条“屏幕优先 + 少量 hit lighting + 世界空间 probe 低频 + 显式天空/环境兜底”的无 Surface Cache 混合 RT 管线；HDRP 借调度/历史/降噪思想，Lumen 借“先屏幕后世界”的分层，SHaRC 留作 v2；Unity 2022.3 的能力边界决定了 v1 只能用 RayTracingShader + 固定 K，而不是 inline RayQuery + 压缩 + 间接派发。**
+**我们做的是一条“屏幕优先 + 全材质 Fat CHS（灯表/逐灯阴影/AHS cutout）+ 世界空间 probe 低频（1 跳反馈 + relocation/classification）+ 显式天空/环境兜底”的无 Surface Cache 混合 RT 管线；HDRP 借 Fat CHS/调度/历史/降噪思想，Lumen 借“先屏幕后世界”的分层，SHaRC 留作 v2；Unity 2022.3 的能力边界决定了 v1 只能用 RayTracingShader + per-material pass + 固定 K/B×R，而不是 inline RayQuery + bindless + 压缩 + 间接派发。**
 
 

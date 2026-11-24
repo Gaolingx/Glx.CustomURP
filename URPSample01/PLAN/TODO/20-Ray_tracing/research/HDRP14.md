@@ -1,6 +1,6 @@
 # HDRP 14.0.12：SSGI / RTGI / RTR 如何在屏幕和世界空间之间接力
 
-2026-11-24｜本地源码研究，不是性能实测。复查包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`。`RT/` 表示包内 `Runtime/RenderPipeline/Raytracing/`；`SSL/` 表示 `Runtime/Lighting/ScreenSpaceLighting/`；`U/` 表示本项目 `URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/`。行号针对该快照，升级后按符号重查。
+**状态：本地源码研究，不是性能实测。** 复查包：`E:/workspace/GitHub/HDRPSample01/Library/PackageCache/com.unity.render-pipelines.high-definition@14.0.12`。`RT/` 表示包内 `Runtime/RenderPipeline/Raytracing/`；`SSL/` 表示 `Runtime/Lighting/ScreenSpaceLighting/`；`U/` 表示本项目 `URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/`。行号针对该快照，升级后按符号重查。
 
 ## 对照：相同的“先屏幕”，不同的命中数据
 
@@ -9,7 +9,7 @@
 | 当前 URP SSGI / opaque SSR | 本帧 Hi-Z 求 hit UV，以命中处 motion 读上一帧颜色；GI 有命中点深度拒绝，SSR 的历史取色不等于 GI 的检查 | 205/206 早于 GBuffer，三种 renderer 都能走。历史颜色含相机着色，不是纯漫反射或世界空间材质；出屏和历史拒绝是两个不同原因 |
 | HDRP Performance + Mixed | 有效屏幕交点从**本帧相机 GBuffer**解出材质，标记该方向已解决；未解决方向走 RTAS，写同构命中 GBuffer；随后统一延迟着色 | `mixedTracing` 依赖 Deferred，不是把 SSGI/RTR 颜色 alpha 混合。屏幕路线能看到部分只在光栅侧表达的材质/形变，但不能恢复屏外表面 |
 | HDRP Quality | 从 raygen 进入 `IndirectDXR`；closest-hit 求材质和光照，可按设置增加采样或反弹 | 是另一种成本/质量选择，不能用“屏幕步数更多”替代；不作为 URP v1 目标 |
-| 本轮 URP 选择 | 屏内保留现有颜色路径；反射离屏命中单独着色后返辐亮度；GI 离屏由低频动态 probe 估计 | 不要求四张 hit GBuffer、完整 HDRP LightLoop 或 Surface Cache。SS/HW 光照来源不同，必须验证亮度接缝；probe 是接收点估计，不是假装精确的射线交点 |
+| 本项目 URP 选择 | 屏内保留现有颜色路径；反射离屏用 per-material Fat CHS（完整材质 + 灯表/阴影）着色后返辐亮度；GI 离屏由低频动态 probe（1 跳反馈 + relocation/classification）估计 | 不要求四张 hit GBuffer、完整 HDRP LightLoop 或 Surface Cache。SS/HW 光照来源不同，必须验证亮度接缝；probe 是接收点估计，不是假装精确的射线交点 |
 
 ## 先分清三条 HDRP 路线
 
@@ -52,7 +52,7 @@ HDRP 的 16×16 ray binning 是在 tile 内按方向分桶，改善相干性；�
 - RTR 有独立射线方向、有效性调整、时域 history 与空间降噪；允许 GI/RTR 使用不同的 `rayMiss` 策略（`RT/HDRenderPipeline.RaytracingReflection.cs:349–395`）。
 - 反射降噪先写时域 history，再做空间滤波；不能把最终模糊结果回灌历史。
 - 不透明与透明反射是两条路径；透明接收面能发射反射，不等于透明几何能作为可靠命中目标。
-- 屏幕命中采的是**相机着色后的颜色**，HW 命中着色是**命中点材质 + 最小直接光**；亮度接缝必须单独验证，不能只看“非黑像素”。
+- 屏幕命中采的是**相机着色后的颜色**，HW 命中着色是**命中点完整 PBR + 灯表直接光/阴影**；亮度接缝必须单独验证，不能只看“非黑像素”。
 - HDRP 的 RTAS 在 `Automatic` 模式下**每帧每相机重建**（`RT/HDRaytracingManager.cs:538–599`；`HDRenderPipeline.cs:2282–2289`；`Runtime/Lighting/RayTracingSettings.cs:9–15`）。我们的 dirty 策略是项目设计，不是 HDRP 行为。
 
 ## 版本化源码索引
@@ -69,6 +69,7 @@ HDRP 的 16×16 ray binning 是在 tile 内按方向分桶，改善相干性；�
 | `RT/HDRenderPipeline.RaytracingDeferredLightLoop.cs:238–306,337–375`；`RT/Shaders/Common/RayBinning.compute:50–94` | 可选屏幕追踪 → 可选 16×16 tile 内按方向分桶 → GBufferDXR → 延迟光照。分桶是在 tile 内改善相干性，不等于按全屏 miss 数间接启动同等数量的 DXR 线程 |
 | `RT/Shaders/Deferred/RaytracingGBuffer.raytrace:59–95,114–140`；`RT/Shaders/Deferred/RaytracingDeferred.compute:87–150,174–208` | 已解决的方向退出；其余从接收面追 RTAS。由距离重建命中位置再跑光照；miss 按层级回退，不是所有 miss 必采天空。没有依赖屏幕 `TMin` 续传 |
 | `Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl:6–47,89–128`；`RT/HDReflectionDenoiser.cs:104–114,131–176` | Quality 的命中材质/光照与可选后续射线；反射降噪先写时域 history 再做空间滤波。不要把最终模糊结果再回灌 |
+| `Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMain.raytrace:189–229`；`PathTracingIntegrator.hlsl:78,162–164,339–439`；`PathTracingPayload.hlsl:22–56` | Fat CHS 解材质/直接光/BSDF + AnyHit alpha test；raygen 只循环 `TraceRay`/累加；payload/continuation ray |
 | `Documentation~/snippets/tracing-modes.md:5–42`；`RT/HDRaytracingManager.HDRTASManager.cs:152–166` | Mixed 依赖 Deferred 的屏幕材质表示；光栅形变、贴花、屏内粒子与 RT proxy 可不一致。透明接收面能发射与透明几何能当 GI/反射目标是两回事 |
 | `U/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute:140–213`；`U/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute:184–215,229–288,393–492` | 当前 GI/SSR 屏幕命中/历史及 fallback，最终 alpha 已包含其他权重，不能反推原始 miss |
 | `U/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsgiPass.cs:217–235`、`SsrPass.cs:214–249`（同目录）、`ColorPyramidPass.cs:85–90,133–188`（同目录） | 无所需历史会整 pass 跳过；用于不透明 SSR 的历史在透明物之后捕获，不等于 AfterSkybox 本帧金字塔。切镜要有独立的 fallback 路径 |
@@ -83,12 +84,12 @@ HDRP 的 16×16 ray binning 是在 tile 内按方向分桶，改善相干性；�
 3. **每个效果独立 history**：GI 与反射不共享屏空间历史；HW 来源切换要降低 history 权重，禁止把空间模糊结果回灌。
 4. **miss 必须显式**：区分几何 miss、历史拒绝、未服务/无预算、无效材质；只有可信的远处 miss 才允许直接采天空。
 5. **半分辨率是常规选项**：GI/反射都支持半分辨率 + 双边/深度法线引导上采样；先证正确性再评估 binning。
-6. **命中材质需要专用入口**：HDRP Lit 等材质带有 `IndirectDXR` / `GBufferDXR` / `ForwardDXR` 等命名 DXR pass，`SetRayTracingShaderPass` 按名字选择；这不是 `LightMode="RayTracing"` tag，Unity 的 closest-hit 也不是凭空读材质。
+6. **命中材质需要专用入口**：HDRP Lit 等材质带有 `IndirectDXR` / `GBufferDXR` / `ForwardDXR` / `PathTracingDXR` 等命名 DXR pass，`SetRayTracingShaderPass` 按名字选择；这不是 `LightMode="RayTracing"` tag，Unity 的 closest-hit 也不是凭空读材质。全材质参考 `PathTracingDXR`：CHS 解 SurfaceData/直接光/BSDF（`PathTracingIntegrator.hlsl:339–385`），AHS 用 `_ALPHATEST_ON` + `IgnoreHit`（`:387–417`），顶点属性从 BLAS 取（`RaytracingIntersection.hlsl:97–140`）；HDRP 是 Fat CHS + 瘦 raygen，不是 Thin CHS。
 7. **预算先冻结**：HDRP 的采样数、反弹数、ray length 是 Volume 参数；本项目在 B0 冻结，不用“画面看起来可以”代替预算。
 
 明确不搬：
 
-- HDRP Deferred 的四张命中 GBuffer 与 LightLoop；URP v1 只做最小 Hit Lighting。
+- HDRP Deferred 的四张命中 GBuffer 与 LightLoop；URP v1 用 per-material Fat CHS（完整材质/灯光），不搬 HDRP GBuffer/LightCluster。
 - HDRP Quality 的递归/多跳、Surface Cache、APV 数据结构。
 - HDRP 的 LightCluster / ray binning kernel；URP 的灯光与带宽模型不同。
 - “HDRP 只在脏帧 Build TLAS”之类的结论。HDRP 的 manager 与实例管理不是 URP 公共 API；TLAS 的构建策略以 [TLAS.md](TLAS.md) 的实测接口为准。
@@ -103,5 +104,5 @@ HDRP 的 16×16 ray binning 是在 tile 内按方向分桶，改善相干性；�
 - 屏内继续用现有 Hi-Z SSGI / SSR；只在**未解决样本**上接入 HW。
 - 反射 HW 命中返回 `(unpremultiplied radiance, weight)`，与现有 `lerp(probe, radiance, weight)` 契约一致；详见 [SSR-DXR.md](SSR-DXR.md)。
 - GI 的屏外低频用世界空间探针，探针在材质端按接收点 `P/N` 查询；不让 HW 假装成精确交点。详见 [GI 研究](../gi/report.md)。
-- 需要新增材质侧命名 DXR pass 的只有**进入 TLAS 且可被命中**的 Lit/自发光子集；不支持材质显式排除并计数。v1 采用 H-A（per-material 最小 hit lighting），H-B/H-C 只是候选，见 [总计划](../HANDOFF.md)。
+- 需要新增材质侧命名 DXR pass 的只有**进入 TLAS 且可被命中**的 Lit/cutout/自发光子集；不支持材质显式排除并计数。v1 采用 H-A（per-material Fat CHS + AHS），H-B/H-C 只是候选，见 [总计划](../HANDOFF.md) 与 [HitShading](HitShading.md)。
 - 主机（PS5/Xbox）不因 HDRP 文档或 PC 结果自动成立；按 SKU 单独验收，见 [总计划](../HANDOFF.md)。
