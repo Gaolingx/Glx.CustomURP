@@ -1,6 +1,6 @@
 # 不透明 SSR × DXR：恢复离屏几何的单次反射
 
-**状态：R1 半分辨率分类与预算已在 [D3D11](../validation/R1/D3D11/Summary.json) 和 [D3D12](../validation/R1/D3D12/Summary.json) 计算夹具验证；真实离屏追踪、合成与材质着色仍待实施。** 只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；命中着色见 [HitShading](../research/HitShading.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
+**状态：R1 半分辨率分类与预算已在 [D3D11](../validation/R1/D3D11/Summary.json) 和 [D3D12](../validation/R1/D3D12/Summary.json) 计算夹具验证；R2 的离屏求交、命中取色与合成已在 [Win64 D3D12 Player](../validation/R2/evidence/Summary.json) 通过，并按拆分口径把全轮廓召回留给 R3（见下）。R3–R5 仍待实施。** 只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；命中着色见 [HitShading](../research/HitShading.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
 
 ## 输入与分支
 
@@ -40,7 +40,7 @@ v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世�
 | ID / 前置 | 实验（默认关闭 GI；R3 另含快照对照） | 通过条件 / 证据 |
 |---|---|---|
 | R1 分类与预算 / B0 | 注入可反射/无效、命中/历史拒绝、边缘、零预算与溢出的确定性图案；测试方向重建、半分辨率奇数宽高 | 计数守恒、无重复/越界回写；只调度合格份额；延迟读回对照原坐标/方向；预算为零回原环境；无历史依然可分类。记录 requested/served/overflow |
-| R2 离屏求交与取色 / R1+T3 | 光滑镜面和有 ID 的离屏纯色发光板，再加遮挡/移除/超 TMax；摄像机内外两组 | 已服务射线命中正确实例、距离与颜色符合解析解；留出未服务负样本，不能误标为 sky 或黑色有效；DXR 实际派发和 marker 可见，SS-only 无法恢复的轮廓在混合模式恢复 |
+| R2 离屏求交与取色 / R1+T3 | 光滑镜面和有 ID 的离屏纯色发光板，再加遮挡/移除/超 TMax；摄像机内外两组 | 已服务射线命中正确实例、距离与颜色符合解析解；留出未服务负样本，不能误标为 sky 或黑色有效；DXR 实际派发和 marker 可见；SS-only 无法恢复的轮廓在**已服务像素**恢复，并记录服务率/溢出。B0 的 0.90 单帧全轮廓召回改为 R3 的高采样/时间参考签收（8/tile 预算下满屏请求单帧只能服务 12.5%）。 |
 | R3 重建与回归 / R2 | 锁曝光/种子，让物体连续出入画；比较 SS-only、Hybrid 和同材质高采样 RT 参考；切镜、移动遮挡、粗糙边界、clear-coat、三种 renderer 和透明控制组 | 同一表面 ROI 统计参考轮廓召回率、错误轮廓率、源切换亮度峰值、历史拖尾帧和每 pass GPU ms，按 B0 预定阈值判定；不能用非黑像素率替代。关闭扩展和透明控制组与原图相同；clear-coat 不重复增亮，GI 更新计数为 0 |
 | R3 阴面源切换 / R2 | 固定光照、曝光和种子，让镜中同一块阴面连续出入屏；重放三组：SSR 单开无探针、GI+SSR 有有效快照、快照版本失效。给 ambient 与 probe 设置可区分的已知辐照度 | 记录命中点来源及低频项，三组分别匹配 ambient／probe／ambient，不叠加、不读失效快照。对同一阴面 ROI 逐帧交付线性亮度、SS↔HW 切换跳变峰值及相对高采样参考的误差，均按 B0 阈值判定。SSR 单开时 GI atlas 分配与 probe 更新计数均为 0；联合模式与 GI 单开对照，不因 SSR 增加更新 |
 | R4 命中着色分级与材质覆盖 / R2+T3b | H-A 登记 Lit/cutout/自发光；SimpleLit/ComplexLit/ShaderGraph/透明/蒙皮/多 submesh 另计；统计 pass/variant、payload、hit shading GPU ms | 只有登记子集参与；不支持材质显式计数，不静默当黑色/sky；无 Surface Cache/mesh card 资源；不重复接收面 Fresnel/BRDF；H-A 开关不改变 R1–R3 的正确性门槛；H-B 实现后再加入对照 |
@@ -54,5 +54,14 @@ v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世�
 - **帧序**：共享 TLAS 在 206 之前就绪；206 内依次为 SS trace/reproject 分类与请求、固定 K 的 DispatchRays、HW 合成；207 仍只做原绑定。206 的额外子阶段必须在 `SsrPass` 内可独立开关，失败时不破坏原 SSR 输出。
 - **代码落点**：`SsrPass.cs` 增加可选子阶段；`ScreenSpaceReflections.compute` 增加请求分类 kernel；新增 `RayTracingSsr.raytrace` 与材质命中 pass；合成保持 unpremultiplied radiance + weight。测试放 `URPSample01/Assets/Tests/RayTracing/SSR/`。
 - **独立性**：SSR 单独开启时不得启动 probe 更新、不得分配 GI atlas；GI 单独开启时不得派发射反射射线。两者共用 TLAS、场景/材质 ABI、ray mask 与线性 HDR 单位；SSR 可只读 GI 已发布的世界空间快照，不拥有其生命周期，不共享方向分布、屏幕历史或滤波器。
+- **W5 接线**：在 High Fidelity 的 Screen Space Lighting renderer feature 勾选 `Ray Tracing Reflections`，确认资源引用 `RayTracingSsr`，Volume 启用不透明、半分辨率 `Approximation`。给参与求交的刚体 `MeshRenderer` 添加 `SSR Ray Tracing Geometry`，为每个登记组件分配本场景唯一的 24 位 `Instance Id`；重复 ID 回退到 SS-only。首个灯表快照包含当前场景的已有灯；快照创建后动态生成的灯须调用该 feature 的 `RegisterRayTracingLight(light)`。灯的移动、禁用和销毁不需要调用几何重建。`Reflection Ray Budget=0` 关闭补追；不接受有限距离 miss 作为天空可见证据。
 - **开关与剥离**：默认关；关闭时无 RTAS/请求缓冲/派发，原 SSR 图像逐像素不变。非目标平台剥离 RT 资源与变体，并验证无 shader 错误。
 - **证据与文档**：`validation/<R ID>/<platform>-<renderer>/` 记录 requested/served/overflow、DXR marker、图像和已知差异；不覆盖 P0。实现与 [SSR-DXR](../research/SSR-DXR.md) 口径不一致时先修文档再验收。
+
+## W5 / R2 结果（2026-11-25）
+
+- 同一 Win64 Development Player（GUID `31e9e82024664c12b2b6232c71a6794a`）在 [D3D12](../validation/R2/evidence/Summary.json) 与 D3D11 上复跑；D3D11 不创建 RT 缓冲/归属，`warm` 与 `ssOnly` 相机图逐像素相同。
+- D3D12 满屏镜面场景：请求 4800 个半分辨率样本，服务 640、溢出 4160；4160 条未服务样本保持未解析，0 条误标天空/黑色。服务射线命中 donor 52 条，实例/距离/颜色与解析解误差 0，错误实例 0；`occluded`/`blockerID` 命中遮挡体，`removed` 与 `far` 输出权重 0（`far` 有 171 条超 TMax）。
+- 逐像素服务命中轮廓：204/208 个像素，`recallServed=1.0`、误报 0、覆盖率 13.3%；SS-only 对同一轮廓恢复 0。全轮廓召回 0.90 不在单帧 8/tile 预算内，按本轮确认的拆分口径移到 R3。
+- 首轮两处失败已修：材质 `_EMISSION` 在 `AssetDatabase.CreateAsset` 之前启用而未序列化，改为 CreateAsset → 设属性/关键字 → `SetDirty`；旧的失败轮次保留在 `evidence-pre-fix` 与 `evidence-emission-bug`。
+- 范围仍限于已登记不透明 Lit/cutout/自发光、mip 0、硬裁剪；透明、探针反馈、时间累积 HW 命中、R3–R5 未覆盖。

@@ -110,6 +110,14 @@ T,G,R 全绿 ── I1 ── I2
 
 **W4 / T3b 通过（Win64、已登记的 metallic Lit 子集）**：[D3D12 Player](validation/T3b/Player-D3D12.json) 63/63。28 条材质诊断和 35 条生产主/阴影向量覆盖变换后的 UV、压缩 emission、metallic/smoothness、镜像非均匀缩放下的切线法线和 cutout。光栅对照经真实 URP 相机绘制；采样处非方向通道与 DXR 相同，法线夹角 <0.00003°。实心处命中 2 m，孔洞穿至 4 m 或 miss；不透明 AHS 实测 0，cutout 实测 1。payload 24 B；[双 API 构建](validation/T3b/Variants.json) 保留 16 个 Lit 命中变体，[仅 D3D11 构建](validation/T3b/D3D11Only.json) 为 0。范围、证据和复跑见 [T3b 摘要](validation/T3b/Summary.json)。下一阶段为 W5/T4 和 R2；本轮未接入 GI/SSR。
 
+**W5 / T4 通过（Win64、场景灯表与逐灯阴影）**：[D3D12 Player](validation/T4/evidence/Player-D3D12.json) 17/17，同一构建 GUID；D3D11 以 `Backend` 拒绝，0 次 Build/派发/缓冲分配。D3D12 在真实 Build/bind/DispatchRays 下覆盖方向/点/聚光、距离与锥角衰减、移动/禁用/销毁、阴影开关与遮挡。66 盏登记/64 上传/2 溢出时稳定选中 4 盏、追踪 2 条阴影射线、其余 2 条计入未追踪；选中/溢出/阴影预算三层计数与解析解一致。复跑见 [run.py](validation/T4/run.py)，记录见 [Summary.json](validation/T4/evidence/Summary.json)。
+
+- **GPU 挂死根因与围堵**：初版 `GlxShadeLights` 在可变次数的选灯循环里嵌套阴影 `TraceRay`，选中 4 盏起命中着色器超出 DXR 栈，D3D12 以 `DXGI_ERROR_DEVICE_HUNG (0x887A0006)` 移除设备；03:46–03:51 触发 34 次 `nvlddmkm` TDR。现改为两个固定阴影调用点（`Smax=2`）、灯表计数按 64 截断，所有可到达表模式的 raygen 保持 `max_recursion_depth 2`。4/8/64 灯预检与完整 66 灯 Player 用例均无新 TDR；事故日志、前后对照和预检 JSON 见 [preflight](validation/T4/preflight/Summary.json)。
+
+**W5 / R2 通过（Win64 D3D12、离屏反射补追与合成；按拆分口径）**：[D3D12](validation/R2/evidence/Summary.json) 与 [D3D11](validation/R2/evidence/D3D11/Player.log) 同一构建 GUID。满屏镜面场景请求 4800 个半分辨率样本，预算服务 640、溢出 4160，未服务 4160 全部保持未解析、0 条误标天空/黑色；服务射线命中 donor 52 条，实例/距离/颜色相对解析解误差为 0，错误实例 0。`removed`/`far` 输出权重为 0（远处有限 TMax 有 171 条超程），`occluded`/`blockerID` 正确命中遮挡体。逐像素服务命中轮廓 recall 1.0、误报 0；SS-only 对同一轮廓恢复 0；D3D11 无 RT 缓冲/归属，warm 与 SS-only 相机图逐像素相同。B0 的每 8×8 tile 最多 8 样本使单帧服务上限为 12.5%，因此 0.90 全轮廓召回改由 R3 的高采样/时间参考签收；本轮的覆盖率与溢出已记录。首轮失败（材质 `_EMISSION` 关键字在 `CreateAsset` 前设置而未序列化）已修复，失败证据保留在 `evidence-pre-fix` 与 `evidence-emission-bug`。复跑见 [run.py](validation/R2/run.py)、[verify.py](validation/R2/verify.py)。
+
+**下一阶段**：W6 的 G2（探针分帧更新）、R3（混合重建/回归与阴面源切换）、R4；随后 G3/G4/G5、R5 与 I1/I2。
+
 **关键路径**：`B0 → T1 → T2 → T3 → T3b → T4 → G2 → G5/G3 → I1 → I2`。这是最长链，WS4 的 G2 是整条链的汇聚点。
 
 ## 5. 停止条件（按计划原文）
