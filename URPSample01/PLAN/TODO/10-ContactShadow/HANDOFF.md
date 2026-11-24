@@ -1,6 +1,7 @@
 # 10-ContactShadow 交接：HDRP Contact Shadows 调研与 URP 包内 Renderer Feature 迁移计划
 
-> 状态：**T0、T1、T3、T4 已通过；T2 资源门禁通过，Frame Debugger 取证 PARTIAL；下一步 T7 验证资产**（[T2 证据](#t2-evidence)、[T3 单灯 GPU 验收](#t3-evidence)、[T4 逐灯映射](#t4-evidence)）。已核验 [Feature Inspector](validation/T1/T1_FeatureInspector.png)、[Volume Inspector](validation/T1/T1_VolumeInspector.png) 和 [Light Inspector](validation/T1/T1_LightInspector.png)。T1：[菜单添加、移除与域重载 3/3](validation/T1/EditMode.xml)、[序列化引用](validation/T1/FeatureImport.json)、[既有 EditMode 184/184](validation/T1/Regression.xml)、[PlayMode 6/6](validation/T1/PlayMode.xml)。临时资产已删除；尚未接入 Compute。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
+> 状态：**T0、T1、T3、T4、T7 已通过；T2 资源门禁通过，Frame Debugger 取证 PARTIAL；下一步 T5 光照接入**（[T2 证据](#t2-evidence)、[T3 单灯 GPU 验收](#t3-evidence)、[T4 逐灯映射](#t4-evidence)）。已核验 [Feature Inspector](validation/T1/T1_FeatureInspector.png)、[Volume Inspector](validation/T1/T1_VolumeInspector.png) 和 [Light Inspector](validation/T1/T1_LightInspector.png)。T1：[菜单添加、移除与域重载 3/3](validation/T1/EditMode.xml)、[序列化引用](validation/T1/FeatureImport.json)、[既有 EditMode 184/184](validation/T1/Regression.xml)、[PlayMode 6/6](validation/T1/PlayMode.xml)。临时资产已删除；尚未接入 Compute。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
+> **2026-11-24 所有者修订（优先于下方旧 stencil 描述）**：本 fork 的 Deferred 是聚类 compute，不存在 stencil 路径。T7 只接受真实 `renderingModeActual`，不接受 Forward fallback。T5 允许在 `Shadows.hlsl` 外最少量修改聚类 Deferred shader；仍不修改已有核心 C#、不加材质关键字。D10 对本 fork 按“Asset 允许附加阴影且该灯有有效阴影切片”执行，主光不限；不引入 T10。
 > 建立：2026-11-19
 > 基线：`cedd1bb`（Run SSR approximation at half resolution when enabled）
 > 结果入口：本文件；实施后追加 `report.md` 与 `validation/`
@@ -1126,6 +1127,8 @@ T8 ─> T9 文档/清理/归档
   - 24/25 灯压力场景；MSAA/动态分辨率变体；透视/正交相机；XR mock 场景（可选）。
 - **验收**：资产可加载；三模式 Renderer 引用正确；Volume/灯组件存在；默认资产未改；`.meta`/asmdef 完整；**不在 T7 产出最终矩阵证据**（T8 执行）；依赖 T5 行为的 PlayMode 测试只保证编译，T8 执行。
 - **依赖**：T1（Feature/Volume）、T4（Light 组件）；可与 T3 并行。
+
+**T7 实测（2026-11-24）：通过。** [D3D11 资产/导入检查 10/10](validation/T7/D3D11/EditMode.xml)，无跳过。持久化基线与 25 灯场景可重新加载，三种管线引用各自 Renderer（Forward+ / Deferred 显式引用聚类计算资源）；另有 4× MSAA Pipeline，正交、MSAA、动态分辨率备用相机。后者只验序列化，不代表硬件动态分辨率已实测。PlayMode 图像脚本已编译；最终颜色 A/B 留给 T5，完整矩阵留给 T8。未修改项目默认资产与 Build Settings。
 
 #### T8 Player、验收与证据
 
