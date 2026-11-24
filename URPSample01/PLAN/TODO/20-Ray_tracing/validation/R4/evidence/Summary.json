@@ -1,0 +1,339 @@
+{
+  "api": {
+    "D3D11": {
+      "denial": "Backend",
+      "buildCount": 0
+    },
+    "D3D12": {
+      "members": 3,
+      "instances": 3,
+      "unsupportedInstances": 3,
+      "disabledSubmeshes": 1,
+      "payloadBytes": 24,
+      "requestBytes": 48,
+      "dispatchCount": 41,
+      "submitAverageMs": 0.03902682926829269,
+      "gpuTimingMeasured": false,
+      "gpuMsPerDispatch": 0.0,
+      "gpuSamples": 0,
+      "lightSelected": 2048,
+      "lightShadowRays": 2048,
+      "lightOverflow": 0,
+      "materials": [
+        {
+          "name": "lit emission",
+          "shader": "Universal Render Pipeline/Lit",
+          "hasDxrPass": true,
+          "supported": true,
+          "dxrPasses": 1,
+          "surface": 0,
+          "queue": 2000,
+          "keywords": "_EMISSION"
+        },
+        {
+          "name": "lit cutout",
+          "shader": "Universal Render Pipeline/Lit",
+          "hasDxrPass": true,
+          "supported": true,
+          "dxrPasses": 1,
+          "surface": 0,
+          "queue": 2000,
+          "keywords": "_ALPHATEST_ON _EMISSION"
+        },
+        {
+          "name": "simple lit",
+          "shader": "Universal Render Pipeline/Simple Lit",
+          "hasDxrPass": false,
+          "supported": false,
+          "dxrPasses": 0,
+          "surface": 0,
+          "queue": 2000,
+          "keywords": ""
+        },
+        {
+          "name": "complex lit",
+          "shader": "Universal Render Pipeline/Complex Lit",
+          "hasDxrPass": false,
+          "supported": false,
+          "dxrPasses": 0,
+          "surface": 0,
+          "queue": 2000,
+          "keywords": ""
+        },
+        {
+          "name": "transparent lit",
+          "shader": "Universal Render Pipeline/Lit",
+          "hasDxrPass": true,
+          "supported": false,
+          "dxrPasses": 1,
+          "surface": 1,
+          "queue": 3000,
+          "keywords": "_SURFACE_TYPE_TRANSPARENT"
+        },
+        {
+          "name": "unregistered lit",
+          "shader": "Universal Render Pipeline/Lit",
+          "hasDxrPass": true,
+          "supported": true,
+          "dxrPasses": 1,
+          "surface": 0,
+          "queue": 2000,
+          "keywords": "_EMISSION"
+        }
+      ],
+      "shots": [
+        {
+          "name": "lit emission",
+          "expected": "hit emission",
+          "origin": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "expectedRgb": {
+            "x": 2.0,
+            "y": 0.5,
+            "z": 0.125
+          },
+          "actualRgb": {
+            "x": 2.0,
+            "y": 0.5,
+            "z": 0.125
+          },
+          "actualT": 2.0,
+          "expectedT": 2.0,
+          "rgbTolerance": 0.029999999329447746,
+          "flags": 2,
+          "hit": true,
+          "finite": true,
+          "passed": true
+        },
+        {
+          "name": "cutout solid",
+          "expected": "alpha 1 hit",
+          "origin": {
+            "x": 3.4000000953674316,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "actualT": 2.0,
+          "expectedT": 2.0,
+          "rgbTolerance": 0.029999999329447746,
+          "flags": 2,
+          "hit": true,
+          "finite": true,
+          "passed": true
+        },
+        {
+          "name": "cutout hole",
+          "expected": "alpha 0 miss",
+          "origin": {
+            "x": 2.5999999046325684,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualT": -1.0,
+          "expectedT": 0.0,
+          "rgbTolerance": 0.029999999329447746,
+          "flags": 1,
+          "hit": false,
+          "finite": true,
+          "passed": true
+        },
+        {
+          "name": "simple lit unsupported",
+          "expected": "not registered",
+          "origin": {
+            "x": 6.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualT": -1.0,
+          "expectedT": 0.0,
+          "rgbTolerance": 0.029999999329447746,
+          "flags": 1,
+          "hit": false,
+          "finite": true,
+          "passed": true
+        },
+        {
+          "name": "complex lit unsupported",
+          "expected": "not registered",
+          "origin": {
+            "x": 9.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualT": -1.0,
+          "expectedT": 0.0,
+          "rgbTolerance": 0.029999999329447746,
+          "flags": 1,
+          "hit": false,
+          "finite": true,
+          "passed": true
+        },
+        {
+          "name": "transparent unsupported",
+          "expected": "not registered",
+          "origin": {
+            "x": 12.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualT": -1.0,
+          "expectedT": 0.0,
+          "rgbTolerance": 0.029999999329447746,
+          "flags": 1,
+          "hit": false,
+          "finite": true,
+          "passed": true
+        },
+        {
+          "name": "unregistered lit",
+          "expected": "no registration component",
+          "origin": {
+            "x": 15.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualT": -1.0,
+          "expectedT": 0.0,
+          "rgbTolerance": 0.029999999329447746,
+          "flags": 1,
+          "hit": false,
+          "finite": true,
+          "passed": true
+        },
+        {
+          "name": "multi submesh lit",
+          "expected": "supported submesh hit",
+          "origin": {
+            "x": 17.5,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "expectedRgb": {
+            "x": 2.0,
+            "y": 0.5,
+            "z": 0.125
+          },
+          "actualRgb": {
+            "x": 2.0,
+            "y": 0.5,
+            "z": 0.125
+          },
+          "actualT": 2.0,
+          "expectedT": 2.0,
+          "rgbTolerance": 0.029999999329447746,
+          "flags": 2,
+          "hit": true,
+          "finite": true,
+          "passed": true
+        },
+        {
+          "name": "multi submesh simple lit",
+          "expected": "unsupported submesh miss",
+          "origin": {
+            "x": 20.5,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualT": -1.0,
+          "expectedT": 0.0,
+          "rgbTolerance": 0.029999999329447746,
+          "flags": 1,
+          "hit": false,
+          "finite": true,
+          "passed": true
+        }
+      ]
+    }
+  },
+  "checks": {
+    "variants": {
+      "distinctSets": 16,
+      "callbacks": [
+        "pass Surface 16",
+        "pass Surface 16",
+        "pass Surface 16",
+        "pass Surface 16",
+        "pass Surface 16",
+        "pass Surface 16",
+        "pass Surface 16",
+        "pass Surface 16"
+      ]
+    }
+  },
+  "status": "passed",
+  "errors": []
+}
