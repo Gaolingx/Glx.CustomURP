@@ -1,6 +1,6 @@
 # 10-ContactShadow 交接：HDRP Contact Shadows 调研与 URP 包内 Renderer Feature 迁移计划
 
-> 状态：**T0、T1、T3 已通过；T2 资源门禁通过，Frame Debugger 取证 PARTIAL；下一步 T4**（[T2 证据](#t2-evidence)、[T3 单灯 GPU 验收](#t3-evidence)）。已核验 [Feature Inspector](validation/T1/T1_FeatureInspector.png)、[Volume Inspector](validation/T1/T1_VolumeInspector.png) 和 [Light Inspector](validation/T1/T1_LightInspector.png)。T1：[菜单添加、移除与域重载 3/3](validation/T1/EditMode.xml)、[序列化引用](validation/T1/FeatureImport.json)、[既有 EditMode 184/184](validation/T1/Regression.xml)、[PlayMode 6/6](validation/T1/PlayMode.xml)。临时资产已删除；尚未接入 Compute。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
+> 状态：**T0、T1、T3、T4 已通过；T2 资源门禁通过，Frame Debugger 取证 PARTIAL；下一步 T7 验证资产**（[T2 证据](#t2-evidence)、[T3 单灯 GPU 验收](#t3-evidence)、[T4 逐灯映射](#t4-evidence)）。已核验 [Feature Inspector](validation/T1/T1_FeatureInspector.png)、[Volume Inspector](validation/T1/T1_VolumeInspector.png) 和 [Light Inspector](validation/T1/T1_LightInspector.png)。T1：[菜单添加、移除与域重载 3/3](validation/T1/EditMode.xml)、[序列化引用](validation/T1/FeatureImport.json)、[既有 EditMode 184/184](validation/T1/Regression.xml)、[PlayMode 6/6](validation/T1/PlayMode.xml)。临时资产已删除；尚未接入 Compute。实施基线 `cfbb3d4`；见 [契约](validation/P0/Contract.md) 与 [基线记录](validation/P0/Baseline.json)。D3D11：EditMode 184/184、PlayMode 6/6、T12 Forward 34/34、Forward+ 34/34、Deferred 35/35。
 > 建立：2026-11-19
 > 基线：`cedd1bb`（Run SSR approximation at half resolution when enabled）
 > 结果入口：本文件；实施后追加 `report.md` 与 `validation/`
@@ -1065,6 +1065,19 @@ T8 ─> T9 文档/清理/归档
   - 组件在 prefab/实例上生效。
 - **证据**：`ContactShadowSlotMappingTests`、`ContactShadowLightTests`；slot debug 图。
 - **依赖**：T1；可与 T2 并行。
+
+<a id="t4-evidence"></a>
+
+**T4 实测（2026-11-24）：通过。** `Build` 只生成 CPU 数据；不改 Feature/Pass、材质、shader 或生产全局状态。T3 的临时主光仍是当前 pass 的输入。下一步先做 T7 三模式验证资产，再由 T5 接入真实逐灯记录。
+
+| 验证 | 结果 |
+|---|---|
+| 灯发现与槽位 | [D3D11 59/59](validation/T4/D3D11/EditMode.xml)、[D3D12 59/59](validation/T4/D3D12/EditMode.xml)，均无跳过（本轮新增 29 例，既有专项 30 例）。覆盖主光有/无、未标记或不在索引 0；0/1/23/24/25 盏、URP 平台附加灯上限、跨快照清零、Prefab 覆盖及非 Light 组件只警告一次。 |
+| 掩码与记录 | 三灯型编码 0/1/2；32 B 记录字段偏移 0/12/16/28。临时测试 kernel 用独立全局名上传完整 float 数组，GPU `asuint` 读回 bit 0…23、前导空位及溢出后的零，与预期逐项一致；不是 T5 的生产绑定验收。 |
+| [槽位图](validation/T4/D3D11/SlotMapping.png) | 来自 CPU 构建结果，不是材质渲染图。行按 visible 顺序（首行未标记、次行主光、末行溢出），白格从左至右表示 bit 0…23；首末行都无白格。[D3D12 图](validation/T4/D3D12/SlotMapping.png)与 D3D11 逐字节一致。 |
+| 回归 | D3D11 [EditMode 184/184](validation/T4/Regression/Regression.xml)、[PlayMode 6/6](validation/T4/Regression/PlayMode.xml)。[非 Development Win64 构建](validation/T4/Player/BuildSummary.json) 0 error / 0 warning；同一 Player 的 T3 kernel 在 [D3D11](validation/T4/Player/Direct3D11/Probe.json) / [D3D12](validation/T4/Player/Direct3D12/Probe.json) 均读回 `FF000020`，零灯对照无非零像素。 |
+
+复现：沿用 T3 专项命令，将输出目录改为 `T4/<API>`，在 `-Filter` 追加 `;ContactShadowLightTests;ContactShadowSlotMappingTests`，并以 `-RecordSlotEvidence` 替换 `-RecordRaymarchEvidence`。
 
 #### T5 URP shader 钩子 + 三模式接入
 

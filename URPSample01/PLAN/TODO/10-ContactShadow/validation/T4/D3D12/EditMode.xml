@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="59" result="Passed" total="59" passed="59" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:28Z" duration="2.0920968">
+  <test-suite type="TestSuite" id="1000" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="549" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:28Z" duration="2.092097" total="59" passed="59" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1003" name="Assembly-CSharp-Editor.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Assembly-CSharp-Editor.dll" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.296273" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="76068" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestFixture" id="1001" name="ContactShadowFeatureImportTests" fullname="ContactShadowFeatureImportTests" classname="ContactShadowFeatureImportTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.294771" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1002" name="InspectorImportsSurviveDomainReload" fullname="ContactShadowFeatureImportTests.InspectorImportsSurviveDomainReload" methodname="InspectorImportsSurviveDomainReload" classname="ContactShadowFeatureImportTests" runstate="Runnable" seed="227337241" result="Passed" start-time="2026-11-24 04:49:23Z" end-time="2026-11-24 04:49:26Z" duration="3.026586" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+        </test-case>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1624" name="Unity.RenderPipelines.Universal.Editor.Tests.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll" runstate="Runnable" testcasecount="548" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:28Z" duration="1.252742" total="58" passed="58" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="76068" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1626" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="300" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:27Z" duration="0.991412" total="47" passed="47" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1627" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="300" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:27Z" duration="0.986567" total="47" passed="47" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1628" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="300" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:27Z" duration="0.981595" total="47" passed="47" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1629" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="300" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:27Z" duration="0.976516" total="47" passed="47" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1230" name="ContactShadowCapabilityTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:27Z" duration="0.040751" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="ParameterizedMethod" id="1248" name="SharedFailurePreservesStatusAndDiagnostic" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SharedFailurePreservesStatusAndDiagnostic" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.007360" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1243" name="SharedFailurePreservesStatusAndDiagnostic(ComputeShadersUnsupported)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SharedFailurePreservesStatusAndDiagnostic(ComputeShadersUnsupported)" methodname="SharedFailurePreservesStatusAndDiagnostic" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="764297768" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.002978" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1244" name="SharedFailurePreservesStatusAndDiagnostic(DepthPyramidFormatUnsupported)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SharedFailurePreservesStatusAndDiagnostic(DepthPyramidFormatUnsupported)" methodname="SharedFailurePreservesStatusAndDiagnostic" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="1531348640" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000087" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1245" name="SharedFailurePreservesStatusAndDiagnostic(RequiredFormatUnsupported)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SharedFailurePreservesStatusAndDiagnostic(RequiredFormatUnsupported)" methodname="SharedFailurePreservesStatusAndDiagnostic" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="1256201170" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000065" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1246" name="SharedFailurePreservesStatusAndDiagnostic(CameraUnsupported)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SharedFailurePreservesStatusAndDiagnostic(CameraUnsupported)" methodname="SharedFailurePreservesStatusAndDiagnostic" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="751063552" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000060" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1247" name="SharedFailurePreservesStatusAndDiagnostic(XrLayoutUnsupported)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SharedFailurePreservesStatusAndDiagnostic(XrLayoutUnsupported)" methodname="SharedFailurePreservesStatusAndDiagnostic" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="1110884180" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000056" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1235" name="SupportedApiRequiresPackedStore" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SupportedApiRequiresPackedStore" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.003567" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1231" name="SupportedApiRequiresPackedStore(Direct3D11)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SupportedApiRequiresPackedStore(Direct3D11)" methodname="SupportedApiRequiresPackedStore" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="1754645588" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000276" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1232" name="SupportedApiRequiresPackedStore(Direct3D12)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SupportedApiRequiresPackedStore(Direct3D12)" methodname="SupportedApiRequiresPackedStore" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="1825522006" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000074" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1233" name="SupportedApiRequiresPackedStore(Vulkan)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SupportedApiRequiresPackedStore(Vulkan)" methodname="SupportedApiRequiresPackedStore" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="898887340" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000061" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1234" name="SupportedApiRequiresPackedStore(Metal)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.SupportedApiRequiresPackedStore(Metal)" methodname="SupportedApiRequiresPackedStore" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="1159269742" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000059" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1239" name="UnsupportedApiRejectsEvenWithPackedStore" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.UnsupportedApiRejectsEvenWithPackedStore" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.003496" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1236" name="UnsupportedApiRejectsEvenWithPackedStore(OpenGLCore)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.UnsupportedApiRejectsEvenWithPackedStore(OpenGLCore)" methodname="UnsupportedApiRejectsEvenWithPackedStore" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="306291114" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000410" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1237" name="UnsupportedApiRejectsEvenWithPackedStore(OpenGLES3)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.UnsupportedApiRejectsEvenWithPackedStore(OpenGLES3)" methodname="UnsupportedApiRejectsEvenWithPackedStore" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="1401174209" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000080" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1238" name="UnsupportedApiRejectsEvenWithPackedStore(Null)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.UnsupportedApiRejectsEvenWithPackedStore(Null)" methodname="UnsupportedApiRejectsEvenWithPackedStore" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="451355544" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.000065" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1242" name="UnsupportedFeatureWarnsOnceAndDoesNotQueue" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.UnsupportedFeatureWarnsOnceAndDoesNotQueue" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:27Z" duration="0.022516" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1240" name="UnsupportedFeatureWarnsOnceAndDoesNotQueue(OpenGLCore,True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.UnsupportedFeatureWarnsOnceAndDoesNotQueue(OpenGLCore,True)" methodname="UnsupportedFeatureWarnsOnceAndDoesNotQueue" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="814340912" result="Passed" start-time="2026-11-24 04:49:26Z" end-time="2026-11-24 04:49:26Z" duration="0.018640" asserts="0">
+                    <properties />
+                    <output><![CDATA[Screen Space Contact Shadows does not support OpenGLCore.
+]]></output>
+                  </test-case>
+                  <test-case id="1241" name="UnsupportedFeatureWarnsOnceAndDoesNotQueue(Direct3D11,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests.UnsupportedFeatureWarnsOnceAndDoesNotQueue(Direct3D11,False)" methodname="UnsupportedFeatureWarnsOnceAndDoesNotQueue" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowCapabilityTests" runstate="Runnable" seed="2021758758" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001580" asserts="0">
+                    <properties />
+                    <output><![CDATA[Screen Space Contact Shadows requires R32_UInt load/store support.
+]]></output>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+              <test-suite type="TestFixture" id="1249" name="ContactShadowHistoryTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.022564" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1254" name="CameraAndEyeOwnDistinctTargetsUntilPrunedOrDisposed" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests.CameraAndEyeOwnDistinctTargetsUntilPrunedOrDisposed" methodname="CameraAndEyeOwnDistinctTargetsUntilPrunedOrDisposed" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests" runstate="Runnable" seed="753105464" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.011895" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1253" name="ExistingPackedTextureCannotMakeAnUnavailablePyramidReady" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests.ExistingPackedTextureCannotMakeAnUnavailablePyramidReady" methodname="ExistingPackedTextureCannotMakeAnUnavailablePyramidReady" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests" runstate="Runnable" seed="1602914470" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001754" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1250" name="MissingOrUnbuiltPyramidDoesNotAllocate" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests.MissingOrUnbuiltPyramidDoesNotAllocate" methodname="MissingOrUnbuiltPyramidDoesNotAllocate" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests" runstate="Runnable" seed="975443961" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000233" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1251" name="OddViewportUsesMipOneForTraceAndMipZeroForConfirmation" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests.OddViewportUsesMipOneForTraceAndMipZeroForConfirmation" methodname="OddViewportUsesMipOneForTraceAndMipZeroForConfirmation" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests" runstate="Runnable" seed="1251545533" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.002657" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1252" name="SameViewportTracksPyramidDimensionAndSliceCountIndependently" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests.SameViewportTracksPyramidDimensionAndSliceCountIndependently" methodname="SameViewportTracksPyramidDimensionAndSliceCountIndependently" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowHistoryTests" runstate="Runnable" seed="1143227078" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.002620" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1255" name="ContactShadowMipConfirmationTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.022677" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="ParameterizedMethod" id="1261" name="ConfirmAtSameStep" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests.ConfirmAtSameStep" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.020621" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1257" name="Mip1CandidateWithoutFineHitIsUnoccluded" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests.Mip1CandidateWithoutFineHitIsUnoccluded" methodname="ConfirmAtSameStep" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests" runstate="Runnable" seed="845738630" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.010924" asserts="0">
+                    <properties />
+                    <output><![CDATA[Direct3D12: coarse=True, fine=False, packed=0x00000000
+]]></output>
+                  </test-case>
+                  <test-case id="1258" name="FineHitWithoutMip1CandidateIsUnoccluded" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests.FineHitWithoutMip1CandidateIsUnoccluded" methodname="ConfirmAtSameStep" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests" runstate="Runnable" seed="869128625" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001276" asserts="0">
+                    <properties />
+                    <output><![CDATA[Direct3D12: coarse=False, fine=True, packed=0x00000000
+]]></output>
+                  </test-case>
+                  <test-case id="1259" name="FineHitAtSameStepSetsEachLightBit" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests.FineHitAtSameStepSetsEachLightBit" methodname="ConfirmAtSameStep" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests" runstate="Runnable" seed="837324626" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001191" asserts="0">
+                    <properties />
+                    <output><![CDATA[Direct3D12: coarse=True, fine=True, packed=0xFF000007
+]]></output>
+                  </test-case>
+                  <test-case id="1260" name="ArraySliceDoesNotReadTheOtherEyesBlocker" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests.ArraySliceDoesNotReadTheOtherEyesBlocker" methodname="ConfirmAtSameStep" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests" runstate="Runnable" seed="1180172791" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.003702" asserts="0">
+                    <properties />
+                    <output><![CDATA[Direct3D12: coarse=True, fine=True, packed=0xFF000007
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-case id="1256" name="ContactKernelImportsWithoutShaderMessages" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests.ContactKernelImportsWithoutShaderMessages" methodname="ContactKernelImportsWithoutShaderMessages" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowMipConfirmationTests" runstate="Runnable" seed="132006102" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000356" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1262" name="ContactShadowPyramidRenderTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowPyramidRenderTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowPyramidRenderTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.397006" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="ParameterizedMethod" id="1265" name="CameraRenderBuildsOneDepthAtlas" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowPyramidRenderTests.CameraRenderBuildsOneDepthAtlas" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowPyramidRenderTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.395589" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1263" name="CameraRenderBuildsOneDepthAtlas(False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowPyramidRenderTests.CameraRenderBuildsOneDepthAtlas(False)" methodname="CameraRenderBuildsOneDepthAtlas" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowPyramidRenderTests" runstate="Runnable" seed="342142083" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.172443" asserts="0">
+                    <properties />
+                    <output><![CDATA[ContactOnly, Direct3D12: pass 203 execute/copy = 1/1; mip 0 center/corner = 0.18750003/0; mip 1 center/corner = 0.18750003/0
+]]></output>
+                  </test-case>
+                  <test-case id="1264" name="CameraRenderBuildsOneDepthAtlas(True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowPyramidRenderTests.CameraRenderBuildsOneDepthAtlas(True)" methodname="CameraRenderBuildsOneDepthAtlas" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowPyramidRenderTests" runstate="Runnable" seed="138828191" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.219766" asserts="0">
+                    <properties />
+                    <output><![CDATA[CommandBuffer: temporary render texture  not found while executing  (SetComputeTextureParam)
+Shader warning in 'GTAO': integer divides may be much slower, try using uints if possible. at kernel GTAOMain at E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+Shader warning in 'GTAO': use of potentially uninitialized variable (GTAOGetDepthSample) at kernel GTAOMain at E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCommon.hlsl(102) (on d3d11)
+ContactSslGtao, Direct3D12: pass 203 execute/copy = 1/1; mip 0 center/corner = 0.18750003/0; mip 1 center/corner = 0.18750003/0
+]]></output>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+              <test-suite type="TestFixture" id="1266" name="ContactShadowRaymarchRenderTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowRaymarchRenderTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowRaymarchRenderTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.035601" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1267" name="MainLightRaymarchWritesDirectionalMaskAndFade" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowRaymarchRenderTests.MainLightRaymarchWritesDirectionalMaskAndFade" methodname="MainLightRaymarchWritesDirectionalMaskAndFade" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowRaymarchRenderTests" runstate="Runnable" seed="707439328" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.028854" asserts="0">
+                  <properties />
+                  <output><![CDATA[{
+    "api": "Direct3D12",
+    "flippedReadback": false,
+    "dispatches": 7,
+    "behindX": 392,
+    "facingX": 0,
+    "behindY": 200,
+    "facingY": 0,
+    "coarseOnlyHits": 0,
+    "planeHits": 0,
+    "diff4To10": 1260,
+    "diff10To64": 64,
+    "diff4To64": 1324,
+    "centerFade": 255.0,
+    "innerEdgeFade": 233.3333282470703,
+    "outerEdgeFade": 98.33333587646485,
+    "nearHalfFade": 127.0,
+    "farHalfFade": 127.0
+}
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1268" name="ContactShadowSlotMappingTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.380845" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1287" name="FloatMaskUpload_RoundTripsThroughShaderAsUint" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.FloatMaskUpload_RoundTripsThroughShaderAsUint" methodname="FloatMaskUpload_RoundTripsThroughShaderAsUint" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="179776927" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.335331" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1288" name="MixedMarkedAndOverflow_ProducesSlotDebugImage" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.MixedMarkedAndOverflow_ProducesSlotDebugImage" methodname="MixedMarkedAndOverflow_ProducesSlotDebugImage" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="320939789" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.010895" asserts="0">
+                  <properties />
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1282" name="NonFirstMain_SkipsOnlyMainAndPreservesAdditionalHoles" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.NonFirstMain_SkipsOnlyMainAndPreservesAdditionalHoles" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.004548" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1280" name="NonFirstMain_SkipsOnlyMainAndPreservesAdditionalHoles(True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.NonFirstMain_SkipsOnlyMainAndPreservesAdditionalHoles(True)" methodname="NonFirstMain_SkipsOnlyMainAndPreservesAdditionalHoles" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="1316959381" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.002182" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1281" name="NonFirstMain_SkipsOnlyMainAndPreservesAdditionalHoles(False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.NonFirstMain_SkipsOnlyMainAndPreservesAdditionalHoles(False)" methodname="NonFirstMain_SkipsOnlyMainAndPreservesAdditionalHoles" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="1109496071" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000377" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1279" name="ParticipantBoundaries_AssignContiguousLowBits" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.021554" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="Combinatorial" />
+                  </properties>
+                  <test-case id="1269" name="ParticipantBoundaries_AssignContiguousLowBits(0,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits(0,False)" methodname="ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="1042128967" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001511" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1270" name="ParticipantBoundaries_AssignContiguousLowBits(0,True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits(0,True)" methodname="ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="1699419790" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001133" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1271" name="ParticipantBoundaries_AssignContiguousLowBits(1,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits(1,False)" methodname="ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="1913110483" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001131" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1272" name="ParticipantBoundaries_AssignContiguousLowBits(1,True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits(1,True)" methodname="ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="1342330292" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001117" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1273" name="ParticipantBoundaries_AssignContiguousLowBits(23,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits(23,False)" methodname="ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="1401868853" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001986" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1274" name="ParticipantBoundaries_AssignContiguousLowBits(23,True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits(23,True)" methodname="ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="1050595983" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.002047" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1275" name="ParticipantBoundaries_AssignContiguousLowBits(24,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits(24,False)" methodname="ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="516390641" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.002092" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1276" name="ParticipantBoundaries_AssignContiguousLowBits(24,True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits(24,True)" methodname="ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="973439310" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.002053" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1277" name="ParticipantBoundaries_AssignContiguousLowBits(25,False)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits(25,False)" methodname="ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="218254685" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.002050" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1278" name="ParticipantBoundaries_AssignContiguousLowBits(25,True)" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.ParticipantBoundaries_AssignContiguousLowBits(25,True)" methodname="ParticipantBoundaries_AssignContiguousLowBits" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="1695103140" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.002064" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-case id="1286" name="PlatformLimit_TruncatesAdditionalIndicesNotVisibleIndices" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.PlatformLimit_TruncatesAdditionalIndicesNotVisibleIndices" methodname="PlatformLimit_TruncatesAdditionalIndicesNotVisibleIndices" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="1236260345" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000640" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1284" name="Rebuild_ClearsMainAndEntireAdditionalArray" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.Rebuild_ClearsMainAndEntireAdditionalArray" methodname="Rebuild_ClearsMainAndEntireAdditionalArray" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="449965734" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001782" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1285" name="Rebuild_DisabledMarkersAndRectangleKeepTheirAdditionalIndices" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.Rebuild_DisabledMarkersAndRectangleKeepTheirAdditionalIndices" methodname="Rebuild_DisabledMarkersAndRectangleKeepTheirAdditionalIndices" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="734392439" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000892" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1283" name="Records_MatchShaderLayoutTypesAndWorldVectors" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests.Records_MatchShaderLayoutTypesAndWorldVectors" methodname="Records_MatchShaderLayoutTypesAndWorldVectors" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowSlotMappingTests" runstate="Runnable" seed="943875954" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000827" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1289" name="ContactShadowVolumeTests" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.004878" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1290" name="DefaultsAndParameterBoundsMatchContract" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests.DefaultsAndParameterBoundsMatchContract" methodname="DefaultsAndParameterBoundsMatchContract" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" runstate="Runnable" seed="1801351101" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001394" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1291" name="DisabledStackDoesNotEnqueueAndMissingComputeWarnsOnce" fullname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests.DisabledStackDoesNotEnqueueAndMissingComputeWarnsOnce" methodname="DisabledStackDoesNotEnqueueAndMissingComputeWarnsOnce" classname="UnityEditor.Rendering.Universal.Tests.ContactShadowVolumeTests" runstate="Runnable" seed="2045790442" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001833" asserts="0">
+                  <properties />
+                  <output><![CDATA[Screen Space Contact Shadows requires both a depth pyramid compute shader and a contact shadows compute shader.
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+      <test-suite type="TestSuite" id="1630" name="UnityEngine" fullname="UnityEngine" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:28Z" duration="0.244524" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1631" name="Rendering" fullname="UnityEngine.Rendering" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:28Z" duration="0.242594" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1632" name="Universal" fullname="UnityEngine.Rendering.Universal" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:28Z" duration="0.239217" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1557" name="ContactShadowLightTests" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:28Z" duration="0.235446" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1569" name="InvalidMarkers_WarnOnceEachOnEnableInEditMode" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.InvalidMarkers_WarnOnceEachOnEnableInEditMode" methodname="InvalidMarkers_WarnOnceEachOnEnableInEditMode" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="937812560" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001835" asserts="0">
+                <properties />
+                <output><![CDATA[Contact Shadow Light requires a Light on the same GameObject.
+Contact Shadow Light requires a Light on the same GameObject.
+]]></output>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1562" name="IsMarked_FiltersByLightType" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_FiltersByLightType" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.003409" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1558" name="IsMarked_FiltersByLightType(Directional,True)" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_FiltersByLightType(Directional,True)" methodname="IsMarked_FiltersByLightType" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="1149514807" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000578" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1559" name="IsMarked_FiltersByLightType(Point,True)" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_FiltersByLightType(Point,True)" methodname="IsMarked_FiltersByLightType" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="6239443" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000166" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1560" name="IsMarked_FiltersByLightType(Spot,True)" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_FiltersByLightType(Spot,True)" methodname="IsMarked_FiltersByLightType" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="1647546068" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000153" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1561" name="IsMarked_FiltersByLightType(Rectangle,False)" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_FiltersByLightType(Rectangle,False)" methodname="IsMarked_FiltersByLightType" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="820653120" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000148" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="1563" name="IsMarked_NullIsFalse" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_NullIsFalse" methodname="IsMarked_NullIsFalse" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="1890080361" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000158" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="1564" name="IsMarked_OnlyUsesMarkerOnSameGameObject" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_OnlyUsesMarkerOnSameGameObject" methodname="IsMarked_OnlyUsesMarkerOnSameGameObject" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="1918312980" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000669" asserts="0">
+                <properties />
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1568" name="IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.001593" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1565" name="IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag(False,True,True)" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag(False,True,True)" methodname="IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="1701617324" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000438" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1566" name="IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag(True,False,True)" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag(True,False,True)" methodname="IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="1946453401" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000144" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1567" name="IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag(True,True,False)" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag(True,True,False)" methodname="IsMarked_RequiresEnabledLightEnabledMarkerAndCastFlag" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="1080655495" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:27Z" duration="0.000137" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="1570" name="Prefab_CastOverrideSurvivesReimportWithoutChangingSource" fullname="UnityEngine.Rendering.Universal.ContactShadowLightTests.Prefab_CastOverrideSurvivesReimportWithoutChangingSource" methodname="Prefab_CastOverrideSurvivesReimportWithoutChangingSource" classname="UnityEngine.Rendering.Universal.ContactShadowLightTests" runstate="Runnable" seed="625086587" result="Passed" start-time="2026-11-24 04:49:27Z" end-time="2026-11-24 04:49:28Z" duration="0.223235" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

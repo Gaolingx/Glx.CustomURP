@@ -1,0 +1,9 @@
+{
+    "result": "Succeeded",
+    "unity": "2022.3.62f1",
+    "source": "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ContactShadows/ContactShadows.compute",
+    "guid": "420607891eaaa67449698b0a249c77a2",
+    "errors": 0,
+    "warnings": 0,
+    "bytes": 80308596
+}

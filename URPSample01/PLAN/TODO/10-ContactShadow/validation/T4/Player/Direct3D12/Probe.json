@@ -1,0 +1,14 @@
+{
+    "api": "Direct3D12",
+    "device": "NVIDIA GeForce RTX 5060 Ti",
+    "platform": "WindowsPlayer",
+    "kernel": "KContactShadow",
+    "hitWord": "FF000020",
+    "litWord": "00000000",
+    "mirrorWord": "00000000",
+    "error": "",
+    "hitPixels": 64,
+    "unexpectedMaskPixels": 0,
+    "nonzeroWithoutLights": 0,
+    "passed": true
+}
