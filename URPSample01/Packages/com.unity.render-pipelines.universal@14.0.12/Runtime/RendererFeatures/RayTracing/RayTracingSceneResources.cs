@@ -4,8 +4,8 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // Main-thread service owned by the renderer/pipeline, never by a camera. No global shader
-    // binding. The owner calls SetRequests even on the transition to None, and Dispose on teardown.
+    // Main-thread service owned by the renderer/pipeline, never by a camera. The owner calls
+    // SetRequests even on the transition to None, and Dispose on teardown.
     internal sealed class RayTracingSceneResources : IDisposable
     {
         readonly Func<int, IDisposable> m_Create;
@@ -55,6 +55,28 @@ namespace UnityEngine.Rendering.Universal
 
         // Prepare alone never publishes a built structure. T2 is opt-in via TryBuild below.
         RayTracingSceneInstances m_Instances;
+        RayTracingSceneLights m_Lights;
+        internal int registeredLights => m_Lights?.registered ?? 0;
+        internal int uploadedLights => m_Lights?.uploaded ?? 0;
+        internal int tableOverflow => registeredLights - uploadedLights;
+        internal int lightUploadCount => m_Lights?.uploadCount ?? 0;
+        internal ComputeBuffer lightCounters => m_Lights?.counters;
+
+        // Pre-existing components (including disabled ones) are discovered at first Bind.
+        // Spawners register subsequent additions. Destruction, disable, hierarchy reorder and
+        // property changes are observed at Bind without invalidating the geometry revision.
+        internal void RegisterLight(Light light) => m_Lights?.Register(light);
+        internal void UnregisterLight(Light light) => m_Lights?.Unregister(light);
+
+        // Record immediately before a table-mode dispatch. Submit in recording order; capture
+        // counters before the next BindLights, which starts a fresh per-dispatch measurement.
+        internal void BindLights(CommandBuffer cmd, RayTracingShader shader)
+        {
+            if (!m_Built) throw new InvalidOperationException("BindLights requires a built RT scene");
+            if (cmd == null || !shader) throw new ArgumentNullException(cmd == null ? nameof(cmd) : nameof(shader));
+            if (m_Lights == null) m_Lights = new RayTracingSceneLights(m_Scene);
+            m_Lights.Bind(cmd, shader);
+        }
         internal int instanceCount => m_Instances?.count ?? 0;
         internal int disabledSubmeshes => m_Instances?.disabledSubmeshes ?? 0;
         bool m_Built;
@@ -158,6 +180,8 @@ namespace UnityEngine.Rendering.Universal
             m_Resource = null;
             m_Built = false;
             m_Instances = null;
+            m_Lights?.Dispose();
+            m_Lights = null;
             m_Scene = default;
             m_AllocationFailed = false;
             resource?.Dispose();

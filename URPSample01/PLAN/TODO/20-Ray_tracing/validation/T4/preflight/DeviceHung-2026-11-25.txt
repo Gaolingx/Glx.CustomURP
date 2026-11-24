@@ -1,0 +1,39 @@
+Pre-fix light sweep, 2026-11-25 03:43-03:51 (Win64 Development Player, Direct3D 12)
+
+Build: E:/tmp/T4-npna2b39/Build/T4Sweep.exe (03:43)
+Harness: T4Sweep.cs, one dispatch per run, -lights N -shadows 1 -kind dir
+Light table: GlxHitLights.hlsl at 03:03. Shadow visibility was traced inside the
+variable-trip selected-light loop of GlxShadeLights.
+
+Result per process:
+  s1, s2, s3              selected=1,1,2  rays=0,1,2   completed
+  s4, s8, s16, s32, s48, s56, s60, s61, s62, s63, s64
+                          all stopped at "Device removed reason (887a0006)"
+                          (DXGI_ERROR_DEVICE_HUNG), selected=0 written by the fallback report
+
+Representative log (s63.log):
+  d3d12 : CreateCommittedResource 'TexturesD3D12::CreateTextureInternal() Texture'
+          (115 x 17) format 115 failed (887a0005).
+  Device removed reason (887a0006).
+  ...
+  Crash!!!
+  A crash has been intercepted by the crash handler.
+
+Windows System log: 34 x Event ID 4101 "Display driver nvlddmkm stopped responding
+and has successfully recovered", 03:46:02-03:51:53. No local or non-local memory
+exhaustion in the log; the device was not out of memory.
+
+Containment (03:52 edit, package commit in W5/T4):
+  GlxShadeLights now calls GlxVisibility from exactly two fixed sites (Smax=2),
+  never from a variable-trip loop. The selected count is clamped to the uploaded
+  table capacity (64) and every raygen keeps #pragma max_recursion_depth 2.
+
+Post-fix sweep (T4SweepFix.exe, 04:24, same harness):
+  N=4   selected=4 rejected=0  rays=2 untraced=2 flags=2  t=4  no device removal
+  N=8   selected=4 rejected=4  rays=2 untraced=2 flags=2  t=4  no device removal
+  N=64  selected=4 rejected=60 rays=2 untraced=2 flags=2  t=4  no device removal
+  See fix4.json / fix8.json / fix64.json in this directory.
+  Windows System log: 0 new Event ID 4101 during the post-fix runs.
+
+The full T4 Player suite later repeated the 66-registered/64-uploaded case
+(selected=4, rays=2, untraced=2) inside validation/T4/evidence without a TDR.

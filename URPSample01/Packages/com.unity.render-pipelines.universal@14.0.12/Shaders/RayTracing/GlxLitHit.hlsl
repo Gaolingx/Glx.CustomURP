@@ -7,6 +7,14 @@
 #include "UnityRayTracingMeshUtils.cginc"
 #include "GlxBasicPayload.hlsl"
 
+struct GlxHitSurface { BRDFData brdf; float3 albedo; };
+float3 GlxLightBrdf(GlxHitSurface s, float3 n, float3 l, uint mode)
+{
+    if (mode == GlxProbeMode) return s.albedo;
+    return DirectBRDF(s.brdf, n, l, -WorldRayDirection());
+}
+#include "GlxHitLights.hlsl"
+
 float3 GlxWeights(float2 bary)
 {
     return float3(1.0 - bary.x - bary.y, bary);
@@ -106,6 +114,18 @@ void GlxLitClosestHit(inout GlxBasicPayload payload : SV_RayPayload,
         return; // Preserve the caller's channel and traversal count.
     }
 
+    if (GlxUsesLightTable(payload.mode))
+    {
+        payload.flags = GlxHit;
+        payload.hitT = RayTCurrent();
+        payload.radiance = emission;
+        GlxHitSurface surface;
+        surface.albedo = base.rgb;
+        half alpha = base.a;
+        InitializeBRDFData(base.rgb, metallic, 0, smoothness, alpha, surface.brdf);
+        GlxShadeLights(payload, dot(n, WorldRayDirection()) > 0 ? -n : n, surface);
+        return;
+    }
     float3 toLight = normalize(float3(f16tof32(payload.flags & 0xffffu), f16tof32(payload.flags >> 16), payload.hitT));
     float3 lightRgb = payload.radiance;
     bool traceShadow = payload.mode == GlxPrimaryWithShadow;

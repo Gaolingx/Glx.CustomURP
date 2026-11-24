@@ -1,0 +1,24 @@
+{
+  "incident": {
+    "date": "2026-11-25",
+    "window": "03:46:02-03:51:53",
+    "tdrEvents": 34,
+    "deviceRemoval": "DXGI_ERROR_DEVICE_HUNG 0x887A0006",
+    "preFixThreshold": "selected >= 4 shadow-enabled lights",
+    "rootCause": "nested TraceRay inside the variable-trip selected-light loop in the closest-hit shader exceeded the DXR stack",
+    "memoryExhaustion": false
+  },
+  "containment": {
+    "shadowTraceSites": 2,
+    "smax": 2,
+    "lightLoopCap": 64,
+    "maxRecursionDepth": 2
+  },
+  "postFixSweep": {
+    "4": {"selected": 4, "rejected": 0, "rays": 2, "untraced": 2, "deviceRemoved": false},
+    "8": {"selected": 4, "rejected": 4, "rays": 2, "untraced": 2, "deviceRemoved": false},
+    "64": {"selected": 4, "rejected": 60, "rays": 2, "untraced": 2, "deviceRemoved": false}
+  },
+  "postFixTdrEvents": 0,
+  "fullSuiteRepeat": "../evidence/Player-D3D12.json"
+}

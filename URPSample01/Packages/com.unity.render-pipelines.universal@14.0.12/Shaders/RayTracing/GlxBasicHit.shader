@@ -33,6 +33,10 @@ Shader "Hidden/Universal Render Pipeline/GlxBasicHit"
                 float4 _GlxEmission;
             };
 
+            struct GlxHitSurface { float3 albedo; };
+            float3 GlxLightBrdf(GlxHitSurface s, float3 n, float3 l, uint mode) { return s.albedo; }
+            #include "GlxHitLights.hlsl"
+
             float3 GlxGeometricNormalWS()
             {
                 uint3 tri = UnityRayTracingFetchTriangleIndices(PrimitiveIndex());
@@ -51,6 +55,16 @@ Shader "Hidden/Universal Render Pipeline/GlxBasicHit"
                 if (payload.mode == GlxShadowMode)
                 {
                     payload.flags = GlxHit;
+                    return;
+                }
+                if (GlxUsesLightTable(payload.mode))
+                {
+                    payload.flags = GlxHit;
+                    payload.hitT = RayTCurrent();
+                    payload.radiance = _GlxEmission.rgb;
+                    GlxHitSurface surface;
+                    surface.albedo = _GlxAlbedo.rgb;
+                    GlxShadeLights(payload, GlxGeometricNormalWS(), surface);
                     return;
                 }
                 float3 toLight = normalize(float3(f16tof32(payload.flags & 0xffffu), f16tof32(payload.flags >> 16), payload.hitT));

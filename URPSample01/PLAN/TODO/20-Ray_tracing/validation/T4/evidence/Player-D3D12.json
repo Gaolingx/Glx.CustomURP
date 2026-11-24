@@ -1,0 +1,890 @@
+{
+  "guid": "42159c30fb3a453fbb35f445b83e4746",
+  "api": "Direct3D12",
+  "adapter": "NVIDIA GeForce RTX 5060 Ti",
+  "driver": "Direct3D 12 [level 12.1]",
+  "denial": "",
+  "error": "",
+  "development": true,
+  "supportsRayTracing": true,
+  "passed": true,
+  "released": true,
+  "buildCount": 1,
+  "dispatches": 17,
+  "buffersAllocated": 2,
+  "buffersReleased": 2,
+  "liveAfterRelease": 0,
+  "batches": [
+    {
+      "name": "sun blocked",
+      "frame": 2,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 6,
+      "actualFlags": 6,
+      "actualMode": 0,
+      "expected": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 1,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 1,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "sun shadows off",
+      "frame": 3,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.7639437317848206,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.7639436721801758,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 2,
+      "actualFlags": 2,
+      "actualMode": 0,
+      "expected": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "sun disabled",
+      "frame": 4,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 2,
+      "actualFlags": 2,
+      "actualMode": 0,
+      "expected": {
+        "registered": 0,
+        "uploaded": 0,
+        "uploadOverflow": 0,
+        "selected": 0,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 0,
+        "uploaded": 0,
+        "uploadOverflow": 0,
+        "selected": 0,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "point before blocker",
+      "frame": 5,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 3.0542829036712646,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 3.0542831420898438,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 2,
+      "actualFlags": 2,
+      "actualMode": 0,
+      "expected": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 1,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 1,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "point beyond blocker",
+      "frame": 6,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 6,
+      "actualFlags": 6,
+      "actualMode": 0,
+      "expected": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 1,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 1,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "moved point unshadowed",
+      "frame": 7,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.16785871982574463,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.16785873472690582,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 2,
+      "actualFlags": 2,
+      "actualMode": 0,
+      "expected": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "point outside range",
+      "frame": 8,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 2,
+      "actualFlags": 2,
+      "actualMode": 0,
+      "expected": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 0,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 0,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "spot inside inner cone",
+      "frame": 9,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.6316558718681335
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.6316558718681335
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 2,
+      "actualFlags": 2,
+      "actualMode": 0,
+      "expected": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "spot penumbra",
+      "frame": 10,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.23673321306705475
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.2367333024740219
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 2,
+      "actualFlags": 2,
+      "actualMode": 0,
+      "expected": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "spot outside cone",
+      "frame": 11,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 2,
+      "actualFlags": 2,
+      "actualMode": 0,
+      "expected": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 0,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 0,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "spot restored",
+      "frame": 12,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.6316558718681335
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.6316558718681335
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 2,
+      "actualFlags": 2,
+      "actualMode": 0,
+      "expected": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 1,
+        "uploaded": 1,
+        "uploadOverflow": 0,
+        "selected": 1,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "active spot removed",
+      "frame": 13,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 2,
+      "actualFlags": 2,
+      "actualMode": 0,
+      "expected": {
+        "registered": 0,
+        "uploaded": 0,
+        "uploadOverflow": 0,
+        "selected": 0,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 0,
+        "uploaded": 0,
+        "uploadOverflow": 0,
+        "selected": 0,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "64/4/2 stable winners",
+      "frame": 14,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 2.2918310165405273,
+        "y": 6.316558837890625,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 2.2918310165405273,
+        "y": 6.316558837890625,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 6,
+      "actualFlags": 6,
+      "actualMode": 0,
+      "expected": {
+        "registered": 66,
+        "uploaded": 64,
+        "uploadOverflow": 2,
+        "selected": 4,
+        "hitOverflow": 59,
+        "shadowRays": 2,
+        "shadowOverflow": 2
+      },
+      "actual": {
+        "registered": 66,
+        "uploaded": 64,
+        "uploadOverflow": 2,
+        "selected": 4,
+        "hitOverflow": 59,
+        "shadowRays": 2,
+        "shadowOverflow": 2
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "stable winners repeated",
+      "frame": 15,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 2.2918310165405273,
+        "y": 6.316558837890625,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 2.2918310165405273,
+        "y": 6.316558837890625,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 6,
+      "actualFlags": 6,
+      "actualMode": 0,
+      "expected": {
+        "registered": 66,
+        "uploaded": 64,
+        "uploadOverflow": 2,
+        "selected": 4,
+        "hitOverflow": 59,
+        "shadowRays": 2,
+        "shadowOverflow": 2
+      },
+      "actual": {
+        "registered": 66,
+        "uploaded": 64,
+        "uploadOverflow": 2,
+        "selected": 4,
+        "hitOverflow": 59,
+        "shadowRays": 2,
+        "shadowOverflow": 2
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "shadow budget skips unshadowed winner",
+      "frame": 16,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 1.2732393741607666,
+        "y": 6.316558837890625,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 1.2732394933700562,
+        "y": 6.316558837890625,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 6,
+      "actualFlags": 6,
+      "actualMode": 0,
+      "expected": {
+        "registered": 66,
+        "uploaded": 64,
+        "uploadOverflow": 2,
+        "selected": 4,
+        "hitOverflow": 59,
+        "shadowRays": 2,
+        "shadowOverflow": 1
+      },
+      "actual": {
+        "registered": 66,
+        "uploaded": 64,
+        "uploadOverflow": 2,
+        "selected": 4,
+        "hitOverflow": 59,
+        "shadowRays": 2,
+        "shadowOverflow": 1
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "tie broken by new sibling key",
+      "frame": 17,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 1.3750985860824585,
+        "y": 6.316558837890625,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 1.375098705291748,
+        "y": 6.316558837890625,
+        "z": 0.0
+      },
+      "expectedT": 4.0,
+      "actualT": 4.0,
+      "expectedFlags": 6,
+      "actualFlags": 6,
+      "actualMode": 0,
+      "expected": {
+        "registered": 66,
+        "uploaded": 64,
+        "uploadOverflow": 2,
+        "selected": 4,
+        "hitOverflow": 59,
+        "shadowRays": 2,
+        "shadowOverflow": 2
+      },
+      "actual": {
+        "registered": 66,
+        "uploaded": 64,
+        "uploadOverflow": 2,
+        "selected": 4,
+        "hitOverflow": 59,
+        "shadowRays": 2,
+        "shadowOverflow": 2
+      },
+      "finite": true,
+      "passed": true
+    },
+    {
+      "name": "miss does not select lights",
+      "frame": 18,
+      "buildCount": 1,
+      "instances": 2,
+      "origin": {
+        "x": 8.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "expectedT": -1.0,
+      "actualT": -1.0,
+      "expectedFlags": 1,
+      "actualFlags": 1,
+      "actualMode": 0,
+      "expected": {
+        "registered": 66,
+        "uploaded": 64,
+        "uploadOverflow": 2,
+        "selected": 0,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "actual": {
+        "registered": 66,
+        "uploaded": 64,
+        "uploadOverflow": 2,
+        "selected": 0,
+        "hitOverflow": 0,
+        "shadowRays": 0,
+        "shadowOverflow": 0
+      },
+      "finite": true,
+      "passed": true
+    }
+  ],
+  "exitCode": 0,
+  "expectedApi": "Direct3D12",
+  "validationErrors": [],
+  "inputsSha256": "7076a7abd02c8fa2d571b75cab5ce410e1237bb3307f4f1fa2c59999356d4bf4"
+}
