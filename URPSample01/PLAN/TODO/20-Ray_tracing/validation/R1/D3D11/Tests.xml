@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<test-run result="Passed" total="6" passed="6" failed="0" skipped="0">
+  <test-case fullname="UnityEditor.Rendering.Universal.Tests.SsrRequestTests.Cold" result="Passed" duration="0.131828" />
+  <test-case fullname="UnityEditor.Rendering.Universal.Tests.SsrRequestTests.GgxSequence" result="Passed" duration="0.130941" />
+  <test-case fullname="UnityEditor.Rendering.Universal.Tests.SsrRequestTests.Mixed" result="Passed" duration="0.103327" />
+  <test-case fullname="UnityEditor.Rendering.Universal.Tests.SsrRequestTests.NoCandidates" result="Passed" duration="0.018336" />
+  <test-case fullname="UnityEditor.Rendering.Universal.Tests.SsrRequestTests.Rotated" result="Passed" duration="0.018436" />
+  <test-case fullname="UnityEditor.Rendering.Universal.Tests.SsrRequestTests.ZeroBudgetDoesNotRecordOrAllocate" result="Passed" duration="0.002080" />
+</test-run>

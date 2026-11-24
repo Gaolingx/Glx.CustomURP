@@ -1,6 +1,6 @@
 # 不透明 SSR × DXR：恢复离屏几何的单次反射
 
-**状态：计划，未实现。** 只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；命中着色见 [HitShading](../research/HitShading.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
+**状态：R1 半分辨率分类与预算已在 [D3D11](../validation/R1/D3D11/Summary.json) 和 [D3D12](../validation/R1/D3D12/Summary.json) 计算夹具验证；真实离屏追踪、合成与材质着色仍待实施。** 只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；命中着色见 [HitShading](../research/HitShading.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
 
 ## 输入与分支
 

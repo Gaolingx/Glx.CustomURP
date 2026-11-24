@@ -1,0 +1,24 @@
+{
+  "base": "f916303c876553a0d51764a54dc95d79382f996e",
+  "device": "Direct3D 11.0 [level 11.1]",
+  "gpu": "NVIDIA GeForce RTX 5060 Ti (ID=0x2d04)",
+  "scope": "Isolated EditMode compute; injected original hits, not a camera replay or DXR dispatch.",
+  "inputs": {
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs": "c56657f7f994f7a36ebd23c029a95bd7fe29b4c927bc676e9f67b2b0a3c04f0a",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute": "476af45bcf8ba86c7e5a9a77ba7c4ca114030ba6e5d9cd30ad35d14ff8b73ebd",
+    "Assets/Tests/RayTracing/SSR.meta": "b7d48ba516d283c6936f76462387f65cda9b12f837f023c4e49025c3037d1096",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrRequestQueue.cs": "4243fe8fb0ab382cb60e2bed31f4bb36ba7f70df555d3b25820f0d0eaa7cc9af",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrRequestQueue.cs.meta": "b5c66d61e9cbedbc5a9e7b09188a34119c7d9015b8eb90e9c39f7ea270fde1e0",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/SsrRequestQueue.hlsl": "4a681f9bfa3dac77394520e147b1f4132ed35ea3bb79cd212e27a760fab5c905",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/SsrRequestQueue.hlsl.meta": "ff4211932c39a10320b6003d11ef0239727c4f7399aa072540c26f75e758dfd6",
+    "Assets/Tests/RayTracing/SSR/SsrRequestTests.cs": "66a829cee8466b00b1c5f5c00bc09f275b6d7f73b38b346378ea9d77b29dbcad",
+    "Assets/Tests/RayTracing/SSR/SsrRequestTests.cs.meta": "acf56d3f185cd47dd822f6a1a65fca48fcc822b9f4ef94872390498e964ee54b"
+  },
+  "observations": [
+    "R1 counts: 135,135,11,124,9,9,0,135,0,0,0; slots=2,3,4,5,6,7,19,20,43,44,45",
+    "R1 counts: 135,126,11,115,9,9,9,0,108,9,9; slots=45,46,47,48,49,59,60,61,101,118,135",
+    "R1 counts: 135,126,11,115,9,9,9,0,108,9,9; slots=3,4,5,6,7,20,21,22,43,44,45",
+    "R1 counts: 0,0,0,0,153,0,0,0,0,0,0; slots=",
+    "R1 counts: 135,126,11,115,9,9,9,0,108,9,9; slots=45,46,47,48,49,59,60,61,101,118,135"
+  ]
+}

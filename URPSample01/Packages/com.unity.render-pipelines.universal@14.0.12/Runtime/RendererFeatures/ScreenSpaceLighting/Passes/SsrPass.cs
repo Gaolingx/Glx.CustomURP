@@ -29,6 +29,11 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingHistory m_History;
         ScreenSpaceLightingResources m_Resources;
         ScreenSpaceLightingSettings m_Settings;
+        // Internal injection only. R1 does not opt any renderer into unfinished RT.
+        internal SsrRequestQueue requestQueue;
+        bool WantsRequests(ref CameraData camera, ScreenSpaceReflection settings) =>
+            requestQueue != null && requestQueue.budget > 0 && !settings.fullResolution.value &&
+            !camera.xr.enabled && camera.renderType == CameraRenderType.Base && camera.cameraType == CameraType.Game;
         RTHandle m_OutputTexture;
         bool m_ProducedOutput;
         bool m_LoggedMissingResources;
@@ -234,10 +239,31 @@ namespace UnityEngine.Rendering.Universal
             // Both algorithms sample the previous frame color pyramid. Without it (first frame,
             // camera cut, renderer creation) the only correct output is none, which keeps the
             // reflection probe / sky the material already computed.
-            if (m_History.readColorPyramid == null)
-                return;
-
             ref var cameraData = ref renderingData.cameraData;
+            if (m_History.readColorPyramid == null)
+            {
+                if (WantsRequests(ref cameraData, settings))
+                {
+                    var depth = ScreenSpaceRenderUtils.GetCameraDepthTexture(cameraData.renderer);
+                    var normals = ScreenSpaceLightingRenderUtils.GetNormalTexture(cameraData.renderer);
+                    if (depth != null && normals != null)
+                    {
+                        var cs = m_Resources.ssrCompute;
+                        var buffer = renderingData.commandBuffer;
+                        int w = Mathf.Max(1,cameraData.cameraTargetDescriptor.width), h = Mathf.Max(1,cameraData.cameraTargetDescriptor.height);
+                        int tw = Mathf.Max(1,w >> 1), th = Mathf.Max(1,h >> 1);
+                        SetKeyword(cs, ScreenSpaceShaderIDs.XrArrayKeyword, false);
+                        SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, ScreenSpaceLightingSsgiPass.UseOctEncodedNormals(cameraData.renderer));
+                        SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, settings.usedAlgorithm.value != ScreenSpaceReflectionAlgorithm.PBRAccumulation);
+                        SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, true);
+                        SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
+                        PushShaderVariables(buffer,cs,CreateShaderVariables(ref cameraData,settings,w,h,tw,th,false));
+                        RecordOriginals(buffer,cs,depth,normals,null,null,tw,th);
+                    }
+                }
+                return;
+            }
+
             var descriptor = cameraData.cameraTargetDescriptor;
             int viewCount = ScreenSpaceLightingXr.GetViewCount(cameraData);
             TextureDimension dimension = ScreenSpaceLightingXr.GetResourceDimension(cameraData);
@@ -310,6 +336,22 @@ namespace UnityEngine.Rendering.Universal
                     : string.Empty;
             }
 #endif
+        }
+
+        void RecordOriginals(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
+            RTHandle motion, RTHandle hit, int w, int h)
+        {
+            int kernel = cs.FindKernel(hit == null ? "R1Cold" : "R1Original");
+            BindSsrBlueNoise(cmd, cs, kernel);
+            cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrDepthTexture,depth);
+            cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrNormalTexture,normals);
+            if (hit != null)
+            {
+                cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,hit);
+                cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrMotionTexture,motion);
+                cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrColorPyramid,m_History.readColorPyramid);
+            }
+            requestQueue.Record(cmd,cs,kernel,w,h,Time.frameCount);
         }
 
         void Dispatch(
@@ -399,6 +441,10 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             s_EditorTraceDispatchCount++;
 #endif
+
+            if (WantsRequests(ref cameraData, settings))
+                RecordOriginals(cmd, compute, depthTexture, normalTexture, motionTexture,
+                    pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint, traceWidth, traceHeight);
 
             var reprojectKernel = compute.FindKernel("ScreenSpaceReflectionsReprojection");
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,

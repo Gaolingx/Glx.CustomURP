@@ -1,0 +1,15 @@
+{
+  "scope": "T12 Editor, request queue not attached, not Player HDR evidence",
+  "api": "Direct3D11",
+  "sourceBaselineReport": "B0/Win64-D3D11/regression/run-01/T12-1/T12Verification.json",
+  "observedReportSHA256": "cda55dc5cf1e74d4ceee23a285923513a109e8b42d84d049507f5b43bfbd3a87",
+  "passedByMode": {
+    "Forward": 34,
+    "ForwardPlus": 34,
+    "Deferred": 35
+  },
+  "pairedSampleHashes": 85,
+  "identicalSampleHashes": 85,
+  "mismatches": [],
+  "allSettingsRestored": true
+}

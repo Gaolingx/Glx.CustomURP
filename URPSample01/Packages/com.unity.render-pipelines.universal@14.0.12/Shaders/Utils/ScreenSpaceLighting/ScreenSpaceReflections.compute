@@ -21,6 +21,11 @@
 #pragma kernel ScreenSpaceReflectionsTracing                  SSR_TRACE
 #pragma kernel ScreenSpaceReflectionsReprojection             SSR_REPROJECT
 #pragma kernel DebugSsrParams
+#pragma kernel R1Original SSR_R1_HISTORY
+#pragma kernel R1Cold SSR_R1_COLD
+#pragma kernel R1Tiles
+#pragma kernel R1Offsets
+#pragma kernel R1Scatter
 
 #pragma multi_compile _ SSR_APPROX
 #pragma multi_compile _ SSR_HALF_RES
@@ -54,7 +59,7 @@ SSGI_TEXTURE2D_FLOAT4(_SsrColorPyramid);
 // Trace output: ndc of the hit point, or (99, 0) for a miss.
 #if defined(SSR_TRACE)
 SSGI_RW_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
-#elif defined(SSR_REPROJECT)
+#elif defined(SSR_REPROJECT) || defined(SSR_R1_HISTORY)
 SSGI_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
 #endif
 // Approximation output: rgb = radiance, a = blend weight.
@@ -183,7 +188,7 @@ bool SsrSampleGGX_VNDF(float roughness, float3x3 localToWorld, float3 V, float2 
 
 // Reconstructs the previous frame uv and samples the color pyramid with the roughness mip. Returns
 // the un-premultiplied radiance and the fade weight; an invalid sample returns opacity 0.
-float3 SsrSamplePreviousColor(float2 hitPositionNDC, float perceptualRoughness, out float opacity)
+float3 SsrReadOriginalColor(float2 hitPositionNDC, float perceptualRoughness, out float opacity, out float edge, out bool accepted)
 {
     uint2 hitPixel = (uint2)(saturate(hitPositionNDC) * _SsrScreenSize.xy);
     hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
@@ -196,12 +201,14 @@ float3 SsrSamplePreviousColor(float2 hitPositionNDC, float perceptualRoughness, 
     float2 diffLimitMipAdjusted = diffLimit * pow(2.0, 1.5 + ceil(abs(mipLevel)));
     float2 limit = _SsrColorPyramidScaleAndLimitPrev.xy - diffLimitMipAdjusted;
 
+    accepted = false;
+    edge = 0.0;
     opacity = 0.0;
     if (any(prevFrameNDC < 0.0) || any(prevFrameNDC > limit))
         return 0.0;
 
-    opacity = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
-            * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
+    edge = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength);
+    opacity = edge * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 
     float3 color = SSGI_SAMPLE_LOD(_SsrColorPyramid, s_ssgi_linear_clamp_sampler, prevPyramidUv, mipLevel).rgb;
     bool colorValid = IsFinite(color.r) && IsFinite(color.g) && IsFinite(color.b) && all(color >= 0.0);
@@ -211,8 +218,32 @@ float3 SsrSamplePreviousColor(float2 hitPositionNDC, float perceptualRoughness, 
         return 0.0;
     }
 
+    accepted = true;
     return color;
 }
+
+float3 SsrSamplePreviousColor(float2 uv, float roughness, out float opacity)
+{
+    float edge; bool accepted;
+    return SsrReadOriginalColor(uv, roughness, opacity, edge, accepted);
+}
+
+bool SsrOriginalDirection(uint2 traceCoord, float3 normalWS, float3 viewWS, float perceptualRoughness, out float3 reflectDir)
+{
+#if defined(SSR_APPROX)
+    reflectDir = reflect(-viewWS, normalWS);
+    return true;
+#else
+    float roughness = clamp(PerceptualRoughnessToRoughness(perceptualRoughness), MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
+    float2 Xi = float2(SsgiGetSequenceSample(traceCoord, _SsrFrameIndex, 0), SsgiGetSequenceSample(traceCoord, _SsrFrameIndex, 1));
+    Xi.x = lerp(Xi.x, 0.0, _SsrPBRBias);
+    float weight;
+    bool valid = SsrSampleGGX_VNDF(roughness, GetLocalFrame(normalWS), viewWS, Xi, reflectDir, weight);
+    return valid && dot(normalWS, reflectDir) >= 0.001;
+#endif
+}
+
+#include "SsrRequestQueue.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Trace
@@ -225,6 +256,7 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
     SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 traceCoord = dispatchThreadId.xy;
+    if (any(traceCoord >= (uint2)_SsrTraceSize.xy)) return;
     uint2 inputCoord = SsrGetFullResCoord(traceCoord);
     float2 hitUv = float2(SSR_MISS_SENTINEL, 0.0);
 
@@ -250,21 +282,8 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
         killRay = killRay || (perceptualRoughness > _SsrRoughnessFadeEnd);
 
         float3 reflectDir;
-#if defined(SSR_APPROX)
-        reflectDir = reflect(-viewWS, normalWS);
-#else
-        float roughness = clamp(PerceptualRoughnessToRoughness(perceptualRoughness), MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
-        float2 Xi = float2(
-            SsgiGetSequenceSample(traceCoord, _SsrFrameIndex, 0),
-            SsgiGetSequenceSample(traceCoord, _SsrFrameIndex, 1));
-        // Rothko bias: with a high bias the samples concentrate on the mirror direction.
-        Xi.x = lerp(Xi.x, 0.0, _SsrPBRBias);
-
-        float3x3 localToWorld = GetLocalFrame(normalWS);
-        float sampleWeight;
-        bool validSample = SsrSampleGGX_VNDF(roughness, localToWorld, viewWS, Xi, reflectDir, sampleWeight);
-        killRay = killRay || !validSample || (dot(normalWS, reflectDir) < 0.001);
-#endif
+        bool validDirection = SsrOriginalDirection(traceCoord, normalWS, viewWS, perceptualRoughness, reflectDir);
+        killRay = killRay || !validDirection;
 
         float3 rayPos;
         bool hit = SslRayMarch(
@@ -381,6 +400,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 traceCoord = dispatchThreadId.xy;
+    if (any(traceCoord >= (uint2)_SsrTraceSize.xy)) return;
     uint2 inputCoord = SsrGetFullResCoord(traceCoord);
     float4 result = float4(0.0, 0.0, 0.0, 0.0);
 

@@ -1,6 +1,6 @@
 # 不透明 SSR × DXR：从“屏幕未解决”到“世界空间补追”
 
-**状态：计划，未实现、未测。** 只为高端合格平台的 opaque SSR 增加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。v1 不建 Surface Cache，命中着色分级见 §5。平台与 TLAS 见 [TLAS](TLAS.md)；HDRP 对照见 [HDRP14](HDRP14.md)；总验收见 [HANDOFF](../HANDOFF.md)。`U/` 表示本项目内嵌包 `URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/`；行号对该快照有效。
+**状态：R1 已实现，限双 API GPU 分类夹具与 D3D11 Editor 关闭路径回归；R2 及后续 DXR 补追未实现。** 只为高端合格平台的 opaque SSR 增加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。v1 不建 Surface Cache，命中着色分级见 §5。平台与 TLAS 见 [TLAS](TLAS.md)；HDRP 对照见 [HDRP14](HDRP14.md)；总验收见 [HANDOFF](../HANDOFF.md)。`U/` 表示本项目内嵌包 `URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/`；行号对该快照有效。
 
 ## 0. 现有 SSR 合同（已核实）
 
