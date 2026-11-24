@@ -1,6 +1,6 @@
 # RT scene / TLAS：构建、维护与共享服务
 
-**状态：T1 门控/资源生命周期已在 Windows Editor 的 [D3D11](../validation/T1/Win64-D3D11/run-04/Tests.xml) 和 [D3D12](../validation/T1/Win64-D3D12/run-04/Tests.xml) 验证；[T2 的 Win64 D3D12 测试 Player](../validation/T2/verified/Player-D3D12.json)已验证显式登记、条件 Build 和解析求交；[T3 Win64 Player](../validation/T3/Summary.json) 已验证包内基础材质的实际派发、直射、自发光与次级阴影；全材质、相机集成和主机不在此证据范围。** 生命周期由 renderer/pipeline 管理，GI 和反射只借用已构建的场景快照；后端失败不能使基础 URP 失效。本文补充 2022.3 可用接口、构建/失效策略与材质命中合同。
+**状态：T1 门控/资源生命周期已在 Windows Editor 的 [D3D11](../validation/T1/Win64-D3D11/run-04/Tests.xml) 和 [D3D12](../validation/T1/Win64-D3D12/run-04/Tests.xml) 验证；[T2 的 Win64 D3D12 测试 Player](../validation/T2/verified/Player-D3D12.json)已验证显式登记、条件 Build 和解析求交；[T3 Win64 Player](../validation/T3/Summary.json) 已验证包内基础材质的实际派发、直射、自发光与次级阴影；[T3b](../validation/T3b/Summary.json) 另以生产 Lit 命中 pass 验证受支持的贴图/切线法线及 cutout AHS；相机级 RT 消费者和主机未验证。** 生命周期由 renderer/pipeline 管理，GI 和反射只借用已构建的场景快照；后端失败不能使基础 URP 失效。本文补充 2022.3 可用接口、构建/失效策略与材质命中合同。
 
 ## 2022.3 可用接口（已核实）
 

@@ -108,6 +108,8 @@ T,G,R 全绿 ── I1 ── I2
 
 **W3 / T3 通过（Windows 基础命中着色）**：[同一 Player 的 D3D12 输出](validation/T3/Player-D3D12.json) 18/18，含自发光、白板直射、阴影开关/移除遮挡、有效黑色、miss 与无效区间。最大线性 RGB 相对误差 0.02345%（B0 ≤3%），距离误差 0 m，非有限分量 0。2 次 Build、3 次直接派发、Recorder 实测 3 个 GPU marker；[D3D11](validation/T3/Player-D3D11.json) 为 0 RTAS、0 射线缓冲和 0 派发。无剥离回调，默认相机路径未接入；下一步 W4/T3b 验证 Lit 贴图、法线和 cutout，不将本轮结果外推到完整 Lit 或主机。复跑见 [run.py](validation/T3/run.py)，记录见 [Summary.json](validation/T3/Summary.json)。
 
+**W4 / T3b 通过（Win64、已登记的 metallic Lit 子集）**：[D3D12 Player](validation/T3b/Player-D3D12.json) 63/63。28 条材质诊断和 35 条生产主/阴影向量覆盖变换后的 UV、压缩 emission、metallic/smoothness、镜像非均匀缩放下的切线法线和 cutout。光栅对照经真实 URP 相机绘制；采样处非方向通道与 DXR 相同，法线夹角 <0.00003°。实心处命中 2 m，孔洞穿至 4 m 或 miss；不透明 AHS 实测 0，cutout 实测 1。payload 24 B；[双 API 构建](validation/T3b/Variants.json) 保留 16 个 Lit 命中变体，[仅 D3D11 构建](validation/T3b/D3D11Only.json) 为 0。范围、证据和复跑见 [T3b 摘要](validation/T3b/Summary.json)。下一阶段为 W5/T4 和 R2；本轮未接入 GI/SSR。
+
 **关键路径**：`B0 → T1 → T2 → T3 → T3b → T4 → G2 → G5/G3 → I1 → I2`。这是最长链，WS4 的 G2 是整条链的汇聚点。
 
 ## 5. 停止条件（按计划原文）

@@ -38,6 +38,12 @@ namespace UnityEngine.Rendering.Universal
             if (!mat || mat.renderQueue > (int)RenderQueue.GeometryLast || mat.FindPass("GlxDXR") < 0 ||
                 !mat.GetShaderPassEnabled("GlxDXR") || (mat.HasProperty("_Surface") && mat.GetFloat("_Surface") != 0))
                 return RayTracingSubMeshFlags.Disabled;
+            if (mat.shader.name == "Universal Render Pipeline/Lit" &&
+                (mat.GetFloat("_WorkflowMode") != 1 || mat.IsKeywordEnabled("_SPECULAR_SETUP") ||
+                 mat.IsKeywordEnabled("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A") || mat.IsKeywordEnabled("_PARALLAXMAP") ||
+                 mat.IsKeywordEnabled("_DETAIL_MULX2") || mat.IsKeywordEnabled("_DETAIL_SCALED") ||
+                 mat.IsKeywordEnabled("_SPECULARHIGHLIGHTS_OFF") || mat.IsKeywordEnabled("_RECEIVE_SHADOWS_OFF")))
+                return RayTracingSubMeshFlags.Disabled;
             return mat.IsKeywordEnabled("_ALPHATEST_ON") ? RayTracingSubMeshFlags.Enabled :
                 RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.ClosestHitOnly;
         }

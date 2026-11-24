@@ -1021,6 +1021,14 @@ namespace UnityEditor.Rendering.Universal
 
         public bool CanRemoveVariant([DisallowNull] Shader shader, ShaderSnippetData passData, ShaderCompilerData variantData)
         {
+            if (passData.passName == "GlxDXR" && shader.name == "Universal Render Pipeline/Lit")
+            {
+                var target = EditorUserBuildSettings.activeBuildTarget;
+                if (target != BuildTarget.StandaloneWindows64 ||
+                    System.Array.IndexOf(PlayerSettings.GetGraphicsAPIs(target), GraphicsDeviceType.Direct3D12) < 0)
+                    return true;
+            }
+
             IShaderScriptableStrippingData strippingData = new StrippingData()
             {
                 volumeFeatures = ShaderBuildPreprocessor.volumeFeatures,

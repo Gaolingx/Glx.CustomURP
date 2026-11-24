@@ -1,0 +1,22 @@
+{
+  "base": "9a950bda81082c2339fe70f3333dc398a8153823",
+  "runnerSha256": "5aa986a2e715a818cdb97aa804f57ec65360dd35e4cbd6a0478bd07d4a89ee56",
+  "inputSha256": {
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Lit.shader": "10cad191cb8f3f72fa7e172689c0e7c67af2df366ce3de5b4d57c7ca689d180b",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Editor/ShaderScriptableStripper.cs": "58b52f2ec178396eb8a4e3b4454313c7625554e61e324e6457cd7bd97a59bfa5",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneInstances.cs": "442e275c86a2b98dd51ceca89fb60f235caa17ea52081dd5b82944a2b81165b6",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicHit.raytrace": "289d285b383bacd4b74576128ee8a7764c7a2c55313ff2f3661ef21b9b97d275",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicHit.raytrace.meta": "6da314b1f89a22d05d137e85555e100f6f8967cf521dc786eca51c5db4d63415",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicHit.shader": "b08308b5a01a68b94ab0ce673aa71626c3e5f427bc930a89422d28e1ce10490f",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicHit.shader.meta": "d1ef4667747989b5766bc54778c2402207b2ce18cf78439a0143d1d247280cdb",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicPayload.hlsl": "a64aab68a01b0f032d1f3ec9b5c45df06baed1c748fd07f25c6c34e194456cac",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxBasicPayload.hlsl.meta": "2ad9d29d5826bf2a28079152ff90ecfe7ef065c7c26305f3380a019f81f104ab",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxLitHit.hlsl": "94f8eccaa7cc180788fc610607495bbb32d4cb9fb8fc315d34644d164ed05fe8",
+    "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxLitHit.hlsl.meta": "02379a51aa44b7283fb5927862e9e6be4f4bba43757fa4681f2f47099e9db377",
+    "Assets/Fixture/T3bPlayer.cs": "c7e344bc2eae2202d99ef240a1fe17d6d89fdc904c7f652b1de4ed1f2b3a1162",
+    "Assets/Fixture/T3bRaster.cs": "c5c9722f7522a93f42fe7f8fdda945721677ca4c41fa2cea43afecdb3cb6146c",
+    "Assets/T3bRaster.shader": "c5af6609a53da5834989b8cff0b9d1d85abdcd7cb230fd57fa334e89c5e895ee",
+    "Assets/T3bProbe.raytrace": "8afaf6cc3f21acc7a4dc74c2b3f6a0ab48cb5828219287f32fd80383d467790b",
+    "Assets/Editor/T3bVariantAudit.cs": "39f36dbd2ca60c674f2819b2f12e2150d8d9acee9ff2fd86294393f372a51692"
+  }
+}

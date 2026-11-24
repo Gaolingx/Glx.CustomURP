@@ -547,6 +547,21 @@ Shader "Universal Render Pipeline/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "GlxDXR"
+            Tags { "LightMode" = "RayTracing" }
+            HLSLPROGRAM
+            #pragma raytracing GlxLitHit
+            #pragma only_renderers d3d11
+            #pragma multi_compile_local _ _NORMALMAP
+            #pragma multi_compile_local _ _METALLICSPECGLOSSMAP
+            #pragma multi_compile_local _ _EMISSION
+            #pragma multi_compile_local _ _ALPHATEST_ON
+            #include "RayTracing/GlxLitHit.hlsl"
+            ENDHLSL
+        }
     }
 
     FallBack "Hidden/Universal Render Pipeline/FallbackError"

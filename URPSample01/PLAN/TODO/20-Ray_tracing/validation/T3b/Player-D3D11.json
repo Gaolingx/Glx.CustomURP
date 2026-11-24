@@ -1,0 +1,137 @@
+{
+  "guid": "6ff8552c9bb240ab84a48b7d7dee90d1",
+  "api": "Direct3D11",
+  "adapter": "NVIDIA GeForce RTX 5060 Ti",
+  "driver": "Direct3D 11.0 [level 11.1]",
+  "colorSpace": "Linear",
+  "error": "",
+  "development": true,
+  "supportsRayTracing": false,
+  "passed": true,
+  "released": true,
+  "gpuTimingMeasured": false,
+  "buildCount": 0,
+  "instances": 0,
+  "disabledSubmeshes": 0,
+  "buffersAllocated": 0,
+  "buffersReleased": 0,
+  "submittedDispatches": 0,
+  "submittedRequests": 0,
+  "failedVectors": 0,
+  "nonFiniteComponents": 0,
+  "liveSceneResourcesAfterRelease": 0,
+  "subscribersAfterRelease": 0,
+  "instancesAfterRelease": 0,
+  "payloadBytes": 24,
+  "markerGpuBlocks": 0,
+  "marker": "Glx Basic Hit Trace",
+  "markerNote": "No GPU measurement available",
+  "markerGpuMs": 0.0,
+  "rgbTolerance": 0.029999999329447746,
+  "tToleranceMeters": 0.0010000000474974513,
+  "normalToleranceDegrees": 2.0,
+  "gates": [
+    {
+      "name": "Disabled",
+      "decision": "Off",
+      "accepted": false,
+      "hasSnapshot": false,
+      "builds": 0,
+      "instances": 0,
+      "liveResources": 0,
+      "buffersAllocated": 0,
+      "submittedDispatches": 0
+    },
+    {
+      "name": "D3D11 opt-in",
+      "decision": "Backend",
+      "accepted": false,
+      "hasSnapshot": false,
+      "builds": 0,
+      "instances": 0,
+      "liveResources": 0,
+      "buffersAllocated": 0,
+      "submittedDispatches": 0
+    }
+  ],
+  "vectors": [],
+  "materials": [
+    {
+      "renderer": "Opaque",
+      "shader": "Universal Render Pipeline/Lit",
+      "classification": "Disabled",
+      "keywords": "_EMISSION _METALLICSPECGLOSSMAP _NORMALMAP",
+      "textures": [
+        "_BaseMap: 16x16 RGBA32 R8G8B8A8_UNorm",
+        "_BumpMap: 32x32 RGBA32 R8G8B8A8_UNorm",
+        "_MetallicGlossMap: 64x64 RGBA32 R8G8B8A8_UNorm",
+        "_EmissionMap: 16x16 DXT5 RGBA_DXT5_UNorm"
+      ],
+      "queue": 2000,
+      "pass": -1,
+      "expectedSupported": true
+    },
+    {
+      "renderer": "Cutout",
+      "shader": "Universal Render Pipeline/Lit",
+      "classification": "Disabled",
+      "keywords": "_ALPHATEST_ON _EMISSION _METALLICSPECGLOSSMAP _NORMALMAP",
+      "textures": [
+        "_BaseMap: 16x32 RGBA32 R8G8B8A8_UNorm",
+        "_BumpMap: 32x64 RGBA32 R8G8B8A8_UNorm",
+        "_MetallicGlossMap: 64x16 RGBA32 R8G8B8A8_UNorm",
+        "_EmissionMap: 16x32 DXT5 RGBA_DXT5_UNorm"
+      ],
+      "queue": 2450,
+      "pass": -1,
+      "expectedSupported": true
+    },
+    {
+      "renderer": "Rear",
+      "shader": "Universal Render Pipeline/Lit",
+      "classification": "Disabled",
+      "keywords": "",
+      "textures": [
+        "_BaseMap: 16x64 RGBA32 R8G8B8A8_UNorm",
+        "_BumpMap: 32x16 RGBA32 R8G8B8A8_UNorm",
+        "_MetallicGlossMap: 64x32 RGBA32 R8G8B8A8_UNorm",
+        "_EmissionMap: 16x64 DXT5 RGBA_DXT5_UNorm"
+      ],
+      "queue": 2000,
+      "pass": -1,
+      "expectedSupported": true
+    },
+    {
+      "renderer": "Transparent",
+      "shader": "Universal Render Pipeline/Lit",
+      "classification": "Disabled",
+      "keywords": "_ALPHAPREMULTIPLY_ON _EMISSION _METALLICSPECGLOSSMAP _NORMALMAP _SURFACE_TYPE_TRANSPARENT",
+      "textures": [
+        "_BaseMap: 16x16 RGBA32 R8G8B8A8_UNorm",
+        "_BumpMap: 32x32 RGBA32 R8G8B8A8_UNorm",
+        "_MetallicGlossMap: 64x64 RGBA32 R8G8B8A8_UNorm",
+        "_EmissionMap: 16x16 DXT5 RGBA_DXT5_UNorm"
+      ],
+      "queue": 3000,
+      "pass": -1,
+      "expectedSupported": false
+    },
+    {
+      "renderer": "Specular",
+      "shader": "Universal Render Pipeline/Lit",
+      "classification": "Disabled",
+      "keywords": "_EMISSION _METALLICSPECGLOSSMAP _NORMALMAP _SPECULAR_SETUP",
+      "textures": [
+        "_BaseMap: 16x32 RGBA32 R8G8B8A8_UNorm",
+        "_BumpMap: 32x64 RGBA32 R8G8B8A8_UNorm",
+        "_MetallicGlossMap: 64x16 RGBA32 R8G8B8A8_UNorm",
+        "_EmissionMap: 16x32 DXT5 RGBA_DXT5_UNorm"
+      ],
+      "queue": 2000,
+      "pass": -1,
+      "expectedSupported": false
+    }
+  ],
+  "exitCode": 0,
+  "inputsSha256": "92390ecfdadabae032a4aeea77b823c46206332dde5ff50c000f269074d5dc06"
+}

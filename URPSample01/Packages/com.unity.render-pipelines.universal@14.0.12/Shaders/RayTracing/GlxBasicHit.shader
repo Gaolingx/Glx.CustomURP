@@ -74,7 +74,7 @@ Shader "Hidden/Universal Render Pipeline/GlxBasicHit"
                     shadow.TMin = 0.0;
                     shadow.TMax = 3.402823466e+38F;
                     GlxBasicPayload visibility = GlxEmptyPayload(GlxShadowMode);
-                    TraceRay(_GlxScene, RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
+                    TraceRay(_GlxScene, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
                              0xff, 0, 1, 0, shadow, visibility);
                     if (visibility.flags == GlxHit)
                     {

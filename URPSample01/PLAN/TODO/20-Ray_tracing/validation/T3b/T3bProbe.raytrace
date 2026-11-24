@@ -1,0 +1,31 @@
+#pragma max_recursion_depth 2
+#include "Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxBasicPayload.hlsl"
+
+struct Request { float4 originTMin; float4 directionTMax; };
+StructuredBuffer<Request> _GlxRays;
+RWStructuredBuffer<GlxBasicPayload> _GlxResults;
+int _T3bMode;
+
+[shader("raygeneration")]
+void T3bTrace()
+{
+    uint i = DispatchRaysIndex().x;
+    Request r = _GlxRays[i];
+    RayDesc ray;
+    ray.Origin = r.originTMin.xyz;
+    ray.TMin = r.originTMin.w;
+    ray.Direction = normalize(r.directionTMax.xyz);
+    ray.TMax = r.directionTMax.w;
+    GlxBasicPayload p = GlxEmptyPayload((uint)_T3bMode);
+    TraceRay(_GlxScene, RAY_FLAG_NONE, 0xff, 0, 1, 0, ray, p);
+    _GlxResults[i] = p;
+}
+
+[shader("miss")]
+void T3bMiss(inout GlxBasicPayload p : SV_RayPayload)
+{
+    // Ignored intersections may already have incremented mode's upper bits.
+    p.radiance = 0;
+    p.flags = GlxMiss;
+    p.hitT = -1;
+}

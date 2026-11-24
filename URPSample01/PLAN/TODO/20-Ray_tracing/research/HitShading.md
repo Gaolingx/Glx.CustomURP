@@ -1,6 +1,6 @@
 # 命中点着色：无 bindless / 无 inline RayQuery 的全材质 Fat CHS
 
-**状态：调研与设计，未实现、未测。** 范围：Unity 2022.3 / URP 14 的 `RayTracingShader` + 每材质命名 DXR pass，回答“命中任意登记材质后如何取贴图/法线/粗糙度/金属度/自发光并做 alpha 裁剪”，以及 GI probe 与 SSR 两条消费者如何共享这套 ABI。总计划见 [HANDOFF](../HANDOFF.md)，探针见 [GI HANDOFF](../gi/HANDOFF.md)，反射见 [反射 HANDOFF](../reflection/HANDOFF.md)。
+**状态：[W4/T3b Windows Player 验证通过](../validation/T3b/Summary.json)：已登记的 metallic Lit、材质通道、切线法线与 cutout 主/阴影射线已测；下文灯表、反馈与消费者仍是设计。** 范围：Unity 2022.3 / URP 14 的 `RayTracingShader` + 每材质命名 DXR pass，回答“命中任意登记材质后如何取贴图/法线/粗糙度/金属度/自发光并做 alpha 裁剪”，以及 GI probe 与 SSR 两条消费者如何共享这套 ABI。总计划见 [HANDOFF](../HANDOFF.md)，探针见 [GI HANDOFF](../gi/HANDOFF.md)，反射见 [反射 HANDOFF](../reflection/HANDOFF.md)。
 
 **引用等级**：**A** = 本机源码或安装包；**B** = Unity/NVIDIA 官方文档；**C** = 第三方/演讲。源码行号只对当前快照有效。
 
@@ -38,7 +38,7 @@ HDRP 的选择相反：CHS 里 `ComputeSurfaceScattering` 建 `MaterialData`、`
 | 嵌套 `TraceRay`（CHS 内打阴影/下一跳） | HDRP `PathTracingIntegrator.hlsl:213`；`.raytrace` 的 `#pragma max_recursion_depth` | 需要显式递归深度；v1 只用于逐灯阴影 |
 | 统一 payload + segment/mode | HDRP `PathTracingPayload.hlsl:22–56`；AHS 用 `segmentID` 区分 nearest-hit/random-walk（`PathTracingIntegrator.hlsl:387–440`） | 不需要为阴影单独做一套 pass |
 
-**URP Lit 目前没有任何 DXR pass**：pass 名只有 `ForwardLit / ShadowCaster / GBuffer / DepthOnly / DepthNormals / TransparentDepthNormals / Meta / Universal2D`（`U/Shaders/Lit.shader:107,195,247,327,371,429,478,517`）。因此必须新增一个命名 pass，而不是寻找现成 tag。
+**T3b 之前的 URP Lit 没有 DXR pass**：原有 pass 名为 `ForwardLit / ShadowCaster / GBuffer / DepthOnly / DepthNormals / TransparentDepthNormals / Meta / Universal2D`（`U/Shaders/Lit.shader:107,195,247,327,371,429,478,517`）。因此必须新增一个命名 pass，而不是寻找现成 tag。
 
 ## 3. URP Lit 的 `GlxDXR` pass recipe
 

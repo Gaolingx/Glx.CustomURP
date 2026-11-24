@@ -1,6 +1,6 @@
 # 20 · 高端平台可选光追：实施与签收入口
 
-**状态：W0 基线与 W1 的 T1/G1 夹具已通过（见[任务实施记录](todolist.md)）；T2 已验证几何求交，[T3](validation/T3/Summary.json) 已在 Windows D3D12 Player 验证单色材质的自发光、直射和真实遮挡；完整 Lit 命中、GI/SSR 集成与性能尚未验证。** 结论：在 Unity 2022.3 / URP 14 上，Windows D3D12 有可验证的直接 DXR 派发路径；当前屏幕效果的时序允许接入，但不是移植 HDRP Mixed 的四张命中 GBuffer。主机是候选后端，不是已支持平台。研究索引与证据口径见 [research/README.md](research/README.md)。
+**状态：W0 基线与 W1 的 T1/G1 夹具已通过（见[任务实施记录](todolist.md)）；T2 已验证几何求交，[T3](validation/T3/Summary.json) 已在 Windows D3D12 Player 验证单色材质的自发光、直射和真实遮挡；[T3b](validation/T3b/Summary.json) 已验证 Windows metallic Lit 的贴图、法线、硬裁剪及主/阴影射线；场景灯表、GI/SSR 集成与性能尚未验证。** 结论：在 Unity 2022.3 / URP 14 上，Windows D3D12 有可验证的直接 DXR 派发路径；当前屏幕效果的时序允许接入，但不是移植 HDRP Mixed 的四张命中 GBuffer。主机是候选后端，不是已支持平台。研究索引与证据口径见 [research/README.md](research/README.md)。
 
 | 阅读顺序 | 决策归属 |
 |---|---|

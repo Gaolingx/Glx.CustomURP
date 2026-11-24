@@ -1,0 +1,4044 @@
+{
+  "guid": "6ff8552c9bb240ab84a48b7d7dee90d1",
+  "api": "Direct3D12",
+  "adapter": "NVIDIA GeForce RTX 5060 Ti",
+  "driver": "Direct3D 12 [level 12.1]",
+  "colorSpace": "Linear",
+  "error": "",
+  "development": true,
+  "supportsRayTracing": true,
+  "passed": true,
+  "released": true,
+  "gpuTimingMeasured": true,
+  "buildCount": 1,
+  "instances": 3,
+  "disabledSubmeshes": 2,
+  "buffersAllocated": 2,
+  "buffersReleased": 2,
+  "submittedDispatches": 9,
+  "submittedRequests": 63,
+  "failedVectors": 0,
+  "nonFiniteComponents": 0,
+  "liveSceneResourcesAfterRelease": 0,
+  "subscribersAfterRelease": 0,
+  "instancesAfterRelease": 0,
+  "payloadBytes": 24,
+  "markerGpuBlocks": 5,
+  "marker": "Glx Basic Hit Trace",
+  "markerNote": "Single presented frame, production dispatches only",
+  "markerGpuMs": 0.23296000063419342,
+  "rgbTolerance": 0.029999999329447746,
+  "tToleranceMeters": 0.0010000000474974513,
+  "normalToleranceDegrees": 2.0,
+  "gates": [
+    {
+      "name": "Disabled",
+      "decision": "Off",
+      "accepted": false,
+      "hasSnapshot": false,
+      "builds": 0,
+      "instances": 0,
+      "liveResources": 0,
+      "buffersAllocated": 0,
+      "submittedDispatches": 0
+    },
+    {
+      "name": "D3D12 opt-in",
+      "decision": "Accepted",
+      "accepted": true,
+      "hasSnapshot": true,
+      "builds": 1,
+      "instances": 3,
+      "liveResources": 1,
+      "buffersAllocated": 0,
+      "submittedDispatches": 0
+    }
+  ],
+  "vectors": [
+    {
+      "name": "Opaque A",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -3.4800000190734863,
+          "y": -0.1599999964237213,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.41960784792900085,
+        "y": 0.3294117748737335,
+        "z": 0.16470588743686676
+      },
+      "actualRgb": {
+        "x": 0.41960784792900085,
+        "y": 0.3294117748737335,
+        "z": 0.16470588743686676
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.41960784792900085,
+        "y": 0.3294117748737335,
+        "z": 0.16470588743686676,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 16,
+      "expectedMode": 16,
+      "ahsCount": 0,
+      "rawMode": 16,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque B",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -2.569999933242798,
+          "y": 0.23999999463558197,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.6078431606292725,
+        "y": 0.47058823704719543,
+        "z": 0.5098039507865906
+      },
+      "actualRgb": {
+        "x": 0.6078431606292725,
+        "y": 0.47058823704719543,
+        "z": 0.5098039507865906
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.6078431606292725,
+        "y": 0.47058823704719543,
+        "z": 0.5098039507865906,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 16,
+      "expectedMode": 16,
+      "ahsCount": 0,
+      "rawMode": 16,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Solid",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 0.36000001430511475,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.41960784792900085,
+        "y": 0.3294117748737335,
+        "z": 0.7686274647712708
+      },
+      "actualRgb": {
+        "x": 0.41960784792900085,
+        "y": 0.3294117748737335,
+        "z": 0.7686274647712708
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.41960784792900085,
+        "y": 0.3294117748737335,
+        "z": 0.7686274647712708,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 2.0,
+      "expectedT": 2.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 16,
+      "expectedMode": 16,
+      "ahsCount": 1,
+      "rawMode": 272,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Hole to rear",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.7019608020782471,
+        "y": 0.47058823704719543,
+        "z": 0.5960784554481506
+      },
+      "actualRgb": {
+        "x": 0.7019608020782471,
+        "y": 0.47058823704719543,
+        "z": 0.5960784554481506
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.7019608020782471,
+        "y": 0.47058823704719543,
+        "z": 0.5960784554481506,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": true,
+      "finite": true,
+      "passed": true,
+      "actualT": 4.0,
+      "expectedT": 4.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 16,
+      "expectedMode": 16,
+      "ahsCount": 1,
+      "rawMode": 272,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Hole to miss",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 3.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": true,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 16,
+      "expectedMode": 16,
+      "ahsCount": 1,
+      "rawMode": 272,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Transparent excluded",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 3.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 16,
+      "expectedMode": 16,
+      "ahsCount": 0,
+      "rawMode": 16,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Specular excluded",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 6.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 16,
+      "expectedMode": 16,
+      "ahsCount": 0,
+      "rawMode": 16,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque A",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -3.4800000190734863,
+          "y": -0.1599999964237213,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.37511369585990906,
+        "y": -0.4927417039871216,
+        "z": -0.7851722240447998
+      },
+      "actualRgb": {
+        "x": 0.37511369585990906,
+        "y": -0.4927416443824768,
+        "z": -0.7851722240447998
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 1.2096529644622933e-07,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.3751138150691986,
+        "y": -0.4927419424057007,
+        "z": -0.7851720452308655,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 17,
+      "expectedMode": 17,
+      "ahsCount": 0,
+      "rawMode": 17,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque B",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -2.569999933242798,
+          "y": 0.23999999463558197,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": -0.1486540585756302,
+        "y": -0.010927285999059677,
+        "z": -0.9888288378715515
+      },
+      "actualRgb": {
+        "x": -0.14865408837795258,
+        "y": -0.010927319526672363,
+        "z": -0.9888288974761963
+      },
+      "relativeRgbError": {
+        "x": 2.004810539801838e-07,
+        "y": 3.0682469969178783e-06,
+        "z": 6.027801902064311e-08
+      },
+      "raster": {
+        "x": -0.14865419268608093,
+        "y": -0.010927158407866955,
+        "z": -0.9888288974761963,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 17,
+      "expectedMode": 17,
+      "ahsCount": 0,
+      "rawMode": 17,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Solid",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 0.36000001430511475,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": -0.09528028219938278,
+        "y": -0.4017908573150635,
+        "z": -0.9107610583305359
+      },
+      "actualRgb": {
+        "x": -0.09528028964996338,
+        "y": -0.40179088711738586,
+        "z": -0.9107611179351807
+      },
+      "relativeRgbError": {
+        "x": 7.819645730933189e-08,
+        "y": 7.417371961082608e-08,
+        "z": 6.544487973769719e-08
+      },
+      "raster": {
+        "x": -0.09528028964996338,
+        "y": -0.4017907977104187,
+        "z": -0.9107611179351807,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 2.0,
+      "expectedT": 2.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 17,
+      "expectedMode": 17,
+      "ahsCount": 1,
+      "rawMode": 273,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Hole to rear",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": -0.13819080591201782,
+        "z": -0.9904056191444397
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": -0.13819077610969543,
+        "z": -0.9904056191444397
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 2.1566067687217583e-07,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": -0.13819074630737305,
+        "z": -0.9904055595397949,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": true,
+      "finite": true,
+      "passed": true,
+      "actualT": 4.0,
+      "expectedT": 4.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 17,
+      "expectedMode": 17,
+      "ahsCount": 1,
+      "rawMode": 273,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Hole to miss",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 3.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": true,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 17,
+      "expectedMode": 17,
+      "ahsCount": 1,
+      "rawMode": 273,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Transparent excluded",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 3.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 17,
+      "expectedMode": 17,
+      "ahsCount": 0,
+      "rawMode": 17,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Specular excluded",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 6.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 17,
+      "expectedMode": 17,
+      "ahsCount": 0,
+      "rawMode": 17,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque A",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -3.4800000190734863,
+          "y": -0.1599999964237213,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.4156862795352936,
+        "y": 0.5146666765213013,
+        "z": 0.7419607639312744
+      },
+      "actualRgb": {
+        "x": 0.4156862795352936,
+        "y": 0.5146666765213013,
+        "z": 0.7419607639312744
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.4156862795352936,
+        "y": 0.5146666765213013,
+        "z": 0.7419607639312744,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 18,
+      "expectedMode": 18,
+      "ahsCount": 0,
+      "rawMode": 18,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque B",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -2.569999933242798,
+          "y": 0.23999999463558197,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.6196078658103943,
+        "y": 0.1626666635274887,
+        "z": 0.4831372797489166
+      },
+      "actualRgb": {
+        "x": 0.6196078658103943,
+        "y": 0.1626666635274887,
+        "z": 0.4831372797489166
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.6196078658103943,
+        "y": 0.1626666635274887,
+        "z": 0.4831372797489166,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 18,
+      "expectedMode": 18,
+      "ahsCount": 0,
+      "rawMode": 18,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Solid",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 0.36000001430511475,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.4156862795352936,
+        "y": 0.5146666765213013,
+        "z": 0.7419607639312744
+      },
+      "actualRgb": {
+        "x": 0.4156862795352936,
+        "y": 0.5146666765213013,
+        "z": 0.7419607639312744
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.4156862795352936,
+        "y": 0.5146666765213013,
+        "z": 0.7419607639312744,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 2.0,
+      "expectedT": 2.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 18,
+      "expectedMode": 18,
+      "ahsCount": 1,
+      "rawMode": 274,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Hole to rear",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.17000000178813934,
+        "y": 0.6800000071525574,
+        "z": 0.4831372797489166
+      },
+      "actualRgb": {
+        "x": 0.17000000178813934,
+        "y": 0.6800000071525574,
+        "z": 0.4831372797489166
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.17000000178813934,
+        "y": 0.6800000071525574,
+        "z": 0.4831372797489166,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": true,
+      "finite": true,
+      "passed": true,
+      "actualT": 4.0,
+      "expectedT": 4.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 18,
+      "expectedMode": 18,
+      "ahsCount": 1,
+      "rawMode": 274,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Hole to miss",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 3.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": true,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 18,
+      "expectedMode": 18,
+      "ahsCount": 1,
+      "rawMode": 274,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Transparent excluded",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 3.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 18,
+      "expectedMode": 18,
+      "ahsCount": 0,
+      "rawMode": 18,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Specular excluded",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 6.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 18,
+      "expectedMode": 18,
+      "ahsCount": 0,
+      "rawMode": 18,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque A",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -3.4800000190734863,
+          "y": -0.1599999964237213,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.7441176176071167,
+        "y": 0.5513725876808167,
+        "z": 1.053411841392517
+      },
+      "actualRgb": {
+        "x": 0.7441176176071167,
+        "y": 0.5629804134368896,
+        "z": 1.053411841392517
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.02105259895324707,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.7441176176071167,
+        "y": 0.5629804134368896,
+        "z": 1.053411841392517,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 19,
+      "expectedMode": 19,
+      "ahsCount": 0,
+      "rawMode": 19,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque B",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -2.569999933242798,
+          "y": 0.23999999463558197,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 1.067647099494934,
+        "y": 0.43529415130615234,
+        "z": 0.5836470723152161
+      },
+      "actualRgb": {
+        "x": 1.067647099494934,
+        "y": 0.44690197706222534,
+        "z": 0.5836470723152161
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.02666662447154522,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 1.067647099494934,
+        "y": 0.44690197706222534,
+        "z": 0.5836470723152161,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 19,
+      "expectedMode": 19,
+      "ahsCount": 0,
+      "rawMode": 19,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Solid",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 0.36000001430511475,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.7441176176071167,
+        "y": 0.5513725876808167,
+        "z": 0.2325098216533661
+      },
+      "actualRgb": {
+        "x": 0.7441176176071167,
+        "y": 0.5629804134368896,
+        "z": 0.2325098216533661
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.02105259895324707,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.7441176176071167,
+        "y": 0.5629804134368896,
+        "z": 0.2325098216533661,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 2.0,
+      "expectedT": 2.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 19,
+      "expectedMode": 19,
+      "ahsCount": 1,
+      "rawMode": 275,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Hole to rear",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": true,
+      "sampledForeground": true,
+      "finite": true,
+      "passed": true,
+      "actualT": 4.0,
+      "expectedT": 4.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 19,
+      "expectedMode": 19,
+      "ahsCount": 1,
+      "rawMode": 275,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Hole to miss",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 3.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": true,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 19,
+      "expectedMode": 19,
+      "ahsCount": 1,
+      "rawMode": 275,
+      "minimumAhs": 1
+    },
+    {
+      "name": "Transparent excluded",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 3.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 19,
+      "expectedMode": 19,
+      "ahsCount": 0,
+      "rawMode": 19,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Specular excluded",
+      "batch": "Material probe",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic and independent raster",
+      "input": {
+        "originTMin": {
+          "x": 6.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 19,
+      "expectedMode": 19,
+      "ahsCount": 0,
+      "rawMode": 19,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque A",
+      "batch": "Production primary",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": -3.4800000190734863,
+          "y": -0.1599999964237213,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.7441176176071167,
+        "y": 0.5513725876808167,
+        "z": 1.053411841392517
+      },
+      "actualRgb": {
+        "x": 0.7441176176071167,
+        "y": 0.5629804134368896,
+        "z": 1.053411841392517
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.02105259895324707,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque B",
+      "batch": "Production primary",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": -2.569999933242798,
+          "y": 0.23999999463558197,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 1.067647099494934,
+        "y": 0.43529415130615234,
+        "z": 0.5836470723152161
+      },
+      "actualRgb": {
+        "x": 1.067647099494934,
+        "y": 0.44690197706222534,
+        "z": 0.5836470723152161
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.02666662447154522,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Solid",
+      "batch": "Production primary",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 0.36000001430511475,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.7441176176071167,
+        "y": 0.5513725876808167,
+        "z": 0.2325098216533661
+      },
+      "actualRgb": {
+        "x": 0.7441176176071167,
+        "y": 0.5629804134368896,
+        "z": 0.2325098216533661
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.02105259895324707,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 2.0,
+      "expectedT": 2.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Hole to rear",
+      "batch": "Production primary",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 4.0,
+      "expectedT": 4.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Hole to miss",
+      "batch": "Production primary",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 3.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Transparent excluded",
+      "batch": "Production primary",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 3.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Specular excluded",
+      "batch": "Production primary",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 6.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque A",
+      "batch": "Axial reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic direct BRDF plus emission",
+      "input": {
+        "originTMin": {
+          "x": -3.4800000190734863,
+          "y": -0.1599999964237213,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.9366261959075928,
+        "y": 0.6523961424827576,
+        "z": 1.0789834260940552
+      },
+      "actualRgb": {
+        "x": 0.9366262555122375,
+        "y": 0.6640039682388306,
+        "z": 1.0789834260940552
+      },
+      "relativeRgbError": {
+        "x": 6.363760007843666e-08,
+        "y": 0.017792603000998497,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque B",
+      "batch": "Axial reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic direct BRDF plus emission",
+      "input": {
+        "originTMin": {
+          "x": -2.569999933242798,
+          "y": 0.23999999463558197,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 1.4269403219223022,
+        "y": 0.6216108798980713,
+        "z": 0.6844071745872498
+      },
+      "actualRgb": {
+        "x": 1.4269404411315918,
+        "y": 0.6332187056541443,
+        "z": 0.6844071745872498
+      },
+      "relativeRgbError": {
+        "x": 8.35418916267372e-08,
+        "y": 0.01867378130555153,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Solid",
+      "batch": "Axial reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic direct BRDF plus emission",
+      "input": {
+        "originTMin": {
+          "x": 0.36000001430511475,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 1.0180069208145142,
+        "y": 0.6958879828453064,
+        "z": 0.3974779546260834
+      },
+      "actualRgb": {
+        "x": 1.0180070400238037,
+        "y": 0.7074958682060242,
+        "z": 0.39747801423072815
+      },
+      "relativeRgbError": {
+        "x": 1.1710066871728486e-07,
+        "y": 0.016680680215358734,
+        "z": 1.499571027352431e-07
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 2.0,
+      "expectedT": 2.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Hole to rear",
+      "batch": "Axial reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic direct BRDF plus emission",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 1.2556617259979248,
+        "y": 0.5959447622299194,
+        "z": 0.3633725047111511
+      },
+      "actualRgb": {
+        "x": 1.255660057067871,
+        "y": 0.5959439873695374,
+        "z": 0.3633720576763153
+      },
+      "relativeRgbError": {
+        "x": 1.3291239611135097e-06,
+        "y": 1.3002218111068942e-06,
+        "z": 1.2302384675422218e-06
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 4.0,
+      "expectedT": 4.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Hole to miss",
+      "batch": "Axial reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 3.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Transparent excluded",
+      "batch": "Axial reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 3.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Specular excluded",
+      "batch": "Axial reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 6.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque A",
+      "batch": "Shadow through hole",
+      "nonFiniteReadback": "",
+      "comparison": "Same lighting, shadows off",
+      "input": {
+        "originTMin": {
+          "x": -3.4800000190734863,
+          "y": -0.1599999964237213,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.9366262555122375,
+        "y": 0.6640039682388306,
+        "z": 1.0789834260940552
+      },
+      "actualRgb": {
+        "x": 0.9366262555122375,
+        "y": 0.6640039682388306,
+        "z": 1.0789834260940552
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque B",
+      "batch": "Shadow through hole",
+      "nonFiniteReadback": "",
+      "comparison": "Same lighting, shadows off",
+      "input": {
+        "originTMin": {
+          "x": -2.569999933242798,
+          "y": 0.23999999463558197,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 1.4269404411315918,
+        "y": 0.6332187056541443,
+        "z": 0.6844071745872498
+      },
+      "actualRgb": {
+        "x": 1.4269404411315918,
+        "y": 0.6332187056541443,
+        "z": 0.6844071745872498
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Solid",
+      "batch": "Shadow through hole",
+      "nonFiniteReadback": "",
+      "comparison": "Same lighting, shadows off",
+      "input": {
+        "originTMin": {
+          "x": 0.36000001430511475,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 1.0180070400238037,
+        "y": 0.7074958682060242,
+        "z": 0.39747801423072815
+      },
+      "actualRgb": {
+        "x": 1.0180070400238037,
+        "y": 0.7074958682060242,
+        "z": 0.39747801423072815
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 2.0,
+      "expectedT": 2.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Hole to rear",
+      "batch": "Shadow through hole",
+      "nonFiniteReadback": "",
+      "comparison": "Same lighting, shadows off",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 1.255660057067871,
+        "y": 0.5959439873695374,
+        "z": 0.3633720576763153
+      },
+      "actualRgb": {
+        "x": 1.255660057067871,
+        "y": 0.5959439873695374,
+        "z": 0.3633720576763153
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 4.0,
+      "expectedT": 4.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Hole to miss",
+      "batch": "Shadow through hole",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 3.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Transparent excluded",
+      "batch": "Shadow through hole",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 3.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Specular excluded",
+      "batch": "Shadow through hole",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 6.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque A",
+      "batch": "Angled reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic direct BRDF plus emission",
+      "input": {
+        "originTMin": {
+          "x": -3.4800000190734863,
+          "y": -0.1599999964237213,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.9662202596664429,
+        "y": 0.6680818796157837,
+        "z": 1.0831341743469238
+      },
+      "actualRgb": {
+        "x": 0.9662186503410339,
+        "y": 0.6796888113021851,
+        "z": 1.0831339359283447
+      },
+      "relativeRgbError": {
+        "x": 1.6655885701766238e-06,
+        "y": 0.017373517155647278,
+        "z": 2.2011914779795916e-07
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque B",
+      "batch": "Angled reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic direct BRDF plus emission",
+      "input": {
+        "originTMin": {
+          "x": -2.569999933242798,
+          "y": 0.23999999463558197,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 1.3739756345748901,
+        "y": 0.5940942764282227,
+        "z": 0.6695355176925659
+      },
+      "actualRgb": {
+        "x": 1.3739811182022095,
+        "y": 0.6057049632072449,
+        "z": 0.6695371270179749
+      },
+      "relativeRgbError": {
+        "x": 3.991066023445455e-06,
+        "y": 0.01954350806772709,
+        "z": 2.4036446575337322e-06
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Solid",
+      "batch": "Angled reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic direct BRDF plus emission",
+      "input": {
+        "originTMin": {
+          "x": 0.36000001430511475,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.9733552932739258,
+        "y": 0.6720771789550781,
+        "z": 0.3710685670375824
+      },
+      "actualRgb": {
+        "x": 0.9733597040176392,
+        "y": 0.6836873888969421,
+        "z": 0.3710712194442749
+      },
+      "relativeRgbError": {
+        "x": 4.531483682512771e-06,
+        "y": 0.017275113612413406,
+        "z": 7.148023087211186e-06
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 2.0,
+      "expectedT": 2.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Hole to rear",
+      "batch": "Angled reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic direct BRDF plus emission",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.6893355250358582,
+        "y": 0.3171723484992981,
+        "z": 0.19719897210597992
+      },
+      "actualRgb": {
+        "x": 0.6893705129623413,
+        "y": 0.31718945503234863,
+        "z": 0.1972092092037201
+      },
+      "relativeRgbError": {
+        "x": 5.075601802673191e-05,
+        "y": 5.39345019205939e-05,
+        "z": 5.1912531489506364e-05
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 4.0,
+      "expectedT": 4.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Hole to miss",
+      "batch": "Angled reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 3.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Transparent excluded",
+      "batch": "Angled reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 3.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Specular excluded",
+      "batch": "Angled reference",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 6.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque A",
+      "batch": "Shadow through solid",
+      "nonFiniteReadback": "",
+      "comparison": "Same lighting, shadows off",
+      "input": {
+        "originTMin": {
+          "x": -3.4800000190734863,
+          "y": -0.1599999964237213,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.9662186503410339,
+        "y": 0.6796888113021851,
+        "z": 1.0831339359283447
+      },
+      "actualRgb": {
+        "x": 0.9662186503410339,
+        "y": 0.6796888113021851,
+        "z": 1.0831339359283447
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Opaque B",
+      "batch": "Shadow through solid",
+      "nonFiniteReadback": "",
+      "comparison": "Same lighting, shadows off",
+      "input": {
+        "originTMin": {
+          "x": -2.569999933242798,
+          "y": 0.23999999463558197,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 1.3739811182022095,
+        "y": 0.6057049632072449,
+        "z": 0.6695371270179749
+      },
+      "actualRgb": {
+        "x": 1.3739811182022095,
+        "y": 0.6057049632072449,
+        "z": 0.6695371270179749
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 3.0,
+      "expectedT": 3.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Solid",
+      "batch": "Shadow through solid",
+      "nonFiniteReadback": "",
+      "comparison": "Same lighting, shadows off",
+      "input": {
+        "originTMin": {
+          "x": 0.36000001430511475,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.9733597040176392,
+        "y": 0.6836873888969421,
+        "z": 0.3710712194442749
+      },
+      "actualRgb": {
+        "x": 0.9733597040176392,
+        "y": 0.6836873888969421,
+        "z": 0.3710712194442749
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 2.0,
+      "expectedT": 2.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 2,
+      "expectedFlags": 2,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Hole to rear",
+      "batch": "Shadow through solid",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": 4.0,
+      "expectedT": 4.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 6,
+      "expectedFlags": 6,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Hole to miss",
+      "batch": "Shadow through solid",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": -0.4300000071525574,
+          "y": -0.20999999344348907,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 3.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Transparent excluded",
+      "batch": "Shadow through solid",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 3.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    },
+    {
+      "name": "Specular excluded",
+      "batch": "Shadow through solid",
+      "nonFiniteReadback": "",
+      "comparison": "Analytic emission or miss",
+      "input": {
+        "originTMin": {
+          "x": 6.0,
+          "y": 0.11999999731779099,
+          "z": 0.0,
+          "w": 0.0020000000949949026
+        },
+        "directionTMax": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0,
+          "w": 10.0
+        }
+      },
+      "expectedRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "actualRgb": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "relativeRgbError": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "raster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "foregroundRaster": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "sampledRaster": false,
+      "sampledForeground": false,
+      "finite": true,
+      "passed": true,
+      "actualT": -1.0,
+      "expectedT": -1.0,
+      "absTError": 0.0,
+      "normalDegrees": 0.0,
+      "actualFlags": 1,
+      "expectedFlags": 1,
+      "actualMode": 0,
+      "expectedMode": 0,
+      "ahsCount": 0,
+      "rawMode": 0,
+      "minimumAhs": 0
+    }
+  ],
+  "materials": [
+    {
+      "renderer": "Opaque",
+      "shader": "Universal Render Pipeline/Lit",
+      "classification": "Enabled, ClosestHitOnly",
+      "keywords": "_EMISSION _METALLICSPECGLOSSMAP _NORMALMAP",
+      "textures": [
+        "_BaseMap: 16x16 RGBA32 R8G8B8A8_UNorm",
+        "_BumpMap: 32x32 RGBA32 R8G8B8A8_UNorm",
+        "_MetallicGlossMap: 64x64 RGBA32 R8G8B8A8_UNorm",
+        "_EmissionMap: 16x16 DXT5 RGBA_DXT5_UNorm"
+      ],
+      "queue": 2000,
+      "pass": 5,
+      "expectedSupported": true
+    },
+    {
+      "renderer": "Cutout",
+      "shader": "Universal Render Pipeline/Lit",
+      "classification": "Enabled",
+      "keywords": "_ALPHATEST_ON _EMISSION _METALLICSPECGLOSSMAP _NORMALMAP",
+      "textures": [
+        "_BaseMap: 16x32 RGBA32 R8G8B8A8_UNorm",
+        "_BumpMap: 32x64 RGBA32 R8G8B8A8_UNorm",
+        "_MetallicGlossMap: 64x16 RGBA32 R8G8B8A8_UNorm",
+        "_EmissionMap: 16x32 DXT5 RGBA_DXT5_UNorm"
+      ],
+      "queue": 2450,
+      "pass": 5,
+      "expectedSupported": true
+    },
+    {
+      "renderer": "Rear",
+      "shader": "Universal Render Pipeline/Lit",
+      "classification": "Enabled, ClosestHitOnly",
+      "keywords": "",
+      "textures": [
+        "_BaseMap: 16x64 RGBA32 R8G8B8A8_UNorm",
+        "_BumpMap: 32x16 RGBA32 R8G8B8A8_UNorm",
+        "_MetallicGlossMap: 64x32 RGBA32 R8G8B8A8_UNorm",
+        "_EmissionMap: 16x64 DXT5 RGBA_DXT5_UNorm"
+      ],
+      "queue": 2000,
+      "pass": 5,
+      "expectedSupported": true
+    },
+    {
+      "renderer": "Transparent",
+      "shader": "Universal Render Pipeline/Lit",
+      "classification": "Disabled",
+      "keywords": "_ALPHAPREMULTIPLY_ON _EMISSION _METALLICSPECGLOSSMAP _NORMALMAP _SURFACE_TYPE_TRANSPARENT",
+      "textures": [
+        "_BaseMap: 16x16 RGBA32 R8G8B8A8_UNorm",
+        "_BumpMap: 32x32 RGBA32 R8G8B8A8_UNorm",
+        "_MetallicGlossMap: 64x64 RGBA32 R8G8B8A8_UNorm",
+        "_EmissionMap: 16x16 DXT5 RGBA_DXT5_UNorm"
+      ],
+      "queue": 3000,
+      "pass": 5,
+      "expectedSupported": false
+    },
+    {
+      "renderer": "Specular",
+      "shader": "Universal Render Pipeline/Lit",
+      "classification": "Disabled",
+      "keywords": "_EMISSION _METALLICSPECGLOSSMAP _NORMALMAP _SPECULAR_SETUP",
+      "textures": [
+        "_BaseMap: 16x32 RGBA32 R8G8B8A8_UNorm",
+        "_BumpMap: 32x64 RGBA32 R8G8B8A8_UNorm",
+        "_MetallicGlossMap: 64x16 RGBA32 R8G8B8A8_UNorm",
+        "_EmissionMap: 16x32 DXT5 RGBA_DXT5_UNorm"
+      ],
+      "queue": 2000,
+      "pass": 5,
+      "expectedSupported": false
+    }
+  ],
+  "exitCode": 0,
+  "inputsSha256": "92390ecfdadabae032a4aeea77b823c46206332dde5ff50c000f269074d5dc06"
+}

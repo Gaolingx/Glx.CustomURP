@@ -38,7 +38,7 @@ void GlxBasicTrace()
         result.hitT = _GlxToLight.z;
         result.flags = f32tof16(_GlxToLight.x) | (f32tof16(_GlxToLight.y) << 16);
         result.mode = _GlxToLight.w != 0.0 ? GlxPrimaryWithShadow : GlxPrimaryMode;
-        TraceRay(_GlxScene, RAY_FLAG_FORCE_OPAQUE, 0xff, 0, 1, 0, ray, result);
+        TraceRay(_GlxScene, RAY_FLAG_NONE, 0xff, 0, 1, 0, ray, result);
     }
     _GlxResults[index] = result;
 }
