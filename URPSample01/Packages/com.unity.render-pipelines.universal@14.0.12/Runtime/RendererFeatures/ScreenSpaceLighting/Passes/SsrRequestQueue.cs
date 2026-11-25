@@ -4,7 +4,9 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // Per-camera scratch; no temporal reuse of HW hits or borrowed scene bindings.
+    // Per-camera scratch for the fixed-K request budget. The queue itself holds no temporal state:
+    // the pass merges each frame's hits with its own resolved-fill history (SsrPass.Temporal) before
+    // compositing, so the rotating tile selection converges instead of toggling probe/fill pixels.
     internal sealed class SsrRequestQueue : IDisposable
     {
         internal readonly int budget, seed;

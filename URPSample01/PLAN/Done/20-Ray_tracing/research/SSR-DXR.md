@@ -37,6 +37,7 @@
    - `rgb = (s · Lss + (1 − s) · r · Lhw) / a`，`a=0` 时 RGB 写零
    - 材质仍执行 `lerp(Lenv, rgb, a)`，得到 `(1−a)Lenv + sLss + (1−s)rLhw`
    - 这样旧非预乘 SSR 合同、点采样、强度与 clear-coat 各 lobe 的 BRDF/环境权重仍只应用一次；HW 不再乘一次 SS 屏幕边缘淡出，否则离屏洞会重新出现。
+   - **2026-11-26 实现偏差**：v1 的固定 K 轮转抽样在 Approximation 下没有时域累积，未服务像素逐帧在 probe 与 HW 之间切换。现在 `SsrPass.Temporal` + `R2Temporal` 维护一份 trace 分辨率 HW 填充历史（rgb 辐亮度 + a 覆盖份额）：被服务命中写当前值，未服务按 motion 重投影并用接收面深度/法线/粗糙度校验后复用，被服务的有限 miss 与离开 hybrid 域的像素写零。固定 K 与 R1/R2 分类不变；反射内容过期依赖轮转刷新，未做过期衰减。
 5. **历史**：保留 SSR 自己的 motion、粗糙度、深度/法线 history；HW 距离及分类只用于历史拒绝。SS→HW 来源变化且距离/亮度不一致时降历史权重；相机切换、尺寸/后端切换要失效；禁止回灌已空间模糊的历史。205 的 GI history 不能借给 206。SS 读历史 scene color，HW 命中着色较简单，观察高亮物体出屏会不会从“空洞”变成“亮度台阶”。
 
 ## 3. 帧序与落点

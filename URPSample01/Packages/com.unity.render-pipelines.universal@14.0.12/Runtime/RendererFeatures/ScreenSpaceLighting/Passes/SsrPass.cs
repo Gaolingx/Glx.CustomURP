@@ -10,6 +10,11 @@ namespace UnityEngine.Rendering.Universal
     // writes radiance + weight. At full resolution that result is the material-facing texture; at
     // half resolution it is bilaterally upsampled into the full resolution output.
     //
+    // Approximation + DXR: the request budget only serves a slice of the unresolved pixels per
+    // frame, so a temporal pass merges each frame's hits with the previous resolved fill (reprojected
+    // by motion, rejected on receiver depth/normal/roughness) before the composite. Without it the
+    // rotating selection makes every unserved hole alternate between probe and hardware radiance.
+    //
     // PBR Accumulation: Trace samples the GGX visible normal distribution, Reproject gathers the
     // reflected surface and writes the un-accumulated signal, then the reflection denoiser
     // temporally accumulates it against the history and runs a separable bilateral filter. The
@@ -34,6 +39,7 @@ namespace UnityEngine.Rendering.Universal
         RayTracingSceneResources m_Scene;
         RayTracingAccelerationStructure m_Snapshot;
         static readonly ProfilingSampler s_HybridComposite = new ProfilingSampler("SSR DXR Composite");
+        static readonly ProfilingSampler s_HybridTemporal = new ProfilingSampler("SSR DXR Temporal");
         // I2 timing hook: reproject/upsample/composite after the hardware trace, plus the pass
         // sampler that contains both trace and reconstruction.
         static readonly ProfilingSampler s_Reconstruction = new ProfilingSampler("SSR Reconstruction");
@@ -298,6 +304,11 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
                 ScreenSpaceLightingXr.FillViewConstants(cameraData, viewCount, m_XrViews, m_History);
 
+            // A cold frame or a frame without the hybrid consumer cannot extend the fill history;
+            // drop it so a later re-entry never reuses radiance from before the gap.
+            if ((cold || requestQueue == null) && m_History.ssrHwHasValidHistory)
+                m_History.ResetSsrHwHistory();
+
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
@@ -310,10 +321,12 @@ namespace UnityEngine.Rendering.Universal
                     SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, true);
                     PushShaderVariables(cmd, cs, CreateShaderVariables(ref cameraData, settings,
                         screenWidth, screenHeight, traceWidth, traceHeight, false));
-                    if (TryTrace(cmd, cs, depthTexture, normalTexture, null, null, traceWidth, traceHeight))
+                    Matrix4x4 coldPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
+                    if (TryTrace(cmd, cs, depthTexture, normalTexture, null, null, traceWidth, traceHeight, coldPrevInvViewProj))
                     {
                         using (new ProfilingScope(cmd, s_Reconstruction))
                             Composite(cmd, cs, depthTexture, normalTexture, null, true, screenWidth, screenHeight);
+                        m_History.SwapSsrHwBuffers();
                         m_OutputTexture = m_History.ssrOutput;
                         m_ProducedOutput = true;
                     }
@@ -347,13 +360,17 @@ namespace UnityEngine.Rendering.Universal
         }
 
         bool TryTrace(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
-            RTHandle motion, RTHandle hit, int w, int h)
+            RTHandle motion, RTHandle hit, int w, int h, in Matrix4x4 prevInvViewProj)
         {
             if (requestQueue == null || m_Snapshot == null || m_Scene == null) return false;
+            m_History.EnsureSsrHwHistory(w, h);
+            if (!m_History.ssrHwResourcesAllocated) return false;
             try
             {
+                m_History.BeginSsrHwFrame();
                 RecordOriginals(cmd, cs, depth, normals, motion, hit, w, h);
                 requestQueue.Trace(cmd, cs, m_Resources.rayTracingSsr, m_Scene, m_Snapshot, w, h);
+                Temporal(cmd, cs, depth, normals, motion, prevInvViewProj);
                 m_LoggedHybridFailure = false;
                 return true;
             }
@@ -366,6 +383,43 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // Merges this frame's hardware hits with the previous resolved result. The request budget
+        // only serves a slice of the holes per frame, so without this every unserved pixel would
+        // alternate between probe and hardware radiance.
+        void Temporal(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
+            RTHandle motion, in Matrix4x4 prevInvViewProj)
+        {
+            int kernel = cs.FindKernel("R2Temporal");
+            var previousDepth = m_History.readPreviousDepth;
+            var previousNormals = m_History.readPreviousNormals;
+            int readSlot = m_History.ssrHwReadSlot;
+            // Never bind the write slot as the input: a texture cannot be an SRV and a UAV in the
+            // same dispatch. Without history the stale slot is bound but never sampled because the
+            // validity uniform is zero.
+            int readBinding = readSlot >= 0 ? readSlot : (m_History.ssrHwWriteSlot ^ 1);
+            cmd.SetComputeBufferParam(cs, kernel, "_R1Original", requestQueue.originals);
+            cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
+            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depth);
+            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normals);
+            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrMotionTexture, motion != null ? motion : depth);
+            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.HistoryDepthTexture,
+                previousDepth != null ? previousDepth : depth);
+            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.HistoryNormalTexture,
+                previousNormals != null ? previousNormals : normals);
+            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrHwHistory,
+                m_History.GetSsrHwHistory(readBinding));
+            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrHwHistoryRW,
+                m_History.GetSsrHwHistory(m_History.ssrHwWriteSlot));
+            cmd.SetComputeFloatParam(cs, ScreenSpaceLightingShaderIDs.SsrHwHistoryValid, readSlot >= 0 ? 1f : 0f);
+            cmd.SetComputeMatrixParam(cs, ScreenSpaceLightingShaderIDs.SsgiPrevInvViewProj, prevInvViewProj);
+            using (new ProfilingScope(cmd, s_HybridTemporal))
+            {
+                cmd.DispatchCompute(cs, kernel,
+                    ScreenSpaceLightingRenderUtils.DivideRoundUp(m_History.ssrTraceWidth, k_TileSize),
+                    ScreenSpaceLightingRenderUtils.DivideRoundUp(m_History.ssrTraceHeight, k_TileSize), 1);
+            }
+        }
+
         void Composite(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
             RTHandle motion, bool cold, int w, int h)
         {
@@ -373,7 +427,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 int kernel = cs.FindKernel(cold ? "R2CompositeCold" : "R2Composite");
                 cmd.SetComputeBufferParam(cs, kernel, "_R1Original", requestQueue.originals);
-                cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
+                cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrHwHistory,
+                    m_History.GetSsrHwHistory(m_History.ssrHwWriteSlot));
                 cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depth);
                 cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normals);
                 cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW, m_History.ssrOutput);
@@ -491,8 +546,11 @@ namespace UnityEngine.Rendering.Universal
             s_EditorTraceDispatchCount++;
 #endif
 
+            Matrix4x4 hybridPrevInvViewProj = default;
+            if (!pbr && halfResolution && requestQueue != null)
+                hybridPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
             bool traced = !pbr && halfResolution && TryTrace(cmd, compute, depthTexture, normalTexture,
-                motionTexture, m_History.ssrHitPoint, traceWidth, traceHeight);
+                motionTexture, m_History.ssrHitPoint, traceWidth, traceHeight, hybridPrevInvViewProj);
 
             using (new ProfilingScope(cmd, s_Reconstruction))
             {
@@ -553,7 +611,11 @@ namespace UnityEngine.Rendering.Universal
                     viewCount, useTextureArray);
             }
 
-            if (traced) Composite(cmd, compute, depthTexture, normalTexture, motionTexture, false, screenWidth, screenHeight);
+            if (traced)
+            {
+                Composite(cmd, compute, depthTexture, normalTexture, motionTexture, false, screenWidth, screenHeight);
+                m_History.SwapSsrHwBuffers();
+            }
             }
         }
 

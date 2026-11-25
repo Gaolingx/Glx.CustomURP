@@ -109,3 +109,27 @@ v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世�
 ## 与 GI 反馈的边界（2026-11-25）
 
 - G5 起 `GlxLitClosestHit` 的 `GlxProbeMode` 会加一次 `min(albedo, .9)·Eprev/π`；`GlxReflectionMode` 仍只加 `GlxHitLowFrequencyIrradiance`，不受 `_GlxProbeFeedbackEnabled` 影响。R3 的 ambient/probe 源切换与 R5 的命中着色合同不变；R5 在有效 E=6 快照下复核反射模式 feedback 开/关逐位一致。反射只读已发布快照，不写回探针、不触发更新。见 [GI G5 签收](../gi/HANDOFF.md#g5-1-跳反馈签收win64-d3d12生产者侧)。
+
+## W10 / HW 填充时域复用（2026-11-26）
+
+**状态：实现完成，编辑器目视待复核；无 Player 证据。** 固定 K 轮转抽样在 Approximation 下没有时域累积，洞像素会逐帧在 probe 与 HW 辐亮度之间切换（`Ssr Weight` 表现为闪烁条纹）。本次给 HW 填充加一份按相机的时域复用，`reflectionRayBudget`、R1 分类与散写保持不变。
+
+- 资源：`ScreenSpaceLightingHistory` 新增 2 张 trace 分辨率 `RGBA16F`（`SslSsrHwHistory0/1`，rgb = 未预乘 HW 辐亮度，a = 覆盖份额），1080p 半分辨率约 8.3 MiB；仅在 hybrid（Approximation + 半分辨率 + 合格相机）时分配，随 `ReleaseSsrResources` 释放。
+- 新 kernel `R2Temporal`（`SSR_R2_TEMPORAL`）运行在 `DispatchRays` 与合成之间、trace 分辨率：
+  - 本帧被服务且命中：写入 `(Lhw, min(1−s, requestShare))`；被服务但有限 miss 写零（射线确实没打到几何，不保留旧值）。
+  - 未服务：按 motion 重投影，用 `_HistoryDepthTexture` / `_HistoryNormalTexture` 校验接收面（世界位置半径 ≤ max(2 mm, 1% 距离)、法线 dot > 0.95、粗糙度差 < 0.02），通过才复用上一帧 `(Lhw, a)`。
+  - `reason < 2` 或背景写零，离开 hybrid 域后再次进入不会读到旧数据。
+- 合成读取本帧写入的历史纹理，`hw = resolved ? min(1−s, requestShare, a) : 0`；材质端 unpremultiplied + weight 合同不变。冷启动帧 valid=0，只写本帧命中（冷帧原本只合成 HW）。
+- 失效：冷帧（`readColorPyramid == null` / 无 motion）、hybrid 消费者缺席、trace 分辨率变化、`Reset`/相机历史重建都会清空并重排槽位；读写槽分离，同一 dispatch 内不会把同一纹理同时绑成 SRV 和 UAV。
+- 已知上限：历史是"上次服务时"的采样，被反射物体动画/光照变化而接收面不变时会保持旧值直到该像素再次被服务（轮转周期内），本轮不做过期衰减；重投影失败的像素回到 SS/probe 等待下次服务。切镜依赖 motion/深度校验，不另做显式 camera-cut 检测。
+- 下一步：在 `ScreenSpaceLightingBaseline` 目视复核 `Ssr Weight` 不再闪烁、静态场景收敛后洞被填；再按 R3/R5 口径补 Player 证据（stale/ghost 指标）后更新签收状态。
+
+## W11 / 收敛速度（2026-11-26）
+
+**状态：实现完成，编辑器待复核。** W10 解决闪烁后，静态场景从冷启动到洞被填满仍需 5 s 以上。根因在 R1 调度而非时域复用：每 tile 每帧最多发 8 个请求，而"哪 8 个像素"的窗口每帧只前进 1（`SsrRequestQueue.hlsl` 的 `order = (lane + phase …) % 64`），相邻帧窗口重叠 7/8，一块 64 像素的 tile 要 64 帧才被完整扫过；编辑器约 13 fps 时正好 5 s。
+
+- 窗口步长改为本帧每 tile 配额 `R1Quota() = max(1, K/tiles)`：相邻帧服务互不相交的像素组，整 tile 覆盖 = `ceil(64/quota)` 帧。1080p 半分辨率 8160 tile、K=32768 时 quota=4 → 16 帧。
+- 预算从"先到先得、滑动窗口尾部整片 tile 被截断"改为按 tile 均分：`R1Tiles` 存完整 count，`R1Offsets` 按 quota 授权并累加 base；`K < tiles` 的退化情形仍由 scatter 的 `tile.y+rank < _R1K` 兜底。`_R1Counts[2]/[3]` 语义不变（served / unscheduled 像素）。
+- 未改：K 上限 32768、R2 散写、`R2Temporal` 复用语义。再要更快只有两条路：提 K（`SsrRequestQueue.Record` 的 clamp 与面板上限同步放宽），或 R1 按"无有效历史优先"排序让新暴露像素插队。
+- 屏幕边缘残留不是收敛问题：`R1Original` 里 `requestShare = fade * (1-edge)` 的 `edge` 是**命中点**的 `EdgeOfScreenFade`，只保护 SS 查色；HW 射线出屏本身有效。要消边缘条带就应去掉该因子（`hw` 仍受 roughness fade 约束）。
+- 验收：静态场景 `Ssr Weight` 冷启动到填满 ≤ `ceil(64/quota)` 帧；相机移动、卸载/重现后再收敛不超过同一周期。

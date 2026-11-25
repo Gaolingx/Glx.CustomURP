@@ -666,6 +666,80 @@ namespace UnityEngine.Rendering.Universal
             ResetSsrPbrHistory();
         }
 
+        // ---------------------------------------------------------------------------------------
+        // Hardware reflection fill history (Approximation hybrid only)
+        //
+        // Per trace pixel: rgb = the last resolved DXR radiance, a = the uncovered share it fills.
+        // Served samples overwrite it; unserved samples reuse it after motion reprojection and a
+        // receiver surface check. Without this the rotating request budget toggles every hole pixel
+        // between probe and hardware radiance on consecutive frames.
+        // ---------------------------------------------------------------------------------------
+        internal bool ssrHwHasValidHistory { get; private set; }
+        internal int ssrHwReadSlot { get; private set; }
+        internal int ssrHwWriteSlot { get; private set; }
+        internal int ssrHwResetCount { get; private set; }
+        internal int ssrHwResourceGeneration { get; private set; }
+        internal bool ssrHwResourcesAllocated => m_SsrHwHistory[0] != null;
+
+        internal RTHandle GetSsrHwHistory(int slot)
+        {
+            return slot >= 0 && slot < k_HistoryBufferCount ? m_SsrHwHistory[slot] : null;
+        }
+
+        internal void EnsureSsrHwHistory(int traceWidth, int traceHeight)
+        {
+            traceWidth = Mathf.Max(1, traceWidth);
+            traceHeight = Mathf.Max(1, traceHeight);
+            if (ssrHwResourcesAllocated && m_SsrHwWidth == traceWidth && m_SsrHwHeight == traceHeight)
+                return;
+
+            ReleaseSsrHwHistory();
+            m_SsrHwWidth = traceWidth;
+            m_SsrHwHeight = traceHeight;
+            for (int i = 0; i < k_HistoryBufferCount; i++)
+            {
+                m_SsrHwHistory[i] = RTHandles.Alloc(
+                    traceWidth, traceHeight,
+                    TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                    colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                    filterMode: FilterMode.Point,
+                    dimension: TextureDimension.Tex2D,
+                    enableRandomWrite: true,
+                    useMipMap: false,
+                    autoGenerateMips: false,
+                    name: "SslSsrHwHistory" + i);
+            }
+
+            ssrHwResourceGeneration++;
+            ResetSsrHwHistory();
+        }
+
+        internal void BeginSsrHwFrame()
+        {
+            ssrHwReadSlot = ssrHwHasValidHistory ? m_SsrHwBufferIndex : -1;
+            ssrHwWriteSlot = m_SsrHwBufferIndex ^ 1;
+        }
+
+        internal void SwapSsrHwBuffers()
+        {
+            m_SsrHwBufferIndex = ssrHwWriteSlot;
+            ssrHwHasValidHistory = true;
+        }
+
+        internal void ResetSsrHwHistory()
+        {
+            m_SsrHwBufferIndex = 0;
+            ssrHwHasValidHistory = false;
+            ssrHwReadSlot = -1;
+            ssrHwWriteSlot = 1;
+            ssrHwResetCount++;
+        }
+
+        readonly RTHandle[] m_SsrHwHistory = new RTHandle[k_HistoryBufferCount];
+        int m_SsrHwBufferIndex;
+        int m_SsrHwWidth;
+        int m_SsrHwHeight;
+
         readonly RTHandle[] m_SsrPbrHistory = new RTHandle[k_HistoryBufferCount];
         readonly RTHandle[] m_SsrPbrSampleCount = new RTHandle[k_HistoryBufferCount];
         int m_SsrPbrScreenWidth;
@@ -762,6 +836,7 @@ namespace UnityEngine.Rendering.Universal
             ssrTransparentOutputProduced = false;
             ResetSsgiHistory();
             ResetSsrPbrHistory();
+            ResetSsrHwHistory();
             for (int i = 0; i < m_HasPreviousViewProj.Length; i++)
                 m_HasPreviousViewProj[i] = false;
         }
@@ -993,7 +1068,24 @@ namespace UnityEngine.Rendering.Universal
             m_SsrDebugWidth = 0;
             m_SsrDebugHeight = 0;
             m_SsrDebugSlices = 0;
+            ReleaseSsrHwHistory();
             ReleaseSsrPbrResources();
+        }
+
+        void ReleaseSsrHwHistory()
+        {
+            for (int i = 0; i < k_HistoryBufferCount; i++)
+            {
+                RTHandles.Release(m_SsrHwHistory[i]);
+                m_SsrHwHistory[i] = null;
+            }
+
+            m_SsrHwWidth = 0;
+            m_SsrHwHeight = 0;
+            ssrHwHasValidHistory = false;
+            ssrHwReadSlot = -1;
+            ssrHwWriteSlot = 1;
+            m_SsrHwBufferIndex = 0;
         }
 
         void ReleaseSsrPbrResources()

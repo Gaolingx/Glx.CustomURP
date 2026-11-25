@@ -64,13 +64,22 @@ void R1Cold(uint3 id : SV_DispatchThreadID)
 
 uint2 R1Grid() { return ((uint2)_SsrTraceSize.xy + 7) / 8; }
 uint R1TileId(uint2 g) { return g.y * R1Grid().x + g.x; }
-// One group per tile. One extra local step after each full tile cycle avoids
-// lockstep starvation even when K=1 and the number of tiles is divisible by 64.
+// Even split of the fixed budget: with K seen from every tile the sliding tile window cannot
+// leave a tail of tiles unserved until it wraps around.
+uint R1Quota()
+{
+    uint tiles = max(1u, R1Grid().x * R1Grid().y);
+    return max(1u, _R1K / tiles);
+}
+// One group per tile. The lane->pixel window advances by the tile's own quota, not by one, so
+// consecutive frames serve disjoint pixel sets and a 64-pixel tile is fully covered in
+// 64/quota frames. A stride of 1 made the window overlap itself 7/8 per frame, i.e. a full
+// sweep took 64 frames and the fill visibly crawled.
 groupshared uint r1Mask[64];
 void R1Rank(uint2 tile, uint lane, out uint slot, out uint rank, out uint count)
 {
     uint2 grid = R1Grid(); uint t = R1TileId(tile);
-    uint order = (lane + (_R1Phase % (grid.x*grid.y)) + _R1Phase / (grid.x*grid.y) + t*17) % 64;
+    uint order = (lane + R1Quota() * _R1Phase + t*17) % 64;
     uint2 coord = tile*8 + uint2(order%8,order/8);
     slot = coord.y*(uint)_SsrTraceSize.x+coord.x;
     uint wanted = 0;
@@ -85,18 +94,20 @@ void R1Rank(uint2 tile, uint lane, out uint slot, out uint rank, out uint count)
 void R1Tiles(uint3 group:SV_GroupID,uint lane:SV_GroupIndex)
 {
     uint slot,rank,count; R1Rank(group.xy,lane,slot,rank,count);
-    if(lane==0) _R1Tile[R1TileId(group.xy)] = uint2(min(8u,count),0);
+    // Store the full count; R1Offsets decides how many the budget can grant.
+    if(lane==0) _R1Tile[R1TileId(group.xy)] = uint2(count,0);
 }
 [numthreads(1,1,1)]
 void R1Offsets()
 {
-    uint2 grid=R1Grid(); uint tiles=grid.x*grid.y; uint total=0;
+    uint2 grid=R1Grid(); uint tiles=grid.x*grid.y; uint quota=R1Quota(); uint total=0;
     for(uint i=0;i<tiles;++i)
     {
         uint t=(_R1Phase%tiles+i)%tiles;
-        uint n=_R1Tile[t].x;
+        uint n=min(quota,_R1Tile[t].x);
         _R1Tile[t]=uint2(n,total); total+=n;
     }
+    // Degenerate K < tiles: the scatter bounds check drops whatever exceeds the budget.
     _R1Counts[2]=min(total,_R1K);
     _R1Counts[3]=_R1Counts[1]-min(total,_R1K);
 }

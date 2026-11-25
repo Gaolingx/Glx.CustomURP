@@ -29,6 +29,7 @@
 #pragma kernel R2Clear
 #pragma kernel R2Composite SSR_R2_COMPOSITE
 #pragma kernel R2CompositeCold SSR_R2_COLD
+#pragma kernel R2Temporal SSR_R2_TEMPORAL
 
 #pragma multi_compile _ SSR_APPROX
 #pragma multi_compile _ SSR_HALF_RES
@@ -67,6 +68,20 @@ SSGI_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
 #endif
 // Approximation output: rgb = radiance, a = blend weight.
 SSGI_RW_TEXTURE2D_FLOAT4(_SsrOutputTextureRW);
+
+// Hardware reflection fill: the resolved DXR radiance history at trace resolution. The temporal
+// kernel writes it, the composite point-expands it into the full resolution output.
+#if defined(SSR_R2_COMPOSITE) || defined(SSR_R2_COLD) || defined(SSR_R2_TEMPORAL)
+SSGI_TEXTURE2D_FLOAT4(_SsrHwHistory);
+#endif
+#if defined(SSR_R2_TEMPORAL)
+SSGI_RW_TEXTURE2D_FLOAT4(_SsrHwHistoryRW);
+// Previous frame depth/normals, captured with the color history at full resolution. The encoding
+// matches the current prepass, so the same decode is reused.
+SSGI_TEXTURE2D_FLOAT(_HistoryDepthTexture);
+SSGI_TEXTURE2D_FLOAT4(_HistoryNormalTexture);
+float _SsrHwHistoryValid;
+#endif
 
 // PBR reprojection output, consumed by the reflection denoiser.
 SSGI_RW_TEXTURE2D_FLOAT4(_SsrReprojectTextureRW);
@@ -291,16 +306,90 @@ void R2Composite(uint3 id : SV_DispatchThreadID)
 #if defined(SSR_R2_COMPOSITE)
     if (s > 0) ss = SsrSamplePreviousColor(SSGI_LOAD(_SsrHitPointTextureRW,coord),q.roughness,s);
 #endif
-    R2Hit hit = _R2Hits[slot];
-    bool resolved = (hit.flags & 2u) != 0 && hit.hitT >= q.tMin && hit.hitT <= q.tMax &&
-        all(isfinite(hit.radiance)) && all(hit.radiance >= 0);
-    // requestShare already equals (1-s)*r for a resolved request (roughness fade
-    // minus the SS share). Unserved, invalid and finite misses resolve nothing.
-    float hw = resolved ? min(1.0-s, q.requestShare) : 0;
+    // The temporal kernel already merged this frame's hits with the reused history; a weight of
+    // zero means the ray neither resolved now nor had a reusable previous result.
+    float4 hwSample = SSGI_LOAD(_SsrHwHistory, coord);
+    bool resolved = hwSample.a > 0.0 && all(isfinite(hwSample.rgb)) && all(hwSample.rgb >= 0.0);
+    // The stored share is clamped by this frame's roughness/edge fade so a material change cannot
+    // keep a stale coverage.
+    float hw = resolved ? min(min(1.0 - s, q.requestShare), hwSample.a) : 0;
     float a = s + hw;
     float3 sum = s * ss;
-    if (hw > 0) sum += hw * hit.radiance;
+    if (hw > 0) sum += hw * hwSample.rgb;
     SSGI_STORE(_SsrOutputTextureRW, id.xy, float4(a > 0 ? sum / a : float3(0,0,0), a));
+}
+#endif
+
+//--------------------------------------------------------------------------------------------------
+// Hardware fill temporal reuse (Approximation hybrid)
+//--------------------------------------------------------------------------------------------------
+// Runs at trace resolution between DispatchRays and the composite. Served samples publish their
+// resolved radiance; unserved samples reproject the previous result and reuse it only while the
+// receiver surface still matches. A served finite miss clears the pixel (the ray really found
+// nothing), and pixels outside the hybrid domain are cleared so a later re-entry starts fresh.
+#if defined(SSR_R2_TEMPORAL)
+[numthreads(8,8,1)]
+void R2Temporal(uint3 id : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(id.z);
+    if (any(id.xy >= (uint2)_SsrTraceSize.xy)) return;
+
+    uint slot = id.y * (uint)_SsrTraceSize.x + id.x;
+    R1Sample q = _R1Original[slot];
+    R2Hit hit = _R2Hits[slot];
+
+    float3 radiance = 0.0;
+    float weight = 0.0;
+
+    if (hit.flags != 0u)
+    {
+        bool resolved = (hit.flags & 2u) != 0u && hit.hitT >= q.tMin && hit.hitT <= q.tMax &&
+            all(isfinite(hit.radiance)) && all(hit.radiance >= 0.0);
+        if (resolved)
+        {
+            radiance = hit.radiance;
+            weight = min(1.0 - saturate(q.ssShare), q.requestShare);
+        }
+    }
+    else if (q.reason >= 2u && q.requestShare > 0.0 && _SsrHwHistoryValid > 0.5)
+    {
+        uint2 src = SsrGetFullResCoord(id.xy);
+        float depth = SSGI_LOAD(_SsrDepthTexture, src);
+        float4 n = SSGI_LOAD(_SsrNormalTexture, src);
+        float3 normal; float roughness;
+        if (isfinite(depth) && !SsgiIsBackgroundDepth(depth) && all(isfinite(n)) && n.a >= 0.825 &&
+            SsrDecodeMaterial(n, normal, roughness) && roughness <= _SsrRoughnessFadeEnd)
+        {
+            float2 motion = SSGI_LOAD(_SsrMotionTexture, src).xy;
+            float2 historyUv = SsgiGetPixelUv(src, _SsrScreenSize.zw) - motion;
+            float2 historyTap = historyUv * (float2)_SsrTraceSize.xy;
+            if (all(historyTap >= 0.0) && all(historyTap < (float2)_SsrTraceSize.xy))
+            {
+                float historyDepth = SSGI_SAMPLE_LOD(_HistoryDepthTexture, s_ssgi_linear_clamp_sampler, historyUv, 0);
+                float4 historyN = SSGI_SAMPLE_LOD(_HistoryNormalTexture, s_ssgi_point_clamp_sampler, historyUv, 0);
+                float3 historyNormal; float historyRoughness;
+                if (!SsgiIsBackgroundDepth(historyDepth) && historyN.a >= 0.825 &&
+                    SsrDecodeMaterial(historyN, historyNormal, historyRoughness) &&
+                    dot(normal, historyNormal) > 0.95 && abs(roughness - historyRoughness) < 0.02)
+                {
+                    float3 positionWS = SsrReconstructPositionWS((float2)src, depth);
+                    float3 historyWS = ComputeWorldSpacePosition(historyUv, historyDepth, SSL_PREV_INV_VIEW_PROJ);
+                    float maxRadius = max(0.002, 0.01 * distance(positionWS, SSL_SSR_CAMERA_POSITION_WS));
+                    if (distance(historyWS, positionWS) <= maxRadius)
+                    {
+                        float4 history = SSGI_LOAD(_SsrHwHistory, (uint2)historyTap);
+                        if (history.a > 0.0 && all(isfinite(history.rgb)) && all(history.rgb >= 0.0))
+                        {
+                            radiance = history.rgb;
+                            weight = history.a;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    SSGI_STORE(_SsrHwHistoryRW, id.xy, float4(radiance, weight));
 }
 #endif
 
