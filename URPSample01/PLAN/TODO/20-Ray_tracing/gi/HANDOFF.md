@@ -1,6 +1,6 @@
 # GI 子模块：动态更新 probe，只作 SSGI 的漫反射回退
 
-**状态：G1 CPU 数学与存储夹具 13/13 通过；G2 的 GPU 生产者已在 Win64 D3D12 Player 通过（只验收生产者：双缓冲发布、预算、classification/relocation、动态收敛）；G4 的默认开 relocation/classification 已在同一后端通过生产者侧夹具（消费者跳过/offset 由 G1 与 R3/G5 覆盖）；G5 的 1 跳反馈也已在同一后端通过生产者侧夹具（解析项、反射隔离、阶跃与衰减；材质合成 G3 与图像 ROI 未覆盖）；G3a/G3b 的材质合成已由真实 feature 在 Forward/ForwardPlus/Deferred 通过（共享 TLAS、常量场 ROI、coverage/SS 混合、体积外回 baked、D3D11 逐字节回退）；C7 已关闭（根因是构建期剥离与 GBuffer 缺关键词，见 G3b）。** [G2 证据](../validation/G2/evidence/Summary.json)、[G4 证据](../validation/G4/evidence/Summary.json)、[G5 证据](../validation/G5/evidence/Summary.json)。 [实际向量、分类计数与 FP16 读回](../validation/G1/Win64-D3D11/run-04/Tests.xml)覆盖常量与两色场、窗口天空、反馈、固定方向排除、八面接缝及邻居失效。G1 不启用 SSGI 或 DXR。 平台见[总计划](../HANDOFF.md)，数学与参考见[采样研究](report.md)，共享场景见[TLAS](../research/TLAS.md)，命中着色见[HitShading](../research/HitShading.md)。仅在高端 RT 配置、相机启用 SSGI 且选择动态回退时订阅共享场景；关闭扩展沿用原 rayMiss 设置，SSR 不依赖本模块。**SSGI 未启用时不引入独立 DDGI。**
+**状态：G1 CPU 数学与存储夹具 13/13 通过；G2 的 GPU 生产者已在 Win64 D3D12 Player 通过（只验收生产者：双缓冲发布、预算、classification/relocation、动态收敛）；G4 的默认开 relocation/classification 已在同一后端通过生产者侧夹具（消费者跳过/offset 由 G1 与 R3/G5 覆盖）；G5 的 1 跳反馈也已在同一后端通过生产者侧夹具（解析项、反射隔离、阶跃与衰减；材质合成 G3 与图像 ROI 未覆盖）；G3a/G3b 的材质合成已由真实 feature 在 Forward/ForwardPlus/Deferred 通过（共享 TLAS、常量场 ROI、coverage/SS 混合、体积外回 baked、D3D11 逐字节回退）；C7 已关闭（根因是构建期剥离与 GBuffer 缺关键词，见 G3b）；G3c 又由真实 feature 在同一房间签收三开关（off 1.2916 → classification/relocation 1.9189、4 个偏移≤0.45 且图像不变）、冻结 inactive tile 不被消费（暗阶跃剩 3.2%）、SSGI 同帧混合逐像素差 0、切镜首帧就绪且 probe state 不变、双相机 2 条独立历史、反馈固定点 2.5410/衰减 3.0%、6 cm 薄墙背面 1.9%。** [G2 证据](../validation/G2/evidence/Summary.json)、[G4 证据](../validation/G4/evidence/Summary.json)、[G5 证据](../validation/G5/evidence/Summary.json)。 [实际向量、分类计数与 FP16 读回](../validation/G1/Win64-D3D11/run-04/Tests.xml)覆盖常量与两色场、窗口天空、反馈、固定方向排除、八面接缝及邻居失效。G1 不启用 SSGI 或 DXR。 平台见[总计划](../HANDOFF.md)，数学与参考见[采样研究](report.md)，共享场景见[TLAS](../research/TLAS.md)，命中着色见[HitShading](../research/HitShading.md)。仅在高端 RT 配置、相机启用 SSGI 且选择动态回退时订阅共享场景；关闭扩展沿用原 rayMiss 设置，SSR 不依赖本模块。**SSGI 未启用时不引入独立 DDGI。**
 
 ## 两个不同生命周期
 
@@ -58,6 +58,16 @@ irradiance 八面体 atlas、距离矩 atlas、**probe data（offset + state）*
 - **数字**：[G3 证据](../validation/G3/evidence/Summary.json)（GUID `9fe964c7…`，base `464c769`）。常量辐射室下三种 renderer 的 `probe` ROI 均为 `1.9189`（解析 `1.9200`，相对误差 `0.0005`）、`probeHalf` `0.9595` 且逐像素恰为 0.5 倍、`probeBoth`（SSGI 1）仍 `1.9189`、体积外 `0`、冷启动首帧 `baked`；各 renderer 的 `off`/`offAgain` 全帧哈希同为 `b0ed9154…`，`probe` 同为 `a49947e1…`；40 帧 41 批（每场景帧 ≤1）、producer `950,376 B`、6 实例/1 订阅 `GI`、3 次构建；D3D11 为 `Backend`、0 批/0 字节，`probe` 与 `off` 逐字节相同（同一 `b0ed9154…`）。
 - **C7 关闭（Deferred）**：此前的「Deferred 整帧非黑 `0`」不是 deferred 光照不消费 SSL，而是构建期 URP 只按 quality/default pipeline 统计 shader features；夹具运行期才赋 pipeline，`Lit/GBuffer` 被剥成 0 变体，Lit 面根本没进 GBuffer。夹具构建时临时把夹具 pipeline 赋给全部 quality 级并在构建后恢复（`Lit/GBuffer` (fp) 剥离后剩 128 个变体）；同时 GBuffer pass 补 `_SCREEN_SPACE_GI_PROBE`（在写 GBuffer 时合成，deferred kernel 从不采样 SSL 纹理），`ClusteredDeferredPass` 改为绑定具体 RT（nameID 要等 `CompleteDeferredColorHandoff` 才注册，首帧会丢写）。修后 Deferred `off` 非黑 `446,576`，三种 renderer 图像逐字节一致。
 - **未覆盖**：feedback/relocation/classification 打开后的动态与重定位图像、薄墙、切镜、双相机屏幕历史、SS 能解析供体时的同帧接缝、GPU ms、非 Windows 构建的 `_SCREEN_SPACE_GI_PROBE` 变体剥离（I2）。
+
+## G3c 三开关/暗阶跃/混合/切镜/双相机/反馈/薄墙签收（Win64 D3D12，Forward/ForwardPlus/Deferred；真实集成）
+
+- **数字**：[G3c 证据](../validation/G3c/evidence/Summary.json)（GUID `b9e30703…`，base `5c6026e`）。场景 A 沿用常量辐射室，墙 `_BaseColor` 0.537 sRGB = 线性 0.25（`_BaseColor` 按 sRGB 存储，与 G5 一致），接收面 `(0,2,3)`；cell 前层 4 个 probe 被「外层 emission 2 + 内层黑」双盒包住，盒子放在相机 culled layer 但仍在 TLAS 中，因此暗 tiles 可被消费而接收面不被遮挡。`off`（三开关全关）`1.2916`；`classification` `1.9189`（相对误差 `0.0005`、60 个 inactive、图像哈希 `75af8afb…` 与 `off` 的 `a6e5bc35…` 不同）；`relocation` 仍 `1.9189` 且与 classification 逐字节相同，4 个 probe 偏移、最大 `0.45`（B0 上限）。
+- **冻结 tile 不被消费**：拆盒冷启动后把墙换成不发光，192 帧 ROI `0.0606`（`3.2%`）；此时 inactive tile 仍存 `6.281`（E=2π）、active 降到 `0.198`，即 inactive/probe 跳过语义在图像上成立，不留旧能量。
+- **同帧混合**：强度 1 的 `both` 仍 `1.9189`，ROI 逐像素最大差 `0.0000`，`ssgiProduced=true`；D3D11 对照同房间只有 SSGI 时 `0.96`，即 SS 的 unpremultiplied radiance 2、权重约 0.5，与 probe 的 `E/π=2` 相同，接缝为 0。
+- **切镜/双相机**：传送后首帧 `1.918`、稳定 `1.9189`，probe state/offset 哈希不变、生产继续；双相机 2 条独立屏幕历史、两机同为 `1.9189`、每帧 ≤1 批。
+- **反馈**：固定点 `2.5410`（解析 `2.5600`，相对误差 `0.0074`），图集 active tile `8.315`（对照 `6.281`）；变暗后 256 帧剩 `3.0%`。**薄墙**：6 cm 隔板两室，亮面 `0.9104`、背面 `0.0173`（`1.9%`）。
+- **实现**：`RayTracingProbeFallback` 每帧比较设置派生的 config，变化时替换生产者——此前 feedback/relocation/classification 只在构造时被捕获，运行期改开关会被静默忽略；新增 `ReadProbeData`/`ReadProbe` 只读验证钩子。
+- **未覆盖**：SS 只覆盖部分屏幕（供体部分出屏）时的接缝、带屏内供体的切镜残影、GPU ms、非 Windows 变体剥离（I2）；R3 的 SSR-only 图像夹具未用本构建复跑。
 
 ## 实现落点与维护
 
