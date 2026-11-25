@@ -18,6 +18,20 @@ namespace UnityEngine.Rendering.Universal
 
         internal int count => countX * countY * countZ;
 
+        // The producer captures the config at construction, so a settings change has to replace it.
+        internal bool Matches(in RayTracingProbeConfig other)
+        {
+            return origin == other.origin && spacing == other.spacing &&
+                countX == other.countX && countY == other.countY && countZ == other.countZ &&
+                budget == other.budget && raysPerProbe == other.raysPerProbe &&
+                feedback == other.feedback && relocation == other.relocation &&
+                classification == other.classification && freezeDirections == other.freezeDirections &&
+                previousWeight == other.previousWeight && relocationLimit == other.relocationLimit &&
+                minFrontDistance == other.minFrontDistance &&
+                insideBackfaceFraction == other.insideBackfaceFraction && momentCap == other.momentCap &&
+                feedbackAlbedoCap == other.feedbackAlbedoCap && tMin == other.tMin && tMax == other.tMax;
+        }
+
         internal static RayTracingProbeConfig Default => new RayTracingProbeConfig
         {
             origin = new Vector3(-3.5f, 0.5f, -3.5f), spacing = 1f,

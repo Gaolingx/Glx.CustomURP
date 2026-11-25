@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         readonly List<RayTracingMember> m_Members = new List<RayTracingMember>();
         readonly HashSet<uint> m_Ids = new HashSet<uint>();
         RayTracingProbeUpdate m_Producer;
+        RayTracingProbeConfig m_Config;
         int m_SceneHandle;
         bool m_Requested, m_Active, m_Disposed;
 
@@ -29,6 +30,19 @@ namespace UnityEngine.Rendering.Universal
         internal int generation => m_Producer != null ? m_Producer.generation : 0;
         internal bool producerAllocated => m_Producer != null && m_Producer.allocated;
         internal long producerBytes => m_Producer != null ? m_Producer.residentBytes : 0;
+        internal RayTracingProbeConfig config => m_Config;
+
+        // Validation hooks: read the published probe data of the integrated producer (not a fixture
+        // copy) so an image check can be tied to the exact state the material sampled.
+        internal Vector4[] ReadProbeData() =>
+            m_Producer != null ? m_Producer.ReadProbeData() : System.Array.Empty<Vector4>();
+
+        internal void ReadProbe(int probe, Vector4[] irradiance, Vector4[] distance, out uint published,
+            out uint state)
+        {
+            if (m_Producer != null) m_Producer.ReadProbe(probe, irradiance, distance, out published, out state);
+            else { published = 0; state = 0; }
+        }
 
         internal static bool Eligible(in CameraData camera, ScreenSpaceLightingSettings settings,
             ScreenSpaceGlobalIllumination ssgi)
@@ -82,9 +96,22 @@ namespace UnityEngine.Rendering.Universal
                 return false;
             }
 
+            // Compare the requested config, not the clamped copy the producer keeps, so an
+            // out-of-range setting cannot rebuild the atlas every frame.
+            var requested = BuildConfig();
             if (m_Producer == null)
-                m_Producer = new RayTracingProbeUpdate(BuildConfig(), m_Settings.resources.rayTracingGi,
+                m_Producer = new RayTracingProbeUpdate(requested, m_Settings.resources.rayTracingGi,
                     m_Settings.resources.giProbeUpdateCompute);
+            else if (!m_Config.Matches(requested))
+            {
+                // An explicit toggle change must reach the producer: it captured relocation,
+                // classification and feedback at construction, so a changed config is a cold restart
+                // of the atlas rather than a silently ignored switch.
+                ReleaseProducer();
+                m_Producer = new RayTracingProbeUpdate(requested, m_Settings.resources.rayTracingGi,
+                    m_Settings.resources.giProbeUpdateCompute);
+            }
+            m_Config = requested;
 
             Request(true);
             m_Producer.TryUpdate(Time.frameCount, camera, m_Scene, witness, revision, ~0, m_Members, out _);
