@@ -34,6 +34,11 @@ namespace UnityEngine.Rendering.Universal
         RayTracingSceneResources m_Scene;
         RayTracingAccelerationStructure m_Snapshot;
         static readonly ProfilingSampler s_HybridComposite = new ProfilingSampler("SSR DXR Composite");
+        // I2 timing hook: reproject/upsample/composite after the hardware trace, plus the pass
+        // sampler that contains both trace and reconstruction.
+        static readonly ProfilingSampler s_Reconstruction = new ProfilingSampler("SSR Reconstruction");
+        internal static ProfilingSampler passSampler => s_ProfilingSampler;
+        internal static ProfilingSampler reconstructionSampler => s_Reconstruction;
         bool m_LoggedHybridFailure;
 
         internal void SetHybrid(SsrRequestQueue queue, RayTracingSceneResources scene, RayTracingAccelerationStructure snapshot)
@@ -307,7 +312,8 @@ namespace UnityEngine.Rendering.Universal
                         screenWidth, screenHeight, traceWidth, traceHeight, false));
                     if (TryTrace(cmd, cs, depthTexture, normalTexture, null, null, traceWidth, traceHeight))
                     {
-                        Composite(cmd, cs, depthTexture, normalTexture, null, true, screenWidth, screenHeight);
+                        using (new ProfilingScope(cmd, s_Reconstruction))
+                            Composite(cmd, cs, depthTexture, normalTexture, null, true, screenWidth, screenHeight);
                         m_OutputTexture = m_History.ssrOutput;
                         m_ProducedOutput = true;
                     }
@@ -488,6 +494,8 @@ namespace UnityEngine.Rendering.Universal
             bool traced = !pbr && halfResolution && TryTrace(cmd, compute, depthTexture, normalTexture,
                 motionTexture, m_History.ssrHitPoint, traceWidth, traceHeight);
 
+            using (new ProfilingScope(cmd, s_Reconstruction))
+            {
             var reprojectKernel = compute.FindKernel("ScreenSpaceReflectionsReprojection");
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,
                 pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint);
@@ -546,6 +554,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (traced) Composite(cmd, compute, depthTexture, normalTexture, motionTexture, false, screenWidth, screenHeight);
+            }
         }
 
         // The reflection denoiser reuses the geometry helpers of the SSGI temporal filter, so it reads

@@ -137,6 +137,12 @@ namespace UnityEngine.Rendering.Universal
         internal bool allocated => m_Allocated;
         internal ComputeBuffer counters => m_Counters;
         internal static ProfilingSampler batchSampler => s_BatchSampler;
+        // I2 timing hooks: the batch split into trace/resolve and the relocation/classification
+        // maintenance pair, each recorded only when the sampler is enabled.
+        static readonly ProfilingSampler s_TraceUpdateSampler = new ProfilingSampler("G2 Probe Trace And Update");
+        static readonly ProfilingSampler s_MaintainSampler = new ProfilingSampler("G2 Relocate Classify");
+        internal static ProfilingSampler traceUpdateSampler => s_TraceUpdateSampler;
+        internal static ProfilingSampler maintainSampler => s_MaintainSampler;
         internal long residentBytes { get; private set; }
         internal int probeCount => m_Config.count;
         internal uint[] lastBatch => m_BatchIndices;
@@ -190,6 +196,8 @@ namespace UnityEngine.Rendering.Universal
             Configure();
             var cs = m_Update;
 
+            using (new ProfilingScope(cmd, s_TraceUpdateSampler))
+            {
             int copy = cs.FindKernel("ProbeCopyState");
             BindCopyState(cmd, copy, publish, write);
             int probeGroups = (m_Config.count + 63) / 64;
@@ -223,7 +231,10 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(cs, distance, s_DistWrite, m_Dist[write]);
             cmd.SetComputeTextureParam(cs, distance, s_DistPrev, m_Dist[publish]);
             cmd.DispatchCompute(cs, distance, 1, 1, m_Config.budget);
+            }
 
+            using (new ProfilingScope(cmd, s_MaintainSampler))
+            {
             int maintain = cs.FindKernel("ProbeMaintain");
             BindMaintain(cmd, maintain, publish);
             cmd.DispatchCompute(cs, maintain, (m_Config.budget + 63) / 64, 1, 1);
@@ -231,6 +242,7 @@ namespace UnityEngine.Rendering.Universal
             int masks = cs.FindKernel("ProbePublishMask");
             BindMasks(cmd, masks, publish);
             cmd.DispatchCompute(cs, masks, (m_Config.budget + 63) / 64, 1, 1);
+            }
 
             m_Publish = write;
             }

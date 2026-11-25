@@ -11,7 +11,10 @@ namespace UnityEngine.Rendering.Universal
         internal ComputeBuffer originals, requests, counters;
         internal ComputeBuffer hits;
         ComputeBuffer tiles;
+        internal long residentBytes => Bytes(originals) + Bytes(tiles) + Bytes(requests) + Bytes(counters) + Bytes(hits);
+        static long Bytes(ComputeBuffer buffer) => buffer == null ? 0 : buffer.count * (long)buffer.stride;
         static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSR DXR Trace and Shade");
+        internal static ProfilingSampler traceSampler => s_Trace;
         static readonly int s_Scene = Shader.PropertyToID("_GlxScene");
         static readonly int s_K = Shader.PropertyToID("_R2K");
         static readonly int s_Hits = Shader.PropertyToID("_R2Hits");

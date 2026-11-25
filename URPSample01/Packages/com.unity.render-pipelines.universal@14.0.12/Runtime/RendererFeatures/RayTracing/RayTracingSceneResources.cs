@@ -86,6 +86,12 @@ namespace UnityEngine.Rendering.Universal
         bool m_Built;
         int m_BuiltRevision;
         internal int buildCount { get; private set; }
+        // I2 timing hooks: one GPU marker on the build command buffer and the main-thread submit
+        // wall time of the same build. Recording is opt-in (ProfilingSampler.enableRecording).
+        static readonly ProfilingSampler s_BuildSampler = new ProfilingSampler("RT TLAS Build");
+        internal static ProfilingSampler buildSampler => s_BuildSampler;
+        internal double lastBuildCpuMs { get; private set; }
+        internal int lastBuildFrame { get; private set; } = int.MinValue;
 
         // The owner maintains a complete explicit registration set and advances revision for
         // geometry/membership/filter changes, not camera or lighting changes. No scene searches.
@@ -107,8 +113,13 @@ namespace UnityEngine.Rendering.Universal
                         var cmd = CommandBufferPool.Get("T2 Build scene RTAS");
                         try
                         {
-                            cmd.BuildRayTracingAccelerationStructure(native);
+                            using (new ProfilingScope(cmd, s_BuildSampler))
+                                cmd.BuildRayTracingAccelerationStructure(native);
+                            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                             Graphics.ExecuteCommandBuffer(cmd);
+                            stopwatch.Stop();
+                            lastBuildCpuMs = stopwatch.Elapsed.TotalMilliseconds;
+                            lastBuildFrame = Time.frameCount;
                             ++buildCount;
                         }
                         finally { CommandBufferPool.Release(cmd); }
