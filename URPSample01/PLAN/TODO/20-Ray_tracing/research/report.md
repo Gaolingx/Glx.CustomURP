@@ -1,6 +1,6 @@
 # 20-Ray_tracing 调研报告：Hybrid GI/Reflection、Surface Cache 与无缓存 Recipe
 
-**状态：调研与设计，未实现、未做 GPU 测量。** 源码快照：Unity `2022.3.62f1`、内嵌 URP `14.0.12`、HDRP `14.0.12`、参考仓库 `E:/workspace/GitHub/RTXGI-DDGI-URP`。行号只对当前快照有效，升级后按符号重查。命中着色方法见 [HitShading](HitShading.md)。
+**状态：调研与设计；Windows D3D12/D3D11 已实现并由 T/G/R/I1/I2 验证；主机与 RTAS 精确显存未测。** 源码快照：Unity `2022.3.62f1`、内嵌 URP `14.0.12`、HDRP `14.0.12`、参考仓库 `E:/workspace/GitHub/RTXGI-DDGI-URP`。行号只对当前快照有效，升级后按符号重查。命中着色方法见 [HitShading](HitShading.md)。
 
 本报告把可行性核查、HDRP/URP 源码研究、Lumen/SHaRC 对照、无 Surface Cache recipe、探针回退与验收口径集中到一处；模块级实施细节仍以 [HANDOFF](../HANDOFF.md)、[TLAS](TLAS.md)、[SSR-DXR](SSR-DXR.md)、[GI HANDOFF](../gi/HANDOFF.md)、[GI 研究](../gi/report.md) 为准。
 
@@ -17,7 +17,7 @@
 7. **命中着色分三级**：H-A（v1，Fat CHS + per-material pass：完整 SurfaceData + AHS + 灯表/阴影）、H-B（v1.5 候选，Thin CHS + 共享材质表）、H-C（v2 候选，完整 Surface Cache）。v1 只承诺 H-A；全材质不需要 bindless/顶点池/atlas，但每材质 pass/variant 仍在。
 8. **probe 是辐照度缓存，不是 Surface Cache**：它只补 SSGI 的屏幕外低频漫反射；SSR 的光滑反射仍需 hit lighting。GI 的 G1–G5 不受 SSR 的 H-A/H-B/H-C 选择影响；反馈只读上一帧 atlas 一次，不递归追射线。
 9. **压缩/TMin 续传是 v2 性能实验**：Unity 2022.3 没有 RT 间接派发，固定 K + GPU 早退是 v1；压缩、上一帧 N 估计 K、TMin 续传只在 R2b 里用隐藏遮挡物验证，不阻塞 v1。
-10. **性能与主机未验证**：尚未做 GPU 测量；B0 先冻结光线/毫秒/显存/灯数/阴影/payload/variant 预算，T3/T3b/T4 先证真实 Build/bind/DispatchRays、材质 pass/AHS 与灯表，再谈 I2 通过。
+10. **性能（Windows）已由 I2 测量，主机未验证**：`ProfilingSampler.gpuElapsedTime` 需显式 `enableRecording` + Profiler GPU area 才有样本；I2 在 1080p B0 工作负载上测得 RT GPU 增量、CPU TLAS submit、probe、relocate/classify、SSR trace/reconstruction 的分项 P95，全部低于 B0 冻结门槛；`FrameTimingManager` 全帧 GPU 在本机不可用，RT 增量用不重叠 scope 求和。主机按目标单独构建、真机测量与批准，PC 成绩不默认开启。
 
 ## 1. 平台、API 与项目边界
 
