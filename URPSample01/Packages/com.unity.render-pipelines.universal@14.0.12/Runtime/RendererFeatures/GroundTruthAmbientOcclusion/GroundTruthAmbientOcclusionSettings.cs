@@ -6,7 +6,6 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     internal sealed class GroundTruthAmbientOcclusionSettings
     {
-        [Header("Quality")]
         [SerializeField]
         [Tooltip("Runs the horizon search at full resolution. Higher quality and cost than the default half resolution.")]
         internal bool fullResolution;
@@ -26,7 +25,6 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Maximum horizon search radius in pixels at 1080p. Scaled with the render resolution.")]
         internal int maximumRadiusInPixels = 40;
 
-        [Header("Appearance")]
         [SerializeField]
         [Range(0f, 4f)]
         [Tooltip("Occlusion strength. Zero disables the effect and leaves the image unchanged.")]
@@ -42,7 +40,6 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("How much the ambient occlusion also darkens direct lighting.")]
         internal float directLightingStrength;
 
-        [Header("Denoise")]
         [SerializeField]
         [Tooltip("Accumulates the AO over multiple frames using motion vectors. Falls back to the spatial result when disabled.")]
         internal bool temporalAccumulation = true;
@@ -66,7 +63,6 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Uses a bilateral filter when upsampling the temporally accumulated half resolution result. Disable for a cheaper box filter. Without temporal accumulation the smart blur kernel always upsamples bilaterally.")]
         internal bool bilateralUpsample = true;
 
-        [Header("History")]
         [SerializeField]
         [Range(1, 64)]
         [Tooltip("Maximum number of cameras whose AO history is kept before the least recently used entry is released.")]
@@ -77,7 +73,6 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Number of frames an idle camera may keep its AO history before it is released. Zero releases idle cameras immediately.")]
         internal int maxUnusedFrames = 120;
 
-        [Header("Debug")]
         [SerializeField]
         [Tooltip("Intermediate resource view. Off leaves the final image unchanged.")]
         internal GroundTruthAmbientOcclusionDebugMode debugMode = GroundTruthAmbientOcclusionDebugMode.Off;

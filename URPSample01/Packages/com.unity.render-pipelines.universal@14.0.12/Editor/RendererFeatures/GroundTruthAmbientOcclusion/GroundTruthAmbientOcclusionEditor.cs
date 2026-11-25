@@ -13,17 +13,9 @@ namespace UnityEditor.Rendering.Universal
             var settings = feature.settings;
 
             EditorGUILayout.HelpBox(
-                "Ground Truth Ambient Occlusion consumes the URP DepthNormals prepass and the built-in early " +
-                "motion vectors. Preview, reflection and overlay cameras are skipped. It uses the packed depth " +
-                "pyramid shared with Screen Space Lighting and owns its own AO history, so it runs independently " +
-                "on the same renderer. It is the renderer's only ambient occlusion producer.\n\n" +
-                "In the Editor, cameras without a UniversalAdditionalCameraData (Scene View included) receive " +
-                "camera-only motion vectors from the shared screen-space motion pass so temporal accumulation " +
-                "follows the camera. Object motion still comes from URP and is not supplemented for those cameras.\n\n" +
-                "Normal coverage: every opaque shader in the scene must render into the DepthNormals prepass. " +
-                "A custom shader without a DepthNormals pass leaves zero normals in the texture, and those " +
-                "pixels receive no ambient occlusion. Deferred rendering requires Accurate G-buffer Normals " +
-                "to provide octahedron-encoded normals for this feature.",
+                "Requires the DepthNormals prepass and motion vectors. Preview, reflection and overlay " +
+                "cameras are skipped. Opaque shaders without a DepthNormals pass receive no AO, and " +
+                "Deferred rendering needs Accurate G-buffer Normals.",
                 MessageType.Info);
 
             if (settings != null && !settings.resources.isComplete)
@@ -40,9 +32,61 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            EditorGUI.BeginChangeCheck();
-            base.OnInspectorGUI();
-            if (EditorGUI.EndChangeCheck())
+            serializedObject.Update();
+            var settingsProperty = serializedObject.FindProperty("m_Settings");
+
+            if (ScreenSpaceFeatureInspector.Foldout(feature, "Settings", true))
+            {
+                EditorGUI.indentLevel++;
+
+                if (ScreenSpaceFeatureInspector.Foldout(feature, "Quality"))
+                {
+                    EditorGUI.indentLevel++;
+                    ScreenSpaceFeatureInspector.DrawProperties(settingsProperty,
+                        "fullResolution", "stepCount", "directionCount", "maximumRadiusInPixels");
+                    EditorGUI.indentLevel--;
+                }
+
+                if (ScreenSpaceFeatureInspector.Foldout(feature, "Appearance"))
+                {
+                    EditorGUI.indentLevel++;
+                    ScreenSpaceFeatureInspector.DrawProperties(settingsProperty,
+                        "intensity", "radius", "directLightingStrength");
+                    EditorGUI.indentLevel--;
+                }
+
+                if (ScreenSpaceFeatureInspector.Foldout(feature, "Denoise"))
+                {
+                    EditorGUI.indentLevel++;
+                    ScreenSpaceFeatureInspector.DrawProperties(settingsProperty,
+                        "temporalAccumulation", "ghostingReduction", "blurSharpness",
+                        "spatialBilateralAggressiveness", "bilateralUpsample");
+                    EditorGUI.indentLevel--;
+                }
+
+                ScreenSpaceFeatureInspector.HistoryFoldout(feature, settingsProperty);
+
+                if (ScreenSpaceFeatureInspector.Foldout(feature, "Debug"))
+                {
+                    EditorGUI.indentLevel++;
+                    ScreenSpaceFeatureInspector.DrawProperties(settingsProperty, "debugMode", "debugMip");
+                    EditorGUI.indentLevel--;
+                }
+
+                EditorGUI.indentLevel--;
+            }
+
+            if (ScreenSpaceFeatureInspector.Foldout(feature, "Resources", true))
+            {
+                EditorGUI.indentLevel++;
+                ScreenSpaceFeatureInspector.DrawProperties(
+                    settingsProperty.FindPropertyRelative("resources"),
+                    "gtaoCompute", "spatialDenoiseCompute", "temporalDenoiseCompute", "copyHistoryCompute",
+                    "blurAndUpsampleCompute", "depthPyramidCompute", "debugShader");
+                EditorGUI.indentLevel--;
+            }
+
+            if (serializedObject.ApplyModifiedProperties())
                 EditorUtility.SetDirty(feature);
         }
     }

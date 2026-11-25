@@ -14,22 +14,40 @@ namespace UnityEditor.Rendering.Universal
             serializedObject.Update();
             var resources = serializedObject.FindProperty("m_Resources");
             var settings = serializedObject.FindProperty("m_Settings");
-            var mode = settings.FindPropertyRelative("debugMode");
-            EditorGUILayout.PropertyField(mode);
-            if (mode.intValue == (int)ContactShadowDebugMode.Slot)
-                EditorGUILayout.PropertyField(settings.FindPropertyRelative("debugSlot"));
-            if (mode.intValue != (int)ContactShadowDebugMode.Off)
-                EditorGUILayout.HelpBox("Mask shows any occluded light; Fade shows the fade byte; Slot isolates one light bit. Raw maps the three mask bytes to RGB (lowest first) and fade to alpha, before post-processing.", MessageType.Info);
-            EditorGUILayout.PropertyField(settings.FindPropertyRelative("maxCachedCameras"));
-            EditorGUILayout.PropertyField(settings.FindPropertyRelative("maxUnusedFrames"));
 
-            EditorGUILayout.LabelField("Resources", EditorStyles.boldLabel);
+            if (ScreenSpaceFeatureInspector.Foldout(target, "Settings", true))
+            {
+                EditorGUI.indentLevel++;
+
+                ScreenSpaceFeatureInspector.HistoryFoldout(target, settings);
+
+                if (ScreenSpaceFeatureInspector.Foldout(target, "Debug"))
+                {
+                    EditorGUI.indentLevel++;
+                    var mode = settings.FindPropertyRelative("debugMode");
+                    EditorGUILayout.PropertyField(mode);
+                    if (mode.intValue == (int)ContactShadowDebugMode.Slot)
+                        EditorGUILayout.PropertyField(settings.FindPropertyRelative("debugSlot"));
+                    if (mode.intValue != (int)ContactShadowDebugMode.Off)
+                        EditorGUILayout.HelpBox("Mask shows any occluded light; Fade shows the fade byte; Slot isolates one light bit. Raw maps the three mask bytes to RGB (lowest first) and fade to alpha, before post-processing.", MessageType.Info);
+                    EditorGUI.indentLevel--;
+                }
+
+                EditorGUI.indentLevel--;
+            }
+
             var depth = resources.FindPropertyRelative("depthPyramidCompute");
             var contact = resources.FindPropertyRelative("contactShadowsCompute");
             var debug = resources.FindPropertyRelative("debugShader");
-            EditorGUILayout.PropertyField(depth);
-            EditorGUILayout.PropertyField(contact);
-            EditorGUILayout.PropertyField(debug);
+            if (ScreenSpaceFeatureInspector.Foldout(target, "Resources", true))
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(depth);
+                EditorGUILayout.PropertyField(contact);
+                EditorGUILayout.PropertyField(debug);
+                EditorGUI.indentLevel--;
+            }
+
             serializedObject.ApplyModifiedProperties();
             var depthShader = depth.objectReferenceValue as ComputeShader;
             var contactShader = contact.objectReferenceValue as ComputeShader;
