@@ -188,7 +188,7 @@ public sealed class G5Player : MonoBehaviour
     bool BuildScene()
     {
         if (!Collect()) return false;
-        return scene.TryBuild(view, true, true, trace, witness, lastRevision, ~0, Demand, members, out snapshot);
+        return scene.TryBuild(view, true, trace, witness, lastRevision, ~0, Demand, members, out snapshot);
     }
 
     Texture2D ConstantIrr(float e)
@@ -403,9 +403,9 @@ public sealed class G5Player : MonoBehaviour
             // The D3D11 shader build strips the GlxDXR pass, so Collect may report no witness;
             // the gate must deny on the backend before any material or pass is considered.
             Collect();
-            report.denial = RayTracingSceneGate.Capture(view, true, true, trace, witness).Evaluate(Demand).ToString();
-            Check(report.denial == "Backend", "D3D11 gate decision changed");
-            Check(!scene.TryBuild(view, true, true, trace, witness, lastRevision, ~0, Demand, members, out snapshot),
+            report.denial = RayTracingSceneGate.Capture(view, true, trace, witness).Evaluate(Demand).ToString();
+            Check(report.denial == "RayTracingUnsupported", "D3D11 gate decision changed");
+            Check(!scene.TryBuild(view, true, trace, witness, lastRevision, ~0, Demand, members, out snapshot),
                 "D3D11 allocated a ray tracing scene");
             Check(scene.liveResources == 0 && scene.buildCount == 0, "D3D11 built RT resources");
             report.passed = true;

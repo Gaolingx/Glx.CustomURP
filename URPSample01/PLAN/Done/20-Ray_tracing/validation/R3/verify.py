@@ -17,7 +17,7 @@ d11, d12 = load('D3D11/Report.json'), load('D3D12/Report.json')
 summary = {'api': {}}
 if d11:
     check(d11.get('passed') is True, 'D3D11: fixture did not pass')
-    check(d11.get('denial') == 'Backend', 'D3D11: gate did not deny with Backend')
+    check(d11.get('denial') == 'RayTracingUnsupported', 'D3D11: gate did not deny with RayTracingUnsupported')
     check(d11.get('buildCount', -1) == 0, 'D3D11: RTAS was built')
     check(not d11.get('error'), f"D3D11 error: {d11.get('error')}")
     summary['api']['D3D11'] = {'denial': d11.get('denial'), 'buildCount': d11.get('buildCount')}

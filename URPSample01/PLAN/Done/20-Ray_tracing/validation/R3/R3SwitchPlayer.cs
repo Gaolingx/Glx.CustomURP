@@ -45,8 +45,7 @@ public sealed class R3SwitchPlayer : MonoBehaviour
         public int members, workflow, dxrPass, queue;
         public bool passEnabled;
         public string decision;
-        public bool gAsset, gHigh, gWin64, gRt, gCompute, gFormats, gCamera, gXr, gShader;
-        public string gBackend;
+        public bool gAsset, gRt, gCompute, gFormats, gCamera, gXr, gShader;
         public List<Shot> shots = new List<Shot>();
     }
 
@@ -162,14 +161,13 @@ public sealed class R3SwitchPlayer : MonoBehaviour
             report.passEnabled = witness.GetShaderPassEnabled("GlxDXR");
             report.queue = witness.renderQueue;
         }
-        report.decision = scene.Prepare(view, true, true, ray, witness, revision, ~0, Demand).ToString();
-        var gate = RayTracingSceneGate.Capture(view, true, true, ray, witness);
-        report.gAsset = gate.assetEnabled; report.gHigh = gate.highQuality; report.gWin64 = gate.windows64;
+        report.decision = scene.Prepare(view, true, ray, witness, revision, ~0, Demand).ToString();
+        var gate = RayTracingSceneGate.Capture(view, true, ray, witness);
+        report.gAsset = gate.assetEnabled;
         report.gRt = gate.supportsRayTracing; report.gCompute = gate.compute; report.gFormats = gate.formats;
         report.gCamera = gate.validCamera; report.gXr = gate.xr; report.gShader = gate.shaderAndPass;
-        report.gBackend = gate.backend.ToString();
         if (witness == null) return false;
-        return scene.TryBuild(view, true, true, ray, witness, revision, ~0, Demand, members, out snapshot);
+        return scene.TryBuild(view, true, ray, witness, revision, ~0, Demand, members, out snapshot);
     }
 
     Texture2D ConstantIrr(float e)
@@ -287,8 +285,8 @@ public sealed class R3SwitchPlayer : MonoBehaviour
         if (report.api == "Direct3D11")
         {
             var witness = target;
-            report.denial = RayTracingSceneGate.Capture(view, true, true, ray, witness).Evaluate(Demand).ToString();
-            Check(report.denial == "Backend", "D3D11 gate decision changed");
+            report.denial = RayTracingSceneGate.Capture(view, true, ray, witness).Evaluate(Demand).ToString();
+            Check(report.denial == "RayTracingUnsupported", "D3D11 gate decision changed");
             Check(!BuildScene() && scene.liveResources == 0 && scene.buildCount == 0, "D3D11 allocated RT resources");
             report.passed = true;
             yield break;

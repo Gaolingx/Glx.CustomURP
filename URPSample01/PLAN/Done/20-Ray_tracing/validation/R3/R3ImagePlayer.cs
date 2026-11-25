@@ -145,7 +145,7 @@ public sealed class R3ImagePlayer : MonoBehaviour
         Gate(!report.giProducerAllocated && !report.giAtlasAllocated, "SSR-only started a GI producer");
         if (report.api == "Direct3D11")
         {
-            Gate(report.denial == "Backend", "D3D11 gate decision changed");
+            Gate(report.denial == "RayTracingUnsupported", "D3D11 gate decision changed");
             Gate(report.sceneBuilds == 0 && report.sceneInstances == 0 && report.subscribers == 0,
                 "D3D11 allocated RT resources");
         }
@@ -831,7 +831,7 @@ public sealed class R3ImagePlayer : MonoBehaviour
         {
             camera = view, cameraType = CameraType.Game, renderType = CameraRenderType.Base,
             cameraTargetDescriptor = new RenderTextureDescriptor(Width, Height)
-        }, true, true, rayShader, donor).Evaluate(RayTracingRequests.Reflections).ToString();
+        }, true, rayShader, donor).Evaluate(RayTracingRequests.Reflections).ToString();
     }
 
     static object Cameras(ScreenSpaceLightingRendererFeature feature) =>

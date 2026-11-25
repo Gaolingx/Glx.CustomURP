@@ -36,7 +36,7 @@ def near(value, expected, tol):
 def gate_d3d11(rep):
     require(not rep['supportsRayTracing'], 'D3D11 DXR support')
     for s in rep['stages']:
-        require(s['gate'] == 'Backend', f"D3D11/{s['stage']}/{s['renderer']} gate {s['gate']}")
+        require(s['gate'] == 'RayTracingUnsupported', f"D3D11/{s['stage']}/{s['renderer']} gate {s['gate']}")
         require(s['updates'] == 0, f"D3D11/{s['stage']}/{s['renderer']} probe dispatch")
         require(s['producerAllocated'] is False, f"D3D11/{s['stage']}/{s['renderer']} producer allocation")
         require(s['instances'] == 0 and s['builds'] == 0, f"D3D11/{s['stage']}/{s['renderer']} RT scene")

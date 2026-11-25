@@ -178,7 +178,7 @@ def gate(rep, key, errs):
     require(rep['giProducerAllocated'] is False and rep['giAtlasAllocated'] is False, f'{key} GI producer')
     require(rep['offNonBlack'] > 1000, f'{key} RT-off blank')
     if key == 'D3D11':
-        require(rep['denial'] == 'Backend', 'D3D11 gate decision')
+        require(rep['denial'] == 'RayTracingUnsupported', 'D3D11 gate decision')
         require(rep['sceneBuilds'] == 0 and rep['sceneInstances'] == 0 and rep['subscribers'] == 0,
                 'D3D11 allocated RT resources')
     else:

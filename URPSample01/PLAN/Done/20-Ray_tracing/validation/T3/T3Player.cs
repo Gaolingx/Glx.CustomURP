@@ -200,11 +200,11 @@ public sealed class T3Player : MonoBehaviour
             service.SetRequests(Demand);
             RayTracingAccelerationStructure snapshot = null;
             int revision = 1;
-            bool BuildScene(bool enabled) => service.TryBuild(view, enabled, true, ray, white.sharedMaterial,
+            bool BuildScene(bool enabled) => service.TryBuild(view, enabled, ray, white.sharedMaterial,
                 revision, 1 << Layer, Demand, members, out snapshot);
             void Denied(string name, bool enabled, RayTracingDecision expected)
             {
-                var decision = RayTracingSceneGate.Capture(view, enabled, true, ray, white.sharedMaterial).Evaluate(Demand);
+                var decision = RayTracingSceneGate.Capture(view, enabled, ray, white.sharedMaterial).Evaluate(Demand);
                 bool accepted = BuildScene(enabled);
                 report.gates.Add(new GateResult { name = name, decision = decision.ToString(), accepted = accepted,
                     hasSnapshot = snapshot != null, builds = service.buildCount, liveResources = service.liveResources,
@@ -213,10 +213,10 @@ public sealed class T3Player : MonoBehaviour
                     service.instanceCount == 0 && report.buffersAllocated == 0 && report.submittedDispatches == 0, name);
             }
             Denied("Disabled", false, RayTracingDecision.Off);
-            if (report.api == "Direct3D11") { Denied("D3D11 opt-in", true, RayTracingDecision.Backend); return; }
+            if (report.api == "Direct3D11") { Denied("D3D11 opt-in", true, RayTracingDecision.RayTracingUnsupported); return; }
 
             Check(BuildScene(true) && snapshot != null && service.buildCount == 1 && service.liveResources == 1,
-                "Opt-in build failed: " + RayTracingSceneGate.Capture(view, true, true, ray, white.sharedMaterial).Evaluate(Demand));
+                "Opt-in build failed: " + RayTracingSceneGate.Capture(view, true, ray, white.sharedMaterial).Evaluate(Demand));
             report.instancesWithBlocker = service.instanceCount;
             Check(report.instancesWithBlocker == members.Count, "Missing fixture instance");
             Check(Marshal.SizeOf(typeof(Request)) == RayStride && Marshal.SizeOf(typeof(Payload)) == ResultStride, "Buffer ABI mismatch");

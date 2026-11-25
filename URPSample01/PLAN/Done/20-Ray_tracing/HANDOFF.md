@@ -36,14 +36,14 @@
 
 ## 产品与帧契约
 
-- RT 是**可裁剪的扩展**：默认资产不启用；只允许高端质量档 + 显式启用的合格后端 + 运行时能力全部满足。首发验证目标 Windows x64 D3D12 DXR。PS5、Xbox Series 分开验收（各 SKU/质量档），不把主机 API 当作 Windows D3D12；没有 SDK/设备证据就保持关闭。移动、Web、D3D11、其余 PC 后端和低档位不出队、不分配 RT 资源、不变更原 SSGI/SSR fallback。功能不要求更改项目的默认 Graphics API。
+- RT 是**可裁剪的扩展**：默认资产不启用；资格只看显式启用 + 运行时能力（`supportsRayTracing`、compute、格式、相机/XR、shader 就绪），不绑定质量档名与构建目标（2026-11-25 owner 决定移除这些身份门控，见 `RayTracingSceneGate`）。首发验证目标 Windows x64 D3D12 DXR。PS5、Xbox Series 分开验收（各 SKU/质量档），不把主机 API 当作 Windows D3D12；没有 SDK/设备证据就保持关闭。移动、Web、D3D11、其余无 RT 能力的后端不出队、不分配 RT 资源、不变更原 SSGI/SSR fallback。功能不要求更改项目的默认 Graphics API。
 - 两个独立消费者：启用 SSGI 时可选动态 probe fallback（含全材质命中着色、逐灯阴影、1 跳反馈、relocation/classification）；启用 opaque SSR 时可选 DXR（同一 `GlxDXR` pass 的完整 PBR 命中着色与同一灯表，不做 probe 反馈）。仅反射不得触发探针更新，仅 GI 不派发反射射线。两者都关即为现有 URP。无独立 DDGI 模式、无 GI 接收面逐像素 DXR、无 Surface Cache、无 Thin CHS/材质表、无递归多跳 PT、无透明/ShaderGraph RT、无滚动/多 volume 或移动端替代后端。
 - 帧序（设计，不是实测）：确定合格 base camera 和场景版本 → **共同**准备实例与灯表并构建 TLAS（在第一个 RT 消费者之前）→ 预算内 probe 更新（含 relocation/classification、反馈读取上一帧快照），完成后发布一致的可读快照 → 既有 Hi-Z 203、SSGI 205、opaque SSR 206（含补追/resolve）→ 207 绑定 → GBuffer 210 / Forward opaque 250 只消费一次 BRDF → opaque 后复位。TLAS/探针/灯表属于场景；trace 输出、曝光/历史、关键词属于相机。v1 的“单视图”指每台合格的非 XR game base camera 渲染一个不透明视图，不限制场景只能有一台 base camera。同一场景帧由首个启用 GI 的合格相机触发一次 probe 更新，其余合格相机复用已发布快照；各相机的 SS 输出、历史与绑定独立；overlay、preview、反射相机、未验证的 XR 走原路径并显式清空本相机 RT 状态。
 - 共享的是场景、材质命中 ABI、场景级灯表、ray mask 与线性 HDR 辐亮度单位，而不是方向分布、屏幕历史或滤波器。SS/HW 源切换时不得将噪声、缺预算或黑色当作天空；无资源必须回原路径。基础设施不引用 GI 或 SSR Volume；效果之间无启动依赖。调度失败/失去设备/管线销毁释放资源；不留上帧全局绑定。
 
 ## 需求与长期约束
 
-**产品需求**：RT 是高端 PC/主机的可选扩展，不是基础 URP 的一部分。默认资产不启用；只有高端质量档 + 显式启用的合格后端 + 运行时能力全部满足才工作。首发验证目标 Windows x64 D3D12 DXR；PS5、Xbox Series 按 SKU/质量档分开验收，不把主机 API 当作 Windows D3D12。
+**产品需求**：RT 是高端 PC/主机的可选扩展，不是基础 URP 的一部分。默认资产不启用；只有显式启用的合格后端 + 运行时能力全部满足才工作，质量档与构建目标不参与资格判断（2026-11-25 owner 决定，原“仅高端质量档”约束作废）。首发验证目标 Windows x64 D3D12 DXR；PS5、Xbox Series 按 SKU 分开验收，不把主机 API 当作 Windows D3D12。
 
 **功能需求**：
 
@@ -144,3 +144,4 @@ v1 不建 Surface Cache、不做 mesh cards/atlas、不做递归多跳。用“�
 - 每个模块独立关回原路径，无 shader error、无 RT build/dispatch/常驻图集；失败优先收窄支持材质、实例范围、灯光/阴影预算或光线预算，不静默扩大适用平台，也不静默把 `LmaxHit/Smax` 抬到全场景。每个里程碑更新状态和证据指针；只在真实 Player 通过后把“计划”改为“支持”。W0 的输入与预算见 [B0 冻结契约](validation/B0/Freeze.json)，执行状态见[任务清单](todolist.md)；原 P0 保持不变。
 - **停止条件**：若 T3/T3b/T4 无法在目标后端证明真实 Build/bind/DispatchRays、材质 pass/AHS 与灯表，G/R 只保留 fixture 结果，真实 RT 路径保持禁用；若 B0 无法冻结新增预算（灯数/阴影/payload/variant/反馈），不进入 I2；若某项通过需要扩大平台/材质/透明范围，按未通过记录，不修改门槛。
 - **文档同步**：研究行号/API 变更先更新 [research](research/README.md)，再改里程碑；验收证据与计划口径冲突时以证据为准并修文档，不保留两套说法。
+- **2026-11-25 门控重构后的复跑口径**：`RayTracingSceneGate` 不再按质量档/构建目标/API 判定，D3D11 的拒绝串现在是 `RayTracingUnsupported`。归档 fixture（G2/G3/G3c/G4/G5/I1/R3/R4/R5/T3/T3b/T4）与对应 `verify.py`/`run.py` 已同步；`evidence/` 中冻结的 `Backend` 记录不改，复跑新结果写入新目录。

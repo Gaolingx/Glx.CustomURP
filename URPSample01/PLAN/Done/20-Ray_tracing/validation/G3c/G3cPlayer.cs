@@ -146,7 +146,7 @@ public sealed class G3cPlayer : MonoBehaviour
             Gate(!report.supportsRayTracing, "D3D11 must not report DXR support");
             foreach (var s in report.stages)
             {
-                Gate(s.gate == "Backend", $"{s.stage}/{s.renderer} gate {s.gate}");
+                Gate(s.gate == "RayTracingUnsupported", $"{s.stage}/{s.renderer} gate {s.gate}");
                 Gate(!s.producerAllocated, $"{s.stage}/{s.renderer} allocated a producer on D3D11");
                 Gate(s.updates == 0, $"{s.stage}/{s.renderer} dispatched a probe batch on D3D11");
             }
@@ -490,7 +490,7 @@ public sealed class G3cPlayer : MonoBehaviour
         stage.producerAllocated = fb?.producerAllocated ?? false;
         stage.ssgiProbeFlag = ProbeFlag(feature);
         stage.ssgiProduced = feature.ssgiPass != null && feature.ssgiPass.producedOutput;
-        stage.gate = stage.supported ? GateString(feature) : "Backend";
+        stage.gate = stage.supported ? GateString(feature) : "RayTracingUnsupported";
         if (stage.supported && fb != null && fb.producerAllocated)
         {
             var data = fb.ReadProbeData();
@@ -562,7 +562,7 @@ public sealed class G3cPlayer : MonoBehaviour
         {
             camera = view, cameraType = CameraType.Game, renderType = CameraRenderType.Base,
             cameraTargetDescriptor = new RenderTextureDescriptor(Width, Height)
-        }, true, true, feature.settings.resources.rayTracingGi, matte);
+        }, true, feature.settings.resources.rayTracingGi, matte);
         return gate.Evaluate(RayTracingRequests.GI).ToString();
     }
 

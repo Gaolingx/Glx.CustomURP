@@ -95,12 +95,12 @@ namespace UnityEngine.Rendering.Universal
 
         // The owner maintains a complete explicit registration set and advances revision for
         // geometry/membership/filter changes, not camera or lighting changes. No scene searches.
-        internal bool TryBuild(in CameraData camera, bool enabled, bool highQuality, RayTracingShader shader,
+        internal bool TryBuild(in CameraData camera, bool enabled, RayTracingShader shader,
             Material hitMaterial, int revision, int layers, RayTracingRequests demand,
             System.Collections.Generic.IReadOnlyList<RayTracingMember> members, out RayTracingAccelerationStructure snapshot)
         {
             snapshot = null;
-            if (Prepare(camera, enabled, highQuality, shader, hitMaterial, revision, layers, demand) != RayTracingDecision.Accepted)
+            if (Prepare(camera, enabled, shader, hitMaterial, revision, layers, demand) != RayTracingDecision.Accepted)
                 return false;
             var native = (RayTracingAccelerationStructure)m_Resource;
             try
@@ -140,12 +140,12 @@ namespace UnityEngine.Rendering.Universal
                 return false;
             }
         }
-        internal RayTracingDecision Prepare(in CameraData camera, bool enabled, bool highQuality,
+        internal RayTracingDecision Prepare(in CameraData camera, bool enabled,
             RayTracingShader shader, Material hitMaterial, int revision, int layers, RayTracingRequests cameraRequests)
         {
             // Demand for this view can be empty while other cameras still borrow the scene.
             if ((requests & cameraRequests) == 0 || (cameraRequests & ~requests) != 0) return RayTracingDecision.Off;
-            var gate = RayTracingSceneGate.Capture(camera, enabled, highQuality, shader, hitMaterial);
+            var gate = RayTracingSceneGate.Capture(camera, enabled, shader, hitMaterial);
             return Prepare(gate, camera.camera != null ? camera.camera.gameObject.scene : default, revision, layers);
         }
 

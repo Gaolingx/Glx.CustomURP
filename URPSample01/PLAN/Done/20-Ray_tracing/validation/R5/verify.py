@@ -20,7 +20,7 @@ summary = {'api': {}, 'checks': {}}
 
 if d11:
     check(d11.get('passed') is True, 'D3D11: fixture did not pass')
-    check(d11.get('denial') == 'Backend', 'D3D11: gate did not deny with Backend')
+    check(d11.get('denial') == 'RayTracingUnsupported', 'D3D11: gate did not deny with RayTracingUnsupported')
     check(d11.get('buildCount', -1) == 0 and d11.get('instances', -1) == 0, 'D3D11: RT resources were built')
     check(d11.get('dispatchCount', -1) == 0, 'D3D11: rays were dispatched')
     check(not d11.get('error'), f"D3D11 error: {d11.get('error')}")

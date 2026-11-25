@@ -92,7 +92,7 @@ def player(exe, api, out, work):
                     data.get('dispatches') == len(rows) == 17 and
                     all(r['passed'] is True and r['finite'] is True and r['actual'] == r['expected'] for r in rows)):
                 errors.append('Incomplete DXR vectors, invalid counters or unexpected geometry rebuild')
-        if api == 11 and not (data.get('denial') == 'Backend' and data.get('buildCount') == 0 and
+        if api == 11 and not (data.get('denial') == 'RayTracingUnsupported' and data.get('buildCount') == 0 and
                               data.get('dispatches') == 0 and not data.get('batches')):
             errors.append('Missing negative D3D11 gate evidence')
     except (OSError, subprocess.TimeoutExpired, ValueError, TypeError, KeyError) as ex:

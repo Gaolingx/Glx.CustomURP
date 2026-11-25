@@ -137,7 +137,7 @@ public sealed class T4Player : MonoBehaviour
         finally { CommandBufferPool.Release(cmd); }
     }
 
-    bool BuildScene(bool enabled) => scene.TryBuild(view, enabled, true, ray, mat, 1, 1 << Layer, Demand, members, out snapshot);
+    bool BuildScene(bool enabled) => scene.TryBuild(view, enabled, ray, mat, 1, 1 << Layer, Demand, members, out snapshot);
 
     Light Lamp(string label, LightType type, Color rgb, float intensity, Vector3 toLight, float distance = 2)
     {
@@ -220,8 +220,8 @@ public sealed class T4Player : MonoBehaviour
         Check(!BuildScene(false) && snapshot == null && scene.liveResources == 0 && LightsReleased(), "Disabled gate allocated resources");
         if (report.api == "Direct3D11")
         {
-            report.denial = RayTracingSceneGate.Capture(view,true,true,ray,mat).Evaluate(Demand).ToString();
-            Check(report.denial == "Backend" && !BuildScene(true) && snapshot == null && scene.liveResources == 0 &&
+            report.denial = RayTracingSceneGate.Capture(view,true,ray,mat).Evaluate(Demand).ToString();
+            Check(report.denial == "RayTracingUnsupported" && !BuildScene(true) && snapshot == null && scene.liveResources == 0 &&
                 scene.buildCount == 0 && LightsReleased(), "D3D11 did not reject before allocation");
             yield break;
         }

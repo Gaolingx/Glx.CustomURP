@@ -651,7 +651,7 @@ public sealed class I1Player : MonoBehaviour
         {
             camera = view, cameraType = CameraType.Game, renderType = CameraRenderType.Base,
             cameraTargetDescriptor = new RenderTextureDescriptor(Width, Height)
-        }, true, true, shader, donorMaterial).Evaluate(request).ToString();
+        }, true, shader, donorMaterial).Evaluate(request).ToString();
     }
 
     IEnumerator Render(int frames)
@@ -994,7 +994,7 @@ public sealed class I1Player : MonoBehaviour
                 Gate(runtimeOff.frameHash == off.frameHash, $"D3D11/runtimeOff/{renderer} left a residue");
                 foreach (var stage in report.stages)
                     if (stage.renderer == renderer &&
-                        (stage.gateGi != "Backend" || stage.gateSsr != "Backend"))
+                        (stage.gateGi != "RayTracingUnsupported" || stage.gateSsr != "RayTracingUnsupported"))
                         Gate(false, $"D3D11/{stage.stage}/{renderer} gate {stage.gateGi}/{stage.gateSsr}");
                 continue;
             }

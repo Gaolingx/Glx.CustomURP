@@ -224,7 +224,7 @@ public sealed class R4Player : MonoBehaviour
         report.registered = 6;
         report.members = members.Count;
         report.unsupportedInstances = report.registered - report.members;
-        if (!scene.TryBuild(view, true, true, ray, witness, revision, ~0, Demand, members, out snapshot)) return false;
+        if (!scene.TryBuild(view, true, ray, witness, revision, ~0, Demand, members, out snapshot)) return false;
         report.instances = scene.instanceCount;
         report.disabledSubmeshes = scene.disabledSubmeshes;
         return true;
@@ -315,8 +315,8 @@ public sealed class R4Player : MonoBehaviour
         CollectMaterials();
         if (report.api == "Direct3D11")
         {
-            report.denial = RayTracingSceneGate.Capture(view, true, true, ray, materials[0]).Evaluate(Demand).ToString();
-            Check(report.denial == "Backend", "D3D11 gate decision changed");
+            report.denial = RayTracingSceneGate.Capture(view, true, ray, materials[0]).Evaluate(Demand).ToString();
+            Check(report.denial == "RayTracingUnsupported", "D3D11 gate decision changed");
             Check(!BuildScene() && scene.liveResources == 0 && scene.buildCount == 0 && scene.registeredLights == 0,
                 "D3D11 allocated RT resources");
             report.passed = true;

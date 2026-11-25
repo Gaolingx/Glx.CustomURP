@@ -38,10 +38,9 @@ namespace UnityEditor.Rendering.Universal.Tests
         [TestCase(true, true, 7, true, TestName = "ArraySliceDoesNotReadTheOtherEyesBlocker")]
         public void ConfirmAtSameStep(bool coarseHit, bool fineHit, int expectedMask, bool array = false)
         {
-            if (!ScreenSpaceContactShadowsCapability.SupportsApi(SystemInfo.graphicsDeviceType) ||
-                !SystemInfo.supportsComputeShaders || !SystemInfo.supportsAsyncGPUReadback ||
-                !SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, FormatUsage.Sample) ||
-                !SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore))
+            if (!ScreenSpaceContactShadowsCapability.EvaluatePlatform().supported ||
+                !SystemInfo.supportsAsyncGPUReadback ||
+                !SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, FormatUsage.Sample))
                 Assert.Ignore("Requires contact shadow compute, RFloat sampling, R32_UInt UAV and GPU readback.");
 
             var asset = AssetDatabase.LoadAssetAtPath<ComputeShader>(ShaderPath);

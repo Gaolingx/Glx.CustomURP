@@ -9,35 +9,21 @@ namespace UnityEditor.Rendering.Universal.Tests
 {
     internal class ContactShadowCapabilityTests
     {
-        [TestCase(GraphicsDeviceType.Direct3D11)]
-        [TestCase(GraphicsDeviceType.Direct3D12)]
-        [TestCase(GraphicsDeviceType.Vulkan)]
-        [TestCase(GraphicsDeviceType.Metal)]
-        public void SupportedApiRequiresPackedStore(GraphicsDeviceType api)
+        [Test]
+        public void SupportedPlatformRequiresPackedStore()
         {
             var shared = ScreenSpaceCapabilityResult.Supported();
-            var supported = ScreenSpaceContactShadowsCapability.Evaluate(api, shared, true);
+            var supported = ScreenSpaceContactShadowsCapability.Evaluate(shared, true);
             Assert.IsTrue(supported.supported);
             Assert.AreEqual(ScreenSpaceCapabilityStatus.Supported, supported.status);
 
-            var missingFormat = ScreenSpaceContactShadowsCapability.Evaluate(api, shared, false);
+            var missingFormat = ScreenSpaceContactShadowsCapability.Evaluate(shared, false);
             Assert.IsFalse(missingFormat.supported);
             Assert.AreEqual(ScreenSpaceCapabilityStatus.RequiredFormatUnsupported, missingFormat.status);
         }
 
-        [TestCase(GraphicsDeviceType.OpenGLCore)]
-        [TestCase(GraphicsDeviceType.OpenGLES3)]
-        [TestCase(GraphicsDeviceType.Null)]
-        public void UnsupportedApiRejectsEvenWithPackedStore(GraphicsDeviceType api)
-        {
-            var result = ScreenSpaceContactShadowsCapability.Evaluate(api, ScreenSpaceCapabilityResult.Supported(), true);
-            Assert.IsFalse(result.supported);
-            Assert.AreNotEqual(ScreenSpaceCapabilityStatus.Supported, result.status);
-        }
-
-        [TestCase(GraphicsDeviceType.OpenGLCore, true)]
-        [TestCase(GraphicsDeviceType.Direct3D11, false)]
-        public void UnsupportedFeatureWarnsOnceAndDoesNotQueue(GraphicsDeviceType api, bool packedStore)
+        [Test]
+        public void UnsupportedFeatureWarnsOnceAndDoesNotQueue()
         {
             var manager = VolumeManager.instance;
             var previous = manager.stack;
@@ -49,7 +35,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             {
                 ResourceReloader.ReloadAllNullIn(data, UniversalRenderPipelineAsset.packagePath);
                 using var renderer = new ScreenSpaceTestUtils.TestRenderer(data);
-                var result = ScreenSpaceContactShadowsCapability.Evaluate(api, ScreenSpaceCapabilityResult.Supported(), packedStore);
+                var result = ScreenSpaceContactShadowsCapability.Evaluate(ScreenSpaceCapabilityResult.Supported(), false);
                 typeof(ScreenSpaceContactShadowsRendererFeature).GetField("m_Platform", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(feature, result);
                 manager.stack = stack;
                 stack.GetComponent<ContactShadowsVolume>().enabled.value = true;
@@ -80,7 +66,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         public void SharedFailurePreservesStatusAndDiagnostic(ScreenSpaceCapabilityStatus status)
         {
             var shared = ScreenSpaceCapabilityResult.Unsupported(status, "Diagnostic from the shared capability check");
-            var result = ScreenSpaceContactShadowsCapability.Evaluate(GraphicsDeviceType.Direct3D11, shared, false);
+            var result = ScreenSpaceContactShadowsCapability.Evaluate(shared, false);
             Assert.IsFalse(result.supported);
             Assert.AreEqual(shared.status, result.status);
             Assert.AreEqual(shared.message, result.message);

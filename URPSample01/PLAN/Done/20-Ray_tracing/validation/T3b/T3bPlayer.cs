@@ -170,8 +170,8 @@ public sealed class T3bPlayer : MonoBehaviour
             service.SetRequests(Demand); RayTracingAccelerationStructure scene=null;
             bool Gate(string label,bool enabled,RayTracingDecision expected)
             {
-                var decision=RayTracingSceneGate.Capture(view,enabled,true,library,materials[0]).Evaluate(Demand);
-                bool ok=service.TryBuild(view,enabled,true,library,materials[0],1,1<<Layer,Demand,members,out scene);
+                var decision=RayTracingSceneGate.Capture(view,enabled,library,materials[0]).Evaluate(Demand);
+                bool ok=service.TryBuild(view,enabled,library,materials[0],1,1<<Layer,Demand,members,out scene);
                 r.gates.Add(new Gate {name=label,decision=decision.ToString(),accepted=ok,hasSnapshot=scene!=null,instances=service.instanceCount,
                     builds=service.buildCount,liveResources=service.liveResources,buffersAllocated=r.buffersAllocated,submittedDispatches=r.submittedDispatches});
                 Check(decision==expected && ok==(expected==RayTracingDecision.Accepted) && ok==(scene!=null),label+": "+decision);
@@ -179,7 +179,7 @@ public sealed class T3bPlayer : MonoBehaviour
                 return ok;
             }
             Gate("Disabled",false,RayTracingDecision.Off);
-            if(r.api=="Direct3D11") { Gate("D3D11 opt-in",true,RayTracingDecision.Backend); return; }
+            if(r.api=="Direct3D11") { Gate("D3D11 opt-in",true,RayTracingDecision.RayTracingUnsupported); return; }
             Gate("D3D12 opt-in",true,RayTracingDecision.Accepted); r.instances=service.instanceCount; r.disabledSubmeshes=service.disabledSubmeshes;
             var shots=new[]{new Shot("Opaque A",-3.48f,-.16f,Opaque),new Shot("Opaque B",-2.57f,.24f,Opaque),new Shot("Solid",.36f,-.21f,Cut,1),
                 new Shot("Hole to rear",-.43f,-.21f,Rear,1,true),new Shot("Hole to miss",-.43f,-.21f,-1,1,true,3),

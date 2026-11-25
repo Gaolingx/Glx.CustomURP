@@ -392,7 +392,7 @@ public sealed class G3Player : MonoBehaviour
         stage.producerAllocated = fb?.producerAllocated ?? false;
         stage.probeSnapshotReady = fb?.ready ?? false;
         stage.ssgiProbeFlag = ProbeFlag(feature);
-        stage.gate = stage.supported ? GateString(feature) : "Backend";
+        stage.gate = stage.supported ? GateString(feature) : "RayTracingUnsupported";
         report.stages.Add(stage);
         view.targetTexture = null;
         Destroy(view.gameObject);
@@ -417,7 +417,7 @@ public sealed class G3Player : MonoBehaviour
         {
             camera = view, cameraType = CameraType.Game, renderType = CameraRenderType.Base,
             cameraTargetDescriptor = new RenderTextureDescriptor(Width, Height)
-        }, true, true, feature.settings.resources.rayTracingGi, emissive);
+        }, true, feature.settings.resources.rayTracingGi, emissive);
         return gate.Evaluate(RayTracingRequests.GI).ToString();
     }
 

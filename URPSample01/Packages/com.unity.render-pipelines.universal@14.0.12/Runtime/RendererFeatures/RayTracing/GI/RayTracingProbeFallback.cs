@@ -52,13 +52,10 @@ namespace UnityEngine.Rendering.Universal
             var resources = settings.resources;
             if (resources == null || resources.rayTracingGi == null || resources.giProbeUpdateCompute == null)
                 return false;
-            var names = QualitySettings.names;
-            int quality = QualitySettings.GetQualityLevel();
-            return quality < names.Length && names[quality] == "High Fidelity" && camera.camera &&
+            return camera.camera &&
                 camera.cameraType == CameraType.Game && camera.renderType == CameraRenderType.Base &&
                 (camera.xr == null || !camera.xr.enabled) &&
                 camera.cameraTargetDescriptor.dimension == TextureDimension.Tex2D &&
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 &&
                 SystemInfo.supportsRayTracing;
         }
 
@@ -89,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Gate before subscribing so an unsupported backend never reports a GI subscriber.
-            var gate = RayTracingSceneGate.Capture(camera, true, true, m_Settings.resources.rayTracingGi, witness);
+            var gate = RayTracingSceneGate.Capture(camera, true, m_Settings.resources.rayTracingGi, witness);
             if (gate.Evaluate(RayTracingRequests.GI) != RayTracingDecision.Accepted)
             {
                 Request(false);

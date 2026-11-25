@@ -242,8 +242,8 @@ public sealed class G4Player : MonoBehaviour
         if (report.api == "Direct3D11")
         {
             Collect(); // the D3D11 shader build strips GlxDXR, so a witness is not required
-            report.denial = RayTracingSceneGate.Capture(view, true, true, trace, witness).Evaluate(Demand).ToString();
-            Check(report.denial == "Backend", "D3D11 gate decision changed");
+            report.denial = RayTracingSceneGate.Capture(view, true, trace, witness).Evaluate(Demand).ToString();
+            Check(report.denial == "RayTracingUnsupported", "D3D11 gate decision changed");
             Check(!producer.TryUpdate(0, view, scene, witness, lastRevision, ~0, members, out snapshot),
                 "D3D11 dispatched a probe batch");
             Check(!producer.allocated && scene.liveResources == 0 && scene.buildCount == 0,

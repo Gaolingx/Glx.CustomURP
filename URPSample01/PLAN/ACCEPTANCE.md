@@ -654,6 +654,8 @@ PY
 
 AC-9 按共享最大 fade 的打包语义验收；AC-14 PARTIAL（计数取证，缺交互 Frame Debugger / XR）；AC-15 PARTIAL（旧测试 1280 与实际 compute 变体 2560 不符，两端各保留一次失败；D3D11 DRS 跳过）。其余 AC 通过，T10 未启动；归档未调整历史断言。
 
+**2026-11-25 owner 决定（归档后变更）**：`ScreenSpaceContactShadowsCapability` 移除 API 枚举白名单（D3D11/D3D12/Vulkan/Metal 与 `SupportsApi`），资格改由共享 `ScreenSpaceCapability`（compute + 必需格式 LoadStore）加 `R32_UInt` LoadStore 能力判断；相关测试用例同步。Decal 的 GL/WebGL 兼容路由属原厂 URP 行为，未改。
+
 ## 25. 20-Ray_tracing（2026-11-25，已归档）
 
 [轮次 HANDOFF](Done/20-Ray_tracing/HANDOFF.md) · [任务记录](Done/20-Ray_tracing/todolist.md) · [I2 口径与结果](Done/20-Ray_tracing/validation/I2/README.md) · [主机状态](Done/20-Ray_tracing/validation/Hosts/Status.json)。证据基线 `7e52850`（归档提交随后），工作区干净。
@@ -661,3 +663,5 @@ AC-9 按共享最大 fade 的打包语义验收；AC-14 PARTIAL（计数取证�
 Windows（Win64 D3D12 + D3D11）按 B0 逐里程碑交付：B0/T1–T4、G1/G2/G4/G5、R1/R2/R4 与 I1 通过；G3 与 R5 为 PASS*（SS 仅覆盖部分屏幕/屏内供体的同帧接缝未覆盖）；R3 为 PARTIAL（HW 时间并集召回 `0.968/0.971/0.971`、SS↔HW 台阶 `0.087/0.080/0.087` 通过，但同一图像接缝未测）；I2 为 PASS*（分项性能、1080p 画质 sanity、冷启动与变体级剥离通过；全帧 GPU 用 5 个不重叠 scope 求和的下界、显存用驱动峰值增量代理，owner 指示归档，按 PASS* 记录）。HEAD `aceb6ca` 复跑 I1/G3c/R3 逐字段与首轮一致，T14 三项回归 EditMode `184/184`、PlayMode `6/6`、T12 `34/34/35`，设置恢复 3/3。
 
 **未决（不阻塞 Windows 归档）**：R3/G3 的 SS 同帧接缝（P0-4，owner 暂缓）；RTAS 精确尺寸与全帧 GPU 的 PIX 实测；主机 PS5/XSX/XSS 签收 **BLOCKED**（本机 PlaybackEngines 仅 `windowsstandalonesupport`，无模块与真机，B0 禁止以 PC 成绩外推）；I2 资产级 3 个 RT shader（约 16.8 KB）作为例外记录。
+
+**2026-11-25 owner 决定（归档后变更）**：移除 RT 资格判断中的硬编码身份门控——质量档名 `High Fidelity`、`StandaloneWindows64` 构建目标、显式 `Direct3D12` 后端判断及始终为 true 的 `highQuality` 参数；保留 `supportsRayTracing`、compute、格式、相机/XR、shader 能力探测。涉及 `RayTracingSceneGate`、`RayTracingSceneResources`、`SsrRayTracingCameras`、`RayTracingProbeFallback`、`RayTracingProbeUpdate`、`ScreenSpaceLightingSettings` 与 T1/T2 测试；原“只允许高端质量档”的产品约束按本决定作废（`Done/20-Ray_tracing/HANDOFF.md` 已同步）。归档 fixture 与 verify 脚本同步到新签名：G2/G3/G3c/G4/G5/I1/R3/R4/R5/T3/T3b/T4 去掉 `highQuality` 实参、`R3SwitchPlayer` 不再输出 `gHigh/gWin64/gBackend`，D3D11 拒绝串由 `Backend` 改为 `RayTracingUnsupported`；冻结的 `evidence/` JSON 与当时的 todolist 文字保持 `Backend` 原值，仅作历史记录。

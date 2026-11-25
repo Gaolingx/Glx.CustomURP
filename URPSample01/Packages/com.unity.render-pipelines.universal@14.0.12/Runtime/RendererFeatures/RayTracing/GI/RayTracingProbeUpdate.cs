@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
             snapshot = null;
             if (m_Disposed) return false;
             if (m_UpdateCount > 0 && frame == m_LastFrame) return false;
-            if (!scene.TryBuild(camera, true, true, m_Trace, witness, revision, layers, RayTracingRequests.GI,
+            if (!scene.TryBuild(camera, true, m_Trace, witness, revision, layers, RayTracingRequests.GI,
                     members, out snapshot) || snapshot == null) return false;
             m_Scene = scene;
             m_Snapshot = snapshot;

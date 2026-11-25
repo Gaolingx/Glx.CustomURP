@@ -37,7 +37,7 @@ def gate_d3d11(rep):
     require(not rep['supportsRayTracing'], 'D3D11 DXR support')
     for s in rep['stages']:
         key = f"D3D11/{s['stage']}/{s['renderer']}"
-        require(s['gateGi'] == 'Backend' and s['gateSsr'] == 'Backend', f'{key} gate')
+        require(s['gateGi'] == 'RayTracingUnsupported' and s['gateSsr'] == 'RayTracingUnsupported', f'{key} gate')
         require(not s['probeAllocated'], f'{key} producer allocation')
         require(not s['ssrQueue'], f'{key} SSR queue')
         require(s['updates'] == 0, f'{key} probe dispatch')

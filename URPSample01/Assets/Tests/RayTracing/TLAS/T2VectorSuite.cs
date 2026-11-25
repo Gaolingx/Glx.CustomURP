@@ -31,9 +31,9 @@ namespace T2Validation
                 service.SetRequests(RayTracingRequests.GI | RayTracingRequests.Reflections);
                 RayTracingAccelerationStructure snapshot = null;
                 int rev = 1;
-                bool Build(CameraData camera, RayTracingRequests demand) => service.TryBuild(camera, true, true, shader, mat, rev, int.MinValue, demand, list, out snapshot);
+                bool Build(CameraData camera, RayTracingRequests demand) => service.TryBuild(camera, true, shader, mat, rev, int.MinValue, demand, list, out snapshot);
                 log($"api={SystemInfo.graphicsDeviceType} GPU={SystemInfo.graphicsDeviceName} supportsRT={SystemInfo.supportsRayTracing}");
-                Check(!service.TryBuild(first, false, true, shader, mat, rev, int.MinValue, RayTracingRequests.GI, list, out snapshot)
+                Check(!service.TryBuild(first, false, shader, mat, rev, int.MinValue, RayTracingRequests.GI, list, out snapshot)
                     && snapshot == null && service.liveResources == 0 && service.buildCount == 0, "disabled control");
                 log("opt-in off: zero builds/resources");
                 if (!requireDxr) {

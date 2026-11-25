@@ -35,12 +35,10 @@ namespace UnityEngine.Rendering.Universal
                 ssr.fullResolution.value || ssr.usedAlgorithm.value != ScreenSpaceReflectionAlgorithm.Approximation ||
                 settings.resources?.rayTracingSsr == null || !settings.resources.hasSsrResources ||
                 settings.resources.bilateralUpsampleCompute == null) return false;
-            var names = QualitySettings.names;
-            int quality = QualitySettings.GetQualityLevel();
-            return quality < names.Length && names[quality] == "High Fidelity" && camera.camera &&
+            return camera.camera &&
                 camera.cameraType == CameraType.Game && camera.renderType == CameraRenderType.Base &&
                 (camera.xr == null || !camera.xr.enabled) && camera.cameraTargetDescriptor.dimension == TextureDimension.Tex2D &&
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 && SystemInfo.supportsRayTracing;
+                SystemInfo.supportsRayTracing;
         }
 
         internal void Prepare(in CameraData camera, ScreenSpaceLightingSettings settings, ScreenSpaceLightingSsrPass pass)
@@ -49,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
             if (witness)
             {
                 m_Scene.AddRequests(RayTracingRequests.Reflections);
-                if (m_Scene.TryBuild(camera, true, true, settings.resources.rayTracingSsr, witness, revision, ~0,
+                if (m_Scene.TryBuild(camera, true, settings.resources.rayTracingSsr, witness, revision, ~0,
                     RayTracingRequests.Reflections, m_Members, out var snapshot) && m_Scene.instanceCount > 0)
                 {
                     if (!m_Cameras.TryGetValue(camera.camera, out var entry))

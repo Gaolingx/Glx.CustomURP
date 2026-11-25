@@ -68,9 +68,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         [TestCase(true)]
         public void CameraRenderBuildsOneDepthAtlas(bool withSslAndGtao)
         {
-            if (!ScreenSpaceContactShadowsCapability.SupportsApi(SystemInfo.graphicsDeviceType) ||
-                !ScreenSpaceCapability.EvaluatePlatform().supported ||
-                !SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) ||
+            if (!ScreenSpaceContactShadowsCapability.EvaluatePlatform().supported ||
                 !SystemInfo.supportsAsyncGPUReadback)
                 Assert.Ignore("T2 render evidence requires a supported compute GPU, R32_UInt UAV and GPU readback.");
 

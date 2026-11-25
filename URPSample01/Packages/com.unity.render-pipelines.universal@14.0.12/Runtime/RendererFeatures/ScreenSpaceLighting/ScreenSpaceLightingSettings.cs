@@ -20,13 +20,13 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Publishes the reflection probe atlas in Forward and Deferred so the SSGI miss fallback can sample local reflection probes. Ignored in Forward+, which always publishes the atlas.")]
         internal bool publishProbeAtlas = false;
 
-        [SerializeField, Tooltip("High Fidelity / Win64 DXR only. Resolve smooth opaque half-resolution Approximation SSR against registered scene meshes.")]
+        [SerializeField, Tooltip("Resolve smooth opaque half-resolution Approximation SSR against registered scene meshes. Requires hardware ray tracing support.")]
         internal bool rayTracingReflections = false;
 
         [SerializeField, Range(0, 32768), Tooltip("Fixed ray dispatch width per eligible camera. Zero disables hardware reflection requests.")]
         internal int reflectionRayBudget = 32768;
 
-        [SerializeField, Tooltip("High Fidelity / Win64 DXR only. Update the scene probe cache from the shared RT scene as the SSGI diffuse fallback.")]
+        [SerializeField, Tooltip("Update the scene probe cache from the shared RT scene as the SSGI diffuse fallback. Requires hardware ray tracing support.")]
         internal bool rayTracingProbeFallback = false;
 
         // Manually placed bounded probe volume (v1 has no rolling volumes). The batch, directions and
@@ -64,12 +64,10 @@ namespace UnityEngine.Rendering.Universal
                 resources = new ScreenSpaceLightingResources();
 
 #if UNITY_EDITOR_WIN && UNITY_STANDALONE_WIN
-            if (rayTracingReflections && resources.rayTracingSsr == null &&
-                UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64)
+            if (rayTracingReflections && resources.rayTracingSsr == null)
                 resources.rayTracingSsr = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.Rendering.RayTracingShader>(
                     "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace");
-            if (rayTracingProbeFallback && resources.rayTracingGi == null &&
-                UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64)
+            if (rayTracingProbeFallback && resources.rayTracingGi == null)
                 resources.rayTracingGi = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.Rendering.RayTracingShader>(
                     "Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxProbeTrace.raytrace");
 #endif

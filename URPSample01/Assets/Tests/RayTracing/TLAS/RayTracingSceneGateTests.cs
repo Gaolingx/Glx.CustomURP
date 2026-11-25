@@ -2,7 +2,6 @@ using System;
 using NUnit.Framework;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
@@ -12,8 +11,7 @@ namespace UnityEditor.Rendering.Universal.Tests
     {
         static RayTracingSceneGate Eligible => new RayTracingSceneGate
         {
-            assetEnabled = true, highQuality = true, windows64 = true, backend = GraphicsDeviceType.Direct3D12,
-            supportsRayTracing = true, compute = true, formats = true, validCamera = true,
+            assetEnabled = true, supportsRayTracing = true, compute = true, formats = true, validCamera = true,
             cameraType = CameraType.Game, renderType = CameraRenderType.Base, shaderAndPass = true
         };
 
@@ -24,9 +22,6 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [TestCase("Off")]
-        [TestCase("Quality")]
-        [TestCase("Target")]
-        [TestCase("Backend")]
         [TestCase("RayTracingUnsupported")]
         [TestCase("ComputeUnsupported")]
         [TestCase("FormatUnsupported")]
@@ -39,9 +34,6 @@ namespace UnityEditor.Rendering.Universal.Tests
             switch (reason)
             {
                 case "Off": gate.assetEnabled = false; break;
-                case "Quality": gate.highQuality = false; break;
-                case "Target": gate.windows64 = false; break;
-                case "Backend": gate.backend = GraphicsDeviceType.Direct3D11; break;
                 case "RayTracingUnsupported": gate.supportsRayTracing = false; break;
                 case "ComputeUnsupported": gate.compute = false; break;
                 case "FormatUnsupported": gate.formats = false; break;
@@ -165,22 +157,21 @@ namespace UnityEditor.Rendering.Universal.Tests
                 var camera = go.AddComponent<Camera>();
                 var data = new CameraData { camera = camera, cameraType = camera.cameraType,
                     renderType = CameraRenderType.Base, cameraTargetDescriptor = new RenderTextureDescriptor(32, 32) };
-                var gate = RayTracingSceneGate.Capture(data, true, true, null, null);
+                var gate = RayTracingSceneGate.Capture(data, true, null, null);
                 var decision = gate.Evaluate(RayTracingRequests.GI);
-                Assert.AreEqual(SystemInfo.graphicsDeviceType, gate.backend);
                 Assert.AreEqual(SystemInfo.supportsRayTracing, gate.supportsRayTracing);
                 Assert.AreEqual(SystemInfo.supportsComputeShaders, gate.compute);
                 Assert.IsTrue(gate.validCamera);
                 Assert.IsFalse(gate.shaderAndPass);
                 Assert.AreNotEqual(RayTracingDecision.Accepted, decision);
-                TestContext.WriteLine($"Editor {SystemInfo.graphicsDeviceName}: {gate.backend}, Win64 target={gate.windows64}, " +
+                TestContext.WriteLine($"Editor {SystemInfo.graphicsDeviceName}: {SystemInfo.graphicsDeviceType}, " +
                     $"RT={gate.supportsRayTracing}, compute={gate.compute}, UAV={gate.formats}, decision={decision}");
                 using (var service = new RayTracingSceneResources())
                 {
                     service.SetRequests(RayTracingRequests.GI);
-                    Assert.AreEqual(RayTracingDecision.Off, service.Prepare(data, true, true, null, null, 0, -1, RayTracingRequests.None));
-                    Assert.AreEqual(RayTracingDecision.Off, service.Prepare(data, true, true, null, null, 0, -1, RayTracingRequests.Reflections));
-                    Assert.AreEqual(decision, service.Prepare(data, true, true, null, null, 0, -1, RayTracingRequests.GI));
+                    Assert.AreEqual(RayTracingDecision.Off, service.Prepare(data, true, null, null, 0, -1, RayTracingRequests.None));
+                    Assert.AreEqual(RayTracingDecision.Off, service.Prepare(data, true, null, null, 0, -1, RayTracingRequests.Reflections));
+                    Assert.AreEqual(decision, service.Prepare(data, true, null, null, 0, -1, RayTracingRequests.GI));
                     Assert.AreEqual(0, service.liveResources);
                     TestContext.Out.WriteLine($"original gate={decision}, liveRTAS={service.liveResources}");
                     if (decision == RayTracingDecision.MissingShaderOrPass)
