@@ -2107,6 +2107,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static readonly KeywordDescriptor ScreenSpaceGlobalIlluminationProbe = new KeywordDescriptor()
+        {
+            displayName = "Screen Space Global Illumination Probe",
+            referenceName = "_SCREEN_SPACE_GI_PROBE",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor ScreenSpaceReflections = new KeywordDescriptor()
         {
             displayName = "Screen Space Reflections",

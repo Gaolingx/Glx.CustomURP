@@ -944,6 +944,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
                 { CoreKeywordDescriptors.ScreenSpaceGlobalIllumination },
+                { CoreKeywordDescriptors.ScreenSpaceGlobalIlluminationProbe },
                 { CoreKeywordDescriptors.ScreenSpaceReflections },
                 { CoreKeywordDescriptors.ScreenSpaceTransparentSSR },
                 { CoreKeywordDescriptors.ScreenSpaceRefraction },
@@ -974,6 +975,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
                 { CoreKeywordDescriptors.ScreenSpaceGlobalIllumination },
+                { CoreKeywordDescriptors.ScreenSpaceGlobalIlluminationProbe },
                 { CoreKeywordDescriptors.ScreenSpaceReflections },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },

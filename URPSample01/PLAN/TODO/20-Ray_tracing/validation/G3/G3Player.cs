@@ -286,7 +286,9 @@ public sealed class G3Player : MonoBehaviour
     // Stages
     // ---------------------------------------------------------------------------------------------
 
-    static bool ProbeConsumed(int renderer) => renderer < 2;
+    // All three renderers compose the probe in the material: Forward/Forward+ in ForwardLit and
+    // Deferred in the GBuffer fragment, before the clustered kernel adds direct light.
+    static bool ProbeConsumed(int renderer) => true;
 
     void ConfigureFeature(int renderer, bool fallback, int coveragePercent, bool gridOutside)    {
         var feature = features[renderer];
@@ -595,16 +597,11 @@ public sealed class G3Player : MonoBehaviour
                 Gate(off.frameHash == offAgain.frameHash, $"D3D11 off/offAgain differ ({renderer})");
                 Gate(off.frameHash == probe.frameHash, $"D3D11 probe changed the image ({renderer})");
             }
-            else if (ProbeConsumed(renderer))
+            else
             {
                 Gate(off.frameHash == offAgain.frameHash, $"off/offAgain differ ({renderer})");
                 Gate(off.frameHash != probe.frameHash, $"probe never changed the image ({renderer})");
                 Gate(off.nonBlack > 1000, $"off frame is blank ({renderer})");
-            }
-            else
-            {
-                report.knownDifferences.Add(
-                    "C7 Deferred: Lit GBuffer lighting does not consume the SSL diffuse textures; the probe fallback is recorded but not applied.");
             }
         }
     }
@@ -716,12 +713,40 @@ public sealed class G3Player : MonoBehaviour
         driver.features = features;
         driver.pipeline = pipeline;
         Check(EditorSceneManager.SaveScene(scene, "Assets/G3.unity"), "Cannot save G3 scene");
-        var build = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+
+        // URP strips shader variants against the quality/default pipeline assets only. The fixture
+        // assigns its pipeline at runtime, so without this the build sees a Forward-only project and
+        // strips the Lit GBuffer pass (and the Deferred renderer draws nothing).
+        var previousPipelines = new RenderPipelineAsset[QualitySettings.names.Length];
+        int activeLevel = QualitySettings.GetQualityLevel();
+        for (int q = 0; q < previousPipelines.Length; ++q)
         {
-            scenes = new[] { "Assets/G3.unity" }, target = target,
-            locationPathName = Arg("-exe"), options = BuildOptions.Development
-        });
-        Check(build.summary.result == BuildResult.Succeeded, "Win64 G3 build failed");
+            QualitySettings.SetQualityLevel(q, false);
+            previousPipelines[q] = QualitySettings.renderPipeline;
+            QualitySettings.renderPipeline = pipeline;
+        }
+        QualitySettings.SetQualityLevel(activeLevel, false);
+        var previousDefault = GraphicsSettings.defaultRenderPipeline;
+        GraphicsSettings.defaultRenderPipeline = pipeline;
+        try
+        {
+            var build = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = new[] { "Assets/G3.unity" }, target = target,
+                locationPathName = Arg("-exe"), options = BuildOptions.Development
+            });
+            Check(build.summary.result == BuildResult.Succeeded, "Win64 G3 build failed");
+        }
+        finally
+        {
+            for (int q = 0; q < previousPipelines.Length; ++q)
+            {
+                QualitySettings.SetQualityLevel(q, false);
+                QualitySettings.renderPipeline = previousPipelines[q];
+            }
+            QualitySettings.SetQualityLevel(activeLevel, false);
+            GraphicsSettings.defaultRenderPipeline = previousDefault;
+        }
     }
 #endif
 }

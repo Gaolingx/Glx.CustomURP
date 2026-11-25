@@ -1,5 +1,5 @@
 {
-    "guid": "1a828d066a2142978a1fa099bc52627b",
+    "guid": "9fe964c798ff4683b245b956cb5da18a",
     "api": "Direct3D12",
     "adapter": "NVIDIA GeForce RTX 5060 Ti",
     "driver": "Direct3D 12 [level 12.1]",
@@ -27,14 +27,12 @@
         "ForwardPlus",
         "Deferred"
     ],
-    "knownDifferences": [
-        "C7 Deferred: Lit GBuffer lighting does not consume the SSL diffuse textures; the probe fallback is recorded but not applied."
-    ],
+    "knownDifferences": [],
     "stages": [
         {
             "stage": "off",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "None",
             "frameHash": "b0ed91541b95eb2737afe1153671df3130166822a045b4efc4a533f442a357a4",
@@ -69,7 +67,7 @@
         {
             "stage": "cold",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -104,7 +102,7 @@
         {
             "stage": "probe",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "a49947e18b06564d86f8029302e6a4f7f4f7eab0fbf7d3dda09733a0a9745209",
@@ -139,7 +137,7 @@
         {
             "stage": "probeHalf",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -174,7 +172,7 @@
         {
             "stage": "probeBoth",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -209,7 +207,7 @@
         {
             "stage": "probeOutside",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -244,7 +242,7 @@
         {
             "stage": "offAgain",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "None",
             "frameHash": "b0ed91541b95eb2737afe1153671df3130166822a045b4efc4a533f442a357a4",
@@ -279,7 +277,7 @@
         {
             "stage": "off",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "None",
             "frameHash": "b0ed91541b95eb2737afe1153671df3130166822a045b4efc4a533f442a357a4",
@@ -314,7 +312,7 @@
         {
             "stage": "cold",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -349,7 +347,7 @@
         {
             "stage": "probe",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "a49947e18b06564d86f8029302e6a4f7f4f7eab0fbf7d3dda09733a0a9745209",
@@ -384,7 +382,7 @@
         {
             "stage": "probeHalf",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -419,7 +417,7 @@
         {
             "stage": "probeBoth",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -454,7 +452,7 @@
         {
             "stage": "probeOutside",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -489,7 +487,7 @@
         {
             "stage": "offAgain",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "None",
             "frameHash": "b0ed91541b95eb2737afe1153671df3130166822a045b4efc4a533f442a357a4",
@@ -524,10 +522,10 @@
         {
             "stage": "off",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "None",
-            "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
+            "frameHash": "b0ed91541b95eb2737afe1153671df3130166822a045b4efc4a533f442a357a4",
             "notes": "",
             "renderer": 2,
             "frames": 4,
@@ -554,12 +552,12 @@
             "roiY": 143,
             "roiW": 254,
             "roiH": 254,
-            "nonBlack": 0
+            "nonBlack": 446576
         },
         {
             "stage": "cold",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -582,8 +580,8 @@
             "roiMeanG": 0.0,
             "roiMeanB": 0.0,
             "roiMeanY": 0.0,
-            "expectedY": 0.0,
-            "relativeError": 0.0,
+            "expectedY": 1.9199999570846558,
+            "relativeError": 1.0,
             "halfScaleMax": 0.0,
             "roiX": 353,
             "roiY": 143,
@@ -594,10 +592,10 @@
         {
             "stage": "probe",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
-            "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
+            "frameHash": "a49947e18b06564d86f8029302e6a4f7f4f7eab0fbf7d3dda09733a0a9745209",
             "notes": "",
             "renderer": 2,
             "frames": 40,
@@ -613,23 +611,23 @@
             "ssgiProbeFlag": true,
             "probeSnapshotReady": true,
             "supported": true,
-            "roiMeanR": 0.0,
-            "roiMeanG": 0.0,
-            "roiMeanB": 0.0,
-            "roiMeanY": 0.0,
-            "expectedY": 0.0,
-            "relativeError": 0.0,
+            "roiMeanR": 1.9189453125,
+            "roiMeanG": 1.9189453125,
+            "roiMeanB": 1.9189453125,
+            "roiMeanY": 1.9189453125,
+            "expectedY": 1.9199999570846558,
+            "relativeError": 0.0005492940545082092,
             "halfScaleMax": 0.0,
             "roiX": 353,
             "roiY": 143,
             "roiW": 254,
             "roiH": 254,
-            "nonBlack": 0
+            "nonBlack": 518400
         },
         {
             "stage": "probeHalf",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -648,12 +646,12 @@
             "ssgiProbeFlag": true,
             "probeSnapshotReady": true,
             "supported": true,
-            "roiMeanR": 0.0,
-            "roiMeanG": 0.0,
-            "roiMeanB": 0.0,
-            "roiMeanY": 0.0,
-            "expectedY": 0.0,
-            "relativeError": 0.0,
+            "roiMeanR": 0.95947265625,
+            "roiMeanG": 0.95947265625,
+            "roiMeanB": 0.95947265625,
+            "roiMeanY": 0.95947265625,
+            "expectedY": 0.9599999785423279,
+            "relativeError": 0.0005492940545082092,
             "halfScaleMax": 0.0,
             "roiX": 353,
             "roiY": 143,
@@ -664,7 +662,7 @@
         {
             "stage": "probeBoth",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -683,12 +681,12 @@
             "ssgiProbeFlag": true,
             "probeSnapshotReady": true,
             "supported": true,
-            "roiMeanR": 0.0,
-            "roiMeanG": 0.0,
-            "roiMeanB": 0.0,
-            "roiMeanY": 0.0,
-            "expectedY": 0.0,
-            "relativeError": 0.0,
+            "roiMeanR": 1.9189453125,
+            "roiMeanG": 1.9189453125,
+            "roiMeanB": 1.9189453125,
+            "roiMeanY": 1.9189453125,
+            "expectedY": 1.9199999570846558,
+            "relativeError": 0.0005492940545082092,
             "halfScaleMax": 0.0,
             "roiX": 353,
             "roiY": 143,
@@ -699,7 +697,7 @@
         {
             "stage": "probeOutside",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "",
@@ -722,8 +720,8 @@
             "roiMeanG": 0.0,
             "roiMeanB": 0.0,
             "roiMeanY": 0.0,
-            "expectedY": 0.0,
-            "relativeError": 0.0,
+            "expectedY": 1.9199999570846558,
+            "relativeError": 1.0,
             "halfScaleMax": 0.0,
             "roiX": 353,
             "roiY": 143,
@@ -734,10 +732,10 @@
         {
             "stage": "offAgain",
             "api": "Direct3D12",
-            "guid": "1a828d066a2142978a1fa099bc52627b",
+            "guid": "9fe964c798ff4683b245b956cb5da18a",
             "gate": "Accepted",
             "requests": "None",
-            "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
+            "frameHash": "b0ed91541b95eb2737afe1153671df3130166822a045b4efc4a533f442a357a4",
             "notes": "",
             "renderer": 2,
             "frames": 4,
@@ -764,7 +762,7 @@
             "roiY": 143,
             "roiW": 254,
             "roiH": 254,
-            "nonBlack": 0
+            "nonBlack": 446576
         }
     ]
 }

@@ -310,7 +310,10 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            // The GBuffer fragment consumes the Screen Space Lighting blend, so the probe fallback
+            // must reach it here; the deferred kernel never samples SSL textures.
             #pragma multi_compile_fragment _ _SCREEN_SPACE_GI
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_GI_PROBE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_SSR
 
             //--------------------------------------

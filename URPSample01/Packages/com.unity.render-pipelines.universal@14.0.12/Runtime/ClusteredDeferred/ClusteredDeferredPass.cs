@@ -103,25 +103,25 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var baked = m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferLightingIndex];
                 cmd.SetRenderTarget(BuiltinRenderTextureType.None);
                 cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.StencilTexture,
-                    m_DeferredLights.DepthAttachmentHandle.nameID, 0, RenderTextureSubElement.Stencil);
-                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.BakedColor, baked.nameID);
-                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.LightingTextureRW, renderer.deferredColorDestination.nameID);
+                    Bindable(m_DeferredLights.DepthAttachmentHandle), 0, RenderTextureSubElement.Stencil);
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.BakedColor, Bindable(baked));
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.LightingTextureRW, Bindable(renderer.deferredColorDestination));
                 var depthCopy = m_DeferredLights.DepthCopyTexture ?? m_DeferredLights.DepthAttachmentHandle;
-                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.CameraDepthTexture, (RenderTargetIdentifier)depthCopy);
-                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer0, (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[0]);
-                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer1, (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[1]);
-                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer2, (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[2]);
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.CameraDepthTexture, Bindable(depthCopy));
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer0, Bindable(m_DeferredLights.GbufferAttachments[0]));
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer1, Bindable(m_DeferredLights.GbufferAttachments[1]));
+                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer2, Bindable(m_DeferredLights.GbufferAttachments[2]));
 
                 // The shadow caster passes publish shared shadow textures and constants. Only
                 // the optional GBuffer inputs need explicit compute bindings here.
                 var shadowMaskIndex = m_DeferredLights.GBufferShadowMask;
                 if (shadowMaskIndex >= 0)
                     cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.ShadowMaskTexture,
-                        (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[shadowMaskIndex]);
+                        Bindable(m_DeferredLights.GbufferAttachments[shadowMaskIndex]));
                 var lightLayersIndex = m_DeferredLights.GBufferRenderingLayers;
                 if (lightLayersIndex >= 0)
                     cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.LightLayersTexture,
-                        (RenderTargetIdentifier)m_DeferredLights.GbufferAttachments[lightLayersIndex]);
+                        Bindable(m_DeferredLights.GbufferAttachments[lightLayersIndex]));
 
                 // Shadows.hlsl picks min-lerp for subtractive and "shadowmask always" mode and a
                 // plain fade lerp for distance shadowmask; the kernel has no per-material keyword,
@@ -167,6 +167,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderer.CompleteDeferredColorHandoff(cmd);
             }
         }
+
+        // A handle's nameID only resolves after that texture was bound as a target in this command
+        // buffer. The color destination is bound by the handoff after the dispatch, so binding by
+        // name drops the first frame into an unregistered temporary; bind the concrete texture.
+        static RenderTargetIdentifier Bindable(RTHandle handle) =>
+            handle.rt != null ? new RenderTargetIdentifier(handle.rt) : handle.nameID;
 
         // Unity's linear-depth parameters for the platform's depth convention, matching the global
         // _ZBufferParams the shaders get. Kept local because core runtime sources may not reference

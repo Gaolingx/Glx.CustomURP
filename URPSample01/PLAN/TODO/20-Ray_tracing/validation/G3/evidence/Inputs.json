@@ -1,6 +1,6 @@
 {
   "base": "464c769637bfe8063a44fa853ad24c87a8f50a0b",
-  "scratch": "E:\\tmp\\G3-2vtnw8ie",
+  "scratch": "E:\\tmp\\G3-36a64y9q",
   "packageHashes": {
     ".npmignore": "e365c50a9a4906186c57c86bce84f662613d88f177e03bba54be148d36a43867",
     "CHANGELOG.md": "e70ce652040ae1a18b025f8c7327068bb5679ace800b9e6ceb5bf2e5749c8c7f",
@@ -1161,11 +1161,11 @@
     "Editor\\ShaderGraph\\Targets\\UniversalDecalSubTarget.cs.meta": "155caed071f41d2ab8e326393a7a18bbca5a91a1f5d10f0073108322535fb23f",
     "Editor\\ShaderGraph\\Targets\\UniversalFullscreenSubTarget.cs": "62637ab19f71c7c8c94ea273f6a1c3447222894e20d3b5c2c87534295bc24431",
     "Editor\\ShaderGraph\\Targets\\UniversalFullscreenSubTarget.cs.meta": "18fb8bf45f841069ce68b4cd464d80d01b7a12e03b17b7ab8399bb0b3171ee77",
-    "Editor\\ShaderGraph\\Targets\\UniversalLitSubTarget.cs": "f931cfb72dafbb05abc5735aac8f8761320a9aa9a88a8b34384f7f5491771863",
+    "Editor\\ShaderGraph\\Targets\\UniversalLitSubTarget.cs": "047cccc665e76359c95770643f06e7e58f299c4b59838c7bdb1b83938c62e563",
     "Editor\\ShaderGraph\\Targets\\UniversalLitSubTarget.cs.meta": "c80e0fccbac32e7d8eb8df8acc35511767cf4d6cf1fcca2e78f65c8a8cbb48a8",
     "Editor\\ShaderGraph\\Targets\\UniversalSubTarget.cs": "ba1ea3e831aba891b98edb8f95e0ba15676a77bf7dcf921223d6c2378e68eb9b",
     "Editor\\ShaderGraph\\Targets\\UniversalSubTarget.cs.meta": "5f5d105dbb5cf096e60e41b25ffe550172de9237fd3ac28a2bdcab05d5366827",
-    "Editor\\ShaderGraph\\Targets\\UniversalTarget.cs": "af30a473bc86e1f827d84c6f9f290314c3b0e4fb2136f5833657acae025fdd16",
+    "Editor\\ShaderGraph\\Targets\\UniversalTarget.cs": "35f258c3cebb6931b67aab7cafe525eea3688d17de76ce058bd2ebe5a8e5a56d",
     "Editor\\ShaderGraph\\Targets\\UniversalTarget.cs.meta": "fa32ea921d52fababfd5c4b58bcaac0392cbef9fed2e7bdd853b52143073a43b",
     "Editor\\ShaderGraph\\Targets\\UniversalUnlitSubTarget.cs": "5d44885be7004fa19794b995ec8e3fa6987717ab1a7d2707c02940995a9cc190",
     "Editor\\ShaderGraph\\Targets\\UniversalUnlitSubTarget.cs.meta": "8c021e99cb952be138109b5ae4f6c676f6eec634ecf473596e2be93f5f7c3e33",
@@ -1455,7 +1455,7 @@
     "Runtime\\AssemblyInfo.cs.meta": "85ca18e9a75eeb358cb2d952232c18e3450558c2e9290a2f20db4a052288b0dd",
     "Runtime\\ClusteredDeferred\\ClusteredDeferredCpuProbe.cs": "fe94570ce495ace2c2752252d4ea956005a9f74feff67f14d2065f69ce40b497",
     "Runtime\\ClusteredDeferred\\ClusteredDeferredCpuProbe.cs.meta": "b35dce4d202197df7150a90cc6e63ee9454c6e7705ab3ff27d8f8e546134ff86",
-    "Runtime\\ClusteredDeferred\\ClusteredDeferredPass.cs": "a31e400fd4f4eb3f1c3de2f2c38e06a18a9c30cf3a5389ff6868ecb691a567c0",
+    "Runtime\\ClusteredDeferred\\ClusteredDeferredPass.cs": "5e791aa645c045ba75f3d8ab414c47998917eef9fc58b05cbf683b2b267ffa69",
     "Runtime\\ClusteredDeferred\\ClusteredDeferredPass.cs.meta": "fafc6ebcaf871507d78e05efbe00ec401cc7261ad43f5c0f586b0a96d54f8578",
     "Runtime\\ClusteredDeferred\\ClusterItemRecord.cs": "a1564e2ff95421354e617afbc19ff315bb62ad89acbca08dd788dab99d8e0f82",
     "Runtime\\ClusteredDeferred\\ClusterItemRecord.cs.meta": "0982579780d54c186a87f13355606d018228d5cec3597e53f5c1a2947267d6d9",
@@ -2118,7 +2118,7 @@
     "Shaders\\BRGPicking.shader.meta": "d28c1a5d80473d65c8ce5b40048613c8dc6521e51382da112b6161646814f2a8",
     "Shaders\\CameraMotionVectors.shader": "2fa337edcbfccccae1d3bf92bd1caf918324fac817bca6b4c13ffd7d11a4067c",
     "Shaders\\CameraMotionVectors.shader.meta": "58373272a77cf0a80e8879a4ddf89352acbfa59c49001ad1ed337e9dacb2402c",
-    "Shaders\\ComplexLit.shader": "d6649215807d0a10cdea5c145af5fbbf4a692f17691a174e9fb9118208996973",
+    "Shaders\\ComplexLit.shader": "c6294f6aa3a281d23b71adad0ece43c9ad91a86275f7d5202eeb4af1a7c86185",
     "Shaders\\ComplexLit.shader.meta": "9ad366c1dbb0f32ce59b38e4915b9548179148095950e9f25b0c668aa8baf41c",
     "Shaders\\Debug\\DebugReplacement.shader": "b9509c00cf949c892eba9aafd2b60d5b5962908c0c59669a2dd7e865d7349a6c",
     "Shaders\\Debug\\DebugReplacement.shader.meta": "d50d267bb304f2e046d4db5bd323fb1f6776514d145b5a2587a65c1e5514644a",
@@ -2133,7 +2133,7 @@
     "Shaders\\DepthOnlyPass.hlsl.meta": "906d72c168f8df10dfde1e92f47aa5191ce3a5e19832961deef8d99f044891e6",
     "Shaders\\FullscreenInvertColors.shadergraph": "5389fa0a0e226aca8e1fd0eeabe99ec3f497a77119fc2562d1e0ac33063f788d",
     "Shaders\\FullscreenInvertColors.shadergraph.meta": "b4a7875d62a6a385467480738b9416bc2fd15a5a379fb5afa7640cd7fe7312b0",
-    "Shaders\\Lit.shader": "54b3c9aad8d85eb3bf18a23506163db70d6b3e93c34af3a4aa88d13daa36544e",
+    "Shaders\\Lit.shader": "566329cbe316eaa5b9ee17d34d9cc0b2e8b17505c6f97ebfb16ee55571028175",
     "Shaders\\Lit.shader.meta": "f0db005307ffe5480c40a402ca5bfb0b3726259031a86e255e49626228ceb008",
     "Shaders\\LitDepthNormalsPass.hlsl": "aace2b457af357929e09017cc040189b391ba2d008c67119c439146fb1419705",
     "Shaders\\LitDepthNormalsPass.hlsl.meta": "99914f85067bb8bce2cecf21d07fbb5884cfdfa2cc6b0bc1fe12eeb6782ef890",
@@ -2495,7 +2495,7 @@
     "Tests\\Editor\\RendererFeatures\\ScreenSpaceLighting\\AccurateGbufferNormalsTests.cs.meta": "7c68d17bc4bd69082c304e527d97b78541aaac32c0da91df0ad86c67ea984a8b",
     "Tests\\Editor\\RendererFeatures\\ScreenSpaceLighting\\ScreenSpaceLightingHistoryTests.cs": "a09b4e0c903c285dccf8c8d9acb9b1b4a189f6b2add0b62877f6684ecc70dd93",
     "Tests\\Editor\\RendererFeatures\\ScreenSpaceLighting\\ScreenSpaceLightingHistoryTests.cs.meta": "b7f29b036ec89f25eb4a5b94a87e4294dacb1c130f8241b4c95d4541b14c11d2",
-    "Tests\\Editor\\RendererFeatures\\ScreenSpaceLighting\\ScreenSpaceLightingMaterialTests.cs": "d1cfd9a2efd81e0bb5bd4a633d52e3673d5738ece3609ac2cdcd76e4f2402050",
+    "Tests\\Editor\\RendererFeatures\\ScreenSpaceLighting\\ScreenSpaceLightingMaterialTests.cs": "12a42725431f51e9b7cbe96feca25a67c04262990989a7e216360a2b0676f577",
     "Tests\\Editor\\RendererFeatures\\ScreenSpaceLighting\\ScreenSpaceLightingMaterialTests.cs.meta": "c597944471e99b8fcc1db111a36b4bb91e74565fbf37ec055bd98502aa15e3c7",
     "Tests\\Editor\\RendererFeatures\\ScreenSpaceLighting\\ScreenSpaceLightingProbeAtlasTests.cs": "5974cd37d8ba9e307d7592cc98593d77d8c2dde9691af5f10464c08e0b1cc74f",
     "Tests\\Editor\\RendererFeatures\\ScreenSpaceLighting\\ScreenSpaceLightingProbeAtlasTests.cs.meta": "9536c8e0b28e98b5e2efe6dd35e66401406afd174227259d99ea08167aa9ccc4",
@@ -2663,6 +2663,6 @@
     "ValidationExceptions.json.meta": "e4c4e746f52a80b8220c3d9b50ce46c5d052522bec87ed0d2d877b51571d9a15"
   },
   "fixtureHashes": {
-    "G3Player.cs": "bbb966c49a40e4990886ccc06b0b56725bfdc9480d7042a835bfeeac647d87ad"
+    "G3Player.cs": "31567e26880ab8e8ffe160f23d7cf6732b24e6c8a39469ba9f8ef8607e525e50"
   }
 }

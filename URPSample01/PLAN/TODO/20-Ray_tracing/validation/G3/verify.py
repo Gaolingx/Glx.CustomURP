@@ -87,7 +87,6 @@ def gate(rep, key):
     require(rep['sceneBuilds'] > 0 and rep['sceneInstances'] == 6, 'D3D12 scene registration')
     require(rep['subscribers'] == 1, 'GI-only scene subscription')
     require(rep['sceneRequests'] == 'GI', 'scene request scope')
-    require('C7' in ' '.join(rep.get('knownDifferences', [])), 'Deferred C7 not recorded')
 
     for r in range(3):
         off, again, probe = stage_of(rep, 'off', r), stage_of(rep, 'offAgain', r), stage_of(rep, 'probe', r)
@@ -102,17 +101,12 @@ def gate(rep, key):
         require(cold['notes'] in ('baked', 'probeReady'), f'D3D12/cold/{r} partial generation {cold["notes"]}')
         require(abs(cold['roiMeanY']) <= FLOOR or abs(cold['roiMeanY'] - EXPECTED) <= ERROR_MAX * EXPECTED,
                 f'D3D12/cold/{r} value {cold["roiMeanY"]}')
-        if r < 2:
-            require(off['nonBlack'] > 1000, f'D3D12/off/{r} blank frame')
-            require(probe['relativeError'] <= ERROR_MAX, f'D3D12/probe/{r} error {probe["relativeError"]}')
-            require(half['halfScaleMax'] <= FLOOR, f'D3D12/probeHalf/{r} not linear {half["halfScaleMax"]}')
-            require(both['relativeError'] <= ERROR_MAX, f'D3D12/probeBoth/{r} error {both["relativeError"]}')
-            require(abs(outside['roiMeanY']) <= FLOOR, f'D3D12/probeOutside/{r} leaked {outside["roiMeanY"]}')
-            require(off['frameHash'] != probe['frameHash'], f'D3D12/probe/{r} never changed the image')
-        else:
-            # C7: the clustered deferred lighting consumes neither SSL texture, so the probe image
-            # must be identical to RT-off and is recorded, not gated, as a known difference.
-            require(off['frameHash'] == probe['frameHash'], 'Deferred changed without consuming the probes')
+        require(off['nonBlack'] > 1000, f'D3D12/off/{r} blank frame')
+        require(probe['relativeError'] <= ERROR_MAX, f'D3D12/probe/{r} error {probe["relativeError"]}')
+        require(half['halfScaleMax'] <= FLOOR, f'D3D12/probeHalf/{r} not linear {half["halfScaleMax"]}')
+        require(both['relativeError'] <= ERROR_MAX, f'D3D12/probeBoth/{r} error {both["relativeError"]}')
+        require(abs(outside['roiMeanY']) <= FLOOR, f'D3D12/probeOutside/{r} leaked {outside["roiMeanY"]}')
+        require(off['frameHash'] != probe['frameHash'], f'D3D12/probe/{r} never changed the image')
 
 for api, name in [(11, 'D3D11'), (12, 'D3D12')]:
     rep = reports.get(api)

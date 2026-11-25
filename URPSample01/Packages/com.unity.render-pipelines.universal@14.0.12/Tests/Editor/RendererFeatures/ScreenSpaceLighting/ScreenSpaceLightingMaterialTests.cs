@@ -40,8 +40,10 @@ namespace UnityEditor.Rendering.Universal.Tests
             string gbufferBlock = lit.Substring(gbuffer, depthOnly - gbuffer);
 
             AssertContains(forwardBlock, "_SCREEN_SPACE_GI", "Lit ForwardLit");
+            AssertContains(forwardBlock, "_SCREEN_SPACE_GI_PROBE", "Lit ForwardLit");
             AssertContains(forwardBlock, "_SCREEN_SPACE_SSR", "Lit ForwardLit");
             AssertContains(gbufferBlock, "_SCREEN_SPACE_GI", "Lit GBuffer");
+            AssertContains(gbufferBlock, "_SCREEN_SPACE_GI_PROBE", "Lit GBuffer");
             AssertContains(gbufferBlock, "_SCREEN_SPACE_SSR", "Lit GBuffer");
         }
 
@@ -82,10 +84,12 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             string target = ReadPackageFile("Editor/ShaderGraph/Targets/UniversalTarget.cs");
             AssertContains(target, "referenceName = \"_SCREEN_SPACE_GI\"", "ShaderGraph keyword descriptors");
+            AssertContains(target, "referenceName = \"_SCREEN_SPACE_GI_PROBE\"", "ShaderGraph keyword descriptors");
             AssertContains(target, "referenceName = \"_SCREEN_SPACE_SSR\"", "ShaderGraph keyword descriptors");
 
             string litSubTarget = ReadPackageFile("Editor/ShaderGraph/Targets/UniversalLitSubTarget.cs");
             AssertContains(litSubTarget, "CoreKeywordDescriptors.ScreenSpaceGlobalIllumination", "ShaderGraph Lit keywords");
+            AssertContains(litSubTarget, "CoreKeywordDescriptors.ScreenSpaceGlobalIlluminationProbe", "ShaderGraph Lit keywords");
             AssertContains(litSubTarget, "CoreKeywordDescriptors.ScreenSpaceReflections", "ShaderGraph Lit keywords");
 
             string gbufferPass = ReadPackageFile("Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl");
