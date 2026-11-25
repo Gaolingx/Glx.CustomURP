@@ -7,19 +7,35 @@ namespace UnityEngine.Rendering.Universal
     /// GPU programs owned by a Screen Space Lighting feature. The references are serialized so a player
     /// build keeps the compute shader and materials; the feature editor fills package defaults when empty.
     /// </summary>
-    [Serializable]
+    [Serializable, ReloadGroup]
     internal sealed class ScreenSpaceLightingResources
     {
-        [SerializeField] internal ComputeShader depthPyramidCompute;
-        [SerializeField] internal Shader colorPyramidShader;
-        [SerializeField] internal Shader debugShader;
+        [SerializeField, Reload("Shaders/Utils/ScreenSpaceCommon/DepthPyramid.compute")]
+        internal ComputeShader depthPyramidCompute;
 
-        [SerializeField] internal ComputeShader ssgiCompute;
-        [SerializeField] internal ComputeShader ssgiTemporalFilterCompute;
-        [SerializeField] internal ComputeShader ssgiDiffuseDenoiserCompute;
-        [SerializeField] internal ComputeShader bilateralUpsampleCompute;
-        [SerializeField] internal ComputeShader ssrCompute;
-        [SerializeField] internal ComputeShader ssrReflectionDenoiserCompute;
+        [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/ColorPyramid.shader")]
+        internal Shader colorPyramidShader;
+
+        [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingDebug.shader")]
+        internal Shader debugShader;
+
+        [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute")]
+        internal ComputeShader ssgiCompute;
+
+        [SerializeField, Reload("Shaders/Utils/Denoising/TemporalFilter.compute")]
+        internal ComputeShader ssgiTemporalFilterCompute;
+
+        [SerializeField, Reload("Shaders/Utils/Denoising/DiffuseDenoiser.compute")]
+        internal ComputeShader ssgiDiffuseDenoiserCompute;
+
+        [SerializeField, Reload("Shaders/Utils/ScreenSpaceCommon/BilateralUpsample.compute")]
+        internal ComputeShader bilateralUpsampleCompute;
+
+        [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute")]
+        internal ComputeShader ssrCompute;
+
+        [SerializeField, Reload("Shaders/Utils/Denoising/ReflectionDenoiser.compute")]
+        internal ComputeShader ssrReflectionDenoiserCompute;
 
         // Not in Resources, and no serialized reference in non-Windows players.
 #if UNITY_STANDALONE_WIN && (UNITY_EDITOR || UNITY_64)
@@ -30,11 +46,13 @@ namespace UnityEngine.Rendering.Universal
         internal UnityEngine.Experimental.Rendering.RayTracingShader rayTracingGi => null;
 #endif
 
-        [SerializeField] internal ComputeShader giProbeUpdateCompute;
+        [SerializeField, Reload("Shaders/RayTracing/GlxProbeUpdate.compute")]
+        internal ComputeShader giProbeUpdateCompute;
 
         // Seeds the private transparent depth target from the opaque camera depth. The URP
         // CopyDepth shader is reused so the _OUTPUT_DEPTH (SV_Depth) path is identical.
-        [SerializeField] internal Shader transparentDepthCopyShader;
+        [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
+        internal Shader transparentDepthCopyShader;
 
         [NonSerialized] Material m_ColorPyramidMaterial;
         [NonSerialized] Material m_DebugMaterial;
@@ -213,101 +231,10 @@ namespace UnityEngine.Rendering.Universal
     {
         internal static void AssignDefaults(ScreenSpaceLightingResources resources)
         {
-            if (resources == null)
-                return;
-
 #if UNITY_EDITOR
-            if (resources.depthPyramidCompute == null)
-            {
-                resources.depthPyramidCompute = FindPackageAsset<ComputeShader>(
-                    "DepthPyramid t:ComputeShader",
-                    "/ScreenSpaceCommon/DepthPyramid.compute");
-            }
-
-            if (resources.colorPyramidShader == null)
-            {
-                resources.colorPyramidShader = FindPackageAsset<Shader>(
-                    "ColorPyramid t:Shader",
-                    "/ScreenSpaceLighting/ColorPyramid.shader");
-            }
-
-            if (resources.debugShader == null)
-            {
-                resources.debugShader = FindPackageAsset<Shader>(
-                    "ScreenSpaceLightingDebug t:Shader",
-                    "/ScreenSpaceLighting/ScreenSpaceLightingDebug.shader");
-            }
-
-            if (resources.ssgiCompute == null)
-            {
-                resources.ssgiCompute = FindPackageAsset<ComputeShader>(
-                    "ScreenSpaceGlobalIllumination t:ComputeShader",
-                    "/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute");
-            }
-
-            if (resources.ssgiTemporalFilterCompute == null)
-            {
-                resources.ssgiTemporalFilterCompute = FindPackageAsset<ComputeShader>(
-                    "TemporalFilter t:ComputeShader",
-                    "/Denoising/TemporalFilter.compute");
-            }
-
-            if (resources.ssgiDiffuseDenoiserCompute == null)
-            {
-                resources.ssgiDiffuseDenoiserCompute = FindPackageAsset<ComputeShader>(
-                    "DiffuseDenoiser t:ComputeShader",
-                    "/Denoising/DiffuseDenoiser.compute");
-            }
-
-            if (resources.bilateralUpsampleCompute == null)
-            {
-                resources.bilateralUpsampleCompute = FindPackageAsset<ComputeShader>(
-                    "BilateralUpsample t:ComputeShader",
-                    "/ScreenSpaceCommon/BilateralUpsample.compute");
-            }
-
-            if (resources.ssrCompute == null)
-            {
-                resources.ssrCompute = FindPackageAsset<ComputeShader>(
-                    "ScreenSpaceReflections t:ComputeShader",
-                    "/ScreenSpaceLighting/ScreenSpaceReflections.compute");
-            }
-
-            if (resources.ssrReflectionDenoiserCompute == null)
-            {
-                resources.ssrReflectionDenoiserCompute = FindPackageAsset<ComputeShader>(
-                    "ReflectionDenoiser t:ComputeShader",
-                    "/Denoising/ReflectionDenoiser.compute");
-            }
-
-            if (resources.giProbeUpdateCompute == null)
-            {
-                resources.giProbeUpdateCompute = FindPackageAsset<ComputeShader>(
-                    "GlxProbeUpdate t:ComputeShader",
-                    "/RayTracing/GlxProbeUpdate.compute");
-            }
-
-            if (resources.transparentDepthCopyShader == null)
-            {
-                resources.transparentDepthCopyShader = FindPackageAsset<Shader>(
-                    "CopyDepth t:Shader",
-                    "/Shaders/Utils/CopyDepth.shader");
-            }
+            if (resources != null)
+                ResourceReloader.TryReloadAllNullIn(resources, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
-
-#if UNITY_EDITOR
-        static T FindPackageAsset<T>(string filter, string pathSuffix) where T : UnityEngine.Object
-        {
-            foreach (var guid in UnityEditor.AssetDatabase.FindAssets(filter, new[] { "Packages" }))
-            {
-                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-                if (path.Replace('\\', '/').EndsWith(pathSuffix, StringComparison.Ordinal))
-                    return UnityEditor.AssetDatabase.LoadAssetAtPath<T>(path);
-            }
-
-            return null;
-        }
-#endif
     }
 }

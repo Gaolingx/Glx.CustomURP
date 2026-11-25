@@ -1,12 +1,59 @@
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(ScreenSpaceLightingRendererFeature))]
-    internal sealed class ScreenSpaceLightingEditor : ScriptableRendererFeatureEditor
+    internal sealed class ScreenSpaceLightingEditor : ScreenSpaceFeatureEditor
     {
+        internal static readonly string[] k_ReflectionFields =
+        {
+            "publishProbeAtlas", "rayTracingReflections", "reflectionRayBudget", "rayTracingProbeFallback"
+        };
+
+        internal static readonly string[] k_ProbeFields =
+        {
+            "probeGridOrigin", "probeGridSpacing", "probeGridCounts",
+            "probeBatchSize", "probeRaysPerProbe",
+            "probeFeedback", "probeRelocation", "probeClassification", "probeCoverage"
+        };
+
+        internal static readonly string[] k_DebugFields = { "debugMode", "debugMip" };
+
+        internal static readonly string[] k_ResourceFields =
+        {
+            "depthPyramidCompute", "colorPyramidShader", "debugShader",
+            "ssgiCompute", "ssgiTemporalFilterCompute", "ssgiDiffuseDenoiserCompute", "bilateralUpsampleCompute",
+            "ssrCompute", "ssrReflectionDenoiserCompute",
+#if UNITY_STANDALONE_WIN
+            "rayTracingSsr", "rayTracingGi",
+#endif
+            "giProbeUpdateCompute", "transparentDepthCopyShader"
+        };
+
+        private struct Styles
+        {
+            public static readonly GUIContent settings = EditorGUIUtility.TrTextContent("Settings");
+            public static readonly GUIContent reflections = EditorGUIUtility.TrTextContent("Reflections");
+            public static readonly GUIContent probes = EditorGUIUtility.TrTextContent("Probes");
+            public static readonly GUIContent history = EditorGUIUtility.TrTextContent("History", "Camera history budget.");
+            public static readonly GUIContent debug = EditorGUIUtility.TrTextContent("Debug");
+            public static readonly GUIContent resources = EditorGUIUtility.TrTextContent(
+                "Resources", "Shaders used by this feature. Empty references are restored from the URP package.");
+        }
+
+        private SerializedProperty m_Settings;
+        private SerializedProperty m_Resources;
+
+        protected override object ReloadTarget => ((ScreenSpaceLightingRendererFeature)target).settings;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            m_Settings = serializedObject.FindProperty("m_Settings");
+            m_Resources = m_Settings.FindPropertyRelative("resources");
+        }
+
         public override void OnInspectorGUI()
         {
             var feature = (ScreenSpaceLightingRendererFeature)target;
@@ -18,68 +65,28 @@ namespace UnityEditor.Rendering.Universal
                 "on the material.",
                 MessageType.Info);
 
-            if (settings != null && !settings.resources.isComplete)
+            if (settings == null || settings.resources == null || !settings.resources.isComplete)
             {
                 EditorGUILayout.HelpBox(
-                    "The Screen Space Lighting compute and debug shaders are not assigned. " +
-                    "Use Assign Package Defaults to reference the shaders shipped with URP.",
+                    "The Screen Space Lighting compute and debug shaders could not be resolved from the URP " +
+                    "package. Empty references are restored when this inspector opens; the feature stays " +
+                    "disabled until the shaders are available.",
                     MessageType.Warning);
-                if (GUILayout.Button("Assign Package Defaults"))
-                {
-                    ScreenSpaceLightingResourceLocator.AssignDefaults(settings.resources);
-                    EditorUtility.SetDirty(feature);
-                    AssetDatabase.SaveAssets();
-                }
             }
 
             serializedObject.Update();
-            var settingsProperty = serializedObject.FindProperty("m_Settings");
 
-            if (ScreenSpaceFeatureInspector.Foldout(feature, "Settings", true))
+            if (Foldout("Settings", Styles.settings, true))
             {
                 EditorGUI.indentLevel++;
-
-                if (ScreenSpaceFeatureInspector.Foldout(feature, "Reflections"))
-                {
-                    EditorGUI.indentLevel++;
-                    ScreenSpaceFeatureInspector.DrawProperties(settingsProperty,
-                        "publishProbeAtlas", "rayTracingReflections", "reflectionRayBudget", "rayTracingProbeFallback");
-                    EditorGUI.indentLevel--;
-                }
-
-                if (ScreenSpaceFeatureInspector.Foldout(feature, "Probes"))
-                {
-                    EditorGUI.indentLevel++;
-                    ScreenSpaceFeatureInspector.DrawProperties(settingsProperty,
-                        "probeGridOrigin", "probeGridSpacing", "probeGridCounts",
-                        "probeBatchSize", "probeRaysPerProbe",
-                        "probeFeedback", "probeRelocation", "probeClassification", "probeCoverage");
-                    EditorGUI.indentLevel--;
-                }
-
-                ScreenSpaceFeatureInspector.HistoryFoldout(feature, settingsProperty);
-
-                if (ScreenSpaceFeatureInspector.Foldout(feature, "Debug"))
-                {
-                    EditorGUI.indentLevel++;
-                    ScreenSpaceFeatureInspector.DrawProperties(settingsProperty, "debugMode", "debugMip");
-                    EditorGUI.indentLevel--;
-                }
-
+                DrawSection(m_Settings, "Reflections", Styles.reflections, k_ReflectionFields);
+                DrawSection(m_Settings, "Probes", Styles.probes, k_ProbeFields);
+                DrawHistory(m_Settings, Styles.history);
+                DrawSection(m_Settings, "Debug", Styles.debug, k_DebugFields);
                 EditorGUI.indentLevel--;
             }
 
-            if (ScreenSpaceFeatureInspector.Foldout(feature, "Resources", true))
-            {
-                EditorGUI.indentLevel++;
-                ScreenSpaceFeatureInspector.DrawProperties(
-                    settingsProperty.FindPropertyRelative("resources"),
-                    "depthPyramidCompute", "colorPyramidShader", "debugShader",
-                    "ssgiCompute", "ssgiTemporalFilterCompute", "ssgiDiffuseDenoiserCompute", "bilateralUpsampleCompute",
-                    "ssrCompute", "ssrReflectionDenoiserCompute",
-                    "rayTracingSsr", "rayTracingGi", "giProbeUpdateCompute", "transparentDepthCopyShader");
-                EditorGUI.indentLevel--;
-            }
+            DrawResources(m_Resources, Styles.resources, k_ResourceFields);
 
             if (serializedObject.ApplyModifiedProperties())
                 EditorUtility.SetDirty(feature);

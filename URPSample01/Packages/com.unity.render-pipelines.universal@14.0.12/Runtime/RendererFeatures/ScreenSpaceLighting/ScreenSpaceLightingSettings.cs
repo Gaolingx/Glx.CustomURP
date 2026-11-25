@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         internal int maxUnusedFrames = 120;
 
         [SerializeField]
-        [Tooltip("Publishes the reflection probe atlas in Forward and Deferred so the SSGI miss fallback can sample local reflection probes. Ignored in Forward+, which always publishes the atlas.")]
+        [Tooltip("Publishes the reflection probe atlas in Forward and Deferred so the SSGI miss fallback can sample local reflection probes. Ignored in Forward+, which always publishes the atlas. Enabling it allocates and updates the atlas, and the sky part of Reflection Probes and Sky becomes the ambient probe.")]
         internal bool publishProbeAtlas = false;
 
         [SerializeField, Tooltip("Resolve smooth opaque half-resolution Approximation SSR against registered scene meshes. Requires hardware ray tracing support.")]

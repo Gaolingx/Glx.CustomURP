@@ -737,7 +737,7 @@ T1 固定基线配置：
 - `ScreenSpaceLightingHistory` 新增逐相机私有 `transparentDepth`（Depth32）、`transparentNormals`（`DepthNormalOnlyPass.GetGraphicsFormat()`）、`ssrTransparentHitPoint`（R16G16_SFloat）与 `ssrTransparentOutput`（RGBA16F）；不透明与透明输出/hit point 完全分离。新增 `frameSerial`，每次 `BeginFrame` 递增。
 - `ScreenSpaceLightingTransparentDepthNormalsPass`（447）：复用 URP `CopyDepth` 材质和 `_OUTPUT_DEPTH` 把 `_CameraDepthTexture` 写入私有 depth，清除 `_DEPTH_MSAA_*` 避免继承 CopyDepthPass 的全局状态；随后 `CommonTransparent` 排序、`ZWrite On` 绘制 `UniversalTransparentDepthNormals` 材质。主相机 depth/color 从未绑定。记录 `producedFrameSerial`。
 - `ScreenSpaceLightingTransparentSsrPass`（449）：仅当 `prepass.producedFrameSerial == history.frameSerial` 时执行；绑定私有 depth/normal 为 ray origin、opaque packed Hi-Z 为 marching、上一帧 color pyramid 为 radiance；强制 `SSR_APPROX`、关闭 `SSR_NORMALS_OCT`、`_SsrReflectsSky=0`、PBR 参数全 0。输出使用独立纹理和 `_SCREEN_SPACE_TRANSPARENT_SSR` 关键字，`OnCameraCleanup` 恢复 black/0/off。无 accumulation 历史。
-- Volume `ScreenSpaceReflection.enabledTransparent`（默认 false）；Feature 创建/入队两个新 Pass；Debug 模式新增 `TransparentDepth`、`SsrTransparentRaw`、`SsrTransparentWeight`；资源新增 `transparentDepthCopyShader`（`Hidden/Universal Render Pipeline/CopyDepth`），旧 Renderer 会因 `isComplete` 为 false 提示 Assign Package Defaults。
+- Volume `ScreenSpaceReflection.enabledTransparent`（默认 false）；Feature 创建/入队两个新 Pass；Debug 模式新增 `TransparentDepth`、`SsrTransparentRaw`、`SsrTransparentWeight`；资源新增 `transparentDepthCopyShader`（`Hidden/Universal Render Pipeline/CopyDepth`），旧 Renderer 在 Inspector 打开时会通过 `ResourceReloader` 补齐空引用。
 - `ScreenSpaceLightingEditor` 帮助文本更新；EditMode 新增 `ScreenSpaceLightingTransparentSsrTests`（事件顺序、串行号、资源隔离/重建/逐帧清空、Approximation-only、关键字契约）与材质 Source 契约测试。
 
 **验证器与证据**

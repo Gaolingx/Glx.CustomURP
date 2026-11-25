@@ -6,18 +6,32 @@ namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// GPU programs owned by a Ground Truth Ambient Occlusion feature. The references are serialized so a
-    /// player build keeps the compute shaders; the feature editor fills package defaults when empty.
+    /// player build keeps the compute shaders; <see cref="ResourceReloader"/> fills empty references from
+    /// the package when the renderer asset is loaded in the editor.
     /// </summary>
-    [Serializable]
+    [Serializable, ReloadGroup]
     internal sealed class GroundTruthAmbientOcclusionResources
     {
-        [SerializeField] internal ComputeShader gtaoCompute;
-        [SerializeField] internal ComputeShader spatialDenoiseCompute;
-        [SerializeField] internal ComputeShader temporalDenoiseCompute;
-        [SerializeField] internal ComputeShader copyHistoryCompute;
-        [SerializeField] internal ComputeShader blurAndUpsampleCompute;
-        [SerializeField] internal ComputeShader depthPyramidCompute;
-        [SerializeField] internal Shader debugShader;
+        [SerializeField, Reload("Shaders/Utils/GroundTruthAmbientOcclusion/GTAO.compute")]
+        internal ComputeShader gtaoCompute;
+
+        [SerializeField, Reload("Shaders/Utils/GroundTruthAmbientOcclusion/GTAOSpatialDenoise.compute")]
+        internal ComputeShader spatialDenoiseCompute;
+
+        [SerializeField, Reload("Shaders/Utils/GroundTruthAmbientOcclusion/GTAOTemporalDenoise.compute")]
+        internal ComputeShader temporalDenoiseCompute;
+
+        [SerializeField, Reload("Shaders/Utils/GroundTruthAmbientOcclusion/GTAOCopyHistory.compute")]
+        internal ComputeShader copyHistoryCompute;
+
+        [SerializeField, Reload("Shaders/Utils/GroundTruthAmbientOcclusion/GTAOBlurAndUpsample.compute")]
+        internal ComputeShader blurAndUpsampleCompute;
+
+        [SerializeField, Reload("Shaders/Utils/ScreenSpaceCommon/DepthPyramid.compute")]
+        internal ComputeShader depthPyramidCompute;
+
+        [SerializeField, Reload("Shaders/Utils/GroundTruthAmbientOcclusion/GTAODebug.shader")]
+        internal Shader debugShader;
 
         [NonSerialized] Material m_DebugMaterial;
 
@@ -53,73 +67,10 @@ namespace UnityEngine.Rendering.Universal
     {
         internal static void AssignDefaults(GroundTruthAmbientOcclusionResources resources)
         {
-            if (resources == null)
-                return;
-
 #if UNITY_EDITOR
-            if (resources.gtaoCompute == null)
-            {
-                resources.gtaoCompute = FindPackageAsset<ComputeShader>(
-                    "GTAO t:ComputeShader",
-                    "/GroundTruthAmbientOcclusion/GTAO.compute");
-            }
-
-            if (resources.spatialDenoiseCompute == null)
-            {
-                resources.spatialDenoiseCompute = FindPackageAsset<ComputeShader>(
-                    "GTAOSpatialDenoise t:ComputeShader",
-                    "/GroundTruthAmbientOcclusion/GTAOSpatialDenoise.compute");
-            }
-
-            if (resources.temporalDenoiseCompute == null)
-            {
-                resources.temporalDenoiseCompute = FindPackageAsset<ComputeShader>(
-                    "GTAOTemporalDenoise t:ComputeShader",
-                    "/GroundTruthAmbientOcclusion/GTAOTemporalDenoise.compute");
-            }
-
-            if (resources.copyHistoryCompute == null)
-            {
-                resources.copyHistoryCompute = FindPackageAsset<ComputeShader>(
-                    "GTAOCopyHistory t:ComputeShader",
-                    "/GroundTruthAmbientOcclusion/GTAOCopyHistory.compute");
-            }
-
-            if (resources.blurAndUpsampleCompute == null)
-            {
-                resources.blurAndUpsampleCompute = FindPackageAsset<ComputeShader>(
-                    "GTAOBlurAndUpsample t:ComputeShader",
-                    "/GroundTruthAmbientOcclusion/GTAOBlurAndUpsample.compute");
-            }
-
-            if (resources.depthPyramidCompute == null)
-            {
-                resources.depthPyramidCompute = FindPackageAsset<ComputeShader>(
-                    "DepthPyramid t:ComputeShader",
-                    "/ScreenSpaceCommon/DepthPyramid.compute");
-            }
-
-            if (resources.debugShader == null)
-            {
-                resources.debugShader = FindPackageAsset<Shader>(
-                    "GTAODebug t:Shader",
-                    "/GroundTruthAmbientOcclusion/GTAODebug.shader");
-            }
+            if (resources != null)
+                ResourceReloader.TryReloadAllNullIn(resources, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
-
-#if UNITY_EDITOR
-        static T FindPackageAsset<T>(string filter, string pathSuffix) where T : UnityEngine.Object
-        {
-            foreach (var guid in UnityEditor.AssetDatabase.FindAssets(filter, new[] { "Packages" }))
-            {
-                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-                if (path.Replace('\\', '/').EndsWith(pathSuffix, StringComparison.Ordinal))
-                    return UnityEditor.AssetDatabase.LoadAssetAtPath<T>(path);
-            }
-
-            return null;
-        }
-#endif
     }
 }

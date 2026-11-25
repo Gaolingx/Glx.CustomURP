@@ -912,7 +912,7 @@ KContactShadow(pixel):
 - Feature 必须是 `public sealed`，Settings 标 `[Serializable]` 并以 `[SerializeField]` 持有；否则不会出现在 Add Renderer Feature 菜单或无法序列化。
 - `ContactShadowsVolume` 必须 `public sealed` + `[VolumeComponentMenuForRenderPipeline]`；`ContactShadowLight` 必须 `public sealed` + `[AddComponentMenu]` + `[DisallowMultipleComponent]`。
 - Feature 是 `ScriptableObject`，被序列化进 Universal Renderer Data；其 `ComputeShader` / `Shader` 引用必须序列化，player build 才能包含。
-- Feature Inspector 提供 “Assign Defaults”，在包内 `Shaders/Utils/ContactShadows` 按文件名查找；找不到时显示警告。
+- Feature Inspector 在打开时用 `ResourceReloader` 按 `[Reload]` 路径补齐空的 ComputeShader / Shader 引用，仅在确有引用被补齐时通过 `AssetDatabase.SaveAssetIfDirty` 写回 Renderer 资产；包内资产无法解析时保留空引用并显示警告。早期版本的 “Assign Defaults” 按钮已移除。
 - 共享金字塔 compute 引用：Feature 资源中同样序列化 `depthPyramidCompute`（与 SSL 相同的包内 `DepthPyramid.compute`），供 `ScreenSpaceDepthPyramidSystem.Acquire` 使用。
 - 中性 1×1 `R32_UInt` 在 Feature 资源中创建一次并持有；不使用 `Texture2D.blackTexture`（类型不匹配）；`Dispose` 释放。
 - 非 Development player 构建必须验证上述引用未被 strip（T8）。
@@ -976,7 +976,7 @@ T8 ─> T9 文档/清理/归档
   - `Runtime/RendererFeatures/ContactShadows`：Feature（`public sealed` + `[DisallowMultipleRendererFeature("Screen Space Contact Shadows")]`）、`ContactShadowsVolume`（`public sealed` + `[VolumeComponentMenuForRenderPipeline]`）、`ContactShadowLight`（`[AddComponentMenu]` + `[DisallowMultipleComponent]`）、空 `ScreenSpaceContactShadowsPass`（只实现 Setup/Execute 空壳；T3 填充 compute，T5 填充全局绑定）、Settings/Resources/ShaderIDs/Capability 骨架；
   - 包内 `ContactShadowVolumeTests` 与项目侧 `ContactShadowFeatureImportTests`（临时 fixture）；
   - **Settings/Resources/ShaderIDs 在 T1 一次性定义全部已知字段/ID（含 debug 字段）**，后续 T2/T3/T4/T6 不互相加字段，也不因新字段重写 T7 资产；
-  - `Editor/RendererFeatures/ContactShadows`：Feature Inspector + Assign Defaults；
+  - `Editor/RendererFeatures/ContactShadows`：Feature Inspector（打开时自动补齐包内资源引用）；
   - 导入测试使用 EditMode 临时创建 Renderer/Pipeline/Volume Profile，`TearDown` 删除；**不提交测试资产**（Pipeline/Renderer/Volume/Scene）；只提交 `Assets/Tests/ContactShadow/Editor/ContactShadowFeatureImportTests.cs` 测试脚本。
 - **验收**：
   - Feature 出现在 **Add Renderer Feature** 菜单；添加/移除/domain reload 后仍正常；
