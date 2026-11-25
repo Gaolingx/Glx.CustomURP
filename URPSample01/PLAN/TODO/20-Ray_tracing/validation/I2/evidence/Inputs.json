@@ -1,5 +1,5 @@
 {
-  "base": "c9b375693b4436adfb9af2424b8afb72b9b81009",
+  "base": "aceb6ca976c3f8900afecf70f4b32c5390a1e6b6",
   "scratch": "E:\\tmp\\I2-25zajusy",
   "packageHashes": {
     ".npmignore": "e365c50a9a4906186c57c86bce84f662613d88f177e03bba54be148d36a43867",
@@ -1112,7 +1112,7 @@
     "Editor\\ScriptableRendererFeatureEditor.cs.meta": "f00f8c3e3a13b13297d36984d26ce9fc0607099eaf3d6011f03ac801f82815f5",
     "Editor\\ScriptableRendererFeatureProvider.cs": "550d354c2e6cdee09ff79a93aa331f01c5c642c954bc8c31064680a8437e30e4",
     "Editor\\ScriptableRendererFeatureProvider.cs.meta": "13ea03f77bf789ba61a4576608b11ff30172f17ebc432f79ee368397f3dc80a9",
-    "Editor\\ShaderBuildPreprocessor.cs": "1ec081b211d8870a0b831c4cff4a6ebc3298cac4b4eefb75565d201cf06f1931",
+    "Editor\\ShaderBuildPreprocessor.cs": "c51fec310b5faf6c64a185b91f57b04c15a3fa08494f1d8639cec6ee3cf6f6e4",
     "Editor\\ShaderBuildPreprocessor.cs.meta": "e9650ad91ae3ae23dae44d13ecd2e5f42bb57eda612cd34d748521c430daaa68",
     "Editor\\ShaderGraph\\AssetCallbacks\\CreateFullscreenShaderGraph.cs": "11bf801cd6c226791352881438ff4ffead0a7fdb5cd0e5a3ca9ab3732e3b9950",
     "Editor\\ShaderGraph\\AssetCallbacks\\CreateFullscreenShaderGraph.cs.meta": "ce3959d3726ff3ad92f9532c514c4e98756861c34d5f90646c5469fa4e56a674",
@@ -1230,7 +1230,7 @@
     "Editor\\ShaderGUI\\TerrainLitShaderGUI.cs": "8aff9f45d03c5b93ff45aea9e9f3519bcf66684d64373f9e186a9baf023a110f",
     "Editor\\ShaderGUI\\TerrainLitShaderGUI.cs.meta": "f64953b7ab5712cf7ec2e04070e05da80fc17ae14954888f22cc9875f817de5d",
     "Editor\\ShaderGUI.meta": "e9b0b3b467a610cab993a572e5efd45a2efe62e101302e9d9abbbed7cd690f9e",
-    "Editor\\ShaderScriptableStripper.cs": "58b52f2ec178396eb8a4e3b4454313c7625554e61e324e6457cd7bd97a59bfa5",
+    "Editor\\ShaderScriptableStripper.cs": "c42e08ad438799c4280686eeccda8663a6e511f76dabe0521e9ff981504eeaf6",
     "Editor\\ShaderScriptableStripper.cs.meta": "ca8c77d1885e73d8100dd4d218a1c766b711927918608d079301764246ca4096",
     "Editor\\ShaderStripTool.cs": "a9634fef3a44d9dae324745aa48a1a85aa4265ef1a0a6904a4623b79477be175",
     "Editor\\ShaderStripTool.cs.meta": "b64a6bbe59b27df0315d677ad1984682988f62462fcf1cd310315c18171f158c",
@@ -2664,6 +2664,6 @@
   },
   "fixtureHashes": {
     "I2Player.cs": "db3e7c5a99178878fce95bf8099fb4c02648a1e8a2294aa60d6c9ee689e4339c",
-    "I2VariantAudit.cs": "38544d07d8277330a60ab826643b7caeb1c784ac353305523d8b77739ef39c94"
+    "I2VariantAudit.cs": "3f2c5099980352dae815710dcb744ae6536c8bbcaebea9d417e20e1d3e4eeaa5"
   }
 }

@@ -1,5 +1,5 @@
 {
-    "guid": "b9e30703c21c4c13b09b05e5189e0443",
+    "guid": "e40d48cf7ed04900890f68d78226b553",
     "api": "Direct3D12",
     "adapter": "NVIDIA GeForce RTX 5060 Ti",
     "driver": "Direct3D 12 [level 12.1]",
@@ -35,7 +35,7 @@
         {
             "stage": "off",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "a6e5bc357686d6af40085e6d7323eae6345a11ffbbf06fb0c232ef00bd643702",
@@ -81,7 +81,7 @@
         {
             "stage": "classification",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "75af8afbd985992dc8db781f6c0733f5011dfabd6f34b17d4528aed5941989eb",
@@ -127,7 +127,7 @@
         {
             "stage": "relocation",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "75af8afbd985992dc8db781f6c0733f5011dfabd6f34b17d4528aed5941989eb",
@@ -173,7 +173,7 @@
         {
             "stage": "darkStep",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "4ff3635db58973aa193295f3f7393b1e71b16cc5e1ad3b36529742bc9ba294b9",
@@ -219,7 +219,7 @@
         {
             "stage": "both",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "1a6adef26596e6a64f03970bddfeb2da590457f0c8595a6ac7471535c2a424b0",
@@ -265,7 +265,7 @@
         {
             "stage": "cut",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "5892f44e95b9d2cb5d5ee2442329a7e76d2d9a3cf480060a2fe76e548430d879",
@@ -311,7 +311,7 @@
         {
             "stage": "dual",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "75af8afbd985992dc8db781f6c0733f5011dfabd6f34b17d4528aed5941989eb",
@@ -357,7 +357,7 @@
         {
             "stage": "feedback",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "c47ff51afffec2dd5a30de4ae6089deda8f544ab5ce5d1d95ffab195974176f0",
@@ -403,7 +403,7 @@
         {
             "stage": "feedbackDecay",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "26fa34ccc2c4070bf8dc6be0fd780afee0b7220b31ebf3d94bbe204a226c9931",
@@ -449,7 +449,7 @@
         {
             "stage": "thinWallFront",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "812e6a4910545460864121b5d46c2eb572f1c454b8bed4d82baa954b67cbbc6f",
@@ -495,7 +495,7 @@
         {
             "stage": "thinWallRear",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "824e4a555ba548442c93fbba47ab43061599fc0ea5990dd645bd8d29109236f7",
@@ -541,7 +541,7 @@
         {
             "stage": "off",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "a6e5bc357686d6af40085e6d7323eae6345a11ffbbf06fb0c232ef00bd643702",
@@ -587,7 +587,7 @@
         {
             "stage": "classification",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "75af8afbd985992dc8db781f6c0733f5011dfabd6f34b17d4528aed5941989eb",
@@ -633,7 +633,7 @@
         {
             "stage": "relocation",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "75af8afbd985992dc8db781f6c0733f5011dfabd6f34b17d4528aed5941989eb",
@@ -679,7 +679,7 @@
         {
             "stage": "darkStep",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "4ff3635db58973aa193295f3f7393b1e71b16cc5e1ad3b36529742bc9ba294b9",
@@ -725,7 +725,7 @@
         {
             "stage": "both",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "a12788fa061cad14cc9ddb5d5062319f239071337319bcfe8933e75275270922",
@@ -771,7 +771,7 @@
         {
             "stage": "cut",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "5892f44e95b9d2cb5d5ee2442329a7e76d2d9a3cf480060a2fe76e548430d879",
@@ -817,7 +817,7 @@
         {
             "stage": "dual",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "75af8afbd985992dc8db781f6c0733f5011dfabd6f34b17d4528aed5941989eb",
@@ -863,7 +863,7 @@
         {
             "stage": "feedback",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "c47ff51afffec2dd5a30de4ae6089deda8f544ab5ce5d1d95ffab195974176f0",
@@ -909,7 +909,7 @@
         {
             "stage": "feedbackDecay",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "26fa34ccc2c4070bf8dc6be0fd780afee0b7220b31ebf3d94bbe204a226c9931",
@@ -955,7 +955,7 @@
         {
             "stage": "thinWallFront",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "812e6a4910545460864121b5d46c2eb572f1c454b8bed4d82baa954b67cbbc6f",
@@ -1001,7 +1001,7 @@
         {
             "stage": "thinWallRear",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "824e4a555ba548442c93fbba47ab43061599fc0ea5990dd645bd8d29109236f7",
@@ -1047,7 +1047,7 @@
         {
             "stage": "off",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "a6e5bc357686d6af40085e6d7323eae6345a11ffbbf06fb0c232ef00bd643702",
@@ -1093,7 +1093,7 @@
         {
             "stage": "classification",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "75af8afbd985992dc8db781f6c0733f5011dfabd6f34b17d4528aed5941989eb",
@@ -1139,7 +1139,7 @@
         {
             "stage": "relocation",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "75af8afbd985992dc8db781f6c0733f5011dfabd6f34b17d4528aed5941989eb",
@@ -1185,7 +1185,7 @@
         {
             "stage": "darkStep",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "4ff3635db58973aa193295f3f7393b1e71b16cc5e1ad3b36529742bc9ba294b9",
@@ -1231,7 +1231,7 @@
         {
             "stage": "both",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "87f82b2e2a12f572c76cad82fa342251c906bfd0cdea902626772eefb92d7d54",
@@ -1277,7 +1277,7 @@
         {
             "stage": "cut",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "5892f44e95b9d2cb5d5ee2442329a7e76d2d9a3cf480060a2fe76e548430d879",
@@ -1323,7 +1323,7 @@
         {
             "stage": "dual",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "75af8afbd985992dc8db781f6c0733f5011dfabd6f34b17d4528aed5941989eb",
@@ -1369,7 +1369,7 @@
         {
             "stage": "feedback",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "c47ff51afffec2dd5a30de4ae6089deda8f544ab5ce5d1d95ffab195974176f0",
@@ -1415,7 +1415,7 @@
         {
             "stage": "feedbackDecay",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "26fa34ccc2c4070bf8dc6be0fd780afee0b7220b31ebf3d94bbe204a226c9931",
@@ -1461,7 +1461,7 @@
         {
             "stage": "thinWallFront",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "b54ec87837312cad5f1d8ef373a1bb83f2ecf111d45efb71cd6024964a2ec638",
@@ -1507,7 +1507,7 @@
         {
             "stage": "thinWallRear",
             "api": "Direct3D12",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Accepted",
             "requests": "GI",
             "frameHash": "824e4a555ba548442c93fbba47ab43061599fc0ea5990dd645bd8d29109236f7",

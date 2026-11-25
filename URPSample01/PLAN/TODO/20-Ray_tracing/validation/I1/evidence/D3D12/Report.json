@@ -1,5 +1,5 @@
 {
-    "guid": "804703f392714d09b80de64b29f8b11e",
+    "guid": "1c96f2e7802c4fad9fd59338b31c178e",
     "api": "Direct3D12",
     "adapter": "NVIDIA GeForce RTX 5060 Ti",
     "driver": "Direct3D 12 [level 12.1]",
@@ -45,7 +45,7 @@
         {
             "stage": "off",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "None",
@@ -108,7 +108,7 @@
         {
             "stage": "gi",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -171,7 +171,7 @@
         {
             "stage": "ssr",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "Reflections",
@@ -234,7 +234,7 @@
         {
             "stage": "both",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -297,7 +297,7 @@
         {
             "stage": "t3bOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -360,7 +360,7 @@
         {
             "stage": "t3bOff",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -423,7 +423,7 @@
         {
             "stage": "t3bOn2",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -486,7 +486,7 @@
         {
             "stage": "t4Base",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -549,7 +549,7 @@
         {
             "stage": "t4ShadowOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -612,7 +612,7 @@
         {
             "stage": "t4LightOff",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -675,7 +675,7 @@
         {
             "stage": "t4LightOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -738,7 +738,7 @@
         {
             "stage": "sweep0",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -801,7 +801,7 @@
         {
             "stage": "sweep1",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -864,7 +864,7 @@
         {
             "stage": "sweep2",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -927,7 +927,7 @@
         {
             "stage": "sweep3",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -990,7 +990,7 @@
         {
             "stage": "sweep4",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -1053,7 +1053,7 @@
         {
             "stage": "sweep5",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -1116,7 +1116,7 @@
         {
             "stage": "sweep6",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -1179,7 +1179,7 @@
         {
             "stage": "sweep7",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -1242,7 +1242,7 @@
         {
             "stage": "runtimeOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1305,7 +1305,7 @@
         {
             "stage": "runtimeOff",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "None",
@@ -1368,7 +1368,7 @@
         {
             "stage": "cutSettle",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1431,7 +1431,7 @@
         {
             "stage": "cut",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1494,7 +1494,7 @@
         {
             "stage": "resBig",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1557,7 +1557,7 @@
         {
             "stage": "resSmall",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1620,7 +1620,7 @@
         {
             "stage": "resBack",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1683,7 +1683,7 @@
         {
             "stage": "stackBase",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1746,7 +1746,7 @@
         {
             "stage": "stack",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1809,7 +1809,7 @@
         {
             "stage": "dynamicBefore",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1872,7 +1872,7 @@
         {
             "stage": "dynamicMoved",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1935,7 +1935,7 @@
         {
             "stage": "dynamicRestored",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -1998,7 +1998,7 @@
         {
             "stage": "off",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "None",
@@ -2061,7 +2061,7 @@
         {
             "stage": "gi",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -2124,7 +2124,7 @@
         {
             "stage": "ssr",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "Reflections",
@@ -2187,7 +2187,7 @@
         {
             "stage": "both",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -2250,7 +2250,7 @@
         {
             "stage": "t3bOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -2313,7 +2313,7 @@
         {
             "stage": "t3bOff",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -2376,7 +2376,7 @@
         {
             "stage": "t3bOn2",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -2439,7 +2439,7 @@
         {
             "stage": "t4Base",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -2502,7 +2502,7 @@
         {
             "stage": "t4ShadowOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -2565,7 +2565,7 @@
         {
             "stage": "t4LightOff",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -2628,7 +2628,7 @@
         {
             "stage": "t4LightOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -2691,7 +2691,7 @@
         {
             "stage": "sweep0",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -2754,7 +2754,7 @@
         {
             "stage": "sweep1",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -2817,7 +2817,7 @@
         {
             "stage": "sweep2",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -2880,7 +2880,7 @@
         {
             "stage": "sweep3",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -2943,7 +2943,7 @@
         {
             "stage": "sweep4",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -3006,7 +3006,7 @@
         {
             "stage": "sweep5",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -3069,7 +3069,7 @@
         {
             "stage": "sweep6",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -3132,7 +3132,7 @@
         {
             "stage": "sweep7",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -3195,7 +3195,7 @@
         {
             "stage": "runtimeOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3258,7 +3258,7 @@
         {
             "stage": "runtimeOff",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "None",
@@ -3321,7 +3321,7 @@
         {
             "stage": "cutSettle",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3384,7 +3384,7 @@
         {
             "stage": "cut",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3447,7 +3447,7 @@
         {
             "stage": "resBig",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3510,7 +3510,7 @@
         {
             "stage": "resSmall",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3573,7 +3573,7 @@
         {
             "stage": "resBack",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3636,7 +3636,7 @@
         {
             "stage": "stackBase",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3699,7 +3699,7 @@
         {
             "stage": "stack",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3762,7 +3762,7 @@
         {
             "stage": "dynamicBefore",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3825,7 +3825,7 @@
         {
             "stage": "dynamicMoved",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3888,7 +3888,7 @@
         {
             "stage": "dynamicRestored",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -3951,7 +3951,7 @@
         {
             "stage": "off",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "None",
@@ -4014,7 +4014,7 @@
         {
             "stage": "gi",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -4077,7 +4077,7 @@
         {
             "stage": "ssr",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "Reflections",
@@ -4140,7 +4140,7 @@
         {
             "stage": "both",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -4203,7 +4203,7 @@
         {
             "stage": "t3bOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -4266,7 +4266,7 @@
         {
             "stage": "t3bOff",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -4329,7 +4329,7 @@
         {
             "stage": "t3bOn2",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -4392,7 +4392,7 @@
         {
             "stage": "t4Base",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -4455,7 +4455,7 @@
         {
             "stage": "t4ShadowOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -4518,7 +4518,7 @@
         {
             "stage": "t4LightOff",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -4581,7 +4581,7 @@
         {
             "stage": "t4LightOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -4644,7 +4644,7 @@
         {
             "stage": "sweep0",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -4707,7 +4707,7 @@
         {
             "stage": "sweep1",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -4770,7 +4770,7 @@
         {
             "stage": "sweep2",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -4833,7 +4833,7 @@
         {
             "stage": "sweep3",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -4896,7 +4896,7 @@
         {
             "stage": "sweep4",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -4959,7 +4959,7 @@
         {
             "stage": "sweep5",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -5022,7 +5022,7 @@
         {
             "stage": "sweep6",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -5085,7 +5085,7 @@
         {
             "stage": "sweep7",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI",
@@ -5148,7 +5148,7 @@
         {
             "stage": "runtimeOn",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -5211,7 +5211,7 @@
         {
             "stage": "runtimeOff",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "None",
@@ -5274,7 +5274,7 @@
         {
             "stage": "cutSettle",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -5337,7 +5337,7 @@
         {
             "stage": "cut",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -5400,7 +5400,7 @@
         {
             "stage": "resBig",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -5463,7 +5463,7 @@
         {
             "stage": "resSmall",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -5526,7 +5526,7 @@
         {
             "stage": "resBack",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -5589,7 +5589,7 @@
         {
             "stage": "stackBase",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -5652,7 +5652,7 @@
         {
             "stage": "stack",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -5715,7 +5715,7 @@
         {
             "stage": "dynamicBefore",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -5778,7 +5778,7 @@
         {
             "stage": "dynamicMoved",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",
@@ -5841,7 +5841,7 @@
         {
             "stage": "dynamicRestored",
             "api": "Direct3D12",
-            "guid": "804703f392714d09b80de64b29f8b11e",
+            "guid": "1c96f2e7802c4fad9fd59338b31c178e",
             "gateGi": "Accepted",
             "gateSsr": "Accepted",
             "requests": "GI, Reflections",

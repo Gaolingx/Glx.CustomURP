@@ -2,9 +2,9 @@
   "passed": true,
   "errors": [],
   "guids": [
-    "b9e30703c21c4c13b09b05e5189e0443"
+    "e40d48cf7ed04900890f68d78226b553"
   ],
-  "base": "5c6026e0abc471d32462c06e8f12be90e526e994",
+  "base": "aceb6ca976c3f8900afecf70f4b32c5390a1e6b6",
   "stages": {
     "Direct3D11": [
       {
@@ -532,7 +532,7 @@
         "instances": 0,
         "builds": 0,
         "subscribers": 0,
-        "frameHash": "0117e9c7a25ec713b9f3fd46ca96cc4dfb59eb0c7dd183f66d9a814ba3ba188d",
+        "frameHash": "f5c88b52610cda0eed91b6fe35fba70df7140d1b10fb42143fade9397f60dcd7",
         "stateHash": ""
       },
       {
@@ -895,7 +895,7 @@
         "instances": 0,
         "builds": 0,
         "subscribers": 0,
-        "frameHash": "26e241052fc62e843eecf28279f40ebcd09d6895ed7fa657927cae5dc40a3bca",
+        "frameHash": "f91ad86d899791beaa5197c76f762027e7a93f39ba249ea15088083777f7c935",
         "stateHash": ""
       },
       {

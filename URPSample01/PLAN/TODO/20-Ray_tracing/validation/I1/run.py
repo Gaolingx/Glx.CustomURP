@@ -5,7 +5,7 @@ HERE = Path(__file__).resolve().parent
 PROJECT = HERE.parents[4]
 PKG = Path('Packages/com.unity.render-pipelines.universal@14.0.12')
 UNITY = os.environ.get('UNITY_EDITOR', 'D:/Program Files/Unity/Hub/Editor/2022.3.62f1/Editor/Unity.exe')
-BASE = 'f2d88ab4774b24151d2360264e0096074cc6375d'
+BASE = 'aceb6ca976c3f8900afecf70f4b32c5390a1e6b6'
 FIXTURES = ['I1Player.cs']
 
 def save(p, x): p.write_text(json.dumps(x, indent=2) + '\n', encoding='utf8')

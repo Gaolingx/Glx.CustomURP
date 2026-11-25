@@ -29,3 +29,7 @@ python run.py --scratch <I2 scratch> --refresh --strip-only --out evidence/strip
 `verify.py` 在 strip-only 模式下只检查审计字段与剥离玩家（不跑 1080p 性能套件）。完整证据仍由不带 `--strip-only` 的 `run.py` 生成。
 
 证据：[Summary.json](Summary.json)、[Win64 审计](RtVariants.json)、[D3D11-only 审计](D3D11OnlyRtVariants.json)、[Lit Hit set](Variants.json)、[D3D11-only Lit Hit set](D3D11OnlyVariants.json)。
+
+## 后续
+
+P0-3 全量复跑（`aceb6ca`，GUID `78f29ca4…`，剥离 `a984e348…`）用同一规则再次得到 16/4160 与 0/0；对应审计已并入 [evidence](../Summary.json)，本目录保留 P0-1 修复时的 scoped 复跑。

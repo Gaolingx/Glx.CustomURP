@@ -1,5 +1,5 @@
 {
-    "guid": "b9e30703c21c4c13b09b05e5189e0443",
+    "guid": "e40d48cf7ed04900890f68d78226b553",
     "api": "Direct3D11",
     "adapter": "NVIDIA GeForce RTX 5060 Ti",
     "driver": "Direct3D 11.0 [level 11.1]",
@@ -35,7 +35,7 @@
         {
             "stage": "off",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -81,7 +81,7 @@
         {
             "stage": "classification",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -127,7 +127,7 @@
         {
             "stage": "relocation",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -173,7 +173,7 @@
         {
             "stage": "darkStep",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
@@ -219,7 +219,7 @@
         {
             "stage": "both",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "6f48b1f2d54ce343ec95cb4be3059ee2c5bcfb2ac0c390aafad72a28e0507d6b",
@@ -265,7 +265,7 @@
         {
             "stage": "cut",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58b8098652e0f705ad875563b63f69412aadffcc4c87ecfcd5de349ba103bfc4",
@@ -311,7 +311,7 @@
         {
             "stage": "dual",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -357,7 +357,7 @@
         {
             "stage": "feedback",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -403,7 +403,7 @@
         {
             "stage": "feedbackDecay",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
@@ -449,7 +449,7 @@
         {
             "stage": "thinWallFront",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "52d2cf8e403f0083e7a1c254e70755f90fff01224562e77e20f7e6bd25aa880a",
@@ -495,7 +495,7 @@
         {
             "stage": "thinWallRear",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
@@ -541,7 +541,7 @@
         {
             "stage": "off",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -587,7 +587,7 @@
         {
             "stage": "classification",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -633,7 +633,7 @@
         {
             "stage": "relocation",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -679,7 +679,7 @@
         {
             "stage": "darkStep",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
@@ -725,10 +725,10 @@
         {
             "stage": "both",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
-            "frameHash": "0117e9c7a25ec713b9f3fd46ca96cc4dfb59eb0c7dd183f66d9a814ba3ba188d",
+            "frameHash": "f5c88b52610cda0eed91b6fe35fba70df7140d1b10fb42143fade9397f60dcd7",
             "stateHash": "",
             "notes": "",
             "renderer": 1,
@@ -771,7 +771,7 @@
         {
             "stage": "cut",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58b8098652e0f705ad875563b63f69412aadffcc4c87ecfcd5de349ba103bfc4",
@@ -817,7 +817,7 @@
         {
             "stage": "dual",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -863,7 +863,7 @@
         {
             "stage": "feedback",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -909,7 +909,7 @@
         {
             "stage": "feedbackDecay",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
@@ -955,7 +955,7 @@
         {
             "stage": "thinWallFront",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "52d2cf8e403f0083e7a1c254e70755f90fff01224562e77e20f7e6bd25aa880a",
@@ -1001,7 +1001,7 @@
         {
             "stage": "thinWallRear",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
@@ -1047,7 +1047,7 @@
         {
             "stage": "off",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -1093,7 +1093,7 @@
         {
             "stage": "classification",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -1139,7 +1139,7 @@
         {
             "stage": "relocation",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -1185,7 +1185,7 @@
         {
             "stage": "darkStep",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
@@ -1231,10 +1231,10 @@
         {
             "stage": "both",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
-            "frameHash": "26e241052fc62e843eecf28279f40ebcd09d6895ed7fa657927cae5dc40a3bca",
+            "frameHash": "f91ad86d899791beaa5197c76f762027e7a93f39ba249ea15088083777f7c935",
             "stateHash": "",
             "notes": "",
             "renderer": 2,
@@ -1277,7 +1277,7 @@
         {
             "stage": "cut",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58b8098652e0f705ad875563b63f69412aadffcc4c87ecfcd5de349ba103bfc4",
@@ -1323,7 +1323,7 @@
         {
             "stage": "dual",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -1369,7 +1369,7 @@
         {
             "stage": "feedback",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2698c8077af6cc254c422f20329fa59df58afcc4d4b1d76936dcfa23240c3740",
@@ -1415,7 +1415,7 @@
         {
             "stage": "feedbackDecay",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",
@@ -1461,7 +1461,7 @@
         {
             "stage": "thinWallFront",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "2bae41fe6edde8f507a237cc702a61853934d2be91cc6a32d72420a3e6754464",
@@ -1507,7 +1507,7 @@
         {
             "stage": "thinWallRear",
             "api": "Direct3D11",
-            "guid": "b9e30703c21c4c13b09b05e5189e0443",
+            "guid": "e40d48cf7ed04900890f68d78226b553",
             "gate": "Backend",
             "requests": "None",
             "frameHash": "58c93ed6a116f1928bd3b05253933d3c35116ce4a7f91a1ae05f81b68df22bbc",

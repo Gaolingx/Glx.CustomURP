@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "errors": [],
+  "editMode": {
+    "passed": 184,
+    "failed": 0,
+    "total": 184,
+    "skipped": 0
+  },
+  "playMode": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "skipped": 0
+  },
+  "t12": {
+    "device": "Direct3D11",
+    "passed": true,
+    "modes": {
+      "Forward": {
+        "cases": 34,
+        "passed": true
+      },
+      "ForwardPlus": {
+        "cases": 34,
+        "passed": true
+      },
+      "Deferred": {
+        "cases": 35,
+        "passed": true
+      }
+    }
+  },
+  "restoration": {
+    "UnityEditModeTestsSettingsRestoration": {
+      "exitCode": 0,
+      "allSettingsRestored": true,
+      "invocationError": null
+    },
+    "UnityPlayModeTestsSettingsRestoration": {
+      "exitCode": 0,
+      "allSettingsRestored": true,
+      "invocationError": null
+    },
+    "UnityT14GraphicsRegressionSettingsRestoration": {
+      "exitCode": 0,
+      "allSettingsRestored": true,
+      "invocationError": null
+    }
+  }
+}

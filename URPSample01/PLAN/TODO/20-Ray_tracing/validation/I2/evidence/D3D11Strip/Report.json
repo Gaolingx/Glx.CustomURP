@@ -1,5 +1,5 @@
 {
-    "guid": "c397020073424aaf8b064a80b7c0578a",
+    "guid": "a984e348c5314b729aa736a406164a92",
     "api": "Direct3D11",
     "adapter": "NVIDIA GeForce RTX 5060 Ti",
     "driver": "Direct3D 11.0 [level 11.1]",
@@ -40,7 +40,7 @@
         {
             "stage": "strip",
             "api": "Direct3D11",
-            "guid": "c397020073424aaf8b064a80b7c0578a",
+            "guid": "a984e348c5314b729aa736a406164a92",
             "requests": "None",
             "notes": "",
             "renderer": 0,
