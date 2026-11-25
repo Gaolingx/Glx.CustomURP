@@ -1,0 +1,140 @@
+{
+    "guid": "cf56e586cb254fb587d418d2ff4a09e0",
+    "api": "Direct3D11",
+    "adapter": "NVIDIA GeForce RTX 5060 Ti",
+    "driver": "Direct3D 11.0 [level 11.1]",
+    "denial": "Backend",
+    "error": "",
+    "development": true,
+    "supportsRayTracing": false,
+    "passed": true,
+    "released": true,
+    "buildCount": 0,
+    "instances": 0,
+    "members": 0,
+    "disabledSubmeshes": 0,
+    "payloadBytes": 24,
+    "requestBytes": 48,
+    "dispatchCount": 0,
+    "registeredLights": 0,
+    "uploadedLights": 0,
+    "tableOverflow": 0,
+    "gpuSamples": 0,
+    "gpuTimingMeasured": false,
+    "probeProducerAllocated": false,
+    "surfaceCacheAllocated": false,
+    "noRebuild": false,
+    "feedbackIdentical": false,
+    "submitAverageMs": 0.0,
+    "gpuMs": 0.0,
+    "gpuMsPerDispatch": 0.0,
+    "feedbackDelta": 0.0,
+    "materialRows": [
+        {
+            "name": "dielectric",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "",
+            "dxrPass": -1,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": false
+        },
+        {
+            "name": "metal gloss",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "_METALLICSPECGLOSSMAP",
+            "dxrPass": -1,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": false
+        },
+        {
+            "name": "normal map",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "_NORMALMAP",
+            "dxrPass": -1,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": false
+        },
+        {
+            "name": "cutout",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "_ALPHATEST_ON _EMISSION",
+            "dxrPass": -1,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": false
+        },
+        {
+            "name": "blocker",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "_ALPHATEST_ON",
+            "dxrPass": -1,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": false
+        },
+        {
+            "name": "budget blocker",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "_ALPHATEST_ON",
+            "dxrPass": -1,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": false
+        }
+    ],
+    "shots": [],
+    "contour": {
+        "hits": 0,
+        "expectedHits": 0,
+        "misses": 0,
+        "expectedMisses": 0,
+        "mismatches": 0,
+        "rows": [],
+        "passed": false
+    },
+    "seam": {
+        "name": "",
+        "leftActual": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "leftReference": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "rightActual": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "rightReference": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "crossLeft": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "crossRight": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "ownError": 0.0,
+        "crossError": 0.0,
+        "passed": false
+    }
+}

@@ -1,0 +1,764 @@
+{
+  "api": {
+    "D3D11": {
+      "denial": "Backend",
+      "buildCount": 0,
+      "dispatchCount": 0
+    },
+    "D3D12": {
+      "members": 9,
+      "instances": 9,
+      "registeredLights": 66,
+      "uploadedLights": 64,
+      "tableOverflow": 2,
+      "dispatchCount": 55,
+      "submitAverageMs": 0.06060545454545454,
+      "gpuSamples": 0,
+      "gpuTimingMeasured": false,
+      "gpuMsPerDispatch": 0.0,
+      "feedbackDelta": 0.0,
+      "feedbackIdentical": true,
+      "contour": {
+        "hits": 10,
+        "expectedHits": 10,
+        "misses": 10,
+        "expectedMisses": 10,
+        "mismatches": 0,
+        "passed": true
+      },
+      "seam": {
+        "name": "dielectric | metal",
+        "ownError": 2.8734433499266743e-07,
+        "crossError": 0.7058460712432861,
+        "passed": true
+      },
+      "materials": [
+        {
+          "name": "dielectric",
+          "shader": "Universal Render Pipeline/Lit",
+          "keywords": "",
+          "dxrPass": 5,
+          "passEnabled": true,
+          "queue": 2000,
+          "surface": 0,
+          "supported": true
+        },
+        {
+          "name": "metal gloss",
+          "shader": "Universal Render Pipeline/Lit",
+          "keywords": "_METALLICSPECGLOSSMAP",
+          "dxrPass": 5,
+          "passEnabled": true,
+          "queue": 2000,
+          "surface": 0,
+          "supported": true
+        },
+        {
+          "name": "normal map",
+          "shader": "Universal Render Pipeline/Lit",
+          "keywords": "_NORMALMAP",
+          "dxrPass": 5,
+          "passEnabled": true,
+          "queue": 2000,
+          "surface": 0,
+          "supported": true
+        },
+        {
+          "name": "cutout",
+          "shader": "Universal Render Pipeline/Lit",
+          "keywords": "_ALPHATEST_ON _EMISSION",
+          "dxrPass": 5,
+          "passEnabled": true,
+          "queue": 2000,
+          "surface": 0,
+          "supported": true
+        },
+        {
+          "name": "blocker",
+          "shader": "Universal Render Pipeline/Lit",
+          "keywords": "_ALPHATEST_ON",
+          "dxrPass": 5,
+          "passEnabled": true,
+          "queue": 2000,
+          "surface": 0,
+          "supported": true
+        },
+        {
+          "name": "budget blocker",
+          "shader": "Universal Render Pipeline/Lit",
+          "keywords": "_ALPHATEST_ON",
+          "dxrPass": 5,
+          "passEnabled": true,
+          "queue": 2000,
+          "surface": 0,
+          "supported": true
+        }
+      ],
+      "shots": [
+        {
+          "name": "dielectric sun",
+          "expectedSource": "analytic direct",
+          "expectedRgb": {
+            "x": 0.3710590898990631,
+            "y": 0.1334959715604782,
+            "z": 0.05971142277121544
+          },
+          "actualRgb": {
+            "x": 0.3710590898990631,
+            "y": 0.1334959715604782,
+            "z": 0.05971142277121544
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "metal sun",
+          "expectedSource": "analytic direct",
+          "expectedRgb": {
+            "x": 0.15557460486888885,
+            "y": 0.1055501326918602,
+            "z": 0.017564352601766586
+          },
+          "actualRgb": {
+            "x": 0.15557456016540527,
+            "y": 0.10555011034011841,
+            "z": 0.017564348876476288
+          },
+          "maxRelativeError": 2.8734433499266743e-07,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "normal map sun",
+          "expectedSource": "analytic direct",
+          "expectedRgb": {
+            "x": 0.2918582260608673,
+            "y": 0.2918582260608673,
+            "z": 0.2918582260608673
+          },
+          "actualRgb": {
+            "x": 0.2918582260608673,
+            "y": 0.2918582260608673,
+            "z": 0.2918582260608673
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "seam dielectric",
+          "expectedSource": "dielectric",
+          "expectedRgb": {
+            "x": 0.3710590898990631,
+            "y": 0.1334959715604782,
+            "z": 0.05971142277121544
+          },
+          "actualRgb": {
+            "x": 0.3710590898990631,
+            "y": 0.1334959715604782,
+            "z": 0.05971142277121544
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "seam metal",
+          "expectedSource": "metal",
+          "expectedRgb": {
+            "x": 0.15557460486888885,
+            "y": 0.1055501326918602,
+            "z": 0.017564352601766586
+          },
+          "actualRgb": {
+            "x": 0.15557456016540527,
+            "y": 0.10555011034011841,
+            "z": 0.017564348876476288
+          },
+          "maxRelativeError": 2.8734433499266743e-07,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "dielectric sun shadowed",
+          "expectedSource": "blocked direct",
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 6,
+          "actualFlags": 6,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "metal sun unblocked",
+          "expectedSource": "analytic direct",
+          "expectedRgb": {
+            "x": 0.15557460486888885,
+            "y": 0.1055501326918602,
+            "z": 0.017564352601766586
+          },
+          "actualRgb": {
+            "x": 0.15557456016540527,
+            "y": 0.10555011034011841,
+            "z": 0.017564348876476288
+          },
+          "maxRelativeError": 2.8734433499266743e-07,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "dielectric sun reopened",
+          "expectedSource": "analytic direct",
+          "expectedRgb": {
+            "x": 0.3710590898990631,
+            "y": 0.1334959715604782,
+            "z": 0.05971142277121544
+          },
+          "actualRgb": {
+            "x": 0.3710590898990631,
+            "y": 0.1334959715604782,
+            "z": 0.05971142277121544
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "dielectric point",
+          "expectedSource": "analytic direct",
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.07173774391412735,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.07173775136470795,
+            "z": 0.0
+          },
+          "maxRelativeError": 1.038585821788729e-07,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "metal point",
+          "expectedSource": "analytic direct",
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.29222309589385986,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.2922234833240509,
+            "z": 0.0
+          },
+          "maxRelativeError": 1.3258028275231482e-06,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "dielectric point shadowed",
+          "expectedSource": "blocked direct",
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 6,
+          "actualFlags": 6,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "dielectric point reopened",
+          "expectedSource": "analytic direct",
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.07173774391412735,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.07173775136470795,
+            "z": 0.0
+          },
+          "maxRelativeError": 1.038585821788729e-07,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "dielectric spot center",
+          "expectedSource": "analytic direct",
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.017321649938821793
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.017321649938821793
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "dielectric spot penumbra",
+          "expectedSource": "analytic penumbra",
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.009418952278792858
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.009418952278792858
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "dielectric spot outside",
+          "expectedSource": "zero",
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 0,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 0,
+            "rejected": 0,
+            "shadowRays": 0,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "dielectric spot shadowed",
+          "expectedSource": "blocked direct",
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 6,
+          "actualFlags": 6,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "dielectric spot reopened",
+          "expectedSource": "analytic direct",
+          "expectedRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.017321649938821793
+          },
+          "actualRgb": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.017321649938821793
+          },
+          "maxRelativeError": 0.0,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "actualCounts": {
+            "selected": 1,
+            "rejected": 0,
+            "shadowRays": 1,
+            "untraced": 0
+          },
+          "passed": true
+        },
+        {
+          "name": "budget white blocked, red untraced",
+          "expectedSource": "top 4 of 64, red untraced",
+          "expectedRgb": {
+            "x": 0.8430485725402832,
+            "y": 0.4028574526309967,
+            "z": 0.2278117686510086
+          },
+          "actualRgb": {
+            "x": 0.8430485725402832,
+            "y": 0.4028574824333191,
+            "z": 0.22781193256378174
+          },
+          "maxRelativeError": 7.195096713985549e-07,
+          "expectedFlags": 6,
+          "actualFlags": 6,
+          "expectedCounts": {
+            "selected": 4,
+            "rejected": 60,
+            "shadowRays": 2,
+            "untraced": 2
+          },
+          "actualCounts": {
+            "selected": 4,
+            "rejected": 60,
+            "shadowRays": 2,
+            "untraced": 2
+          },
+          "passed": true
+        },
+        {
+          "name": "budget unblocked",
+          "expectedSource": "all four selected",
+          "expectedRgb": {
+            "x": 1.8968592882156372,
+            "y": 0.7670614719390869,
+            "z": 0.3778313398361206
+          },
+          "actualRgb": {
+            "x": 1.8968592882156372,
+            "y": 0.7670614719390869,
+            "z": 0.37783148884773254
+          },
+          "maxRelativeError": 3.94386574953387e-07,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 4,
+            "rejected": 60,
+            "shadowRays": 2,
+            "untraced": 2
+          },
+          "actualCounts": {
+            "selected": 4,
+            "rejected": 60,
+            "shadowRays": 2,
+            "untraced": 2
+          },
+          "passed": true
+        },
+        {
+          "name": "reflection feedback off",
+          "expectedSource": "direct only",
+          "expectedRgb": {
+            "x": 1.8968592882156372,
+            "y": 0.7670614719390869,
+            "z": 0.3778313398361206
+          },
+          "actualRgb": {
+            "x": 1.8968592882156372,
+            "y": 0.7670614719390869,
+            "z": 0.37783148884773254
+          },
+          "maxRelativeError": 3.94386574953387e-07,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 4,
+            "rejected": 60,
+            "shadowRays": 2,
+            "untraced": 2
+          },
+          "actualCounts": {
+            "selected": 4,
+            "rejected": 60,
+            "shadowRays": 2,
+            "untraced": 2
+          },
+          "passed": true
+        },
+        {
+          "name": "reflection feedback on",
+          "expectedSource": "direct only",
+          "expectedRgb": {
+            "x": 1.8968592882156372,
+            "y": 0.7670614719390869,
+            "z": 0.3778313398361206
+          },
+          "actualRgb": {
+            "x": 1.8968592882156372,
+            "y": 0.7670614719390869,
+            "z": 0.37783148884773254
+          },
+          "maxRelativeError": 3.94386574953387e-07,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 4,
+            "rejected": 60,
+            "shadowRays": 2,
+            "untraced": 2
+          },
+          "actualCounts": {
+            "selected": 4,
+            "rejected": 60,
+            "shadowRays": 2,
+            "untraced": 2
+          },
+          "passed": true
+        },
+        {
+          "name": "reflection probe source",
+          "expectedSource": "direct + diffuse*E/pi",
+          "expectedRgb": {
+            "x": 3.3405520915985107,
+            "y": 1.2497639656066895,
+            "z": 0.5620606541633606
+          },
+          "actualRgb": {
+            "x": 3.3405520915985107,
+            "y": 1.2497639656066895,
+            "z": 0.5620608329772949
+          },
+          "maxRelativeError": 3.1813991085982707e-07,
+          "expectedFlags": 2,
+          "actualFlags": 2,
+          "expectedCounts": {
+            "selected": 4,
+            "rejected": 60,
+            "shadowRays": 2,
+            "untraced": 2
+          },
+          "actualCounts": {
+            "selected": 4,
+            "rejected": 60,
+            "shadowRays": 2,
+            "untraced": 2
+          },
+          "passed": true
+        }
+      ]
+    }
+  },
+  "checks": {},
+  "status": "passed",
+  "errors": []
+}

@@ -1,0 +1,46 @@
+#pragma max_recursion_depth 2
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxBasicPayload.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxHitLightCounters.hlsl"
+
+// Fixture driver only: every ray carries GlxReflectionMode and the production Lit GlxDXR pass
+// does the full PBR hit shading from the scene light table (directional/point/spot + shadows).
+struct R5Ray
+{
+    float4 originTMin;
+    float4 directionTMax;
+    uint4 meta; // mode, index, 0, 0
+};
+
+StructuredBuffer<R5Ray> _R5Rays;
+RWStructuredBuffer<GlxBasicPayload> _R5Results;
+uint _R5Count;
+
+[shader("raygeneration")]
+void R5Trace()
+{
+    uint index = DispatchRaysIndex().x;
+    if (index >= _R5Count)
+    {
+        _R5Results[index] = GlxEmptyPayload(0);
+        return;
+    }
+    R5Ray request = _R5Rays[index];
+    GlxBasicPayload payload = GlxEmptyPayload(request.meta.x);
+    RayDesc ray;
+    ray.Origin = request.originTMin.xyz;
+    ray.Direction = request.directionTMax.xyz;
+    ray.TMin = request.originTMin.w;
+    ray.TMax = request.directionTMax.w;
+    TraceRay(_GlxScene, RAY_FLAG_NONE, 0xff, 0, 1, 0, ray, payload);
+    if (GlxUsesLightTable(request.meta.x)) GlxRecordLightCounters(payload);
+    _R5Results[index] = payload;
+}
+
+[shader("miss")]
+void R5Miss(inout GlxBasicPayload payload : SV_RayPayload)
+{
+    uint mode = payload.mode;
+    payload = GlxEmptyPayload(mode);
+    payload.flags = GlxMiss;
+}

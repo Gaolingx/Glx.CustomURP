@@ -1,0 +1,2074 @@
+{
+    "guid": "cf56e586cb254fb587d418d2ff4a09e0",
+    "api": "Direct3D12",
+    "adapter": "NVIDIA GeForce RTX 5060 Ti",
+    "driver": "Direct3D 12 [level 12.1]",
+    "denial": "",
+    "error": "",
+    "development": true,
+    "supportsRayTracing": true,
+    "passed": true,
+    "released": true,
+    "buildCount": 1,
+    "instances": 9,
+    "members": 9,
+    "disabledSubmeshes": 0,
+    "payloadBytes": 24,
+    "requestBytes": 48,
+    "dispatchCount": 55,
+    "registeredLights": 66,
+    "uploadedLights": 64,
+    "tableOverflow": 2,
+    "gpuSamples": 0,
+    "gpuTimingMeasured": false,
+    "probeProducerAllocated": false,
+    "surfaceCacheAllocated": false,
+    "noRebuild": true,
+    "feedbackIdentical": true,
+    "submitAverageMs": 0.06060545454545454,
+    "gpuMs": 0.0,
+    "gpuMsPerDispatch": 0.0,
+    "feedbackDelta": 0.0,
+    "materialRows": [
+        {
+            "name": "dielectric",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "",
+            "dxrPass": 5,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": true
+        },
+        {
+            "name": "metal gloss",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "_METALLICSPECGLOSSMAP",
+            "dxrPass": 5,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": true
+        },
+        {
+            "name": "normal map",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "_NORMALMAP",
+            "dxrPass": 5,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": true
+        },
+        {
+            "name": "cutout",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "_ALPHATEST_ON _EMISSION",
+            "dxrPass": 5,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": true
+        },
+        {
+            "name": "blocker",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "_ALPHATEST_ON",
+            "dxrPass": 5,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": true
+        },
+        {
+            "name": "budget blocker",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": "_ALPHATEST_ON",
+            "dxrPass": 5,
+            "queue": 2000,
+            "surface": 0,
+            "passEnabled": true,
+            "supported": true
+        }
+    ],
+    "shots": [
+        {
+            "name": "dielectric sun",
+            "expectedSource": "analytic direct",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.3710590898990631,
+                "y": 0.1334959715604782,
+                "z": 0.05971142277121544
+            },
+            "actualRgb": {
+                "x": 0.3710590898990631,
+                "y": 0.1334959715604782,
+                "z": 0.05971142277121544
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "metal sun",
+            "expectedSource": "analytic direct",
+            "origin": {
+                "x": -4.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.15557460486888886,
+                "y": 0.1055501326918602,
+                "z": 0.017564352601766588
+            },
+            "actualRgb": {
+                "x": 0.15557456016540528,
+                "y": 0.10555011034011841,
+                "z": 0.017564348876476289
+            },
+            "relativeError": {
+                "x": 2.8734433499266745e-7,
+                "y": 2.117642168286693e-7,
+                "z": 2.1209379497122428e-7
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 2.8734433499266745e-7,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "normal map sun",
+            "expectedSource": "analytic direct",
+            "origin": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.2918582260608673,
+                "y": 0.2918582260608673,
+                "z": 0.2918582260608673
+            },
+            "actualRgb": {
+                "x": 0.2918582260608673,
+                "y": 0.2918582260608673,
+                "z": 0.2918582260608673
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "seam dielectric",
+            "expectedSource": "dielectric",
+            "origin": {
+                "x": -5.5,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.3710590898990631,
+                "y": 0.1334959715604782,
+                "z": 0.05971142277121544
+            },
+            "actualRgb": {
+                "x": 0.3710590898990631,
+                "y": 0.1334959715604782,
+                "z": 0.05971142277121544
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "seam metal",
+            "expectedSource": "metal",
+            "origin": {
+                "x": -4.5,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.15557460486888886,
+                "y": 0.1055501326918602,
+                "z": 0.017564352601766588
+            },
+            "actualRgb": {
+                "x": 0.15557456016540528,
+                "y": 0.10555011034011841,
+                "z": 0.017564348876476289
+            },
+            "relativeError": {
+                "x": 2.8734433499266745e-7,
+                "y": 2.117642168286693e-7,
+                "z": 2.1209379497122428e-7
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 2.8734433499266745e-7,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "dielectric sun shadowed",
+            "expectedSource": "blocked direct",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "actualRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 6,
+            "actualFlags": 6,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "metal sun unblocked",
+            "expectedSource": "analytic direct",
+            "origin": {
+                "x": -4.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.15557460486888886,
+                "y": 0.1055501326918602,
+                "z": 0.017564352601766588
+            },
+            "actualRgb": {
+                "x": 0.15557456016540528,
+                "y": 0.10555011034011841,
+                "z": 0.017564348876476289
+            },
+            "relativeError": {
+                "x": 2.8734433499266745e-7,
+                "y": 2.117642168286693e-7,
+                "z": 2.1209379497122428e-7
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 2.8734433499266745e-7,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "dielectric sun reopened",
+            "expectedSource": "analytic direct",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.3710590898990631,
+                "y": 0.1334959715604782,
+                "z": 0.05971142277121544
+            },
+            "actualRgb": {
+                "x": 0.3710590898990631,
+                "y": 0.1334959715604782,
+                "z": 0.05971142277121544
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "dielectric point",
+            "expectedSource": "analytic direct",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.0,
+                "y": 0.07173774391412735,
+                "z": 0.0
+            },
+            "actualRgb": {
+                "x": 0.0,
+                "y": 0.07173775136470795,
+                "z": 0.0
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 1.038585821788729e-7,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 1.038585821788729e-7,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "metal point",
+            "expectedSource": "analytic direct",
+            "origin": {
+                "x": -4.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.0,
+                "y": 0.29222309589385989,
+                "z": 0.0
+            },
+            "actualRgb": {
+                "x": 0.0,
+                "y": 0.2922234833240509,
+                "z": 0.0
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0000013258028275231482,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0000013258028275231482,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "dielectric point shadowed",
+            "expectedSource": "blocked direct",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "actualRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 6,
+            "actualFlags": 6,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "dielectric point reopened",
+            "expectedSource": "analytic direct",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.0,
+                "y": 0.07173774391412735,
+                "z": 0.0
+            },
+            "actualRgb": {
+                "x": 0.0,
+                "y": 0.07173775136470795,
+                "z": 0.0
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 1.038585821788729e-7,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 1.038585821788729e-7,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "dielectric spot center",
+            "expectedSource": "analytic direct",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.017321649938821794
+            },
+            "actualRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.017321649938821794
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "dielectric spot penumbra",
+            "expectedSource": "analytic penumbra",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.009418952278792858
+            },
+            "actualRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.009418952278792858
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "dielectric spot outside",
+            "expectedSource": "zero",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "actualRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 0,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 0,
+                "rejected": 0,
+                "shadowRays": 0,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "dielectric spot shadowed",
+            "expectedSource": "blocked direct",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "actualRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 6,
+            "actualFlags": 6,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "dielectric spot reopened",
+            "expectedSource": "analytic direct",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.017321649938821794
+            },
+            "actualRgb": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.017321649938821794
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 0.0,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "actualCounts": {
+                "selected": 1,
+                "rejected": 0,
+                "shadowRays": 1,
+                "untraced": 0
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "budget white blocked, red untraced",
+            "expectedSource": "top 4 of 64, red untraced",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 0.8430485725402832,
+                "y": 0.4028574526309967,
+                "z": 0.2278117686510086
+            },
+            "actualRgb": {
+                "x": 0.8430485725402832,
+                "y": 0.4028574824333191,
+                "z": 0.22781193256378175
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 7.397733980951671e-8,
+                "z": 7.195096713985549e-7
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 7.195096713985549e-7,
+            "expectedFlags": 6,
+            "actualFlags": 6,
+            "expectedCounts": {
+                "selected": 4,
+                "rejected": 60,
+                "shadowRays": 2,
+                "untraced": 2
+            },
+            "actualCounts": {
+                "selected": 4,
+                "rejected": 60,
+                "shadowRays": 2,
+                "untraced": 2
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "budget unblocked",
+            "expectedSource": "all four selected",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 1.8968592882156373,
+                "y": 0.7670614719390869,
+                "z": 0.3778313398361206
+            },
+            "actualRgb": {
+                "x": 1.8968592882156373,
+                "y": 0.7670614719390869,
+                "z": 0.37783148884773257
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 3.94386574953387e-7
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 3.94386574953387e-7,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 4,
+                "rejected": 60,
+                "shadowRays": 2,
+                "untraced": 2
+            },
+            "actualCounts": {
+                "selected": 4,
+                "rejected": 60,
+                "shadowRays": 2,
+                "untraced": 2
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "reflection feedback off",
+            "expectedSource": "direct only",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 1.8968592882156373,
+                "y": 0.7670614719390869,
+                "z": 0.3778313398361206
+            },
+            "actualRgb": {
+                "x": 1.8968592882156373,
+                "y": 0.7670614719390869,
+                "z": 0.37783148884773257
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 3.94386574953387e-7
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 3.94386574953387e-7,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 4,
+                "rejected": 60,
+                "shadowRays": 2,
+                "untraced": 2
+            },
+            "actualCounts": {
+                "selected": 4,
+                "rejected": 60,
+                "shadowRays": 2,
+                "untraced": 2
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "reflection feedback on",
+            "expectedSource": "direct only",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 1.8968592882156373,
+                "y": 0.7670614719390869,
+                "z": 0.3778313398361206
+            },
+            "actualRgb": {
+                "x": 1.8968592882156373,
+                "y": 0.7670614719390869,
+                "z": 0.37783148884773257
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 3.94386574953387e-7
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 3.94386574953387e-7,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 4,
+                "rejected": 60,
+                "shadowRays": 2,
+                "untraced": 2
+            },
+            "actualCounts": {
+                "selected": 4,
+                "rejected": 60,
+                "shadowRays": 2,
+                "untraced": 2
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        },
+        {
+            "name": "reflection probe source",
+            "expectedSource": "direct + diffuse*E/pi",
+            "origin": {
+                "x": -6.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "expectedRgb": {
+                "x": 3.3405520915985109,
+                "y": 1.2497639656066895,
+                "z": 0.5620606541633606
+            },
+            "actualRgb": {
+                "x": 3.3405520915985109,
+                "y": 1.2497639656066895,
+                "z": 0.5620608329772949
+            },
+            "relativeError": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 3.1813991085982709e-7
+            },
+            "expectedT": 2.0,
+            "actualT": 2.0,
+            "tolerance": 0.029999999329447748,
+            "maxRelativeError": 3.1813991085982709e-7,
+            "expectedFlags": 2,
+            "actualFlags": 2,
+            "expectedCounts": {
+                "selected": 4,
+                "rejected": 60,
+                "shadowRays": 2,
+                "untraced": 2
+            },
+            "actualCounts": {
+                "selected": 4,
+                "rejected": 60,
+                "shadowRays": 2,
+                "untraced": 2
+            },
+            "hit": true,
+            "finite": true,
+            "countsMatched": true,
+            "passed": true
+        }
+    ],
+    "contour": {
+        "hits": 10,
+        "expectedHits": 10,
+        "misses": 10,
+        "expectedMisses": 10,
+        "mismatches": 0,
+        "rows": [
+            {
+                "name": "cutout contour 2.05",
+                "expectedSource": "alpha 0",
+                "origin": {
+                    "x": 2.049999952316284,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "actualRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": -1.0,
+                "actualT": -1.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 1,
+                "actualFlags": 1,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": false,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 2.15",
+                "expectedSource": "alpha 0",
+                "origin": {
+                    "x": 2.1499998569488527,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "actualRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": -1.0,
+                "actualT": -1.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 1,
+                "actualFlags": 1,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": false,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 2.25",
+                "expectedSource": "alpha 0",
+                "origin": {
+                    "x": 2.25,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "actualRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": -1.0,
+                "actualT": -1.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 1,
+                "actualFlags": 1,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": false,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 2.35",
+                "expectedSource": "alpha 0",
+                "origin": {
+                    "x": 2.3499999046325685,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "actualRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": -1.0,
+                "actualT": -1.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 1,
+                "actualFlags": 1,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": false,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 2.45",
+                "expectedSource": "alpha 0",
+                "origin": {
+                    "x": 2.450000047683716,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "actualRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": -1.0,
+                "actualT": -1.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 1,
+                "actualFlags": 1,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": false,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 2.55",
+                "expectedSource": "alpha 0",
+                "origin": {
+                    "x": 2.549999952316284,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "actualRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": -1.0,
+                "actualT": -1.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 1,
+                "actualFlags": 1,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": false,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 2.65",
+                "expectedSource": "alpha 0",
+                "origin": {
+                    "x": 2.6499998569488527,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "actualRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": -1.0,
+                "actualT": -1.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 1,
+                "actualFlags": 1,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": false,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 2.75",
+                "expectedSource": "alpha 0",
+                "origin": {
+                    "x": 2.75,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "actualRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": -1.0,
+                "actualT": -1.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 1,
+                "actualFlags": 1,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": false,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 2.85",
+                "expectedSource": "alpha 0",
+                "origin": {
+                    "x": 2.8499999046325685,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "actualRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": -1.0,
+                "actualT": -1.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 1,
+                "actualFlags": 1,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": false,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 2.95",
+                "expectedSource": "alpha 0",
+                "origin": {
+                    "x": 2.950000047683716,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "actualRgb": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": -1.0,
+                "actualT": -1.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 1,
+                "actualFlags": 1,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": false,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 3.05",
+                "expectedSource": "alpha 1",
+                "origin": {
+                    "x": 3.049999952316284,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "actualRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": 2.0,
+                "actualT": 2.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 2,
+                "actualFlags": 2,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": true,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 3.15",
+                "expectedSource": "alpha 1",
+                "origin": {
+                    "x": 3.1499998569488527,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "actualRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": 2.0,
+                "actualT": 2.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 2,
+                "actualFlags": 2,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": true,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 3.25",
+                "expectedSource": "alpha 1",
+                "origin": {
+                    "x": 3.25,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "actualRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": 2.0,
+                "actualT": 2.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 2,
+                "actualFlags": 2,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": true,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 3.35",
+                "expectedSource": "alpha 1",
+                "origin": {
+                    "x": 3.3499999046325685,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "actualRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": 2.0,
+                "actualT": 2.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 2,
+                "actualFlags": 2,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": true,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 3.45",
+                "expectedSource": "alpha 1",
+                "origin": {
+                    "x": 3.450000047683716,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "actualRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": 2.0,
+                "actualT": 2.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 2,
+                "actualFlags": 2,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": true,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 3.55",
+                "expectedSource": "alpha 1",
+                "origin": {
+                    "x": 3.549999952316284,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "actualRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": 2.0,
+                "actualT": 2.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 2,
+                "actualFlags": 2,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": true,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 3.65",
+                "expectedSource": "alpha 1",
+                "origin": {
+                    "x": 3.6500000953674318,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "actualRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": 2.0,
+                "actualT": 2.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 2,
+                "actualFlags": 2,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": true,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 3.75",
+                "expectedSource": "alpha 1",
+                "origin": {
+                    "x": 3.75,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "actualRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": 2.0,
+                "actualT": 2.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 2,
+                "actualFlags": 2,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": true,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 3.85",
+                "expectedSource": "alpha 1",
+                "origin": {
+                    "x": 3.8499999046325685,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "actualRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": 2.0,
+                "actualT": 2.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 2,
+                "actualFlags": 2,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": true,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            },
+            {
+                "name": "cutout contour 3.95",
+                "expectedSource": "alpha 1",
+                "origin": {
+                    "x": 3.950000047683716,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "actualRgb": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "relativeError": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "expectedT": 2.0,
+                "actualT": 2.0,
+                "tolerance": 0.029999999329447748,
+                "maxRelativeError": 0.0,
+                "expectedFlags": 2,
+                "actualFlags": 2,
+                "expectedCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "actualCounts": {
+                    "selected": 0,
+                    "rejected": 0,
+                    "shadowRays": 0,
+                    "untraced": 0
+                },
+                "hit": true,
+                "finite": true,
+                "countsMatched": false,
+                "passed": true
+            }
+        ],
+        "passed": true
+    },
+    "seam": {
+        "name": "dielectric | metal",
+        "leftActual": {
+            "x": 0.3710590898990631,
+            "y": 0.1334959715604782,
+            "z": 0.05971142277121544
+        },
+        "leftReference": {
+            "x": 0.3710590898990631,
+            "y": 0.1334959715604782,
+            "z": 0.05971142277121544
+        },
+        "rightActual": {
+            "x": 0.15557456016540528,
+            "y": 0.10555011034011841,
+            "z": 0.017564348876476289
+        },
+        "rightReference": {
+            "x": 0.15557460486888886,
+            "y": 0.1055501326918602,
+            "z": 0.017564352601766588
+        },
+        "crossLeft": {
+            "x": 1.3850877285003663,
+            "y": 0.26476365327835085,
+            "z": 2.3995800018310549
+        },
+        "crossRight": {
+            "x": 0.5807283520698547,
+            "y": 0.20933860540390016,
+            "z": 0.7058460712432861
+        },
+        "ownError": 2.8734433499266745e-7,
+        "crossError": 0.7058460712432861,
+        "passed": true
+    }
+}

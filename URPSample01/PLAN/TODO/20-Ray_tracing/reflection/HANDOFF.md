@@ -1,6 +1,6 @@
 # 不透明 SSR × DXR：恢复离屏几何的单次反射
 
-**状态：R1 半分辨率分类与预算已在 [D3D11](../validation/R1/D3D11/Summary.json) 和 [D3D12](../validation/R1/D3D12/Summary.json) 计算夹具验证；R2 的离屏求交、命中取色与合成已在 [Win64 D3D12 Player](../validation/R2/evidence/Summary.json) 通过，并按拆分口径把全轮廓召回留给 R3（见下）；R3 的阴面源切换已在 [Win64 D3D12 Player](../validation/R3/evidence/Summary.json) 通过，R4 的登记范围与材质覆盖计数已在 [Win64 D3D12 Player](../validation/R4/evidence/Summary.json) 通过。R3 的图像回归与 R5 仍待实施。** 只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；命中着色见 [HitShading](../research/HitShading.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
+**状态：R1 半分辨率分类与预算已在 [D3D11](../validation/R1/D3D11/Summary.json) 和 [D3D12](../validation/R1/D3D12/Summary.json) 计算夹具验证；R2 的离屏求交、命中取色与合成已在 [Win64 D3D12 Player](../validation/R2/evidence/Summary.json) 通过，并按拆分口径把全轮廓召回留给 R3（见下）；R3 的阴面源切换已在 [Win64 D3D12 Player](../validation/R3/evidence/Summary.json) 通过，R4 的登记范围与材质覆盖计数已在 [Win64 D3D12 Player](../validation/R4/evidence/Summary.json) 通过，R5 的全材质命中、灯表/逐灯阴影与冻结预算已在 [Win64 D3D12 Player](../validation/R5/evidence/Summary.json) 通过生产者侧夹具。R3 的图像回归仍待实施；R5 的图像级 SS↔HW 接缝与高采样参考并入 R3。** 只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；命中着色见 [HitShading](../research/HitShading.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
 
 ## 输入与分支
 
@@ -81,8 +81,19 @@ v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世�
 - 命中向量：emission `(2, .5, .125)`@2 m；cutout 实心 `(0, 1, 0)`@2 m，孔洞 miss（flags=1）；多 submesh 命中 Lit 子网格、SimpleLit 子网格 miss。payload 24 B、请求 48 B；GI producer 与 Surface Cache 均未分配。
 - 变体：该构建保留 Lit `GlxDXR` 的 16 个生产关键字集（`_NORMALMAP`/`_METALLICSPECGLOSSMAP`/`_EMISSION`/`_ALPHATEST_ON`），由 [Variants.json](../validation/R4/evidence/Variants.json) 与 `IPreprocessShaders` 回调计数交叉记录。
 - 成本：32 次 2048 射线派发的 CPU 提交均值 0.039 ms；**GPU ms 未测得**（Profiler 0 样本，`gpuTimingMeasured=false`），不以 CPU 时间代替。
-- 范围仍限于 H-A 登记不透明 Lit/cutout/自发光；ShaderGraph、透明混合、蒙皮、probe 反馈与 R5 的多灯/逐灯阴影材质扩展未覆盖。
+- 范围仍限于 H-A 登记不透明 Lit/cutout/自发光；ShaderGraph、透明混合、蒙皮与 probe 反馈未覆盖。R5 的多灯/逐灯阴影材质扩展已由 [R5 生产者侧夹具](../validation/R5/evidence/Summary.json) 覆盖，图像接缝仍待 R3。
+
+## W7 / R5 全材质反射与灯光预算（2026-11-25）
+
+- 同一 Win64 Player 构建 GUID `cf56e586cb254fb587d418d2ff4a09e0` 的 [D3D12](../validation/R5/evidence/D3D12/Report.json) 与 [D3D11](../validation/R5/evidence/D3D11/Report.json)。D3D11 为 `Backend`、0 Build/0 派发/0 缓冲；D3D12 为 1 次 Build、55 次派发（22 条已知向量 + 1 次 20 射线 cutout 轮廓 + 32 帧 1024 射线计时）、payload 24 B/请求 48 B，无 GI producer、无 Surface Cache，资源全部释放。
+- 登记 9 个成员/9 个 TLAS 实例（4 个测试面 + 5 个遮板），0 个禁用子网格；只有 Lit 的 `GlxDXR` pass 参与。材质覆盖：无关键字电介质、`_METALLICSPECGLOSSMAP`（metallic=1、smoothness=0.8×0.8=0.64）、`_NORMALMAP`（常量 TBN 法线 `(0.6,0.3,-0.7416)`）、`_ALPHATEST_ON _EMISSION` 的 cutout，以及两个 `_ALPHATEST_ON` 遮板。
+- **解析一致性**：方向光下 0.371059/0.133496/0.059711（电介质）、0.155575/0.105550/0.017564（金属）、0.291858（法线贴图）与 CPU oracle 一致，最大相对误差 `1.33e-6`（B0 3%）。相邻电介质|金属接缝各自匹配本材质，自身误差 `2.87e-7`，跨材质参考相对差 `0.706`（无串材质）。cutout 20 条射线跨 alpha 分界：10 命中/10 未命中、0 个错配；命中返回 emission `(1,1,1)`。
+- **灯表与阴影**：方向/点/聚光均按 URP 14 的距离与锥角衰减解析。点光 `0.071738`；聚光中心 `0.017322`、20° 半影 `0.009419`、40° 锥外 0。单灯阴影：遮挡时直接光 0 且 `flags=6`；移除遮挡恢复直接光；同一阴影开关下未被遮挡的金属目标仍为直接光，方向/点/聚光各一条阴影射线。
+- **冻结预算与回退**：66 盏登记/64 上传/2 溢出；64 个已上传灯全部合格，选 4/拒 60；4 盏可投影选中灯只追 2 条阴影射线、2 条计入未追踪。rank 0 白灯被遮挡、rank 2 红灯处于物理遮挡但未追踪：命中读回 `0.843049/0.402857/0.227812`，与“绿灯 + 未追踪红灯 + 蓝灯”的解析值一致；放开遮挡后读回 `1.896859/0.767061/0.377831`（含白灯）。被上传上限丢弃的两盏高亮度灯（强度 1000/500）没有贡献，越界由 `tableOverflow=2` 与命中亮度共同约束。
+- **不做 probe 反馈**：绑定有效、已发布的常量 `E=6` 快照后，反射模式下 feedback 开/关逐位一致（delta `0`）；`_GlxHitLowFrequencySource=1` 只加一次 `diffuse·E/π`，读回 `3.340552/1.249764/0.562061`。反射仍只读已发布快照，不写探针、不触发更新。
+- **成本**：64 灯表下 32 次 1024 射线派发的 CPU 提交均值 `0.0606 ms`；**GPU ms 未测得**（Profiler 0 样本，`gpuTimingMeasured=false`），不以 CPU 数字代替。
+- **范围与未覆盖**：R5 是生产者侧 known-ray 夹具，不做相机合成，因此“与 SS-only/高采样参考比图像轮廓与亮度接缝”仍并入 [R3 图像回归](#独立放行条件)；cutout 轮廓与相邻材质接缝只证明逐命中材质正确、无跨材质串色，不替代最终合成画面。透明/ShaderGraph/蒙皮、多 submesh 材质表和 probe 反馈图像仍不在本轮。复跑见 [run.py](../validation/R5/run.py)、[verify.py](../validation/R5/verify.py)。
 
 ## 与 GI 反馈的边界（2026-11-25）
 
-- G5 起 `GlxLitClosestHit` 的 `GlxProbeMode` 会加一次 `min(albedo, .9)·Eprev/π`；`GlxReflectionMode` 仍只加 `GlxHitLowFrequencyIrradiance`，不受 `_GlxProbeFeedbackEnabled` 影响。R3 的 ambient/probe 源切换与 R5 的命中着色合同不变；反射只读已发布快照，不写回探针、不触发更新。见 [GI G5 签收](../gi/HANDOFF.md#g5-1-跳反馈签收win64-d3d12生产者侧)。
+- G5 起 `GlxLitClosestHit` 的 `GlxProbeMode` 会加一次 `min(albedo, .9)·Eprev/π`；`GlxReflectionMode` 仍只加 `GlxHitLowFrequencyIrradiance`，不受 `_GlxProbeFeedbackEnabled` 影响。R3 的 ambient/probe 源切换与 R5 的命中着色合同不变；R5 在有效 E=6 快照下复核反射模式 feedback 开/关逐位一致。反射只读已发布快照，不写回探针、不触发更新。见 [GI G5 签收](../gi/HANDOFF.md#g5-1-跳反馈签收win64-d3d12生产者侧)。

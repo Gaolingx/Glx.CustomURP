@@ -126,7 +126,9 @@ T,G,R 全绿 ── I1 ── I2
 
 **W7 / G5 生产者侧反馈通过（Win64 D3D12 夹具；ROI/图像未覆盖）**：[D3D12](validation/G5/evidence/D3D12/Report.json) 与 [D3D11](validation/G5/evidence/D3D11/Report.json) 同一构建。D3D11 为 `Backend`、0 Build/0 派发。D3D12 的 `GlxLitClosestHit` 在 probe 模式加一次 `min(albedo, .9)·Eprev/π`，读上一代已发布 atlas、每命中一次查询（≤8 邻居）、不递归：常量 `Eprev=6` 下白 albedo 读回 `1.718873`、sRGB 0.5（线性 `0.214041`）读回 `0.408788`；反馈关/快照失效/邻居全 inactive/邻居未发布均为 0；反射模式在反馈开/关都保持 ambient `0.611155`；单条 probe ray 只追 `1` 条、无旋转射线。关闭房间点光阶跃：反馈把稳态红从 `0.076629` 提到 `0.088081`（+14.9%），关灯 256 批残差 `0.99%`/`2.03%`（≤5%）；每批 16 active、512 固定 + 1536 旋转、阴影 `1180≤4096`。payload 24 B/请求 48 B；**GPU ms 未测得**（0 样本），**ROI/图像、薄墙、红墙供体/移动发光体尚未覆盖**，留待 G3 合成后。复跑见 [run.py](validation/G5/run.py)、[verify.py](validation/G5/verify.py)；细节见 [GI 签收](gi/HANDOFF.md#g5-1-跳反馈签收win64-d3d12生产者侧)。
 
-**下一阶段**：W7 剩余的 G3（真实集成）、R5，以及 R3 的图像回归；随后 I1/I2。
+**W7 / R5 生产者侧通过（Win64 D3D12，全材质反射与灯光预算；图像接缝未覆盖）**：[D3D12](validation/R5/evidence/D3D12/Report.json) 与 [D3D11](validation/R5/evidence/D3D11/Report.json) 同一构建 GUID。D3D11 为 `Backend`、0 Build/0 派发/0 缓冲。D3D12 登记 9 个成员/9 个 TLAS 实例（4 面 + 5 遮板），1 次 Build、55 次派发（22 向量 + 1 次 20 射线轮廓 + 32 帧计时），payload 24 B/请求 48 B，无 GI producer/Surface Cache，资源全部释放。Lit `GlxDXR` 命中覆盖电介质、`_METALLICSPECGLOSSMAP`（metallic=1、smoothness=0.64）、`_NORMALMAP` 与 `_ALPHATEST_ON _EMISSION` cutout，最大相对误差 `1.33e-6`（B0 3%）；相邻电介质|金属接缝自身误差 `2.87e-7`、跨材质差 `0.706`；cutout 20 条射线 10 命中/10 未命中、0 错配。方向/点/聚光衰减解析一致（点 `0.071738`；聚光中心 `0.017322`、半影 `0.009419`、锥外 0），遮挡时 0 且 `flags=6`，移除遮挡恢复。预算：66 登记/64 上传/2 溢出，选 4/拒 60，4 盏可投影只追 2 条、2 条未追踪；rank 0 遮挡 + rank 2 物理遮挡但未追踪时读回 `0.843049/0.402857/0.227812`（绿灯 + 未追踪红灯 + 蓝灯），放开后 `1.896859/0.767061/0.377831`；被上传上限丢弃的强度 1000/500 两灯无贡献。有效 `E=6` 快照下反射 feedback 开/关逐位一致（delta 0），probe 源只加一次 `diffuse·E/π`（`3.340552/1.249764/0.562061`）。CPU 提交均值 `0.0606 ms`；**GPU ms 未测得**（0 样本），**图像级 SS↔HW 接缝/高采样参考、透明/ShaderGraph/蒙皮与多 submesh 仍是 R3/后续范围**。复跑见 [run.py](validation/R5/run.py)、[verify.py](validation/R5/verify.py)。
+
+**下一阶段**：W7 剩余的 G3（真实集成）与 R3 的图像回归；随后 I1/I2。
 
 **关键路径**：`B0 → T1 → T2 → T3 → T3b → T4 → G2 → G5/G3 → I1 → I2`。这是最长链，WS4 的 G2 是整条链的汇聚点。
 
