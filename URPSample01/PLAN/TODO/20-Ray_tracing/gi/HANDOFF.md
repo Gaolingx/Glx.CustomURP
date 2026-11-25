@@ -1,6 +1,6 @@
 # GI 子模块：动态更新 probe，只作 SSGI 的漫反射回退
 
-**状态：G1 CPU 数学与存储夹具 13/13 通过；G2 的 GPU 生产者已在 Win64 D3D12 Player 通过（只验收生产者：双缓冲发布、预算、classification/relocation、动态收敛）；G4 的默认开 relocation/classification 已在同一后端通过生产者侧夹具（消费者跳过/offset 由 G1 与 R3/G5 覆盖）；G5 的 1 跳反馈也已在同一后端通过生产者侧夹具（解析项、反射隔离、阶跃与衰减；材质合成 G3 与图像 ROI 未覆盖）。** [G2 证据](../validation/G2/evidence/Summary.json)、[G4 证据](../validation/G4/evidence/Summary.json)、[G5 证据](../validation/G5/evidence/Summary.json)。 [实际向量、分类计数与 FP16 读回](../validation/G1/Win64-D3D11/run-04/Tests.xml)覆盖常量与两色场、窗口天空、反馈、固定方向排除、八面接缝及邻居失效。G1 不启用 SSGI 或 DXR。 平台见[总计划](../HANDOFF.md)，数学与参考见[采样研究](report.md)，共享场景见[TLAS](../research/TLAS.md)，命中着色见[HitShading](../research/HitShading.md)。仅在高端 RT 配置、相机启用 SSGI 且选择动态回退时订阅共享场景；关闭扩展沿用原 rayMiss 设置，SSR 不依赖本模块。**SSGI 未启用时不引入独立 DDGI。**
+**状态：G1 CPU 数学与存储夹具 13/13 通过；G2 的 GPU 生产者已在 Win64 D3D12 Player 通过（只验收生产者：双缓冲发布、预算、classification/relocation、动态收敛）；G4 的默认开 relocation/classification 已在同一后端通过生产者侧夹具（消费者跳过/offset 由 G1 与 R3/G5 覆盖）；G5 的 1 跳反馈也已在同一后端通过生产者侧夹具（解析项、反射隔离、阶跃与衰减；材质合成 G3 与图像 ROI 未覆盖）；G3a 的材质合成已由真实 feature 在 Forward/ForwardPlus 通过（共享 TLAS、常量场 ROI、coverage/SS 混合、体积外回 baked、D3D11 逐字节回退），Deferred 仍记 C7。** [G2 证据](../validation/G2/evidence/Summary.json)、[G4 证据](../validation/G4/evidence/Summary.json)、[G5 证据](../validation/G5/evidence/Summary.json)。 [实际向量、分类计数与 FP16 读回](../validation/G1/Win64-D3D11/run-04/Tests.xml)覆盖常量与两色场、窗口天空、反馈、固定方向排除、八面接缝及邻居失效。G1 不启用 SSGI 或 DXR。 平台见[总计划](../HANDOFF.md)，数学与参考见[采样研究](report.md)，共享场景见[TLAS](../research/TLAS.md)，命中着色见[HitShading](../research/HitShading.md)。仅在高端 RT 配置、相机启用 SSGI 且选择动态回退时订阅共享场景；关闭扩展沿用原 rayMiss 设置，SSR 不依赖本模块。**SSGI 未启用时不引入独立 DDGI。**
 
 ## 两个不同生命周期
 
@@ -50,9 +50,18 @@ irradiance 八面体 atlas、距离矩 atlas、**probe data（offset + state）*
 - 生产者阶跃：关闭房间 + 点光强度 4、`freezeDirections=true`、relocation/classification 关。反馈关稳态红 `0.076629`，反馈开 `0.088081`（+14.9%）；关灯后 256 批残差 `0.99%` / `2.03%`（B0 ≤5%）。每批 16 active、`32×16` 固定 + `96×16` 旋转、阴影 `1180≤2×2048`；重建 2 次 TLAS。
 - **未覆盖**：与高采样参考的 ROI/图像（要等 G3 材质合成）、薄墙漏光、红墙供体/移动发光体、双相机同帧（G2 已覆盖）、GPU ms（0 样本，`gpuTimingMeasured=false`）。反馈只对 Lit `GlxDXR` 命中生效；SimpleLit/ComplexLit/ShaderGraph 不在本夹具范围。
 
+## G3a 合成签收（Win64 D3D12，Forward/ForwardPlus；真实集成）
+
+- **共享场景**：`RayTracingSceneResources` 从 SSR 相机容器上移到 Screen Space Lighting feature；GI 与反射各自加/减自己的 `RayTracingRequests` 位，任一消费者存活时 TLAS 不释放。producer 由 feature 在首个合格 base camera 的 `AddRenderPasses` 里每场景帧跑一批（第二台相机同帧复用已发布代），发布全局在 207 SetupPass 绑定，Cleanup 关闭。
+- **材质合同**：`ScreenSpaceLightingApplyIndirectDiffuse` 现在接收接收点 P/N，先 `base = lerp(bakedGI, max(E,0)/π, c)` 再 `lerp(base, Lss×I, w)`；`c` 是体积覆盖/有效性（不做亮度判断、只乘一次），`_GlxProbeQuery` 跳过 inactive/未发布邻居并应用 offset。probe 混合不依赖 SSGI `producedOutput`；关键词 `_SCREEN_SPACE_GI_PROBE` 只给 Lit/ComplexLit 的 ForwardLit 增加条件 target 4.5 变体，其余 shader 不声明，关闭时仍返回原 bakedGI。
+- **互斥**：probe 就绪（已发布代）时 SSGI 的 `rayMiss` 强制 `None`，miss 写 weight 0 由 `base` 填充；未就绪时保留用户设置，不会把旧 fallback 与 probe 叠加。
+- **数字**：[G3 证据](../validation/G3/evidence/Summary.json)。常量辐射室下 Forward/ForwardPlus `probe` ROI `1.9189`（解析 `1.9200`，`0.0005`）、`probeHalf` `0.9595` 且逐像素恰为 0.5 倍、`probeBoth`（SSGI 1）仍 `1.9189`、体积外 `0`、冷启动首帧 `baked`；40 帧 41 批（每场景帧 ≤1）、producer `950,376 B`、6 实例/1 订阅 `GI`、3 次构建；`off`/`offAgain` 全帧哈希逐 renderer 相同而 `probe` 不同。D3D11 为 `Backend`、0 批/0 字节，`probe` 与 `off` 逐字节相同。
+- **已知差异 C7（Deferred）**：GBuffer 光照不消费 SSL 漫反射纹理，Deferred 下 `probe` 与 RT-off 全帧相同（非黑 0）；与 R3 的 SSR 缺口同源，留 G3b。
+- **未覆盖**：feedback/relocation/classification 打开后的动态与重定位图像、薄墙、切镜、双相机屏幕历史、SS 能解析供体时的同帧接缝、GPU ms、非 Windows 构建的 `_SCREEN_SPACE_GI_PROBE` 变体剥离（I2）。
+
 ## 实现落点与维护
 
-- **落点**：共享 RT 场景服务在 201（`AfterRenderingPrePasses+1`）构建/复用 TLAS；灯表由共享 `Lights/` 服务在首个消费者之前就绪；probe 生产者在 SSGI dispatch 之前（可作为 SSGI pass 的 205 前置子阶段，避免占用 203 的 Hi-Z/Editor motion 与 204 GTAO），内部顺序为 trace → relocate → classify → irradiance/distance update → publish；材质端查询在 `ScreenSpaceLightingApplyIndirectDiffuse` 的调用点（需要把接收点 P/N 传入）。三种 renderer 共用同一材质合同。
+- **落点**：共享 RT 场景服务在 201（`AfterRenderingPrePasses+1`）构建/复用 TLAS；灯表由共享 `Lights/` 服务在首个消费者之前就绪；probe 生产者在 SSGI dispatch 之前（可作为 SSGI pass 的 205 前置子阶段，避免占用 203 的 Hi-Z/Editor motion 与 204 GTAO），内部顺序为 trace → relocate → classify → irradiance/distance update → publish；材质端查询在 `ScreenSpaceLightingApplyIndirectDiffuse` 的调用点（G3a 起接收 P/N，查询头在 `ShaderLibrary/RayTracing/GlxProbeQuery.hlsl`）。三种 renderer 共用同一材质合同。
 - **开关**：独立 feature/Volume 选项 + 全局 keyword；总开关默认关，关闭时不分配 atlas/灯表订阅、不派发 probe 射线，原 SSGI/SSR 图像逐像素不变。启用后 feedback/relocation/classification 默认开，但各自有显式开关；关掉任一项必须回到 G3 基线，不留残影。
 - **依赖**：GI 不引用 SSR Volume，SSR 不启动 probe 更新；GI 订阅共享 TLAS 与灯表，不拥有它们；基础设施失败只关闭 GI 扩展。probe 是辐照度缓存，不是 Surface Cache；SSR 的 H-A/H-B/H-C 选择不改变 G1–G5；GI 不分配 mesh card/atlas。
 - **变体**：`GlxDXR` 命中 pass、probe 查询/反馈 shader 只对高端档构建；非目标平台剥离资源与变体，并验证无 shader 错误；记录 pass/variant 数。

@@ -53,6 +53,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // Consumers own one request bit each; the scene stays alive while any bit remains set.
+        internal void AddRequests(RayTracingRequests value) => SetRequests(requests | value);
+        internal void RemoveRequests(RayTracingRequests value) => SetRequests(requests & ~value);
+
         // Prepare alone never publishes a built structure. T2 is opt-in via TryBuild below.
         RayTracingSceneInstances m_Instances;
         RayTracingSceneLights m_Lights;

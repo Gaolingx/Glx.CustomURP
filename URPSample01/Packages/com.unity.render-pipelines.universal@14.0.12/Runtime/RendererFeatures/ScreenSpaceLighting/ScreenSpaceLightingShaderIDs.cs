@@ -110,6 +110,10 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int ScreenSpaceGlobalIlluminationParams = Shader.PropertyToID("_ScreenSpaceGiParams");
         internal static readonly string ScreenSpaceGlobalIlluminationKeyword = "_SCREEN_SPACE_GI";
 
+        // Dynamic probe fallback: x is the probe-volume coverage c, zero when off.
+        internal static readonly int ScreenSpaceGlobalIlluminationProbeParams = Shader.PropertyToID("_ScreenSpaceGiProbeParams");
+        internal static readonly string ScreenSpaceGlobalIlluminationProbeKeyword = "_SCREEN_SPACE_GI_PROBE";
+
         internal static readonly string SsgiHalfResKeyword = "SSGI_HALF_RES";
         internal static readonly string SsgiNormalsOctKeyword = "SSGI_NORMALS_OCT";
         internal static readonly string SsgiBlueNoiseKeyword = "SSGI_BLUE_NOISE";

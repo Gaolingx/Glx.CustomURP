@@ -24,6 +24,9 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingColorHistoryCapturePass m_ColorHistoryCapturePass;
         ScreenSpaceLightingDebugPass m_DebugPass;
         CameraHistoryStore<ScreenSpaceLightingHistory> m_HistoryStore;
+        // One scene service serves both RT consumers (reflections and the GI probe fallback).
+        RayTracingSceneResources m_RayTracingScene;
+        RayTracingProbeFallback m_ProbeFallback;
         readonly System.Collections.Generic.Dictionary<int, int> m_CameraViews = new System.Collections.Generic.Dictionary<int, int>();
         bool m_LoggedMissingResources;
 #if UNITY_EDITOR
@@ -37,6 +40,8 @@ namespace UnityEngine.Rendering.Universal
         public void UnregisterRayTracingLight(Light light) => m_HybridCameras?.UnregisterLight(light);
 
         internal ScreenSpaceLightingSettings settings => m_Settings;
+        internal RayTracingProbeFallback probeFallback => m_ProbeFallback;
+        internal RayTracingSceneResources rayTracingScene => m_RayTracingScene;
         internal ScreenSpaceLightingSetupPass setupPass => m_SetupPass;
         internal ScreenSpaceLightingSsgiPass ssgiPass => m_SsgiPass;
         internal ScreenSpaceLightingSsrPass ssrPass => m_SsrPass;
@@ -79,6 +84,11 @@ namespace UnityEngine.Rendering.Universal
 
             m_HybridCameras?.Dispose();
             m_HybridCameras = null;
+            m_ProbeFallback?.Dispose();
+            m_ProbeFallback = null;
+            m_RayTracingScene?.Dispose();
+            m_RayTracingScene = new RayTracingSceneResources();
+            m_ProbeFallback = new RayTracingProbeFallback(m_Settings, m_RayTracingScene);
             m_HistoryStore?.Dispose();
             m_HistoryStore = new CameraHistoryStore<ScreenSpaceLightingHistory>();
             m_CameraViews.Clear();
@@ -111,6 +121,8 @@ namespace UnityEngine.Rendering.Universal
             int frameIndex = Time.frameCount;
             m_SsrPass.SetHybrid(null, null, null);
             var stack = VolumeManager.instance.stack;
+            if (!m_Settings.rayTracingProbeFallback)
+                m_ProbeFallback?.Reset();
             bool hybrid = SsrRayTracingCameras.Eligible(cameraData, m_Settings, stack?.GetComponent<ScreenSpaceReflection>());
             if (!m_Settings.rayTracingReflections || m_Settings.reflectionRayBudget <= 0)
                 m_HybridCameras?.Clear();
@@ -180,9 +192,16 @@ namespace UnityEngine.Rendering.Universal
             history.depthPyramidSource = depthPyramid;
             if (hybrid)
             {
-                m_HybridCameras ??= new SsrRayTracingCameras(this);
+                m_HybridCameras ??= new SsrRayTracingCameras(this, m_RayTracingScene);
                 m_HybridCameras.Prepare(cameraData, m_Settings, m_SsrPass);
             }
+
+            // The probe producer runs once per scene frame before SSGI (205) and the binding pass
+            // (207). Both consumers share the scene service, so the TLAS is built at most once.
+            var ssgiSettings = stack != null ? stack.GetComponent<ScreenSpaceGlobalIllumination>() : null;
+            bool probeActive = m_ProbeFallback != null && m_ProbeFallback.Prepare(cameraData, ssgiSettings);
+            m_SsgiPass.SetProbeFallback(m_Settings.rayTracingProbeFallback && probeActive);
+            m_SetupPass.SetProbeFallback(m_ProbeFallback, probeActive ? m_Settings.probeCoverage : 0f);
 
             m_SsgiPass.Setup(history, m_Settings.resources);
             m_SsrPass.Setup(history, m_Settings.resources, m_Settings);
@@ -244,6 +263,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_HybridCameras?.Dispose();
                 m_HybridCameras = null;
+                m_ProbeFallback?.Dispose();
+                m_ProbeFallback = null;
+                m_RayTracingScene?.Dispose();
+                m_RayTracingScene = null;
                 ScreenSpaceDepthPyramidSystem.UnregisterOwner(this);
                 m_HistoryStore?.Dispose();
                 m_HistoryStore = null;

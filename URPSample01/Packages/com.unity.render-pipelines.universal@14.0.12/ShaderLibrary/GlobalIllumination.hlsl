@@ -361,7 +361,7 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 
     // Screen Space Lighting (when enabled) replaces the baked diffuse term where a ray hit; a miss
     // keeps bakedGI so lightmaps, SH and APV are preserved.
-    half3 indirectDiffuse = ScreenSpaceLightingApplyIndirectDiffuse(bakedGI, normalizedScreenSpaceUV);
+    half3 indirectDiffuse = ScreenSpaceLightingApplyIndirectDiffuse(bakedGI, positionWS, normalWS, normalizedScreenSpaceUV);
     half3 indirectSpecular;
     half3 coatIndirectSpecular;
 

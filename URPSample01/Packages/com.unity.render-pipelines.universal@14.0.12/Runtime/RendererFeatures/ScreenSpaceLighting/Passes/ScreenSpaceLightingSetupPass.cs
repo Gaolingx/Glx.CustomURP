@@ -12,6 +12,8 @@ namespace UnityEngine.Rendering.Universal
 
         ScreenSpaceLightingSsgiPass m_SsgiPass;
         ScreenSpaceLightingSsrPass m_SsrPass;
+        RayTracingProbeFallback m_ProbeFallback;
+        float m_ProbeCoverage;
 
 #if UNITY_EDITOR
         // Editor-only evidence hook: verification code reads this counter to prove the pass ran and
@@ -19,6 +21,7 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_EditorExecuteCount;
         internal static int s_EditorSsgiBoundCount;
         internal static int s_EditorSsrBoundCount;
+        internal static int s_EditorProbeBoundCount;
 #endif
 
         internal ScreenSpaceLightingSetupPass()
@@ -31,6 +34,12 @@ namespace UnityEngine.Rendering.Universal
         {
             m_SsgiPass = ssgiPass;
             m_SsrPass = ssrPass;
+        }
+
+        internal void SetProbeFallback(RayTracingProbeFallback probe, float coverage)
+        {
+            m_ProbeFallback = probe;
+            m_ProbeCoverage = Mathf.Clamp01(coverage);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -65,6 +74,26 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalTexture(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationTexture, Texture2D.blackTexture);
                     cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationParams, Vector4.zero);
                     cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
+                }
+
+                // Probe fallback is independent of the SSGI result: a ready generation is blended at
+                // the receiver even when this camera has no screen-space output. Off or unpublished
+                // generations keep the keyword off and the coverage at zero (exact baked-GI path).
+                bool bindProbe = m_ProbeFallback != null && m_ProbeFallback.BindPublishedGlobals(cmd);
+                if (bindProbe)
+                {
+                    cmd.SetGlobalVector(
+                        ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeParams,
+                        new Vector4(m_ProbeCoverage, 0f, 0f, 0f));
+                    cmd.EnableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeKeyword);
+#if UNITY_EDITOR
+                    s_EditorProbeBoundCount++;
+#endif
+                }
+                else
+                {
+                    cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeParams, Vector4.zero);
+                    cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeKeyword);
                 }
 
                 var ssrSettings = stack != null ? stack.GetComponent<ScreenSpaceReflection>() : null;
@@ -125,6 +154,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
                 cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationParams, Vector4.zero);
+                cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeKeyword);
+                cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeParams, Vector4.zero);
                 cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionKeyword);
                 cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionParams, Vector4.zero);
             }
@@ -137,6 +168,8 @@ namespace UnityEngine.Rendering.Universal
 
             cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
             cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationParams, Vector4.zero);
+            cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeKeyword);
+            cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeParams, Vector4.zero);
             cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionKeyword);
             cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionParams, Vector4.zero);
             // Refraction is enabled later (448) and consumed by transparents only; this is the safety

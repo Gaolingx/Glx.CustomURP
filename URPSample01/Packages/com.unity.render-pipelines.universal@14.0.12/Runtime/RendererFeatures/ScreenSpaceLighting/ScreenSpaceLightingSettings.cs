@@ -29,6 +29,20 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Tooltip("High Fidelity / Win64 DXR only. Update the scene probe cache from the shared RT scene as the SSGI diffuse fallback.")]
         internal bool rayTracingProbeFallback = false;
 
+        // Manually placed bounded probe volume (v1 has no rolling volumes). The batch, directions and
+        // activation rules stay at the B0-frozen values; only the placement is authored here.
+        [SerializeField] internal Vector3 probeGridOrigin = new Vector3(-3.5f, 0.5f, -3.5f);
+        [SerializeField, Min(0.01f)] internal float probeGridSpacing = 1f;
+        [SerializeField] internal Vector3Int probeGridCounts = new Vector3Int(8, 4, 8);
+        [SerializeField, Range(1, 256)] internal int probeBatchSize = 16;
+        [SerializeField, Range(32, 512)] internal int probeRaysPerProbe = 128;
+        [SerializeField] internal bool probeFeedback = true;
+        [SerializeField] internal bool probeRelocation = true;
+        [SerializeField] internal bool probeClassification = true;
+
+        [SerializeField, Range(0f, 1f), Tooltip("Probe-volume coverage c applied once to lerp(bakedGI, E/pi, c). Test hook for the G3 weight sweep.")]
+        internal float probeCoverage = 1f;
+
         [SerializeField]
         [Tooltip("Intermediate resource view. Off leaves the final image unchanged.")]
         internal ScreenSpaceLightingDebugMode debugMode = ScreenSpaceLightingDebugMode.Off;

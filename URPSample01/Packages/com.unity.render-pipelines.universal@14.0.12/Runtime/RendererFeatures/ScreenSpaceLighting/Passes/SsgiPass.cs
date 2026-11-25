@@ -176,6 +176,11 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle accumulationTexture => m_History != null ? m_History.ssgiAccumulation : null;
         internal RTHandle rawTexture => m_History != null ? m_History.ssgiProjection : null;
 
+        // A dynamic probe fallback owns the miss path: the material blends Pgi into bakedGI, so the
+        // screen-space trace must write weight 0 on a miss instead of a probe/sky fallback.
+        internal void SetProbeFallback(bool active) => m_ProbeFallbackActive = active;
+        bool m_ProbeFallbackActive;
+
         internal ScreenSpaceLightingSsgiPass()
         {
             renderPassEvent = k_RenderPassEvent;
@@ -448,7 +453,7 @@ namespace UnityEngine.Rendering.Universal
             // Miss fallback: hierarchy, default reflection cubemap and the ambient probe SH uploaded from
             // RenderSettings (compute kernels cannot read the per-draw unity_SH* constants).
             cmd.SetComputeVectorParam(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiFallbackParams,
-                new Vector4((int)settings.rayMiss.value, 0f, 0f, 0f));
+                new Vector4(m_ProbeFallbackActive ? 0f : (int)settings.rayMiss.value, 0f, 0f, 0f));
             // x: perspective flag for the Forward+ cluster zbin lookup.
             cmd.SetComputeVectorParam(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiProbeAtlasParams,
                 new Vector4(cameraData.camera.orthographic ? 0f : 1f, 0f, 0f, 0f));

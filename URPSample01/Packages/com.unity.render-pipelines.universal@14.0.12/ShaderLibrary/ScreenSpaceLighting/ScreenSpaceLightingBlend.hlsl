@@ -10,21 +10,49 @@
 // baked GI. The radiance is already one-bounce incoming light, so it is blended before
 // EnvironmentBRDF, exactly like bakedGI; emission is never part of this term. intensity multiplies the
 // radiance (not the weight, so values above 1 brighten the bounce) and zero is an exact no-op.
+//
+// The dynamic probe fallback replaces bakedGI with Pgi = Eprobe/pi at the receiver P/N before the
+// screen-space share is applied: base = lerp(bakedGI, Pgi, c), then lerp(base, Lss, w). c is the
+// probe-volume coverage/validity, never derived from brightness, and is applied once. The probe path
+// does not depend on the SSGI result, so a camera with no screen-space output still shows a ready
+// probe generation.
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingInput.hlsl"
 
-half3 ScreenSpaceLightingApplyIndirectDiffuse(half3 bakedGI, float2 normalizedScreenSpaceUV)
+// The published atlas is a structured-buffer lookup, so only the ≥4.5 probe variant may declare it.
+#if defined(_SCREEN_SPACE_GI_PROBE) && SHADER_TARGET >= 45
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RayTracing/GlxProbeQuery.hlsl"
+#define GLX_PROBE_CONSUMER 1
+#endif
+
+half3 ScreenSpaceLightingApplyProbeDiffuse(half3 bakedGI, float3 positionWS, half3 normalWS)
 {
+#if defined(GLX_PROBE_CONSUMER)
+    float3 irradiance;
+    if (!GlxProbeQuery(positionWS, normalWS, irradiance))
+        return bakedGI;
+
+    half3 probeRadiance = max(irradiance, 0.0) * 0.31830988618;
+    return lerp(bakedGI, probeRadiance, saturate(_ScreenSpaceGiProbeParams.x));
+#else
+    return bakedGI;
+#endif
+}
+
+half3 ScreenSpaceLightingApplyIndirectDiffuse(half3 bakedGI, float3 positionWS, half3 normalWS,
+    float2 normalizedScreenSpaceUV)
+{
+    half3 diffuseBase = ScreenSpaceLightingApplyProbeDiffuse(bakedGI, positionWS, normalWS);
 #if defined(_SCREEN_SPACE_GI)
     half intensity = max(_ScreenSpaceGiParams.x, 0.0h);
     if (intensity <= 0.0h)
-        return bakedGI;
+        return diffuseBase;
 
     half4 ssgi = SAMPLE_TEXTURE2D_X(_ScreenSpaceGiTexture, sampler_LinearClamp, UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV));
     half3 radiance = max(ssgi.rgb, half3(0.0, 0.0, 0.0)) * intensity;
-    return lerp(bakedGI, radiance, saturate(ssgi.a));
+    return lerp(diffuseBase, radiance, saturate(ssgi.a));
 #else
-    return bakedGI;
+    return diffuseBase;
 #endif
 }
 

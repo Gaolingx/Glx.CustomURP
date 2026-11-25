@@ -10,6 +10,10 @@ TEXTURE2D_X(_ScreenSpaceGiTexture);
 // x: weight scale (volume intensity), y..w: reserved, always zero
 float4 _ScreenSpaceGiParams;
 
+// Dynamic probe fallback (GI). x: probe-volume coverage/validity c in [0,1], zero when the
+// fallback is off or no probe generation has been published; y..w reserved.
+float4 _ScreenSpaceGiProbeParams;
+
 TEXTURE2D_X(_ScreenSpaceSsrTexture);
 // x: weight scale (volume intensity), y..w: reserved, always zero
 float4 _ScreenSpaceSsrParams;

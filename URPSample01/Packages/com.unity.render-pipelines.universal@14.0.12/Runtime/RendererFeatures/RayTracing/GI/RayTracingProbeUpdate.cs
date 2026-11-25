@@ -127,6 +127,7 @@ namespace UnityEngine.Rendering.Universal
         internal int probeCount => m_Config.count;
         internal uint[] lastBatch => m_BatchIndices;
         internal bool directionsFrozen => m_Config.freezeDirections;
+        internal bool ready => m_Allocated && m_BatchVersion > 0;
 
         // One batch per scene frame. A second eligible camera in the same frame reuses the
         // published generation and must not dispatch again.
@@ -275,6 +276,15 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalInt(s_SnapshotValid, m_BatchVersion > 0 ? 1 : 0);
             cmd.SetGlobalInt(s_FeedbackEnabled, m_Config.feedback ? 1 : 0);
             cmd.SetGlobalFloat(s_FeedbackCap, m_Config.feedbackAlbedoCap);
+        }
+
+        // Consumer binding of the published generation. Returns false before the first batch has
+        // published anything, so the material keeps the exact baked-GI path.
+        internal bool BindPublishedGlobals(CommandBuffer cmd)
+        {
+            if (cmd == null || !m_Allocated || m_BatchVersion == 0) return false;
+            BindSnapshotGlobals(cmd, m_Publish);
+            return true;
         }
 
         void BindMasks(CommandBuffer cmd, int kernel, int publish)

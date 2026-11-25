@@ -151,7 +151,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
             #pragma multi_compile _ _LIGHT_LAYERS
             #pragma multi_compile _ _FORWARD_PLUS
-            #pragma target 4.5 _FORWARD_PLUS _CLUSTERED_DEFERRED_LIGHTS
+            #pragma target 4.5 _FORWARD_PLUS _CLUSTERED_DEFERRED_LIGHTS _SCREEN_SPACE_GI_PROBE
             #pragma multi_compile _ _CLUSTERED_DEFERRED_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
@@ -160,6 +160,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _SCREEN_SPACE_GI
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_GI_PROBE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_SSR
             #pragma multi_compile_fragment _ _SCREEN_SPACE_TRANSPARENT_SSR
             #pragma multi_compile_fragment _ _SCREEN_SPACE_REFRACTION

@@ -409,7 +409,7 @@ void UniversalFragmentPBRSplit(InputData inputData, SurfaceData surfaceData,
     half NoV = saturate(dot(inputData.normalWS, inputData.viewDirectionWS));
     half fresnelTerm = Pow4(1.0 - NoV);
 
-    half3 indirectDiffuse = ScreenSpaceLightingApplyIndirectDiffuse(inputData.bakedGI, inputData.normalizedScreenSpaceUV);
+    half3 indirectDiffuse = ScreenSpaceLightingApplyIndirectDiffuse(inputData.bakedGI, inputData.positionWS, inputData.normalWS, inputData.normalizedScreenSpaceUV);
     half3 indirectSpecular;
     half3 coatIndirectSpecular;
 

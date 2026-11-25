@@ -19,11 +19,15 @@ namespace UnityEngine.Rendering.Universal
         readonly List<Camera> m_Release = new List<Camera>();
         readonly List<RayTracingMember> m_Members = new List<RayTracingMember>();
         readonly HashSet<uint> m_Ids = new HashSet<uint>();
-        readonly RayTracingSceneResources m_Scene = new RayTracingSceneResources();
+        readonly RayTracingSceneResources m_Scene;
         bool m_Subscribed;
         internal void RegisterLight(Light light) => m_Scene.RegisterLight(light);
         internal void UnregisterLight(Light light) => m_Scene.UnregisterLight(light);
-        internal SsrRayTracingCameras(ScreenSpaceLightingRendererFeature owner) => m_Owner = owner;
+        internal SsrRayTracingCameras(ScreenSpaceLightingRendererFeature owner, RayTracingSceneResources scene)
+        {
+            m_Owner = owner;
+            m_Scene = scene;
+        }
 
         internal static bool Eligible(in CameraData camera, ScreenSpaceLightingSettings settings, ScreenSpaceReflection ssr)
         {
@@ -44,7 +48,7 @@ namespace UnityEngine.Rendering.Universal
             var witness = SsrRayTracingGeometry.Collect(camera.camera.gameObject.scene, m_Members, m_Ids, out int revision);
             if (witness)
             {
-                m_Scene.SetRequests(RayTracingRequests.Reflections);
+                m_Scene.AddRequests(RayTracingRequests.Reflections);
                 if (m_Scene.TryBuild(camera, true, true, settings.resources.rayTracingSsr, witness, revision, ~0,
                     RayTracingRequests.Reflections, m_Members, out var snapshot) && m_Scene.instanceCount > 0)
                 {
@@ -120,9 +124,10 @@ namespace UnityEngine.Rendering.Universal
             foreach (var entry in m_Cameras.Values) entry.queue.Dispose();
             m_Cameras.Clear();
             m_Members.Clear();
-            m_Scene.SetRequests(RayTracingRequests.None);
+            // The scene is shared with the GI probe producer; drop only this consumer's bit.
+            m_Scene.RemoveRequests(RayTracingRequests.Reflections);
         }
 
-        public void Dispose() { Clear(); m_Scene.Dispose(); }
+        public void Dispose() { Clear(); }
     }
 }
