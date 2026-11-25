@@ -134,7 +134,7 @@ T,G,R 全绿 ── I1 ── I2
 
 **W7 / G3b Deferred 合成通过（C7 关闭）**：[D3D12](validation/G3/evidence/D3D12/Report.json) 与 [D3D11](validation/G3/evidence/D3D11/Report.json) 同一构建 GUID `9fe964c7…`（base `464c769`），同一 [Summary](validation/G3/evidence/Summary.json)。根因不是「deferred 光照不消费 SSL」：URP 构建期只按 quality/default pipeline 统计 shader features，而 G3/R3 夹具在运行期才赋 pipeline，`Lit/GBuffer` 被剥成 0 个变体，Lit 面从未进入 GBuffer（`off` 帧非黑 `0`）。修正：夹具构建时临时把夹具 pipeline 赋给全部 quality 级并在构建后恢复；GBuffer pass 补 `_SCREEN_SPACE_GI_PROBE`（Lit/ComplexLit 的 GBuffer，及 ShaderGraph Lit 的 Forward/GBuffer 关键词集合），probe 在写 GBuffer 时与 SSGI/SSR 一起合成；`ClusteredDeferredPass` 改为绑定具体 RT（nameID 要等色交接后才注册，首帧会丢写）。修后 `Lit/GBuffer` (fp) 剥离后剩 128 个变体，Deferred `off` 非黑 `446,576`；三种 renderer 的 `probe` ROI 均 `1.9189`（解析 `1.9200`，相对误差 `0.0005`）、`probeHalf` `0.9595` 且逐像素恰为 0.5 倍、`probeBoth` 仍 `1.9189`、体积外 `0`、冷启动 `baked`；各 renderer 的 `off`/`offAgain` 全帧哈希同为 `b0ed9154…`、`probe` 同为 `a49947e1…`；40 帧 41 批、`950,376 B`、6 实例/1 订阅 `GI`。D3D11 仍为 `Backend`、0 批/0 字节、`probe`=`off`。**未覆盖**：三开关打开后的动态/重定位图像、薄墙漏光、切镜、双相机屏幕历史、SS 能解析供体时的同帧接缝、GPU ms、非 Windows 构建的变体剥离（I2）；R3 的 SSR-only 图像夹具需用同一构建修正复跑。
 
-**下一阶段**：R3 图像夹具用同一构建修正复跑（Deferred SSR），随后 G3c（三开关与薄墙/切镜/接缝扫描）；之后 I1/I2。
+**下一阶段**：G3c（三开关与薄墙/切镜/接缝扫描）；之后 I1/I2。
 
 **关键路径**：`B0 → T1 → T2 → T3 → T3b → T4 → G2 → G5/G3 → I1 → I2`。这是最长链，WS4 的 G2 是整条链的汇聚点。
 
