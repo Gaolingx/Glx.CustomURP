@@ -221,6 +221,7 @@ namespace UnityEditor.Rendering.Universal
 #endif
 
             bool isDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
+            ShaderScriptableStripper.RefreshRayTracingSupport(report.summary.platform);
             GatherShaderFeatures(isDevelopmentBuild);
         }
 

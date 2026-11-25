@@ -1,0 +1,10 @@
+{
+  "platform": "StandaloneWindows64",
+  "graphicsAPIs": ["Direct3D11"],
+  "glxDxr": [],
+  "glxDxrSets": 0,
+  "probeKeyword": [],
+  "probeKeywordSets": 0,
+  "rtAssetEntries": ["Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxProbeTrace.raytrace", "Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxProbeUpdate.compute", "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace"],
+  "rtAssetCount": 3
+}

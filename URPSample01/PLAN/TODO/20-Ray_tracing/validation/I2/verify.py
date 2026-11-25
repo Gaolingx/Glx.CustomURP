@@ -1,8 +1,10 @@
-"""Gate the I2 1080p quality/performance, D3D11 off and stripping evidence against B0."""
+"""Gate the I2 1080p quality/performance, D3D11 off and stripping evidence against B0.
+Usage: verify.py <evidence> [strip-only]"""
 import json, sys
 from pathlib import Path
 
 OUT = Path(sys.argv[1])
+STRIP_ONLY = len(sys.argv) > 2 and sys.argv[2] == 'strip-only'
 errors = []
 def require(x, msg):
     if not x: errors.append(msg)
@@ -13,20 +15,36 @@ def load(p):
 INPUTS = load(OUT / 'Inputs.json')
 variants = load(OUT / 'Variants.json')
 variants11 = load(OUT / 'D3D11OnlyVariants.json')
+rt = load(OUT / 'RtVariants.json')
+rt11 = load(OUT / 'D3D11OnlyRtVariants.json')
 reports = {}
 for name in ('D3D11', 'D3D12'):
     rp = OUT / name / 'Report.json'
     if not rp.exists():
-        errors.append(f'missing {rp}')
+        if not STRIP_ONLY: errors.append(f'missing {rp}')
         continue
     reports[name] = load(rp)
 strip = load(OUT / 'D3D11Strip' / 'Report.json')
 
 require(0 < variants['distinctSets'] <= 16, f"Win64 Lit DXR sets {variants['distinctSets']}")
 require(variants11['distinctSets'] == 0, f"D3D11-only Lit DXR sets {variants11['distinctSets']}")
+require('Direct3D12' in rt['graphicsAPIs'], f"Win64 build APIs {rt['graphicsAPIs']}")
+require(rt['glxDxrSets'] > 0, f"Win64 build compiled {rt['glxDxrSets']} GlxDXR variants")
+require(rt['probeKeywordSets'] > 0, f"Win64 build compiled {rt['probeKeywordSets']} probe keyword variants")
+require(rt11['graphicsAPIs'] == ['Direct3D11'], f"D3D11-only build APIs {rt11['graphicsAPIs']}")
+require(rt11['glxDxrSets'] == 0, f"D3D11-only build retained {rt11['glxDxrSets']} GlxDXR variants")
+require(rt11['probeKeywordSets'] == 0, f"D3D11-only build retained {rt11['probeKeywordSets']} probe keyword variants")
+build11 = (OUT / 'D3D11OnlyBuild.log')
+if build11.exists():
+    log11 = build11.read_text(errors='ignore')
+    compiled = log11.count('with _SCREEN_SPACE_GI_PROBE')
+    require(compiled == 0, f"D3D11-only log compiled {compiled} probe keyword variants")
+    probe_warnings = log11.count('GlxProbeQuery.hlsl')
+    require(probe_warnings == 0, f"D3D11-only log compiled the probe query library {probe_warnings} times")
 guids = {r['guid'] for r in reports.values()}
-require(len(guids) == 1 and len(next(iter(guids), '')) == 32, 'one build GUID across D3D12/D3D11')
-require(strip['guid'] not in guids, 'strip build reused the Win64 GUID')
+if not STRIP_ONLY:
+    require(len(guids) == 1 and len(next(iter(guids), '')) == 32, 'one build GUID across D3D12/D3D11')
+    require(strip['guid'] not in guids, 'strip build reused the Win64 GUID')
 
 GPU_FRAME, CPU_TLAS, GPU_TLAS = 4.0, .5, 1.0
 PROBE, MAINTAIN, SSR_TRACE, SSR_RECON, MEMORY = 1.25, .25, 1.75, .5, 256.0
@@ -141,8 +159,17 @@ keys = ['stage', 'renderer', 'repeat', 'frames', 'warmup', 'dynamic', 'requests'
         'ssrReconP95', 'ssrPassP95', 'gpuRtSumSamples', 'gpuRtSumP95', 'driverPeakMiB', 'onHash', 'offHash', 'mirrorOn', 'mirrorOff',
         'frameOn', 'frameOff', 'diffPixels', 'nonFinite', 'nonBlack']
 summary = {
+    'scope': 'strip-only' if STRIP_ONLY else 'full',
     'passed': not errors, 'errors': errors, 'guids': sorted(guids), 'stripGuid': strip['guid'],
     'base': INPUTS.get('base'), 'variantSets': variants['distinctSets'], 'stripVariantSets': variants11['distinctSets'],
+    'rayTracingVariants': {
+        'win64': {'graphicsAPIs': rt['graphicsAPIs'], 'glxDxrSets': rt['glxDxrSets'],
+                  'probeKeywordSets': rt['probeKeywordSets'], 'passes': rt['glxDxr'] + rt['probeKeyword'],
+                  'rtAssetEntries': rt['rtAssetEntries']},
+        'd3d11Only': {'graphicsAPIs': rt11['graphicsAPIs'], 'glxDxrSets': rt11['glxDxrSets'],
+                      'probeKeywordSets': rt11['probeKeywordSets'],
+                      'rtAssetEntries': rt11['rtAssetEntries']},
+    },
     'reports': {name: {'api': rep['api'], 'passed': rep['passed'], 'gpuTimingMeasured': rep['gpuTimingMeasured'],
                        'gates': rep.get('gates', []), 'knownDifferences': rep.get('knownDifferences', []),
                        'stages': [{k: s.get(k) for k in keys} for s in rep['stages']]}

@@ -1019,15 +1019,56 @@ namespace UnityEditor.Rendering.Universal
                             Main Callbacks
         *********************************************************/
 
+        // Ray tracing support is fixed for the lifetime of a build, so the graphics API query is
+        // cached per build target instead of running once per variant.
+        static int s_RayTracingTarget = int.MinValue;
+        static bool s_RayTracingSupported;
+
+        internal static void RefreshRayTracingSupport(BuildTarget target)
+        {
+            s_RayTracingTarget = (int)target;
+            if (target == BuildTarget.PS5 || target == BuildTarget.GameCoreXboxSeries)
+            {
+                s_RayTracingSupported = true;
+                return;
+            }
+
+            try
+            {
+                s_RayTracingSupported =
+                    System.Array.IndexOf(PlayerSettings.GetGraphicsAPIs(target), GraphicsDeviceType.Direct3D12) >= 0;
+            }
+            catch (System.ArgumentException)
+            {
+                // Platforms with a fixed graphics API (mobile/console without RT) reject the query.
+                s_RayTracingSupported = false;
+            }
+        }
+
+        static bool TargetSupportsRayTracing(BuildTarget target)
+        {
+            if ((int)target != s_RayTracingTarget)
+                RefreshRayTracingSupport(target);
+            return s_RayTracingSupported;
+        }
+
+        static bool IsRayTracingOnlyVariant(ShaderSnippetData passData, ShaderCompilerData variantData)
+        {
+            if (passData.passName == "GlxDXR")
+                return true;
+            foreach (var keyword in variantData.shaderKeywordSet.GetShaderKeywords())
+                if (keyword.name == "_SCREEN_SPACE_GI_PROBE")
+                    return true;
+            return false;
+        }
+
         public bool CanRemoveVariant([DisallowNull] Shader shader, ShaderSnippetData passData, ShaderCompilerData variantData)
         {
-            if (passData.passName == "GlxDXR" && shader.name == "Universal Render Pipeline/Lit")
-            {
-                var target = EditorUserBuildSettings.activeBuildTarget;
-                if (target != BuildTarget.StandaloneWindows64 ||
-                    System.Array.IndexOf(PlayerSettings.GetGraphicsAPIs(target), GraphicsDeviceType.Direct3D12) < 0)
-                    return true;
-            }
+            // The GlxDXR hit pass and the probe fallback keyword only produce pixels with hardware
+            // ray tracing; non-target builds strip them instead of compiling dead variants.
+            if (IsRayTracingOnlyVariant(passData, variantData) &&
+                !TargetSupportsRayTracing(EditorUserBuildSettings.activeBuildTarget))
+                return true;
 
             IShaderScriptableStrippingData strippingData = new StrippingData()
             {

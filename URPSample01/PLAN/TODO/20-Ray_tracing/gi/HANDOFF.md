@@ -57,7 +57,7 @@ irradiance 八面体 atlas、距离矩 atlas、**probe data（offset + state）*
 - **互斥**：probe 就绪（已发布代）时 SSGI 的 `rayMiss` 强制 `None`，miss 写 weight 0 由 `base` 填充；未就绪时保留用户设置，不会把旧 fallback 与 probe 叠加。
 - **数字**：[G3 证据](../validation/G3/evidence/Summary.json)（GUID `9fe964c7…`，base `464c769`）。常量辐射室下三种 renderer 的 `probe` ROI 均为 `1.9189`（解析 `1.9200`，相对误差 `0.0005`）、`probeHalf` `0.9595` 且逐像素恰为 0.5 倍、`probeBoth`（SSGI 1）仍 `1.9189`、体积外 `0`、冷启动首帧 `baked`；各 renderer 的 `off`/`offAgain` 全帧哈希同为 `b0ed9154…`，`probe` 同为 `a49947e1…`；40 帧 41 批（每场景帧 ≤1）、producer `950,376 B`、6 实例/1 订阅 `GI`、3 次构建；D3D11 为 `Backend`、0 批/0 字节，`probe` 与 `off` 逐字节相同（同一 `b0ed9154…`）。
 - **C7 关闭（Deferred）**：此前的「Deferred 整帧非黑 `0`」不是 deferred 光照不消费 SSL，而是构建期 URP 只按 quality/default pipeline 统计 shader features；夹具运行期才赋 pipeline，`Lit/GBuffer` 被剥成 0 变体，Lit 面根本没进 GBuffer。夹具构建时临时把夹具 pipeline 赋给全部 quality 级并在构建后恢复（`Lit/GBuffer` (fp) 剥离后剩 128 个变体）；同时 GBuffer pass 补 `_SCREEN_SPACE_GI_PROBE`（在写 GBuffer 时合成，deferred kernel 从不采样 SSL 纹理），`ClusteredDeferredPass` 改为绑定具体 RT（nameID 要等 `CompleteDeferredColorHandoff` 才注册，首帧会丢写）。修后 Deferred `off` 非黑 `446,576`，三种 renderer 图像逐字节一致。
-- **未覆盖**：feedback/relocation/classification 打开后的动态与重定位图像、薄墙、切镜、双相机屏幕历史、SS 能解析供体时的同帧接缝、GPU ms、非 Windows 构建的 `_SCREEN_SPACE_GI_PROBE` 变体剥离（I2）。
+- **未覆盖**：feedback/relocation/classification 打开后的动态与重定位图像、薄墙、切镜、双相机屏幕历史、SS 能解析供体时的同帧接缝、GPU ms。非 Windows 的 `_SCREEN_SPACE_GI_PROBE` 变体剥离已由 I2 补做：D3D11-only 构建 0 个 probe 变体、0 条 `GlxProbeQuery` 警告，见 [I2 剥离审计](../validation/I2/evidence/strip-audit/README.md)。
 
 ## G3c 三开关/暗阶跃/混合/切镜/双相机/反馈/薄墙签收（Win64 D3D12，Forward/ForwardPlus/Deferred；真实集成）
 
@@ -67,7 +67,7 @@ irradiance 八面体 atlas、距离矩 atlas、**probe data（offset + state）*
 - **切镜/双相机**：传送后首帧 `1.918`、稳定 `1.9189`，probe state/offset 哈希不变、生产继续；双相机 2 条独立屏幕历史、两机同为 `1.9189`、每帧 ≤1 批。
 - **反馈**：固定点 `2.5410`（解析 `2.5600`，相对误差 `0.0074`），图集 active tile `8.315`（对照 `6.281`）；变暗后 256 帧剩 `3.0%`。**薄墙**：6 cm 隔板两室，亮面 `0.9104`、背面 `0.0173`（`1.9%`）。
 - **实现**：`RayTracingProbeFallback` 每帧比较设置派生的 config，变化时替换生产者——此前 feedback/relocation/classification 只在构造时被捕获，运行期改开关会被静默忽略；新增 `ReadProbeData`/`ReadProbe` 只读验证钩子。
-- **未覆盖**：SS 只覆盖部分屏幕（供体部分出屏）时的接缝、带屏内供体的切镜残影、GPU ms、非 Windows 变体剥离（I2）；R3 的 SSR-only 图像夹具未用本构建复跑。
+- **未覆盖**：SS 只覆盖部分屏幕（供体部分出屏）时的接缝、带屏内供体的切镜残影、GPU ms；R3 的 SSR-only 图像夹具未用本构建复跑。非 Windows 变体剥离已由 I2 补做（0 个 probe / `GlxDXR` 变体），见 [I2 剥离审计](../validation/I2/evidence/strip-audit/README.md)。
 
 ## 实现落点与维护
 

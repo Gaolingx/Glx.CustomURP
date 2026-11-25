@@ -1,0 +1,89 @@
+{
+  "scope": "strip-only",
+  "passed": true,
+  "errors": [],
+  "guids": [],
+  "stripGuid": "0a1c9b4ffc1f4e8d930d147363f3a037",
+  "base": "c9b375693b4436adfb9af2424b8afb72b9b81009",
+  "variantSets": 16,
+  "stripVariantSets": 0,
+  "rayTracingVariants": {
+    "win64": {
+      "graphicsAPIs": [
+        "Direct3D12",
+        "Direct3D11"
+      ],
+      "glxDxrSets": 16,
+      "probeKeywordSets": 4160,
+      "passes": [
+        {
+          "pass": "Universal Render Pipeline/Lit|GlxDXR",
+          "count": 16,
+          "sha256": "a6c60451d15ed02a810881644b5a348248d47b2fc560948f872d1b5c598d91a7",
+          "sets": [
+            "",
+            "_ALPHATEST_ON",
+            "_ALPHATEST_ON _EMISSION",
+            "_ALPHATEST_ON _EMISSION _METALLICSPECGLOSSMAP",
+            "_ALPHATEST_ON _EMISSION _METALLICSPECGLOSSMAP _NORMALMAP",
+            "_ALPHATEST_ON _EMISSION _NORMALMAP",
+            "_ALPHATEST_ON _METALLICSPECGLOSSMAP",
+            "_ALPHATEST_ON _METALLICSPECGLOSSMAP _NORMALMAP",
+            "_ALPHATEST_ON _NORMALMAP",
+            "_EMISSION",
+            "_EMISSION _METALLICSPECGLOSSMAP",
+            "_EMISSION _METALLICSPECGLOSSMAP _NORMALMAP",
+            "_EMISSION _NORMALMAP",
+            "_METALLICSPECGLOSSMAP",
+            "_METALLICSPECGLOSSMAP _NORMALMAP",
+            "_NORMALMAP"
+          ]
+        },
+        {
+          "pass": "Universal Render Pipeline/Lit|ForwardLit",
+          "count": 4096,
+          "sha256": "7e7a3ebc48f226b4c1cbabc64fe40107024aee8c706357e6087715cb5734a480",
+          "sample": [
+            "_ADDITIONAL_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _CLUSTERED_DEFERRED_LIGHTS _EMISSION _LIGHT_COOKIES _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_GI _SCREEN_SPACE_GI_PROBE",
+            "_ADDITIONAL_LIGHT_SHADOWS _ADDITIONAL_LIGHTS _CLUSTERED_DEFERRED_LIGHTS _EMISSION _LIGHT_COOKIES _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_GI _SCREEN_SPACE_GI_PROBE _SCREEN_SPACE_OCCLUSION",
+            "_ADDITIONAL_LIGHT_SHADOWS _FORWARD_PLUS _MAIN_LIGHT_SHADOWS_CASCADE _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_GI_PROBE LOD_FADE_CROSSFADE"
+          ]
+        },
+        {
+          "pass": "Universal Render Pipeline/Lit|GBuffer",
+          "count": 64,
+          "sha256": "b25cbe26a3f84ae7a22bfde8462cddd496e3e04c19bc22af55a62f691462a087",
+          "sample": [
+            "_EMISSION _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_GI _SCREEN_SPACE_GI_PROBE",
+            "_EMISSION _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_GI _SCREEN_SPACE_GI_PROBE _SCREEN_SPACE_SSR",
+            "_MAIN_LIGHT_SHADOWS_CASCADE _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_GI_PROBE LOD_FADE_CROSSFADE"
+          ]
+        }
+      ],
+      "rtAssetEntries": [
+        "Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxProbeTrace.raytrace",
+        "Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxProbeUpdate.compute",
+        "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace"
+      ]
+    },
+    "d3d11Only": {
+      "graphicsAPIs": [
+        "Direct3D11"
+      ],
+      "glxDxrSets": 0,
+      "probeKeywordSets": 0,
+      "rtAssetEntries": [
+        "Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxProbeTrace.raytrace",
+        "Packages/com.unity.render-pipelines.universal/Shaders/RayTracing/GlxProbeUpdate.compute",
+        "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace"
+      ]
+    }
+  },
+  "reports": {},
+  "strip": {
+    "api": "Direct3D11",
+    "passed": true,
+    "supportsRayTracing": false,
+    "mode": "strip"
+  }
+}
