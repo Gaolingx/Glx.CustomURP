@@ -683,20 +683,25 @@ public sealed class R3ImagePlayer : MonoBehaviour
             }
             else if (d3d12)
             {
-                // Deferred: either the renderer consumes the reflection like the forward ones, or the
-                // image must be provably untouched by the DXR pass.
-                Gate(Mathf.Abs(sw.metrics.recallUnion - swOff.metrics.recallUnion) <= .02f,
-                    $"Deferred/{r} changed the image without reaching the reflection");
+                // Deferred composes the SSL blend while writing the GBuffer, so it must resolve the
+                // hybrid like the forward renderers. Only a provably untouched image may be recorded.
                 Gate(sw.metrics.falsePositiveFraction <= FalsePositiveMax, $"Deferred/{r} false positive");
                 if (sw.metrics.recallUnion < .02f)
+                {
+                    Gate(Mathf.Abs(sw.metrics.recallUnion - swOff.metrics.recallUnion) <= .02f,
+                        $"Deferred/{r} changed the image without reaching the reflection");
                     report.knownDifferences.Add(
-                        $"Deferred/{r}: Lit G-buffer surfaces are not shaded (off frame nonBlack {stages["off/" + r].nonBlack}) " +
-                        $"and the clustered deferred lighting does not consume _ScreenSpaceSsrTexture; forward-drawn materials " +
-                        $"in the same renderer still resolve the hybrid (clear coat recall {coat.metrics.recallUnion})");
+                        $"Deferred/{r}: the image stayed untouched (off frame nonBlack {stages["off/" + r].nonBlack}); " +
+                        "GBuffer surfaces or the SSL blend did not reach the deferred renderer");
+                }
                 else
                 {
                     Gate(sw.metrics.recallUnion >= RecallMin, $"Deferred/{r} recall {sw.metrics.recallUnion}");
+                    Gate(sw.metrics.recallOffscreen >= RecallMin, $"Deferred/{r} off-screen recall {sw.metrics.recallOffscreen}");
                     Gate(sw.metrics.stepVsReferenceMax <= SeamMax, $"Deferred/{r} step {sw.metrics.stepVsReferenceMax}");
+                    Gate(sw.metrics.servedFrames >= 10, $"Deferred/{r} too few core frames {sw.metrics.servedFrames}");
+                    Gate(swOff.metrics.recallOffscreen <= .05f, $"Deferred/{r} RT-off recovered the silhouette {swOff.metrics.recallOffscreen}");
+                    Gate(exit.metrics.trailFrames <= 2, $"Deferred/{r} trail {exit.metrics.trailFrames}");
                     Gate(coat.metrics.clearCoatRatio <= ClearCoatMax && coat.metrics.clearCoatRatio >= .8f,
                         $"Deferred/{r} ratio {coat.metrics.clearCoatRatio}");
                 }
@@ -981,12 +986,40 @@ public sealed class R3ImagePlayer : MonoBehaviour
         driver.features = features;
         driver.pipeline = pipeline;
         Check(EditorSceneManager.SaveScene(scene, "Assets/R3Image.unity"), "Cannot save R3 image scene");
-        var build = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+
+        // URP strips shader variants against the quality/default pipeline assets only. The fixture
+        // assigns its pipeline at runtime, so without this the build sees a Forward-only project and
+        // strips the Lit GBuffer pass (and the Deferred renderer draws nothing).
+        var previousPipelines = new RenderPipelineAsset[QualitySettings.names.Length];
+        int activeLevel = QualitySettings.GetQualityLevel();
+        for (int q = 0; q < previousPipelines.Length; ++q)
         {
-            scenes = new[] { "Assets/R3Image.unity" }, target = target,
-            locationPathName = Arg("-exe"), options = BuildOptions.Development
-        });
-        Check(build.summary.result == BuildResult.Succeeded, "Win64 R3 image build failed");
+            QualitySettings.SetQualityLevel(q, false);
+            previousPipelines[q] = QualitySettings.renderPipeline;
+            QualitySettings.renderPipeline = pipeline;
+        }
+        QualitySettings.SetQualityLevel(activeLevel, false);
+        var previousDefault = GraphicsSettings.defaultRenderPipeline;
+        GraphicsSettings.defaultRenderPipeline = pipeline;
+        try
+        {
+            var build = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = new[] { "Assets/R3Image.unity" }, target = target,
+                locationPathName = Arg("-exe"), options = BuildOptions.Development
+            });
+            Check(build.summary.result == BuildResult.Succeeded, "Win64 R3 image build failed");
+        }
+        finally
+        {
+            for (int q = 0; q < previousPipelines.Length; ++q)
+            {
+                QualitySettings.SetQualityLevel(q, false);
+                QualitySettings.renderPipeline = previousPipelines[q];
+            }
+            QualitySettings.SetQualityLevel(activeLevel, false);
+            GraphicsSettings.defaultRenderPipeline = previousDefault;
+        }
     }
 #endif
 }

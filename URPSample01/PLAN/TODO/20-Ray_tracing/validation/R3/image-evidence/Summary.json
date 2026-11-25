@@ -2,14 +2,12 @@
   "passed": true,
   "errors": [],
   "guids": [
-    "a95eb55bba724c99b2f783c7e83d5ffc"
+    "6b949a99730a4da0acaaf5ecfe56be97"
   ],
   "base": "464c769637bfe8063a44fa853ad24c87a8f50a0b",
   "knownDifferences": {
     "Direct3D11": [],
-    "Direct3D12": [
-      "Deferred/2: Lit G-buffer surfaces are not shaded (off frame nonBlack 0) and the clustered deferred lighting does not consume _ScreenSpaceSsrTexture; forward-drawn materials in the same renderer still resolve the hybrid (clear coat recall 0.7395105)"
-    ]
+    "Direct3D12": []
   },
   "stages": {
     "Direct3D11": [
@@ -904,12 +902,12 @@
           56,
           40
         ],
-        "recallUnion": 0.0,
-        "recallOffscreen": 0.0,
+        "recallUnion": 0.9711538553237915,
+        "recallOffscreen": 0.9593373537063599,
         "falsePositiveFraction": 0.0,
         "seamSpan": 0.0,
         "stepVsReferenceMax": 0.08712125569581985,
-        "servedFrames": 0,
+        "servedFrames": 208,
         "trailFrames": 0,
         "clearCoatRatio": 0.0,
         "transparentMutualMaxDifference": 0.0,
@@ -948,7 +946,7 @@
           224,
           40
         ],
-        "recallUnion": 0.0,
+        "recallUnion": 0.2302904576063156,
         "recallOffscreen": 0.0,
         "falsePositiveFraction": 0.0,
         "seamSpan": 0.0,
@@ -977,7 +975,7 @@
         "stepVsReferenceMax": 0.0,
         "servedFrames": 26,
         "trailFrames": 0,
-        "clearCoatRatio": 0.0,
+        "clearCoatRatio": 1.0,
         "transparentMutualMaxDifference": 0.0,
         "instances": 7,
         "builds": 1141,

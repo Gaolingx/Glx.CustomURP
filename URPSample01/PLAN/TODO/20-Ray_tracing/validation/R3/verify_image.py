@@ -212,16 +212,23 @@ def gate(rep, key, errs):
             require(exit_stage['metrics']['trailFrames'] <= 2, f'{key}/exit/{r} trail')
             require(.8 <= coat['metrics']['clearCoatRatio'] <= 1.25, f'{key}/clearCoat/{r} ratio')
         elif key == 'D3D12':
-            # Deferred either reaches the reflection like the forward renderers or leaves the image
-            # provably untouched; the latter is recorded as a known difference.
-            require(abs(sw['metrics']['recallUnion'] - woff['metrics']['recallUnion']) <= .02,
-                    f'{key}/Deferred/{r} changed without reaching the reflection')
+            # Deferred composes the SSL blend while writing the GBuffer, so it must reach the
+            # reflection like the forward renderers; the untouched case is only a recorded difference.
             require(sw['metrics']['falsePositiveFraction'] <= .05, f'{key}/Deferred/{r} false positive')
             require(coat['metrics']['recallUnion'] > .5,
                     f'{key}/Deferred/{r} forward-drawn clear coat did not resolve the hybrid')
             if sw['metrics']['recallUnion'] >= .02:
                 require(sw['metrics']['recallUnion'] >= .90, f'{key}/Deferred/{r} recall')
+                require(sw['metrics']['recallOffscreen'] >= .90, f'{key}/Deferred/{r} off-screen recall')
+                require(sw['metrics']['seamSpan'] <= .10, f'{key}/Deferred/{r} seam')
                 require(sw['metrics']['stepVsReferenceMax'] <= .10, f'{key}/Deferred/{r} step')
+                require(sw['metrics']['servedFrames'] >= 10, f'{key}/Deferred/{r} core frames')
+                require(woff['metrics']['recallOffscreen'] <= .05, f'{key}/Deferred/{r} recovered')
+                require(exit_stage['metrics']['trailFrames'] <= 2, f'{key}/Deferred/{r} trail')
+                require(.8 <= coat['metrics']['clearCoatRatio'] <= 1.25, f'{key}/Deferred/{r} ratio')
+            else:
+                require(abs(sw['metrics']['recallUnion'] - woff['metrics']['recallUnion']) <= .02,
+                        f'{key}/Deferred/{r} changed without reaching the reflection')
         else:
             require(abs(sw['metrics']['recallUnion'] - woff['metrics']['recallUnion']) <= .02,
                     f'{key}/switch/{r} diverged from RT-off')
@@ -252,7 +259,7 @@ for api, name in [(11, 'D3D11'), (12, 'D3D12')]:
         require(a.exists() and b.exists(), f'{name}/switch/{r} missing on/off key pair')
         if a.exists() and b.exists():
             same = a.read_bytes() == b.read_bytes()
-            if name == 'D3D11' or r == 2:
+            if name == 'D3D11':
                 require(same, f'{name}/switch/{r} hybrid-off key image changed')
             else:
                 require(not same, f'{name}/switch/{r} hybrid produced no image change')

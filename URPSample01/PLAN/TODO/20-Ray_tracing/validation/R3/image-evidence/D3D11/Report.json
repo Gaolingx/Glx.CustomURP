@@ -1,5 +1,5 @@
 {
-    "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+    "guid": "6b949a99730a4da0acaaf5ecfe56be97",
     "api": "Direct3D11",
     "adapter": "NVIDIA GeForce RTX 5060 Ti",
     "driver": "Direct3D 11.0 [level 11.1]",
@@ -38,7 +38,7 @@
         {
             "stage": "switch",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -12563,7 +12563,7 @@
         {
             "stage": "switchOff",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
             "frameHash": "",
@@ -25088,7 +25088,7 @@
         {
             "stage": "exit",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -26043,7 +26043,7 @@
         {
             "stage": "clearCoat",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -27648,7 +27648,7 @@
         {
             "stage": "transparent",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -27823,7 +27823,7 @@
         {
             "stage": "transparentOff",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
             "frameHash": "",
@@ -27998,7 +27998,7 @@
         {
             "stage": "off",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
             "frameHash": "800fea5bbb0b8fb367a3269c6b6953db4ea8777f7e58bcb3ba4b813991134428",
@@ -28147,7 +28147,7 @@
         {
             "stage": "offAgain",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
             "frameHash": "800fea5bbb0b8fb367a3269c6b6953db4ea8777f7e58bcb3ba4b813991134428",
@@ -28296,7 +28296,7 @@
         {
             "stage": "switch",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -40821,7 +40821,7 @@
         {
             "stage": "switchOff",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
             "frameHash": "",
@@ -53346,7 +53346,7 @@
         {
             "stage": "exit",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -54301,7 +54301,7 @@
         {
             "stage": "clearCoat",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -55906,7 +55906,7 @@
         {
             "stage": "transparent",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -56081,7 +56081,7 @@
         {
             "stage": "transparentOff",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
             "frameHash": "",
@@ -56256,7 +56256,7 @@
         {
             "stage": "off",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
             "frameHash": "800fea5bbb0b8fb367a3269c6b6953db4ea8777f7e58bcb3ba4b813991134428",
@@ -56405,7 +56405,7 @@
         {
             "stage": "offAgain",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
             "frameHash": "800fea5bbb0b8fb367a3269c6b6953db4ea8777f7e58bcb3ba4b813991134428",
@@ -56554,7 +56554,7 @@
         {
             "stage": "switch",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -69079,7 +69079,7 @@
         {
             "stage": "switchOff",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
             "frameHash": "",
@@ -81604,7 +81604,7 @@
         {
             "stage": "exit",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -82559,7 +82559,7 @@
         {
             "stage": "clearCoat",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -84164,7 +84164,7 @@
         {
             "stage": "transparent",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Backend",
             "requests": "",
             "frameHash": "",
@@ -84339,7 +84339,7 @@
         {
             "stage": "transparentOff",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
             "frameHash": "",
@@ -84514,17 +84514,17 @@
         {
             "stage": "off",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
-            "frameHash": "af31801008df2fbb537f365265271e716b26339b4c5a2fa2069c01c1a949e8b8",
+            "frameHash": "004994cb76ff1d0af401af5bf15331eea1abfa347cc55429eb999b42a9be641b",
             "renderer": 2,
             "frames": 8,
             "budget": 32768,
             "instances": 0,
             "builds": 0,
             "subscribers": 0,
-            "nonBlack": 0,
+            "nonBlack": 554586,
             "roiX": 1028,
             "roiY": 520,
             "roiW": 43,
@@ -84663,17 +84663,17 @@
         {
             "stage": "offAgain",
             "api": "Direct3D11",
-            "guid": "a95eb55bba724c99b2f783c7e83d5ffc",
+            "guid": "6b949a99730a4da0acaaf5ecfe56be97",
             "gate": "Off",
             "requests": "",
-            "frameHash": "af31801008df2fbb537f365265271e716b26339b4c5a2fa2069c01c1a949e8b8",
+            "frameHash": "004994cb76ff1d0af401af5bf15331eea1abfa347cc55429eb999b42a9be641b",
             "renderer": 2,
             "frames": 8,
             "budget": 32768,
             "instances": 0,
             "builds": 0,
             "subscribers": 0,
-            "nonBlack": 0,
+            "nonBlack": 554586,
             "roiX": 1028,
             "roiY": 520,
             "roiW": 43,
