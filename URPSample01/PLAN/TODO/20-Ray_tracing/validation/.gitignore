@@ -15,3 +15,5 @@ G2/evidence/**/*.log
 R3/evidence/**/*.log
 R4/evidence/**/*.log
 R5/evidence/**/*.log
+I1/evidence*/*.log
+I1/evidence*/D3D*/*.log
