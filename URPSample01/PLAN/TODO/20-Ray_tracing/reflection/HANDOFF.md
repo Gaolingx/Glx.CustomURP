@@ -1,6 +1,6 @@
 # 不透明 SSR × DXR：恢复离屏几何的单次反射
 
-**状态：R1 半分辨率分类与预算已在 [D3D11](../validation/R1/D3D11/Summary.json) 和 [D3D12](../validation/R1/D3D12/Summary.json) 计算夹具验证；R2 的离屏求交、命中取色与合成已在 [Win64 D3D12 Player](../validation/R2/evidence/Summary.json) 通过，并按拆分口径把全轮廓召回留给 R3（见下）；R3 的阴面源切换已在 [Win64 D3D12 Player](../validation/R3/evidence/Summary.json) 通过，R4 的登记范围与材质覆盖计数已在 [Win64 D3D12 Player](../validation/R4/evidence/Summary.json) 通过，R5 的全材质命中、灯表/逐灯阴影与冻结预算已在 [Win64 D3D12 Player](../validation/R5/evidence/Summary.json) 通过生产者侧夹具。R3 的图像回归仍待实施；R5 的图像级 SS↔HW 接缝与高采样参考并入 R3。** 只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；命中着色见 [HitShading](../research/HitShading.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
+**状态：R1 半分辨率分类与预算已在 [D3D11](../validation/R1/D3D11/Summary.json) 和 [D3D12](../validation/R1/D3D12/Summary.json) 计算夹具验证；R2 的离屏求交、命中取色与合成已在 [Win64 D3D12 Player](../validation/R2/evidence/Summary.json) 通过，并按拆分口径把全轮廓召回留给 R3（见下）；R3 的阴面源切换已在 [Win64 D3D12 Player](../validation/R3/evidence/Summary.json) 通过，R4 的登记范围与材质覆盖计数已在 [Win64 D3D12 Player](../validation/R4/evidence/Summary.json) 通过，R5 的全材质命中、灯表/逐灯阴影与冻结预算已在 [Win64 D3D12 Player](../validation/R5/evidence/Summary.json) 通过生产者侧夹具。R3 的图像回归已在 [Win64 D3D12 Player](../validation/R3/image-evidence/Summary.json) 的 Forward/ForwardPlus 通过，Deferred 记 C7（见下文签收）。** 只为高端合格平台的 opaque SSR 加一个离屏来源；不触碰透明 SSR、折射、默认材质环境反射或 GI 启动策略。平台、世界空间光照与材质入库见 [TLAS](../research/TLAS.md)；命中着色见 [HitShading](../research/HitShading.md)；HDRP 对比见[研究](../research/HDRP14.md)；集成细节见 [SSR-DXR](../research/SSR-DXR.md)。
 
 ## 输入与分支
 
@@ -46,6 +46,18 @@ v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世�
 | R4 命中着色分级与材质覆盖 / R2+T3b | H-A 登记 Lit/cutout/自发光；SimpleLit/ComplexLit/ShaderGraph/透明/蒙皮/多 submesh 另计；统计 pass/variant、payload、hit shading GPU ms | 只有登记子集参与；不支持材质显式计数，不静默当黑色/sky；无 Surface Cache/mesh card 资源；不重复接收面 Fresnel/BRDF；H-A 开关不改变 R1–R3 的正确性门槛；H-B 实现后再加入对照 |
 | R5 全材质反射与灯光预算 / R2+T3b+T4 | 命中点 PBR（metallic/smoothness/normal）+ cutout + 方向/点/聚光 + 逐灯阴影；与 SS-only/高采样参考比轮廓与亮度接缝；灯数/阴影/payload/overflow 计数 | 命中点材质与解析参考一致到 B0；cutout 轮廓正确；灯数/阴影在预算内；不做 probe 反馈；超预算回退并计数 |
 | R2b 压缩与 TMin 续传（v2 候选，不阻塞 v1） / R2 | 构造大量未解决射线与“屏外隐藏遮挡物”；对比固定 K、GPU 压缩、上一帧 N 估计 K、TMin 续传；记录 N/K、wave 利用率和 GPU ms | 隐藏遮挡物在 TMin 方案下不得漏遮挡；结果确定、可复跑；只有证明收益超过压缩/重追成本才建议进入 v2；任一失败只记录为 v2 NO-GO，不影响 R1–R5 |
+
+## R3 图像回归签收（W7，Win64 D3D12）
+
+夹具按 B0 `sourceSwitchControl`：1920×1080、FOV60、相机 `(0,1.6,-2.5)`、2×2 金属镜面 `(0,2,3.98)`、0.3 m 金属黑+自发光供体 `(1,1.6,0)→(1,1.6,-2.4)` 再返回（4 轮）、黑色环境（自定义黑色反射 cubemap）+ 一盏竖直向下灯（`N·L=0` 于镜面与供体，解析辐亮度仍只有 emission）、`K=32768`、高保真档半分辨率 Approximation。ROI 取供体虚像 AABB 的时间并集；解析参考为「相机光线先到 2×2 镜面、反射光线命中供体盒」，直接像逐帧排除。每渲染器内依次跑 `switch`（混合）、`switchOff`（RT 关）、`exit`（供体滑出镜面）、`clearCoat`（ComplexLit 清漆）、`transparent/Off` 与 `off/offAgain`。
+
+- 召回与误报（B0）：Forward `0.968`、ForwardPlus `0.971`，供体完全出屏的帧 `0.941/0.959`；误报 `0`（≤0.05）。RT-off 阶段离屏召回 `0`，D3D11 为 `Backend`、0 Build/0 实例/0 订阅，且 `switch`/`switchOff` 的 ROI 关键帧逐字节相同；D3D12 Forward/ForwardPlus 的同帧关键帧不同（混合确实写入），Deferred 相同（见 C7）。
+- 台阶与接缝：供体出屏窗口内的 `ssToWorld` ROI 均值台阶 `0.087/0.080`（≤0.10）；核心像素（r>1）在 208 个出屏帧上的均值跨度 `0`（HW 命中均为解析辐亮度 `2.0`）。
+- 其它对照：clear-coat/普通核心亮度比 `1.00`（不重复增亮）；透明四边形在混合开/关逐像素差 `0`、蓝色 `0.50`；供体离开镜面后拖尾 `0` 帧；RT-off 两轮全帧 SHA256 逐渲染器相同（三个 renderer 各自相等）；GI producer 未分配、场景只订阅 `Reflections`、payload 24 B/请求 48 B。
+- **已知差异 C7（Deferred）**：Deferred 的 Lit GBuffer 面在 RT 关/开都未着色（`off` 帧非黑像素 `0`），clustered deferred 光照不消费 `_ScreenSpaceSsrTexture`；同一 Deferred renderer 内前向绘制的 ComplexLit 清漆仍解析出 `0.740`，说明 RT 路径本身可用，缺口在 deferred 光照的 SSL 消费，留 G3 集成修复。因此 Deferred 的图像门槛按「与 RT-off 相同」判定。
+- **未覆盖**：本夹具中 Approximation SSR 对屏内与离屏供体的解析均为 `0`，即 SS 份额与 HW 份额共存时的同帧接缝未测；本轮签收的是 HW 时间并集对解析参考的召回/误报/台阶/拖尾。GPU ms 未测（与 R2/R5 同口径）。
+
+证据：[Summary.json](../validation/R3/image-evidence/Summary.json)、[D3D12 Report](../validation/R3/image-evidence/D3D12/Report.json)、[D3D11 Report](../validation/R3/image-evidence/D3D11/Report.json)；复跑 [run_image.py](../validation/R3/run_image.py) / [verify_image.py](../validation/R3/verify_image.py)，夹具 [R3ImagePlayer.cs](../validation/R3/R3ImagePlayer.cs)。
 
 已知上限：被 SSR 当成有效命中的假交点不会自动触发 DXR；透明/ShaderGraph/蒙皮未入库、灯表不应用 light layer mask/cookie/面光源、预算不足、镜中镜和有限距离仍可能产生错反射。cutout 由 AHS 支持，但透明混合不支持。超过预算时按模块回退，不为补洞默认开启多跳或扩大平台范围。
 
