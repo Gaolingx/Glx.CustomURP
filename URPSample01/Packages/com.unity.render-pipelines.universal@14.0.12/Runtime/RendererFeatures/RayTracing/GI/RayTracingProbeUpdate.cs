@@ -487,8 +487,8 @@ namespace UnityEngine.Rendering.Universal
             finally
             {
                 RenderTexture.active = previous;
-                UnityEngine.Object.Destroy(irr);
-                UnityEngine.Object.Destroy(dist);
+                CoreUtils.Destroy(irr);
+                CoreUtils.Destroy(dist);
             }
         }
 
@@ -496,8 +496,8 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_Disposed) return;
             m_Disposed = true;
-            if (m_Irr != null) foreach (var t in m_Irr) if (t) { t.Release(); UnityEngine.Object.Destroy(t); }
-            if (m_Dist != null) foreach (var t in m_Dist) if (t) { t.Release(); UnityEngine.Object.Destroy(t); }
+            if (m_Irr != null) foreach (var t in m_Irr) if (t) { t.Release(); CoreUtils.Destroy(t); }
+            if (m_Dist != null) foreach (var t in m_Dist) if (t) { t.Release(); CoreUtils.Destroy(t); }
             if (m_Data != null) foreach (var b in m_Data) b?.Release();
             if (m_Published != null) foreach (var b in m_Published) b?.Release();
             m_Updated?.Release();
