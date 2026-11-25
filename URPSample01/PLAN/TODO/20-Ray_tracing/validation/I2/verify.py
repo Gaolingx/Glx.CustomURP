@@ -58,6 +58,13 @@ def worst_p95(rows, key):
 def gate_d3d11(rep):
     require(rep['api'] == 'Direct3D11' and not rep['supportsRayTracing'], 'D3D11 API/support')
     require(rep['passed'], f"D3D11 player gates: {rep.get('error')}")
+    require('FrameTimingManager' == rep.get('gpuFrameSource'), 'D3D11 gpu frame source')
+    require(rep.get('rtGpuAccounting') and rep.get('rtMemoryAccounting'), 'D3D11 accounting notes')
+    cold = stages(rep, 0, 'cold')
+    require(len(cold) == 1, 'D3D11 cold start stage missing')
+    if cold:
+        require(cold[0]['cpuFrameSamples'] > 0, 'D3D11 cold start CPU samples')
+        require(cold[0]['instances'] == 0 and cold[0]['updates'] == 0, 'D3D11 cold start allocated RT')
     for r in range(3):
         backend = stages(rep, r, 'backend')
         off = stages(rep, r, 'off')
@@ -76,6 +83,22 @@ def gate_d3d12(rep):
     require(rep['passed'], f"D3D12 player gates: {rep.get('error')}")
     require(rep['gpuTimingMeasured'], 'D3D12 GPU timing was not measured')
     require(rep['profilerEnabled'] and rep['gpuAreaEnabled'], 'D3D12 profiler/GPU area')
+    require(rep.get('gpuFrameSource') == 'FrameTimingManager', 'D3D12 gpu frame source')
+    require(rep.get('gpuFrameTimingUsable') is False,
+            'FrameTimingManager whole-frame GPU became usable; redo the accounting decision')
+    require(rep.get('rtGpuAccounting') and rep.get('rtMemoryAccounting'), 'D3D12 accounting notes')
+    require(any('reference only' in note for note in rep.get('knownDifferences', [])),
+            'gpuFrameP95 is not marked reference only')
+    cold = [s for s in rep['stages'] if s.get('stage') == 'cold']
+    require(len(cold) == 1, 'cold start stage missing')
+    if cold:
+        c = cold[0]
+        require(c['cpuFrameSamples'] > 0 and c['cpuFrameMax'] >= c['cpuFrameP95'], 'cold start CPU samples')
+        require(c['gpuRtSumSamples'] > 0, 'cold start RT GPU samples')
+        require(c['firstBuildFrame'] >= 0, 'cold start never built the TLAS')
+        require(c['firstPublishedFrame'] >= 0, 'cold start never published a probe')
+    cs = rep.get('coldStart') or {}
+    require(cs.get('frames', 0) > 0 and cs.get('cpuP95Cold', 0) > 0, 'cold start summary missing')
     for r in range(3):
         quality = stages(rep, r, 'quality')
         require(len(quality) == 1, f'D3D12/{r} quality stage')
@@ -153,10 +176,11 @@ require(not strip_stage['probeAllocated'] and not strip_stage['ssrQueue'] and st
 
 keys = ['stage', 'renderer', 'repeat', 'frames', 'warmup', 'dynamic', 'requests', 'instances', 'builds',
         'subscribers', 'updates', 'probeAllocated', 'ssrQueue', 'producerBytes', 'queueBytes', 'trackedBytes',
-        'cpuFrameMedian', 'cpuFrameP95', 'gpuFrameMedian', 'gpuFrameP95', 'tlasBuildSamples',
-        'tlasBuildGpuP95', 'tlasCpuSamples', 'tlasCpuP95', 'probeTraceSamples', 'probeTraceP95',
+        'cpuFrameMedian', 'cpuFrameP95', 'cpuFrameMax', 'gpuFrameMedian', 'gpuFrameP95', 'gpuFrameUsable',
+        'tlasBuildSamples', 'tlasBuildGpuP95', 'tlasCpuSamples', 'tlasCpuP95', 'probeTraceSamples', 'probeTraceP95',
         'probeMaintSamples', 'probeMaintP95', 'ssrTraceSamples', 'ssrTraceP95', 'ssrReconSamples',
-        'ssrReconP95', 'ssrPassP95', 'gpuRtSumSamples', 'gpuRtSumP95', 'driverPeakMiB', 'onHash', 'offHash', 'mirrorOn', 'mirrorOff',
+        'ssrReconP95', 'ssrPassP95', 'gpuRtSumSamples', 'gpuRtSumP95', 'driverStartMiB', 'driverPeakMiB',
+        'firstBuildFrame', 'firstUpdateFrame', 'firstPublishedFrame', 'onHash', 'offHash', 'mirrorOn', 'mirrorOff',
         'frameOn', 'frameOff', 'diffPixels', 'nonFinite', 'nonBlack']
 summary = {
     'scope': 'strip-only' if STRIP_ONLY else 'full',
@@ -171,6 +195,9 @@ summary = {
                       'rtAssetEntries': rt11['rtAssetEntries']},
     },
     'reports': {name: {'api': rep['api'], 'passed': rep['passed'], 'gpuTimingMeasured': rep['gpuTimingMeasured'],
+                       'gpuFrameSource': rep.get('gpuFrameSource'), 'gpuFrameTimingUsable': rep.get('gpuFrameTimingUsable'),
+                       'rtGpuAccounting': rep.get('rtGpuAccounting'), 'rtMemoryAccounting': rep.get('rtMemoryAccounting'),
+                       'coldStart': rep.get('coldStart'),
                        'gates': rep.get('gates', []), 'knownDifferences': rep.get('knownDifferences', []),
                        'stages': [{k: s.get(k) for k in keys} for s in rep['stages']]}
                 for name, rep in reports.items()},

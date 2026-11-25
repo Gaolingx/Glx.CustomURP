@@ -39,6 +39,15 @@ def sets_from(path):
     if not path.exists(): return []
     return sorted({line[4:] for line in path.read_text().splitlines() if line.startswith('set ')})
 
+def managed_hashes(root):
+    hashes = {}
+    for stem in ('I2', 'I2Strip'):
+        data = root / 'Build' / (stem + '_Data') / 'Managed'
+        for name in ('Assembly-CSharp.dll', 'Unity.RayTracing.Tests.Editor.dll'):
+            path = data / name
+            hashes[stem + '/' + name] = sha(path) if path.exists() else None
+    return hashes
+
 def rt_audit(path):
     audit = json.loads(path.read_text())
     for name in ('glxDxr', 'probeKeyword'):
@@ -134,6 +143,7 @@ if __name__ == '__main__':
                                      '-logFile', strip_out / 'Player.log'], timeout=1200).returncode
 
     save(out / 'Run.json', {'exe': str(exe), 'sha256': sha(exe), 'stripExe': str(strip_exe),
-        'stripSha256': sha(strip_exe), 'exitCodes': codes, 'scope': 'strip-only' if args.strip_only else 'full'})
+        'stripSha256': sha(strip_exe), 'exitCodes': codes, 'scope': 'strip-only' if args.strip_only else 'full',
+        'managed': managed_hashes(root)})
     subprocess.run(['python', str(HERE / 'verify.py'), str(out)] + (['strip-only'] if args.strip_only else []),
                    check=True)

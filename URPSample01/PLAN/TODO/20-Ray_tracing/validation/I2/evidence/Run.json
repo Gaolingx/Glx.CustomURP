@@ -8,5 +8,11 @@
     "12": 0,
     "strip": 0
   },
-  "scope": "full"
+  "scope": "full",
+  "managed": {
+    "I2/Assembly-CSharp.dll": null,
+    "I2/Unity.RayTracing.Tests.Editor.dll": "5933af850bf17cc16d082cb797ead39375441cd4982e419e61d7290511bcd3a7",
+    "I2Strip/Assembly-CSharp.dll": null,
+    "I2Strip/Unity.RayTracing.Tests.Editor.dll": "5933af850bf17cc16d082cb797ead39375441cd4982e419e61d7290511bcd3a7"
+  }
 }

@@ -32,7 +32,7 @@ public sealed class I2Player : MonoBehaviour
     const float DonorEmission = 2f, MatteLinear = .5f;
     static readonly Color MatteColor = new Color(LinearToSrgb(MatteLinear), LinearToSrgb(MatteLinear), LinearToSrgb(MatteLinear));
     static readonly Color DonorColor = new Color(LinearToSrgb(.5f), 0f, 0f);
-    const int Budget = 32768, WarmupFrames = 120, TimedFrames = 120, Repeats = 3, QualityFrames = 60;
+    const int Budget = 32768, WarmupFrames = 120, TimedFrames = 120, Repeats = 3, QualityFrames = 60, ColdFrames = 60;
     const float TrajectoryAmplitudeDegrees = 50f;
     // B0 performance and quality caps (validation/B0/Freeze.json).
     const double GpuFrameDeltaP95Max = 4.0, CpuTlasSubmitP95Max = .5, GpuTlasBuildP95Max = 1.0,
@@ -58,10 +58,19 @@ public sealed class I2Player : MonoBehaviour
         public double ssrTraceMedian, ssrTraceP95, ssrReconMedian, ssrReconP95;
         public double ssrPassMedian, ssrPassP95;
         public double gpuRtSumMedian, gpuRtSumP95;
-        public double driverPeakMiB, driverDeltaMiB;
+        public double driverPeakMiB, driverDeltaMiB, driverStartMiB;
+        public int firstBuildFrame = -1, firstUpdateFrame = -1, firstPublishedFrame = -1;
+        public bool gpuFrameUsable;
+        public double cpuFrameMax;
         public string onHash, offHash;
         public double mirrorOn, mirrorOff, frameOn, frameOff;
         public int diffPixels, nonFinite, nonBlack;
+    }
+
+    [Serializable] class ColdStartSummary
+    {
+        public int frames, firstBuildFrame = -1, firstUpdateFrame = -1, firstPublishedFrame = -1;
+        public double cpuP95Cold, cpuMaxCold, cpuP95Warm, gpuRtP95Cold, gpuRtP95Warm, driverStartMiB, driverPeakMiB;
     }
 
     [Serializable] class Report
@@ -70,6 +79,9 @@ public sealed class I2Player : MonoBehaviour
             adapter = SystemInfo.graphicsDeviceName, driver = SystemInfo.graphicsDeviceVersion, error, mode = "full";
         public bool development = Debug.isDebugBuild, supportsRayTracing = SystemInfo.supportsRayTracing, passed;
         public bool profilerEnabled, gpuAreaEnabled, gpuTimingMeasured;
+        public string gpuFrameSource, rtGpuAccounting, rtMemoryAccounting;
+        public bool gpuFrameTimingUsable;
+        public ColdStartSummary coldStart = new ColdStartSummary();
         public int width = Width, height = Height, timedFrames = TimedFrames, warmup = WarmupFrames, repeats = Repeats;
         public float fov = Fov, camX = CamX, camY = CamY, camZ = CamZ, mirrorZ = MirrorZ, donorX = DonorX, donorZ = DonorZ;
         public double gpuFrameDeltaP95Max = GpuFrameDeltaP95Max, cpuTlasSubmitP95Max = CpuTlasSubmitP95Max,
@@ -120,6 +132,12 @@ public sealed class I2Player : MonoBehaviour
     IEnumerator Start()
     {
         report = new Report { mode = HasArg("-mode") ? Arg("-mode") : "full" };
+        report.gpuFrameSource = "FrameTimingManager";
+        report.rtGpuAccounting = "sum of non-overlapping RT GPU scopes (TLAS build, probe trace/update, " +
+            "relocate/classify, SSR trace, SSR reconstruction); hit shading is nested inside the trace scopes, " +
+            "so it is a lower bound of the RT frame delta";
+        report.rtMemoryAccounting = "Unity graphics driver allocated memory peak delta; the total includes the " +
+            "acceleration structure allocations, but the API exposes no per-acceleration-structure size";
         try { destination = Arg("-out"); Directory.CreateDirectory(destination); } catch { destination = null; }
         var suite = Suite();
         while (true)
@@ -157,6 +175,7 @@ public sealed class I2Player : MonoBehaviour
         }
         report.gpuTimingMeasured = report.stages.Exists(s => s.probeTraceSamples > 0 || s.ssrTraceSamples > 0 ||
             s.tlasBuildSamples > 0 || s.gpuRtSumSamples > 0);
+        report.gpuFrameTimingUsable = report.stages.Exists(s => s.gpuFrameUsable);
     }
 
     IEnumerator Suite()
@@ -193,13 +212,16 @@ public sealed class I2Player : MonoBehaviour
         tanH = tanV * (Width / (float)Height);
         BuildVolume();
         BuildScene();
-        yield return Warmup();
 
         if (report.mode == "strip")
         {
+            yield return Warmup();
             yield return StripCheck();
             yield break;
         }
+
+        yield return ColdStart();
+        yield return Warmup();
 
         if (report.api == "Direct3D11")
         {
@@ -591,6 +613,110 @@ public sealed class I2Player : MonoBehaviour
         target = null;
     }
 
+    // First frames of the process with RT on, before any warmup: B0 asks for the cold start to be
+    // reported separately from the warmed repeats.
+    IEnumerator ColdStart()
+    {
+        Configure(0, true, true, Budget, true, true, true);
+        var feature = features[0];
+        var scene = feature.rayTracingScene;
+
+        target = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+        target.Create();
+        view = NewCamera(0, "cold", new Vector3(CamX, CamY, CamZ), 0f);
+        view.targetTexture = target;
+        cubeObject.transform.position = new Vector3(-1, 1, 1);
+
+        double driverStart = DriverMiB();
+        double driverPeak = driverStart;
+        ClearSamples();
+        var stage = new Stage
+        {
+            stage = "cold", api = report.api, guid = report.guid, renderer = 0, frames = ColdFrames,
+            warmup = 0, dynamic = true, supported = report.api == "Direct3D12", ssrBudgetActual = Budget
+        };
+        int baseUpdates = feature.probeFallback?.updateCount ?? 0;
+        int baseBuilds = scene?.buildCount ?? 0;
+        int baseUploads = scene?.lightUploadCount ?? 0;
+        long tracked = 0;
+        for (int frame = 0; frame < ColdFrames; ++frame)
+        {
+            float phase = 2f * Mathf.PI * frame / TimedFrames;
+            view.transform.rotation = Quaternion.Euler(0, TrajectoryAmplitudeDegrees * Mathf.Sin(phase), 0);
+            cubeObject.transform.position = new Vector3(-1f + .5f * Mathf.Sin(phase), 1f, 1f);
+            FrameTimingManager.CaptureFrameTimings();
+            yield return new WaitForEndOfFrame();
+            SampleFrame(stage);
+            if (stage.firstBuildFrame < 0 && scene != null && scene.buildCount > baseBuilds)
+                stage.firstBuildFrame = frame;
+            if (stage.firstUpdateFrame < 0 && feature.probeFallback != null &&
+                feature.probeFallback.updateCount > baseUpdates)
+                stage.firstUpdateFrame = frame;
+            if (stage.firstPublishedFrame < 0 && feature.probeFallback != null &&
+                feature.probeFallback.generation > 0)
+                stage.firstPublishedFrame = frame;
+            double memory = DriverMiB();
+            if (memory > driverPeak) driverPeak = memory;
+            long bytes = (feature.probeFallback?.producerBytes ?? 0) +
+                (feature.ssrPass?.requestQueue?.residentBytes ?? 0);
+            if (bytes > tracked) tracked = bytes;
+        }
+
+        stage.instances = scene?.instanceCount ?? 0;
+        stage.builds = (scene?.buildCount ?? 0) - baseBuilds;
+        stage.subscribers = scene?.subscribers ?? 0;
+        stage.requests = scene?.requests.ToString() ?? "None";
+        stage.updates = (feature.probeFallback?.updateCount ?? 0) - baseUpdates;
+        stage.generation = feature.probeFallback?.generation ?? 0;
+        stage.probeAllocated = feature.probeFallback?.producerAllocated ?? false;
+        stage.producerBytes = feature.probeFallback?.producerBytes ?? 0;
+        stage.queueBytes = feature.ssrPass?.requestQueue?.residentBytes ?? 0;
+        stage.trackedBytes = tracked;
+        stage.ssrQueue = feature.ssrPass?.requestQueue != null;
+        stage.lightUploads = (scene?.lightUploadCount ?? 0) - baseUploads;
+        stage.lightRegistered = scene?.registeredLights ?? 0;
+        stage.lightUploaded = scene?.uploadedLights ?? 0;
+        FinishSamples(stage, driverStart, driverPeak);
+        report.stages.Add(stage);
+
+        view.targetTexture = null;
+        Destroy(view.gameObject);
+        view = null;
+        target.Release();
+        Destroy(target);
+        target = null;
+    }
+
+    void FinishSamples(Stage stage, double driverStart, double driverPeak)
+    {
+        stage.driverStartMiB = driverStart;
+        stage.driverPeakMiB = driverPeak;
+        stage.cpuFrameSamples = cpuFrames.Count;
+        stage.gpuFrameSamples = gpuFrames.Count;
+        stage.cpuFrameMedian = Percentile(cpuFrames, .5);
+        stage.cpuFrameP95 = Percentile(cpuFrames, .95);
+        stage.cpuFrameMax = Percentile(cpuFrames, 1);
+        stage.gpuFrameMedian = Percentile(gpuFrames, .5);
+        stage.gpuFrameP95 = Percentile(gpuFrames, .95);
+        stage.gpuFrameUsable = stage.gpuFrameSamples >= 60 && stage.gpuFrameMedian >= .05;
+        stage.tlasBuildGpuMedian = Percentile(tlasBuildGpu, .5);
+        stage.tlasBuildGpuP95 = Percentile(tlasBuildGpu, .95);
+        stage.tlasCpuMedian = Percentile(tlasCpu, .5);
+        stage.tlasCpuP95 = Percentile(tlasCpu, .95);
+        stage.probeTraceMedian = Percentile(probeTrace, .5);
+        stage.probeTraceP95 = Percentile(probeTrace, .95);
+        stage.probeMaintMedian = Percentile(probeMaint, .5);
+        stage.probeMaintP95 = Percentile(probeMaint, .95);
+        stage.ssrTraceMedian = Percentile(ssrTrace, .5);
+        stage.ssrTraceP95 = Percentile(ssrTrace, .95);
+        stage.ssrReconMedian = Percentile(ssrRecon, .5);
+        stage.ssrReconP95 = Percentile(ssrRecon, .95);
+        stage.ssrPassMedian = Percentile(ssrPass, .5);
+        stage.ssrPassP95 = Percentile(ssrPass, .95);
+        stage.gpuRtSumMedian = Percentile(rtSum, .5);
+        stage.gpuRtSumP95 = Percentile(rtSum, .95);
+    }
+
     IEnumerator Perf(int renderer, string config, bool dynamic, int repeat)
     {
         yield return ResetFeature(renderer);
@@ -617,7 +743,8 @@ public sealed class I2Player : MonoBehaviour
         int baseUpdates = feature.probeFallback?.updateCount ?? 0;
         int baseBuilds = scene?.buildCount ?? 0;
         int baseUploads = scene?.lightUploadCount ?? 0;
-        double driverPeak = DriverMiB();
+        double driverStart = DriverMiB();
+        double driverPeak = driverStart;
         long tracked = 0;
         for (int frame = 0; frame < TimedFrames; ++frame)
         {
@@ -649,29 +776,7 @@ public sealed class I2Player : MonoBehaviour
         stage.lightUploads = (scene?.lightUploadCount ?? 0) - baseUploads;
         stage.lightRegistered = scene?.registeredLights ?? 0;
         stage.lightUploaded = scene?.uploadedLights ?? 0;
-        stage.driverPeakMiB = driverPeak;
-        stage.cpuFrameSamples = cpuFrames.Count;
-        stage.gpuFrameSamples = gpuFrames.Count;
-        stage.cpuFrameMedian = Percentile(cpuFrames, .5);
-        stage.cpuFrameP95 = Percentile(cpuFrames, .95);
-        stage.gpuFrameMedian = Percentile(gpuFrames, .5);
-        stage.gpuFrameP95 = Percentile(gpuFrames, .95);
-        stage.tlasBuildGpuMedian = Percentile(tlasBuildGpu, .5);
-        stage.tlasBuildGpuP95 = Percentile(tlasBuildGpu, .95);
-        stage.tlasCpuMedian = Percentile(tlasCpu, .5);
-        stage.tlasCpuP95 = Percentile(tlasCpu, .95);
-        stage.probeTraceMedian = Percentile(probeTrace, .5);
-        stage.probeTraceP95 = Percentile(probeTrace, .95);
-        stage.probeMaintMedian = Percentile(probeMaint, .5);
-        stage.probeMaintP95 = Percentile(probeMaint, .95);
-        stage.ssrTraceMedian = Percentile(ssrTrace, .5);
-        stage.ssrTraceP95 = Percentile(ssrTrace, .95);
-        stage.ssrReconMedian = Percentile(ssrRecon, .5);
-        stage.ssrReconP95 = Percentile(ssrRecon, .95);
-        stage.ssrPassMedian = Percentile(ssrPass, .5);
-        stage.ssrPassP95 = Percentile(ssrPass, .95);
-        stage.gpuRtSumMedian = Percentile(rtSum, .5);
-        stage.gpuRtSumP95 = Percentile(rtSum, .95);
+        FinishSamples(stage, driverStart, driverPeak);
         report.stages.Add(stage);
 
         view.targetTexture = null;
@@ -759,8 +864,32 @@ public sealed class I2Player : MonoBehaviour
                 foreach (var stage in off)
                     Gate(stage.cpuFrameSamples > 0, $"D3D11/{renderer} no CPU frame samples");
             }
+            Gate(Stages(0, "cold").Count == 1, "D3D11/0 cold start missing");
             return;
         }
+
+        var cold = Stages(0, "cold");
+        Gate(cold.Count == 1, "cold start stage missing");
+        if (cold.Count == 1)
+        {
+            var c = cold[0];
+            var warm = Stages(0, "both");
+            Gate(c.cpuFrameSamples >= ColdFrames / 2, $"cold start CPU samples {c.cpuFrameSamples}");
+            Gate(c.firstPublishedFrame >= 0, "cold start never published a probe generation");
+            report.coldStart = new ColdStartSummary
+            {
+                frames = c.frames, firstBuildFrame = c.firstBuildFrame, firstUpdateFrame = c.firstUpdateFrame,
+                firstPublishedFrame = c.firstPublishedFrame, cpuP95Cold = c.cpuFrameP95, cpuMaxCold = c.cpuFrameMax,
+                cpuP95Warm = WorstP95(warm, s => s.cpuFrameP95), gpuRtP95Cold = c.gpuRtSumP95,
+                gpuRtP95Warm = WorstP95(warm, s => s.gpuRtSumP95), driverStartMiB = c.driverStartMiB,
+                driverPeakMiB = c.driverPeakMiB
+            };
+            report.gates.Add($"cold: cpu p95 {c.cpuFrameP95:0.###} (max {c.cpuFrameMax:0.###}), " +
+                $"rt sum p95 {c.gpuRtSumP95:0.###}, first build/update/publish " +
+                $"{c.firstBuildFrame}/{c.firstUpdateFrame}/{c.firstPublishedFrame}");
+        }
+        report.knownDifferences.Add("memory: the driver peak delta includes the acceleration structure " +
+            "allocations; per-acceleration-structure bytes are not exposed by the runtime");
 
         for (int renderer = 0; renderer < 3; ++renderer)
         {
@@ -827,8 +956,9 @@ public sealed class I2Player : MonoBehaviour
             Gate(both.TrueForAll(s => s.builds >= TimedFrames / 2),
                 $"dynamic/{renderer} did not rebuild for the moving cube");
 
-            report.knownDifferences.Add($"frameTiming/{renderer}: FrameTimingManager GPU samples unusable; " +
-                "RT GPU delta is the sum of non-overlapping RT scopes");
+            report.knownDifferences.Add($"frameTiming/{renderer}: FrameTimingManager whole-frame GPU samples are " +
+                "unusable on this machine, so gpuFrameP95 is reference only and no gate uses it; the RT GPU " +
+                "delta is the sum of non-overlapping RT scopes");
             report.gates.Add($"perf/{renderer}: gpu delta {delta:0.###}, cpu tlas {cpuTlas:0.###}, " +
                 $"gpu tlas {gpuTlas:0.###}, probe {probe:0.###}, maintain {maintain:0.###}, " +
                 $"ssr trace {ssrTrace:0.###}, ssr recon {ssrRecon:0.###}");
