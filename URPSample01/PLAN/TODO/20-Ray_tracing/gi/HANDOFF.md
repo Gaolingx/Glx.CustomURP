@@ -1,6 +1,6 @@
 # GI 子模块：动态更新 probe，只作 SSGI 的漫反射回退
 
-**状态：G1 CPU 数学与存储夹具 13/13 通过；G2 的 GPU 生产者已在 Win64 D3D12 Player 通过（只验收生产者：双缓冲发布、预算、classification/relocation、动态收敛）；G5 的 1 跳反馈已在同一后端通过生产者侧夹具（解析项、反射隔离、阶跃与衰减；材质合成 G3 与图像 ROI 未覆盖）。** [G2 证据](../validation/G2/evidence/Summary.json)、[G5 证据](../validation/G5/evidence/Summary.json)。 [实际向量、分类计数与 FP16 读回](../validation/G1/Win64-D3D11/run-04/Tests.xml)覆盖常量与两色场、窗口天空、反馈、固定方向排除、八面接缝及邻居失效。G1 不启用 SSGI 或 DXR。 平台见[总计划](../HANDOFF.md)，数学与参考见[采样研究](report.md)，共享场景见[TLAS](../research/TLAS.md)，命中着色见[HitShading](../research/HitShading.md)。仅在高端 RT 配置、相机启用 SSGI 且选择动态回退时订阅共享场景；关闭扩展沿用原 rayMiss 设置，SSR 不依赖本模块。**SSGI 未启用时不引入独立 DDGI。**
+**状态：G1 CPU 数学与存储夹具 13/13 通过；G2 的 GPU 生产者已在 Win64 D3D12 Player 通过（只验收生产者：双缓冲发布、预算、classification/relocation、动态收敛）；G4 的默认开 relocation/classification 已在同一后端通过生产者侧夹具（消费者跳过/offset 由 G1 与 R3/G5 覆盖）；G5 的 1 跳反馈也已在同一后端通过生产者侧夹具（解析项、反射隔离、阶跃与衰减；材质合成 G3 与图像 ROI 未覆盖）。** [G2 证据](../validation/G2/evidence/Summary.json)、[G4 证据](../validation/G4/evidence/Summary.json)、[G5 证据](../validation/G5/evidence/Summary.json)。 [实际向量、分类计数与 FP16 读回](../validation/G1/Win64-D3D11/run-04/Tests.xml)覆盖常量与两色场、窗口天空、反馈、固定方向排除、八面接缝及邻居失效。G1 不启用 SSGI 或 DXR。 平台见[总计划](../HANDOFF.md)，数学与参考见[采样研究](report.md)，共享场景见[TLAS](../research/TLAS.md)，命中着色见[HitShading](../research/HitShading.md)。仅在高端 RT 配置、相机启用 SSGI 且选择动态回退时订阅共享场景；关闭扩展沿用原 rayMiss 设置，SSR 不依赖本模块。**SSGI 未启用时不引入独立 DDGI。**
 
 ## 两个不同生命周期
 
@@ -32,6 +32,15 @@ irradiance 八面体 atlas、距离矩 atlas、**probe data（offset + state）*
 ## G2 生产者签收（Win64 D3D12）
 
 [D3D12 报告](../validation/G2/evidence/D3D12/Report.json)与 [D3D11 拒绝记录](../validation/G2/evidence/D3D11/Report.json)来自同一构建 GUID。D3D11 在 `Backend` 拒绝，0 次 TLAS Build、0 次 probe 派发、0 字节生产者资源。D3D12 在真实 Build/bind/DispatchRays 下跑 581 个批次、149 次主生产者更新：每批 ≤16 个 active probes、每条 ≤128 条射线（32 固定）、inactive 只追 32 条、阴影 ≤主射线×2，全部批次通过冻结预算。首个批次发布 16 个 probe，第 16 个批次后 256/256 全部发布；房间中心 probe 为 active、墙内 probe 被 classification 置为 inactive；relocated probe 的 offset 被限制在 0.45×spacing，拆除遮挡后回零；动态阶跃在第 128 个批次收敛，第 256 个批次残差为红通道 0.9%；两台相机在同一场景帧只触发一次更新且读取同一版本。3 盏灯全部登记/上传。生产者资源 950,376 B（约 0.91 MiB）。CPU 提交平均 0.44 ms，最大 223 ms 出现在首帧（TLAS Build + 首次读回）。**GPU 计时未测到**：ProfilingSampler 在 Player 中采到 0 个样本，`gpuTimingMeasured=false`，不以 CPU 提交时间代替。本夹具只验证生产者；材质查询/合成（G3）、未发布 tile 的消费者行为与反馈图像（G5）尚未签收，T3b/T4 本轮未重跑。
+
+## G4 relocation + classification 签收（Win64 D3D12，默认开）
+
+- 夹具直接用 `RayTracingProbeConfig.Default`（`relocation=true, classification=true`），关闭房间 + 1 方向光（被房间遮挡）+ 1 点光，96 批。
+- 同一构建 GUID 的 [D3D12](../validation/G4/evidence/D3D12/Report.json) 与 [D3D11](../validation/G4/evidence/D3D11/Report.json)；D3D11 为 `Backend`、0 Build/0 派发/0 分配。
+- 0.8³ 盒包住 probe：offset 长度 `0.25`（>0.2、≤0.45×spacing），4 批后漂移 `0`；6 个轴向邻居 offset 全 `0`，无索引串 probe。盒内 probe 被 classification 置为 inactive，空房间中心 `published=1,state=0`；墙边 probe `state=1`。active 计数 192/256。
+- **inactive 不更新**：空房间中心的 tile 在 12 个额外批次内保持 `E=0.064238`（逐位不变），而每批 `fixed=512`、`rotated=96×active`、`active+inactive=16`；96 批中 60 批出现 inactive，inactive 只追 32 条，阴影 ≤2×主射线。
+- 拆除盒后 17 批 offset 回 `0`；中心旁加入发光盒后 17 批内 `state=1`，下一次重访后 E 从 `0.064238` 升到 `0.323043`；移除后 17 批回 `state=0`（保留 `0.258411`）。重建 4 次 TLAS。
+- **消费者侧**：跳过 inactive 与应用 offset 由 G1 的 CPU 查询夹具（八邻居/relocation）和 R3/G5 的 GPU 查询覆盖；材质端查询与合成留给 G3。GPU ms 未测得。
 
 ## G5 1 跳反馈签收（Win64 D3D12，生产者侧）
 

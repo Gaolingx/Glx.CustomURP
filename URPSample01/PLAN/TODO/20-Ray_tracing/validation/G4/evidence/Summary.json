@@ -1,0 +1,35 @@
+{
+  "api": {
+    "D3D11": {
+      "denial": "Backend",
+      "allocated": false,
+      "buildCount": 0,
+      "batches": 0
+    },
+    "D3D12": {
+      "buildCount": 4,
+      "batches": 96,
+      "lights": [
+        2,
+        2
+      ],
+      "checks": [
+        "enclosed relocation and classification",
+        "reactivation and deactivation"
+      ]
+    }
+  },
+  "checks": {
+    "batches": 96,
+    "relocated": 1,
+    "enclosedOffset": 0.24999992549419403,
+    "stableDrift": 0.0,
+    "emptyCentreState": 0,
+    "nearWallState": 1,
+    "reactivatedState": 1,
+    "deactivatedState": 0,
+    "activeCount": 192.0
+  },
+  "status": "passed",
+  "errors": []
+}

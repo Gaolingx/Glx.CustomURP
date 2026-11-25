@@ -1,0 +1,23 @@
+{
+    "guid": "ae727b8ee6eb4455b8df4edce60db574",
+    "api": "Direct3D11",
+    "adapter": "NVIDIA GeForce RTX 5060 Ti",
+    "driver": "Direct3D 11.0 [level 11.1]",
+    "denial": "Backend",
+    "error": "",
+    "development": true,
+    "supportsRayTracing": false,
+    "passed": true,
+    "released": true,
+    "buildCount": 0,
+    "batches": 0,
+    "probes": 256,
+    "budget": 16,
+    "raysPerProbe": 128,
+    "lightsRegistered": 0,
+    "lightsUploaded": 0,
+    "allocated": false,
+    "frames": [],
+    "views": [],
+    "checks": []
+}
