@@ -1,0 +1,14 @@
+{
+  "status": "blocked",
+  "checkedOn": "2026-11-25",
+  "unity": "2022.3.62f1",
+  "playbackEngines": ["windowsstandalonesupport"],
+  "targets": ["PS5", "Xbox Series X", "Xbox Series S"],
+  "reason": "No console platform modules are installed and no devkit access was available; Windows evidence is not extrapolated to consoles (B0).",
+  "required": [
+    "install the PS5 and Xbox Series platform modules",
+    "build the I2 fixture per target with that target's graphics API set",
+    "run the quality, per-stage performance and RT-only variant audit on the devkit",
+    "record device-side approval for each target"
+  ]
+}

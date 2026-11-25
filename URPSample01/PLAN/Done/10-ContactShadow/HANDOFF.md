@@ -5,7 +5,7 @@
 > 建立：2026-11-19
 > 基线：`cedd1bb`（Run SSR approximation at half resolution when enabled）
 > 结果入口：本文件；实施后追加 `report.md` 与 `validation/`
-> 关联：`PLAN/Done/01-ScreenSpaceLighting`（共享深度金字塔/XR/证据格式）、`PLAN/Done/06-ValidationAllRDC`（`.rdc` 预算）、`PLAN/TODO/20-Ray_tracing`（计划格式）
+> 关联：`PLAN/Done/01-ScreenSpaceLighting`（共享深度金字塔/XR/证据格式）、`PLAN/Done/06-ValidationAllRDC`（`.rdc` 预算）、`PLAN/Done/20-Ray_tracing`（计划格式）
 > 外部参考：`E:\workspace\GitHub\HDRPSample01\Library\PackageCache\com.unity.render-pipelines.high-definition@14.0.12`（HDRP 14.0.12 源码）
 > 本文行号基于上述 HDRP 包与基线 `cedd1bb`；改动后以符号名为准。
 

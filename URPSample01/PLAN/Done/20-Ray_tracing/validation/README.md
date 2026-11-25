@@ -4,7 +4,7 @@
 
 [P0](P0/Baseline.json) 是 `720bedd` 的 **D3D11** 记录（EditMode 184、PlayMode 6、T12 34/34/35），用于保留历史入口、命令与哈希；它不证明当前 HEAD、D3D12、DXR 或主机。不要改写 `round`，不要覆盖 `P0/`。
 
-`Baseline.json` 的 `commands` 保留原始调用。从 `URPSample01/` 复跑时，三个 `PLAN/Done/01-ScreenSpaceLighting/validation/T14/` 脚本入口不变；只替换 `-LogPath`、`-ResultsPath`、`-OutputRoot` 中的旧前缀 `PLAN/TODO/09-DDGI_improve/validation/P0/`。历史证据现归档在 `PLAN/TODO/20-Ray_tracing/validation/P0/`；新结果改写到独立目录，例如 `PLAN/TODO/20-Ray_tracing/validation/B0/Win64-D3D11/run-01/`，保留 `EditMode/`、`PlayMode/`、`T12/` 后缀。每次另选运行目录；目录名不会切换图形 API，复跑 P0 时须确认实际使用 D3D11。
+`Baseline.json` 的 `commands` 保留原始调用。从 `URPSample01/` 复跑时，三个 `PLAN/Done/01-ScreenSpaceLighting/validation/T14/` 脚本入口不变；只替换 `-LogPath`、`-ResultsPath`、`-OutputRoot` 中的旧前缀 `PLAN/TODO/09-DDGI_improve/validation/P0/`。历史证据现归档在 `PLAN/Done/20-Ray_tracing/validation/P0/`；新结果改写到独立目录，例如 `PLAN/Done/20-Ray_tracing/validation/B0/Win64-D3D11/run-01/`，保留 `EditMode/`、`PlayMode/`、`T12/` 后缀。每次另选运行目录；目录名不会切换图形 API，复跑 P0 时须确认实际使用 D3D11。
 
 ## B0：当前 HEAD 的新对照
 
@@ -12,7 +12,7 @@
 
 ## W1：门控与数学夹具
 
-从 `URPSample01` 运行 `powershell -NoProfile -File PLAN/TODO/20-Ray_tracing/validation/Invoke-W1.ps1`。入口为每次调用新建证据目录，T1 强制 D3D11、D3D12 各一次；G1 在 D3D11 Editor 进程内跑 CPU 向量，不依赖该 GPU API。各目录保留 NUnit XML、实际 API、工作树输入哈希、Unity 日志和设置恢复报告。不要在同一工程已有 Editor 打开时启动；单项复跑加 `-Milestone T1` 或 `-Milestone G1`。
+从 `URPSample01` 运行 `powershell -NoProfile -File PLAN/Done/20-Ray_tracing/validation/Invoke-W1.ps1`。入口为每次调用新建证据目录，T1 强制 D3D11、D3D12 各一次；G1 在 D3D11 Editor 进程内跑 CPU 向量，不依赖该 GPU API。各目录保留 NUnit XML、实际 API、工作树输入哈希、Unity 日志和设置恢复报告。不要在同一工程已有 Editor 打开时启动；单项复跑加 `-Milestone T1` 或 `-Milestone G1`。
 
 公开审阅提交保留测试 XML、运行摘要、恢复报告与输入/输出哈希；原始 `Unity.log.txt` 仅留本地，因为 Editor 启动日志含授权服务和机器标识。
 
