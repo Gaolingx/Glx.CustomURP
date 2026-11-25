@@ -37,7 +37,7 @@ float4 GlxSampleBase(float2 uv)
 bool GlxDebugMode(uint mode)
 {
     uint channel = mode & 255u;
-    return channel >= 16u && channel <= 19u;
+    return channel >= 16u && channel <= 20u;
 }
 
 [shader("anyhit")]
@@ -119,8 +119,17 @@ void GlxLitClosestHit(inout GlxBasicPayload payload : SV_RayPayload,
     if (GlxDebugMode(payload.mode))
     {
         uint channel = payload.mode & 255u;
-        payload.radiance = channel == 16u ? base.rgb : channel == 17u ? n :
-                           channel == 18u ? float3(metallic, smoothness, base.a) : emission;
+        if (channel == 20u)
+        {
+            float3 hitPosition = WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
+            float3 hitNormal = dot(n, WorldRayDirection()) > 0 ? -n : n;
+            payload.radiance = GlxProbeFeedbackRadiance(hitPosition, hitNormal, base.rgb);
+        }
+        else
+        {
+            payload.radiance = channel == 16u ? base.rgb : channel == 17u ? n :
+                               channel == 18u ? float3(metallic, smoothness, base.a) : emission;
+        }
         payload.hitT = RayTCurrent();
         payload.flags = GlxHit;
         return; // Preserve the caller's channel and traversal count.
@@ -138,13 +147,18 @@ void GlxLitClosestHit(inout GlxBasicPayload payload : SV_RayPayload,
         InitializeBRDFData(base.rgb, metallic, 0, smoothness, alpha, surface.brdf);
         float3 hitNormal = dot(n, WorldRayDirection()) > 0 ? -n : n;
         GlxShadeLights(payload, hitNormal, surface);
-        // Reflection hits only: the probe cache must not feed itself in probe mode (G5 owns
-        // that feedback). Ambient/probe selection is explicit, and only one of them is added.
+        // Reflection hits take the explicit ambient/probe low-frequency term (never feedback).
+        // Probe hits add the single 1-hop feedback term from the previous published generation;
+        // it is read once here and never traced again, so this stays a cache update, not a path.
+        float3 hitPosition = WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
         if (mode == GlxReflectionMode)
         {
-            float3 hitPosition = WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
             payload.radiance += surface.brdf.diffuse *
                 (GlxHitLowFrequencyIrradiance(hitPosition, hitNormal) * 0.31830988618);
+        }
+        else
+        {
+            payload.radiance += GlxProbeFeedbackRadiance(hitPosition, hitNormal, surface.albedo);
         }
         return;
     }

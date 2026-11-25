@@ -1,0 +1,173 @@
+{
+    "guid": "248f0c22dff44b40b5a8d6a6b28f712d",
+    "api": "Direct3D12",
+    "adapter": "NVIDIA GeForce RTX 5060 Ti",
+    "driver": "Direct3D 12 [level 12.1]",
+    "denial": "",
+    "error": "",
+    "development": true,
+    "supportsRayTracing": true,
+    "passed": true,
+    "released": true,
+    "payloadBytes": 24,
+    "requestBytes": 48,
+    "dispatches": 8,
+    "buildCount": 2,
+    "feedbackCapBits": 1063675494,
+    "gpuTimingMeasured": false,
+    "giProducerAllocated": true,
+    "ssrPassInstantiated": false,
+    "shots": [
+        {
+            "name": "white albedo capped",
+            "expectedSource": "probe feedback",
+            "expected": 1.718873143196106,
+            "actual": 1.7188732624053956,
+            "tolerance": 0.0010000000474974514,
+            "flags": 2,
+            "hit": true,
+            "finite": true,
+            "passed": true
+        },
+        {
+            "name": "gray albedo below cap",
+            "expectedSource": "probe feedback",
+            "expected": 0.40878844261169436,
+            "actual": 0.40878844261169436,
+            "tolerance": 0.0010000000474974514,
+            "flags": 2,
+            "hit": true,
+            "finite": true,
+            "passed": true
+        },
+        {
+            "name": "feedback disabled",
+            "expectedSource": "no feedback",
+            "expected": 0.0,
+            "actual": 0.0,
+            "tolerance": 0.0010000000474974514,
+            "flags": 2,
+            "hit": true,
+            "finite": true,
+            "passed": true
+        },
+        {
+            "name": "reflection ambient, feedback on",
+            "expectedSource": "ambient",
+            "expected": 0.6111549139022827,
+            "actual": 0.6111549139022827,
+            "tolerance": 0.0010000000474974514,
+            "flags": 2,
+            "hit": true,
+            "finite": true,
+            "passed": true
+        },
+        {
+            "name": "reflection ambient, feedback off",
+            "expectedSource": "ambient",
+            "expected": 0.6111549139022827,
+            "actual": 0.6111549139022827,
+            "tolerance": 0.0010000000474974514,
+            "flags": 2,
+            "hit": true,
+            "finite": true,
+            "passed": true
+        },
+        {
+            "name": "invalid snapshot",
+            "expectedSource": "no feedback",
+            "expected": 0.0,
+            "actual": 0.0,
+            "tolerance": 0.0010000000474974514,
+            "flags": 2,
+            "hit": true,
+            "finite": true,
+            "passed": true
+        },
+        {
+            "name": "inactive neighbours",
+            "expectedSource": "no feedback",
+            "expected": 0.0,
+            "actual": 0.0,
+            "tolerance": 0.0010000000474974514,
+            "flags": 2,
+            "hit": true,
+            "finite": true,
+            "passed": true
+        },
+        {
+            "name": "unpublished neighbours",
+            "expectedSource": "no feedback",
+            "expected": 0.0,
+            "actual": 0.0,
+            "tolerance": 0.0010000000474974514,
+            "flags": 2,
+            "hit": true,
+            "finite": true,
+            "passed": true
+        }
+    ],
+    "steps": [
+        {
+            "name": "steady feedback off",
+            "feedback": false,
+            "batches": 128,
+            "active": 16,
+            "traced": 2048,
+            "fixedRays": 512,
+            "rotated": 1536,
+            "shadowRays": 1180,
+            "pre": 0.07662878930568695,
+            "final": 0.0,
+            "residual": 0.0,
+            "passed": true
+        },
+        {
+            "name": "steady feedback on",
+            "feedback": true,
+            "batches": 128,
+            "active": 16,
+            "traced": 2048,
+            "fixedRays": 512,
+            "rotated": 1536,
+            "shadowRays": 1180,
+            "pre": 0.08808135986328125,
+            "final": 0.0,
+            "residual": 0.0,
+            "passed": true
+        },
+        {
+            "name": "decay feedback off",
+            "feedback": false,
+            "batches": 256,
+            "active": 16,
+            "traced": 2048,
+            "fixedRays": 512,
+            "rotated": 1536,
+            "shadowRays": 0,
+            "pre": 0.07662878930568695,
+            "final": 0.0007650918560102582,
+            "residual": 0.009984391741454602,
+            "passed": true
+        },
+        {
+            "name": "decay feedback on",
+            "feedback": true,
+            "batches": 256,
+            "active": 16,
+            "traced": 2048,
+            "fixedRays": 512,
+            "rotated": 1536,
+            "shadowRays": 0,
+            "pre": 0.08808135986328125,
+            "final": 0.0017894903430715204,
+            "residual": 0.020316334441304208,
+            "passed": true
+        }
+    ],
+    "checks": [
+        "analytic feedback term",
+        "feedback raises steady irradiance",
+        "feedback decays within 256 batches"
+    ]
+}

@@ -1,0 +1,69 @@
+{
+  "api": {
+    "D3D11": {
+      "denial": "Backend",
+      "buildCount": 0,
+      "dispatches": 0
+    },
+    "D3D12": {
+      "buildCount": 2,
+      "dispatches": 8,
+      "checks": [
+        "analytic feedback term",
+        "feedback raises steady irradiance",
+        "feedback decays within 256 batches"
+      ],
+      "shots": 8,
+      "steps": 4
+    }
+  },
+  "checks": {
+    "shots": {
+      "white albedo capped": {
+        "actual": 1.7188732624053955,
+        "expected": 1.718873143196106
+      },
+      "gray albedo below cap": {
+        "actual": 0.40878844261169434,
+        "expected": 0.40878844261169434
+      },
+      "feedback disabled": {
+        "actual": 0.0,
+        "expected": 0.0
+      },
+      "reflection ambient, feedback on": {
+        "actual": 0.6111549139022827,
+        "expected": 0.6111549139022827
+      },
+      "reflection ambient, feedback off": {
+        "actual": 0.6111549139022827,
+        "expected": 0.6111549139022827
+      },
+      "invalid snapshot": {
+        "actual": 0.0,
+        "expected": 0.0
+      },
+      "inactive neighbours": {
+        "actual": 0.0,
+        "expected": 0.0
+      },
+      "unpublished neighbours": {
+        "actual": 0.0,
+        "expected": 0.0
+      }
+    },
+    "steady": {
+      "feedbackOff": 0.07662878930568695,
+      "feedbackOn": 0.08808135986328125,
+      "ratio": 1.149455193816358
+    },
+    "decay": {
+      "decay feedback off": 0.009984391741454601,
+      "decay feedback on": 0.020316334441304207
+    },
+    "buildCount": 2,
+    "dispatches": 8
+  },
+  "status": "passed",
+  "errors": []
+}

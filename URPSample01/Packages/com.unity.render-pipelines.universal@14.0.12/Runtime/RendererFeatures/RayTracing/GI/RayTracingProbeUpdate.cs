@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
         internal int raysPerProbe;
         internal bool feedback, relocation, classification, freezeDirections;
         internal float previousWeight, relocationLimit, minFrontDistance, insideBackfaceFraction, momentCap;
+        internal float feedbackAlbedoCap;
         internal float tMin, tMax;
 
         internal int count => countX * countY * countZ;
@@ -24,7 +25,7 @@ namespace UnityEngine.Rendering.Universal
             budget = 16, raysPerProbe = 128,
             feedback = false, relocation = true, classification = true, freezeDirections = false,
             previousWeight = 0.75f, relocationLimit = 0.45f, minFrontDistance = 0.2f,
-            insideBackfaceFraction = 0.25f, momentCap = 1.5f,
+            insideBackfaceFraction = 0.25f, momentCap = 1.5f, feedbackAlbedoCap = 0.9f,
             tMin = 0.002f, tMax = 30f
         };
     }
@@ -63,6 +64,22 @@ namespace UnityEngine.Rendering.Universal
         static readonly int s_ReadbackMeta = Shader.PropertyToID("_GlxProbeReadbackMeta");
         static readonly int s_ReadbackProbe = Shader.PropertyToID("_GlxProbeReadbackProbe");
         static readonly int s_Scene = Shader.PropertyToID("_GlxScene");
+        // Published generation, read by the probe closest hit for the 1-hop feedback term and by
+        // the material-side consumer. Kept as globals so one binding serves ray tracing and draws.
+        static readonly int s_IrrSnapshot = Shader.PropertyToID("_GlxProbeIrrSnapshot");
+        static readonly int s_DistSnapshot = Shader.PropertyToID("_GlxProbeDistSnapshot");
+        static readonly int s_StateSnapshot = Shader.PropertyToID("_GlxProbeStateSnapshot");
+        static readonly int s_PublishedSnapshot = Shader.PropertyToID("_GlxProbePublishedSnapshot");
+        static readonly int s_IrrSize = Shader.PropertyToID("_GlxProbeIrrSize");
+        static readonly int s_DistSize = Shader.PropertyToID("_GlxProbeDistSize");
+        static readonly int s_CountX = Shader.PropertyToID("_GlxProbeCountX");
+        static readonly int s_CountY = Shader.PropertyToID("_GlxProbeCountY");
+        static readonly int s_CountZ = Shader.PropertyToID("_GlxProbeCountZ");
+        static readonly int s_Origin = Shader.PropertyToID("_GlxProbeOrigin");
+        static readonly int s_Spacing = Shader.PropertyToID("_GlxProbeSpacing");
+        static readonly int s_SnapshotValid = Shader.PropertyToID("_GlxProbeSnapshotValid");
+        static readonly int s_FeedbackEnabled = Shader.PropertyToID("_GlxProbeFeedbackEnabled");
+        static readonly int s_FeedbackCap = Shader.PropertyToID("_GlxProbeFeedbackAlbedoCap");
 
         readonly RayTracingProbeConfig m_Config;
         readonly RayTracingShader m_Trace;
@@ -174,6 +191,10 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetRayTracingBufferParam(m_Trace, s_Results, m_Results);
             cmd.SetRayTracingBufferParam(m_Trace, s_Counters, m_Counters);
             m_Scene.BindLights(cmd, m_Trace);
+            // The batch traces from the previously published offset/state, so the hit shader can
+            // read that same generation for one 8-neighbour feedback query (never this batch's
+            // write targets). First batch has no published generation.
+            BindSnapshotGlobals(cmd, publish);
             cmd.DispatchRays(m_Trace, "TraceProbeRays", (uint)rayCount, 1, 1, null);
 
             int irradiance = cs.FindKernel("ProbeIrradiance");
@@ -233,6 +254,27 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeBufferParam(m_Update, kernel, s_Data, m_Data[publish]);
             cmd.SetComputeBufferParam(m_Update, kernel, s_DataNext, m_Data[publish ^ 1]);
             cmd.SetComputeBufferParam(m_Update, kernel, s_Batch, m_Batch);
+        }
+
+        void BindSnapshotGlobals(CommandBuffer cmd, int publish)
+        {
+            var irr = m_Irr[publish];
+            var dist = m_Dist[publish];
+            cmd.SetGlobalTexture(s_IrrSnapshot, irr);
+            cmd.SetGlobalTexture(s_DistSnapshot, dist);
+            cmd.SetGlobalBuffer(s_StateSnapshot, m_Data[publish]);
+            cmd.SetGlobalBuffer(s_PublishedSnapshot, m_Published[publish]);
+            cmd.SetGlobalVector(s_IrrSize, new Vector4(irr.width, irr.height, 1f / irr.width, 1f / irr.height));
+            cmd.SetGlobalVector(s_DistSize, new Vector4(dist.width, dist.height, 1f / dist.width, 1f / dist.height));
+            cmd.SetGlobalInt(s_CountX, m_Config.countX);
+            cmd.SetGlobalInt(s_CountY, m_Config.countY);
+            cmd.SetGlobalInt(s_CountZ, m_Config.countZ);
+            cmd.SetGlobalVector(s_Origin, m_Config.origin);
+            cmd.SetGlobalFloat(s_Spacing, m_Config.spacing);
+            // "Published" means a whole generation exists; the per-probe mask still gates lookups.
+            cmd.SetGlobalInt(s_SnapshotValid, m_BatchVersion > 0 ? 1 : 0);
+            cmd.SetGlobalInt(s_FeedbackEnabled, m_Config.feedback ? 1 : 0);
+            cmd.SetGlobalFloat(s_FeedbackCap, m_Config.feedbackAlbedoCap);
         }
 
         void BindMasks(CommandBuffer cmd, int kernel, int publish)

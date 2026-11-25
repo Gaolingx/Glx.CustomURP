@@ -82,3 +82,7 @@ v1 不建 Surface Cache。屏幕命中沿用现有 SS 取色/历史规则；世�
 - 变体：该构建保留 Lit `GlxDXR` 的 16 个生产关键字集（`_NORMALMAP`/`_METALLICSPECGLOSSMAP`/`_EMISSION`/`_ALPHATEST_ON`），由 [Variants.json](../validation/R4/evidence/Variants.json) 与 `IPreprocessShaders` 回调计数交叉记录。
 - 成本：32 次 2048 射线派发的 CPU 提交均值 0.039 ms；**GPU ms 未测得**（Profiler 0 样本，`gpuTimingMeasured=false`），不以 CPU 时间代替。
 - 范围仍限于 H-A 登记不透明 Lit/cutout/自发光；ShaderGraph、透明混合、蒙皮、probe 反馈与 R5 的多灯/逐灯阴影材质扩展未覆盖。
+
+## 与 GI 反馈的边界（2026-11-25）
+
+- G5 起 `GlxLitClosestHit` 的 `GlxProbeMode` 会加一次 `min(albedo, .9)·Eprev/π`；`GlxReflectionMode` 仍只加 `GlxHitLowFrequencyIrradiance`，不受 `_GlxProbeFeedbackEnabled` 影响。R3 的 ambient/probe 源切换与 R5 的命中着色合同不变；反射只读已发布快照，不写回探针、不触发更新。见 [GI G5 签收](../gi/HANDOFF.md#g5-1-跳反馈签收win64-d3d12生产者侧)。

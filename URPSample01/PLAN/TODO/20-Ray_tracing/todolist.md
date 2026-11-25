@@ -122,7 +122,9 @@ T,G,R 全绿 ── I1 ── I2
 
 **W6 / R4 通过（Win64 D3D12，仅登记子集）**：[D3D12](validation/R4/evidence/D3D12/Report.json) 与 [D3D11 拒绝记录](validation/R4/evidence/D3D11/Report.json)同一构建。D3D11 为 `Backend`，0 TLAS/0 实例/0 派发。D3D12 从 6 个登记组件得到 3 个成员/3 个 TLAS 实例：emission 读回 (2, .5, .125)、cutout 实心读回 (0, 1, 0)@2 m、孔洞 miss（flags=1）；SimpleLit、ComplexLit、透明 Lit、未登记 Lit 与多 submesh 的 SimpleLit 子网格均不入 TLAS 且逐项显式计数（3 不支持实例、1 禁用 submesh、1 蒙皮跳过）。payload 24 B/请求 48 B；无 GI producer、无 Surface Cache/mesh card 资源；Lit `GlxDXR` 保留 16 个生产变体；9 条材质向量加 32 次 2048 射线计时。CPU 提交 0.039 ms/派发；**GPU ms 未测得**（0 样本，`gpuTimingMeasured=false`），不以 CPU 数字代替。复跑见 [run.py](validation/R4/run.py)、[verify.py](validation/R4/verify.py)。
 
-**下一阶段**：W7 的 G3（真实集成）、G4、G5、R5，以及 R3 的图像回归；随后 I1/I2。
+**W7 / G5 生产者侧反馈通过（Win64 D3D12 夹具；ROI/图像未覆盖）**：[D3D12](validation/G5/evidence/D3D12/Report.json) 与 [D3D11](validation/G5/evidence/D3D11/Report.json) 同一构建。D3D11 为 `Backend`、0 Build/0 派发。D3D12 的 `GlxLitClosestHit` 在 probe 模式加一次 `min(albedo, .9)·Eprev/π`，读上一代已发布 atlas、每命中一次查询（≤8 邻居）、不递归：常量 `Eprev=6` 下白 albedo 读回 `1.718873`、sRGB 0.5（线性 `0.214041`）读回 `0.408788`；反馈关/快照失效/邻居全 inactive/邻居未发布均为 0；反射模式在反馈开/关都保持 ambient `0.611155`；单条 probe ray 只追 `1` 条、无旋转射线。关闭房间点光阶跃：反馈把稳态红从 `0.076629` 提到 `0.088081`（+14.9%），关灯 256 批残差 `0.99%`/`2.03%`（≤5%）；每批 16 active、512 固定 + 1536 旋转、阴影 `1180≤4096`。payload 24 B/请求 48 B；**GPU ms 未测得**（0 样本），**ROI/图像、薄墙、红墙供体/移动发光体尚未覆盖**，留待 G3 合成后。复跑见 [run.py](validation/G5/run.py)、[verify.py](validation/G5/verify.py)；细节见 [GI 签收](gi/HANDOFF.md#g5-1-跳反馈签收win64-d3d12生产者侧)。
+
+**下一阶段**：W7 剩余的 G3（真实集成）、G4 独立证据、R5，以及 R3 的图像回归；随后 I1/I2。
 
 **关键路径**：`B0 → T1 → T2 → T3 → T3b → T4 → G2 → G5/G3 → I1 → I2`。这是最长链，WS4 的 G2 是整条链的汇聚点。
 
