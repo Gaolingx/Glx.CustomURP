@@ -163,6 +163,9 @@ namespace UnityEngine.Rendering.Universal
         // P3: tells the deferred Lit GBuffer fragment to skip the indirect-specular term. Set before
         // the GBuffer pass; 0 on the rollback path keeps the P1 GBuffer output.
         internal static readonly int GlxSsrAfterGbuffer = Shader.PropertyToID("_GlxSsrAfterGbuffer");
+        // P3: the deferred light kernel's variant that adds the 225 indirect-specular texture. Enabled
+        // only while the composite texture is bound this frame, so the rollback path never declares it.
+        internal static readonly string GlxSsrSpecularKeyword = "_GLX_SSR_SPECULAR";
 
         internal static readonly string SsrNormalsOctKeyword = "SSR_NORMALS_OCT";
         internal static readonly string SsrApproxKeyword = "SSR_APPROX";

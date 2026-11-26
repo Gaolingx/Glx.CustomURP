@@ -29,7 +29,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int Params = Shader.PropertyToID("_SsrIndirectParams");
             // Global consumed by the deferred light kernel (installed in B2d).
             public static readonly int SpecularGlobal = Shader.PropertyToID("_GlxSsrSpecular");
-            public static readonly int SpecularEnabled = Shader.PropertyToID("_GlxSsrSpecularEnabled");
         }
 
         const string k_NormalsOctKeyword = "_GBUFFER_NORMALS_OCT";
@@ -108,10 +107,11 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DispatchCompute(m_Compute, m_Kernel, (width + 15) / 16, (height + 15) / 16, 1);
             }
 
-            // Publish for the deferred light kernel (B2d). The plugin owns this global; the feature
-            // installs a persistent default so the kernel never declares an unbound texture.
+            // Publish the composite as a global and switch the deferred kernel to the variant that
+            // adds it. The keyword is enabled only here, after the texture is bound, so the rollback
+            // path never declares an unbound texture; the cleanup pass disables it after opaques.
             cmd.SetGlobalTexture(ShaderIDs.SpecularGlobal, m_History.ssrIndirectSpecular);
-            cmd.SetGlobalFloat(ShaderIDs.SpecularEnabled, 1f);
+            cmd.EnableShaderKeyword(ScreenSpaceLightingShaderIDs.GlxSsrSpecularKeyword);
         }
 
         static void SetKeyword(ComputeShader compute, string keyword, bool enabled)
