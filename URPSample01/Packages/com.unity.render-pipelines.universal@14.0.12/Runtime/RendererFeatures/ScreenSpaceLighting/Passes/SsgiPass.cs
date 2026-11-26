@@ -17,6 +17,17 @@ namespace UnityEngine.Rendering.Universal
         internal const string k_ProfilingSamplerName = "Screen Space Global Illumination";
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
+        // Per-stage markers. The pass used to publish a single bar for every dispatch it enqueues,
+        // so a GPU capture could not separate the trace from the temporal filter or the denoiser.
+        static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSGI Trace");
+        static readonly ProfilingSampler s_Reproject = new ProfilingSampler("SSGI Reproject");
+        static readonly ProfilingSampler s_ValidateHistory = new ProfilingSampler("SSGI Validate History");
+        static readonly ProfilingSampler s_Temporal = new ProfilingSampler("SSGI Temporal");
+        static readonly ProfilingSampler s_Upsample = new ProfilingSampler("SSGI Upsample");
+        static readonly ProfilingSampler s_Denoise = new ProfilingSampler("SSGI Denoise");
+        static readonly ProfilingSampler s_Gather = new ProfilingSampler("SSGI Gather");
+        static readonly ProfilingSampler s_CopyHistory = new ProfilingSampler("SSGI Copy History");
+        static readonly ProfilingSampler s_PointDistribution = new ProfilingSampler("SSGI Point Distribution");
 
         const int k_TileSize = 8;
         const int k_PointDistributionCount = 64;
@@ -431,7 +442,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(ssgiCompute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramid, m_History.depthPyramid);
             cmd.SetComputeBufferParam(ssgiCompute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramidMipLevelOffsets, m_History.depthPyramidOffsets);
             cmd.SetComputeTextureParam(ssgiCompute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiHitPointTextureRW, m_History.ssgiHitPoint);
-            DispatchCompute(cmd, ssgiCompute, traceKernel, traceGroupsX, traceGroupsY, viewCount);
+            DispatchCompute(cmd, ssgiCompute, traceKernel, traceGroupsX, traceGroupsY, viewCount, s_Trace);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_TraceDispatchCount++;
             stats.traceDispatches++;
@@ -464,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeVectorParam(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiReflectionProbeHDRDecode,
                 ReflectionProbe.defaultTextureHDRDecodeValues);
 
-            DispatchCompute(cmd, ssgiCompute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
+            DispatchCompute(cmd, ssgiCompute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount, s_Reproject);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_ReprojectDispatchCount++;
             stats.reprojectDispatches++;
@@ -502,7 +513,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.HistoryDepthTexture, m_History.readPreviousDepth);
                 cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.HistoryNormalTexture, m_History.readPreviousNormals);
                 cmd.SetComputeTextureParam(temporalCompute, validateKernel, ScreenSpaceLightingShaderIDs.ValidationBufferRW, m_History.ssgiValidation);
-                DispatchCompute(cmd, temporalCompute, validateKernel, screenGroupsX, screenGroupsY, viewCount);
+                DispatchCompute(cmd, temporalCompute, validateKernel, screenGroupsX, screenGroupsY, viewCount, s_ValidateHistory);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 stats.validateDispatches++;
                 stats.validateGroupsX = screenGroupsX;
@@ -543,7 +554,7 @@ namespace UnityEngine.Rendering.Universal
                 // be bound or the dispatch is rejected.
                 cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.VelocityBuffer, TextureXR.GetBlackTexture());
                 BindTemporalFilterScalars(cmd, temporalCompute);
-                DispatchCompute(cmd, temporalCompute, accumulateKernel, traceGroupsX, traceGroupsY, viewCount);
+                DispatchCompute(cmd, temporalCompute, accumulateKernel, traceGroupsX, traceGroupsY, viewCount, s_Temporal);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 stats.accumulationDispatches++;
                 stats.accumulationGroupsX = traceGroupsX;
@@ -621,7 +632,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountRW, m_History.GetSsgiSampleCountLF(m_History.ssgiWriteSlot));
                     cmd.SetComputeTextureParam(temporalCompute, accumulateKernel, ScreenSpaceLightingShaderIDs.VelocityBuffer, TextureXR.GetBlackTexture());
                     BindTemporalFilterScalars(cmd, temporalCompute);
-                    DispatchCompute(cmd, temporalCompute, accumulateKernel, traceGroupsX, traceGroupsY, viewCount);
+                    DispatchCompute(cmd, temporalCompute, accumulateKernel, traceGroupsX, traceGroupsY, viewCount, s_Temporal);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                     stats.accumulationDispatches++;
                     stats.accumulationGroupsX = traceGroupsX;
@@ -686,7 +697,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(upsampleCompute, upsampleKernel, ScreenSpaceLightingShaderIDs.SsgiDepthTexture, depthTexture);
                 cmd.SetComputeTextureParam(upsampleCompute, upsampleKernel, ScreenSpaceLightingShaderIDs.SsgiLowResolutionTexture, signal);
                 cmd.SetComputeTextureParam(upsampleCompute, upsampleKernel, ScreenSpaceLightingShaderIDs.SsgiUpsampledTextureRW, m_History.ssgiFinal);
-                DispatchCompute(cmd, upsampleCompute, upsampleKernel, screenGroupsX, screenGroupsY, viewCount);
+                DispatchCompute(cmd, upsampleCompute, upsampleKernel, screenGroupsX, screenGroupsY, viewCount, s_Upsample);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 stats.upsampleDispatches++;
                 stats.upsampleGroupsX = screenGroupsX;
@@ -727,7 +738,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeFloatParam(denoiserCompute, ScreenSpaceLightingShaderIDs.DenoiserFilterRadius, filterRadius);
             cmd.SetComputeIntParam(denoiserCompute, ScreenSpaceLightingShaderIDs.JitterFramePeriod, jitterFramePeriod);
             cmd.SetComputeIntParam(denoiserCompute, ScreenSpaceLightingShaderIDs.HalfResolutionFilter, halfResolutionFilter ? 1 : 0);
-            DispatchCompute(cmd, denoiserCompute, kernel, DivideRoundUp(traceWidth, k_TileSize), DivideRoundUp(traceHeight, k_TileSize), viewCount);
+            DispatchCompute(cmd, denoiserCompute, kernel, DivideRoundUp(traceWidth, k_TileSize), DivideRoundUp(traceHeight, k_TileSize), viewCount, s_Denoise);
 #if UNITY_EDITOR
             s_EditorDiffuseDispatchCount++;
 #endif
@@ -748,7 +759,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
             cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, input);
             cmd.SetComputeTextureParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, output);
-            DispatchCompute(cmd, denoiserCompute, kernel, DivideRoundUp(traceWidth, k_TileSize), DivideRoundUp(traceHeight, k_TileSize), viewCount);
+            DispatchCompute(cmd, denoiserCompute, kernel, DivideRoundUp(traceWidth, k_TileSize), DivideRoundUp(traceHeight, k_TileSize), viewCount, s_Gather);
 #if UNITY_EDITOR
             s_EditorGatherDispatchCount++;
 #endif
@@ -780,7 +791,7 @@ namespace UnityEngine.Rendering.Universal
             var kernel = temporalCompute.FindKernel("CopyHistory");
             cmd.SetComputeTextureParam(temporalCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, input);
             cmd.SetComputeTextureParam(temporalCompute, kernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, history);
-            DispatchCompute(cmd, temporalCompute, kernel, DivideRoundUp(traceWidth, k_TileSize), DivideRoundUp(traceHeight, k_TileSize), viewCount);
+            DispatchCompute(cmd, temporalCompute, kernel, DivideRoundUp(traceWidth, k_TileSize), DivideRoundUp(traceHeight, k_TileSize), viewCount, s_CopyHistory);
         }
 
         void DispatchPointDistribution(CommandBuffer cmd, ComputeShader denoiserCompute)
@@ -796,7 +807,7 @@ namespace UnityEngine.Rendering.Universal
             var kernel = denoiserCompute.FindKernel("GeneratePointDistribution");
             cmd.SetComputeBufferParam(denoiserCompute, kernel, ScreenSpaceLightingShaderIDs.PointDistributionRW, m_History.ssgiPointDistribution);
             BindSsgiBlueNoise(cmd, denoiserCompute, kernel, kernel);
-            DispatchCompute(cmd, denoiserCompute, kernel, k_PointDistributionCount, 1, 1);
+            DispatchCompute(cmd, denoiserCompute, kernel, k_PointDistributionCount, 1, 1, s_PointDistribution);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchStats.pointDistributionDispatches++;
             s_LastDispatchStats.pointDistributionGroupsX = k_PointDistributionCount;
@@ -952,9 +963,10 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeMatrixParam(compute, ScreenSpaceLightingShaderIDs.SsgiPrevInvViewProj, cb._SsgiPrevInvViewProj);
         }
 
-        static void DispatchCompute(CommandBuffer cmd, ComputeShader compute, int kernel, int groupsX, int groupsY, int groupsZ)
+        static void DispatchCompute(CommandBuffer cmd, ComputeShader compute, int kernel, int groupsX, int groupsY, int groupsZ, ProfilingSampler sampler)
         {
-            cmd.DispatchCompute(compute, kernel, groupsX, groupsY, groupsZ);
+            using (new ProfilingScope(cmd, sampler))
+                cmd.DispatchCompute(compute, kernel, groupsX, groupsY, groupsZ);
         }
 
         static int DivideRoundUp(int value, int divisor)

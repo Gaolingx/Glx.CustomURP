@@ -43,6 +43,9 @@ namespace UnityEngine.Rendering.Universal
         RayTracingAccelerationStructure m_Snapshot;
         static readonly ProfilingSampler s_HybridComposite = new ProfilingSampler("SSR DXR Composite");
         static readonly ProfilingSampler s_HybridTemporal = new ProfilingSampler("SSR DXR Temporal");
+        // The screen-space march used to run inside the pass sampler with no marker of its own, so
+        // GPU captures attributed its time to nothing.
+        static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSR Trace");
         // I2 timing hook: reproject/upsample/composite after the hardware trace, plus the pass
         // sampler that contains both trace and reconstruction.
         static readonly ProfilingSampler s_Reconstruction = new ProfilingSampler("SSR Reconstruction");
@@ -553,7 +556,8 @@ namespace UnityEngine.Rendering.Universal
             // Both algorithms trace into a hit point that follows the trace resolution.
             cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,
                 pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint);
-            cmd.DispatchCompute(compute, traceKernel, traceGroupsX, traceGroupsY, viewCount);
+            using (new ProfilingScope(cmd, s_Trace))
+                cmd.DispatchCompute(compute, traceKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_TraceDispatchCount++;
             s_LastDispatchStats.traceDispatches++;

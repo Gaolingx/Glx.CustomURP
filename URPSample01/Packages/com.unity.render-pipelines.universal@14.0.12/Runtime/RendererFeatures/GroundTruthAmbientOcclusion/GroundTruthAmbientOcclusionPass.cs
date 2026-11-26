@@ -11,6 +11,15 @@ namespace UnityEngine.Rendering.Universal
         internal const string k_ProfilingSamplerName = "Ground Truth Ambient Occlusion";
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
+        // Per-stage markers. Every stage used to share the pass sampler, so a GPU capture could not
+        // separate the horizon pass from the spatial filter, the temporal accumulation or the
+        // upsampler.
+        static readonly ProfilingSampler s_GtaoMain = new ProfilingSampler("GTAO Main");
+        static readonly ProfilingSampler s_GtaoSpatial = new ProfilingSampler("GTAO Spatial Denoise");
+        static readonly ProfilingSampler s_GtaoCopyHistory = new ProfilingSampler("GTAO Copy History");
+        static readonly ProfilingSampler s_GtaoTemporal = new ProfilingSampler("GTAO Temporal Denoise");
+        static readonly ProfilingSampler s_GtaoBlurUpsample = new ProfilingSampler("GTAO Blur Upsample");
+        static readonly ProfilingSampler s_GtaoUpsample = new ProfilingSampler("GTAO Upsample");
 
         GroundTruthAmbientOcclusionHistory m_History;
         GroundTruthAmbientOcclusionSettings m_Settings;
@@ -253,7 +262,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(gtao, gtaoKernel, GroundTruthAmbientOcclusionShaderIDs.NormalTexture, normalTexture);
             cmd.SetComputeTextureParam(gtao, gtaoKernel, GroundTruthAmbientOcclusionShaderIDs.DepthPyramid, m_History.depthPyramid);
             cmd.SetComputeTextureParam(gtao, gtaoKernel, GroundTruthAmbientOcclusionShaderIDs.PackedData, m_History.packedData);
-            cmd.DispatchCompute(gtao, gtaoKernel, groupCountX, groupCountY, viewCount);
+            using (new ProfilingScope(cmd, s_GtaoMain))
+                cmd.DispatchCompute(gtao, gtaoKernel, groupCountX, groupCountY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchStats.mainDispatches++;
 #endif
@@ -274,7 +284,8 @@ namespace UnityEngine.Rendering.Universal
                     spatialKernel,
                     GroundTruthAmbientOcclusionShaderIDs.OcclusionTexture,
                     packSpatialOutput ? m_History.packedBlurred : m_History.occlusionTexture);
-                cmd.DispatchCompute(spatial, spatialKernel, groupCountX, groupCountY, viewCount);
+                using (new ProfilingScope(cmd, s_GtaoSpatial))
+                    cmd.DispatchCompute(spatial, spatialKernel, groupCountX, groupCountY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 s_LastDispatchStats.spatialDispatches++;
 #endif
@@ -314,7 +325,8 @@ namespace UnityEngine.Rendering.Universal
                 int copyKernel = copyHistory.FindKernel("GTAODenoise_CopyHistory");
                 cmd.SetComputeTextureParam(copyHistory, copyKernel, GroundTruthAmbientOcclusionShaderIDs.InputTexture, m_History.packedBlurred);
                 cmd.SetComputeTextureParam(copyHistory, copyKernel, GroundTruthAmbientOcclusionShaderIDs.OutputTexture, historyInput);
-                cmd.DispatchCompute(copyHistory, copyKernel, groupCountX, groupCountY, viewCount);
+                using (new ProfilingScope(cmd, s_GtaoCopyHistory))
+                    cmd.DispatchCompute(copyHistory, copyKernel, groupCountX, groupCountY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 s_LastDispatchStats.copyHistoryDispatches++;
 #endif
@@ -334,7 +346,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(temporalCompute, temporalKernel, GroundTruthAmbientOcclusionShaderIDs.OutputHistory, historyOutput);
             cmd.SetComputeTextureParam(temporalCompute, temporalKernel, GroundTruthAmbientOcclusionShaderIDs.MotionTexture, motionTexture);
             cmd.SetComputeTextureParam(temporalCompute, temporalKernel, GroundTruthAmbientOcclusionShaderIDs.OcclusionTexture, temporalOutput);
-            cmd.DispatchCompute(temporalCompute, temporalKernel, groupCountX, groupCountY, viewCount);
+            using (new ProfilingScope(cmd, s_GtaoTemporal))
+                cmd.DispatchCompute(temporalCompute, temporalKernel, groupCountX, groupCountY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchStats.temporalDispatches++;
 #endif
@@ -365,7 +378,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(upsample, kernel, GroundTruthAmbientOcclusionShaderIDs.PackedData, packedInput);
             cmd.SetComputeTextureParam(upsample, kernel, GroundTruthAmbientOcclusionShaderIDs.OcclusionTexture, m_History.occlusionTexture);
             cmd.SetComputeTextureParam(upsample, kernel, GroundTruthAmbientOcclusionShaderIDs.DepthPyramid, m_History.depthPyramid);
-            cmd.DispatchCompute(upsample, kernel, groupCountX, groupCountY, viewCount);
+            using (new ProfilingScope(cmd, s_GtaoBlurUpsample))
+                cmd.DispatchCompute(upsample, kernel, groupCountX, groupCountY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchStats.blurUpsampleDispatches++;
 #endif
@@ -390,7 +404,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(upsample, upsampleKernel, GroundTruthAmbientOcclusionShaderIDs.PackedData, packedInput);
             cmd.SetComputeTextureParam(upsample, upsampleKernel, GroundTruthAmbientOcclusionShaderIDs.OcclusionTexture, m_History.occlusionTexture);
             cmd.SetComputeTextureParam(upsample, upsampleKernel, GroundTruthAmbientOcclusionShaderIDs.DepthPyramid, m_History.depthPyramid);
-            cmd.DispatchCompute(upsample, upsampleKernel, groupCountX, groupCountY, viewCount);
+            using (new ProfilingScope(cmd, s_GtaoUpsample))
+                cmd.DispatchCompute(upsample, upsampleKernel, groupCountX, groupCountY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchStats.upsampleDispatches++;
 #endif

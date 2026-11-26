@@ -17,6 +17,13 @@ namespace UnityEngine.Rendering.Universal
         static long Bytes(ComputeBuffer buffer) => buffer == null ? 0 : buffer.count * (long)buffer.stride;
         static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSR DXR Trace and Shade");
         internal static ProfilingSampler traceSampler => s_Trace;
+        // The request build and the hit clear ran inside SsrPass's sampler with no marker of their
+        // own, so a GPU capture attributed their time to nothing.
+        static readonly ProfilingSampler s_R1Original = new ProfilingSampler("SSR R1 Original");
+        static readonly ProfilingSampler s_R1Tiles = new ProfilingSampler("SSR R1 Tiles");
+        static readonly ProfilingSampler s_R1Offsets = new ProfilingSampler("SSR R1 Offsets");
+        static readonly ProfilingSampler s_R1Scatter = new ProfilingSampler("SSR R1 Scatter");
+        static readonly ProfilingSampler s_R2Clear = new ProfilingSampler("SSR R2 Clear");
         static readonly int s_Scene = Shader.PropertyToID("_GlxScene");
         static readonly int s_K = Shader.PropertyToID("_R2K");
         static readonly int s_Hits = Shader.PropertyToID("_R2Hits");
@@ -43,18 +50,18 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeIntParam(cs,"_R1K",k);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Original",originals);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Counts",counters);
-            cmd.DispatchCompute(cs,kernel,gx,gy,1);
+            using (new ProfilingScope(cmd,s_R1Original)) cmd.DispatchCompute(cs,kernel,gx,gy,1);
             int tile = cs.FindKernel("R1Tiles"), offsets = cs.FindKernel("R1Offsets"), scatter = cs.FindKernel("R1Scatter");
             cmd.SetComputeBufferParam(cs,tile,"_R1Original",originals);
             cmd.SetComputeBufferParam(cs,tile,"_R1Tile",tiles);
-            cmd.DispatchCompute(cs,tile,gx,gy,1);
+            using (new ProfilingScope(cmd,s_R1Tiles)) cmd.DispatchCompute(cs,tile,gx,gy,1);
             cmd.SetComputeBufferParam(cs,offsets,"_R1Tile",tiles);
             cmd.SetComputeBufferParam(cs,offsets,"_R1Counts",counters);
-            cmd.DispatchCompute(cs,offsets,1,1,1);
+            using (new ProfilingScope(cmd,s_R1Offsets)) cmd.DispatchCompute(cs,offsets,1,1,1);
             cmd.SetComputeBufferParam(cs,scatter,"_R1Original",originals);
             cmd.SetComputeBufferParam(cs,scatter,"_R1Tile",tiles);
             cmd.SetComputeBufferParam(cs,scatter,"_R1Queue",requests);
-            cmd.DispatchCompute(cs,scatter,gx,gy,1);
+            using (new ProfilingScope(cmd,s_R1Scatter)) cmd.DispatchCompute(cs,scatter,gx,gy,1);
         }
 
         internal void Trace(CommandBuffer cmd, ComputeShader cs, RayTracingShader shader,
@@ -64,7 +71,8 @@ namespace UnityEngine.Rendering.Universal
             Ensure(ref hits, width * height, 24);
             int clear = cs.FindKernel("R2Clear");
             cmd.SetComputeBufferParam(cs, clear, s_Hits, hits);
-            cmd.DispatchCompute(cs, clear, (width + 7) / 8, (height + 7) / 8, 1);
+            using (new ProfilingScope(cmd,s_R2Clear))
+                cmd.DispatchCompute(cs, clear, (width + 7) / 8, (height + 7) / 8, 1);
             using (new ProfilingScope(cmd, s_Trace))
             {
                 cmd.SetRayTracingShaderPass(shader, "GlxDXR");
