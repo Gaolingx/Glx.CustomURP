@@ -8,15 +8,27 @@ uint _R1K, _R1Phase;
 float _SsrRayLength; // volume rayLength, already clamped to the camera far plane
 
 #if defined(SSR_R1_HISTORY) || defined(SSR_R1_COLD)
+// The reason histogram and the eligible/requested totals are folded per block first: the former
+// per-pixel InterlockedAdd put every thread of the dispatch on the same seven counters in L2.
+#define R1_REASON_COUNT 7
+groupshared uint r1Reason[R1_REASON_COUNT];
+groupshared uint r1Eligible, r1Requested;
 [numthreads(8,8,1)]
 #if defined(SSR_R1_HISTORY)
-void R1Original(uint3 id : SV_DispatchThreadID)
+void R1Original(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
 #else
-void R1Cold(uint3 id : SV_DispatchThreadID)
+void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
 #endif
 {
     SSGI_ASSIGN_VIEW_INDEX(id.z);
-    if (any(id.xy >= (uint2)_SsrTraceSize.xy)) return;
+    if (gtid < R1_REASON_COUNT) r1Reason[gtid] = 0;
+    if (gtid == R1_REASON_COUNT) r1Eligible = 0;
+    if (gtid == R1_REASON_COUNT + 1) r1Requested = 0;
+    GroupMemoryBarrierWithGroupSync();
+
+    // Edge blocks overhang the trace size; those threads must stay alive for the barrier.
+    if (!any(id.xy >= (uint2)_SsrTraceSize.xy))
+    {
     uint2 src = SsrGetFullResCoord(id.xy);
     R1Sample s = (R1Sample)0;
     s.slot = id.y * (uint)_SsrTraceSize.x + id.x;
@@ -57,9 +69,21 @@ void R1Cold(uint3 id : SV_DispatchThreadID)
         }
     }
     _R1Original[s.slot] = s;
-    InterlockedAdd(_R1Counts[4+s.reason],1);
-    if (s.reason >= 2) InterlockedAdd(_R1Counts[0],1);
-    if (s.requestShare > 0) InterlockedAdd(_R1Counts[1],1);
+    InterlockedAdd(r1Reason[s.reason],1);
+    if (s.reason >= 2) InterlockedAdd(r1Eligible,1);
+    if (s.requestShare > 0) InterlockedAdd(r1Requested,1);
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    if (gtid < R1_REASON_COUNT)
+    {
+        if (r1Reason[gtid] > 0) InterlockedAdd(_R1Counts[4+gtid],r1Reason[gtid]);
+    }
+    else if (gtid == R1_REASON_COUNT)
+    {
+        if (r1Eligible > 0) InterlockedAdd(_R1Counts[0],r1Eligible);
+        if (r1Requested > 0) InterlockedAdd(_R1Counts[1],r1Requested);
+    }
 }
 #endif
 
