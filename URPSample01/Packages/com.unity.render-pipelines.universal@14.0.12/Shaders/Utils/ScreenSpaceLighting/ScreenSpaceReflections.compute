@@ -642,9 +642,9 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
             result = float4(color, saturate(opacity));
     }
 #else
+    float centerOpacity = 0.0;
     if (hitUv.x <= 1.0 && hitUv.y >= 0.0 && materialValid)
     {
-        float centerOpacity;
         SsrSamplePreviousColor(hitUv, perceptualRoughness, centerOpacity);
         if (centerOpacity > 0.0)
         {
@@ -709,6 +709,19 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
                 if (valid)
                     result = float4(radiance, saturate(centerOpacity));
             }
+        }
+    }
+
+    if (materialValid && centerOpacity <= 0.0)
+    {
+        float centerDepth = SSGI_LOAD(_SsrDepthTexture, inputCoord);
+        if (!SsgiIsBackgroundDepth(centerDepth))
+        {
+            float3 filledRadiance;
+            float filledOpacity;
+            if (SsrFillMissedPixel(traceCoord, inputCoord, centerDepth, normalWS, perceptualRoughness,
+                    filledRadiance, filledOpacity))
+                result = float4(filledRadiance, saturate(filledOpacity));
         }
     }
 #endif

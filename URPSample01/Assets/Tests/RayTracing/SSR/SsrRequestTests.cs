@@ -180,5 +180,81 @@ namespace UnityEditor.Rendering.Universal.Tests
             }
             foreach (var o in owned) Object.DestroyImmediate(o);
         }
+
+        // The PBR reprojection gathers around the centre sample only when that sample hit, so a missed
+        // centre used to leave a one pixel hole until the hardware fill served it. It now reuses the
+        // Approximation same-surface fill, which must only borrow from neighbours on its own surface.
+        [UnityTest] public IEnumerator PbrReprojectMissFillsFromNeighbours()
+        {
+            const int W = 32, H = 16;
+            const float flat = -47f, step = -46f;
+            var cs = Object.Instantiate(AssetDatabase.LoadAssetAtPath<ComputeShader>(
+                "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
+            var owned = new List<Object> { cs };
+            Texture2D Make(int x, int y, System.Func<int, int, Color> f)
+            {
+                var tex = new Texture2D(x, y, TextureFormat.RGBAFloat, false, true);
+                var pixels = new Color[x * y];
+                for (int j = 0; j < y; j++) for (int i = 0; i < x; i++) pixels[i + j * x] = f(i, j);
+                tex.SetPixels(pixels); tex.Apply(); owned.Add(tex); return tex;
+            }
+            var output = new RenderTexture(W, H, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear)
+                { enableRandomWrite = true, useMipMap = false };
+            output.Create(); owned.Add(output);
+
+            // Two columns of missed centre samples. The x == 8 column lies on the flat left half, so
+            // its two horizontal neighbours are valid hits on the same surface. The x == 24 column is
+            // an isolated strip one world unit closer than the surface around it, so its neighbours
+            // are a depth step away and nothing may be borrowed. Misses are asserted per column, which
+            // keeps the expectations independent of the readback row order.
+            bool Miss(int x) => x == 8 || x == 24;
+
+            using (var cmd = new CommandBuffer())
+            {
+                cs.DisableKeyword("SSR_APPROX");
+                cs.EnableKeyword("SSR_HALF_RES");
+                int kernel = cs.FindKernel("ScreenSpaceReflectionsReprojection");
+                cmd.SetGlobalMatrix("unity_MatrixInvVP", Matrix4x4.identity);
+                cmd.SetComputeVectorParam(cs, "_SsrCameraPositionWS", new Vector4(0, 0, 3, 0));
+                cmd.SetComputeVectorParam(cs, "_SsrScreenSize", new Vector4(W, H, 1f / W, 1f / H));
+                cmd.SetComputeVectorParam(cs, "_SsrTraceSize", new Vector4(W, H, 1f / W, 1f / H));
+                cmd.SetComputeVectorParam(cs, "_SsrRoughnessFadeParams", new Vector4(2, 1, 0.5f, 4));
+                cmd.SetComputeVectorParam(cs, "_SsrColorPyramidScaleAndLimitPrev", Vector4.one);
+                // Identity invVP maps a pixel to world x in [-1, 1] and world z to the stored depth.
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrDepthTexture",
+                    Make(W, H, (x, y) => new Color(x == 24 || x < 16 ? flat : step, 0, 0, 0)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrNormalTexture", Make(W, H, (x, y) => new Color(0, 0, 1, 1)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTextureRW",
+                    Make(W, H, (x, y) => Miss(x) ? new Color(99, 0, 0, 0) : new Color(0.5f, 0.5f, 0, 0)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrMotionTexture", Make(W, H, (x, y) => Color.clear));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrColorPyramid", Make(W, H, (x, y) => new Color(0.25f, 0.5f, 0.75f, 1)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrReprojectTextureRW", output);
+                cmd.DispatchCompute(cs, kernel, (W + 7) / 8, (H + 7) / 8, 1);
+                Graphics.ExecuteCommandBuffer(cmd);
+
+                var readback = AsyncGPUReadback.Request(output, 0, TextureFormat.RGBAFloat);
+                while (!readback.done) yield return null;
+                Assert.IsFalse(readback.hasError);
+                var data = readback.GetData<Vector4>();
+                // A missed centre has two accepted horizontal neighbours with edge fade 1 and
+                // perceptual roughness 0, so the fill weight is saturate(2 * 1 / 4) and the radiance is
+                // the pyramid colour every accepted neighbour reads at its (0.5, 0.5) hit.
+                for (int y = 0; y < H; y++)
+                {
+                    var filled = data[y * W + 8];
+                    Assert.AreEqual(0.25f, filled.x, 1e-3f, "fill r row " + y);
+                    Assert.AreEqual(0.5f, filled.y, 1e-3f, "fill g row " + y);
+                    Assert.AreEqual(0.75f, filled.z, 1e-3f, "fill b row " + y);
+                    Assert.AreEqual(0.5f, filled.w, 1e-3f, "fill weight row " + y);
+                    var isolated = data[y * W + 24];
+                    Assert.AreEqual(0f, isolated.x, 1e-3f, "depth step r row " + y);
+                    Assert.AreEqual(0f, isolated.y, 1e-3f, "depth step g row " + y);
+                    Assert.AreEqual(0f, isolated.z, 1e-3f, "depth step b row " + y);
+                    Assert.AreEqual(0f, isolated.w, 1e-3f, "depth step weight row " + y);
+                }
+                TestContext.Out.WriteLine("PBR reproject fill: " + data[8] + "; depth step: " + data[24]);
+            }
+            foreach (var o in owned) Object.DestroyImmediate(o);
+        }
     }
 }
