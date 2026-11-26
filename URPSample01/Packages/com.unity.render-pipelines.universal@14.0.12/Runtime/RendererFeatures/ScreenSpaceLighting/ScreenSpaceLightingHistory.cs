@@ -664,15 +664,20 @@ namespace UnityEngine.Rendering.Universal
 
             ssrPbrAlgorithm = algorithm;
             ResetSsrPbrHistory();
+            // The fill history is receiver radiance, but its coverage was published for the previous
+            // algorithm's sampling. Start both from scratch so the first frame never mixes them.
+            ResetSsrHwHistory();
         }
 
         // ---------------------------------------------------------------------------------------
-        // Hardware reflection fill history (Approximation hybrid only)
+        // Hardware reflection fill history (Approximation and PBR hybrid)
         //
         // Per trace pixel: rgb = the last resolved DXR radiance, a = the uncovered share it fills.
         // Served samples overwrite it; unserved samples reuse it after motion reprojection and a
         // receiver surface check. Without this the rotating request budget toggles every hole pixel
-        // between probe and hardware radiance on consecutive frames.
+        // between probe and hardware radiance on consecutive frames. The receiver and fade semantics
+        // are identical for both algorithms, so the same history serves either one; an algorithm
+        // switch resets it together with the PBR accumulation.
         // ---------------------------------------------------------------------------------------
         internal bool ssrHwHasValidHistory { get; private set; }
         internal int ssrHwReadSlot { get; private set; }

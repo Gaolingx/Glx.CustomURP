@@ -31,8 +31,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal static bool Eligible(in CameraData camera, ScreenSpaceLightingSettings settings, ScreenSpaceReflection ssr)
         {
+            // Both algorithms consume the fill: Approximation point-expands it after the upsample,
+            // PBR folds it into the reprojection before its denoiser. Only the half resolution path
+            // has the trace-sized targets and the request classification both rely on.
             if (!settings.rayTracingReflections || settings.reflectionRayBudget <= 0 || ssr == null || !ssr.enabled.value ||
-                ssr.fullResolution.value || ssr.usedAlgorithm.value != ScreenSpaceReflectionAlgorithm.Approximation ||
+                ssr.fullResolution.value ||
                 settings.resources?.rayTracingSsr == null || !settings.resources.hasSsrResources ||
                 settings.resources.bilateralUpsampleCompute == null) return false;
             return camera.camera &&

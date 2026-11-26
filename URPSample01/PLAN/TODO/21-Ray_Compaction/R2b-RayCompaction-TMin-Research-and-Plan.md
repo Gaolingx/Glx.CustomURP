@@ -132,12 +132,13 @@ R1 不是“只对 miss”：
 - raygen 先做 `index >= min(_R1Counts[2], _R2K)` 早退（[RayTracingSsr.raytrace:12-30](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace#L12)）。
 - 每条射线从 `q.tMin` 到 `q.tMax`；当前 `tMin` 固定 0.002（[SsrRequestQueue.hlsl:26](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/SsrRequestQueue.hlsl#L26)）。
 - 命中着色最多选 4 盏灯、最多 2 条阴影射线（[GlxHitLights.hlsl:112-128](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/GlxHitLights.hlsl#L112)）；场景灯表容量 64（[RayTracingSceneLights.cs:12](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/RayTracing/RayTracingSceneLights.cs#L12)）。
-- RT 仅在 `Approximation + 半分辨率 + 非 XR + base game camera` 时启用（[SsrRayTracingCameras.cs:32-42](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/SsrRayTracingCameras.cs#L32)）。
+- RT 仅在 `半分辨率 + 非 XR + base game camera` 时启用，两种算法都支持：Approximation 在上采样之后用 `R2Composite` 点展开，PBR 在去噪之前用 `SsrPbrHwMerge` 折进回投信号（[SsrRayTracingCameras.cs:32-42](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/SsrRayTracingCameras.cs#L32)）。
 
 ### 3.5 时域与合成
 
 - `R2Temporal` 把本帧 hits 与上一帧 resolved history 合并；未服务像素按 motion 重投影，并用深度/法线/粗糙度校验（[SsrPass.cs:386-421](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs#L386)）。
 - `R2Composite` 全分辨率逐像素读 `R1Sample`、SS hit point、SS 颜色金字塔、HW history，按 `a = s + (1-s)r` 合成（[ScreenSpaceReflections.compute:277-320](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute#L277)）。
+- PBR 算法在同一套 R1/R2Temporal 之上改用 `SsrPbrHwMerge`：在 trace 分辨率把 `s·Lss + hw·Lhw` 写回 `ssrPbrOriginal`，再交给反射 denoiser 做时域累积；份额公式与 `R2Composite` 相同，区别只是合并发生在去噪之前而不是上采样之后。
 - 输出是 unpremultiplied radiance + weight；材质端只做一次 `lerp(probe, rgb, alpha)`。
 
 ### 3.6 同帧固定成本

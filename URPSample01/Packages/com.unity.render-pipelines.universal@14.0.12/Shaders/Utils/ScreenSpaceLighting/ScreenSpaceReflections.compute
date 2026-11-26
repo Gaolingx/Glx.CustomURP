@@ -3,7 +3,8 @@
 //
 // The PBR signal written by the reprojection is consumed by the reflection denoiser
 // (Shaders/Utils/Denoising/ReflectionDenoiser.compute), which owns the temporal accumulation and the
-// bilateral filter. This file only traces, reprojects and exposes the parameter debug view.
+// bilateral filter. This file traces, reprojects, merges the hardware reflection fill and exposes
+// the parameter debug view.
 //
 // Differences from HDRP:
 // - URP has no SSR stencil bit. The depth-normals alpha carries the material smoothness, so
@@ -30,6 +31,7 @@
 #pragma kernel R2Composite SSR_R2_COMPOSITE
 #pragma kernel R2CompositeCold SSR_R2_COLD
 #pragma kernel R2Temporal SSR_R2_TEMPORAL
+#pragma kernel SsrPbrHwMerge SSR_PBR_MERGE
 
 #pragma multi_compile _ SSR_APPROX
 #pragma multi_compile _ SSR_HALF_RES
@@ -70,9 +72,15 @@ SSGI_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
 SSGI_RW_TEXTURE2D_FLOAT4(_SsrOutputTextureRW);
 
 // Hardware reflection fill: the resolved DXR radiance history at trace resolution. The temporal
-// kernel writes it, the composite point-expands it into the full resolution output.
-#if defined(SSR_R2_COMPOSITE) || defined(SSR_R2_COLD) || defined(SSR_R2_TEMPORAL)
+// kernel writes it, the composite point-expands it into the full resolution output, and the PBR
+// merge folds it into the reprojection signal before the reflection denoiser.
+#if defined(SSR_R2_COMPOSITE) || defined(SSR_R2_COLD) || defined(SSR_R2_TEMPORAL) || defined(SSR_PBR_MERGE)
 SSGI_TEXTURE2D_FLOAT4(_SsrHwHistory);
+#endif
+// PBR merge input: this frame's reprojection at trace resolution. It is a separate texture so the
+// merge can read the screen-space signal and write the combined one.
+#if defined(SSR_PBR_MERGE)
+SSGI_TEXTURE2D_FLOAT4(_SsrMergeSource);
 #endif
 #if defined(SSR_R2_TEMPORAL)
 SSGI_RW_TEXTURE2D_FLOAT4(_SsrHwHistoryRW);
@@ -321,12 +329,13 @@ void R2Composite(uint3 id : SV_DispatchThreadID)
 #endif
 
 //--------------------------------------------------------------------------------------------------
-// Hardware fill temporal reuse (Approximation hybrid)
+// Hardware fill temporal reuse (Approximation and PBR hybrid)
 //--------------------------------------------------------------------------------------------------
-// Runs at trace resolution between DispatchRays and the composite. Served samples publish their
-// resolved radiance; unserved samples reproject the previous result and reuse it only while the
-// receiver surface still matches. A served finite miss clears the pixel (the ray really found
-// nothing), and pixels outside the hybrid domain are cleared so a later re-entry starts fresh.
+// Runs at trace resolution between DispatchRays and the consumer (the Approximation composite or
+// the PBR merge). Served samples publish their resolved radiance; unserved samples reproject the
+// previous result and reuse it only while the receiver surface still matches. A served finite miss
+// clears the pixel (the ray really found nothing), and pixels outside the hybrid domain are cleared
+// so a later re-entry starts fresh.
 #if defined(SSR_R2_TEMPORAL)
 [numthreads(8,8,1)]
 void R2Temporal(uint3 id : SV_DispatchThreadID)
@@ -390,6 +399,53 @@ void R2Temporal(uint3 id : SV_DispatchThreadID)
     }
 
     SSGI_STORE(_SsrHwHistoryRW, id.xy, float4(radiance, weight));
+}
+#endif
+
+//--------------------------------------------------------------------------------------------------
+// PBR hardware merge
+//--------------------------------------------------------------------------------------------------
+// Folds the resolved hardware fill into the reprojection signal at trace resolution, so the
+// reflection denoiser sees one sample per pixel exactly as in the SS-only path. The SS sample and
+// the hardware ray are samples of the same GGX lobe: R1 re-derives the trace direction from the
+// same blue-noise sequence, so a missed screen-space ray keeps its receiver fade and the remaining
+// share comes from the hardware history. Coverage and radiance follow the same non-premultiplied
+// contract as R2Composite; the difference is only where the merge happens (before the PBR temporal
+// accumulation instead of after the upsample) because the denoiser owns the history.
+#if defined(SSR_PBR_MERGE)
+[numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
+void SsrPbrHwMerge(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 coord = dispatchThreadId.xy;
+    if (any(coord >= (uint2)_SsrTraceSize.xy)) return;
+
+    uint slot = coord.y * (uint)_SsrTraceSize.x + coord.x;
+    R1Sample q = _R1Original[slot];
+
+    float4 ss = SSGI_LOAD(_SsrMergeSource, coord);
+    float s = saturate(ss.a);
+
+    float4 hwSample = SSGI_LOAD(_SsrHwHistory, coord);
+    bool resolved = hwSample.a > 0.0 && all(isfinite(hwSample.rgb)) && all(hwSample.rgb >= 0.0);
+    // Outside the hybrid domain (invalid material, roughness fade, full screen-space coverage) the
+    // request share is zero, so the merge leaves the screen-space sample untouched.
+    float hw = (q.reason >= 2u && q.requestShare > 0.0 && resolved)
+        ? min(min(1.0 - s, q.requestShare), hwSample.a)
+        : 0.0;
+
+    float a = s + hw;
+    // A zero share must never multiply a non-finite history sample: 0 * NaN poisons the sum.
+    float3 radiance = float3(0.0, 0.0, 0.0);
+    if (a > 0.0)
+    {
+        radiance = s * max(ss.rgb, 0.0);
+        if (hw > 0.0)
+            radiance += hw * hwSample.rgb;
+        radiance /= a;
+    }
+    SSGI_STORE(_SsrOutputTextureRW, coord, float4(radiance, a));
 }
 #endif
 

@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Publishes the reflection probe atlas in Forward and Deferred so the SSGI miss fallback can sample local reflection probes. Ignored in Forward+, which always publishes the atlas. Enabling it allocates and updates the atlas, and the sky part of Reflection Probes and Sky becomes the ambient probe.")]
         internal bool publishProbeAtlas = false;
 
-        [SerializeField, Tooltip("Resolve smooth opaque half-resolution Approximation SSR against registered scene meshes. Requires hardware ray tracing support.")]
+        [SerializeField, Tooltip("Resolve unresolved half-resolution opaque SSR against registered scene meshes, for both the Approximation and PBR Accumulation algorithms. Requires hardware ray tracing support.")]
         internal bool rayTracingReflections = false;
 
         [SerializeField, Range(0, 32768), Tooltip("Fixed ray dispatch width per eligible camera. Zero disables hardware reflection requests.")]

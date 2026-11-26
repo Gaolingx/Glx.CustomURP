@@ -10,10 +10,13 @@ namespace UnityEngine.Rendering.Universal
     // writes radiance + weight. At full resolution that result is the material-facing texture; at
     // half resolution it is bilaterally upsampled into the full resolution output.
     //
-    // Approximation + DXR: the request budget only serves a slice of the unresolved pixels per
-    // frame, so a temporal pass merges each frame's hits with the previous resolved fill (reprojected
-    // by motion, rejected on receiver depth/normal/roughness) before the composite. Without it the
-    // rotating selection makes every unserved hole alternate between probe and hardware radiance.
+    // Approximation + DXR and PBR Accumulation + DXR: the request budget only serves a slice of the
+    // unresolved pixels per frame, so a temporal pass merges each frame's hits with the previous
+    // resolved fill (reprojected by motion, rejected on receiver depth/normal/roughness) before the
+    // consumer reads it. Without it the rotating selection makes every unserved hole alternate
+    // between probe and hardware radiance. The Approximation composite point-expands the fill into
+    // the full resolution output after the upsample; the PBR merge folds it into the trace
+    // resolution reprojection before the reflection denoiser, which owns the temporal accumulation.
     //
     // PBR Accumulation: Trace samples the GGX visible normal distribution, Reproject gathers the
     // reflected surface and writes the un-accumulated signal, then the reflection denoiser
@@ -104,6 +107,7 @@ namespace UnityEngine.Rendering.Universal
 
             public int traceDispatches;
             public int reprojectDispatches;
+            public int hwMergeDispatches;
             public int temporalDispatches;
             public int copyHistoryDispatches;
             public int bilateralHDispatches;
@@ -149,6 +153,7 @@ namespace UnityEngine.Rendering.Universal
                 screenGroupsY = screenGY;
                 traceDispatches = 0;
                 reprojectDispatches = 0;
+                hwMergeDispatches = 0;
                 temporalDispatches = 0;
                 copyHistoryDispatches = 0;
                 bilateralHDispatches = 0;
@@ -314,6 +319,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (cold)
                 {
+                    // PBR samples the previous color pyramid and accumulates in the denoiser, so a
+                    // frame without history has nothing to reconstruct; start next frame. The
+                    // Approximation cold path below only exists to seed its hardware history.
+                    if (pbr) return;
+
                     var cs = m_Resources.ssrCompute;
                     SetKeyword(cs, ScreenSpaceShaderIDs.XrArrayKeyword, false);
                     SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
@@ -547,10 +557,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             Matrix4x4 hybridPrevInvViewProj = default;
-            if (!pbr && halfResolution && requestQueue != null)
+            if (halfResolution && requestQueue != null)
                 hybridPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
-            bool traced = !pbr && halfResolution && TryTrace(cmd, compute, depthTexture, normalTexture,
-                motionTexture, m_History.ssrHitPoint, traceWidth, traceHeight, hybridPrevInvViewProj);
+            // R1 re-derives the trace direction from the same blue-noise sequence as the trace, so the
+            // request covers the algorithm's own hit point for this pixel and frame.
+            bool traced = halfResolution && TryTrace(cmd, compute, depthTexture, normalTexture,
+                motionTexture, pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint,
+                traceWidth, traceHeight, hybridPrevInvViewProj);
 
             using (new ProfilingScope(cmd, s_Reconstruction))
             {
@@ -562,7 +575,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrColorPyramid, m_History.readColorPyramid);
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depthTexture);
             if (pbr)
-                cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrReprojectTextureRW, m_History.ssrPbrOriginal);
+                cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrReprojectTextureRW,
+                    traced ? m_History.ssrDenoiseIntermediate1 : m_History.ssrPbrOriginal);
             else
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
                     halfResolution && m_History.ssrApproxOutput != null ? m_History.ssrApproxOutput : m_History.ssrOutput);
@@ -574,6 +588,26 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             s_EditorReprojectDispatchCount++;
 #endif
+
+            if (pbr && traced)
+            {
+                // Fold the hardware fill into this frame's reprojection before the denoiser reads it.
+                // The reprojection wrote the SS-only signal into the denoise intermediate, leaving
+                // ssrPbrOriginal free as the merge output and the denoiser's temporal input.
+                int mergeKernel = compute.FindKernel("SsrPbrHwMerge");
+                cmd.SetComputeBufferParam(compute, mergeKernel, "_R1Original", requestQueue.originals);
+                cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrMergeSource,
+                    m_History.ssrDenoiseIntermediate1);
+                cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrHwHistory,
+                    m_History.GetSsrHwHistory(m_History.ssrHwWriteSlot));
+                cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
+                    m_History.ssrPbrOriginal);
+                cmd.DispatchCompute(compute, mergeKernel, traceGroupsX, traceGroupsY, viewCount);
+                m_History.SwapSsrHwBuffers();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                s_LastDispatchStats.hwMergeDispatches++;
+#endif
+            }
 
             if (debugParams)
             {
@@ -611,7 +645,7 @@ namespace UnityEngine.Rendering.Universal
                     viewCount, useTextureArray);
             }
 
-            if (traced)
+            if (traced && !pbr)
             {
                 Composite(cmd, compute, depthTexture, normalTexture, motionTexture, false, screenWidth, screenHeight);
                 m_History.SwapSsrHwBuffers();

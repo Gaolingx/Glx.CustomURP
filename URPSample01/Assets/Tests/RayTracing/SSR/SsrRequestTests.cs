@@ -102,5 +102,83 @@ namespace UnityEditor.Rendering.Universal.Tests
                 TestContext.Out.WriteLine("R1 counts: "+string.Join(",",golden)+"; slots="+string.Join(",",expected));
             } finally { foreach(var t in textures) Object.DestroyImmediate(t); Object.DestroyImmediate(cs); }
         }
+
+        // SsrPbrHwMerge folds the screen-space reprojection and the resolved hardware fill into one
+        // un-premultiplied sample before the PBR reflection denoiser. The share math must match
+        // R2Composite: the domain gate (reason) discards the fill outside the hybrid set, the
+        // uncovered share clamps it and invalid history (zero weight, negative or non-finite
+        // radiance) must never contribute.
+        [UnityTest] public IEnumerator PbrHwMerge()
+        {
+            const int w = 4, h = 2;
+            var cs = Object.Instantiate(AssetDatabase.LoadAssetAtPath<ComputeShader>(
+                "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
+            var owned = new List<Object> { cs };
+            Texture2D Make(int x, int y, System.Func<int, int, Color> f)
+            {
+                var tex = new Texture2D(x, y, TextureFormat.RGBAFloat, false, true);
+                var pixels = new Color[x * y];
+                for (int j = 0; j < y; j++) for (int i = 0; i < x; i++) pixels[i + j * x] = f(i, j);
+                tex.SetPixels(pixels); tex.Apply(); owned.Add(tex); return tex;
+            }
+            var output = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear)
+                { enableRandomWrite = true, useMipMap = false };
+            output.Create(); owned.Add(output);
+
+            // Row 0: domain gate, full coverage, partial coverage, no request.
+            // Row 1: empty history, negative history, non-finite history, pure hardware coverage.
+            float Ss(int i) => i == 3 ? 1f : i == 7 ? 0f : i == 1 || i == 4 || i == 5 || i == 6 ? 0.25f : 0.5f;
+            Color Hw(int i) => i == 4 ? new Color(0, 0, 0, 0) : i == 5 ? new Color(-1, 2, 2, 1) :
+                i == 6 ? new Color(float.NaN, 2, 2, 1) : i == 7 ? new Color(4, 4, 4, 1) : new Color(2, 2, 2, 1);
+
+            using (var q = new SsrRequestQueue(w * h, 0))
+            using (var cmd = new CommandBuffer())
+            {
+                q.originals = new ComputeBuffer(w * h, 80);
+                var samples = new Sample[w * h];
+                void Set(int i, uint reason, float request) { samples[i].slot = (uint)i; samples[i].reason = reason; samples[i].request = request; samples[i].ss = Ss(i); }
+                Set(0, 0, 0f); Set(1, 4, 1f); Set(2, 6, 0.5f); Set(3, 2, 0f);
+                Set(4, 4, 1f); Set(5, 4, 1f); Set(6, 4, 1f); Set(7, 4, 1f);
+                q.originals.SetData(samples);
+
+                int kernel = cs.FindKernel("SsrPbrHwMerge");
+                cmd.SetComputeVectorParam(cs, "_SsrTraceSize", new Vector4(w, h, 1f / w, 1f / h));
+                cmd.SetComputeBufferParam(cs, kernel, "_R1Original", q.originals);
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrMergeSource",
+                    Make(w, h, (x, y) => { int i = y * w + x; return new Color(1, 1, 1, Ss(i)); }));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrHwHistory",
+                    Make(w, h, (x, y) => Hw(y * w + x)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrOutputTextureRW", output);
+                cmd.DispatchCompute(cs, kernel, (w + 7) / 8, (h + 7) / 8, 1);
+                Graphics.ExecuteCommandBuffer(cmd);
+
+                var readback = AsyncGPUReadback.Request(output, 0, TextureFormat.RGBAFloat);
+                while (!readback.done) yield return null;
+                Assert.IsFalse(readback.hasError);
+                var data = readback.GetData<Vector4>();
+                // rgb = (s*ss + hw*hwRgb) / a, a = s + hw, hw = min(1 - s, requestShare, history.a).
+                var expected = new[]
+                {
+                    new Vector4(1f, 1f, 1f, 0.5f),   // reason 0: fill outside the domain
+                    new Vector4(1.75f, 1.75f, 1.75f, 1f),
+                    new Vector4(1.5f, 1.5f, 1.5f, 1f),
+                    new Vector4(1f, 1f, 1f, 1f),     // requestShare 0: full screen-space coverage
+                    new Vector4(1f, 1f, 1f, 0.25f),  // zero history weight
+                    new Vector4(1f, 1f, 1f, 0.25f),  // negative history radiance
+                    new Vector4(1f, 1f, 1f, 0.25f),  // non-finite history radiance
+                    new Vector4(4f, 4f, 4f, 1f),     // no screen-space sample: the fill is the sample
+                };
+                for (int i = 0; i < expected.Length; i++)
+                {
+                    var v = data[i];
+                    Assert.AreEqual(expected[i].x, v.x, 1e-3f, "rgb.r slot " + i);
+                    Assert.AreEqual(expected[i].y, v.y, 1e-3f, "rgb.g slot " + i);
+                    Assert.AreEqual(expected[i].z, v.z, 1e-3f, "rgb.b slot " + i);
+                    Assert.AreEqual(expected[i].w, v.w, 1e-3f, "weight slot " + i);
+                }
+                TestContext.Out.WriteLine("R2 PBR merge: " + string.Join("; ", data.ToArray()));
+            }
+            foreach (var o in owned) Object.DestroyImmediate(o);
+        }
     }
 }

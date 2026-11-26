@@ -137,10 +137,11 @@ namespace UnityEngine.Rendering.Universal
         // PBR reproject output, consumed by the reflection denoiser.
         internal static readonly int SsrReprojectTextureRW = Shader.PropertyToID("_SsrReprojectTextureRW");
 
-        // Hardware reflection fill history (Approximation hybrid only).
+        // Hardware reflection fill history (Approximation and PBR hybrid).
         internal static readonly int SsrHwHistory = Shader.PropertyToID("_SsrHwHistory");
         internal static readonly int SsrHwHistoryRW = Shader.PropertyToID("_SsrHwHistoryRW");
         internal static readonly int SsrHwHistoryValid = Shader.PropertyToID("_SsrHwHistoryValid");
+        internal static readonly int SsrMergeSource = Shader.PropertyToID("_SsrMergeSource");
 
         // Constant buffer members.
         internal static readonly int SsrScreenSize = Shader.PropertyToID("_SsrScreenSize");
