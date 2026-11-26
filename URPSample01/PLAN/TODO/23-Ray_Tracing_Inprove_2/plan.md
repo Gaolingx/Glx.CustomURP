@@ -1,6 +1,6 @@
 # 23 实施计划：SS 命中 / RT 命中统一着色（P3 = HDRP Mixed 语义）
 
-**状态：** P0 完成（基线 `2a38d40`，契约已冻结）；A 决策已锁定（§2），P1 待开工
+**状态：** P0 完成（基线 `2a38d40`，契约已冻结）；A 决策已锁定（§2）；P1 PARTIAL（命中核已执行，缝门禁 NOT MET，见 [validation/P1/README.md](validation/P1/README.md)）；P3 实施计划已写：[P3-PLAN.md](P3-PLAN.md)
 **日期：** 2026-11-26
 **目标提交：** `350d18c` 之后
 **契约：** [contracts.md](contracts.md)（P0 冻结，P1–P3 按版本位放宽）
@@ -65,9 +65,14 @@
 
 ### P3：SSR 挪到 GBuffer 之后，SS 命中读当前帧 GBuffer（根治）
 
+**实施计划：[P3-PLAN.md](P3-PLAN.md)**（Pass 编排、接收者重路由、契约变更、B0–B6 任务分解、统一复测批）。
+
+> 关键约束（已核对）：延迟接收者的间接镜面现在写在 GBuffer pass 里（`LitGBufferPass.hlsl` 调 `GlobalIllumination()` 写 GBuffer4），ClusteredDeferred 只读 GBuffer4 加直射、不采样 SSL 纹理。因此 P3 不能只改注入点事件，必须同时把延迟接收者的间接镜面重路由到 GBuffer 之后。
+
 | 内容 | 说明 |
 |---|---|
-| 注入点 | `206` → `AfterRenderingGbuffer`（>210 且 <230）；transparent 路径不动 |
+| 注入点 | `206` → `AfterRenderingGbuffer`（220）；transparent 路径不动 |
+| 接收者 | 延迟接收者的 env+SSR 间接镜面从 GBuffer pass 移到 220 后的合成（225）或 230 核；forward 接收者不变 |
 | SS 命中 | 读命中像素的当前帧 GBuffer，取表面数据，走 P1 的同一 hit 光照核；不再采前帧颜色金字塔 |
 | 合成 | `ssShare/hwShare` 只表示覆盖率与 smoothness/edge fade，不表示"两条着色路径的折中" |
 | Denoiser | 输入语义不变（radiance + weight），只保留噪声/历史职责 |

@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** B6 完成——命中核执行已被 RenderDoc 证实，环境光/阴影补齐，SS/RT 边界度量落地。**缝指标未显著下降（0.011384 → 0.011382，NOT MET）**；执行、无 NaN、D3D11 逐位一致通过；性能门禁仍 OPEN。
+**当前阶段：** B6 完成——命中核执行已被 RenderDoc 证实，环境光/阴影补齐，SS/RT 边界度量落地。**缝指标未显著下降（0.011384 → 0.011382，NOT MET）**；执行、无 NaN、D3D11 逐位一致通过；性能门禁仍 OPEN。P3 实施计划已写（[P3-PLAN.md](P3-PLAN.md)），待开工，复测统一在 P3 B6。
 
 ## 已完成
 
@@ -85,6 +85,7 @@
 | D3D11 回退基线 | CLOSED | 首次录制，三变体两进程逐位一致；tlas 0、R1 全 0 |
 | P1 验收（SS/RT 缝下降） | **NOT MET** | 0.011384 → 0.011382（base）；nodenoise +12.5%；洋红对照证明指标敏感。见 [P1 README](validation/P1/README.md#b6环境光阴影补齐--ssrt-边界度量) |
 | P1 性能（≤0.3 ms） | **OPEN** | 未测；需 Player FrameTimingManager 或带 GPU counter 的抓帧 |
+| P3 实施计划 | CLOSED（2026-11-27） | [P3-PLAN.md](P3-PLAN.md)：接收者重路由（GBuffer4 现写 SSR）、220 注入点、SS 读当前 GBuffer、契约/tripwire、B0–B6；复测统一在 P3 B6 |
 | P1 命中着色执行 | CLOSED | 根因：未绑定探针图集导致 Unity 丢弃 dispatch；已修复并双 API 回归（见 [P1 README](validation/P1/README.md#b5-fix2renderdoc-定位根因已修复)） |
 | P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
 | P1 hit GBuffer + 延迟着色核 | CLOSED | B3 核 + B4 开关/回退完成；B5 构建验证 + 证据 |
