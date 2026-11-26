@@ -236,6 +236,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal RTHandle ssrHitPoint { get; private set; }
         internal RTHandle ssrOutput { get; private set; }
+        // P3: indirect-specular composite written by SsrIndirectSpecular (225) and added by the
+        // deferred light kernel. Full resolution; only sampled when ssrAfterGbuffer is on.
+        internal RTHandle ssrIndirectSpecular { get; private set; }
         // Trace sized intermediate for the half resolution Approximation path. Null while the trace
         // runs at full resolution, where the reproject writes ssrOutput directly.
         internal RTHandle ssrApproxOutput { get; private set; }
@@ -308,6 +311,19 @@ namespace UnityEngine.Rendering.Universal
                 useMipMap: false,
                 autoGenerateMips: false,
                 name: "SslSsrOutput");
+
+            // P3 indirect-specular composite (full resolution, HDR radiance * occlusion).
+            ssrIndirectSpecular = RTHandles.Alloc(
+                screenWidth, screenHeight,
+                TextureWrapMode.Clamp, TextureWrapMode.Clamp,
+                slices: viewCount,
+                colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                filterMode: FilterMode.Point,
+                dimension: resourceDimension,
+                enableRandomWrite: true,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "SslSsrIndirectSpecular");
 
             // A half resolution trace writes here and is upsampled into ssrOutput. A full resolution
             // trace writes ssrOutput directly, so the extra target is not allocated.
@@ -1057,6 +1073,8 @@ namespace UnityEngine.Rendering.Universal
             ssrHitPoint = null;
             RTHandles.Release(ssrOutput);
             ssrOutput = null;
+            RTHandles.Release(ssrIndirectSpecular);
+            ssrIndirectSpecular = null;
             RTHandles.Release(ssrApproxOutput);
             ssrApproxOutput = null;
             RTHandles.Release(ssrDebugParams);

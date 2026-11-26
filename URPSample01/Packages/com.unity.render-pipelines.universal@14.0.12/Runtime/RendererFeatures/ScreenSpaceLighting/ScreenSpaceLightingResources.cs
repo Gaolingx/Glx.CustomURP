@@ -37,6 +37,11 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute")]
         internal ComputeShader ssrHitDeferredCompute;
 
+        // P3: deferred indirect-specular composite (D1-A). Optional; the 225 pass is skipped when
+        // this is missing so a renderer without it keeps the rollback path.
+        [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/SsrIndirectSpecular.compute")]
+        internal ComputeShader ssrIndirectSpecularCompute;
+
         [SerializeField, Reload("Shaders/Utils/Denoising/ReflectionDenoiser.compute")]
         internal ComputeShader ssrReflectionDenoiserCompute;
 

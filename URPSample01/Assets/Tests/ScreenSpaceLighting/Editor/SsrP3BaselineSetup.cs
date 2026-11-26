@@ -365,6 +365,18 @@ public static class SsrP3BaselineSetup
             throw new InvalidOperationException("SsrHitDeferred.compute was not found; hit shading would fall back to closest-hit.");
         if (hitField.GetValue(resources) == null)
             hitField.SetValue(resources, hitKernel);
+
+        // P3 indirect-specular composite: resolve it the same way so a P3 run has the kernel.
+        var indirectField = resources?.GetType().GetField("ssrIndirectSpecularCompute", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (indirectField == null)
+            throw new MissingFieldException("ScreenSpaceLightingResources.ssrIndirectSpecularCompute was not found.");
+        const string indirectKernelPath = "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/SsrIndirectSpecular.compute";
+        AssetDatabase.ImportAsset(indirectKernelPath, ImportAssetOptions.ForceSynchronousImport);
+        var indirectKernel = AssetDatabase.LoadAssetAtPath<ComputeShader>(indirectKernelPath);
+        if (indirectKernel == null)
+            throw new InvalidOperationException("SsrIndirectSpecular.compute was not found; the P3 receiver reroute would skip indirect specular.");
+        if (indirectField.GetValue(resources) == null)
+            indirectField.SetValue(resources, indirectKernel);
     }
 
     static UniversalRenderPipelineAsset CreatePipeline(UniversalRendererData renderer)

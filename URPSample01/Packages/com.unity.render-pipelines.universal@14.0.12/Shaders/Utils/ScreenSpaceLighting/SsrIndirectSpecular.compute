@@ -1,0 +1,137 @@
+// P3 (B2, D1-A): deferred indirect-specular composite.
+//
+// The deferred Lit GBuffer pass now writes only emission + indirect diffuse into GBuffer3 (the
+// _CdBakedColor the deferred kernel loads). This kernel rebuilds the indirect-specular term the
+// GBuffer used to fold in: it decodes GBuffer0/1/2 + depth, reconstructs the reflection vector,
+// samples the environment reflection (_GlossyEnvironmentCubeMap, the A1 source) and the opaque SSR
+// result, blends them with the SSR coverage, and applies EnvironmentBRDFSpecular once. The result is
+// multiplied by the surface occlusion (GBuffer1.a) so it matches the original EnvironmentBRDF *
+// occlusion the deferred kernel used to receive. ClusteredDeferred adds this texture to the baked
+// colour, so the environment reflection is sampled exactly once.
+//
+// Everything this kernel declares is bound by the pass; nothing relies on per-draw state.
+#pragma kernel SsrIndirectSpecular
+
+#pragma multi_compile _ _GBUFFER_NORMALS_OCT
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.hlsl"
+
+TEXTURE2D(_GBuffer0);
+TEXTURE2D(_GBuffer1);
+TEXTURE2D(_GBuffer2);
+TEXTURE2D(_CameraDepthTexture);
+TEXTURE2D(_ScreenSpaceSsrTexture);
+
+// A1 environment source: the per-camera reflection/sky fallback. Bound by URP every camera.
+TEXTURECUBE(_GlossyEnvironmentCubeMap);
+SAMPLER(sampler_GlossyEnvironmentCubeMap);
+half4 _GlossyEnvironmentCubeMap_HDR;
+
+RWTexture2D<float4> _GlxSsrSpecularRW;
+
+// xy screen size, zw inverse screen size.
+float4 _SsrIndirectScreenSize;
+// xyz camera position (WS), w unused.
+float4 _SsrIndirectCameraPos;
+// x SSR intensity, yzw reserved.
+float4 _SsrIndirectParams;
+
+#define SSR_INDIRECT_FLAG_SPECULAR_SETUP 8u
+
+half3 SsrIndirectUnpackNormal(half3 packedNormalWS)
+{
+#ifdef _GBUFFER_NORMALS_OCT
+    half2 remappedOctNormalWS = half2(Unpack888ToFloat2(packedNormalWS));
+    half2 octNormalWS = remappedOctNormalWS * half(2.0) - half(1.0);
+    return half3(UnpackNormalOctQuadEncode(octNormalWS));
+#else
+    return packedNormalWS;
+#endif
+}
+
+// Mirrors ClusteredDeferred's CdBRDFDataFromGbuffer so the composite reproduces the exact BRDF the
+// kernel (and the original EnvironmentBRDF in the GBuffer pass) would have used.
+BRDFData SsrIndirectBRDFFromGbuffer(half3 albedo, half3 packedSpecular, half smoothness, uint materialFlags)
+{
+    BRDFData brdfData = (BRDFData)0;
+    half alpha = half(1.0);
+    half3 brdfDiffuse;
+    half3 brdfSpecular;
+    half reflectivity;
+    half oneMinusReflectivity;
+
+    if ((materialFlags & SSR_INDIRECT_FLAG_SPECULAR_SETUP) != 0u)
+    {
+        reflectivity = ReflectivitySpecular(packedSpecular);
+        oneMinusReflectivity = half(1.0) - reflectivity;
+        brdfDiffuse = albedo * oneMinusReflectivity;
+        brdfSpecular = packedSpecular;
+    }
+    else
+    {
+        reflectivity = packedSpecular.r;
+        oneMinusReflectivity = 1.0 - reflectivity;
+        half metallic = MetallicFromReflectivity(reflectivity);
+        brdfDiffuse = albedo * oneMinusReflectivity;
+        brdfSpecular = lerp(kDielectricSpec.rgb, albedo, metallic);
+    }
+
+    InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
+    return brdfData;
+}
+
+[numthreads(16, 16, 1)]
+void SsrIndirectSpecular(uint3 id : SV_DispatchThreadID)
+{
+    uint2 pixel = id.xy;
+    if (any(pixel >= (uint2)_SsrIndirectScreenSize.xy))
+        return;
+
+    float rawDepth = LOAD_TEXTURE2D(_CameraDepthTexture, pixel).x;
+    if (rawDepth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _GlxSsrSpecularRW[pixel] = float4(0.0, 0.0, 0.0, 0.0);
+        return;
+    }
+
+    half4 gbuffer0 = LOAD_TEXTURE2D(_GBuffer0, pixel);
+    half4 gbuffer1 = LOAD_TEXTURE2D(_GBuffer1, pixel);
+    half4 gbuffer2 = LOAD_TEXTURE2D(_GBuffer2, pixel);
+
+    float2 uv = (pixel + 0.5) * _SsrIndirectScreenSize.zw;
+    float3 positionWS = ComputeWorldSpacePosition(uv, rawDepth, unity_MatrixInvVP);
+    half3 rawNormal = SsrIndirectUnpackNormal(gbuffer2.xyz);
+    // Pixels with no written GBuffer (e.g. forward-only geometry seen through the opaque prepass
+    // depth) have a zero normal; skip them so a normalize(0) never writes NaN into the target.
+    if (dot(rawNormal, rawNormal) < 1e-6h)
+    {
+        _GlxSsrSpecularRW[pixel] = float4(0.0, 0.0, 0.0, 0.0);
+        return;
+    }
+    half3 normalWS = normalize(rawNormal);
+    float3 viewDirWS = normalize(_SsrIndirectCameraPos.xyz - positionWS);
+    half3 reflectVector = reflect(-viewDirWS, normalWS);
+
+    half NoV = saturate(dot(normalWS, viewDirWS));
+    half fresnelTerm = Pow4(1.0 - NoV);
+
+    uint materialFlags = uint(gbuffer0.a * 255.0h + 0.5h);
+    half occlusion = gbuffer1.a;
+    BRDFData brdfData = SsrIndirectBRDFFromGbuffer(gbuffer0.rgb, gbuffer1.rgb, gbuffer2.a, materialFlags);
+
+    half mip = PerceptualRoughnessToMipmapLevel(brdfData.perceptualRoughness);
+    half4 encodedEnv = SAMPLE_TEXTURECUBE_LOD(_GlossyEnvironmentCubeMap, sampler_GlossyEnvironmentCubeMap, reflectVector, mip);
+    half3 environmentSpecular = DecodeHDREnvironment(encodedEnv, _GlossyEnvironmentCubeMap_HDR);
+
+    half4 ssr = LOAD_TEXTURE2D(_ScreenSpaceSsrTexture, pixel);
+    half weight = saturate(ssr.a * max(_SsrIndirectParams.x, 0.0h));
+    half3 indirectSpecular = lerp(environmentSpecular, max(ssr.rgb, half3(0.0, 0.0, 0.0)), weight);
+
+    half3 specular = indirectSpecular * EnvironmentBRDFSpecular(brdfData, fresnelTerm);
+    half3 result = specular * occlusion;
+    _GlxSsrSpecularRW[pixel] = float4(result, 1.0);
+}
