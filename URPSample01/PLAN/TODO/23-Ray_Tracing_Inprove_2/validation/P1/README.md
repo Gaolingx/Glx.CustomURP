@@ -77,6 +77,24 @@ contracts C2.7 同时冻结了材质能力边界：只承载标准 PBR 字段（
 
 **未提交 `frame.raw`**：与 P0 逐位相同（P0 本身也只提交 JSON），SHA 见各 `Player.json`。
 
+## B5-fix：固定颜色二分
+
+新增诊断模式（`SsrHitDeferred.compute` 的 `_SsrHitDebug`，捕获参数 `-p3-hit-debug`，写入 `Player.json.hitDebug`）：`0` 正常着色，`1` 无条件写洋红，`2` 回显记录头。
+
+**结果**：debug=1 与 debug=0 帧逐位相同（`96b9c197`），debug=2 也相同。由此定位：
+
+- **已排除**记录校验：debug=1 不做任何校验，仍无效果。
+- **已排除**权重为零：进入队列的请求 `requestShare > 0`，Temporal 的 `weight = min(1-ssShare, requestShare)` 必为正。
+- **已排除**槽位语义：`R1Sample.slot` 就是像素索引，raygen 与 Temporal 同源。
+- **已排除**内核缺失：无 `SsrHitDeferred.compute is missing` 告警；捕获帧 `temporalDispatches`/`hwMergeDispatches` 均为 1，说明整条混合链执行了。
+
+**现存嫌疑（按可能性排序）**：
+
+1. Unity 在 `DispatchRays` → `DispatchCompute` 之间没有自动 UAV 屏障；kernel 读到的是 `R2Clear` 之后的空 `_R2Surfaces`。
+2. raygen 与 kernel 都写同一个 `_R2Hits`；二者无序时 raygen 的 legacy radiance 覆盖了 kernel 的写入（正好等于 P0 帧）。
+
+**下一步**：RenderDoc 抓 D3D12 Player，确认 "SSR Hit Shading" dispatch 的绑定与写入后的 buffer 内容；再决定补显式屏障，还是改成单一写者（raygen 不写 hit，改由 kernel 全权发布）。
+
 ## 复跑
 
 ```powershell

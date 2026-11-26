@@ -37,6 +37,7 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
     int m_EvidenceTlasInstances = -1;
     uint[] m_EvidenceCounters;
     string m_EvidenceError;
+    int m_HitDebug;
 
     [Serializable]
     sealed class PlayerReport
@@ -75,6 +76,7 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         public int captureFramerate;
         public int warmupRenders;
         public int captureRender;
+        public int hitDebug;
         public int unityFrameAtCapture;
         public int firstUnityFrame;
         public string variantApplied;
@@ -163,6 +165,8 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         m_OutputRoot = Arg("-p3-output");
         m_Variant = Arg("-p3-variant") ?? "base";
         m_Run = Arg("-p3-run") ?? "run-01";
+        m_HitDebug = int.TryParse(Arg("-p3-hit-debug"), out var debugMode) ? debugMode : 0;
+        SetHitDebug(m_HitDebug);
         if (string.IsNullOrEmpty(m_OutputRoot))
         {
             Debug.LogError("SsrP3BaselineCapture: -p3-output is required.");
@@ -285,6 +289,18 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         }
     }
 
+    static void SetHitDebug(int mode)
+    {
+        try
+        {
+            var type = FindType("UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
+            type?.GetField("s_HitDebug", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)?.SetValue(null, mode);
+        }
+        catch (Exception)
+        {
+        }
+    }
+
     // The capture frame's R1 counters and TLAS size must be sampled by the pass itself: after
     // the frame the hybrid queue is detached, and reading inside the pass would race the
     // recorded commands. The pass requests an async readback on this frame only.
@@ -377,6 +393,7 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             captureFramerate = Time.captureFramerate,
             warmupRenders = warmupRenders,
             captureRender = m_RenderEnds,
+            hitDebug = m_HitDebug,
             unityFrameAtCapture = Time.frameCount,
             firstUnityFrame = m_FirstUnityFrame,
             variantApplied = m_Variant,

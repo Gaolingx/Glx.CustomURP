@@ -23,12 +23,31 @@ StructuredBuffer<SsrHitSurface> _R2Surfaces;
 RWStructuredBuffer<GlxPublishedHit> _R2Hits;
 uint _R2K;
 uint _SsrHitLightCount;
+// Diagnostics: 0 = shade, 1 = write a fixed colour, 2 = echo the record (version, source,
+// distance flag). Modes 1/2 bypass validation so the write path and the transport can be
+// bisected separately.
+uint _SsrHitDebug;
 
 [numthreads(64, 1, 1)]
 void SsrHitDeferred(uint3 id : SV_DispatchThreadID)
 {
     uint index = id.x;
     if (index >= min(_R1Counts[2], _R2K)) return;
+
+    if (_SsrHitDebug != 0u)
+    {
+        R1Sample probe = _R1Queue[index];
+        SsrHitSurface record = _R2Surfaces[index];
+        GlxPublishedHit debugHit;
+        debugHit.radiance = _SsrHitDebug == 1u
+            ? float3(2.0, 0.0, 2.0)
+            : float3(record.misc.z, record.misc.w, record.misc.x > 0.0 ? 1.0 : 0.0);
+        debugHit.hitT = 1.0;
+        debugHit.flags = SSR_HIT_FLAG;
+        debugHit.mode = 0;
+        _R2Hits[probe.slot] = debugHit;
+        return;
+    }
 
     SsrHitSurface s = _R2Surfaces[index];
     if (uint(s.misc.z + 0.5) != SsrHitSurfaceVersion) return; // keep the closest-hit radiance

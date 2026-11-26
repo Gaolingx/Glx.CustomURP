@@ -61,7 +61,7 @@
 | R1 计数器 | CLOSED | 捕获帧内异步回读：187225 / 179076 / 11952 / 167124 |
 | DXR dispatch 直接证据 | CLOSED | TLAS 14 实例、0 禁用子网格、121 次构建（`Player.json`） |
 | D3D11 回退基线 | CLOSED | 首次录制，三变体两进程逐位一致；tlas 0、R1 全 0 |
-| P1 验收（SS/RT 缝下降） | **OPEN** | 命中着色未生效：D3D12 帧与 P0 逐位相同 |
+| P1 验收（SS/RT 缝下降） | **OPEN** | 固定颜色二分：kernel 的 `_R2Hits` 写入未到达消费者；疑 UAV 时序/raygen 覆盖 |
 | P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
 | P1 hit GBuffer + 延迟着色核 | CLOSED | B3 核 + B4 开关/回退完成；B5 构建验证 + 证据 |
 

@@ -112,6 +112,10 @@ namespace UnityEngine.Rendering.Universal
             s_EvidenceRequested = false;
         }
 
+        // Diagnostic bisect: 0 shades, 1 writes a fixed colour, 2 echoes the record. Set by the
+        // capture player before rendering; it only affects the hit kernel.
+        internal static int s_HitDebug;
+
         // Verification snapshot: the player cannot see the editor-only counters above, so every
         // dispatched frame publishes the algorithm, sizes, groups, keywords and history slots it
         // actually used. One snapshot per camera/frame is enough; the player reads it after warmup.
@@ -463,6 +467,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
             cmd.SetComputeIntParam(cs, "_R2K", requestQueue.budget);
             cmd.SetComputeIntParam(cs, "_SsrHitLightCount", m_AdditionalLightCount);
+            cmd.SetComputeIntParam(cs, "_SsrHitDebug", s_HitDebug);
             // Shadow fade in ClusteredDeferred measures from this position.
             cmd.SetComputeVectorParam(cs, "_CdCameraPositionWS", m_CameraPositionWS);
             using (new ProfilingScope(cmd, s_HitDeferred))
