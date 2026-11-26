@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             Assert.AreEqual(ScreenSpaceReflectionAlgorithm.Approximation, m_Settings.usedAlgorithm.value);
             Assert.IsTrue(m_Settings.fullResolution.value);
+            Assert.IsTrue(m_Settings.denoise.value);
             Assert.AreEqual(8, m_Settings.denoiserRadius.value);
             Assert.AreEqual(1, m_Settings.denoiserRadius.min);
             Assert.AreEqual(32, m_Settings.denoiserRadius.max);

@@ -126,6 +126,14 @@ namespace UnityEngine.Rendering.Universal
         public ClampedFloatParameter biasFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
+        /// Runs the reflection denoiser: the temporal accumulation and the bilateral filter. Disable
+        /// it to inspect the raw per-frame trace/reproject/merge signal. Only used by the PBR
+        /// algorithm.
+        /// </summary>
+        [Tooltip("Runs the reflection denoiser. Disable to inspect the raw per-frame signal. PBR algorithm only.")]
+        public BoolParameter denoise = new BoolParameter(true);
+
+        /// <summary>
         /// Radius in pixels of the reflection denoiser bilateral filter. The half resolution path
         /// uses half of this value.
         /// </summary>

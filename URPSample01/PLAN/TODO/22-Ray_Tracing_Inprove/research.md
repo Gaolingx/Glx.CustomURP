@@ -78,6 +78,8 @@ HDRP 的 [ScreenSpaceReflection.cs:372](file:///E:/workspace/GitHub/HDRPSample01
 
 P0-2 和 P0-3 建议先做：前者直接减少你看到的空洞和 HW 依赖，后者堵住"开了没生效"这类误判。
 
+**P0 完成情况（2026-11-26）：** P0-2 已在 PBR 复投影中心 miss 时复用 `SsrFillMissedPixel`（同表面/法线/距离门槛不变；新单测同时验证同表面借色和深度台阶不借色）；P0-3 对 RR 开启但 volume 关闭/缺失或全分辨率的情况，每个 Game/Base 相机 episode 只告警一次；P0-4 新增 `rayLength`（默认 50，按相机远裁裁剪），R1 分类与 DXR 共用 `tMax`；P0-5 新增 PBR `denoise` 开关，关闭后 dispatch 只剩 trace/reproject/merge/upsample，重开时从冷历史开始。
+
 ### P1（需要一个小 plan，但仍在现有管线内）
 
 | # | 目标 | 改动点 | 风险 | 验收 |

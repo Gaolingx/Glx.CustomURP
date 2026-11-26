@@ -348,8 +348,12 @@ namespace UnityEngine.Rendering.Universal
                     pbr, halfResolution, debugParams);
             }
 
-            if (pbr)
+            // Skipping the denoiser means nothing writes the PBR history this frame, so a later
+            // re-enable must not sample the stale accumulation: drop it once, on the transition.
+            if (pbr && settings.denoise.value)
                 m_History.SwapSsrPbrBuffers();
+            else if (pbr && m_History.ssrPbrHasValidHistory)
+                m_History.ResetSsrPbrHistory();
 
             // Full resolution PBR writes the filtered result into its trace sized original texture.
             // Every half resolution path, and the full resolution Approximation path, leaves the
@@ -627,9 +631,14 @@ namespace UnityEngine.Rendering.Universal
 
             if (pbr)
             {
-                PushDenoiserShaderVariables(cmd, ref cameraData, denoiser, screenWidth, screenHeight, traceWidth, traceHeight, pbrHistoryValid);
-                DispatchReflectionDenoise(cmd, denoiser, settings, depthTexture, normalTexture, motionTexture,
-                    traceGroupsX, traceGroupsY, viewCount, pbrHistoryValid, halfResolution);
+                // Without the denoiser, ssrPbrOriginal keeps the raw reproject/merge signal and the
+                // upsample below reads it unchanged.
+                if (settings.denoise.value)
+                {
+                    PushDenoiserShaderVariables(cmd, ref cameraData, denoiser, screenWidth, screenHeight, traceWidth, traceHeight, pbrHistoryValid);
+                    DispatchReflectionDenoise(cmd, denoiser, settings, depthTexture, normalTexture, motionTexture,
+                        traceGroupsX, traceGroupsY, viewCount, pbrHistoryValid, halfResolution);
+                }
 
                 if (halfResolution)
                 {
