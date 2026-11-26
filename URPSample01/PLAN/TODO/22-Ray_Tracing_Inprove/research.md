@@ -74,6 +74,8 @@ HDRP 的 [ScreenSpaceReflection.cs:372](file:///E:/workspace/GitHub/HDRPSample01
 | P0-4 | **RT 射线长度参数化**：把 R1 的硬编码 `tMax = 50` 换成 volume 参数（对齐 HDRP `rayLength`），并按相机远裁裁剪 | [SsrRequestQueue.hlsl:26](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/SsrRequestQueue.hlsl#L26)、[ScreenSpaceReflection.cs](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceReflection.cs)、SsrPass 上传 | 低 | 改参数后 R1Sample.tMax 与 DXR TMax 一致（测试断言） |
 | P0-5 | **`denoise` 开关**（PBR）：关掉 temporal+bilateral 直接看原始信号，便于 A/B 与定位"是采样问题还是降噪问题" | [SsrPass.cs:595](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs#L595) + Volume 参数 | 低 | 关闭后 dispatch 只剩 trace/reproject/merge/upsample（FD 计数断言） |
 
+**P0-1 落地（2026-11-26）：保留 `R1Quota` 的 floor。** ceil 在 K 不能被 tiles 整除时会超出 `_R1K`，`R1Scatter` 的预算裁剪会丢掉轮转顺序尾部的整块 tile（1080p 半分辨率 K=32768 时每帧约 20% tile 没有服务），与“每个 tile 每帧都能看到 K”的公平性目标冲突。红测试的期望生成器按窗口顺序、每 tile 8 条建模，和 `R1Rank`（lane 顺序取前 quota 条）不一致；改为镜像实现后 4 个用例转绿，调度与收敛周期（16 帧）不变。
+
 P0-2 和 P0-3 建议先做：前者直接减少你看到的空洞和 HW 依赖，后者堵住"开了没生效"这类误判。
 
 ### P1（需要一个小 plan，但仍在现有管线内）

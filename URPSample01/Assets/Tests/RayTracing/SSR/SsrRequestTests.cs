@@ -88,10 +88,14 @@ namespace UnityEditor.Rendering.Universal.Tests
                         Assert.AreEqual(reason==2?0:reason==6?.648f:fade,s.request,.0001f);
                     }
                 }
-                for(int j=0;j<6;j++) {
-                    int t=(frame+j)%6,n=0;
-                    for(int l=0;l<64 && n<8 && expected.Count<k;l++) {
-                        int lane=(l+frame%6+frame/6+t*17)%64,x=t%3*8+lane%8,y=t/3*8+lane/8;
+                // R1Rank permutes the pixel each lane inspects and R1Scatter writes the first quota
+                // wanted lanes in lane order, tile by tile in the rotating tile order. Mirror both so
+                // the expected queue is the queue the kernels actually build.
+                int tiles=((w+7)/8)*((h+7)/8),quota=Mathf.Max(1,k/tiles);
+                for(int j=0;j<tiles;j++) {
+                    int t=(frame+j)%tiles,n=0;
+                    for(int lane=0;lane<64 && n<quota && expected.Count<k;lane++) {
+                        int order=(lane+quota*frame+t*17)%64,x=t%3*8+order%8,y=t/3*8+order/8;
                         if(empty || x>=w || y>=h || x<2 || (history && x==2)) continue;
                         expected.Add(y*w+x); n++;
                     }
