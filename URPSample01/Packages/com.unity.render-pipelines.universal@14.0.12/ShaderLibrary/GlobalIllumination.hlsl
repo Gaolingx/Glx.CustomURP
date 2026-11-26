@@ -411,6 +411,21 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 }
 #endif
 
+// P3 receiver reroute: the deferred GBuffer fragment keeps only the indirect-diffuse term
+// (diffuse GI/SSGI and its environment share) and leaves indirect specular to the SsrIndirectSpecular
+// composite that runs after the GBuffer pass. The specular term is reproduced there from the same
+// GBuffer, with EnvironmentBRDFSpecular applied once, so the environment reflection is not sampled
+// twice and the material keeps a single BRDF evaluation.
+half3 GlobalIlluminationDeferredDiffuse(BRDFData brdfData, half3 bakedGI, half occlusion,
+    float3 positionWS, half3 normalWS, half3 viewDirectionWS, float2 normalizedScreenSpaceUV)
+{
+    half3 indirectDiffuse = ScreenSpaceLightingApplyIndirectDiffuse(bakedGI, positionWS, normalWS, normalizedScreenSpaceUV);
+    half NoV = saturate(dot(normalWS, viewDirectionWS));
+    half fresnelTerm = Pow4(1.0 - NoV);
+    half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, half3(0.0, 0.0, 0.0), fresnelTerm);
+    return color * occlusion;
+}
+
 // Backwards compatiblity
 half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, float3 positionWS, half3 normalWS, half3 viewDirectionWS)
 {

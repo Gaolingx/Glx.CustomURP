@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.Universal
             m_TransparentDepthNormalsPass.Setup(history, m_Settings.resources);
             m_TransparentSsrPass.Setup(history, m_Settings.resources, m_TransparentDepthNormalsPass);
             m_RefractionPass.Setup(history);
-            m_SetupPass.Setup(m_SsgiPass, m_SsrPass);
+            m_SetupPass.Setup(m_SsgiPass, m_SsrPass, m_Settings.ssrAfterGbuffer);
             m_CurrentColorPyramidPass.Setup(history, m_Settings.resources);
             m_ColorHistoryCapturePass.Setup(history, m_Settings.resources);
             m_DebugPass.Setup(history, m_Settings, m_SsgiPass, m_SsrPass,

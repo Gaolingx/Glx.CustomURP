@@ -217,11 +217,24 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    // The full overload consumes the Screen Space Lighting plugin output before the GBuffer is
-    // written, so deferred shading receives the same indirect diffuse as the forward path.
+    // P3: with opaque SSR after the GBuffer pass the deferred receiver writes only indirect diffuse
+    // here; indirect specular is composited by SsrIndirectSpecular (225) and added by the deferred
+    // light kernel, so the environment reflection is sampled exactly once. The rollback path keeps
+    // the original full GlobalIllumination (indirect diffuse + specular) unchanged.
     const BRDFData noClearCoat = (BRDFData)0;
-    half3 color = GlobalIllumination(brdfData, noClearCoat, 0.0, inputData.bakedGI, surfaceData.occlusion,
-        inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
+    half3 color;
+    if (_GlxSsrAfterGbuffer > 0.5h)
+    {
+        color = GlobalIlluminationDeferredDiffuse(brdfData, inputData.bakedGI, surfaceData.occlusion,
+            inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
+    }
+    else
+    {
+        // The full overload consumes the Screen Space Lighting plugin output before the GBuffer is
+        // written, so deferred shading receives the same indirect diffuse as the forward path.
+        color = GlobalIllumination(brdfData, noClearCoat, 0.0, inputData.bakedGI, surfaceData.occlusion,
+            inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
+    }
 
     return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
 }

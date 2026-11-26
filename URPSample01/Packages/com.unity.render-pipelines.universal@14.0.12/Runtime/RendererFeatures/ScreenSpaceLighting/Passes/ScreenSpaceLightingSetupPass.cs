@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingSsrPass m_SsrPass;
         RayTracingProbeFallback m_ProbeFallback;
         float m_ProbeCoverage;
+        bool m_SsrAfterGbuffer;
 
 #if UNITY_EDITOR
         // Editor-only evidence hook: verification code reads this counter to prove the pass ran and
@@ -30,10 +31,11 @@ namespace UnityEngine.Rendering.Universal
             ConfigureInput(ScriptableRenderPassInput.None);
         }
 
-        internal void Setup(ScreenSpaceLightingSsgiPass ssgiPass, ScreenSpaceLightingSsrPass ssrPass)
+        internal void Setup(ScreenSpaceLightingSsgiPass ssgiPass, ScreenSpaceLightingSsrPass ssrPass, bool ssrAfterGbuffer)
         {
             m_SsgiPass = ssgiPass;
             m_SsrPass = ssrPass;
+            m_SsrAfterGbuffer = ssrAfterGbuffer;
         }
 
         internal void SetProbeFallback(RayTracingProbeFallback probe, float coverage)
@@ -50,6 +52,10 @@ namespace UnityEngine.Rendering.Universal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
+                // P3: publish the receiver switch before the GBuffer pass so the deferred Lit
+                // fragment keeps only indirect diffuse. 0 on the rollback path keeps GBuffer3 as P1.
+                cmd.SetGlobalFloat(ScreenSpaceLightingShaderIDs.GlxSsrAfterGbuffer, m_SsrAfterGbuffer ? 1f : 0f);
+
                 var stack = VolumeManager.instance.stack;
                 var settings = stack != null ? stack.GetComponent<ScreenSpaceGlobalIllumination>() : null;
                 bool ssgiActive = settings != null && settings.enabled.value;

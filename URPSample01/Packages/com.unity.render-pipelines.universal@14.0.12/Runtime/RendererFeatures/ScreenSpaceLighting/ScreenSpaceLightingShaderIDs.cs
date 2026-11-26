@@ -160,6 +160,10 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int ScreenSpaceReflectionParams = Shader.PropertyToID("_ScreenSpaceSsrParams");
         internal static readonly string ScreenSpaceReflectionKeyword = "_SCREEN_SPACE_SSR";
 
+        // P3: tells the deferred Lit GBuffer fragment to skip the indirect-specular term. Set before
+        // the GBuffer pass; 0 on the rollback path keeps the P1 GBuffer output.
+        internal static readonly int GlxSsrAfterGbuffer = Shader.PropertyToID("_GlxSsrAfterGbuffer");
+
         internal static readonly string SsrNormalsOctKeyword = "SSR_NORMALS_OCT";
         internal static readonly string SsrApproxKeyword = "SSR_APPROX";
         internal static readonly string SsrHalfResKeyword = "SSR_HALF_RES";
