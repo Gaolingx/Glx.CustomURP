@@ -375,7 +375,10 @@ namespace UnityEngine.Rendering.Universal
             };
             var texture = new RenderTexture(descriptor)
             {
-                name = "G2 probe atlas", filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp
+                name = "G2 probe atlas", filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp,
+                // Only managed code holds the atlas, so an unused-asset unload (e.g. building while in
+                // Play Mode) would destroy it underneath the producer.
+                hideFlags = HideFlags.HideAndDontSave
             };
             texture.Create();
             return texture;
