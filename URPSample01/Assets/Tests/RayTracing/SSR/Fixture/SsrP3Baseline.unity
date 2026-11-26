@@ -362,57 +362,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_InstanceId: 2
   m_EnableTriangleCulling: 1
---- !u!1 &186253296
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 186253298}
-  - component: {fileID: 186253297}
-  m_Layer: 0
-  m_Name: P3 Baseline Capture
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &186253297
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 186253296}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 310e71241a13de446a71dd6784b6c5c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pipeline: {fileID: 11400000, guid: d5d668febb7e9af4c86d926a5c6a257e, type: 2}
-  captureCamera: {fileID: 235214496}
-  captureVolume: {fileID: 1656951766}
-  width: 1920
-  height: 1080
-  warmupRenders: 120
-  captureRender: 121
---- !u!4 &186253298
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 186253296}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &204278429
 GameObject:
   m_ObjectHideFlags: 0
@@ -1953,6 +1902,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1661191913
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1661191915}
+  - component: {fileID: 1661191914}
+  m_Layer: 0
+  m_Name: P3 Baseline Capture
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1661191914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1661191913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 310e71241a13de446a71dd6784b6c5c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pipeline: {fileID: 11400000, guid: d80b4847a6a34c34fb27b5cdaf148327, type: 2}
+  captureCamera: {fileID: 235214496}
+  captureVolume: {fileID: 1656951766}
+  width: 1920
+  height: 1080
+  warmupRenders: 120
+  captureRender: 121
+--- !u!4 &1661191915
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1661191913}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1880339286
 GameObject:
   m_ObjectHideFlags: 0
@@ -2336,4 +2336,4 @@ SceneRoots:
   - {fileID: 857885830}
   - {fileID: 938228431}
   - {fileID: 1656951767}
-  - {fileID: 186253298}
+  - {fileID: 1661191915}
