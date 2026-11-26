@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** P0 完成（D3D12 基线已冻结），等待 owner 决定是否开 P1
+**当前阶段：** A 决策已锁定（阴影 `SHADOW_LOW`；材质无 per-material 回退）；下一轮 B1（契约先行）
 
 ## 已完成
 
@@ -16,6 +16,13 @@
 | Player 捕获器 | [SsrP3BaselineCapture.cs](../../../Assets/Tests/ScreenSpaceLighting/Runtime/SsrP3BaselineCapture.cs) | 完成 |
 | Fixture 资产 | `Assets/Tests/RayTracing/SSR/Fixture/` | 已生成 |
 | D3D12 基线 | [validation/P0](validation/P0/README.md) | 已捕获，三变体两进程逐位一致 |
+| A 决策锁定 | [plan.md](plan.md) §2 | 完成（2026-11-27） |
+
+## 已锁定决策（2026-11-27）
+
+1. **阴影**：接受 HDRP 同款 `SHADOW_LOW`。hit 着色单 tap 阴影图比较，不做 PCF/Poisson/dither；与光栅的质量差计入 P2 容差，不作为缺陷追。
+2. **材质**：只支持标准 PBR 字段；SSS/transmission/anisotropy 不提供、不设 per-material 回退，注册期报错并跳过，命中按 miss（probe/sky）。禁止第二条着色路径（含 closest-hit 近似）。写入 contracts C2.7（B1 落地）。
+3. 未定项时间点：GBuffer 8bit/16F → P2 A/B；P3 一帧跳变、历史捕获时机 → P3 开工前。
 
 ## 关键结论（P0 实测）
 
@@ -42,6 +49,8 @@
 | R1 计数器 | OPEN | Player 还没有 requested/served/overflow 快照；P1 补 |
 | DXR dispatch 直接证据 | OPEN | 目前只有 `hwMergeDispatches=1` + fixture 设置；P1 补 R1 计数/TLAS 证据 |
 | D3D11 回退基线 | OPEN | Player 同时带 D3D11；去掉 `-force-d3d12` 即可补录，P3 前完成 |
+| P1 契约（C2.7 + `SsrHitSurface`） | OPEN | B1：改 contracts C2/C8 与 tripwire，24B payload 不动 |
+| P1 hit GBuffer + 延迟着色核 | OPEN | B2–B4：写 GB0–GB3+distance、`SsrHitDeferred`、开关与回退 |
 
 ## 如何跑
 

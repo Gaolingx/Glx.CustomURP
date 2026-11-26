@@ -1,6 +1,6 @@
 # 23 实施计划：SS 命中 / RT 命中统一着色（P3 = HDRP Mixed 语义）
 
-**状态：** P0 完成（基线 `2a38d40`，契约已冻结）；P1 需先确认 §2 决策
+**状态：** P0 完成（基线 `2a38d40`，契约已冻结）；A 决策已锁定（§2），P1 待开工
 **日期：** 2026-11-26
 **目标提交：** `350d18c` 之后
 **契约：** [contracts.md](contracts.md)（P0 冻结，P1–P3 按版本位放宽）
@@ -17,7 +17,7 @@
 
 - 二值可见性毛刺（coverage 软化、射线锥 mip、命中点时间累积）——单独排期。
 - multi-bounce、quality 模式、N spp、async compute、APV。
-- decal、light layer、SSS/transmission、光追阴影进入反射射线。
+- decal、light layer、SSS/transmission/anisotropy、光追阴影进入反射射线。
 - 修改 Approx 算法与透明 SSR 的现有语义。
 
 ## 1. 阶段划分
@@ -48,7 +48,7 @@
 | 着色核 | 新增 `SsrHitDeferred.compute`：解码 hit 表面 → `CdShade` 同一套 BRDF/主光/附加光/阴影 |
 | 灯与阴影 | 过渡方案：现有 64 灯表全量遍历（去掉 top-4 截断）+ shadow atlas 采样；不做世界 cluster |
 | 环境光 | diffuse + specular probe/sky（补 `GlxProbeSampling`） |
-| 回退 | 无 GBuffer 支持的材质回退到现 closest-hit 着色；D3D11 完整回退现路径 |
+| 回退 | 只做整条路径级回退：feature 关闭或 D3D11 时回到现 closest-hit；无法提供标准 GBuffer 字段的材质按 C2.7 在注册期拒绝并跳过，不设 per-material closest-hit 回退 |
 
 **验收：** 同场景 base 帧的 SS/RT 边界亮度差（ROI）显著下降；无 NaN/全黑；D3D11 不回归；性能增量 ≤ 0.3ms（RT 单元未饱和，见 [SSR光追非瓶颈实测结论]）。
 
@@ -57,7 +57,7 @@
 | 内容 | 说明 |
 |---|---|
 | 世界 cluster | 64×64×32 等价物，按 hit 世界坐标查询；与 ClusteredDeferred 的屏幕 tile cluster 并存 |
-| 材质矩阵 | Lit/Layered/Terrain/Unlit 支持；SSS/transmission/anisotropy 显式回退 |
+| 材质矩阵 | Lit/Layered/Terrain/Unlit 支持；SSS/transmission/anisotropy/iridescence 不支持（C2.7，注册期拒绝并跳过），不进入回退矩阵 |
 | 计数器 | Player 可见的 R1 requested/served/overflow/hit/miss + 每命中灯数/阴影射线条数 |
 | 精度 | 8bit vs 16F GBuffer 的带宽/质量 A/B |
 
@@ -82,13 +82,15 @@
 5. 性能：整帧增量 ≤ +0.5ms，SSR 链增量 ≤ +0.4ms；GPU 时间与 P0 对比记录。
 6. 证据：双 API、两进程、原始线性帧 + 哈希 + 计数器 + 设置恢复。
 
-## 2. 关键决策点（owner 确认后才能进 P1/P3）
+## 2. 关键决策点
 
-1. 阴影口径：接受 HDRP 同款 `SHADOW_LOW`（快、无屏幕空间 dither），还是要求全质量（成本显著上升）？
-2. 材质范围：SSS/transmission/anisotropy 是否统一回退到现 closest-hit 着色？
-3. GBuffer 精度：沿用 8bit（HDRP 同款）还是 16F？
-4. P3 是否接受"运动场景一帧亮度跳变"这一已知代价（SS 命中从时间延迟变为当前帧）？
-5. 是否允许 P3 改变 SSR 的历史捕获时机（会影响透明 SSR 与 Editor 运动验证）？
+| # | 决策 | 状态 |
+|---|---|---|
+| 1 | 阴影口径 | **已定（2026-11-27）**：接受 HDRP 同款 `SHADOW_LOW`——hit 着色只做单 tap 阴影图比较，不做 PCF/Poisson/屏幕空间 dither；与光栅路径的阴影质量差计入 P2 对照容差，不追求消除。 |
+| 2 | 材质范围 | **已定（2026-11-27）**：本管线不提供 SSS/transmission/anisotropy，也不设 per-material 回退。只承载标准 PBR 字段（baseColor、specularOcclusion、normal、perceptualRoughness、fresnel0、coatMask、emissive+baked、distance、surfaceType）。无法提供这些字段的材质在注册期报错并跳过，命中按 miss 处理（probe/sky）；不得以第二条着色路径（含 closest-hit 近似）承接。写入 contracts C2.7。 |
+| 3 | GBuffer 精度 | 推迟到 P2：8bit（HDRP 同款）与 16F 做带宽/质量 A/B 后再定。 |
+| 4 | P3 一帧亮度跳变 | 推迟到 P3 开工前：先量测，再决定是否作为已知代价接受。 |
+| 5 | P3 历史捕获时机 | 推迟到 P3 开工前：与透明 SSR 一起评估。 |
 
 ## 3. 证据与命名
 
