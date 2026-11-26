@@ -38,6 +38,7 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
     uint[] m_EvidenceCounters;
     string m_EvidenceError;
     int m_HitDebug;
+    float m_HitAmbientScale;
 
     [Serializable]
     sealed class PlayerReport
@@ -77,6 +78,7 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         public int warmupRenders;
         public int captureRender;
         public int hitDebug;
+        public float hitAmbientScale;
         public int unityFrameAtCapture;
         public int firstUnityFrame;
         public string variantApplied;
@@ -175,12 +177,14 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         m_Variant = Arg("-p3-variant") ?? "base";
         m_Run = Arg("-p3-run") ?? "run-01";
         m_HitDebug = int.TryParse(Arg("-p3-hit-debug"), out var debugMode) ? debugMode : 0;
+        m_HitAmbientScale = float.TryParse(Arg("-p3-hit-ambient"), NumberStyles.Float, CultureInfo.InvariantCulture, out var ambientScale) ? ambientScale : 1f;
         if (int.TryParse(Arg("-p3-warmup"), out var warmupOverride) && warmupOverride > 0)
         {
             warmupRenders = warmupOverride;
             captureRender = warmupOverride + 1;
         }
         SetHitDebug(m_HitDebug);
+        SetHitAmbientScale(m_HitAmbientScale);
         if (string.IsNullOrEmpty(m_OutputRoot))
         {
             Debug.LogError("SsrP3BaselineCapture: -p3-output is required.");
@@ -315,6 +319,18 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         }
     }
 
+    static void SetHitAmbientScale(float scale)
+    {
+        try
+        {
+            var type = FindType("UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
+            type?.GetField("s_HitAmbientScale", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)?.SetValue(null, scale);
+        }
+        catch (Exception)
+        {
+        }
+    }
+
     // The capture frame's R1 counters and TLAS size must be sampled by the pass itself: after
     // the frame the hybrid queue is detached, and reading inside the pass would race the
     // recorded commands. The pass requests an async readback on this frame only.
@@ -408,6 +424,7 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             warmupRenders = warmupRenders,
             captureRender = m_RenderEnds,
             hitDebug = m_HitDebug,
+            hitAmbientScale = m_HitAmbientScale,
             unityFrameAtCapture = Time.frameCount,
             firstUnityFrame = m_FirstUnityFrame,
             variantApplied = m_Variant,

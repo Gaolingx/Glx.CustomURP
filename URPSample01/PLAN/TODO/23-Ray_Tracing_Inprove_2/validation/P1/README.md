@@ -1,6 +1,6 @@
 # P1 证据
 
-**状态：** B1–B5 完成；B5-fix 的二分方向已纠正，B5-fix2 用 RenderDoc 定位并修复了"命中着色不生效"的根因（kernel 现在真实执行）。P1 验收指标（SS/RT 边界亮度差、性能）仍 OPEN，见 B6。
+**状态：** B1–B5 完成；B5-fix2 用 RenderDoc 定位并修复了"命中着色不生效"的根因（kernel 现在真实执行，`b1e0a889`）。B6 补齐环境光、量出 SS/RT 边界亮度差：**缝指标未显著下降（NOT MET）**，执行/一致性/D3D11 回归通过；性能门禁仍 OPEN。
 **基线：** P0 D3D12 基线继续有效；`_R2Hits`、R1/R2 布局、Pass 顺序与注入点均未改。
 
 ## B1：C2.7 hit 表面记录
@@ -104,11 +104,42 @@ contracts C2.7 同时冻结了材质能力边界：只承载标准 PBR 字段（
 - D3D11 base `7fb3e01b` 与 P0 逐位一致；无 NaN；无 "not set" 告警。
 - 细节与复现见 [RenderDoc/README.md](RenderDoc/README.md) / [CaptureAnalysis.json](RenderDoc/CaptureAnalysis.json)。两张 `.rdc` 只保留在本地（未提交，`CaptureAnalysis.json` 记录了文件名/尺寸/SHA256）。
 
-**仍 OPEN（B6 起）**：
+## B6：环境光/阴影补齐 + SS/RT 边界度量
 
-1. P1 验收的 SS/RT 边界亮度差尚未计算；服务掩码可从洋红抓帧恢复（11,950 个 trace 槽位）。
-2. hit kernel 当前没有环境光与阴影：`_GlxHitAmbientIrradiance` 未设置（0），compute 的 `_MAIN_LIGHT_SHADOWS` / `_ADDITIONAL_LIGHT_SHADOWS` 关键字从未启用（走默认变体）；A 决策要求单 tap `SHADOW_LOW`。
-3. 探针回退开启时（P2）需绑定真实图集并把 `_GlxHitLowFrequencySource` 置 1。
+**阴影**：不是缺失。CS 反汇编（抓帧 EID 1416）里 `dcl_sampler s0, mode_comparison` 与 4 张纹理（探针 irr/dist + main/additional shadowmap）说明 `_MAIN_LIGHT_SHADOWS_CASCADE` / `_ADDITIONAL_LIGHT_SHADOWS` 由阴影投射 pass 的全局关键字继承进来了，单 tap 图集采样已生效。
+
+**环境光**：确实缺失。`_GlxHitAmbientIrradiance` 在全仓库没有任何写入点，命中与 closest-hit 都以 0 环境光着色。现在 `SsrPass.Execute` 每相机计算 `RenderSettings.ambientProbe` 的六方向球面平均，按 `SH * π` 作为辐照度写入 `_GlxHitAmbientIrradiance`（`GlxHitLowFrequencyIrradiance` 会在 kernel 里再除 π），并只在 hybrid 队列存在时写入，D3D11 帧保持逐位一致。`-p3-hit-ambient` 是标定倍率（默认 1），`Player.json.hitAmbientScale` 记录使用值。
+
+注意：本 fixture 的环境光探针接近 0（倍率 0→2 只让整帧 lumaMean 从 `0.26545300` 动到 `0.26545377`），所以环境光在这份场景里是惰性的；它服务的是有环境光的场景。
+
+**指标**（[seam_metric.py](seam_metric.py)，数据 [seam/seam_ssrt.json](seam/seam_ssrt.json) / [seam/seam_nodenoise.json](seam/seam_nodenoise.json)）：从抓帧导出 `_R1Original` 与 `_R2Hits`——
+
+- `reason == 2`（ssShare≈1）= SS 解析区：8,146 个 trace 槽位；
+- `reason == 4/6`（requestShare>0）= RT 域：179,079 个；本帧实际服务 11,950 个；
+- trace 半分辨率 → 每槽位对应 2×2 全分辨率块；ROI 内 SS↔RT 相邻块共 560 对，取块均值的线性亮度差；"outer"（RT 块向外再一格）是同场景局部梯度对照。
+
+| 帧（base，denoise 开） | RT 区均值 | SS 区均值 | 边界 step mean | median | p95 | outer 对照 |
+|---|---|---|---|---|---|---|
+| P0（closest-hit） | 0.138984 | 0.113498 | 0.011384 | 0.002412 | 0.056947 | 0.006931 |
+| P1（hit kernel + 环境光） | 0.138989 | 0.113504 | 0.011382 | 0.002412 | 0.056947 | 0.006955 |
+| P1（hit kernel，环境光 0） | 0.138987 | 0.113502 | 0.011383 | 0.002412 | 0.056947 | 0.006935 |
+| 洋红对照（debug=1） | 0.136857 | 0.111645 | 0.012774 | 0.003168 | 0.059310 | 0.007054 |
+
+`nodenoise` A/B：边界 step mean 0.012394 → 0.013947（+12.5%），median 0.002332 → 0.002346（+0.6%）；两帧的 outer 对照都是约 0.0137。
+
+**判读**：
+
+1. 指标对 RT 着色是敏感的（洋红对照把 mean 拉高 12%），所以 P1 的 -0.02% 是"真的没变"，不是"测不出来"。
+2. P0 的 SS/RT 边界 step 已是局部梯度的约 1.65 倍（0.0114 vs 0.0069；outer 对照只有 7 对，只能作方向参考），P1 后仍是 1.63 倍——残余缝主要来自历史/内容与 denoiser，不是着色器差异。
+3. 旧 closest-hit 路径本来就用**真实阴影射线 + top-4 灯 + 自有 BRDF**（`GlxHitLights.hlsl`），与新的**单 tap 阴影图 + 全量灯 + CdShade**在这份场景里结果非常接近（整帧 ROI meanAbs 1.4e-6）。`nodenoise` 下的 +12.5% 正好对应 A 决策接受的阴影口径差（低质量单 tap 阴影计入 P2 容差）。
+
+**结论：P1 的"缝显著下降"验收在本 fixture 上未达成（NOT MET）**；命中核执行、与光栅路径的近似一致（1e-6 级）、无 NaN、D3D11 逐位一致均已验证。要在缝上看到显著收益，需要一份能让两条路径真正分叉的测例（金属/粗糙命中面、多盏附加灯、阴影中的命中），这会要求新基线。
+
+## 其他 OPEN
+
+1. 性能增量（≤0.3 ms）尚未测量；需要 Player 内 FrameTimingManager 或带 GPU counter 的抓帧。
+2. 探针回退开启时（P2）需绑定真实图集并把 `_GlxHitLowFrequencySource` 置 1，环境光改走 probe/sky。
+3. D3D11 逐位基线在"重建后第一次运行"出现过一次 ULP 级离群（max 2.4e-4、mean 2e-9，SHA `484aafb6`）；随后 4/4 次都回到 `7fb3e01b`。证据录制应避开构建后的首次运行，或至少重复两次。
 
 ## 复跑
 
@@ -124,3 +155,14 @@ $P = "E:\GitHub\Glx.CustomURP\URPSample01"
 `-runTests` 不能与 `-quit` 同用：加了 `-quit` 会在资源导入后直接退出，不执行测试、不产出 XML。
 
 `SsrRayPayload_CompilesToTheFrozen64ByteSize` 需要能编译光追的 Editor API：默认 D3D11 下会显式 `Ignore`，要用 `-force-d3d12` 才能得到实测 64B 的结果（第二个 XML 即该跑法）。
+
+SS/RT 边界度量（先用 renderdoc-mcp 在 `SSR Hit Shading` dispatch 处 `goto_event`，导出 `_R1Original`（41,472,000 B）与 debug=1 的 `_R2Hits`（12,441,600 B））：
+
+```powershell
+python "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P1\seam_metric.py" `
+  --originals <_R1Original.bin> --hits <_R2Hits.bin> `
+  --frame p0=<P0 base frame.raw> --frame p1=<P1 frame.raw> `
+  --out "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P1\seam\seam_ssrt.json"
+```
+
+`frame.raw` 不入库（`.gitignore`），`seam/evidence/*.json` 记录了每次运行的关键字段与 SHA。

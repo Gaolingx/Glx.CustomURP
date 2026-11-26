@@ -59,6 +59,15 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_HitDeferredKernel = -1;
         internal static bool s_HitDeferredSettings;
         internal static bool s_HitDeferredComputeBound;
+        // P1 calibration knob for the omnidirectional ambient stand-in (Player harness
+        // -p3-hit-ambient). 1 = the physical SH average; 0 reproduces the pre-ambient frame.
+        internal static float s_HitAmbientScale = 1f;
+        static readonly int s_HitAmbientIrradiance = Shader.PropertyToID("_GlxHitAmbientIrradiance");
+        static readonly Vector3[] s_AmbientDirections =
+        {
+            Vector3.up, Vector3.down, Vector3.left, Vector3.right, Vector3.forward, Vector3.back
+        };
+        static readonly Color[] s_AmbientColors = new Color[6];
         // The screen-space march used to run inside the pass sampler with no marker of its own, so
         // GPU captures attributed its time to nothing.
         static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSR Trace");
@@ -74,6 +83,28 @@ namespace UnityEngine.Rendering.Universal
             requestQueue = queue;
             m_Scene = scene;
             m_Snapshot = snapshot;
+        }
+
+        // See the call site: the hit kernel's ambient term reads one irradiance value, so publish
+        // the SH average as irradiance (SH * PI) once per camera. Only the hardware path consumes
+        // it; without a queue (D3D11 or a screen-space-only camera) nothing is written, which keeps
+        // those frames bit-identical.
+        void PushHitAmbient(CommandBuffer cmd)
+        {
+            if (requestQueue == null)
+                return;
+            if (s_HitAmbientScale <= 0f)
+            {
+                cmd.SetGlobalVector(s_HitAmbientIrradiance, Vector4.zero);
+                return;
+            }
+            RenderSettings.ambientProbe.Evaluate(s_AmbientDirections, s_AmbientColors);
+            var sum = Vector3.zero;
+            for (var i = 0; i < s_AmbientColors.Length; i++)
+                sum += new Vector3(s_AmbientColors[i].r, s_AmbientColors[i].g, s_AmbientColors[i].b);
+            var average = sum / s_AmbientColors.Length;
+            cmd.SetGlobalVector(s_HitAmbientIrradiance,
+                new Vector4(average.x, average.y, average.z, 1f) * (Mathf.PI * s_HitAmbientScale));
         }
         RTHandle m_OutputTexture;
         bool m_ProducedOutput;
@@ -357,6 +388,12 @@ namespace UnityEngine.Rendering.Universal
                 m_History.ResetSsrHwHistory();
 
             var cmd = renderingData.commandBuffer;
+            // P1 ambient: GlxHitLowFrequencyIrradiance reads _GlxHitAmbientIrradiance, which nothing
+            // published, so reflection hits were shaded without the ambient the raster path has.
+            // SampleSH returns the clamped-cosine convolution already divided by PI; the hit kernel
+            // divides by PI again, so feed it the irradiance (SH * PI). One omnidirectional value is
+            // the P1 low-frequency stand-in; P2 replaces it with the probe/sky hierarchy.
+            PushHitAmbient(cmd);
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
                 if (cold)

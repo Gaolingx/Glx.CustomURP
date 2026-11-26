@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** B5-fix2 完成——RenderDoc 定位到命中着色从未在 GPU 上派发（未绑定探针图集导致 Unity 丢弃 compute dispatch），已修复；kernel 现在真实执行。P1 验收指标（缝、性能）待 B6。
+**当前阶段：** B6 完成——命中核执行已被 RenderDoc 证实，环境光/阴影补齐，SS/RT 边界度量落地。**缝指标未显著下降（0.011384 → 0.011382，NOT MET）**；执行、无 NaN、D3D11 逐位一致通过；性能门禁仍 OPEN。
 
 ## 已完成
 
@@ -60,6 +60,18 @@
 - 修复后：D3D12 base `96b9c197` → `2f713f17`（两次一致）；debug=1 `7cbbe4a5`；抓帧里 `SSR Hit Shading` 出现 dispatch（1416），`_R2Hits` 洋红 11,950 条；D3D11 `7fb3e01b` 不变；无 NaN、无 "not set" 告警。
 - 仍 OPEN：缝指标与性能（B6）；hit kernel 的环境光 `_GlxHitAmbientIrradiance` 与阴影关键字尚未接上。
 
+## B6 关键结论（验收度量）
+
+- 阴影并非缺失：CS 反汇编确认 comparison sampler + main/additional shadowmap 已绑定（关键字由阴影 pass 的全局状态继承）。
+- 环境光确实缺失：`_GlxHitAmbientIrradiance` 原无写入点。现按 `RenderSettings.ambientProbe` 六方向平均 ×π 写入，仅 hybrid 队列存在时写（D3D11 保持 `7fb3e01b`）。本 fixture 环境光≈0，故在此场景惰性。
+- 指标（`validation/P1/seam_metric.py`）：`_R1Original.reason==2` 为 SS 区（8,146 槽位），`reason==4/6` 为 RT 域（179,079），ROI 内 SS↔RT 相邻 560 对，2×2 块亮度差。
+  - base：0.011384（P0）→ 0.011382（P1），median 不变；洋红对照 0.012774（指标敏感）。
+  - nodenoise：0.012394 → 0.013947（+12.5%），median +0.6%，与局部梯度对照（≈0.0137）齐平。
+  - 整帧 ROI P0→P1 meanAbs 1.4e-6。
+- 判读：旧 closest-hit 本就用真实阴影射线 + top-4 灯 + 自有 BRDF，与单 tap 阴影图 + 全量灯 + CdShade 在本场景高度一致；残余缝由历史/内容/denoiser 主导。`nodenoise` 的 +12.5% 属 A 决策接受的阴影口径差。
+- 回归：D3D12 base `b1e0a889`（两次一致，无 NaN）；D3D11 `7fb3e01b`（重建后首次运行出现过一次 ULP 离群 `484aafb6`，随后 4/4 复现基线）。
+- 结论：**P1 缝验收 NOT MET**。要继续要一份能区分两条路径的测例（金属/粗糙命中面、多附加灯、阴影中的命中）或由 owner 按"执行+一致性"签收。性能 ≤0.3 ms 仍 OPEN。
+
 ## 未完成 / 门禁
 
 | Gate | 状态 | 说明 |
@@ -71,7 +83,8 @@
 | R1 计数器 | CLOSED | 捕获帧内异步回读：187225 / 179076 / 11952 / 167124 |
 | DXR dispatch 直接证据 | CLOSED | TLAS 14 实例、0 禁用子网格、121 次构建（`Player.json`） |
 | D3D11 回退基线 | CLOSED | 首次录制，三变体两进程逐位一致；tlas 0、R1 全 0 |
-| P1 验收（SS/RT 缝下降） | **OPEN** | kernel 已真实执行（RenderDoc 确认 dispatch + `_R2Hits` 写入）；缝指标/性能待 B6；环境光与阴影关键字待接 |
+| P1 验收（SS/RT 缝下降） | **NOT MET** | 0.011384 → 0.011382（base）；nodenoise +12.5%；洋红对照证明指标敏感。见 [P1 README](validation/P1/README.md#b6环境光阴影补齐--ssrt-边界度量) |
+| P1 性能（≤0.3 ms） | **OPEN** | 未测；需 Player FrameTimingManager 或带 GPU counter 的抓帧 |
 | P1 命中着色执行 | CLOSED | 根因：未绑定探针图集导致 Unity 丢弃 dispatch；已修复并双 API 回归（见 [P1 README](validation/P1/README.md#b5-fix2renderdoc-定位根因已修复)） |
 | P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
 | P1 hit GBuffer + 延迟着色核 | CLOSED | B3 核 + B4 开关/回退完成；B5 构建验证 + 证据 |
