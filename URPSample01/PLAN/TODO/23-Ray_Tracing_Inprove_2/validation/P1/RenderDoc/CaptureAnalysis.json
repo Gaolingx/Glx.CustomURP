@@ -1,0 +1,82 @@
+{
+  "tool": {
+    "renderdoc": "1.47 (b0e1370309f7d7bf986a73830446ca39d9b8c1fd)",
+    "analysis": "renderdoc-mcp v0.3.0 (open_capture / list_events / get_bindings / goto_event / export_buffer)",
+    "capture": "renderdoc-mcp capture_frame (ExecuteAndInject + TargetControl TriggerCapture after ~2 s)",
+    "api": "D3D12",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "driver": "32.0.15.7680"
+  },
+  "player": {
+    "exe": "PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P0/Player/SsrP3Baseline.exe",
+    "args": "-force-d3d12 -p3-variant base -p3-hit-debug 1",
+    "fixture": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3Baseline.unity",
+    "frameSize": "1920x1080 R16G16B16A16_SFloat",
+    "traceSize": "960x540",
+    "r1": {"eligible": 187225, "requested": 179076, "served": 11952, "overflow": 167124},
+    "tlasInstances": 14
+  },
+  "before": {
+    "capture": "hitdebug1b_frame1990.rdc",
+    "bytes": 112309936,
+    "sha256": "09be1baad93dcafd5e0f13ea6e890435db06ea8bbc67f5590047f4f02bb4aefd",
+    "frame": 1990,
+    "events": 326,
+    "draws": 129,
+    "markerCensus": {
+      "SSR DXR Trace and Shade": {"push": 1434, "dispatchRay": 1447},
+      "SSR Hit Shading": {"push": 1449, "dispatch": null, "pop": 1450},
+      "SSR DXR Temporal": {"push": 1451, "dispatch": 1462}
+    },
+    "dispatchCountInFrame": 33,
+    "expectedDispatchCountWithHitKernel": 34,
+    "hitsBufferScan": {
+      "strideBytes": 24,
+      "entries": 518400,
+      "candidates": ["ResourceId::7774", "ResourceId::7818", "ResourceId::7873", "ResourceId::7904"],
+      "magentaEntries": [0, 0, 0, 0],
+      "flagHistogram": {"0": 506447, "1": 11539, "2": 405, "6": 9},
+      "note": "Only the raygen published; the debug colour (2,0,2) never appears, so the deferred kernel did not run."
+    },
+    "logWarning": "Compute shader (SsrHitDeferred): Property (_GlxProbeIrrSnapshot) at kernel index (0) is not set",
+    "frameSHA256": "96b9c197fa665102c10a5e8ed4b5cb57c0c9f6e20d14c77322f0794db993d737"
+  },
+  "passDiagnostics": {
+    "reportFields": ["hitDeferredCalls", "hitDeferredDispatches", "hitDeferredSkipsSettings", "hitDeferredSkipsCompute", "hitDeferredGroups", "hitDeferredKernel", "hitDeferredSettings", "hitDeferredComputeBound"],
+    "defaultRun": {"calls": 120, "dispatches": 120, "skipsSettings": 0, "skipsCompute": 0, "groups": 512, "kernel": 0, "settings": true, "computeBound": true},
+    "conclusion": "The pass issued the dispatch every frame; Unity aborted it inside the command-buffer execution because declared probe-atlas resources were unbound."
+  },
+  "bindingBisect": {
+    "step1": {"bound": ["_GlxProbeIrrSnapshot"], "nextWarning": "_GlxProbeDistSnapshot", "debug1FrameSHA256": "96b9c197fa665102c10a5e8ed4b5cb57c0c9f6e20d14c77322f0794db993d737", "dispatchRan": false},
+    "step2": {"bound": ["_GlxProbeIrrSnapshot", "_GlxProbeDistSnapshot", "_GlxProbeStateSnapshot", "_GlxProbePublishedSnapshot"], "warning": null, "debug0FrameSHA256": "2f713f17b0d12e7eb5554cef3d0325e97b7e994b473eda519aae4768b902253f", "debug1FrameSHA256": "7cbbe4a5458af48d712caebe1e61e10dddfa3256ca08c886ee59fb1abd5d89a4", "dispatchRan": true}
+  },
+  "after": {
+    "capture": "hitdebug1-fixed-late_frame2070.rdc",
+    "bytes": 118910708,
+    "sha256": "4ba8e140a3e9f3b37e2b7432ba2f20d6beafd1f2993cfb918a544d26dd45a254",
+    "frame": 2070,
+    "events": 310,
+    "draws": 120,
+    "markerCensus": {
+      "SSR Hit Shading": {"push": 1405, "dispatch": 1416, "pop": 1417},
+      "SSR DXR Temporal": {"push": 1418, "dispatch": 1428}
+    },
+    "dispatchBindings": {"textures": 4, "readOnlyStructuredBuffers": 5, "uavs": 1, "note": "uav0 is _R2Hits; srvs are _R1Queue/_R1Counts/_R2Surfaces and the two probe snapshots."},
+    "hitsBufferScan": {
+      "candidates": ["ResourceId::6641", "ResourceId::6679", "ResourceId::6735", "ResourceId::6771"],
+      "magentaEntries": [11950, 11949, 11951, 11950],
+      "flagHistogram": {"0": 506450, "2": 11950},
+      "note": "The debug colour reaches the consumer; every served slot was overwritten by the deferred kernel."
+    }
+  },
+  "regression": {
+    "d3d12Base": {"frameSHA256": "2f713f17b0d12e7eb5554cef3d0325e97b7e994b473eda519aae4768b902253f", "runs": 2, "deterministic": true, "nonFiniteSamples": 0},
+    "d3d11Base": {"frameSHA256": "7fb3e01b95bdd935cb5e0ea681e0e9b73438230a0de4664f74521e4a9224c42c", "matchesP0Baseline": true, "hitDeferredDispatches": 0, "nonFiniteSamples": 0},
+    "floorRoiVsP0": {"meanAbs": 1.361671789192859e-06, "p99Abs": 0.0, "maxAbs": 0.0067138671875, "fractionOver1e-2": 0.0}
+  },
+  "openItems": [
+    "P1 seam acceptance metric (SS/RT boundary luma step on the served mask) is not computed yet; the served mask can be recovered from the magenta capture (11,950 trace slots).",
+    "The hit kernel still shades with _GlxHitAmbientIrradiance unset (0) and with the shadow multi_compile keywords never enabled on the compute shader, so ambient and shadows are currently absent; the A decision asked for single-tap SHADOW_LOW.",
+    "The placeholder probe bindings are used only while rayTracingProbeFallback is off; P2 must bind the published atlas and set _GlxHitLowFrequencySource when the fallback is active."
+  ]
+}

@@ -113,6 +113,15 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         public int r1Served;
         public int r1Overflow;
         public string rayTracingEvidence;
+        // P1 diagnostics: the hit-deferred gate, kernel and group count the pass actually saw.
+        public int hitDeferredCalls;
+        public int hitDeferredDispatches;
+        public int hitDeferredSkipsSettings;
+        public int hitDeferredSkipsCompute;
+        public int hitDeferredGroups;
+        public int hitDeferredKernel;
+        public bool hitDeferredSettings;
+        public bool hitDeferredComputeBound;
         public string frameRaw;
         public string framePng;
         public long frameRawBytes;
@@ -166,6 +175,11 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         m_Variant = Arg("-p3-variant") ?? "base";
         m_Run = Arg("-p3-run") ?? "run-01";
         m_HitDebug = int.TryParse(Arg("-p3-hit-debug"), out var debugMode) ? debugMode : 0;
+        if (int.TryParse(Arg("-p3-warmup"), out var warmupOverride) && warmupOverride > 0)
+        {
+            warmupRenders = warmupOverride;
+            captureRender = warmupOverride + 1;
+        }
         SetHitDebug(m_HitDebug);
         if (string.IsNullOrEmpty(m_OutputRoot))
         {
@@ -447,6 +461,7 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         ReadVolume(report);
         ReadFeature(report);
         ReadRayTracingEvidence(report);
+        ReadHitDeferredDiagnostics(report);
         if (m_EvidenceCounters != null && m_EvidenceCounters.Length >= 4)
         {
             report.r1Eligible = (int)m_EvidenceCounters[0];
@@ -634,8 +649,32 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         }
     }
 
-    static SsrDispatchStats ReadDispatchStats()    {
+    // P1: the GPU capture showed the hit-shading marker with no dispatch, so the report has to
+    // say whether the pass gated the dispatch or issued it. Statics are read by name here for
+    // the same reason as the R1 counters: the Player strips unused internal members.
+    static void ReadHitDeferredDiagnostics(PlayerReport report)
+    {
         try
+        {
+            var type = FindType("UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
+            if (type == null)
+                return;
+            const BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
+            report.hitDeferredCalls = (int)type.GetField("s_HitDeferredCalls", flags).GetValue(null);
+            report.hitDeferredDispatches = (int)type.GetField("s_HitDeferredDispatches", flags).GetValue(null);
+            report.hitDeferredSkipsSettings = (int)type.GetField("s_HitDeferredSkipsSettings", flags).GetValue(null);
+            report.hitDeferredSkipsCompute = (int)type.GetField("s_HitDeferredSkipsCompute", flags).GetValue(null);
+            report.hitDeferredGroups = (int)type.GetField("s_HitDeferredGroups", flags).GetValue(null);
+            report.hitDeferredKernel = (int)type.GetField("s_HitDeferredKernel", flags).GetValue(null);
+            report.hitDeferredSettings = (bool)type.GetField("s_HitDeferredSettings", flags).GetValue(null);
+            report.hitDeferredComputeBound = (bool)type.GetField("s_HitDeferredComputeBound", flags).GetValue(null);
+        }
+        catch (Exception)
+        {
+        }
+    }
+
+    static SsrDispatchStats ReadDispatchStats()    {        try
         {
             var type = FindType("UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
             var field = type?.GetField("s_LastDispatchStats", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);

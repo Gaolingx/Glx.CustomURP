@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** B5 部分完成（构建、R1/TLAS/D3D11 门禁已关闭；**命中着色未生效，P1 验收 OPEN**）
+**当前阶段：** B5-fix2 完成——RenderDoc 定位到命中着色从未在 GPU 上派发（未绑定探针图集导致 Unity 丢弃 compute dispatch），已修复；kernel 现在真实执行。P1 验收指标（缝、性能）待 B6。
 
 ## 已完成
 
@@ -50,6 +50,16 @@
 - 传输布局避开了对齐歧义：`float2` 八面体法线放在 32（4B/8B 对齐都一致），两个 `float3` 跟随发布头证明的 4B 打包。
 - `SsrHitSurface` 按请求序号索引（`DispatchRaysIndex().x`），消费者用 `_R1Queue[i].slot` 映射像素槽；未命中/无效槽写 version 0，无需逐帧清空 80B 缓冲。
 
+## B5-fix2 关键结论（RenderDoc）
+
+- B5-fix 的固定颜色二分失效：kernel 从未运行，debug 0/1/2 自然逐位相同。
+- 抓帧事实（D3D12，`validation/P1/RenderDoc/`）：`SSR Hit Shading` 标记区间没有 dispatch（本帧 33 个 dispatch，少的就是 hit kernel）；`_R2Hits` 洋红 0 条，只有 raygen 的 legacy 值。
+- pass 诊断：120/120 次调用 `DispatchCompute`（kernel 0、512 组、settings/compute 正常）→ 丢弃发生在执行侧。
+- 根因：`SsrHitDeferred.compute` 经 `GlxProbeSampling.hlsl` 无条件声明 GI 探针图集；SSR-only fixture 不跑探针生产者、全局资源未绑定，Unity 报 `Property (_GlxProbeIrrSnapshot) ... is not set` 并**不提交派发**。B5 误把该告警当成"已派发"的证据。
+- 修复：`DispatchHitDeferred` 在 `rayTracingProbeFallback` 关闭时绑占位资源（黑 1×1 + 队列缓冲，`_GlxHitLowFrequencySource == 0` 时不会被采样）；回退开启时沿用生产者的全局图集。
+- 修复后：D3D12 base `96b9c197` → `2f713f17`（两次一致）；debug=1 `7cbbe4a5`；抓帧里 `SSR Hit Shading` 出现 dispatch（1416），`_R2Hits` 洋红 11,950 条；D3D11 `7fb3e01b` 不变；无 NaN、无 "not set" 告警。
+- 仍 OPEN：缝指标与性能（B6）；hit kernel 的环境光 `_GlxHitAmbientIrradiance` 与阴影关键字尚未接上。
+
 ## 未完成 / 门禁
 
 | Gate | 状态 | 说明 |
@@ -61,7 +71,8 @@
 | R1 计数器 | CLOSED | 捕获帧内异步回读：187225 / 179076 / 11952 / 167124 |
 | DXR dispatch 直接证据 | CLOSED | TLAS 14 实例、0 禁用子网格、121 次构建（`Player.json`） |
 | D3D11 回退基线 | CLOSED | 首次录制，三变体两进程逐位一致；tlas 0、R1 全 0 |
-| P1 验收（SS/RT 缝下降） | **OPEN** | 固定颜色二分：kernel 的 `_R2Hits` 写入未到达消费者；疑 UAV 时序/raygen 覆盖 |
+| P1 验收（SS/RT 缝下降） | **OPEN** | kernel 已真实执行（RenderDoc 确认 dispatch + `_R2Hits` 写入）；缝指标/性能待 B6；环境光与阴影关键字待接 |
+| P1 命中着色执行 | CLOSED | 根因：未绑定探针图集导致 Unity 丢弃 dispatch；已修复并双 API 回归（见 [P1 README](validation/P1/README.md#b5-fix2renderdoc-定位根因已修复)） |
 | P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
 | P1 hit GBuffer + 延迟着色核 | CLOSED | B3 核 + B4 开关/回退完成；B5 构建验证 + 证据 |
 
@@ -88,6 +99,10 @@ foreach ($v in "base","nodenoise","ssroff") {
 
 # 对比
 python "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\compare.py"
+
+# RenderDoc 抓帧（可选 -p3-warmup N 拉长渲染窗口，便于中段触发；默认 120）
+& renderdoccmd capture -w -c "$out\capture" -d "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Player" `
+  "$exe" -force-d3d12 -p3-output "$out" -p3-variant base -p3-hit-debug 1 -p3-warmup 900
 
 # 契约测试（-runTests 不能带 -quit，否则导入后直接退出、不产出 XML）
 & $U -batchmode -nographics -projectPath $P -runTests -testPlatform EditMode `

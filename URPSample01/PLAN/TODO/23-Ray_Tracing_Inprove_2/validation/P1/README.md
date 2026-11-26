@@ -1,6 +1,6 @@
 # P1 证据
 
-**状态：** B1–B4 完成（B3/B4 默认关，fixture 置开）；B5 构建与门禁部分完成，**命中着色尚未生效（OPEN）**。
+**状态：** B1–B5 完成；B5-fix 的二分方向已纠正，B5-fix2 用 RenderDoc 定位并修复了"命中着色不生效"的根因（kernel 现在真实执行）。P1 验收指标（SS/RT 边界亮度差、性能）仍 OPEN，见 B6。
 **基线：** P0 D3D12 基线继续有效；`_R2Hits`、R1/R2 布局、Pass 顺序与注入点均未改。
 
 ## B1：C2.7 hit 表面记录
@@ -81,19 +81,34 @@ contracts C2.7 同时冻结了材质能力边界：只承载标准 PBR 字段（
 
 新增诊断模式（`SsrHitDeferred.compute` 的 `_SsrHitDebug`，捕获参数 `-p3-hit-debug`，写入 `Player.json.hitDebug`）：`0` 正常着色，`1` 无条件写洋红，`2` 回显记录头。
 
-**结果**：debug=1 与 debug=0 帧逐位相同（`96b9c197`），debug=2 也相同。由此定位：
+**结果**：debug=1 与 debug=0 帧逐位相同（`96b9c197`），debug=2 也相同。
 
-- **已排除**记录校验：debug=1 不做任何校验，仍无效果。
-- **已排除**权重为零：进入队列的请求 `requestShare > 0`，Temporal 的 `weight = min(1-ssShare, requestShare)` 必为正。
-- **已排除**槽位语义：`R1Sample.slot` 就是像素索引，raygen 与 Temporal 同源。
-- **已排除**内核缺失：无 `SsrHitDeferred.compute is missing` 告警；捕获帧 `temporalDispatches`/`hwMergeDispatches` 均为 1，说明整条混合链执行了。
+**当时的排除项**（后来证明都被"kernel 从未运行"掩盖）：记录校验、权重为零、槽位语义、内核缺失。
 
-**现存嫌疑（按可能性排序）**：
+## B5-fix2：RenderDoc 定位根因（已修复）
 
-1. Unity 在 `DispatchRays` → `DispatchCompute` 之间没有自动 UAV 屏障；kernel 读到的是 `R2Clear` 之后的空 `_R2Surfaces`。
-2. raygen 与 kernel 都写同一个 `_R2Hits`；二者无序时 raygen 的 legacy radiance 覆盖了 kernel 的写入（正好等于 P0 帧）。
+诊断模式本身是对的，但它永远走不到——因为 dispatch 在 GPU 上根本没发生。用 RenderDoc 1.47 + renderdoc-mcp 抓 D3D12 Player 后确认：
 
-**下一步**：RenderDoc 抓 D3D12 Player，确认 "SSR Hit Shading" dispatch 的绑定与写入后的 buffer 内容；再决定补显式屏障，还是改成单一写者（raygen 不写 hit，改由 kernel 全权发布）。
+- `SSR Hit Shading` 标记区间**没有 dispatch**（before 抓帧 1449 push → 1450 pop），本帧 33 个 dispatch，少掉的正是第 34 个 hit kernel。
+- 同一帧导出 4 个 `_R2Hits`（24 B × 960×540）候选缓冲：洋红 **0 条**，只有 raygen 的 legacy 值（flags `{0,1,2,6}`）。
+- 新增 pass 诊断（`hitDeferredCalls/Dispatches/Skips*/Kernel/Groups/Settings/ComputeBound`，写入 `Player.json`）：120/120 次都调用了 `DispatchCompute`，kernel 0、512 组、settings 与 compute 均正常 → 问题在执行侧。
+
+**根因**：`SsrHitDeferred.compute` 经 `GlxProbeSampling.hlsl` 无条件声明了 GI 探针图集，SSR-only fixture 不跑探针生产者、这些全局资源未绑定。Unity 在执行该 dispatch 时以第一条未绑定资源报 `Property (_GlxProbeIrrSnapshot) ... is not set` 并**不提交派发**；B5 把这条告警当成了"已派发"的证据，方向反了。
+
+**修复**：`DispatchHitDeferred` 在 `rayTracingProbeFallback` 关闭时为探针图集绑占位资源（黑 1×1 + 队列缓冲，不会被采样，因为 `_GlxHitLowFrequencySource == 0`）；回退开启时沿用生产者发布的全局图集。
+
+**修复后证据**：
+
+- D3D12 base 帧 `96b9c197` → `2f713f17`（两次运行一致）；debug=1 帧 `7cbbe4a5`（洋红进入消费者）。
+- RenderDoc：`SSR Hit Shading` 1405 → **dispatch 1416**；CS 绑定 4 纹理 / 5 SRV / 1 UAV；`_R2Hits` 洋红 11,950 条，flags 只剩 `{0, 2}`。
+- D3D11 base `7fb3e01b` 与 P0 逐位一致；无 NaN；无 "not set" 告警。
+- 细节与复现见 [RenderDoc/README.md](RenderDoc/README.md) / [CaptureAnalysis.json](RenderDoc/CaptureAnalysis.json)。两张 `.rdc` 只保留在本地（未提交，`CaptureAnalysis.json` 记录了文件名/尺寸/SHA256）。
+
+**仍 OPEN（B6 起）**：
+
+1. P1 验收的 SS/RT 边界亮度差尚未计算；服务掩码可从洋红抓帧恢复（11,950 个 trace 槽位）。
+2. hit kernel 当前没有环境光与阴影：`_GlxHitAmbientIrradiance` 未设置（0），compute 的 `_MAIN_LIGHT_SHADOWS` / `_ADDITIONAL_LIGHT_SHADOWS` 关键字从未启用（走默认变体）；A 决策要求单 tap `SHADOW_LOW`。
+3. 探针回退开启时（P2）需绑定真实图集并把 `_GlxHitLowFrequencySource` 置 1。
 
 ## 复跑
 

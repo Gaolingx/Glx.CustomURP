@@ -49,6 +49,16 @@ namespace UnityEngine.Rendering.Universal
         int m_AdditionalLightCount;
         Vector3 m_CameraPositionWS;
         bool m_LoggedHitDeferredMissing;
+        // P1 diagnostics: the Player report reads these to tell "dispatch recorded" from
+        // "dispatch skipped by a gate", which a GPU capture alone cannot distinguish.
+        internal static int s_HitDeferredCalls;
+        internal static int s_HitDeferredDispatches;
+        internal static int s_HitDeferredSkipsSettings;
+        internal static int s_HitDeferredSkipsCompute;
+        internal static int s_HitDeferredGroups;
+        internal static int s_HitDeferredKernel = -1;
+        internal static bool s_HitDeferredSettings;
+        internal static bool s_HitDeferredComputeBound;
         // The screen-space march used to run inside the pass sampler with no marker of its own, so
         // GPU captures attributed its time to nothing.
         static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSR Trace");
@@ -448,10 +458,18 @@ namespace UnityEngine.Rendering.Universal
         // an unwritten slot, or a non-reflection source) keep the closest-hit result.
         void DispatchHitDeferred(CommandBuffer cmd)
         {
-            if (m_Settings == null || !m_Settings.hitDeferredShading) return;
+            s_HitDeferredCalls++;
+            s_HitDeferredSettings = m_Settings != null && m_Settings.hitDeferredShading;
+            if (m_Settings == null || !m_Settings.hitDeferredShading)
+            {
+                s_HitDeferredSkipsSettings++;
+                return;
+            }
             var cs = m_Resources.ssrHitDeferredCompute;
+            s_HitDeferredComputeBound = cs != null;
             if (cs == null)
             {
+                s_HitDeferredSkipsCompute++;
                 if (!m_LoggedHitDeferredMissing)
                 {
                     Debug.LogWarning("SSR hit shading is enabled but SsrHitDeferred.compute is missing; keeping the closest-hit result.");
@@ -461,6 +479,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             int kernel = cs.FindKernel("SsrHitDeferred");
+            s_HitDeferredKernel = kernel;
+            s_HitDeferredGroups = (requestQueue.budget + 63) / 64;
+            s_HitDeferredDispatches++;
             cmd.SetComputeBufferParam(cs, kernel, "_R1Queue", requestQueue.requests);
             cmd.SetComputeBufferParam(cs, kernel, "_R1Counts", requestQueue.counters);
             cmd.SetComputeBufferParam(cs, kernel, "_R2Surfaces", requestQueue.surfaces);
@@ -470,6 +491,19 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeIntParam(cs, "_SsrHitDebug", s_HitDebug);
             // Shadow fade in ClusteredDeferred measures from this position.
             cmd.SetComputeVectorParam(cs, "_CdCameraPositionWS", m_CameraPositionWS);
+            // GlxProbeQuery declares the published-probe atlas unconditionally, and Unity aborts a
+            // compute dispatch at the first declared resource that is unbound: the log carries
+            // "Property (...) ... is not set" and no dispatch reaches the GPU. Without the GI probe
+            // fallback nothing publishes those globals, so bind placeholders that are never
+            // sampled (_GlxHitLowFrequencySource is 0 and the ambient comes from
+            // _GlxHitAmbientIrradiance). With the fallback on, the producer's globals are used.
+            if (!m_Settings.rayTracingProbeFallback)
+            {
+                cmd.SetComputeTextureParam(cs, kernel, "_GlxProbeIrrSnapshot", Texture2D.blackTexture);
+                cmd.SetComputeTextureParam(cs, kernel, "_GlxProbeDistSnapshot", Texture2D.blackTexture);
+                cmd.SetComputeBufferParam(cs, kernel, "_GlxProbeStateSnapshot", requestQueue.counters);
+                cmd.SetComputeBufferParam(cs, kernel, "_GlxProbePublishedSnapshot", requestQueue.counters);
+            }
             using (new ProfilingScope(cmd, s_HitDeferred))
                 cmd.DispatchCompute(cs, kernel, (requestQueue.budget + 63) / 64, 1, 1);
         }
