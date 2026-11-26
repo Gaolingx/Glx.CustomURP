@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** A 决策已锁定（阴影 `SHADOW_LOW`；材质无 per-material 回退）；下一轮 B1（契约先行）
+**当前阶段：** B1 完成（契约 C2.7 + tripwire 5/5）；下一轮 B2（closest-hit 写 hit 表面）
 
 ## 已完成
 
@@ -17,6 +17,7 @@
 | Fixture 资产 | `Assets/Tests/RayTracing/SSR/Fixture/` | 已生成 |
 | D3D12 基线 | [validation/P0](validation/P0/README.md) | 已捕获，三变体两进程逐位一致 |
 | A 决策锁定 | [plan.md](plan.md) §2 | 完成（2026-11-27） |
+| P1 契约（C2.7 记录） | [contracts.md](contracts.md) / `Shaders/RayTracing/SsrHitSurface.hlsl` | 完成（tripwire 5/5，[ContractTests.xml](validation/P1/tests/ContractTests.xml)） |
 
 ## 已锁定决策（2026-11-27）
 
@@ -49,7 +50,7 @@
 | R1 计数器 | OPEN | Player 还没有 requested/served/overflow 快照；P1 补 |
 | DXR dispatch 直接证据 | OPEN | 目前只有 `hwMergeDispatches=1` + fixture 设置；P1 补 R1 计数/TLAS 证据 |
 | D3D11 回退基线 | OPEN | Player 同时带 D3D11；去掉 `-force-d3d12` 即可补录，P3 前完成 |
-| P1 契约（C2.7 + `SsrHitSurface`） | OPEN | B1：改 contracts C2/C8 与 tripwire，24B payload 不动 |
+| P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
 | P1 hit GBuffer + 延迟着色核 | OPEN | B2–B4：写 GB0–GB3+distance、`SsrHitDeferred`、开关与回退 |
 
 ## 如何跑
@@ -75,6 +76,12 @@ foreach ($v in "base","nodenoise","ssroff") {
 
 # 对比
 python "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\compare.py"
+
+# 契约测试（-runTests 不能带 -quit，否则导入后直接退出、不产出 XML）
+& $U -batchmode -nographics -projectPath $P -runTests -testPlatform EditMode `
+  -testFilter SsrP3ContractTests `
+  -testResults "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P1\tests\ContractTests.xml" `
+  -logFile "$env:TEMP\ssr-p3-b1-tests.log"
 ```
 
 ## 下一阶段（P1）入口

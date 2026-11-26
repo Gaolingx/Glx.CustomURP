@@ -1,0 +1,31 @@
+#ifndef GLX_SSR_HIT_SURFACE_INCLUDED
+#define GLX_SSR_HIT_SURFACE_INCLUDED
+
+// C2.7 reflection-hit surface ABI. The frozen 24-byte GlxBasicPayload is untouched: this
+// record lives in its own buffer and is written only for GlxReflectionMode. Channel
+// semantics are frozen; the packed storage width (8-bit vs 16F) is a P2 A/B decision and
+// may change encode/decode only, never field order, field count or stride.
+// stride 80
+// gb0: xyz linear baseColor, w specular occlusion (1 when unknown)
+// gb1: xyz world-space shading normal, w perceptual roughness
+// gb2: xyz fresnel0, w coat mask (URP has no clear coat, always 0)
+// gb3: xyz emissive including baked, w reserved (0)
+// misc: x distance (RayTCurrent, > 0), y surfaceType, z version, w source flags
+struct SsrHitSurface
+{
+    float4 gb0;
+    float4 gb1;
+    float4 gb2;
+    float4 gb3;
+    float4 misc;
+};
+
+// 0 marks a cleared slot. Any semantic change must bump the version.
+static const uint SsrHitSurfaceVersion = 1u;
+static const uint SsrSurfaceTypeLit = 0u;
+static const uint SsrSurfaceTypeSimpleLit = 1u;
+static const uint SsrSurfaceTypeUnlit = 2u;
+// misc.w bit 0: 0 = ray traced hit, 1 = screen-space hit (P3). Other bits stay reserved.
+static const uint SsrHitSurfaceSourceMask = 1u;
+
+#endif

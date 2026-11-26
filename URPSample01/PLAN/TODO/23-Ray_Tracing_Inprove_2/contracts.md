@@ -2,6 +2,7 @@
 
 **冻结时间：** 2026-11-26
 **基线提交：** `350d18c`
+**修订：** 2026-11-27 新增 C2.7（P1，additive：新缓冲 + 新版本位，不改 24B payload，不重录 P0 基线）
 **适用范围：** 本轮 P1–P3 的全部改动。任何一条契约被打破，都必须先改本文件、改 tripwire 测试、重录基线，再进实现。
 
 ## C1. Pass 顺序与资源生命周期
@@ -31,6 +32,32 @@
 - **P1 允许**：为反射模式**新增**一份 hit 表面记录（GB0/GB1/GB2/GB3 + distance），并用独立版本位/缓冲区分；不得复用现有 24B 字段表达新语义。
 - **P1 禁止**：把 radiance/hitT/flags/mode 任一项改义；让 shadow/probe 模式写新记录。
 - **守护**：`SsrP3ContractTests` 读取 `GlxBasicPayload.hlsl` 与 `SsrRayRequest.hlsl` 源码，断言字段顺序与数量。
+
+### C2.7 hit 表面记录（P1 新增，24B payload 不变）
+
+定义：[SsrHitSurface.hlsl](../../../Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/SsrHitSurface.hlsl)，stride 80，独立 `RWStructuredBuffer<SsrHitSurface>`，与 `_R2Hits` 同索引（每个请求 slot 一条）。
+
+| 字段 | 通道 |
+|---|---|
+| `gb0` | xyz 线性 baseColor；w specular occlusion（未知时 1） |
+| `gb1` | xyz 世界空间着色法线；w perceptual roughness |
+| `gb2` | xyz fresnel0；w coat mask（URP 无 clear coat，恒 0） |
+| `gb3` | xyz emissive（含 baked）；w 保留 0 |
+| `misc` | x distance（`RayTCurrent()`，>0）；y surfaceType；z version；w 来源位 |
+
+- surfaceType：`0` Lit、`1` SimpleLit、`2` Unlit。P1 只写 `Lit`（测试用 `GlxBasicHit` 按 Lit 近似）；`1/2` 在 P2 材质矩阵落地前不得写入。
+- version：`SsrHitSurfaceVersion = 1`；`0` 表示空槽/无效。消费者必须校验，非当前版本按 miss 处理。
+- 来源位：`misc.w & 1`，`0` = RT 命中，`1` = SS 命中（P3 写入）；其余位保留，未经版本升级不得占用。
+- 写入范围：只有 `GlxReflectionMode` 的 closest-hit 写；shadow / probe / ProbeGeo 模式一律不写。
+- 精度：通道语义冻结；8bit vs 16F 的打包（P2 A/B）只能改编解码，不得改字段顺序、数量或 stride。
+
+**材质能力边界**
+
+hit 表面记录只承载标准 PBR 字段：baseColor、specular occlusion、normal、perceptual roughness、fresnel0、coat mask、emissive+baked、distance，以及 surfaceType（Lit/SimpleLit/Unlit）。
+
+本管线**不提供** SSS、transmission、anisotropy：GBuffer 无对应通道，命中核无对应分支，契约**不为其保留字段、标志位或代码路径**。
+
+只有能提供上述标准字段的材质才允许注册进反射用 RTAS；无法提供者视为不支持，在注册期报错（每材质一次）并跳过。**不得以第二条着色路径（含 closest-hit 近似）承接此类材质。**
 
 ## C3. 反射信号语义
 
@@ -91,6 +118,7 @@
 |---|---|---|
 | `R1Sample` | 80 字节 / 16 字段 | `SsrRayRequest.hlsl` |
 | `GlxBasicPayload` | 24 字节 | `GlxBasicPayload.hlsl` |
+| `SsrHitSurface` | 80 字节 / 5 字段 / version 1 | `SsrHitSurface.hlsl`（C2.7） |
 | payload 硬上限 | 64 字节 | 20 号 B0 Freeze |
 | tile | 8×8 | `SsrRequestQueue.hlsl` / `SSR_TILE_SIZE` |
 | `_R1Counts` | 11 × uint | `SsrRequestQueue.cs` |

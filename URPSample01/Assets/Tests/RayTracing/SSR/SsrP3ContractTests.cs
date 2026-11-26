@@ -96,6 +96,28 @@ public sealed class SsrP3ContractTests
             "GlxBasicPayload fields changed; the 24-byte payload contract (C2) was broken.");
         Assert.AreEqual(24, fields.Sum(f => SizeOf(f.Split(' ')[0])), "GlxBasicPayload must stay 24 bytes.");
         StringAssert.Contains("stride 24", source, "The 24-byte stride note must stay next to the struct.");
+        StringAssert.DoesNotContain("SsrHitSurface", source,
+            "The hit surface must stay in its own buffer; the 24-byte payload (C2) cannot carry it.");
+    }
+
+    [Test]
+    public void SsrHitSurface_IsTheFrozen80ByteReflectionRecord()
+    {
+        var source = ReadPackage("Shaders/RayTracing/SsrHitSurface.hlsl");
+        var fields = Declarations(StructBody(source, "SsrHitSurface"));
+        CollectionAssert.AreEqual(new[] { "float4 gb0", "float4 gb1", "float4 gb2", "float4 gb3", "float4 misc" }, fields,
+            "SsrHitSurface fields changed; the C2.7 record was broken. Bump the version and the contract together.");
+        Assert.AreEqual(80, fields.Sum(f => SizeOf(f.Split(' ')[0])), "SsrHitSurface must stay 80 bytes.");
+        StringAssert.Contains("stride 80", source, "The 80-byte stride note must stay next to the struct.");
+
+        var normalized = Normalize(source);
+        StringAssert.Contains("staticconstuintSsrHitSurfaceVersion=1u;", normalized,
+            "Any semantic change to SsrHitSurface must bump SsrHitSurfaceVersion (C2.7).");
+        StringAssert.Contains("staticconstuintSsrSurfaceTypeLit=0u;", normalized, "surfaceType Lit is frozen at 0.");
+        StringAssert.Contains("staticconstuintSsrSurfaceTypeSimpleLit=1u;", normalized, "surfaceType SimpleLit is frozen at 1.");
+        StringAssert.Contains("staticconstuintSsrSurfaceTypeUnlit=2u;", normalized, "surfaceType Unlit is frozen at 2.");
+        StringAssert.Contains("staticconstuintSsrHitSurfaceSourceMask=1u;", normalized,
+            "misc.w keeps only the source bit (0 = RT, 1 = SS); other bits are reserved (C2.7).");
     }
 
     [Test]
