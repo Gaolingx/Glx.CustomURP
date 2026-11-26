@@ -331,6 +331,7 @@ namespace UnityEngine.Rendering.Universal
                     SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, true);
                     PushShaderVariables(cmd, cs, CreateShaderVariables(ref cameraData, settings,
                         screenWidth, screenHeight, traceWidth, traceHeight, false));
+                    PushSsrRayLength(cmd, cs, ref cameraData, settings);
                     Matrix4x4 coldPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
                     if (TryTrace(cmd, cs, depthTexture, normalTexture, null, null, traceWidth, traceHeight, coldPrevInvViewProj))
                     {
@@ -532,6 +533,7 @@ namespace UnityEngine.Rendering.Universal
             bool pbrHistoryValid = pbr && m_History.ssrPbrHasValidHistory;
             var cb = CreateShaderVariables(ref cameraData, settings, screenWidth, screenHeight, traceWidth, traceHeight, pbrHistoryValid);
             PushShaderVariables(cmd, compute, cb);
+            PushSsrRayLength(cmd, compute, ref cameraData, settings);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchViewCount = viewCount;
@@ -917,6 +919,17 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrCameraPositionWS, cb._SsrCameraPositionWS);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrPbrParams, cb._SsrPbrParams);
             cmd.SetComputeVectorParam(compute, ScreenSpaceLightingShaderIDs.SsrPbrFlags, cb._SsrPbrFlags);
+        }
+
+        // Standalone uniform like _R1K/_R1Phase, not a constant buffer member: only R1 reads it and
+        // the SSR layout is pinned to nine Vector4 slots. A ray longer than the far plane cannot hit
+        // anything, so the volume value is clamped instead of silently tracing past the depth buffer.
+        static void PushSsrRayLength(CommandBuffer cmd, ComputeShader compute, ref CameraData cameraData, ScreenSpaceReflection settings)
+        {
+            float near = Mathf.Max(1e-5f, cameraData.camera.nearClipPlane);
+            float far = Mathf.Max(near + 1e-4f, cameraData.camera.farClipPlane);
+            cmd.SetComputeFloatParam(compute, ScreenSpaceLightingShaderIDs.SsrRayLength,
+                Mathf.Min(settings.rayLength.value, far));
         }
 
         // The trace uses the same BND sequence as HDRP, but with the 1SPP tiles because it takes one

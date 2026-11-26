@@ -5,6 +5,7 @@ RWStructuredBuffer<R1Sample> _R1Original, _R1Queue;
 RWStructuredBuffer<uint2> _R1Tile; // count then exclusive base in rotated tile order
 RWStructuredBuffer<uint> _R1Counts; // eligible, requested, served, overflow, then histogram
 uint _R1K, _R1Phase;
+float _SsrRayLength; // volume rayLength, already clamped to the camera far plane
 
 #if defined(SSR_R1_HISTORY) || defined(SSR_R1_COLD)
 [numthreads(8,8,1)]
@@ -23,7 +24,7 @@ void R1Cold(uint3 id : SV_DispatchThreadID)
     s.sequenceFrame = _SsrFrameIndex; // original sequence key = trace coordinate + frame
     // Opaque prepass has no material/instance identifier. Never fabricate one.
     s.instanceId = s.materialId = 0xffffffffu;
-    s.tMin = 0.002; s.tMax = 50;
+    s.tMin = 0.002; s.tMax = _SsrRayLength;
     float d = SSGI_LOAD(_SsrDepthTexture,src);
     float4 n = SSGI_LOAD(_SsrNormalTexture,src);
     bool validMaterial = SsrDecodeMaterial(n,s.normal,s.roughness);

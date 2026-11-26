@@ -53,6 +53,7 @@ namespace UnityEditor.Rendering.Universal.Tests
                 cmd.SetComputeVectorParam(cs,"_SsrScreenSize",new Vector4(W,H,1f/W,1f/H));
                 cmd.SetComputeVectorParam(cs,"_SsrTraceSize",new Vector4(w,h,1f/w,1f/h));
                 cmd.SetComputeVectorParam(cs,"_SsrRoughnessFadeParams",new Vector4(2,1,.5f,4));
+                cmd.SetComputeFloatParam(cs,"_SsrRayLength",37.5f);
                 cmd.SetComputeVectorParam(cs,"_SsrColorPyramidScaleAndLimitPrev", Vector4.one);
                 cmd.SetComputeTextureParam(cs,kernel,"_SsrDepthTexture",Tex(W,H,(x,y)=>Color.white*(empty || x==0?0:.5f)));
                 cmd.SetComputeTextureParam(cs,kernel,"_SsrNormalTexture",Tex(W,H,(x,y)=>new Color(0,0,1,x==2?.82499f:x==4?.875f:x==10?.825f:1)));
@@ -82,7 +83,7 @@ namespace UnityEditor.Rendering.Universal.Tests
                             if (x==2) Assert.Greater((s.direction-dir).magnitude,.0001f,"rough GGX must not use the mirror fallback");
                         }
                         Assert.AreEqual(frame,s.frame);
-                        Assert.AreEqual(.002f,s.tMin); Assert.AreEqual(50f,s.tMax); Assert.AreEqual(uint.MaxValue,s.instance);
+                        Assert.AreEqual(.002f,s.tMin); Assert.AreEqual(37.5f,s.tMax); Assert.AreEqual(uint.MaxValue,s.instance);
                         float fade=x==2?.5f:x==5?.216f:1f;
                         Assert.AreEqual(reason==2?fade:reason==6?.352f:0,s.ss,.0001f);
                         Assert.AreEqual(reason==2?0:reason==6?.648f:fade,s.request,.0001f);

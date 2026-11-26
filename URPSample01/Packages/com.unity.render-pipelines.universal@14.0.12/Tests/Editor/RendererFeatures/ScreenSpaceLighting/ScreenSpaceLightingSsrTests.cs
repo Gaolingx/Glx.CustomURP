@@ -78,6 +78,8 @@ namespace UnityEditor.Rendering.Universal.Tests
                 Assert.AreEqual(0.1f, ssr.screenFadeDistance.value, 1e-5f);
                 Assert.AreEqual(64, ssr.rayMaxIterations.value);
                 Assert.IsTrue(ssr.reflectSky.value);
+                Assert.AreEqual(50f, ssr.rayLength.value, 1e-5f);
+                Assert.AreEqual(0.01f, ssr.rayLength.min, 1e-5f);
                 Assert.AreEqual(1f, ssr.intensity.value, 1e-5f);
             }
             finally

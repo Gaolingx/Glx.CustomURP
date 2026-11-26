@@ -106,6 +106,13 @@ namespace UnityEngine.Rendering.Universal
         public BoolParameter reflectSky = new BoolParameter(true);
 
         /// <summary>
+        /// Maximum length of a hardware traced reflection ray in world units. Clamped to the camera
+        /// far plane, because a longer ray would only repeat the miss.
+        /// </summary>
+        [Tooltip("Maximum hardware traced reflection ray length in world units. Clamped to the camera far plane.")]
+        public MinFloatParameter rayLength = new MinFloatParameter(50f, 0.01f);
+
+        /// <summary>
         /// Multiplies the screen-space contribution. Zero leaves the image unchanged, which keeps
         /// the regression against the reflection probe path testable.
         /// </summary>

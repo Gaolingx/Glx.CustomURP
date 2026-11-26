@@ -153,6 +153,7 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsrCameraPositionWS = Shader.PropertyToID("_SsrCameraPositionWS");
         internal static readonly int SsrPbrParams = Shader.PropertyToID("_SsrPbrParams");
         internal static readonly int SsrPbrFlags = Shader.PropertyToID("_SsrPbrFlags");
+        internal static readonly int SsrRayLength = Shader.PropertyToID("_SsrRayLength");
 
         // Material-facing result consumed by the Core GlobalIllumination blend.
         internal static readonly int ScreenSpaceReflectionTexture = Shader.PropertyToID("_ScreenSpaceSsrTexture");
