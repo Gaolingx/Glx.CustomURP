@@ -1,6 +1,6 @@
 # 23 P3 实施计划：SSR 后置 + SS/RT 共用命中着色（根治）
 
-**状态：** B0 完成、B1 契约先行（红）已提交（2026-11-27）；B2–B6 未开工。前置：P0 完成、P1 PARTIAL（命中核已执行，缝门禁 NOT MET）。
+**状态：** B0/B1/B2 完成（2026-11-27）。B1 的 3 条红断言属 B3/B4；B2 为 build/静态验证，像素/性能在 B6。B3–B6 未开工。前置：P0 完成、P1 PARTIAL（命中核已执行，缝门禁 NOT MET）。
 **上位计划：** [plan.md](plan.md) §P3；契约：[contracts.md](contracts.md)。
 **验收方式：** 实现与文档按 B0–B5 逐步提交，**测量统一放到最后的 B6 一批**（含决策 #4/#5 的量化与六项阻断门禁）。
 
@@ -176,6 +176,11 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 - 不改渲染行为。
 
 ### B2 接收者重路由（D1）
+> **状态：完成（2026-11-27，build/静态；像素在 B6）。** 分片提交：B2a 事件开关、B2b GBuffer 去镜面、B2c 225 复合 pass、B2d 230 相加、B2e 221 绑定。
+> 实现取舍：GBuffer3 去掉**全部间接镜面**（含环境项），由 225 重算 `lerp(env,ssr,w)·EnvironmentBRDFSpecular·occlusion` 后由 230 相加——这是 D1-A 的自洽形态（避免 env 双计）；上文“保留 env”指保留漫反射环境/bakedGI，不含镜面 env。
+> 解耦：core 的 `ClusteredDeferred.compute` 用 `_GLX_SSR_SPECULAR` 关键字门控 `_GlxSsrSpecular` 的**声明**，插件在 225 绑定纹理后开启、Cleanup 关闭，从而“关时 kernel 不声明该纹理”，规避未绑定声明丢 dispatch（B5-fix2 的坑）。
+> 225 门控放宽：只要 `ssrAfterGbuffer` 且是 Deferred 就运行，SSR 无输出时按黑纹理（权重 0，仅环境项），保证 SSR Volume 关闭或冷帧时环境镜面不消失。
+> `ssrAfterGbuffer` 关闭时：不 enqueue 221/225，`_GlxSsrAfterGbuffer=0`，`_GLX_SSR_SPECULAR` 变体不启用——GBuffer/230 与 P1 逐位一致（B6 校验）。
 - `LitGBufferPass.hlsl`：延迟路径不再写 SSR（保留 env + bakedGI + emission）；forward 路径不变；
 - 新增 `SsrIndirectSpecularPass`（225）与 specular RT 生命周期；
 - `ClusteredDeferred.compute` 读 specular RT 相加；

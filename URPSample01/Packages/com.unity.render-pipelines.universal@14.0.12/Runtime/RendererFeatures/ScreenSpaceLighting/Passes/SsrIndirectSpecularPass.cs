@@ -65,8 +65,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
             if (m_Compute == null || m_Kernel < 0 || m_History == null || m_History.ssrIndirectSpecular == null)
                 return;
-            if (m_SsrPass == null || !m_SsrPass.producedOutput || m_SsrPass.outputTexture == null)
-                return;
+            // Runs whenever the deferred receiver no longer writes indirect specular, even if the SSR
+            // volume is off or the SSR pass produced nothing this frame: the environment term (A1)
+            // must survive, and the SSR texture falls back to black (weight 0) below.
             if (!(renderingData.cameraData.renderer is UniversalRenderer renderer))
                 return;
 
@@ -98,7 +99,10 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer1, deferred.GbufferAttachments[1]);
                 cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.GBuffer2, deferred.GbufferAttachments[2]);
                 cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.CameraDepthTexture, depth);
-                cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.SsrTexture, m_SsrPass.outputTexture);
+                if (m_SsrPass != null && m_SsrPass.producedOutput && m_SsrPass.outputTexture != null)
+                    cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.SsrTexture, m_SsrPass.outputTexture);
+                else
+                    cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.SsrTexture, Texture2D.blackTexture);
                 cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.OutputRW, m_History.ssrIndirectSpecular);
                 cmd.SetComputeVectorParam(m_Compute, ShaderIDs.ScreenSize,
                     new Vector4(width, height, 1f / width, 1f / height));

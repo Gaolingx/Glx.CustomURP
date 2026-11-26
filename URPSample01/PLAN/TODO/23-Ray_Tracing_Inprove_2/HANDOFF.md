@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** B6 完成——命中核执行已被 RenderDoc 证实，环境光/阴影补齐，SS/RT 边界度量落地。**缝指标未显著下降（0.011384 → 0.011382，NOT MET）**；执行、无 NaN、D3D11 逐位一致通过；性能门禁仍 OPEN。P3 实施计划已写（[P3-PLAN.md](P3-PLAN.md)）；**P3 已开工：B0（D1 选型 + harness 开关）与 B1（契约先行，红）已落地，B2–B6 未开工。**
+**当前阶段：** B6 完成——命中核执行已被 RenderDoc 证实，环境光/阴影补齐，SS/RT 边界度量落地。**缝指标未显著下降（0.011384 → 0.011382，NOT MET）**；执行、无 NaN、D3D11 逐位一致通过；性能门禁仍 OPEN。P3 实施计划已写（[P3-PLAN.md](P3-PLAN.md)）；**P3 已开工：B0（D1 选型 + harness 开关）、B1（契约先行，红）、B2（接收者重路由，build/静态）已完成，B3–B6 未开工。**
 
 ## 已完成
 
@@ -88,6 +88,7 @@
 | P3 实施计划 | CLOSED（2026-11-27） | [P3-PLAN.md](P3-PLAN.md)：接收者重路由（GBuffer4 现写 SSR）、220 注入点、SS 读当前 GBuffer、契约/tripwire、B0–B6；复测统一在 P3 B6 |
 | P3 B0 选型 + harness 开关 | CLOSED（2026-11-27） | D1=A1（`_GlossyEnvironmentCubeMap`，不碰 `unity_SpecCube0`）；feature 增 `ssrAfterGbuffer`/`ssrIndirectSource`；捕获器增 `-p3-ssr-after-gbuffer`/`-p3-ssr-rollback`/`-p3-ssr-indirect`；`Player.json` 记 requested 与 feature 回读 |
 | P3 B1 契约先行 | CLOSED（红，2026-11-27） | contracts.md C1/C2/C2.7/C8 更新；`SsrP3ContractTests` 新增 4 条 P3 断言 + C2.7 gbuffer 源（预期红，B2–B4 转绿）；legacy 206 断言保持绿；未改渲染行为 |
+| P3 B2 接收者重路由 | CLOSED（build/静态，2026-11-27；像素在 B6） | B2a SSR 事件 206↔220（`ssrAfterGbuffer`）；B2b GBuffer3 去间接镜面（`GlobalIlluminationDeferredDiffuse` + `_GlxSsrAfterGbuffer`）；B2c 225 `SsrIndirectSpecular` + specular RT + 资源/builder；B2d `_GLX_SSR_SPECULAR` 变体在 230 相加（避免未绑定声明丢 dispatch）；B2e 221 SSR 材质绑定。`ssrAfterGbuffer` 关时不 enqueue 221/225、不启用变体，P1 路径不变 |
 | P1 命中着色执行 | CLOSED | 根因：未绑定探针图集导致 Unity 丢弃 dispatch；已修复并双 API 回归（见 [P1 README](validation/P1/README.md#b5-fix2renderdoc-定位根因已修复)） |
 | P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
 | P1 hit GBuffer + 延迟着色核 | CLOSED | B3 核 + B4 开关/回退完成；B5 构建验证 + 证据 |
