@@ -3,6 +3,17 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
+    // P3 environment source for the deferred indirect-specular composite (D1). A1 samples the
+    // per-camera _GlossyEnvironmentCubeMap (the reflection/sky fallback URP binds every camera); A2
+    // reuses the published GI probe atlas when the probe fallback runs; A3 uses the single ambient
+    // irradiance. See P3-PLAN.md §2 (D1) for the B0 selection record.
+    internal enum SsrIndirectSource
+    {
+        A1 = 0,
+        A2 = 1,
+        A3 = 2
+    }
+
     [Serializable]
     internal sealed class ScreenSpaceLightingSettings
     {
@@ -28,6 +39,12 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField, Tooltip("Light ray-traced reflection hits with the ClusteredDeferred kernel instead of the closest-hit approximation. Requires hardware ray tracing and SsrHitDeferred.compute; unsupported materials are rejected at registration (C2.7).")]
         internal bool hitDeferredShading = false;
+
+        [SerializeField, Tooltip("P3: inject opaque SSR after the GBuffer pass (AfterRenderingGbuffer) so screen-space hits read the current-frame GBuffer, and move the deferred receiver's indirect specular out of the GBuffer pass. Off keeps the P1 path (SSR at 206, GBuffer writes SSR). Default stays off until P3 B6 passes.")]
+        internal bool ssrAfterGbuffer = false;
+
+        [SerializeField, Tooltip("P3: environment source mixed with SSR in the deferred indirect-specular composite. A1 samples _GlossyEnvironmentCubeMap (default); A2 uses the published GI probe atlas when the probe fallback runs; A3 uses the ambient irradiance stand-in.")]
+        internal SsrIndirectSource ssrIndirectSource = SsrIndirectSource.A1;
 
         [SerializeField, Tooltip("Update the scene probe cache from the shared RT scene as the SSGI diffuse fallback. Requires hardware ray tracing support.")]
         internal bool rayTracingProbeFallback = false;

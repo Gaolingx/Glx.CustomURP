@@ -39,6 +39,11 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
     string m_EvidenceError;
     int m_HitDebug;
     float m_HitAmbientScale;
+    // P3 harness switches (B0). They are applied to the active feature's serialized settings
+    // before the first render; the pass consumes them from B2 on.
+    bool m_P3SsrAfterGbuffer;
+    bool m_P3SsrRollback;
+    string m_P3SsrIndirect;
 
     [Serializable]
     sealed class PlayerReport
@@ -101,6 +106,12 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         public bool featureRayTracingReflections;
         public int featureReflectionRayBudget;
         public bool featureHitDeferredShading;
+        // P3 harness: the requested switches and the state read back from the feature settings.
+        public bool p3SsrAfterGbufferRequested;
+        public bool p3SsrRollbackRequested;
+        public string p3SsrIndirectRequested;
+        public bool featureSsrAfterGbuffer;
+        public string featureSsrIndirectSource;
         public string featureReadback;
         // Direct DXR evidence: the TLAS the reflection dispatch used and the R1 request
         // counters of the captured frame (0 eligible/requested/served/overflow when skipped).
@@ -166,6 +177,16 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         return null;
     }
 
+    static bool HasFlag(string key)
+    {
+        foreach (var arg in Environment.GetCommandLineArgs())
+        {
+            if (arg == key)
+                return true;
+        }
+        return false;
+    }
+
     void Awake()
     {
         Application.runInBackground = true;
@@ -178,6 +199,9 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         m_Run = Arg("-p3-run") ?? "run-01";
         m_HitDebug = int.TryParse(Arg("-p3-hit-debug"), out var debugMode) ? debugMode : 0;
         m_HitAmbientScale = float.TryParse(Arg("-p3-hit-ambient"), NumberStyles.Float, CultureInfo.InvariantCulture, out var ambientScale) ? ambientScale : 1f;
+        m_P3SsrAfterGbuffer = HasFlag("-p3-ssr-after-gbuffer");
+        m_P3SsrRollback = HasFlag("-p3-ssr-rollback");
+        m_P3SsrIndirect = Arg("-p3-ssr-indirect");
         if (int.TryParse(Arg("-p3-warmup"), out var warmupOverride) && warmupOverride > 0)
         {
             warmupRenders = warmupOverride;
@@ -201,6 +225,7 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             GraphicsSettings.defaultRenderPipeline = pipeline;
             QualitySettings.renderPipeline = pipeline;
             ApplyVariant();
+            ApplyP3Switches();
 
             foreach (var camera in FindObjectsOfType<Camera>(true))
                 camera.enabled = false;
@@ -425,6 +450,9 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             captureRender = m_RenderEnds,
             hitDebug = m_HitDebug,
             hitAmbientScale = m_HitAmbientScale,
+            p3SsrAfterGbufferRequested = m_P3SsrAfterGbuffer,
+            p3SsrRollbackRequested = m_P3SsrRollback,
+            p3SsrIndirectRequested = m_P3SsrIndirect,
             unityFrameAtCapture = Time.frameCount,
             firstUnityFrame = m_FirstUnityFrame,
             variantApplied = m_Variant,
@@ -562,38 +590,97 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         }
     }
 
-    static void ReadFeature(PlayerReport report)
+    // Applies the P3 harness switches to the active feature's serialized settings before the first
+    // render. The switches are inert until B2 wires them into the pass; the report records both the
+    // requested value and the state read back from the feature so evidence never conflates them.
+    void ApplyP3Switches()
     {
+        if (!TryGetFeatureSettings(out var settings) || settings == null)
+            return;
+
+        try
+        {
+            var type = settings.GetType();
+            var afterGbuffer = type.GetField("ssrAfterGbuffer", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (afterGbuffer != null)
+            {
+                bool value = m_P3SsrRollback
+                    ? false
+                    : m_P3SsrAfterGbuffer
+                        ? true
+                        : (bool)afterGbuffer.GetValue(settings);
+                afterGbuffer.SetValue(settings, value);
+            }
+
+            var indirect = type.GetField("ssrIndirectSource", BindingFlags.Instance | BindingFlags.NonPublic);
+            int index = ParseIndirect(m_P3SsrIndirect);
+            if (indirect != null && index >= 0)
+                indirect.SetValue(settings, Enum.ToObject(indirect.FieldType, index));
+        }
+        catch (Exception exception)
+        {
+            m_Error = "ApplyP3Switches: " + exception;
+        }
+    }
+
+    static int ParseIndirect(string value)
+    {
+        switch ((value ?? string.Empty).ToLowerInvariant())
+        {
+            case "a1": return 0;
+            case "a2": return 1;
+            case "a3": return 2;
+            default: return -1;
+        }
+    }
+
+    static bool TryGetFeatureSettings(out object settings)
+    {
+        settings = null;
         try
         {
             var pipelineField = typeof(UniversalRenderPipelineAsset).GetField("m_RendererDataList", BindingFlags.Instance | BindingFlags.NonPublic);
             var list = pipelineField?.GetValue(GraphicsSettings.currentRenderPipeline) as Array;
             var data = list != null && list.Length > 0 ? list.GetValue(0) as ScriptableRendererData : null;
             if (data == null)
-            {
-                report.featureReadback = "no renderer data";
-                return;
-            }
-
+                return false;
             foreach (var feature in data.rendererFeatures)
             {
                 if (feature == null || feature.GetType().Name != "ScreenSpaceLightingRendererFeature")
                     continue;
                 var settingsField = feature.GetType().GetField("m_Settings", BindingFlags.Instance | BindingFlags.NonPublic);
-                var settings = settingsField?.GetValue(feature);
-                if (settings == null)
-                    continue;
-                var type = settings.GetType();
-                var reflections = type.GetField("rayTracingReflections", BindingFlags.Instance | BindingFlags.NonPublic);
-                var budget = type.GetField("reflectionRayBudget", BindingFlags.Instance | BindingFlags.NonPublic);
-                var hitDeferred = type.GetField("hitDeferredShading", BindingFlags.Instance | BindingFlags.NonPublic);
-                report.featureRayTracingReflections = reflections != null && (bool)reflections.GetValue(settings);
-                report.featureReflectionRayBudget = budget != null ? (int)budget.GetValue(settings) : -1;
-                report.featureHitDeferredShading = hitDeferred != null && (bool)hitDeferred.GetValue(settings);
-                report.featureReadback = "ok";
+                settings = settingsField?.GetValue(feature);
+                return settings != null;
+            }
+        }
+        catch (Exception)
+        {
+        }
+        return false;
+    }
+
+    static void ReadFeature(PlayerReport report)
+    {
+        try
+        {
+            if (!TryGetFeatureSettings(out var settings) || settings == null)
+            {
+                report.featureReadback = "feature not found";
                 return;
             }
-            report.featureReadback = "feature not found";
+
+            var type = settings.GetType();
+            var reflections = type.GetField("rayTracingReflections", BindingFlags.Instance | BindingFlags.NonPublic);
+            var budget = type.GetField("reflectionRayBudget", BindingFlags.Instance | BindingFlags.NonPublic);
+            var hitDeferred = type.GetField("hitDeferredShading", BindingFlags.Instance | BindingFlags.NonPublic);
+            var afterGbuffer = type.GetField("ssrAfterGbuffer", BindingFlags.Instance | BindingFlags.NonPublic);
+            var indirect = type.GetField("ssrIndirectSource", BindingFlags.Instance | BindingFlags.NonPublic);
+            report.featureRayTracingReflections = reflections != null && (bool)reflections.GetValue(settings);
+            report.featureReflectionRayBudget = budget != null ? (int)budget.GetValue(settings) : -1;
+            report.featureHitDeferredShading = hitDeferred != null && (bool)hitDeferred.GetValue(settings);
+            report.featureSsrAfterGbuffer = afterGbuffer != null && (bool)afterGbuffer.GetValue(settings);
+            report.featureSsrIndirectSource = indirect != null ? indirect.GetValue(settings).ToString() : "unknown";
+            report.featureReadback = "ok";
         }
         catch (Exception exception)
         {
