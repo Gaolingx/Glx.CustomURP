@@ -43,6 +43,12 @@ namespace UnityEngine.Rendering.Universal
         RayTracingAccelerationStructure m_Snapshot;
         static readonly ProfilingSampler s_HybridComposite = new ProfilingSampler("SSR DXR Composite");
         static readonly ProfilingSampler s_HybridTemporal = new ProfilingSampler("SSR DXR Temporal");
+        static readonly ProfilingSampler s_HitDeferred = new ProfilingSampler("SSR Hit Shading");
+        // P1 hit shading. B4 replaces the static with a feature-level switch.
+        internal static bool s_EnableHitDeferred;
+        int m_AdditionalLightCount;
+        Vector3 m_CameraPositionWS;
+        bool m_LoggedHitDeferredMissing;
         // The screen-space march used to run inside the pass sampler with no marker of its own, so
         // GPU captures attributed its time to nothing.
         static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSR Trace");
@@ -245,6 +251,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
             m_ProducedOutput = false;
             m_OutputTexture = null;
+            m_AdditionalLightCount = renderingData.lightData.additionalLightsCount;
+            m_CameraPositionWS = renderingData.cameraData.camera.transform.position;
 
             if (m_History == null || m_Resources == null)
                 return;
@@ -388,6 +396,7 @@ namespace UnityEngine.Rendering.Universal
                 m_History.BeginSsrHwFrame();
                 RecordOriginals(cmd, cs, depth, normals, motion, hit, w, h);
                 requestQueue.Trace(cmd, cs, m_Resources.rayTracingSsr, m_Scene, m_Snapshot, w, h);
+                DispatchHitDeferred(cmd);
                 Temporal(cmd, cs, depth, normals, motion, prevInvViewProj);
                 m_LoggedHybridFailure = false;
                 return true;
@@ -399,6 +408,36 @@ namespace UnityEngine.Rendering.Universal
                 m_LoggedHybridFailure = true;
                 return false;
             }
+        }
+
+        // P1: replace the closest-hit radiance with deferred shading of the published hit
+        // surface. Runs between DispatchRays and the temporal merge; invalid records (a miss,
+        // an unwritten slot, or a non-reflection source) keep the closest-hit result.
+        void DispatchHitDeferred(CommandBuffer cmd)
+        {
+            if (!s_EnableHitDeferred) return;
+            var cs = m_Resources.ssrHitDeferredCompute;
+            if (cs == null)
+            {
+                if (!m_LoggedHitDeferredMissing)
+                {
+                    Debug.LogWarning("SSR hit shading is enabled but SsrHitDeferred.compute is missing; keeping the closest-hit result.");
+                    m_LoggedHitDeferredMissing = true;
+                }
+                return;
+            }
+
+            int kernel = cs.FindKernel("SsrHitDeferred");
+            cmd.SetComputeBufferParam(cs, kernel, "_R1Queue", requestQueue.requests);
+            cmd.SetComputeBufferParam(cs, kernel, "_R1Counts", requestQueue.counters);
+            cmd.SetComputeBufferParam(cs, kernel, "_R2Surfaces", requestQueue.surfaces);
+            cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
+            cmd.SetComputeIntParam(cs, "_R2K", requestQueue.budget);
+            cmd.SetComputeIntParam(cs, "_SsrHitLightCount", m_AdditionalLightCount);
+            // Shadow fade in ClusteredDeferred measures from this position.
+            cmd.SetComputeVectorParam(cs, "_CdCameraPositionWS", m_CameraPositionWS);
+            using (new ProfilingScope(cmd, s_HitDeferred))
+                cmd.DispatchCompute(cs, kernel, (requestQueue.budget + 63) / 64, 1, 1);
         }
 
         // Merges this frame's hardware hits with the previous resolved result. The request budget

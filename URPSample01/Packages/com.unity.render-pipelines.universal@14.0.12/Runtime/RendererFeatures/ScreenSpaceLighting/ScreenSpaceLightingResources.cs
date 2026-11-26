@@ -34,6 +34,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute")]
         internal ComputeShader ssrCompute;
 
+        [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute")]
+        internal ComputeShader ssrHitDeferredCompute;
+
         [SerializeField, Reload("Shaders/Utils/Denoising/ReflectionDenoiser.compute")]
         internal ComputeShader ssrReflectionDenoiserCompute;
 

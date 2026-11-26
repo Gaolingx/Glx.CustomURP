@@ -53,6 +53,7 @@
 - 来源位：`misc.w & 1`，`0` = RT 命中，`1` = SS 命中（P3 写入）；其余位保留，未经版本升级不得占用。
 - 写入范围：只有 `GlxReflectionMode` 的 closest-hit 填 payload 表面字段，raygen 也只在该模式的结果上组装记录；shadow / probe / ProbeGeo 模式一律不写。
 - 传输精度：payload 里的法线是八面体 `float2`、金属度标量（raygen 合成 fresnel0），其余为 float；记录通道语义冻结，8bit vs 16F 的打包（P2 A/B）只能改编解码，不得改字段顺序、数量或 stride。
+- P1 着色：`SsrHitDeferred.compute` 解码记录 → `CdShade`（主光 + 全部附加灯，上限 64；shadow atlas 单 tap，SHADOW_LOW 口径）。记录无效、未启用或 compute 缺失时保留 closest-hit 的 radiance。P1 不采 screen-space shadow / cookie / light layer / SSAO / shadowmask；环境光用探测低频辐照度，specular 份额同源近似，P2 换 probe/sky 层级。
 
 **材质能力边界**
 

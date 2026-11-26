@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** B2 完成（64B payload 传输 + raygen 写 80B 记录）；下一轮 B3（`SsrHitDeferred` 光照核）
+**当前阶段：** B3 完成（`SsrHitDeferred` 复用 `CdShade`，默认关）；下一轮 B4（feature 开关与回退）
 
 ## 已完成
 
@@ -19,6 +19,7 @@
 | A 决策锁定 | [plan.md](plan.md) §2 | 完成（2026-11-27） |
 | P1 契约（C2.7 记录） | [contracts.md](contracts.md) / `Shaders/RayTracing/SsrHitSurface.hlsl` | 完成（tripwire 5/5，[ContractTests.xml](validation/P1/tests/ContractTests.xml)） |
 | P1 命中表面传输 | `GlxBasicPayload` 64B / `RayTracingSsr.raytrace` 写 `_R2Surfaces` | 完成（7/7 @D3D12，payload 实测 64B） |
+| P1 命中延迟着色 | `SsrHitDeferred.compute` + `SsrPass.DispatchHitDeferred` | 完成（默认关，待 B4 开关 / B5 构建验证） |
 
 ## 已锁定决策（2026-11-27）
 
@@ -59,7 +60,7 @@
 | DXR dispatch 直接证据 | OPEN | 目前只有 `hwMergeDispatches=1` + fixture 设置；P1 补 R1 计数/TLAS 证据 |
 | D3D11 回退基线 | OPEN | Player 同时带 D3D11；去掉 `-force-d3d12` 即可补录，P3 前完成 |
 | P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
-| P1 hit GBuffer + 延迟着色核 | OPEN | B2 完成传输与写路径；B3 接 `SsrHitDeferred`（64 灯全量 + shadow atlas + probe/sky） |
+| P1 hit GBuffer + 延迟着色核 | OPEN | B3 核已实现（默认关）；B4 接开关与回退，B5 构建验证 + 证据 |
 
 ## 如何跑
 

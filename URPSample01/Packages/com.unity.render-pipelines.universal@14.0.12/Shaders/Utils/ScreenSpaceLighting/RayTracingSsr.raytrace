@@ -12,6 +12,19 @@ RWStructuredBuffer<GlxPublishedHit> _R2Hits;
 RWStructuredBuffer<SsrHitSurface> _R2Surfaces;
 uint _R2K;
 
+// Raygen only: assemble the published-surface record from the reflection payload.
+SsrHitSurface SsrBuildHitSurface(in GlxBasicPayload p)
+{
+    SsrHitSurface s;
+    float3 dielectric = float3(0.04, 0.04, 0.04); // URP kDielectricSpec.rgb
+    s.gb0 = float4(p.ssrBaseColor, 1.0);
+    s.gb1 = float4(SsrDecodeOctNormal(p.ssrNormalOct), p.ssrRoughness);
+    s.gb2 = float4(lerp(dielectric, p.ssrBaseColor, p.ssrMetallic), 0.0);
+    s.gb3 = float4(p.ssrEmissive, 0.0);
+    s.misc = float4(p.hitT, (float)SsrSurfaceTypeLit, (float)SsrHitSurfaceVersion, (float)SsrHitSurfaceSourceRt);
+    return s;
+}
+
 [shader("raygeneration")]
 void TraceSsrRequests()
 {

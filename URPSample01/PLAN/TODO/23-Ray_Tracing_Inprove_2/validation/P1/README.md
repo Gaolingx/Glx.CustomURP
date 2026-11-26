@@ -1,6 +1,6 @@
 # P1 证据
 
-**状态：** B1（契约先行）、B2（命中表面传输/写入）完成；B3 起接入延迟着色核。
+**状态：** B1（契约）、B2（表面传输/写入）、B3（`SsrHitDeferred`，默认关）完成；B4 接开关与回退。
 **基线：** P0 D3D12 基线继续有效；`_R2Hits`、R1/R2 布局、Pass 顺序与注入点均未改。
 
 ## B1：C2.7 hit 表面记录
@@ -26,6 +26,19 @@ contracts C2.7 同时冻结了材质能力边界：只承载标准 PBR 字段（
 | 不改 | `_R2Hits` / `_GlxResults` / `_GlxProbeResults` 仍是 24B；R1/R2 布局、Pass 顺序、注入点不变 |
 | 证据 | [ContractTests.xml](tests/ContractTests.xml)：默认 D3D11 Editor，6 通过 + 1 跳过；[ContractTests-d3d12.xml](tests/ContractTests-d3d12.xml)：7/7，编译后 payload 实测 64B |
 | 未验证 | 材质 hit pass 的 D3D12 变体要到 Player 构建才编译；逐像素不变性待 B5 复跑确认 |
+
+## B3：命中延迟着色核（默认关）
+
+| 项 | 内容 |
+|---|---|
+| 核 | `Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute`：`SsrHitDeferred`，每请求一线程 |
+| 复用 | 直接 include `ClusteredDeferred.hlsl`，灯/阴影走 `CdMainLight` / `CdGetAdditionalLight` / `CdMainLightShadow` / `CdAdditionalLightShadow` / `CdShade` |
+| 表面 | 记录 → 合成 GBuffer（gb0 = baseColor+flags 0、gb1 = fresnel0、gb2 = 法线+smoothness，materialType = 1）；观察方向 = 反向反射射线 |
+| 灯 | 主光 + 全部附加灯（`_SsrHitLightCount`，上限 64）；阴影单 tap（SHADOW_LOW），不采 screen-space shadow/cookie/light layer/SSAO/shadowmask |
+| 环境光 | `GlxHitLowFrequencyIrradiance`；specular 份额同源近似（P2 换 probe/sky 层级） |
+| 回退 | 记录 version ≠ 1、来源不是 RT、未启用、compute 缺失 → 保留 closest-hit radiance |
+| 开关 | `ScreenSpaceLightingSsrPass.s_EnableHitDeferred`（B4 换成 feature 级开关） |
+| 未验证 | compute 变体编译与实际像素要到 B5 的 Player 构建；本阶段只做契约/结构 tripwire |
 
 ## 复跑
 

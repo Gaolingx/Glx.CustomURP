@@ -176,6 +176,33 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
+    public void SsrHitDeferred_ReusesClusteredDeferredAndKeepsTheLegacyFallback()
+    {
+        // The record header must stay include-safe for compute shaders: no AS, no payload.
+        var record = ReadPackage("Shaders/RayTracing/SsrHitSurface.hlsl");
+        StringAssert.DoesNotContain("GlxBasicPayload", record,
+            "SsrHitSurface.hlsl must not pull the ray payload (and its acceleration structure) into compute kernels.");
+        StringAssert.DoesNotContain("RaytracingAccelerationStructure", record,
+            "A compute shader cannot declare the acceleration structure.");
+
+        var source = ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute");
+        StringAssert.Contains("ClusteredDeferred.hlsl", source,
+            "The hit kernel must reuse the ClusteredDeferred shading code, not a second lighting model.");
+        StringAssert.Contains("CdShade(", source, "Direct lighting must go through CdShade.");
+        var normalized = Normalize(source);
+        StringAssert.Contains("StructuredBuffer<SsrHitSurface>_R2Surfaces;", normalized,
+            "The hit kernel reads the C2.7 record buffer.");
+        StringAssert.Contains("RWStructuredBuffer<GlxPublishedHit>_R2Hits;", normalized,
+            "The hit kernel publishes the frozen 24-byte result.");
+        StringAssert.Contains("uint(s.misc.z+0.5)!=SsrHitSurfaceVersion", normalized,
+            "Invalid or unwritten records must keep the closest-hit radiance.");
+
+        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
+        StringAssert.Contains("DispatchHitDeferred(cmd);", pass,
+            "The pass must run the hit kernel between DispatchRays and the temporal merge.");
+    }
+
+    [Test]
     public void R1Sample_IsTheFrozen80ByteRecord()
     {
         var source = ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrRayRequest.hlsl");
