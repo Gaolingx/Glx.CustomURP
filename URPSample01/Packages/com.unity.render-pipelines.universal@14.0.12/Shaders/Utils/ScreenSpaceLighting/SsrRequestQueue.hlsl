@@ -98,19 +98,52 @@ void R1Tiles(uint3 group:SV_GroupID,uint lane:SV_GroupIndex)
     // Store the full count; R1Offsets decides how many the budget can grant.
     if(lane==0) _R1Tile[R1TileId(group.xy)] = uint2(count,0);
 }
-[numthreads(1,1,1)]
-void R1Offsets()
+// One block scans the rotated tile order: each lane owns a contiguous slice of the sequence, so the
+// exclusive bases and the served total are exactly what the former single-lane loop produced. The
+// sums are unsigned adds of non-negative values, so summation order cannot change any result.
+// Scanning over positions in the rotated order (tile = rotate + position, wrapped) keeps the write
+// targets identical instead of rotating the output afterwards.
+#define R1_SCAN_LANES 1024
+groupshared uint r1Scan[R1_SCAN_LANES];
+[numthreads(R1_SCAN_LANES,1,1)]
+void R1Offsets(uint3 id : SV_DispatchThreadID)
 {
-    uint2 grid=R1Grid(); uint tiles=grid.x*grid.y; uint quota=R1Quota(); uint total=0;
-    for(uint i=0;i<tiles;++i)
+    uint lane=id.x;
+    uint2 grid=R1Grid(); uint tiles=max(1u,grid.x*grid.y); uint quota=R1Quota();
+    uint chunk=(tiles+R1_SCAN_LANES-1)/R1_SCAN_LANES;
+    uint begin=min(lane*chunk,tiles), end=min(begin+chunk,tiles);
+    uint rotate=_R1Phase%tiles;
+    uint local=0;
+    for(uint p=begin;p<end;++p)
     {
-        uint t=(_R1Phase%tiles+i)%tiles;
+        uint t=rotate+p; if(t>=tiles) t-=tiles;
+        local+=min(quota,_R1Tile[t].x);
+    }
+    r1Scan[lane]=local;
+    GroupMemoryBarrierWithGroupSync();
+    // In-place inclusive scan of the lane totals.
+    for(uint stride=1;stride<R1_SCAN_LANES;stride<<=1)
+    {
+        uint add=lane>=stride?r1Scan[lane-stride]:0;
+        GroupMemoryBarrierWithGroupSync();
+        r1Scan[lane]+=add;
+        GroupMemoryBarrierWithGroupSync();
+    }
+    uint total=r1Scan[R1_SCAN_LANES-1];
+    uint base=r1Scan[lane]-local; // exclusive: the slice start in queue order
+    for(uint p=begin;p<end;++p)
+    {
+        uint t=rotate+p; if(t>=tiles) t-=tiles;
         uint n=min(quota,_R1Tile[t].x);
-        _R1Tile[t]=uint2(n,total); total+=n;
+        _R1Tile[t]=uint2(n,base); base+=n;
     }
     // Degenerate K < tiles: the scatter bounds check drops whatever exceeds the budget.
-    _R1Counts[2]=min(total,_R1K);
-    _R1Counts[3]=_R1Counts[1]-min(total,_R1K);
+    if(lane==0)
+    {
+        uint served=min(total,_R1K);
+        _R1Counts[2]=served;
+        _R1Counts[3]=_R1Counts[1]-served;
+    }
 }
 [numthreads(64,1,1)]
 void R1Scatter(uint3 group:SV_GroupID,uint lane:SV_GroupIndex)
