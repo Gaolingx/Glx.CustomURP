@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-26 16:15:26Z" end-time="2026-11-26 16:15:26Z" duration="0.0508158">
+  <test-suite type="TestSuite" id="1733" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="621" result="Passed" start-time="2026-11-26 16:15:26Z" end-time="2026-11-26 16:15:26Z" duration="0.050816" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1796" name="Unity.RayTracing.Tests.Editor.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RayTracing.Tests.Editor.dll" runstate="Runnable" testcasecount="38" result="Passed" start-time="2026-11-26 16:15:26Z" end-time="2026-11-26 16:15:26Z" duration="0.035162" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="58528" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestFixture" id="1747" name="SsrP3ContractTests" fullname="SsrP3ContractTests" classname="SsrP3ContractTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-26 16:15:26Z" end-time="2026-11-26 16:15:26Z" duration="0.033503" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1748" name="GlxBasicPayload_IsTheFrozen24ByteAbi" fullname="SsrP3ContractTests.GlxBasicPayload_IsTheFrozen24ByteAbi" methodname="GlxBasicPayload_IsTheFrozen24ByteAbi" classname="SsrP3ContractTests" runstate="Runnable" seed="1594616787" result="Passed" start-time="2026-11-26 16:15:26Z" end-time="2026-11-26 16:15:26Z" duration="0.017455" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1750" name="QueueBuffers_KeepTheFrozenStridesAndTileGrid" fullname="SsrP3ContractTests.QueueBuffers_KeepTheFrozenStridesAndTileGrid" methodname="QueueBuffers_KeepTheFrozenStridesAndTileGrid" classname="SsrP3ContractTests" runstate="Runnable" seed="730972273" result="Passed" start-time="2026-11-26 16:15:26Z" end-time="2026-11-26 16:15:26Z" duration="0.002946" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1749" name="R1Sample_IsTheFrozen80ByteRecord" fullname="SsrP3ContractTests.R1Sample_IsTheFrozen80ByteRecord" methodname="R1Sample_IsTheFrozen80ByteRecord" classname="SsrP3ContractTests" runstate="Runnable" seed="2044193967" result="Passed" start-time="2026-11-26 16:15:26Z" end-time="2026-11-26 16:15:26Z" duration="0.000562" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1751" name="SsrPass_StaysBeforeGBuffer_UntilP3" fullname="SsrP3ContractTests.SsrPass_StaysBeforeGBuffer_UntilP3" methodname="SsrPass_StaysBeforeGBuffer_UntilP3" classname="SsrP3ContractTests" runstate="Runnable" seed="297985587" result="Passed" start-time="2026-11-26 16:15:26Z" end-time="2026-11-26 16:15:26Z" duration="0.001734" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

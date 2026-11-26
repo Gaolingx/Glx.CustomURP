@@ -1,0 +1,537 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Security.Cryptography;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+
+// P0 baseline capture for round 23 (PLAN/TODO/23-Ray_Tracing_Inprove_2).
+// The component is inert in the Editor; the fixture Player renders a fixed camera into a linear
+// RGBA16F target, warms the SSR/denoiser history for a fixed number of camera renders and records
+// the capture render as frame.raw + frame.png + Player.json.
+public sealed class SsrP3BaselineCapture : MonoBehaviour
+{
+    public const int DefaultWarmupRenders = 120;
+    public const int DefaultCaptureRender = 121;
+
+    public UniversalRenderPipelineAsset pipeline;
+    public Camera captureCamera;
+    public Volume captureVolume;
+    public int width = 1920;
+    public int height = 1080;
+    public int warmupRenders = DefaultWarmupRenders;
+    public int captureRender = DefaultCaptureRender;
+
+    string m_OutputRoot;
+    string m_Variant;
+    string m_Run;
+    RenderTexture m_Target;
+    bool m_Done;
+    int m_RenderEnds;
+    int m_FirstUnityFrame = -1;
+    string m_Error;
+
+    [Serializable]
+    sealed class PlayerReport
+    {
+        public string variant;
+        public string run;
+        public bool passed;
+        public string error;
+        public string utcTimestamp;
+        public string unityVersion;
+        public string buildGuid;
+        public string os;
+        public string graphicsDeviceName;
+        public string graphicsDeviceType;
+        public string graphicsDeviceVersion;
+        public bool supportsRayTracing;
+        public bool supportsComputeShaders;
+        public string colorSpace;
+        public string pipeline;
+        public string rendererModeActual;
+        public string scene;
+        public string cameraName;
+        public Vector3 cameraPosition;
+        public Quaternion cameraRotation;
+        public float fieldOfView;
+        public float nearClip;
+        public float farClip;
+        public int width;
+        public int height;
+        public string targetFormat;
+        public bool targetSRGB;
+        public int targetSamples;
+        public bool hdr;
+        public bool postProcessing;
+        public string antialiasing;
+        public int captureFramerate;
+        public int warmupRenders;
+        public int captureRender;
+        public int unityFrameAtCapture;
+        public int firstUnityFrame;
+        public string variantApplied;
+        public bool ssrEnabled;
+        public string ssrAlgorithm;
+        public bool ssrFullResolution;
+        public bool ssrDenoise;
+        public int ssrDenoiserRadius;
+        public float ssrMinSmoothness;
+        public float ssrSmoothnessFadeStart;
+        public float ssrDepthBufferThickness;
+        public float ssrScreenFadeDistance;
+        public int ssrRayMaxIterations;
+        public bool ssrReflectSky;
+        public float ssrRayLength;
+        public float ssrIntensity;
+        public float ssrBiasFactor;
+        public bool ssrAffectSmoothSurfaces;
+        public bool ssrSingleReflectionBounce;
+        public bool featureRayTracingReflections;
+        public int featureReflectionRayBudget;
+        public string featureReadback;
+        public string frameRaw;
+        public string framePng;
+        public long frameRawBytes;
+        public string frameSHA256;
+        public double lumaMin;
+        public double lumaMean;
+        public double lumaMax;
+        public int nonFiniteSamples;
+        public SsrDispatchStats ssrDispatch;
+    }
+
+    [Serializable]
+    sealed class SsrDispatchStats
+    {
+        public int frameIndex;
+        public bool pbr;
+        public bool halfResolution;
+        public int traceWidth;
+        public int traceHeight;
+        public int traceDispatches;
+        public int reprojectDispatches;
+        public int hwMergeDispatches;
+        public int temporalDispatches;
+        public int copyHistoryDispatches;
+        public int bilateralHDispatches;
+        public int bilateralVDispatches;
+        public int upsampleDispatches;
+        public bool historyValid;
+        public int historyResetCount;
+    }
+
+    static string Arg(string key)
+    {
+        var args = Environment.GetCommandLineArgs();
+        for (var i = 0; i < args.Length - 1; i++)
+        {
+            if (args[i] == key)
+                return args[i + 1];
+        }
+        return null;
+    }
+
+    void Awake()
+    {
+        Application.runInBackground = true;
+        Time.captureFramerate = 60;
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = 60;
+
+        m_OutputRoot = Arg("-p3-output");
+        m_Variant = Arg("-p3-variant") ?? "base";
+        m_Run = Arg("-p3-run") ?? "run-01";
+        if (string.IsNullOrEmpty(m_OutputRoot))
+        {
+            Debug.LogError("SsrP3BaselineCapture: -p3-output is required.");
+            m_Error = "missing -p3-output";
+            Finish();
+            return;
+        }
+
+        try
+        {
+            if (pipeline == null || captureCamera == null || captureVolume == null)
+                throw new InvalidOperationException("Fixture references are not assigned.");
+
+            GraphicsSettings.defaultRenderPipeline = pipeline;
+            QualitySettings.renderPipeline = pipeline;
+            ApplyVariant();
+
+            foreach (var camera in FindObjectsOfType<Camera>(true))
+                camera.enabled = false;
+            captureCamera.enabled = false;
+            captureCamera.allowHDR = true;
+            captureCamera.allowMSAA = false;
+            captureCamera.allowDynamicResolution = false;
+            captureCamera.aspect = (float)width / height;
+            var data = captureCamera.GetUniversalAdditionalCameraData();
+            data.antialiasing = AntialiasingMode.None;
+            data.renderPostProcessing = false;
+
+            var descriptor = new RenderTextureDescriptor(width, height, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat, 24)
+            {
+                msaaSamples = 1,
+                useDynamicScale = false
+            };
+            m_Target = new RenderTexture(descriptor);
+            if (!m_Target.Create())
+                throw new InvalidOperationException("Linear RGBA16F target was not created.");
+            captureCamera.targetTexture = m_Target;
+            RenderPipelineManager.endCameraRendering += EndCamera;
+        }
+        catch (Exception exception)
+        {
+            m_Error = exception.ToString();
+            Finish();
+        }
+    }
+
+    void ApplyVariant()
+    {
+        var profile = captureVolume.sharedProfile;
+        if (profile == null || !profile.TryGet<ScreenSpaceReflection>(out var ssr))
+        {
+            m_Error = "The fixture volume does not carry a ScreenSpaceReflection override.";
+            return;
+        }
+
+        switch (m_Variant)
+        {
+            case "ssroff":
+                ssr.enabled.Override(false);
+                break;
+            case "nodenoise":
+                ssr.enabled.Override(true);
+                ssr.denoise.Override(false);
+                break;
+            case "base":
+                ssr.enabled.Override(true);
+                ssr.denoise.Override(true);
+                break;
+            default:
+                m_Error = "Unknown -p3-variant: " + m_Variant;
+                break;
+        }
+    }
+
+    void EndCamera(ScriptableRenderContext context, Camera camera)
+    {
+        if (camera != captureCamera)
+            return;
+        if (m_FirstUnityFrame < 0)
+            m_FirstUnityFrame = Time.frameCount;
+        m_RenderEnds++;
+    }
+
+    void Update()
+    {
+        if (m_Done)
+            return;
+
+        try
+        {
+            if (!string.IsNullOrEmpty(m_Error))
+            {
+                Finish();
+                return;
+            }
+
+            var before = m_RenderEnds;
+            captureCamera.Render();
+            if (m_RenderEnds != before + 1)
+                throw new InvalidOperationException("Expected one finished camera render.");
+
+            if (m_RenderEnds < captureRender)
+                return;
+
+            WriteCapture();
+            Finish();
+        }
+        catch (Exception exception)
+        {
+            m_Error = exception.ToString();
+            Finish();
+        }
+    }
+
+    void WriteCapture()
+    {
+        Directory.CreateDirectory(m_OutputRoot);
+
+        var readback = new Texture2D(width, height, TextureFormat.RGBAHalf, false, true);
+        var previous = RenderTexture.active;
+        try
+        {
+            RenderTexture.active = m_Target;
+            readback.ReadPixels(new Rect(0, 0, width, height), 0, 0, false);
+            readback.Apply(false);
+        }
+        finally
+        {
+            RenderTexture.active = previous;
+        }
+
+        var raw = readback.GetRawTextureData();
+        var rawPath = Path.Combine(m_OutputRoot, "frame.raw");
+        File.WriteAllBytes(rawPath, raw);
+
+        var pixels = readback.GetPixels();
+        Destroy(readback);
+
+        var report = new PlayerReport
+        {
+            variant = m_Variant,
+            run = m_Run,
+            utcTimestamp = DateTime.UtcNow.ToString("O"),
+            unityVersion = Application.unityVersion,
+            buildGuid = Application.buildGUID,
+            os = SystemInfo.operatingSystem,
+            graphicsDeviceName = SystemInfo.graphicsDeviceName,
+            graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString(),
+            graphicsDeviceVersion = SystemInfo.graphicsDeviceVersion,
+            supportsRayTracing = SystemInfo.supportsRayTracing,
+            supportsComputeShaders = SystemInfo.supportsComputeShaders,
+            colorSpace = QualitySettings.activeColorSpace.ToString(),
+            pipeline = pipeline.name,
+            scene = captureCamera.gameObject.scene.path,
+            cameraName = captureCamera.name,
+            cameraPosition = captureCamera.transform.position,
+            cameraRotation = captureCamera.transform.rotation,
+            fieldOfView = captureCamera.fieldOfView,
+            nearClip = captureCamera.nearClipPlane,
+            farClip = captureCamera.farClipPlane,
+            width = width,
+            height = height,
+            targetFormat = m_Target.graphicsFormat.ToString(),
+            targetSRGB = m_Target.sRGB,
+            targetSamples = m_Target.antiAliasing,
+            hdr = captureCamera.allowHDR && pipeline.supportsHDR,
+            postProcessing = captureCamera.GetUniversalAdditionalCameraData().renderPostProcessing,
+            antialiasing = captureCamera.GetUniversalAdditionalCameraData().antialiasing.ToString(),
+            captureFramerate = Time.captureFramerate,
+            warmupRenders = warmupRenders,
+            captureRender = m_RenderEnds,
+            unityFrameAtCapture = Time.frameCount,
+            firstUnityFrame = m_FirstUnityFrame,
+            variantApplied = m_Variant,
+            frameRaw = Path.GetFileName(rawPath),
+            frameRawBytes = raw.LongLength,
+            frameSHA256 = Hash(raw),
+            ssrDispatch = ReadDispatchStats()
+        };
+
+        var lumaMin = double.MaxValue;
+        var lumaMax = double.MinValue;
+        var lumaSum = 0.0;
+        var nonFinite = 0;
+        var encoded = new Color32[pixels.Length];
+        for (var i = 0; i < pixels.Length; i++)
+        {
+            var c = pixels[i];
+            if (float.IsNaN(c.r) || float.IsNaN(c.g) || float.IsNaN(c.b) ||
+                float.IsInfinity(c.r) || float.IsInfinity(c.g) || float.IsInfinity(c.b))
+            {
+                nonFinite++;
+                c = Color.black;
+            }
+            var luma = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+            lumaMin = Math.Min(lumaMin, luma);
+            lumaMax = Math.Max(lumaMax, luma);
+            lumaSum += luma;
+            encoded[i] = ToDisplay(c);
+        }
+        report.lumaMin = lumaMin;
+        report.lumaMean = lumaSum / pixels.Length;
+        report.lumaMax = lumaMax;
+        report.nonFiniteSamples = nonFinite;
+
+        var pngPath = Path.Combine(m_OutputRoot, "frame.png");
+        var display = new Texture2D(width, height, TextureFormat.RGBA32, false, false);
+        try
+        {
+            display.SetPixels32(encoded);
+            display.Apply(false);
+            File.WriteAllBytes(pngPath, display.EncodeToPNG());
+        }
+        finally
+        {
+            Destroy(display);
+        }
+        report.framePng = Path.GetFileName(pngPath);
+
+        var data = captureCamera.GetUniversalAdditionalCameraData();
+        report.rendererModeActual = ReadRendererMode(data);
+        ReadVolume(report);
+        ReadFeature(report);
+        report.passed = string.IsNullOrEmpty(m_Error);
+        File.WriteAllText(Path.Combine(m_OutputRoot, "Player.json"), JsonUtility.ToJson(report, true));
+    }
+
+    static Color32 ToDisplay(Color c)
+    {
+        // Review-only tonemap; frame.raw stays the authoritative linear signal.
+        var r = Encode(c.r);
+        var g = Encode(c.g);
+        var b = Encode(c.b);
+        return new Color32(r, g, b, 255);
+    }
+
+    static byte Encode(float value)
+    {
+        if (float.IsNaN(value) || value <= 0f)
+            return 0;
+        var mapped = value / (1f + value);
+        var gamma = Mathf.Pow(mapped, 1f / 2.2f);
+        return (byte)Mathf.Clamp(Mathf.RoundToInt(gamma * 255f), 0, 255);
+    }
+
+    static string Hash(byte[] bytes)
+    {
+        using var sha = SHA256.Create();
+        var digest = sha.ComputeHash(bytes);
+        var text = new System.Text.StringBuilder(digest.Length * 2);
+        foreach (var b in digest)
+            text.Append(b.ToString("x2", CultureInfo.InvariantCulture));
+        return text.ToString();
+    }
+
+    static void ReadVolume(PlayerReport report)
+    {
+        if (VolumeManager.instance == null || VolumeManager.instance.stack == null)
+            return;
+        var ssr = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+        if (ssr == null)
+            return;
+        report.ssrEnabled = ssr.enabled.value;
+        report.ssrAlgorithm = ssr.usedAlgorithm.value.ToString();
+        report.ssrFullResolution = ssr.fullResolution.value;
+        report.ssrDenoise = ssr.denoise.value;
+        report.ssrDenoiserRadius = ssr.denoiserRadius.value;
+        report.ssrMinSmoothness = ssr.minSmoothness.value;
+        report.ssrSmoothnessFadeStart = ssr.smoothnessFadeStart.value;
+        report.ssrDepthBufferThickness = ssr.depthBufferThickness.value;
+        report.ssrScreenFadeDistance = ssr.screenFadeDistance.value;
+        report.ssrRayMaxIterations = ssr.rayMaxIterations.value;
+        report.ssrReflectSky = ssr.reflectSky.value;
+        report.ssrRayLength = ssr.rayLength.value;
+        report.ssrIntensity = ssr.intensity.value;
+        report.ssrBiasFactor = ssr.biasFactor.value;
+        report.ssrAffectSmoothSurfaces = ssr.affectSmoothSurfaces.value;
+        report.ssrSingleReflectionBounce = ssr.singleReflectionBounce.value;
+    }
+
+    static string ReadRendererMode(UniversalAdditionalCameraData data)
+    {
+        try
+        {
+            var renderer = data.scriptableRenderer;
+            var property = renderer.GetType().GetProperty("renderingModeActual", BindingFlags.Instance | BindingFlags.NonPublic);
+            return property?.GetValue(renderer)?.ToString() ?? "unknown";
+        }
+        catch (Exception exception)
+        {
+            return "error: " + exception.GetType().Name;
+        }
+    }
+
+    static void ReadFeature(PlayerReport report)
+    {
+        try
+        {
+            var pipelineField = typeof(UniversalRenderPipelineAsset).GetField("m_RendererDataList", BindingFlags.Instance | BindingFlags.NonPublic);
+            var list = pipelineField?.GetValue(GraphicsSettings.currentRenderPipeline) as Array;
+            var data = list != null && list.Length > 0 ? list.GetValue(0) as ScriptableRendererData : null;
+            if (data == null)
+            {
+                report.featureReadback = "no renderer data";
+                return;
+            }
+
+            foreach (var feature in data.rendererFeatures)
+            {
+                if (feature == null || feature.GetType().Name != "ScreenSpaceLightingRendererFeature")
+                    continue;
+                var settingsField = feature.GetType().GetField("m_Settings", BindingFlags.Instance | BindingFlags.NonPublic);
+                var settings = settingsField?.GetValue(feature);
+                if (settings == null)
+                    continue;
+                var type = settings.GetType();
+                var reflections = type.GetField("rayTracingReflections", BindingFlags.Instance | BindingFlags.NonPublic);
+                var budget = type.GetField("reflectionRayBudget", BindingFlags.Instance | BindingFlags.NonPublic);
+                report.featureRayTracingReflections = reflections != null && (bool)reflections.GetValue(settings);
+                report.featureReflectionRayBudget = budget != null ? (int)budget.GetValue(settings) : -1;
+                report.featureReadback = "ok";
+                return;
+            }
+            report.featureReadback = "feature not found";
+        }
+        catch (Exception exception)
+        {
+            report.featureReadback = "error: " + exception.GetType().Name;
+        }
+    }
+
+    static SsrDispatchStats ReadDispatchStats()
+    {
+        try
+        {
+            var type = FindType("UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
+            var field = type?.GetField("s_LastDispatchStats", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            var source = field?.GetValue(null);
+            if (source == null)
+                return null;
+
+            var result = new SsrDispatchStats();
+            foreach (var target in typeof(SsrDispatchStats).GetFields(BindingFlags.Instance | BindingFlags.Public))
+            {
+                var origin = source.GetType().GetField(target.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (origin == null || origin.FieldType != target.FieldType)
+                    continue;
+                target.SetValue(result, origin.GetValue(source));
+            }
+            return result;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    static Type FindType(string fullName)
+    {
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            var type = assembly.GetType(fullName);
+            if (type != null)
+                return type;
+        }
+        return null;
+    }
+
+    void Finish()
+    {
+        m_Done = true;
+        RenderPipelineManager.endCameraRendering -= EndCamera;
+        if (captureCamera != null)
+            captureCamera.targetTexture = null;
+        if (m_Target != null)
+        {
+            m_Target.Release();
+            Destroy(m_Target);
+            m_Target = null;
+        }
+
+        if (!string.IsNullOrEmpty(m_Error) && !string.IsNullOrEmpty(m_OutputRoot))
+        {
+            Directory.CreateDirectory(m_OutputRoot);
+            File.WriteAllText(Path.Combine(m_OutputRoot, "CaptureError.txt"), m_Error);
+            Debug.LogError("SsrP3BaselineCapture failed: " + m_Error);
+        }
+        Application.Quit(string.IsNullOrEmpty(m_Error) ? 0 : 1);
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "fixtureScene": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3Baseline.unity",
+    "volumeProfile": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3BaselineProfile.asset",
+    "renderer": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3DeferredRenderer.asset",
+    "pipeline": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3DeferredPipeline.asset",
+    "width": 1920,
+    "height": 1080,
+    "warmupRenders": 120,
+    "captureRender": 121,
+    "rayTracingReflections": true,
+    "reflectionRayBudget": 32768,
+    "groundMaterial": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3Ground.mat",
+    "rayTracingInstances": 14,
+    "frameSceneSHA256": "77fb8e25672c241dfc8e72207dee8e0aca3533556f9aea08d86879c430d2158b",
+    "profileSHA256": "e5acec891d427a85f4a765cd3afe4e3426a5b2afc765de9e2679931b3b3c2f28",
+    "rendererSHA256": "825fa0c0d09882aafb99e49fc827e7034c409c528fc77269a97e62a64327f33a",
+    "pipelineSHA256": "130801ef4c8c7827810214df03a0255f6f2703abfc9d1544a38dea8a64e1947b",
+    "groundMaterialSHA256": "25a75f149a05b3e78c3eff5e840ea677baf86497d834494f9d71b047d8ca6d82"
+}

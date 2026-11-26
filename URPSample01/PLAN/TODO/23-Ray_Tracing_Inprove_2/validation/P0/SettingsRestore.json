@@ -1,0 +1,17 @@
+{
+    "restoredPipelines": true,
+    "defaultPipeline": "URP-HighFidelity",
+    "qualityPipelines": [
+        "URP-Performant",
+        "URP-Balanced",
+        "URP-HighFidelity"
+    ],
+    "graphicsApis": [
+        "Direct3D12"
+    ],
+    "automaticApis": true,
+    "effectiveApis": [
+        "Direct3D11"
+    ],
+    "apisRestored": true
+}

@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "round": "23-Ray_Tracing_Inprove_2/P0",
+  "baselineCommit": "350d18c",
+  "status": "fixture frozen; D3D12 evidence captured; R1 counters and direct DXR dispatch proof OPEN",
+  "purpose": "Freeze the pre-P3 SSR fixture, linear output and gates. P3 moves SSR from 206 to after GBuffer and must be compared against these frames.",
+  "platform": {
+    "target": "StandaloneWindows64",
+    "os": "Windows Server 2022 Datacenter 10.0.20348",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "driver": "576.80",
+    "unity": "2022.3.62f1",
+    "embeddedUrp": "14.0.12",
+    "rtApi": "Direct3D12; SystemInfo.supportsRayTracing recorded per run, not dispatch proof",
+    "controls": ["Direct3D11 fallback"]
+  },
+  "fixture": {
+    "scene": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3Baseline.unity",
+    "sourceScene": "Assets/Tests/ScreenSpaceLighting/Scenes/ScreenSpaceLightingBaseline.unity",
+    "volumeProfile": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3BaselineProfile.asset",
+    "renderer": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3DeferredRenderer.asset",
+    "pipeline": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3DeferredPipeline.asset",
+    "groundMaterial": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3Ground.mat",
+    "rendererSource": "Assets/Tests/ScreenSpaceLighting/Renderers/SslT3UiDemoRenderer.asset",
+    "pipelineSource": "Assets/Settings/URP-HighFidelity.asset",
+    "renderingMode": "Deferred",
+    "feature": {
+      "rayTracingReflections": true,
+      "reflectionRayBudget": 32768
+    },
+    "rayTracingInstances": 14,
+    "notes": [
+      "The baseline performance runner is removed from the fixture copy.",
+      "Every MeshRenderer carries SsrRayTracingGeometry with a stable instance ID and RayTracingMode.Static; the source baseline scene has none and would silently skip DXR.",
+      "The fixture ground uses a dedicated 0.95-smoothness material; the shared Ground.mat stays at 0.25 and is not modified.",
+      "Post processing and AA are off; the source renderer's GTAO feature is kept.",
+      "The Player build temporarily sets the fixture pipeline as the default and for every quality level. Otherwise URP strips the deferred GBuffer variants (the project default is Forward) and the Player renders black geometry. The build script restores the settings afterwards."
+    ]
+  },
+  "ssr": {
+    "enabled": true,
+    "algorithm": "PBRAccumulation",
+    "fullResolution": false,
+    "minSmoothness": 0.9,
+    "smoothnessFadeStart": 0.9,
+    "depthBufferThickness": 0.01,
+    "screenFadeDistance": 0.1,
+    "rayMaxIterations": 64,
+    "reflectSky": true,
+    "rayLength": 50,
+    "intensity": 1,
+    "biasFactor": 0.5,
+    "denoise": true,
+    "denoiserRadius": 8,
+    "affectSmoothSurfaces": false,
+    "singleReflectionBounce": false
+  },
+  "camera": {
+    "name": "Baseline Camera",
+    "position": [7.5, 5.2, -8.5],
+    "rotationQuaternionXYZW": [0.15977833, -0.31171048, 0.053259436, 0.9351315],
+    "verticalFovDeg": 55,
+    "near": 0.1,
+    "far": 100,
+    "postProcessing": false,
+    "antialiasing": "None"
+  },
+  "capture": {
+    "resolution": [1920, 1080],
+    "format": "R16G16B16A16_SFloat linear",
+    "msaaSamples": 1,
+    "captureFramerate": 60,
+    "warmupCameraRenders": 120,
+    "captureCameraRenderOneBased": 121,
+    "seed": 20261125,
+    "variants": ["base", "nodenoise", "ssroff"],
+    "processesPerVariant": 2,
+    "withinApiGate": {
+      "maxDifferentPixels": 0,
+      "maxDifferentChannelBits": 0,
+      "requiresEqualFirstUnityFrame": true
+    }
+  },
+  "roi": {
+    "space": "normalized top-down",
+    "x0": 0.15,
+    "y0": 0.45,
+    "x1": 0.85,
+    "y1": 0.95,
+    "sampleStride": 2,
+    "purpose": "reflective floor and object reflections; sky and the outer background are excluded"
+  },
+  "measured": {
+    "capturedUtc": "2026-11-27",
+    "api": "Direct3D12",
+    "supportsRayTracing": true,
+    "rendererModeActual": "Deferred",
+    "firstUnityFrame": 1,
+    "unityFrameAtCapture": 121,
+    "determinism": {
+      "base": "run-01 == run-02 (bit identical)",
+      "nodenoise": "run-01 == run-02 (bit identical)",
+      "ssroff": "run-01 == run-02 (bit identical)"
+    },
+    "frameSHA256": {
+      "base": "96b9c197fa665102c10a5e8ed4b5cb57c0c9f6e20d14c77322f0794db993d737",
+      "nodenoise": "693c54de395194a1f9d99ccd8a5031f4641c70708981b0765cd9bdfb50c32935",
+      "ssroff": "1295029d7507f87aac4e421444597d420f4918ba405f28ed0d56aaf704b43533"
+    },
+    "lumaMean": {
+      "base": 0.26545249,
+      "nodenoise": 0.26560708,
+      "ssroff": 0.26575158
+    },
+    "nonFiniteSamples": 0,
+    "dispatch": {
+      "base": {"trace": 1, "hwMerge": 1, "temporal": 1, "historyValid": true},
+      "nodenoise": {"trace": 1, "hwMerge": 1, "temporal": 0, "historyValid": false},
+      "ssroff": {"trace": 0, "hwMerge": 0, "temporal": 0, "historyValid": false}
+    },
+    "comparison": {
+      "base-vs-ssroff": {
+        "full": {"meanAbs": 0.00029831, "p99Abs": 0.00848389, "maxAbs": 0.40551758, "fractionOver0_01": 0.008971},
+        "floorRoi": {"meanAbs": 0.00084163, "p99Abs": 0.03027344, "maxAbs": 0.35253906, "fractionOver0_01": 0.025485}
+      },
+      "base-vs-nodenoise": {
+        "full": {"meanAbs": 0.00014676, "p99Abs": 0.00040436, "maxAbs": 5.93188477, "fractionOver0_01": 0.001217},
+        "floorRoi": {"meanAbs": 0.00039919, "p99Abs": 0.00305176, "maxAbs": 5.93188477, "fractionOver0_01": 0.003341}
+      }
+    },
+    "editorCheck": "PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P0/editor-check.png renders the fixture correctly in the Editor; it is a setup sanity check, not Player evidence."
+  },
+  "evidence": {
+    "root": "PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P0",
+    "layout": "Win64-D3D12/<variant>/<run>/Player.json + frame.raw + frame.png",
+    "comparison": "PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P0/Comparison.json",
+    "fixtureManifest": "PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P0/Fixture.json"
+  },
+  "openGates": [
+    "R1 requested/served/overflow counters are not published to the Player (P1).",
+    "DispatchRays itself is not counted; hwMerge==1 plus the fixture settings imply the hybrid path ran, but this is not a direct TLAS/DispatchRays proof (P1).",
+    "D3D11 fallback baseline not captured; the Player ships both APIs (P3 gate).",
+    "frame.raw files are large (~16.6 MB each); decide whether the evidence commit keeps them or only the hashes plus PNGs."
+  ],
+  "thresholdsForP3": {
+    "ssRtBoundaryLumaDelta": "<= 50% of the P0 measured value in the floor ROI",
+    "noNewProbeBoundaryStep": true,
+    "nodenoiseBlockMeans": "SS-block vs RT-block mean luma and chroma deltas recorded; target defined after P1 measurement",
+    "staticVarianceFrames": 300,
+    "frameTimeDeltaMs": 0.5,
+    "ssrChainDeltaMs": 0.4,
+    "d3d11Fallback": "bit-identical to P0 or noise-level only"
+  }
+}

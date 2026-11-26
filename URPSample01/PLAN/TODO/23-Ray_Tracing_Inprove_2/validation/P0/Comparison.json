@@ -1,0 +1,128 @@
+{
+  "frames": {
+    "base": {
+      "run01": "96b9c197fa665102c10a5e8ed4b5cb57c0c9f6e20d14c77322f0794db993d737",
+      "run02": "96b9c197fa665102c10a5e8ed4b5cb57c0c9f6e20d14c77322f0794db993d737",
+      "lumaMean": 0.26545248557930284,
+      "lumaMax": 209.618075,
+      "nonFinite": 0,
+      "ssrEnabled": true,
+      "ssrDenoise": true,
+      "traceDispatches": 1,
+      "hwMergeDispatches": 1,
+      "temporalDispatches": 1,
+      "historyValid": true
+    },
+    "nodenoise": {
+      "run01": "693c54de395194a1f9d99ccd8a5031f4641c70708981b0765cd9bdfb50c32935",
+      "run02": "693c54de395194a1f9d99ccd8a5031f4641c70708981b0765cd9bdfb50c32935",
+      "lumaMean": 0.26560707574773196,
+      "lumaMax": 209.618075,
+      "nonFinite": 0,
+      "ssrEnabled": true,
+      "ssrDenoise": false,
+      "traceDispatches": 1,
+      "hwMergeDispatches": 1,
+      "temporalDispatches": 0,
+      "historyValid": false
+    },
+    "ssroff": {
+      "run01": "1295029d7507f87aac4e421444597d420f4918ba405f28ed0d56aaf704b43533",
+      "run02": "1295029d7507f87aac4e421444597d420f4918ba405f28ed0d56aaf704b43533",
+      "lumaMean": 0.2657515787588102,
+      "lumaMax": 209.618075,
+      "nonFinite": 0,
+      "ssrEnabled": false,
+      "ssrDenoise": true,
+      "traceDispatches": 0,
+      "hwMergeDispatches": 0,
+      "temporalDispatches": 0,
+      "historyValid": false
+    }
+  },
+  "determinism": {
+    "base": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "nodenoise": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "ssroff": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    }
+  },
+  "comparisons": {
+    "base-vs-ssroff": {
+      "full": {
+        "samples": 2073600,
+        "meanAbs": 0.00029830989278393025,
+        "p99Abs": 0.00848388671875,
+        "maxAbs": 0.405517578125,
+        "fractionOver1e2": 0.008970871913580246,
+        "lumaMeanA": 0.06647086848268685,
+        "lumaMeanB": 0.06654373323053966
+      },
+      "floorRoi": {
+        "samples": 725760,
+        "meanAbs": 0.000841627087332374,
+        "p99Abs": 0.0302734375,
+        "maxAbs": 0.3525390625,
+        "fractionOver1e2": 0.02548500881834215,
+        "lumaMeanA": 0.03262072392475247,
+        "lumaMeanB": 0.032825685661405694
+      }
+    },
+    "base-vs-nodenoise": {
+      "full": {
+        "samples": 2073600,
+        "meanAbs": 0.0001467565401100818,
+        "p99Abs": 0.00040435791015625,
+        "maxAbs": 5.931884765625,
+        "fractionOver1e2": 0.0012172067901234569,
+        "lumaMeanA": 0.06647086848268685,
+        "lumaMeanB": 0.06650889844563272
+      },
+      "floorRoi": {
+        "samples": 725760,
+        "meanAbs": 0.00039919333062684936,
+        "p99Abs": 0.0030517578125,
+        "maxAbs": 5.931884765625,
+        "fractionOver1e2": 0.0033413249559082893,
+        "lumaMeanA": 0.03262072392475247,
+        "lumaMeanB": 0.032722817098646564
+      }
+    }
+  },
+  "roi": {
+    "x0": 0.15,
+    "y0": 0.45,
+    "x1": 0.85,
+    "y1": 0.95,
+    "space": "normalized top-down"
+  },
+  "sampleStride": 2
+}
