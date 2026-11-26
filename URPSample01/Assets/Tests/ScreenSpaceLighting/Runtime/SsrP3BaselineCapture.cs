@@ -33,6 +33,10 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
     int m_RenderEnds;
     int m_FirstUnityFrame = -1;
     string m_Error;
+    // Capture-frame evidence, sampled by the pass (see RequestRayTracingEvidence).
+    int m_EvidenceTlasInstances = -1;
+    uint[] m_EvidenceCounters;
+    string m_EvidenceError;
 
     [Serializable]
     sealed class PlayerReport
@@ -92,7 +96,21 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         public bool ssrSingleReflectionBounce;
         public bool featureRayTracingReflections;
         public int featureReflectionRayBudget;
+        public bool featureHitDeferredShading;
         public string featureReadback;
+        // Direct DXR evidence: the TLAS the reflection dispatch used and the R1 request
+        // counters of the captured frame (0 eligible/requested/served/overflow when skipped).
+        public int tlasInstances;
+        public int tlasDisabledSubmeshes;
+        public int tlasBuilds;
+        public int tlasRegisteredLights;
+        public int tlasUploadedLights;
+        public int tlasOverflowLights;
+        public int r1Eligible;
+        public int r1Requested;
+        public int r1Served;
+        public int r1Overflow;
+        public string rayTracingEvidence;
         public string frameRaw;
         public string framePng;
         public long frameRawBytes;
@@ -242,7 +260,15 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             }
 
             var before = m_RenderEnds;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (m_RenderEnds + 1 == captureRender)
+                RequestRayTracingEvidence();
+#endif
             captureCamera.Render();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (m_RenderEnds >= captureRender)
+                CompleteRayTracingEvidence();
+#endif
             if (m_RenderEnds != before + 1)
                 throw new InvalidOperationException("Expected one finished camera render.");
 
@@ -256,6 +282,41 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         {
             m_Error = exception.ToString();
             Finish();
+        }
+    }
+
+    // The capture frame's R1 counters and TLAS size must be sampled by the pass itself: after
+    // the frame the hybrid queue is detached, and reading inside the pass would race the
+    // recorded commands. The pass requests an async readback on this frame only.
+    void RequestRayTracingEvidence()
+    {
+        try
+        {
+            var type = FindType("UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
+            type?.GetMethod("ResetEvidence", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)?.Invoke(null, null);
+            var flag = type?.GetField("s_RequestEvidence", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            flag?.SetValue(null, true);
+        }
+        catch (Exception exception)
+        {
+            m_EvidenceError = "request: " + exception.GetType().Name;
+        }
+    }
+
+    void CompleteRayTracingEvidence()
+    {
+        try
+        {
+            UnityEngine.Rendering.AsyncGPUReadback.WaitAllRequests();
+            var type = FindType("UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
+            var tlas = type?.GetField("s_EvidenceTlasInstances", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            var counters = type?.GetField("s_EvidenceCounters", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            if (tlas != null) m_EvidenceTlasInstances = (int)tlas.GetValue(null);
+            m_EvidenceCounters = counters?.GetValue(null) as uint[];
+        }
+        catch (Exception exception)
+        {
+            m_EvidenceError = "complete: " + exception.GetType().Name;
         }
     }
 
@@ -368,6 +429,19 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         report.rendererModeActual = ReadRendererMode(data);
         ReadVolume(report);
         ReadFeature(report);
+        ReadRayTracingEvidence(report);
+        if (m_EvidenceCounters != null && m_EvidenceCounters.Length >= 4)
+        {
+            report.r1Eligible = (int)m_EvidenceCounters[0];
+            report.r1Requested = (int)m_EvidenceCounters[1];
+            report.r1Served = (int)m_EvidenceCounters[2];
+            report.r1Overflow = (int)m_EvidenceCounters[3];
+            report.rayTracingEvidence = "ok (capture frame readback)";
+        }
+        if (m_EvidenceTlasInstances >= 0)
+            report.tlasInstances = m_EvidenceTlasInstances;
+        if (!string.IsNullOrEmpty(m_EvidenceError))
+            report.rayTracingEvidence = m_EvidenceError;
         report.passed = string.IsNullOrEmpty(m_Error);
         File.WriteAllText(Path.Combine(m_OutputRoot, "Player.json"), JsonUtility.ToJson(report, true));
     }
@@ -463,8 +537,10 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
                 var type = settings.GetType();
                 var reflections = type.GetField("rayTracingReflections", BindingFlags.Instance | BindingFlags.NonPublic);
                 var budget = type.GetField("reflectionRayBudget", BindingFlags.Instance | BindingFlags.NonPublic);
+                var hitDeferred = type.GetField("hitDeferredShading", BindingFlags.Instance | BindingFlags.NonPublic);
                 report.featureRayTracingReflections = reflections != null && (bool)reflections.GetValue(settings);
                 report.featureReflectionRayBudget = budget != null ? (int)budget.GetValue(settings) : -1;
+                report.featureHitDeferredShading = hitDeferred != null && (bool)hitDeferred.GetValue(settings);
                 report.featureReadback = "ok";
                 return;
             }
@@ -476,8 +552,72 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         }
     }
 
-    static SsrDispatchStats ReadDispatchStats()
+    // Direct evidence for the P0 OPEN gates: the TLAS the reflection dispatch used, and the
+    // captured frame's R1 counters (eligible/requested/served/overflow). The queue is internal,
+    // so this mirrors ReadFeature's reflection style.
+    static void ReadRayTracingEvidence(PlayerReport report)
     {
+        report.rayTracingEvidence = "not found";
+        try
+        {
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+            var pipelineField = typeof(UniversalRenderPipelineAsset).GetField("m_RendererDataList", BindingFlags.Instance | BindingFlags.NonPublic);
+            var list = pipelineField?.GetValue(GraphicsSettings.currentRenderPipeline) as Array;
+            var data = list != null && list.Length > 0 ? list.GetValue(0) as ScriptableRendererData : null;
+            object feature = null;
+            if (data != null)
+            {
+                foreach (var candidate in data.rendererFeatures)
+                {
+                    if (candidate != null && candidate.GetType().Name == "ScreenSpaceLightingRendererFeature")
+                    {
+                        feature = candidate;
+                        break;
+                    }
+                }
+            }
+            if (feature == null)
+            {
+                report.rayTracingEvidence = "feature not found";
+                return;
+            }
+
+            var scene = feature.GetType().GetField("m_RayTracingScene", flags)?.GetValue(feature);
+            if (scene != null)
+            {
+                var t = scene.GetType();
+                report.tlasInstances = (int)t.GetProperty("instanceCount", flags).GetValue(scene);
+                report.tlasDisabledSubmeshes = (int)t.GetProperty("disabledSubmeshes", flags).GetValue(scene);
+                report.tlasBuilds = (int)t.GetProperty("buildCount", flags).GetValue(scene);
+                report.tlasRegisteredLights = (int)t.GetProperty("registeredLights", flags).GetValue(scene);
+                report.tlasUploadedLights = (int)t.GetProperty("uploadedLights", flags).GetValue(scene);
+                report.tlasOverflowLights = (int)t.GetProperty("tableOverflow", flags).GetValue(scene);
+            }
+
+            var pass = feature.GetType().GetField("m_SsrPass", flags)?.GetValue(feature);
+            var queue = pass?.GetType().GetField("requestQueue", flags)?.GetValue(pass);
+            var counters = queue?.GetType().GetField("counters", flags)?.GetValue(queue) as ComputeBuffer;
+            if (counters == null || counters.count < 4)
+            {
+                report.rayTracingEvidence = "no R1 queue (DXR path skipped)";
+                return;
+            }
+
+            var values = new uint[counters.count];
+            counters.GetData(values);
+            report.r1Eligible = (int)values[0];
+            report.r1Requested = (int)values[1];
+            report.r1Served = (int)values[2];
+            report.r1Overflow = (int)values[3];
+            report.rayTracingEvidence = "ok";
+        }
+        catch (Exception exception)
+        {
+            report.rayTracingEvidence = "error: " + exception.GetType().Name;
+        }
+    }
+
+    static SsrDispatchStats ReadDispatchStats()    {
         try
         {
             var type = FindType("UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");

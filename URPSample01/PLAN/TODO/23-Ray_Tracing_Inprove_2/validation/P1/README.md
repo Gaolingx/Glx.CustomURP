@@ -1,6 +1,6 @@
 # P1 证据
 
-**状态：** B1–B4 完成（B3/B4 默认关，fixture 置开）；B5 构建、门禁与证据。
+**状态：** B1–B4 完成（B3/B4 默认关，fixture 置开）；B5 构建与门禁部分完成，**命中着色尚未生效（OPEN）**。
 **基线：** P0 D3D12 基线继续有效；`_R2Hits`、R1/R2 布局、Pass 顺序与注入点均未改。
 
 ## B1：C2.7 hit 表面记录
@@ -49,6 +49,33 @@ contracts C2.7 同时冻结了材质能力边界：只承载标准 PBR 字段（
 | 材质 | `RayTracingSceneInstances.Classify` 对"有 hit pass 但缺标准 GBuffer 字段"的材质按 C2.7 **报错一次并跳过**（透明面、GBuffer 不兼容的 Lit 变体）；跳过的子网格不进 RTAS，命中落 probe/sky |
 | 资源 | 编辑器 `k_ResourceFields` 增加 `ssrHitDeferredCompute`；fixture 构建器显式解析并写入该引用，缺失直接抛错 |
 | 证据 | fixture 开关置 true（`Fixture.json.hitDeferredShading = true`），B5 重生成 fixture 后生效 |
+
+## B5：构建 + 门禁（部分完成）
+
+**构建**：fixture 重新生成 + Player 构建成功（D3D11+D3D12，0 shader error，0 build error）。构建期修复：
+
+- `BRDFData` 没有 `fresnel0`（那是 HDRP）；URP 用 `specular` 作 F0。
+- `AssetDatabase` 的包路径不带 `@14.0.12`（与 `ScreenSpaceLightingSettings` 一致）；新 compute 需显式 `ImportAsset`。
+- `CreateFixture()` 移进 `try`：生成期失败也要还原工程设置。
+- 捕获器改读**字段**：Player 构建会裁掉未被运行时使用的 internal 属性（`ssrPass`/`rayTracingScene`）。
+
+**已关闭的门禁（捕获帧内回读，`Player.json`）**：
+
+| 门禁 | 结果 |
+|---|---|
+| R1 计数 | eligible 187225 / requested 179076 / served 11952 / overflow 167124 |
+| TLAS / DXR | 14 实例、0 禁用子网格、121 次构建；`-force-d3d12` 下 `supportsRayTracing=true` |
+| D3D11 回退基线 | 首次录制：三变体两进程逐位一致（base `7fb3e01b`、nodenoise `1bfd98e9`、ssroff `8ab8e569`）；tlas 0、R1 全 0、无 NaN |
+| 确定性 | D3D12/D3D11 各变体两进程 SHA 一致 |
+
+**OPEN：命中着色未生效。** D3D12 三变体帧 SHA 与 P0 完全相同（base `96b9c197`、nodenoise `693c54de`、ssroff `1295029d`），尽管 kernel 已被派发（Player.log 有 `SsrHitDeferred` 的未绑定探测贴图告警）。当前嫌疑：
+
+1. raygen 写 `_R2Surfaces` 与随后 compute 读取之间的 UAV 时序（Unity 未必在 DispatchRays → DispatchCompute 之间插屏障）；
+2. 记录全部未通过 version/source 校验（表面传输没填上）。
+
+下一步用"固定颜色写入"二分：kernel 无条件写 `_R2Hits` 若像素仍不变 → 时序/写路径；若变 → 记录校验。
+
+**未提交 `frame.raw`**：与 P0 逐位相同（P0 本身也只提交 JSON），SHA 见各 `Player.json`。
 
 ## 复跑
 

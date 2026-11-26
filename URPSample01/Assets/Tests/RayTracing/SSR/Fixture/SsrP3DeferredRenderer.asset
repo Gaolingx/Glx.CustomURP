@@ -1,59 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8663312331264958957
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57884ca0e1cb5a23c84fc6ed22f7259b, type: 3}
-  m_Name: ScreenSpaceLightingRendererFeature
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  m_Settings:
-    maxCachedCameras: 8
-    maxUnusedFrames: 120
-    publishProbeAtlas: 0
-    rayTracingReflections: 1
-    reflectionRayBudget: 32768
-    rayTracingProbeFallback: 0
-    probeGridOrigin: {x: -3.5, y: 0.5, z: -3.5}
-    probeGridSpacing: 1
-    probeGridCounts: {x: 8, y: 4, z: 8}
-    probeBatchSize: 16
-    probeRaysPerProbe: 128
-    probeFeedback: 1
-    probeRelocation: 1
-    probeClassification: 1
-    probeCoverage: 1
-    debugMode: 0
-    debugMip: 0
-    resources:
-      depthPyramidCompute: {fileID: 7200000, guid: e0af0549a8ee5484f995fb60630c4558,
-        type: 3}
-      colorPyramidShader: {fileID: 4800000, guid: 7b327ed01b2f9854e8ffc7878ce15451,
-        type: 3}
-      debugShader: {fileID: 4800000, guid: d7bd22840c9b5494da695cf0dfc610b0, type: 3}
-      ssgiCompute: {fileID: 7200000, guid: 04db38f0a389e37498cf805d6efc4752, type: 3}
-      ssgiTemporalFilterCompute: {fileID: 7200000, guid: b8a402648397c674dbbd7463e092d035,
-        type: 3}
-      ssgiDiffuseDenoiserCompute: {fileID: 7200000, guid: dfcec09b0dd0bd3458766f867f8d7883,
-        type: 3}
-      bilateralUpsampleCompute: {fileID: 7200000, guid: d5ac01cf82505cd4595b75fe9fc6d47c,
-        type: 3}
-      ssrCompute: {fileID: 7200000, guid: 59711e8917f84109b7ac2fabf506e63a, type: 3}
-      ssrReflectionDenoiserCompute: {fileID: 7200000, guid: a8d9875c25ad428ca9f259609d3ca696,
-        type: 3}
-      rayTracingSsr: {fileID: 4807578003741378534, guid: 6843167171ab4d5da13564020769b74f,
-        type: 3}
-      rayTracingGi: {fileID: 0}
-      giProbeUpdateCompute: {fileID: 7200000, guid: e623e2cdeb344389b5a55586e52230a1,
-        type: 3}
-      transparentDepthCopyShader: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220,
-        type: 3}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -71,8 +17,8 @@ MonoBehaviour:
       type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
-  - {fileID: -8663312331264958957}
-  m_RendererFeatureMap: 13deb0bc55bbc587
+  - {fileID: 7870984823938426884}
+  m_RendererFeatureMap: 042857bffe5a3b6d
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -123,3 +69,60 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
+--- !u!114 &7870984823938426884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57884ca0e1cb5a23c84fc6ed22f7259b, type: 3}
+  m_Name: ScreenSpaceLightingRendererFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Settings:
+    maxCachedCameras: 8
+    maxUnusedFrames: 120
+    publishProbeAtlas: 0
+    rayTracingReflections: 1
+    reflectionRayBudget: 32768
+    hitDeferredShading: 1
+    rayTracingProbeFallback: 0
+    probeGridOrigin: {x: -3.5, y: 0.5, z: -3.5}
+    probeGridSpacing: 1
+    probeGridCounts: {x: 8, y: 4, z: 8}
+    probeBatchSize: 16
+    probeRaysPerProbe: 128
+    probeFeedback: 1
+    probeRelocation: 1
+    probeClassification: 1
+    probeCoverage: 1
+    debugMode: 0
+    debugMip: 0
+    resources:
+      depthPyramidCompute: {fileID: 7200000, guid: e0af0549a8ee5484f995fb60630c4558,
+        type: 3}
+      colorPyramidShader: {fileID: 4800000, guid: 7b327ed01b2f9854e8ffc7878ce15451,
+        type: 3}
+      debugShader: {fileID: 4800000, guid: d7bd22840c9b5494da695cf0dfc610b0, type: 3}
+      ssgiCompute: {fileID: 7200000, guid: 04db38f0a389e37498cf805d6efc4752, type: 3}
+      ssgiTemporalFilterCompute: {fileID: 7200000, guid: b8a402648397c674dbbd7463e092d035,
+        type: 3}
+      ssgiDiffuseDenoiserCompute: {fileID: 7200000, guid: dfcec09b0dd0bd3458766f867f8d7883,
+        type: 3}
+      bilateralUpsampleCompute: {fileID: 7200000, guid: d5ac01cf82505cd4595b75fe9fc6d47c,
+        type: 3}
+      ssrCompute: {fileID: 7200000, guid: 59711e8917f84109b7ac2fabf506e63a, type: 3}
+      ssrHitDeferredCompute: {fileID: 7200000, guid: c097ca49d63c56d54826656b8de14972,
+        type: 3}
+      ssrReflectionDenoiserCompute: {fileID: 7200000, guid: a8d9875c25ad428ca9f259609d3ca696,
+        type: 3}
+      rayTracingSsr: {fileID: 4807578003741378534, guid: 6843167171ab4d5da13564020769b74f,
+        type: 3}
+      rayTracingGi: {fileID: 0}
+      giProbeUpdateCompute: {fileID: 7200000, guid: e623e2cdeb344389b5a55586e52230a1,
+        type: 3}
+      transparentDepthCopyShader: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220,
+        type: 3}

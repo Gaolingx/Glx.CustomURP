@@ -151,12 +151,6 @@ public static class SsrP3BaselineSetup
         }
         QualitySettings.SetQualityLevel(previousQualityLevel, false);
 
-        CreateFixture();
-
-        var fixturePipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PipelinePath);
-        if (fixturePipeline == null)
-            throw new FileNotFoundException("Missing P3 pipeline.", PipelinePath);
-
         var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
         var outputDirectory = Path.Combine(projectRoot, PlayerFolder);
         Directory.CreateDirectory(outputDirectory);
@@ -172,6 +166,14 @@ public static class SsrP3BaselineSetup
         BuildReport report;
         try
         {
+            // Fixture creation assigns the fixture pipeline; a failure there must still restore
+            // the project, so it runs inside the try.
+            CreateFixture();
+
+            var fixturePipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PipelinePath);
+            if (fixturePipeline == null)
+                throw new FileNotFoundException("Missing P3 pipeline.", PipelinePath);
+
             if (PlayerSettings.colorSpace != ColorSpace.Linear)
                 throw new InvalidOperationException("The P3 baseline requires the Linear color space.");
             // The project's automatic API list builds Windows Standalone for Direct3D11 only, which
@@ -345,8 +347,11 @@ public static class SsrP3BaselineSetup
         var hitField = resources?.GetType().GetField("ssrHitDeferredCompute", BindingFlags.Instance | BindingFlags.NonPublic);
         if (hitField == null)
             throw new MissingFieldException("ScreenSpaceLightingResources.ssrHitDeferredCompute was not found.");
-        var hitKernel = AssetDatabase.LoadAssetAtPath<ComputeShader>(
-            "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute");
+        // AssetDatabase addresses embedded packages by manifest name (no @version), the same
+        // path ScreenSpaceLightingSettings uses for the ray tracing shaders.
+        const string hitKernelPath = "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute";
+        AssetDatabase.ImportAsset(hitKernelPath, ImportAssetOptions.ForceSynchronousImport);
+        var hitKernel = AssetDatabase.LoadAssetAtPath<ComputeShader>(hitKernelPath);
         if (hitKernel == null)
             throw new InvalidOperationException("SsrHitDeferred.compute was not found; hit shading would fall back to closest-hit.");
         if (hitField.GetValue(resources) == null)

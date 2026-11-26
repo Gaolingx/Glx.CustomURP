@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** B4 完成（feature 开关 + C2.7 注册期拒绝 + 构建器资源解析）；下一轮 B5（Player 构建 + P0 门禁 + 证据）
+**当前阶段：** B5 部分完成（构建、R1/TLAS/D3D11 门禁已关闭；**命中着色未生效，P1 验收 OPEN**）
 
 ## 已完成
 
@@ -21,6 +21,7 @@
 | P1 命中表面传输 | `GlxBasicPayload` 64B / `RayTracingSsr.raytrace` 写 `_R2Surfaces` | 完成（7/7 @D3D12，payload 实测 64B） |
 | P1 命中延迟着色 | `SsrHitDeferred.compute` + `SsrPass.DispatchHitDeferred` | 完成（默认关，待 B4 开关 / B5 构建验证） |
 | P1 开关与回退 | `hitDeferredShading` / `RayTracingSceneInstances.ReportUnsupportedSurface` / 构建器资源解析 | 完成（默认关；不支持材质注册期报错并跳过） |
+| B5 构建 + 证据 | `validation/P1/Win64-D3D12` 与 `Win64-D3D11` | 完成（构建 0 错误；双 API 各变体两进程 SHA 一致） |
 
 ## 已锁定决策（2026-11-27）
 
@@ -57,9 +58,10 @@
 | P0 Player 构建 | CLOSED | `BuildPlayerMenu`；显式 D3D11+D3D12，D3D12 运行，构建后工程设置精确还原 |
 | P0 两进程复现 | CLOSED（D3D12） | 三个变体均逐位一致 |
 | P0 契约测试 | CLOSED | `ContractTests.xml`：4/4 通过（payload 24B、R1Sample 80B、队列 stride、Pass 206） |
-| R1 计数器 | OPEN | Player 还没有 requested/served/overflow 快照；P1 补 |
-| DXR dispatch 直接证据 | OPEN | 目前只有 `hwMergeDispatches=1` + fixture 设置；P1 补 R1 计数/TLAS 证据 |
-| D3D11 回退基线 | OPEN | Player 同时带 D3D11；去掉 `-force-d3d12` 即可补录，P3 前完成 |
+| R1 计数器 | CLOSED | 捕获帧内异步回读：187225 / 179076 / 11952 / 167124 |
+| DXR dispatch 直接证据 | CLOSED | TLAS 14 实例、0 禁用子网格、121 次构建（`Player.json`） |
+| D3D11 回退基线 | CLOSED | 首次录制，三变体两进程逐位一致；tlas 0、R1 全 0 |
+| P1 验收（SS/RT 缝下降） | **OPEN** | 命中着色未生效：D3D12 帧与 P0 逐位相同 |
 | P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
 | P1 hit GBuffer + 延迟着色核 | CLOSED | B3 核 + B4 开关/回退完成；B5 构建验证 + 证据 |
 

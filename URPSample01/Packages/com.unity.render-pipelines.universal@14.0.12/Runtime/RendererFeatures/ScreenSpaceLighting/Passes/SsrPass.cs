@@ -38,7 +38,9 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingHistory m_History;
         ScreenSpaceLightingResources m_Resources;
         ScreenSpaceLightingSettings m_Settings;
-        internal SsrRequestQueue requestQueue { get; private set; }
+        // Plain field: Player builds strip unused internal properties, and the capture reads
+        // this (plus counters) through reflection for the R1 evidence.
+        internal SsrRequestQueue requestQueue;
         RayTracingSceneResources m_Scene;
         RayTracingAccelerationStructure m_Snapshot;
         static readonly ProfilingSampler s_HybridComposite = new ProfilingSampler("SSR DXR Composite");
@@ -92,6 +94,23 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_LastDebugParamsFrame = -1;
         internal static string s_LastDebugParamsTarget = string.Empty;
         internal static string s_LastMaterialOutputTarget = string.Empty;
+
+        // Evidence hook for the P0 OPEN gates: the capture asks for one frame's R1 counters and
+        // TLAS size. A synchronous read inside the pass would race the recorded commands, and
+        // reading after the frame finds the hybrid queue already detached, so the counters come
+        // back through an async readback that WaitAllRequests completes.
+        internal static bool s_RequestEvidence;
+        internal static int s_EvidenceTlasInstances = -1;
+        internal static uint[] s_EvidenceCounters;
+        internal static bool s_EvidenceRequested;
+
+        internal static void ResetEvidence()
+        {
+            s_RequestEvidence = false;
+            s_EvidenceTlasInstances = -1;
+            s_EvidenceCounters = null;
+            s_EvidenceRequested = false;
+        }
 
         // Verification snapshot: the player cannot see the editor-only counters above, so every
         // dispatched frame publishes the algorithm, sizes, groups, keywords and history slots it
@@ -395,6 +414,18 @@ namespace UnityEngine.Rendering.Universal
                 RecordOriginals(cmd, cs, depth, normals, motion, hit, w, h);
                 requestQueue.Trace(cmd, cs, m_Resources.rayTracingSsr, m_Scene, m_Snapshot, w, h);
                 DispatchHitDeferred(cmd);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                if (s_RequestEvidence && !s_EvidenceRequested)
+                {
+                    s_EvidenceRequested = true;
+                    s_EvidenceTlasInstances = m_Scene != null ? m_Scene.instanceCount : -1;
+                    AsyncGPUReadback.Request(requestQueue.counters, request =>
+                    {
+                        if (request.hasError) return;
+                        s_EvidenceCounters = request.GetData<uint>().ToArray();
+                    });
+                }
+#endif
                 Temporal(cmd, cs, depth, normals, motion, prevInvViewProj);
                 m_LoggedHybridFailure = false;
                 return true;

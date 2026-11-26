@@ -78,7 +78,7 @@ void SsrHitDeferred(uint3 id : SV_DispatchThreadID)
     // specular share reuses the same irradiance until P2 brings the probe/sky hierarchy.
     BRDFData brdf = CdBRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
     half3 ambientRadiance = half3(GlxHitLowFrequencyIrradiance(positionWS, normalWS)) * INV_PI;
-    color += brdf.diffuse * ambientRadiance + brdf.fresnel0 * ambientRadiance + s.gb3.rgb;
+    color += brdf.diffuse * ambientRadiance + brdf.specular * ambientRadiance + s.gb3.rgb;
 
     if (!all(isfinite(color))) return;
     GlxPublishedHit hit;
