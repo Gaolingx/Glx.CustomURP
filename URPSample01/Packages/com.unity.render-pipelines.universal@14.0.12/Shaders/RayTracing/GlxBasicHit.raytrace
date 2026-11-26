@@ -11,7 +11,7 @@ struct GlxRayRequest
 float4 _GlxToLight;
 float4 _GlxLightRgb;
 StructuredBuffer<GlxRayRequest> _GlxRays;
-RWStructuredBuffer<GlxBasicPayload> _GlxResults;
+RWStructuredBuffer<GlxPublishedHit> _GlxResults;
 
 [shader("raygeneration")]
 void GlxBasicTrace()
@@ -40,7 +40,7 @@ void GlxBasicTrace()
         result.mode = _GlxToLight.w != 0.0 ? GlxPrimaryWithShadow : GlxPrimaryMode;
         TraceRay(_GlxScene, RAY_FLAG_NONE, 0xff, 0, 1, 0, ray, result);
     }
-    _GlxResults[index] = result;
+    _GlxResults[index] = GlxPublishPayload(result);
 }
 
 [shader("miss")]

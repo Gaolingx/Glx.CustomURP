@@ -26,6 +26,7 @@ Shader "Hidden/Universal Render Pipeline/GlxBasicHit"
             #pragma raytracing GlxBasicHit
             #include "UnityRayTracingMeshUtils.cginc"
             #include "GlxBasicPayload.hlsl"
+            #include "SsrHitSurface.hlsl"
 
             cbuffer UnityPerMaterial
             {
@@ -71,7 +72,17 @@ Shader "Hidden/Universal Render Pipeline/GlxBasicHit"
                     payload.radiance = _GlxEmission.rgb;
                     GlxHitSurface surface;
                     surface.albedo = _GlxAlbedo.rgb;
-                    GlxShadeLights(payload, GlxGeometricNormalWS(), surface);
+                    float3 hitNormal = GlxGeometricNormalWS();
+                    if (payload.mode == GlxReflectionMode)
+                    {
+                        // Test-only shader: no textures, so it publishes the Lit approximation.
+                        payload.ssrBaseColor = _GlxAlbedo.rgb;
+                        payload.ssrNormalOct = SsrEncodeOctNormal(hitNormal);
+                        payload.ssrRoughness = 1.0;
+                        payload.ssrMetallic = 0.0;
+                        payload.ssrEmissive = _GlxEmission.rgb;
+                    }
+                    GlxShadeLights(payload, hitNormal, surface);
                     return;
                 }
                 float3 toLight = normalize(float3(f16tof32(payload.flags & 0xffffu), f16tof32(payload.flags >> 16), payload.hitT));

@@ -7,6 +7,7 @@
 #include "UnityRayTracingMeshUtils.cginc"
 #include "GlxBasicPayload.hlsl"
 #include "GlxProbeSampling.hlsl"
+#include "SsrHitSurface.hlsl"
 
 struct GlxHitSurface { BRDFData brdf; float3 albedo; };
 float3 GlxLightBrdf(GlxHitSurface s, float3 n, float3 l, uint mode)
@@ -146,6 +147,16 @@ void GlxLitClosestHit(inout GlxBasicPayload payload : SV_RayPayload,
         half alpha = base.a;
         InitializeBRDFData(base.rgb, metallic, 0, smoothness, alpha, surface.brdf);
         float3 hitNormal = dot(n, WorldRayDirection()) > 0 ? -n : n;
+        if (mode == GlxReflectionMode)
+        {
+            // C2.7 transport: the raygen publishes the surface record; shadow and probe
+            // modes must leave these fields untouched.
+            payload.ssrBaseColor = base.rgb;
+            payload.ssrNormalOct = SsrEncodeOctNormal(hitNormal);
+            payload.ssrRoughness = 1.0 - smoothness;
+            payload.ssrMetallic = metallic;
+            payload.ssrEmissive = emission;
+        }
         GlxShadeLights(payload, hitNormal, surface);
         // Reflection hits take the explicit ambient/probe low-frequency term (never feedback).
         // Probe hits add the single 1-hop feedback term from the previous published generation;

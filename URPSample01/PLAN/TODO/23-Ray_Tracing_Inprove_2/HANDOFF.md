@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** B1 完成（契约 C2.7 + tripwire 5/5）；下一轮 B2（closest-hit 写 hit 表面）
+**当前阶段：** B2 完成（64B payload 传输 + raygen 写 80B 记录）；下一轮 B3（`SsrHitDeferred` 光照核）
 
 ## 已完成
 
@@ -18,6 +18,7 @@
 | D3D12 基线 | [validation/P0](validation/P0/README.md) | 已捕获，三变体两进程逐位一致 |
 | A 决策锁定 | [plan.md](plan.md) §2 | 完成（2026-11-27） |
 | P1 契约（C2.7 记录） | [contracts.md](contracts.md) / `Shaders/RayTracing/SsrHitSurface.hlsl` | 完成（tripwire 5/5，[ContractTests.xml](validation/P1/tests/ContractTests.xml)） |
+| P1 命中表面传输 | `GlxBasicPayload` 64B / `RayTracingSsr.raytrace` 写 `_R2Surfaces` | 完成（7/7 @D3D12，payload 实测 64B） |
 
 ## 已锁定决策（2026-11-27）
 
@@ -39,6 +40,13 @@
   - `base−nodenoise` 地面 ROI：meanAbs 4.0e-4、p99 0.003、max 5.93（少量高光/萤火虫）。
   - 无 NaN/Inf。
 
+## B2 关键结论（实现期发现）
+
+- **Unity 光追管线不允许材质 `RayTracing` pass 的 closest-hit 写 UAV**（6000.3 修复说明 UUM-141971：not supported，编译器报错；2022.3 上属"可能崩"）。HDRP 14 同样不这么做：`RayIntersectionGBuffer` 经 payload 回传，由 raygen 写 `_GBufferTexture*RW`。
+- 因此反射表面只能经 ray payload 回传：`GlxBasicPayload` 24 → **64 字节**（发布结果仍在 @0–23，`_R2Hits`/`_GlxResults`/`_GlxProbeResults` 全部保持 24B），raygen 调 `SsrBuildHitSurface` 写 80B 记录。shadow/probe 模式不填 @24–63。
+- 传输布局避开了对齐歧义：`float2` 八面体法线放在 32（4B/8B 对齐都一致），两个 `float3` 跟随发布头证明的 4B 打包。
+- `SsrHitSurface` 按请求序号索引（`DispatchRaysIndex().x`），消费者用 `_R1Queue[i].slot` 映射像素槽；未命中/无效槽写 version 0，无需逐帧清空 80B 缓冲。
+
 ## 未完成 / 门禁
 
 | Gate | 状态 | 说明 |
@@ -51,7 +59,7 @@
 | DXR dispatch 直接证据 | OPEN | 目前只有 `hwMergeDispatches=1` + fixture 设置；P1 补 R1 计数/TLAS 证据 |
 | D3D11 回退基线 | OPEN | Player 同时带 D3D11；去掉 `-force-d3d12` 即可补录，P3 前完成 |
 | P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
-| P1 hit GBuffer + 延迟着色核 | OPEN | B2–B4：写 GB0–GB3+distance、`SsrHitDeferred`、开关与回退 |
+| P1 hit GBuffer + 延迟着色核 | OPEN | B2 完成传输与写路径；B3 接 `SsrHitDeferred`（64 灯全量 + shadow atlas + probe/sky） |
 
 ## 如何跑
 

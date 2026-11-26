@@ -13,7 +13,7 @@ struct GlxProbeRay
 };
 
 StructuredBuffer<GlxProbeRay> _GlxProbeRays;
-RWStructuredBuffer<GlxBasicPayload> _GlxProbeResults;
+RWStructuredBuffer<GlxPublishedHit> _GlxProbeResults;
 // traced, fixed, rotated, hits, misses, activeProbes, inactiveProbes, reserved
 RWStructuredBuffer<uint> _GlxProbeCounters;
 
@@ -46,7 +46,7 @@ void TraceProbeRays()
             payload.mode = request.meta.x; // Maintenance result keeps its mode for the reader.
         }
     }
-    _GlxProbeResults[i] = payload;
+    _GlxProbeResults[i] = GlxPublishPayload(payload);
 }
 
 [shader("miss")]

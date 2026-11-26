@@ -3,8 +3,8 @@
 // maintenance rays, and a readback kernel used by the validation player.
 //
 // Kept free of raytracing headers: a compute shader cannot declare the acceleration
-// structure, so the 24-byte payload and the mode/flag words are mirrored here.
-// Keep in sync with Shaders/RayTracing/GlxBasicPayload.hlsl.
+// structure, so the 24-byte published result and the mode/flag words are mirrored here.
+// Keep in sync with Shaders/RayTracing/GlxPublishedHit.hlsl.
 
 #pragma kernel ProbePrepare
 #pragma kernel ProbeCopyState

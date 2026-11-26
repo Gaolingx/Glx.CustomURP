@@ -1,14 +1,27 @@
 #ifndef GLX_BASIC_PAYLOAD_INCLUDED
 #define GLX_BASIC_PAYLOAD_INCLUDED
 
-// Also the structured result ABI: byte offsets 0, 12, 16, 20; stride 24.
+// Ray payload. Offsets 0, 12, 16, 20 are the published result (C2); offsets 24..63 carry
+// the reflection surface transport (C2.7). Material closest-hit passes cannot write UAVs
+// in Unity's raytracing pipeline, so the surface comes back here and the SSR raygen writes
+// the 80-byte hit-surface record. Published stride 24; payload stride 64.
+// Transport offsets: roughness @24, metallic @28, normal octahedral @32,
+// baseColor @40, emissive @52. The float2 sits on an 8-byte boundary so 4- and 8-byte
+// member alignment agree; float3 members keep the 4-byte packing the published head proves.
 struct GlxBasicPayload
 {
     float3 radiance;
     float hitT;
     uint flags;
     uint mode;
+    float ssrRoughness;
+    float ssrMetallic;
+    float2 ssrNormalOct;
+    float3 ssrBaseColor;
+    float3 ssrEmissive;
 };
+
+#include "GlxPublishedHit.hlsl"
 
 static const uint GlxPrimaryMode = 0u;
 static const uint GlxShadowMode = 1u;
@@ -33,7 +46,22 @@ GlxBasicPayload GlxEmptyPayload(uint mode)
     p.hitT = -1.0;
     p.flags = GlxInvalid;
     p.mode = mode;
+    p.ssrBaseColor = 0.0;
+    p.ssrNormalOct = 0.0;
+    p.ssrRoughness = 1.0;
+    p.ssrMetallic = 0.0;
+    p.ssrEmissive = 0.0;
     return p;
+}
+
+GlxPublishedHit GlxPublishPayload(in GlxBasicPayload p)
+{
+    GlxPublishedHit r;
+    r.radiance = p.radiance;
+    r.hitT = p.hitT;
+    r.flags = p.flags;
+    r.mode = p.mode;
+    return r;
 }
 
 RaytracingAccelerationStructure _GlxScene;

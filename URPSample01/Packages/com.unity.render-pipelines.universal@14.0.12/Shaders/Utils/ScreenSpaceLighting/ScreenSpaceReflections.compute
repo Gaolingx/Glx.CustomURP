@@ -269,16 +269,16 @@ bool SsrOriginalDirection(uint2 traceCoord, float3 normalWS, float3 viewWS, floa
 }
 
 #include "SsrRequestQueue.hlsl"
+#include "../../RayTracing/GlxPublishedHit.hlsl"
 
-// Matches the 24-byte GlxBasicPayload; no AS declaration in compute variants.
-struct R2Hit { float3 radiance; float hitT; uint flags, mode; };
-RWStructuredBuffer<R2Hit> _R2Hits;
+// Published 24-byte result (C2); no AS declaration in compute variants.
+RWStructuredBuffer<GlxPublishedHit> _R2Hits;
 
 [numthreads(8,8,1)]
 void R2Clear(uint3 id : SV_DispatchThreadID)
 {
     if (any(id.xy >= (uint2)_SsrTraceSize.xy)) return;
-    _R2Hits[id.y * (uint)_SsrTraceSize.x + id.x] = (R2Hit)0;
+    _R2Hits[id.y * (uint)_SsrTraceSize.x + id.x] = (GlxPublishedHit)0;
 }
 
 #if defined(SSR_R2_COMPOSITE) || defined(SSR_R2_COLD)
@@ -344,7 +344,7 @@ void R2Temporal(uint3 id : SV_DispatchThreadID)
 
     uint slot = id.y * (uint)_SsrTraceSize.x + id.x;
     R1Sample q = _R1Original[slot];
-    R2Hit hit = _R2Hits[slot];
+    GlxPublishedHit hit = _R2Hits[slot];
 
     float3 radiance = 0.0;
     float weight = 0.0;

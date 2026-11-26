@@ -2,10 +2,14 @@
 
 #include "SsrRayRequest.hlsl"
 #include "../../RayTracing/GlxHitLightCounters.hlsl"
+#include "../../RayTracing/SsrHitSurface.hlsl"
 
 StructuredBuffer<R1Sample> _R1Queue;
 StructuredBuffer<uint> _R1Counts;
-RWStructuredBuffer<GlxBasicPayload> _R2Hits;
+RWStructuredBuffer<GlxPublishedHit> _R2Hits;
+// C2.7: request-indexed hit surface. A miss or an invalid request publishes version 0, so
+// the consumer never needs a separate clear of this 80-byte buffer.
+RWStructuredBuffer<SsrHitSurface> _R2Surfaces;
 uint _R2K;
 
 [shader("raygeneration")]
@@ -15,6 +19,7 @@ void TraceSsrRequests()
     if (index >= min(_R1Counts[2], _R2K)) return;
     R1Sample q = _R1Queue[index];
     GlxBasicPayload p = GlxEmptyPayload(GlxReflectionMode);
+    SsrHitSurface surface = (SsrHitSurface)0;
     if (all(isfinite(q.position)) && all(isfinite(q.direction)) && dot(q.direction,q.direction) > 0 &&
         q.tMax > q.tMin && q.tMin >= 0)
     {
@@ -25,8 +30,11 @@ void TraceSsrRequests()
         ray.TMax = q.tMax;
         TraceRay(_GlxScene, RAY_FLAG_NONE, 0xff, 0, 1, 0, ray, p);
         GlxRecordLightCounters(p);
+        if ((p.flags & GlxHit) != 0)
+            surface = SsrBuildHitSurface(p);
     }
-    _R2Hits[q.slot] = p;
+    _R2Hits[q.slot] = GlxPublishPayload(p);
+    _R2Surfaces[index] = surface;
 }
 
 [shader("miss")]

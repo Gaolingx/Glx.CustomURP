@@ -88,16 +88,58 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
-    public void GlxBasicPayload_IsTheFrozen24ByteAbi()
+    public void GlxBasicPayload_IsTheFrozen64ByteTransport()
     {
         var source = ReadPackage("Shaders/RayTracing/GlxBasicPayload.hlsl");
         var fields = Declarations(StructBody(source, "GlxBasicPayload"));
-        CollectionAssert.AreEqual(new[] { "float3 radiance", "float hitT", "uint flags", "uint mode" }, fields,
-            "GlxBasicPayload fields changed; the 24-byte payload contract (C2) was broken.");
-        Assert.AreEqual(24, fields.Sum(f => SizeOf(f.Split(' ')[0])), "GlxBasicPayload must stay 24 bytes.");
-        StringAssert.Contains("stride 24", source, "The 24-byte stride note must stay next to the struct.");
+        CollectionAssert.AreEqual(new[]
+        {
+            "float3 radiance", "float hitT", "uint flags", "uint mode",
+            "float ssrRoughness", "float ssrMetallic", "float2 ssrNormalOct",
+            "float3 ssrBaseColor", "float3 ssrEmissive"
+        }, fields, "GlxBasicPayload layout changed; the C2 transport contract was broken.");
+        Assert.AreEqual(64, fields.Sum(f => SizeOf(f.Split(' ')[0])), "The ray payload must stay 64 bytes.");
+        StringAssert.Contains("payload stride 64", source, "The 64-byte payload stride note must stay next to the struct.");
+        StringAssert.Contains("Published stride 24", source, "The published result must stay 24 bytes.");
         StringAssert.DoesNotContain("SsrHitSurface", source,
-            "The hit surface must stay in its own buffer; the 24-byte payload (C2) cannot carry it.");
+            "The hit surface must stay in its own buffer; the payload (C2) cannot carry the record itself.");
+    }
+
+    [Test]
+    public void SsrRayPayload_CompilesToTheFrozen64ByteSize()
+    {
+        UnityEngine.Experimental.Rendering.RayTracingShader shader = null;
+        foreach (var path in new[]
+        {
+            PackageRoot + "/Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace",
+            "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace"
+        })
+        {
+            if (!File.Exists(Path.Combine(ProjectRoot, path))) continue;
+            UnityEditor.AssetDatabase.ImportAsset(path, UnityEditor.ImportAssetOptions.ForceSynchronousImport);
+            shader = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.Rendering.RayTracingShader>(path);
+            if (shader != null) break;
+        }
+        Assert.IsNotNull(shader, "RayTracingSsr.raytrace did not load; the payload size tripwire cannot run.");
+        // The miss shader shares the pipeline payload, so its reflected size is the real stride.
+        // A D3D11 editor cannot compile ray tracing shaders and reports 0, so only assert where
+        // the reflection exists: run the suite with -force-d3d12 to exercise this check.
+        var size = UnityEditor.ShaderUtil.GetMissShaderRayPayloadSize(shader, 0);
+        if (size == 0)
+            Assert.Ignore("Ray tracing is unavailable on this editor API; rerun with -force-d3d12.");
+        Assert.AreEqual(64, size,
+            "The compiled ray payload is not 64 bytes; member alignment (float2/float3) shifted the transport offsets.");
+    }
+
+    [Test]
+    public void GlxPublishedHit_IsTheFrozen24ByteResult()
+    {
+        var source = ReadPackage("Shaders/RayTracing/GlxPublishedHit.hlsl");
+        var fields = Declarations(StructBody(source, "GlxPublishedHit"));
+        CollectionAssert.AreEqual(new[] { "float3 radiance", "float hitT", "uint flags", "uint mode" }, fields,
+            "GlxPublishedHit fields changed; the published 24-byte result (C2) was broken.");
+        Assert.AreEqual(24, fields.Sum(f => SizeOf(f.Split(' ')[0])), "The published hit must stay 24 bytes.");
+        StringAssert.Contains("stride 24", source, "The 24-byte stride note must stay next to the struct.");
     }
 
     [Test]
@@ -118,6 +160,19 @@ public sealed class SsrP3ContractTests
         StringAssert.Contains("staticconstuintSsrSurfaceTypeUnlit=2u;", normalized, "surfaceType Unlit is frozen at 2.");
         StringAssert.Contains("staticconstuintSsrHitSurfaceSourceMask=1u;", normalized,
             "misc.w keeps only the source bit (0 = RT, 1 = SS); other bits are reserved (C2.7).");
+        StringAssert.Contains("staticconstuintSsrHitSurfaceSourceRt=0u;", normalized,
+            "A ray traced hit must publish source 0; only P3 may write the screen-space value.");
+        StringAssert.Contains("staticconstuintSsrHitSurfaceSourceSs=1u;", normalized,
+            "The screen-space source bit is frozen at 1.");
+
+        var ray = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace"));
+        StringAssert.Contains("RWStructuredBuffer<GlxPublishedHit>_R2Hits;", ray,
+            "The published R2 buffer must keep the 24-byte record, not the 64-byte payload.");
+        StringAssert.Contains("RWStructuredBuffer<SsrHitSurface>_R2Surfaces;", ray,
+            "The raygen owns the hit-surface buffer (a closest-hit pass cannot write UAVs).");
+
+        var queue = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrRequestQueue.cs"));
+        StringAssert.Contains("Ensure(refsurfaces,k,80)", queue, "The hit-surface buffer is request indexed at stride 80.");
     }
 
     [Test]

@@ -2,7 +2,7 @@
 
 **冻结时间：** 2026-11-26
 **基线提交：** `350d18c`
-**修订：** 2026-11-27 新增 C2.7（P1，additive：新缓冲 + 新版本位，不改 24B payload，不重录 P0 基线）
+**修订：** 2026-11-27 新增 C2.7（P1，additive：新缓冲 + 新版本位）；同日 P1 传输修订：ray payload 24 → 64 字节（closest-hit 不得写 UAV，表面经 payload 回传），发布结果仍为 24 字节
 **适用范围：** 本轮 P1–P3 的全部改动。任何一条契约被打破，都必须先改本文件、改 tripwire 测试、重录基线，再进实现。
 
 ## C1. Pass 顺序与资源生命周期
@@ -23,7 +23,8 @@
 
 | 项 | 冻结值 |
 |---|---|
-| 生产 payload | 24 字节：`float3 radiance @0`、`float hitT @12`、`uint flags @16`、`uint mode @20` |
+| 发布结果 | 24 字节：`float3 radiance @0`、`float hitT @12`、`uint flags @16`、`uint mode @20`（`GlxPublishedHit`） |
+| ray payload | 64 字节：发布结果 @0–23 + 反射表面传输 @24–63（roughness @24、metallic @28、八面体法线 @32、baseColor @40、emissive @52；仅反射模式写，见 C2.7） |
 | 硬上限 | 64 字节 |
 | 递归深度 | 2 |
 | 每个受支持 shader 的命名 hit pass | ≤ 1 |
@@ -31,11 +32,13 @@
 
 - **P1 允许**：为反射模式**新增**一份 hit 表面记录（GB0/GB1/GB2/GB3 + distance），并用独立版本位/缓冲区分；不得复用现有 24B 字段表达新语义。
 - **P1 禁止**：把 radiance/hitT/flags/mode 任一项改义；让 shadow/probe 模式写新记录。
-- **守护**：`SsrP3ContractTests` 读取 `GlxBasicPayload.hlsl` 与 `SsrRayRequest.hlsl` 源码，断言字段顺序与数量。
+- **P1 约束**：closest-hit **不得写 UAV**（Unity 光追管线不支持材质 hit pass 写 UAV）。反射表面只能经 ray payload 的 @24–63 回传，由 raygen 组装并写入 C2.7 记录；shadow/probe 模式不填这 40 字节。
+- **守护**：`SsrP3ContractTests` 读取 `GlxBasicPayload.hlsl`、`GlxPublishedHit.hlsl` 与 `SsrRayRequest.hlsl` 源码，断言字段顺序与数量。
 
 ### C2.7 hit 表面记录（P1 新增，24B payload 不变）
 
-定义：[SsrHitSurface.hlsl](../../../Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/SsrHitSurface.hlsl)，stride 80，独立 `RWStructuredBuffer<SsrHitSurface>`，与 `_R2Hits` 同索引（每个请求 slot 一条）。
+定义：[SsrHitSurface.hlsl](../../../Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/RayTracing/SsrHitSurface.hlsl)，stride 80，独立 `RWStructuredBuffer<SsrHitSurface>`。
+索引 = R1 请求序号（`DispatchRaysIndex().x`）；消费者用 `_R1Queue[i].slot` 映射到像素槽。写入者 = SSR raygen：closest-hit 只把表面填进 ray payload @24–63，raygen 调 `SsrBuildHitSurface` 写记录。无效/未命中/unused 槽写全 0（version 0），因此不需要逐帧清空这个 80B 缓冲。
 
 | 字段 | 通道 |
 |---|---|
@@ -48,8 +51,8 @@
 - surfaceType：`0` Lit、`1` SimpleLit、`2` Unlit。P1 只写 `Lit`（测试用 `GlxBasicHit` 按 Lit 近似）；`1/2` 在 P2 材质矩阵落地前不得写入。
 - version：`SsrHitSurfaceVersion = 1`；`0` 表示空槽/无效。消费者必须校验，非当前版本按 miss 处理。
 - 来源位：`misc.w & 1`，`0` = RT 命中，`1` = SS 命中（P3 写入）；其余位保留，未经版本升级不得占用。
-- 写入范围：只有 `GlxReflectionMode` 的 closest-hit 写；shadow / probe / ProbeGeo 模式一律不写。
-- 精度：通道语义冻结；8bit vs 16F 的打包（P2 A/B）只能改编解码，不得改字段顺序、数量或 stride。
+- 写入范围：只有 `GlxReflectionMode` 的 closest-hit 填 payload 表面字段，raygen 也只在该模式的结果上组装记录；shadow / probe / ProbeGeo 模式一律不写。
+- 传输精度：payload 里的法线是八面体 `float2`、金属度标量（raygen 合成 fresnel0），其余为 float；记录通道语义冻结，8bit vs 16F 的打包（P2 A/B）只能改编解码，不得改字段顺序、数量或 stride。
 
 **材质能力边界**
 
@@ -117,7 +120,8 @@ hit 表面记录只承载标准 PBR 字段：baseColor、specular occlusion、no
 | 项 | 值 | 来源 |
 |---|---|---|
 | `R1Sample` | 80 字节 / 16 字段 | `SsrRayRequest.hlsl` |
-| `GlxBasicPayload` | 24 字节 | `GlxBasicPayload.hlsl` |
+| `GlxPublishedHit` | 24 字节 / 4 字段 | `GlxPublishedHit.hlsl` |
+| `GlxBasicPayload` | 64 字节 / 9 字段（前 4 个为发布头） | `GlxBasicPayload.hlsl` |
 | `SsrHitSurface` | 80 字节 / 5 字段 / version 1 | `SsrHitSurface.hlsl`（C2.7） |
 | payload 硬上限 | 64 字节 | 20 号 B0 Freeze |
 | tile | 8×8 | `SsrRequestQueue.hlsl` / `SSR_TILE_SIZE` |
