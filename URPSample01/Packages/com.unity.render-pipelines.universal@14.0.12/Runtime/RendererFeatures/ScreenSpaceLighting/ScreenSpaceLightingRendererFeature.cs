@@ -29,6 +29,8 @@ namespace UnityEngine.Rendering.Universal
         RayTracingProbeFallback m_ProbeFallback;
         readonly System.Collections.Generic.Dictionary<int, int> m_CameraViews = new System.Collections.Generic.Dictionary<int, int>();
         bool m_LoggedMissingResources;
+        // The hybrid path is silently idle without a half-resolution SSR volume; warn once per broken episode.
+        bool m_LoggedRayTracingReflectionConfig;
 #if UNITY_EDITOR
         ScreenSpaceEditorCameraMotionPass m_EditorMotionPass;
 #endif
@@ -123,11 +125,13 @@ namespace UnityEngine.Rendering.Universal
             var stack = VolumeManager.instance.stack;
             if (!m_Settings.rayTracingProbeFallback)
                 m_ProbeFallback?.Reset();
-            bool hybrid = SsrRayTracingCameras.Eligible(cameraData, m_Settings, stack?.GetComponent<ScreenSpaceReflection>());
+            var ssr = stack != null ? stack.GetComponent<ScreenSpaceReflection>() : null;
+            bool hybrid = SsrRayTracingCameras.Eligible(cameraData, m_Settings, ssr);
             if (!m_Settings.rayTracingReflections || m_Settings.reflectionRayBudget <= 0)
                 m_HybridCameras?.Clear();
             else if (!hybrid)
                 m_HybridCameras?.Forget(cameraData.camera);
+            LogRayTracingReflectionConfigTrapOnce(cameraData, ssr);
 
             m_HistoryStore.PruneDestroyedCameras();
             m_HistoryStore.PruneUnused(frameIndex, m_Settings.maxUnusedFrames);
@@ -219,7 +223,6 @@ namespace UnityEngine.Rendering.Universal
             // editor-created cameras have no UniversalAdditionalCameraData, so URP leaves the motion
             // target cleared and the shared supplement has to run before SSGI (205) and SSR (206).
             var ssgi = stack != null ? stack.GetComponent<ScreenSpaceGlobalIllumination>() : null;
-            var ssr = stack != null ? stack.GetComponent<ScreenSpaceReflection>() : null;
             bool needsCameraMotion =
                 (ssgi != null && ssgi.enabled.value) || (ssr != null && ssr.enabled.value);
             if (needsCameraMotion &&
@@ -243,6 +246,40 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_Settings.debugEnabled && m_Settings.resources.debugShader != null)
                 renderer.EnqueuePass(m_DebugPass);
+        }
+
+        // RR only runs with an enabled half-resolution SSR volume, so a mismatch leaves the hybrid
+        // path silently idle. Report it once per broken episode rather than every frame.
+        void LogRayTracingReflectionConfigTrapOnce(in CameraData cameraData, ScreenSpaceReflection ssr)
+        {
+            if (!m_Settings.rayTracingReflections || m_Settings.reflectionRayBudget <= 0)
+            {
+                m_LoggedRayTracingReflectionConfig = false;
+                return;
+            }
+
+            // Only game cameras decide the episode, so an editor camera with a different stack
+            // cannot clear the flag and make the game camera warn again every repaint.
+            var camera = cameraData.camera;
+            if (camera == null || cameraData.cameraType != CameraType.Game || cameraData.renderType != CameraRenderType.Base)
+                return;
+
+            if (ssr != null && ssr.enabled.value && !ssr.fullResolution.value)
+            {
+                m_LoggedRayTracingReflectionConfig = false;
+                return;
+            }
+
+            if (m_LoggedRayTracingReflectionConfig)
+                return;
+
+            m_LoggedRayTracingReflectionConfig = true;
+            string reason = ssr == null ? "no Screen Space Reflection volume is active"
+                : !ssr.enabled.value ? "the Screen Space Reflection volume is disabled"
+                : "Full Resolution is enabled";
+            Debug.LogWarning(
+                $"Screen space ray tracing reflections (RR) are enabled, but {camera.name} keeps screen-space only: {reason}. " +
+                "Enable the Screen Space Reflection volume and disable Full Resolution.");
         }
 
         void LogMissingResourcesOnce()
