@@ -12,9 +12,9 @@
     "hitDeferredShading": true,
     "groundMaterial": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3Ground.mat",
     "rayTracingInstances": 14,
-    "frameSceneSHA256": "40aa523d27f35a3198d13ecb3a29059a628a5947e0b66e53d20df5e366ef0bfc",
-    "profileSHA256": "b965620030b4674fe2a69ab6367ee55afbd694d35e70b9e01ef429ad2b888a6c",
-    "rendererSHA256": "542195e107e68ea61c851b49937503194b08ef660ba25baae2870b62dcbccae1",
+    "frameSceneSHA256": "dccb05eb330cd93d5370a59500cfc6d40864ce99afb16d35f4da2ab972ea1c33",
+    "profileSHA256": "9501af8e070b5e42cc60bb5ad2b98886daa48fac070d3dd5926809daace5617b",
+    "rendererSHA256": "5b19af9c3d9060133b4d452b6beaea0879bb74f75196174acb63cc02cf932ca9",
     "pipelineSHA256": "130801ef4c8c7827810214df03a0255f6f2703abfc9d1544a38dea8a64e1947b",
-    "groundMaterialSHA256": "5d25c3caaf0ea383c94c3e033d4cb949652ecba062ae0f83caba125471b86c50"
+    "groundMaterialSHA256": "0c2a9d38077871b21cd14ac912c3093195437d557a6253c1d66ef2997b992306"
 }
