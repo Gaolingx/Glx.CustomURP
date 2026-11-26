@@ -1,6 +1,6 @@
 # P1 证据
 
-**状态：** B1（契约）、B2（表面传输/写入）、B3（`SsrHitDeferred`，默认关）完成；B4 接开关与回退。
+**状态：** B1–B4 完成（B3/B4 默认关，fixture 置开）；B5 构建、门禁与证据。
 **基线：** P0 D3D12 基线继续有效；`_R2Hits`、R1/R2 布局、Pass 顺序与注入点均未改。
 
 ## B1：C2.7 hit 表面记录
@@ -37,8 +37,18 @@ contracts C2.7 同时冻结了材质能力边界：只承载标准 PBR 字段（
 | 灯 | 主光 + 全部附加灯（`_SsrHitLightCount`，上限 64）；阴影单 tap（SHADOW_LOW），不采 screen-space shadow/cookie/light layer/SSAO/shadowmask |
 | 环境光 | `GlxHitLowFrequencyIrradiance`；specular 份额同源近似（P2 换 probe/sky 层级） |
 | 回退 | 记录 version ≠ 1、来源不是 RT、未启用、compute 缺失 → 保留 closest-hit radiance |
-| 开关 | `ScreenSpaceLightingSsrPass.s_EnableHitDeferred`（B4 换成 feature 级开关） |
+| 开关 | B3 阶段为静态量；B4 起由 `hitDeferredShading` 控制（见下） |
 | 未验证 | compute 变体编译与实际像素要到 B5 的 Player 构建；本阶段只做契约/结构 tripwire |
+
+## B4：feature 开关与回退
+
+| 项 | 内容 |
+|---|---|
+| 开关 | `ScreenSpaceLightingSettings.hitDeferredShading`（默认 **关**）；`SsrPass` 跟随设置，不再是静态量 |
+| 回退 | 记录无效 / 未启用 / compute 缺失 → closest-hit radiance；D3D11 无 DXR，整条链路不进入该核 |
+| 材质 | `RayTracingSceneInstances.Classify` 对"有 hit pass 但缺标准 GBuffer 字段"的材质按 C2.7 **报错一次并跳过**（透明面、GBuffer 不兼容的 Lit 变体）；跳过的子网格不进 RTAS，命中落 probe/sky |
+| 资源 | 编辑器 `k_ResourceFields` 增加 `ssrHitDeferredCompute`；fixture 构建器显式解析并写入该引用，缺失直接抛错 |
+| 证据 | fixture 开关置 true（`Fixture.json.hitDeferredShading = true`），B5 重生成 fixture 后生效 |
 
 ## 复跑
 

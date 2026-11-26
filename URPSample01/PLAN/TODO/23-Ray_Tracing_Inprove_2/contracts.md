@@ -54,6 +54,7 @@
 - 写入范围：只有 `GlxReflectionMode` 的 closest-hit 填 payload 表面字段，raygen 也只在该模式的结果上组装记录；shadow / probe / ProbeGeo 模式一律不写。
 - 传输精度：payload 里的法线是八面体 `float2`、金属度标量（raygen 合成 fresnel0），其余为 float；记录通道语义冻结，8bit vs 16F 的打包（P2 A/B）只能改编解码，不得改字段顺序、数量或 stride。
 - P1 着色：`SsrHitDeferred.compute` 解码记录 → `CdShade`（主光 + 全部附加灯，上限 64；shadow atlas 单 tap，SHADOW_LOW 口径）。记录无效、未启用或 compute 缺失时保留 closest-hit 的 radiance。P1 不采 screen-space shadow / cookie / light layer / SSAO / shadowmask；环境光用探测低频辐照度，specular 份额同源近似，P2 换 probe/sky 层级。
+- 开关与回退：`ScreenSpaceLightingSettings.hitDeferredShading`（默认 **关**，P0 基线即 closest-hit）控制是否运行该核。D3D11 / 无光追时不进入 DXR 路径，整条链路保持 P0 的屏幕空间行为；开关开但 compute 缺失时告警一次并保留 closest-hit radiance。注册期拒绝的材质（C2.7）不进 RTAS，命中自然落入 probe/sky。
 
 **材质能力边界**
 

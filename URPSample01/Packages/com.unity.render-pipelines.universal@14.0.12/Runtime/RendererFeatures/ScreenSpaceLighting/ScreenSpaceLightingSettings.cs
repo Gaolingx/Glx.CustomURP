@@ -26,6 +26,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Range(0, 32768), Tooltip("Fixed ray dispatch width per eligible camera. Zero disables hardware reflection requests.")]
         internal int reflectionRayBudget = 32768;
 
+        [SerializeField, Tooltip("Light ray-traced reflection hits with the ClusteredDeferred kernel instead of the closest-hit approximation. Requires hardware ray tracing and SsrHitDeferred.compute; unsupported materials are rejected at registration (C2.7).")]
+        internal bool hitDeferredShading = false;
+
         [SerializeField, Tooltip("Update the scene probe cache from the shared RT scene as the SSGI diffuse fallback. Requires hardware ray tracing support.")]
         internal bool rayTracingProbeFallback = false;
 

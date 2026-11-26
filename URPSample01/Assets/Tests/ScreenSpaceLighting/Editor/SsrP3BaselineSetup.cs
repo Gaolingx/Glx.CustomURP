@@ -303,6 +303,10 @@ public static class SsrP3BaselineSetup
             throw new InvalidOperationException("ScreenSpaceLightingRendererFeature.m_Settings was not found.");
         settings.FindPropertyRelative("rayTracingReflections").boolValue = true;
         settings.FindPropertyRelative("reflectionRayBudget").intValue = 32768;
+        var hitDeferred = settings.FindPropertyRelative("hitDeferredShading");
+        if (hitDeferred == null)
+            throw new MissingFieldException("ScreenSpaceLightingSettings.hitDeferredShading was not found.");
+        hitDeferred.boolValue = true;
         featureSettings.ApplyModifiedPropertiesWithoutUndo();
 
         EnsureFeatureResources(feature);
@@ -335,6 +339,18 @@ public static class SsrP3BaselineSetup
         var rayShader = resources?.GetType().GetField("rayTracingSsr", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(resources);
         if (rayShader == null)
             throw new InvalidOperationException("resources.rayTracingSsr was not resolved; the Player would silently skip DXR.");
+
+        // Reload-attribute defaults are filled when the feature is inspected, not when it is
+        // created by script; resolve the hit kernel here so the Player never ships without it.
+        var hitField = resources?.GetType().GetField("ssrHitDeferredCompute", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (hitField == null)
+            throw new MissingFieldException("ScreenSpaceLightingResources.ssrHitDeferredCompute was not found.");
+        var hitKernel = AssetDatabase.LoadAssetAtPath<ComputeShader>(
+            "Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute");
+        if (hitKernel == null)
+            throw new InvalidOperationException("SsrHitDeferred.compute was not found; hit shading would fall back to closest-hit.");
+        if (hitField.GetValue(resources) == null)
+            hitField.SetValue(resources, hitKernel);
     }
 
     static UniversalRenderPipelineAsset CreatePipeline(UniversalRendererData renderer)
@@ -498,6 +514,7 @@ public static class SsrP3BaselineSetup
             captureRender = CaptureRender,
             rayTracingReflections = true,
             reflectionRayBudget = 32768,
+            hitDeferredShading = true,
             groundMaterial = FixtureRoot + "/SsrP3Ground.mat",
             rayTracingInstances = m_LastRayTracingInstances,
             frameSceneSHA256 = HashFile(Path.Combine(projectRoot, FixtureScenePath)),
@@ -655,6 +672,7 @@ public static class SsrP3BaselineSetup
         public int captureRender;
         public bool rayTracingReflections;
         public int reflectionRayBudget;
+        public bool hitDeferredShading;
         public string groundMaterial;
         public int rayTracingInstances;
         public string frameSceneSHA256;

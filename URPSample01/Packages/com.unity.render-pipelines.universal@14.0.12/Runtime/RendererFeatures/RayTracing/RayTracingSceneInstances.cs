@@ -35,17 +35,37 @@ namespace UnityEngine.Rendering.Universal
 
         internal static RayTracingSubMeshFlags Classify(Material mat)
         {
-            if (!mat || mat.renderQueue > (int)RenderQueue.GeometryLast || mat.FindPass("GlxDXR") < 0 ||
-                !mat.GetShaderPassEnabled("GlxDXR") || (mat.HasProperty("_Surface") && mat.GetFloat("_Surface") != 0))
+            if (!mat || mat.FindPass("GlxDXR") < 0 || !mat.GetShaderPassEnabled("GlxDXR"))
+                return RayTracingSubMeshFlags.Disabled; // No hit pass: the material never enters the RTAS.
+            if (mat.renderQueue > (int)RenderQueue.GeometryLast ||
+                (mat.HasProperty("_Surface") && mat.GetFloat("_Surface") != 0))
+            {
+                ReportUnsupportedSurface(mat, "transparent surface");
                 return RayTracingSubMeshFlags.Disabled;
+            }
             if (mat.shader.name == "Universal Render Pipeline/Lit" &&
                 (mat.GetFloat("_WorkflowMode") != 1 || mat.IsKeywordEnabled("_SPECULAR_SETUP") ||
                  mat.IsKeywordEnabled("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A") || mat.IsKeywordEnabled("_PARALLAXMAP") ||
                  mat.IsKeywordEnabled("_DETAIL_MULX2") || mat.IsKeywordEnabled("_DETAIL_SCALED") ||
                  mat.IsKeywordEnabled("_SPECULARHIGHLIGHTS_OFF") || mat.IsKeywordEnabled("_RECEIVE_SHADOWS_OFF")))
+            {
+                ReportUnsupportedSurface(mat, "GBuffer-incompatible Lit variant");
                 return RayTracingSubMeshFlags.Disabled;
+            }
             return mat.IsKeywordEnabled("_ALPHATEST_ON") ? RayTracingSubMeshFlags.Enabled :
                 RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.ClosestHitOnly;
+        }
+
+        // C2.7: reflection hit shading only accepts materials that provide the standard PBR
+        // fields. Advertising the hit pass while failing that gate is an authoring error, so it
+        // is reported once per material and the submesh is skipped: hits fall through to the
+        // probe/sky fallback and are never shaded by a second path.
+        static readonly HashSet<int> s_ReportedUnsupported = new HashSet<int>();
+        static void ReportUnsupportedSurface(Material mat, string reason)
+        {
+            if (!s_ReportedUnsupported.Add(mat.GetInstanceID())) return;
+            Debug.LogError($"SSR ray tracing: '{mat.name}' ({reason}) cannot provide the standard GBuffer fields " +
+                           "required by C2.7; the submesh is skipped and its hits use the probe/sky fallback.", mat);
         }
 
         // Called only for a new owner revision. Fixed zero origin; no camera/frustum input.

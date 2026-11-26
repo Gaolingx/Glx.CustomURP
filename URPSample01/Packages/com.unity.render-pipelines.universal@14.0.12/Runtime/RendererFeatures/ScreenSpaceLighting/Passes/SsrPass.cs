@@ -44,8 +44,6 @@ namespace UnityEngine.Rendering.Universal
         static readonly ProfilingSampler s_HybridComposite = new ProfilingSampler("SSR DXR Composite");
         static readonly ProfilingSampler s_HybridTemporal = new ProfilingSampler("SSR DXR Temporal");
         static readonly ProfilingSampler s_HitDeferred = new ProfilingSampler("SSR Hit Shading");
-        // P1 hit shading. B4 replaces the static with a feature-level switch.
-        internal static bool s_EnableHitDeferred;
         int m_AdditionalLightCount;
         Vector3 m_CameraPositionWS;
         bool m_LoggedHitDeferredMissing;
@@ -415,7 +413,7 @@ namespace UnityEngine.Rendering.Universal
         // an unwritten slot, or a non-reflection source) keep the closest-hit result.
         void DispatchHitDeferred(CommandBuffer cmd)
         {
-            if (!s_EnableHitDeferred) return;
+            if (m_Settings == null || !m_Settings.hitDeferredShading) return;
             var cs = m_Resources.ssrHitDeferredCompute;
             if (cs == null)
             {

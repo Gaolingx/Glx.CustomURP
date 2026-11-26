@@ -203,6 +203,24 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
+    public void HitShading_IsASwitchAndRejectsUnsupportedMaterials()
+    {
+        var settings = ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingSettings.cs");
+        StringAssert.Contains("internal bool hitDeferredShading = false;", settings,
+            "Hit shading must stay off by default; the P0 baseline is the closest-hit path.");
+
+        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
+        StringAssert.Contains("m_Settings.hitDeferredShading", pass,
+            "The kernel must follow the serialized feature switch, not a static default.");
+
+        var instances = Normalize(ReadPackage("Runtime/RendererFeatures/RayTracing/RayTracingSceneInstances.cs"));
+        StringAssert.Contains("ReportUnsupportedSurface", instances,
+            "Materials that advertise the hit pass but lack the standard fields need the C2.7 report.");
+        StringAssert.Contains("cannotprovidethestandardGBufferfields", instances,
+            "The rejection must say why the material was skipped.");
+    }
+
+    [Test]
     public void R1Sample_IsTheFrozen80ByteRecord()
     {
         var source = ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrRayRequest.hlsl");
