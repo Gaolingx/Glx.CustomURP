@@ -12,15 +12,14 @@ namespace UnityEngine.Rendering.Universal
         internal readonly int budget, seed;
         internal ComputeBuffer originals, requests, counters;
         internal ComputeBuffer hits;
-        ComputeBuffer tiles;
-        internal long residentBytes => Bytes(originals) + Bytes(tiles) + Bytes(requests) + Bytes(counters) + Bytes(hits);
+        ComputeBuffer tiles, masks;
+        internal long residentBytes => Bytes(originals) + Bytes(tiles) + Bytes(masks) + Bytes(requests) + Bytes(counters) + Bytes(hits);
         static long Bytes(ComputeBuffer buffer) => buffer == null ? 0 : buffer.count * (long)buffer.stride;
         static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSR DXR Trace and Shade");
         internal static ProfilingSampler traceSampler => s_Trace;
         // The request build and the hit clear ran inside SsrPass's sampler with no marker of their
         // own, so a GPU capture attributed their time to nothing.
         static readonly ProfilingSampler s_R1Original = new ProfilingSampler("SSR R1 Original");
-        static readonly ProfilingSampler s_R1Tiles = new ProfilingSampler("SSR R1 Tiles");
         static readonly ProfilingSampler s_R1Offsets = new ProfilingSampler("SSR R1 Offsets");
         static readonly ProfilingSampler s_R1Scatter = new ProfilingSampler("SSR R1 Scatter");
         static readonly ProfilingSampler s_R2Clear = new ProfilingSampler("SSR R2 Clear");
@@ -43,6 +42,7 @@ namespace UnityEngine.Rendering.Universal
             int k = Mathf.Min(budget,gx*gy*8,width*height);
             Ensure(ref originals,width*height,80);
             Ensure(ref tiles,gx*gy,8);
+            Ensure(ref masks,gx*gy,8);
             Ensure(ref requests,k,80);
             Ensure(ref counters,11,4);
             cmd.SetBufferData(counters,s_Zero);
@@ -50,16 +50,17 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeIntParam(cs,"_R1K",k);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Original",originals);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Counts",counters);
+            // The classify kernel owns the per-tile mask and count now; the tile pass is gone.
+            cmd.SetComputeBufferParam(cs,kernel,"_R1Tile",tiles);
+            cmd.SetComputeBufferParam(cs,kernel,"_R1Mask",masks);
             using (new ProfilingScope(cmd,s_R1Original)) cmd.DispatchCompute(cs,kernel,gx,gy,1);
-            int tile = cs.FindKernel("R1Tiles"), offsets = cs.FindKernel("R1Offsets"), scatter = cs.FindKernel("R1Scatter");
-            cmd.SetComputeBufferParam(cs,tile,"_R1Original",originals);
-            cmd.SetComputeBufferParam(cs,tile,"_R1Tile",tiles);
-            using (new ProfilingScope(cmd,s_R1Tiles)) cmd.DispatchCompute(cs,tile,gx,gy,1);
+            int offsets = cs.FindKernel("R1Offsets"), scatter = cs.FindKernel("R1Scatter");
             cmd.SetComputeBufferParam(cs,offsets,"_R1Tile",tiles);
             cmd.SetComputeBufferParam(cs,offsets,"_R1Counts",counters);
             using (new ProfilingScope(cmd,s_R1Offsets)) cmd.DispatchCompute(cs,offsets,1,1,1);
             cmd.SetComputeBufferParam(cs,scatter,"_R1Original",originals);
             cmd.SetComputeBufferParam(cs,scatter,"_R1Tile",tiles);
+            cmd.SetComputeBufferParam(cs,scatter,"_R1Mask",masks);
             cmd.SetComputeBufferParam(cs,scatter,"_R1Queue",requests);
             using (new ProfilingScope(cmd,s_R1Scatter)) cmd.DispatchCompute(cs,scatter,gx,gy,1);
         }
@@ -94,9 +95,9 @@ namespace UnityEngine.Rendering.Universal
         }
         public void Dispose()
         {
-            originals?.Release(); tiles?.Release(); requests?.Release(); counters?.Release();
+            originals?.Release(); tiles?.Release(); masks?.Release(); requests?.Release(); counters?.Release();
             hits?.Release();
-            originals = tiles = requests = counters = hits = null;
+            originals = tiles = masks = requests = counters = hits = null;
         }
     }
 }

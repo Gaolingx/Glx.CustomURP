@@ -3,9 +3,20 @@
 #include "SsrRayRequest.hlsl"
 RWStructuredBuffer<R1Sample> _R1Original, _R1Queue;
 RWStructuredBuffer<uint2> _R1Tile; // count then exclusive base in rotated tile order
+RWStructuredBuffer<uint2> _R1Mask; // wanted bit per pixel, 64 bits per tile
 RWStructuredBuffer<uint> _R1Counts; // eligible, requested, served, overflow, then histogram
 uint _R1K, _R1Phase;
 float _SsrRayLength; // volume rayLength, already clamped to the camera far plane
+
+uint2 R1Grid() { return ((uint2)_SsrTraceSize.xy + 7) / 8; }
+uint R1TileId(uint2 g) { return g.y * R1Grid().x + g.x; }
+// Even split of the fixed budget: with K seen from every tile the sliding tile window cannot
+// leave a tail of tiles unserved until it wraps around.
+uint R1Quota()
+{
+    uint tiles = max(1u, R1Grid().x * R1Grid().y);
+    return max(1u, _R1K / tiles);
+}
 
 #if defined(SSR_R1_HISTORY) || defined(SSR_R1_COLD)
 // The reason histogram and the eligible/requested totals are folded per block first: the former
@@ -13,6 +24,10 @@ float _SsrRayLength; // volume rayLength, already clamped to the camera far plan
 #define R1_REASON_COUNT 7
 groupshared uint r1Reason[R1_REASON_COUNT];
 groupshared uint r1Eligible, r1Requested;
+// The block is exactly one 8x8 tile, so the per-pixel "wants a ray" verdict is accumulated here and
+// published as a 64-bit mask. The tile pass and the scatter used to re-read the 80-byte sample just
+// for that bit, at an 80-byte stride that wasted every cache line it touched.
+groupshared uint r1BitLo, r1BitHi;
 [numthreads(8,8,1)]
 #if defined(SSR_R1_HISTORY)
 void R1Original(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
@@ -23,7 +38,8 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
     SSGI_ASSIGN_VIEW_INDEX(id.z);
     if (gtid < R1_REASON_COUNT) r1Reason[gtid] = 0;
     if (gtid == R1_REASON_COUNT) r1Eligible = 0;
-    if (gtid == R1_REASON_COUNT + 1) r1Requested = 0;
+    if (gtid == R1_REASON_COUNT + 1) { r1Requested = 0; r1BitLo = 0; }
+    if (gtid == R1_REASON_COUNT + 2) r1BitHi = 0;
     GroupMemoryBarrierWithGroupSync();
 
     // Edge blocks overhang the trace size; those threads must stay alive for the barrier.
@@ -71,10 +87,23 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
     _R1Original[s.slot] = s;
     InterlockedAdd(r1Reason[s.reason],1);
     if (s.reason >= 2) InterlockedAdd(r1Eligible,1);
-    if (s.requestShare > 0) InterlockedAdd(r1Requested,1);
+    if (s.requestShare > 0)
+    {
+        InterlockedAdd(r1Requested,1);
+        if (gtid < 32) InterlockedOr(r1BitLo,1u<<gtid);
+        else InterlockedOr(r1BitHi,1u<<(gtid-32));
+    }
     }
     GroupMemoryBarrierWithGroupSync();
 
+    // Publish the tile: the wanted mask the scatter ranks, and the count R1Offsets splits the budget by.
+    if (gtid == 0)
+    {
+        uint2 bits=uint2(r1BitLo,r1BitHi);
+        uint t=R1TileId(uint2(id.xy>>3));
+        _R1Mask[t]=bits;
+        _R1Tile[t]=uint2(countbits(bits.x)+countbits(bits.y),0);
+    }
     if (gtid < R1_REASON_COUNT)
     {
         if (r1Reason[gtid] > 0) InterlockedAdd(_R1Counts[4+gtid],r1Reason[gtid]);
@@ -87,15 +116,6 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
 }
 #endif
 
-uint2 R1Grid() { return ((uint2)_SsrTraceSize.xy + 7) / 8; }
-uint R1TileId(uint2 g) { return g.y * R1Grid().x + g.x; }
-// Even split of the fixed budget: with K seen from every tile the sliding tile window cannot
-// leave a tail of tiles unserved until it wraps around.
-uint R1Quota()
-{
-    uint tiles = max(1u, R1Grid().x * R1Grid().y);
-    return max(1u, _R1K / tiles);
-}
 // One group per tile. The lane->pixel window advances by the tile's own quota, not by one, so
 // consecutive frames serve disjoint pixel sets and a 64-pixel tile is fully covered in
 // 64/quota frames. A stride of 1 made the window overlap itself 7/8 per frame, i.e. a full
@@ -103,24 +123,18 @@ uint R1Quota()
 groupshared uint r1Mask[64];
 void R1Rank(uint2 tile, uint lane, out uint slot, out uint rank, out uint count)
 {
-    uint2 grid = R1Grid(); uint t = R1TileId(tile);
+    uint t = R1TileId(tile);
+    uint2 bits = _R1Mask[t];
     uint order = (lane + R1Quota() * _R1Phase + t*17) % 64;
     uint2 coord = tile*8 + uint2(order%8,order/8);
     slot = coord.y*(uint)_SsrTraceSize.x+coord.x;
-    uint wanted = 0;
-    if (all(coord < (uint2)_SsrTraceSize.xy)) wanted = _R1Original[slot].requestShare > 0;
+    // Pixels outside the trace size never set a bit, so the mask carries the bounds check too.
+    uint wanted = ((order < 32u) ? (bits.x >> order) : (bits.y >> (order-32u))) & 1u;
     r1Mask[lane] = wanted;
     GroupMemoryBarrierWithGroupSync();
     rank=0; count=0;
     [unroll] for(uint i=0;i<64;++i) { count+=r1Mask[i]; if(i<lane) rank+=r1Mask[i]; }
     if(!wanted) rank=64;
-}
-[numthreads(64,1,1)]
-void R1Tiles(uint3 group:SV_GroupID,uint lane:SV_GroupIndex)
-{
-    uint slot,rank,count; R1Rank(group.xy,lane,slot,rank,count);
-    // Store the full count; R1Offsets decides how many the budget can grant.
-    if(lane==0) _R1Tile[R1TileId(group.xy)] = uint2(count,0);
 }
 // One block scans the rotated tile order: each lane owns a contiguous slice of the sequence, so the
 // exclusive bases and the served total are exactly what the former single-lane loop produced. The

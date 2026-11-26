@@ -24,7 +24,6 @@
 #pragma kernel DebugSsrParams
 #pragma kernel R1Original SSR_R1_HISTORY
 #pragma kernel R1Cold SSR_R1_COLD
-#pragma kernel R1Tiles
 #pragma kernel R1Offsets
 #pragma kernel R1Scatter
 #pragma kernel R2Clear
