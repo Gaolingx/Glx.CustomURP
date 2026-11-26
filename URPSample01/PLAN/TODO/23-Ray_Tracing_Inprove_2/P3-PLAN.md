@@ -1,6 +1,6 @@
 # 23 P3 实施计划：SSR 后置 + SS/RT 共用命中着色（根治）
 
-**状态：** 计划（2026-11-27），未开工。前置：P0 完成、P1 PARTIAL（命中核已执行，缝门禁 NOT MET）。
+**状态：** B0 完成、B1 契约先行（红）已提交（2026-11-27）；B2–B6 未开工。前置：P0 完成、P1 PARTIAL（命中核已执行，缝门禁 NOT MET）。
 **上位计划：** [plan.md](plan.md) §P3；契约：[contracts.md](contracts.md)。
 **验收方式：** 实现与文档按 B0–B5 逐步提交，**测量统一放到最后的 B6 一批**（含决策 #4/#5 的量化与六项阻断门禁）。
 
@@ -66,6 +66,29 @@ Prepass(200) → SSGI(205) → GBuffer(210，只写 albedo/specular/normal/baked
 - A3：保留 P1 的 `_GlxHitAmbientIrradiance` 级近似（均一环境），仅作 fallback。
 
 **推荐：A + A1 起步**，把 A2 记为 P3 已知质量差（与 A 决策“阴影/探针质量差计入容差”一致）。`rayTracingProbeFallback` 开启时优先 A2。
+
+#### D1-B0 选型结论（2026-11-27，代码核验）
+
+结论：**A + A1，且 A1 只采 `_GlossyEnvironmentCubeMap`，不碰 `unity_SpecCube0`。** 依据（`universal@14.0.12`）：
+
+- `_GlossyEnvironmentCubeMap` / `_GlossyEnvironmentCubeMap_HDR` 在 `ShaderLibrary/Input.hlsl:96-98` **无条件声明**，并由 `UniversalRenderPipeline.SetupPerCameraShaderConstants`（`Runtime/UniversalRenderPipeline.cs:1686-1687`）在每个相机的 command buffer 上 `SetGlobalTexture/Vector`。compute dispatch 记录在同一 command buffer 里，因此这两个全局**必然已绑定**——不会触发 B5-fix2 那种“声明了资源但未绑定导致 Unity 丢弃 dispatch”。
+- `unity_SpecCube0` 虽在 `ShaderLibrary/UnityInput.hlsl:228-229` 无条件声明，但它是引擎按对象的反射探针全局，在 compute 里只对应“全局反射”，绑定取决于 `RenderSettings.defaultReflectionMode`；为规避未绑定丢弃风险，**A1 不引用它**，也就不做探针混合/盒投影（与 A1 定义一致）。
+- 采样所需 helper 在 compute 兼容头里：`PerceptualRoughnessToMipmapLevel`（core `ImageBasedLighting.hlsl`）、`DecodeHDREnvironment`（core `EntityLighting.hlsl`）；SSR compute 已 include `ImageBasedLighting.hlsl`，225/hit 核可再 include `EntityLighting.hlsl`。
+- A2（`GlxProbeQuery`）发布的是**方向化辐照度**（`GlxSampleProbeIrradiance` × distance moments），没有 roughness mip，只能做漫反射级近似；仅在 `rayTracingProbeFallback` 开启且 A1 不可用时启用。A3 = `_GlxHitAmbientIrradiance` 兜底。
+
+A1 的最小实现（compute 侧，225 与 hit 核共用）：
+```
+TEXTURECUBE(_GlossyEnvironmentCubeMap); SAMPLER(sampler_GlossyEnvironmentCubeMap);
+half4 _GlossyEnvironmentCubeMap_HDR;
+half3 GlxSampleEnvReflection(float3 dir, half perceptualRoughness)
+{
+    half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+    half4 enc = SAMPLE_TEXTURECUBE_LOD(_GlossyEnvironmentCubeMap, sampler_GlossyEnvironmentCubeMap, dir, mip);
+    return DecodeHDREnvironment(enc, _GlossyEnvironmentCubeMap_HDR);
+}
+```
+
+> 剩余待运行时确认项：A1 的首帧 `_GlossyEnvironmentCubeMap` 在 compute 下的实际取值（skybox/默认反射）随 fixture 而定，B6 用 `ssroff` 帧做对照量化；`unity_SpecCube0` 不作为 A1 依赖，故不需要单独 spike。
 
 ### D2 SS 命中的表面来源
 
@@ -142,11 +165,13 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 > 每个任务一个本地提交；构建与静态检查随任务，**像素/性能复测统一在 B6**。
 
 ### B0 选型与量测钩子（前置）
+> **状态：完成（2026-11-27）。** D1 结论见 §2「D1-B0 选型结论」：A1 只采 `_GlossyEnvironmentCubeMap`，不碰 `unity_SpecCube0`。feature 新增 `ssrAfterGbuffer`（默认 false）/`ssrIndirectSource`（默认 A1）；捕获器新增 `-p3-ssr-after-gbuffer`/`-p3-ssr-rollback`/`-p3-ssr-indirect {a1|a2|a3}` 并写入 `Player.json`（`p3*Requested` 与 `feature*` 回读分开记录）；fixture builder 显式写出默认值并记入 `Fixture.json`。开关在 B2 前不改变行为。
 - 读代码确认 D1 的 A1/A2 工作量：compute 下可用的反射探针全局（`unity_SpecCube0`、`_GlossyEnvironmentCubeMap_HDR`）是否在 URP 14 的 compute 中可用；不可用则退回 A2/A3。
 - 给 harness 增加开关：`-p3-ssr-after-gbuffer`、`-p3-ssr-indirect {a1|a2|a3}`、`-p3-ssr-rollback`（写入 `Player.json`）。
 - 产出：D1 选型记录（追加到本文件 §2）。
 
 ### B1 契约先行
+> **状态：完成（先红，2026-11-27）。** contracts.md 已按 C1/C2/C2.7/C8 更新；`SsrP3ContractTests` 新增 4 条 P3 断言 + C2.7 gbuffer 源断言（预期红，B2–B4 转绿）；legacy 206 事件断言保持绿。未改渲染行为。
 - 更新 contracts.md（C1/C2/C2.7/C8 上述变更）+ `SsrP3ContractTests` 新断言（先红）。
 - 不改渲染行为。
 

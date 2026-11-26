@@ -10,8 +10,9 @@ using UnityEngine.Rendering.Universal;
 
 // Freezes the round 23 contracts documented in PLAN/TODO/23-Ray_Tracing_Inprove_2/contracts.md.
 // A failure here means an ABI or pass-order change landed without updating the contract document,
-// the baseline fixture and the evidence. P3 is expected to update SsrPass_StaysBeforeGBuffer_UntilP3
-// together with the injection point; no other test in this file may change silently.
+// the baseline fixture and the evidence. The P3 tests (P3InjectsAfterGbuffer / SsrIndirectSpecularPass
+// / SsrShadeSurface / AcceptsGbufferSource, plus the C2.7 gbuffer source) are RED until B2–B4 land;
+// the legacy 206 event test stays green for the rollback path. Keep tests and code in one change.
 public sealed class SsrP3ContractTests
 {
     const string PackageRoot = "Packages/com.unity.render-pipelines.universal@14.0.12";
@@ -158,12 +159,14 @@ public sealed class SsrP3ContractTests
         StringAssert.Contains("staticconstuintSsrSurfaceTypeLit=0u;", normalized, "surfaceType Lit is frozen at 0.");
         StringAssert.Contains("staticconstuintSsrSurfaceTypeSimpleLit=1u;", normalized, "surfaceType SimpleLit is frozen at 1.");
         StringAssert.Contains("staticconstuintSsrSurfaceTypeUnlit=2u;", normalized, "surfaceType Unlit is frozen at 2.");
-        StringAssert.Contains("staticconstuintSsrHitSurfaceSourceMask=1u;", normalized,
-            "misc.w keeps only the source bit (0 = RT, 1 = SS); other bits are reserved (C2.7).");
+        StringAssert.Contains("staticconstuintSsrHitSurfaceSourceMask=3u;", normalized,
+            "misc.w must keep two source bits (0 = RT, 1 = SS, 2 = GBuffer); other bits stay reserved (C2.7, P3).");
         StringAssert.Contains("staticconstuintSsrHitSurfaceSourceRt=0u;", normalized,
-            "A ray traced hit must publish source 0; only P3 may write the screen-space value.");
+            "A ray traced hit must publish source 0.");
         StringAssert.Contains("staticconstuintSsrHitSurfaceSourceSs=1u;", normalized,
-            "The screen-space source bit is frozen at 1.");
+            "The screen-space source value is frozen at 1.");
+        StringAssert.Contains("staticconstuintSsrHitSurfaceSourceGbuffer=2u;", normalized,
+            "P3 SS hits that read the current-frame GBuffer must publish source 2 (C2.7).");
 
         var ray = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace"));
         StringAssert.Contains("RWStructuredBuffer<GlxPublishedHit>_R2Hits;", ray,
@@ -251,7 +254,7 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
-    public void SsrPass_StaysBeforeGBuffer_UntilP3()
+    public void SsrPass_LegacyEventStaysPrepass6_ForRollback()
     {
         var type = typeof(ScreenSpaceLightingRendererFeature).Assembly.GetType(
             "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass", throwOnError: false);
@@ -262,6 +265,63 @@ public sealed class SsrP3ContractTests
         var raw = field.IsLiteral ? field.GetRawConstantValue() : field.GetValue(null);
         var expected = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingPrePasses + 6);
         Assert.AreEqual((int)expected, Convert.ToInt32(raw),
-            "The SSR injection point moved. P3 must update contracts.md C1, the P0 baseline and this assertion in one change.");
+            "The legacy SSR injection point must stay 206 for the ssrAfterGbuffer=false rollback path (C1).");
+    }
+
+    // --- P3 contract assertions. These are intentionally RED until B2–B4 implement the P3 path;
+    // each failure names the artifact B2/B3/B4 must add. Keep them in the same change as the code.
+    [Test]
+    public void SsrPass_P3InjectsAfterGbuffer_IsSwitched()
+    {
+        var type = typeof(ScreenSpaceLightingRendererFeature).Assembly.GetType(
+            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass", throwOnError: false);
+        Assert.IsNotNull(type, "ScreenSpaceLightingSsrPass was not found.");
+        var field = type.GetField("k_RenderPassEventAfterGbuffer", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+        Assert.IsNotNull(field, "P3 needs k_RenderPassEventAfterGbuffer; the pass must be able to inject at AfterRenderingGbuffer (C1).");
+        var raw = field.IsLiteral ? field.GetRawConstantValue() : field.GetValue(null);
+        Assert.AreEqual((int)RenderPassEvent.AfterRenderingGbuffer, Convert.ToInt32(raw),
+            "The P3 SSR injection point must be AfterRenderingGbuffer (220).");
+
+        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
+        StringAssert.Contains("ssrAfterGbuffer", pass,
+            "The pass must choose its event from the ssrAfterGbuffer switch (C1/D6).");
+    }
+
+    [Test]
+    public void SsrIndirectSpecularPass_InjectsBetweenGbufferAndDeferred()
+    {
+        var type = typeof(ScreenSpaceLightingRendererFeature).Assembly.GetType(
+            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrIndirectSpecularPass", throwOnError: false);
+        Assert.IsNotNull(type,
+            "P3 D1-A needs ScreenSpaceLightingSsrIndirectSpecularPass; the deferred receiver's indirect specular moves out of the GBuffer pass.");
+        var field = type.GetField("k_RenderPassEvent", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+        Assert.IsNotNull(field, "The indirect-specular pass must expose k_RenderPassEvent.");
+        var raw = field.IsLiteral ? field.GetRawConstantValue() : field.GetValue(null);
+        var expected = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingGbuffer + 5);
+        Assert.AreEqual((int)expected, Convert.ToInt32(raw),
+            "The indirect-specular composite must run at 225 (>220 and <230), before ClusteredDeferred (C1).");
+    }
+
+    [Test]
+    public void SsrShadeSurface_IsSharedByRaygenAndKernel()
+    {
+        var surface = ReadPackage("Shaders/RayTracing/SsrShadeSurface.hlsl");
+        StringAssert.Contains("SsrShadeSurface(", surface,
+            "The single-point shading function must live in SsrShadeSurface.hlsl (D3).");
+
+        var ray = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace"));
+        StringAssert.Contains("SsrShadeSurface.hlsl", ray,
+            "The raygen fallback must call the shared SsrShadeSurface, not a second shading path (C8/D3).");
+        var kernel = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute"));
+        StringAssert.Contains("SsrShadeSurface.hlsl", kernel,
+            "The hit kernel must call the same shared SsrShadeSurface (C8/D3).");
+    }
+
+    [Test]
+    public void SsrHitDeferred_AcceptsGbufferSource()
+    {
+        var kernel = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute"));
+        StringAssert.Contains("SsrHitSurfaceSourceGbuffer", kernel,
+            "P3 SS hits read the current-frame GBuffer and publish source 2; the kernel must accept it (C2.7/C8).");
     }
 }

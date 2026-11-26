@@ -2,28 +2,33 @@
 
 **冻结时间：** 2026-11-26
 **基线提交：** `350d18c`
-**修订：** 2026-11-27 新增 C2.7（P1，additive：新缓冲 + 新版本位）；同日 P1 传输修订：ray payload 24 → 64 字节（closest-hit 不得写 UAV，表面经 payload 回传），发布结果仍为 24 字节
+**修订：** 2026-11-27 新增 C2.7（P1，additive：新缓冲 + 新版本位）；同日 P1 传输修订：ray payload 24 → 64 字节（closest-hit 不得写 UAV，表面经 payload 回传），发布结果仍为 24 字节；同日 **P3 修订**：C1 注入点 206→220（回滚保留 206），C2 `flags` 增 SS 位，C2.7 `source` 增 `gbuffer=2`（mask 扩到 2 bit，版本仍 1），C8 新增 `SsrShadeSurface` 共享与 pass 事件 tripwire。P3 不改任何缓冲的 stride 或 24B/64B/80B 布局。
 **适用范围：** 本轮 P1–P3 的全部改动。任何一条契约被打破，都必须先改本文件、改 tripwire 测试、重录基线，再进实现。
 
 ## C1. Pass 顺序与资源生命周期
 
 | 项 | 冻结值 |
 |---|---|
-| SSR 注入点 | `AfterRenderingPrePasses + 6` = 206（[SsrPass.cs:31](../../../Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs#L31)） |
+| SSR 注入点（P1 回滚路径） | `AfterRenderingPrePasses + 6` = 206（[SsrPass.cs:31](../../../Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs#L31)），仅当 `ssrAfterGbuffer == false` |
+| SSR 注入点（P3 目标） | `AfterRenderingGbuffer` = 220，当 `ssrAfterGbuffer == true`；必须在 210 之后、230 之前 |
+| 材质绑定 pass（P3） | 221（`>220 且 <230`）；回滚路径仍在 207 |
+| 间接镜面合成 pass（P3） | 225（`AfterRenderingGbuffer + 5`，`>220 且 <230`）；仅 P3 路径存在 |
 | GBuffer pass | 210 |
 | ClusteredDeferred 光照 | 230（[UniversalRenderer.cs:367](../../../Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/UniversalRenderer.cs#L367)） |
 | 输出消费者 | `ClusteredDeferred.compute` / `GlobalIllumination.hlsl` 的 GI 槽；全局资源名不变 |
 | 透明 SSR | 独立 pass，Approximation + 前帧颜色，**本轮不动** |
 
 - **P3 允许**：把不透明 SSR 移到 210 之后、230 之前；移动后仍必须在该帧 ClusteredDeferred 读 GI 槽之前完成。
-- **P3 禁止**：把 SSR 移到 ClusteredDeferred 之后；修改 GI 槽的名字或采样语义；改变透明 SSR 的注入点。
-- **守护**：`SsrP3ContractTests` 通过反射断言 `k_RenderPassEvent == 206`；P3 切换时该断言与本文一起更新。
+- **P3 允许**：延迟接收者的间接镜面从 GBuffer pass 移到 220 之后的合成（225）；forward 接收者保持材质端混合不变。
+- **P3 禁止**：把 SSR 移到 ClusteredDeferred 之后；修改 GI 槽的名字或采样语义；改变透明 SSR 的注入点；让 GBuffer(210) 采样本帧 SSR。
+- **守护**：`SsrP3ContractTests` 断言 206 常量（回滚）仍存在，并断言 220 常量与 `ssrAfterGbuffer` 开关存在（P3 路径）；两条路径共用 R1/R2 调度与输出契约。
 
 ## C2. 命中记录 ABI
 
 | 项 | 冻结值 |
 |---|---|
 | 发布结果 | 24 字节：`float3 radiance @0`、`float hitT @12`、`uint flags @16`、`uint mode @20`（`GlxPublishedHit`） |
+| `flags` 位 | `1` = miss、`2` = hit（`GlxHit`）、`4` = shadowed、`8` = SS（P3：命中核发布的屏幕空间命中）；其余位保留，未经版本升级不得占用 |
 | ray payload | 64 字节：发布结果 @0–23 + 反射表面传输 @24–63（roughness @24、metallic @28、八面体法线 @32、baseColor @40、emissive @52；仅反射模式写，见 C2.7） |
 | 硬上限 | 64 字节 |
 | 递归深度 | 2 |
@@ -31,6 +36,7 @@
 | shadow / probe 模式 | 语义与字段保持不变 |
 
 - **P1 允许**：为反射模式**新增**一份 hit 表面记录（GB0/GB1/GB2/GB3 + distance），并用独立版本位/缓冲区分；不得复用现有 24B 字段表达新语义。
+- **P3 允许**：为 SS 命中新增 `flags` 的 SS 位（`8`），由命中核发布；24B 布局与其它位不变。SS 命中同时带 `hit` 位（`2`），使现有 temporal/merge 的 `flags & 2u` 判据无需改动。
 - **P1 禁止**：把 radiance/hitT/flags/mode 任一项改义；让 shadow/probe 模式写新记录。
 - **P1 约束**：closest-hit **不得写 UAV**（Unity 光追管线不支持材质 hit pass 写 UAV）。反射表面只能经 ray payload 的 @24–63 回传，由 raygen 组装并写入 C2.7 记录；shadow/probe 模式不填这 40 字节。
 - **守护**：`SsrP3ContractTests` 读取 `GlxBasicPayload.hlsl`、`GlxPublishedHit.hlsl` 与 `SsrRayRequest.hlsl` 源码，断言字段顺序与数量。
@@ -49,9 +55,9 @@
 | `misc` | x distance（`RayTCurrent()`，>0）；y surfaceType；z version；w 来源位 |
 
 - surfaceType：`0` Lit、`1` SimpleLit、`2` Unlit。P1 只写 `Lit`（测试用 `GlxBasicHit` 按 Lit 近似）；`1/2` 在 P2 材质矩阵落地前不得写入。
-- version：`SsrHitSurfaceVersion = 1`；`0` 表示空槽/无效。消费者必须校验，非当前版本按 miss 处理。
-- 来源位：`misc.w & 1`，`0` = RT 命中，`1` = SS 命中（P3 写入）；其余位保留，未经版本升级不得占用。
-- 写入范围：只有 `GlxReflectionMode` 的 closest-hit 填 payload 表面字段，raygen 也只在该模式的结果上组装记录；shadow / probe / ProbeGeo 模式一律不写。
+- version：`SsrHitSurfaceVersion = 1`；`0` 表示空槽/无效。消费者必须校验，非当前版本按 miss 处理。P3 不改版本。
+- 来源位：`misc.w & 3`（2 bit，`SsrHitSurfaceSourceMask = 3u`）。`0` = RT 命中，`1` = SS 命中（保留值），`2` = GBuffer 命中（`SsrHitSurfaceSourceGbuffer`，P3 SS 命中读**当前帧** GBuffer 后由核发布）；`3` 保留。
+- 写入范围：只有 `GlxReflectionMode` 的 closest-hit 填 payload 表面字段，raygen 也只在该模式的结果上组装记录；shadow / probe / ProbeGeo 模式一律不写。P3 的 SS 记录由命中核（`SsrHitDeferred`）在读取当前 GBuffer 后组装，raygen 仍只写 RT 记录。
 - 传输精度：payload 里的法线是八面体 `float2`、金属度标量（raygen 合成 fresnel0），其余为 float；记录通道语义冻结，8bit vs 16F 的打包（P2 A/B）只能改编解码，不得改字段顺序、数量或 stride。
 - P1 着色：`SsrHitDeferred.compute` 解码记录 → `CdShade`（主光 + 全部附加灯，上限 64；shadow atlas 单 tap，SHADOW_LOW 口径）。记录无效、未启用或 compute 缺失时保留 closest-hit 的 radiance。P1 不采 screen-space shadow / cookie / light layer / SSAO / shadowmask；环境光用探测低频辐照度，specular 份额同源近似，P2 换 probe/sky 层级。
 - 开关与回退：`ScreenSpaceLightingSettings.hitDeferredShading`（默认 **关**，P0 基线即 closest-hit）控制是否运行该核。D3D11 / 无光追时不进入 DXR 路径，整条链路保持 P0 的屏幕空间行为；开关开但 compute 缺失时告警一次并保留 closest-hit radiance。注册期拒绝的材质（C2.7）不进 RTAS，命中自然落入 probe/sky。
@@ -125,6 +131,11 @@ hit 表面记录只承载标准 PBR 字段：baseColor、specular occlusion、no
 | `GlxPublishedHit` | 24 字节 / 4 字段 | `GlxPublishedHit.hlsl` |
 | `GlxBasicPayload` | 64 字节 / 9 字段（前 4 个为发布头） | `GlxBasicPayload.hlsl` |
 | `SsrHitSurface` | 80 字节 / 5 字段 / version 1 | `SsrHitSurface.hlsl`（C2.7） |
+| `SsrHitSurfaceSourceMask` | `3u`（2 bit；0 RT / 1 SS / 2 GBuffer） | `SsrHitSurface.hlsl`（C2.7，P3） |
+| `SsrShadeSurface` | 单点着色函数，raygen 回退与命中核共用 | `Shaders/RayTracing/SsrShadeSurface.hlsl`（P3，D3） |
+| SSR pass 事件 | 回滚常量 206 仍在；P3 常量 = `AfterRenderingGbuffer`(220) | `SsrPass.cs`（C1，P3） |
+| 间接镜面合成 pass | `ScreenSpaceLightingSsrIndirectSpecularPass`，事件 = `AfterRenderingGbuffer + 5`(225) | `Passes/SsrIndirectSpecularPass.cs`（P3，D1） |
+| `ssrAfterGbuffer` | 默认 `false`（P3 B6 通过前） | `ScreenSpaceLightingSettings.cs`（D6） |
 | payload 硬上限 | 64 字节 | 20 号 B0 Freeze |
 | tile | 8×8 | `SsrRequestQueue.hlsl` / `SSR_TILE_SIZE` |
 | `_R1Counts` | 11 × uint | `SsrRequestQueue.cs` |
