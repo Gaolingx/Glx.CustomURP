@@ -27,10 +27,12 @@ static const uint SsrHitSurfaceVersion = 1u;
 static const uint SsrSurfaceTypeLit = 0u;
 static const uint SsrSurfaceTypeSimpleLit = 1u;
 static const uint SsrSurfaceTypeUnlit = 2u;
-// misc.w bit 0: 0 = ray traced hit, 1 = screen-space hit (P3). Other bits stay reserved.
-static const uint SsrHitSurfaceSourceMask = 1u;
+// misc.w bits 0-1: hit source. 0 = ray traced hit, 1 = screen-space hit (reserved), 2 = GBuffer hit
+// (P3: SS hit shaded from the current-frame GBuffer). Bits 2-31 stay reserved.
+static const uint SsrHitSurfaceSourceMask = 3u;
 static const uint SsrHitSurfaceSourceRt = 0u;
 static const uint SsrHitSurfaceSourceSs = 1u;
+static const uint SsrHitSurfaceSourceGbuffer = 2u;
 
 // Octahedral normal in float2: full float precision would cost the payload 4 more bytes
 // than the 64-byte cap allows.
