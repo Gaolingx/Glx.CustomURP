@@ -17,7 +17,7 @@
    - 压缩能让活跃 warp 满载；但尾部仍会有少量空启动线程。
 4. **TMin 续传是高风险项，不能直接把 Hi-Z 的 `t` 当世界安全距离**：现有 [SSR-DXR.md §2.3](file:///E:/GitHub/Glx.CustomURP/URPSample01/PLAN/Done/20-Ray_tracing/research/SSR-DXR.md) 已明确警告；R2b 的现有验收门槛也是“隐藏遮挡物不得漏遮挡”。只能对**可证明为空**的屏幕段续传，并加保守 pullback；否则会从隐藏遮挡物后方开始追，直接漏几何。
 5. **当前 300→200 fps（3.33→5.0 ms，+1.67 ms）不是单一 DXR**：帧里同时有 SS trace、R1 分类、DXR、Temporal、重建/上采样、全分辨率 Composite，以及 25+27 个颜色金字塔/历史 dispatch。R2b 只能优化前半段，不能回收全部 1.67 ms。
-6. **建议顺序：** Phase 0 先测量归因；Phase 1 做“三态 + 安全 TMin（仅 off-screen exit）”；Phase 2 做压缩 + 自适应 K；Phase 3 做三态合成与计数器闭环；Phase 4 再做天空/probe 策略。遮挡体后方的 full-miss 续传不在本轮 Phase 1–5 内（见 §6.2；若 §13 Q5 决策通过，再单独立项估时）。若 Phase 0 显示 DXR+R1 小于 1.67 ms 的 30%，优先优化固定全屏 pass。
+6. **建议顺序：** Phase 0 先测量归因；Phase 1 做“三态 + 安全 TMin（仅 StepLimit/出屏/远平面，且 `!everBelowFloor`）”；Phase 2 做压缩 + 自适应 K；Phase 3 做三态合成与计数器闭环；Phase 4 再做天空/probe 策略。遮挡体后方的 full-miss 续传不在本轮 Phase 1–5 内（见 §6.2；若 §13 Q5 决策通过，再单独立项估时）。若 Phase 0 显示 DXR+R1 小于 1.67 ms 的 30%，优先优化固定全屏 pass。
 
 **一句话：** 方案可行，但“完全不浪费”只能做到“被选中的 K 条射线内不浪费”；TMin 的收益取决于能否给出保守的世界安全距离，否则 NO-GO。
 
@@ -304,35 +304,40 @@ D3D12 原生支持间接光追派发：`D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH_RA
 
 ### 6.2 Hi-Z 的 `t` 不是世界安全距离（关键风险）
 
-现有 `SslRayMarch` 的 `t` 是屏幕空间参数；`last safe` 不能直接写进 `R1Sample.tMin`：
+现有 `SslRayMarch` 只返回 `bool + out rayPos`，内部 `t` 是屏幕空间参数；`rayPos.z` 在循环末尾被 cell 深度覆盖（[RayMarching.hlsl:121](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/RayMarching.hlsl#L121)），不能反重建出射线点。`last safe` 不能直接写成 `R1Sample.tMin`：
 
 - HZB 只包含屏幕可见深度；被柱子/角色遮住的几何不在深度图里。
 - 射线“在屏幕里没命中”不等于“3D 空间里为空”；可能是被遮挡后穿到背面，或出屏。
-- `miss = belowMip0 && insideFloor` 表示射线进入遮挡体后方；此时 `t` 可能已经在遮挡体内部。
+- `miss = belowMip0 && insideFloor` 只反映当前 cell 进入遮挡体，不记录历史；射线可以先 behind floor、再穿出并从屏幕边缘离开。
 - 薄物体、厚度 bias、边缘深度都可能导致 `t` 不可靠。
+- trace 内部用 normal bias 后的原点（[ScreenSpaceReflections.compute:425](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute#L425)），`R1Sample.position` 是未 bias 的重建位置（[SsrRequestQueue.hlsl:33](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/SsrRequestQueue.hlsl#L33)）；把 trace 原点量出的标量 `safeT` 直接给 raygen 复用，在掠射角会产生大于 PullbackBias 的误差。
 
-因此 TMin 必须有**保守门控**：
+因此 TraceState 必须输出**世界安全点**，由 R1 用 `q.position` 现算距离，并满足：
 
 ```text
 仅当以下条件全部成立才续传：
-1. 从原点到安全点始终处于“已确认空”的区间（屏幕内命中前的空段，或出屏前的空段）；
-2. 安全点来自该空段的最后一个保守位置，而不是 miss 时的 t；
-3. 减去 PullbackBias = max(0.01, 0.001 * distance)；
-4. 若无法证明为空，TMin = 默认 0.002，从原点重追。
+1. 从原点到安全点始终处于“已确认空”的区间（mip0 belowFloor 从未为真，且未 hit）；
+2. 安全点来自该空段的最后一个保守位置（cell 边界的 min(distWall, tMax)），而不是 miss 时的 t；
+3. 出口类型是 StepLimit / Offscreen / FarPlane（不含 NearPlane）；
+4. 样本 reason 为 3/4（无有效屏幕命中）；2/5/6 一律 0.002；
+5. 减去 PullbackBias = max(0.01, 0.001 * distance)；
+6. 任一条不满足，TMin = 默认 0.002，从原点重追。
 ```
 
 建议的 miss 分类：
 
 | miss 类型 | 可否续传 | 理由 |
 |---|---|---|
-| 射线在屏幕内走到 TMax，无任何遮挡 | 可以 | 屏幕可见段为空；仍需 pullback |
-| 射线出屏（screen edge） | 可以，续到出屏点 | 出屏前为空；出屏后未知，HW 从边界继续 |
-| 射线进入遮挡体后方（below floor） | **默认不可以** | 无法证明遮挡体后面为空 |
-| 薄物体/厚度不足 | 不可以，除非保守回溯 | HZB 不可靠 |
+| 屏幕内步数耗尽（StepLimit，`!everBelowFloor`） | 可以 | 已走段确认空，剩余段交给 HW；`rayMaxIterations` 默认 64（[ScreenSpaceReflection.cs:100](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceReflection.cs#L100)） |
+| 出屏（x/y 面胜出，`!everBelowFloor`） | 可以，续到出屏点 | 出屏前为空；出屏后未知，HW 从边界继续 |
+| 出远平面（z 面胜出且 `!rayTowardsEye`，`!everBelowFloor`） | 可以（收益小） | 已走段为空；剩余距离多半已过 TMax |
+| 出近平面（z 面胜出且 `rayTowardsEye`） | 不可以 | 方向回到相机侧，不是“向前为空” |
+| 进入/穿越遮挡体后方（mip0 `belowFloor` 曾为真） | **不可以** | 无法证明遮挡体后面为空 |
+| 薄物体/厚度不足 | 不可以 | HZB 不可靠；由 `everBelowFloor` 兜住 |
 | killRay（背面/粗糙度超限/无效方向） | 不请求 | 不属于可反射样本 |
-| 到达 far plane 且 `reflectsSky=false` | 不请求或 TMin=0 | 截断不等于天空可见 |
+| 有 SS hit 的 reason 2/5/6 | 不可以 | 命中是真实表面，续传会跳过它 |
 
-**这与现有 [SSR-DXR.md §2.3](file:///E:/GitHub/Glx.CustomURP/URPSample01/PLAN/Done/20-Ray_tracing/research/SSR-DXR.md) 的结论一致：不把 Hi-Z 走过的距离当世界空间安全距离。** R2b 的第一版只对“出屏/无遮挡 TMax”启用续传；遮挡体后方续传需要单独证明。
+**这与现有 [SSR-DXR.md §2.3](file:///E:/GitHub/Glx.CustomURP/URPSample01/PLAN/Done/20-Ray_tracing/research/SSR-DXR.md) 的结论一致：不把 Hi-Z 走过的距离当世界空间安全距离。** R2b 的第一版只对 StepLimit / 出屏 / 远平面且 `!everBelowFloor` 的样本启用续传；遮挡体后方续传需要单独证明。
 
 ### 6.3 TLAS 更新成本
 
@@ -419,7 +424,7 @@ R1Sample (80 B)
 16  float3 position
 28  float roughness
 32  float3 normal
-44  float tMin        <-- 现在固定 0.002；v2 写入安全世界距离
+44  float tMin        <-- 现在固定 0.002；v2 写入从 q.position 起算的世界距离
 48  float3 direction
 60  float tMax
 64  float ssShare
@@ -431,12 +436,15 @@ R1Sample (80 B)
 因此 **不需要改 ABI**；需要新增的是一张半分辨率 `TraceState`（或把 hit point 纹理扩为 float4）：
 
 ```text
-TraceState (half-res, 8-16 B/px)
-  bHit        : 1 bit
-  missKind    : 2-3 bits (OffscreenExit / FarPlane / BehindOccluder / Thin)
-  lastSafeT   : float (world units, 0 if unknown)
-  hitT        : float (optional, for debug)
+TraceState (half-res, 16 B/px：R32G32B32A32_SFloat；世界坐标不要用 half)
+  bHit            : 1 bit
+  missKind        : 3 bits (Hit / Offscreen / FarPlane / NearPlane / BehindOccluder / StepLimit / Kill)
+  everBelowFloor  : 1 bit   // mip0 曾 belowFloor；为真则禁止续传
+  lastSafeWS      : float3  // 已确认空段末尾的世界坐标；无效时为零
+  hitT            : float   // 调试/校验（RayTCurrent）
 ```
+
+存世界点而不是标量 `lastSafeT`：trace 原点带 normal bias，R1 的 `q.position` 不带；由 R1 现算 `distance(lastSafeWS, s.position)` 才能让 raygen 的 `TMin` 与 `R2Temporal` 的 `hitT >= q.tMin` 口径一致。世界点必须 32 位浮点；half 在百米视距的量化误差可能超过 PullbackBias。
 
 ### 7.4 Pass 图
 
@@ -446,7 +454,8 @@ SS trace (existing)
    v
 Classify (R1Original v2)
    │  reads TraceState, history color
-   │  writes R1Sample (tMin = Gate(safeT, missKind))
+   │  仅 reason 3/4 且 missKind ∈ {Offscreen, FarPlane, StepLimit} 且 !everBelowFloor 才写 tMin
+   │  其余保持 0.002
    v
 Compact / Budget
    │  N <= K: all unresolved
@@ -488,46 +497,76 @@ material lerp(probe, rgb, alpha)
 
 ### 7.6 TMin 续传：安全规则与伪代码
 
-修改 `SslRayMarch` 返回 `lastSafeT` 与 `missKind`：
+新增 `SslRayMarchEx`，返回出口类型、遮挡历史与世界安全点；`SslRayMarch` 保留给 SSGI：
 
 ```hlsl
+enum SslMissKind { Hit, Offscreen, FarPlane, NearPlane, BehindOccluder, StepLimit, Kill };
+
 struct SslTraceResult
 {
-    bool  hit;
-    float lastSafeT;   // world units, 0 if not provable
-    uint  missKind;    // 0=hit, 1=offscreen, 2=farplane, 3=behindOccluder, 4=thin, 5=kill
+    bool   hit;
+    uint   missKind;
+    bool   everBelowFloor;   // 只锁存 mip0
+    float3 lastSafeWS;       // 0 表示不可续传
 };
 
-SslTraceResult SslRayMarchEx(...)
+SslTraceResult SslRayMarchEx(...)   // 参数与 SslRayMarch 相同
 {
-    float safeT = 0;
-    ...
-    while (...) {
-        // 在确认当前 cell 为空后，推进 safeT
-        if (cellEmpty)
-            safeT = t; // 或 min(t, distWall) 的保守值
-        ...
-        if (miss) {
-            if (exitedScreen) missKind = Offscreen;
-            else if (belowFloor) missKind = BehindOccluder;
-            ...
-            break;
+    // 初始化与 SslRayMarch 一致；把 tMax 计算块里的 dist 提升出来并改名，避免与循环内 cell 的 dist 混淆
+    float3 clipDist = /* 原 tMax 块内的 dist（三个裁剪面距离） */;
+    float tMax = Min3(clipDist.x, clipDist.y, clipDist.z);
+    bool   everBelowFloor = false;
+    float3 safeWS = 0;
+    if (killRay) return { false, Kill, false, float3(0, 0, 0) };
+
+    while (!(hit || miss) && t <= tMax && iterCount < stepLimit)
+    {
+        float3 pTrue = rayOrigin + t * rayDir;   // 未被 cell depth 覆盖的射线点
+        rayPos = pTrue;
+        ...                                      // 吸附/bounds/dist 采样与 SslRayMarch 相同
+        if (mipLevel == 0 && belowFloor) everBelowFloor = true;
+        if (!belowFloor && !hitFloor)            // 该 cell 在最近深度之前：区间可证明为空
+        {
+            float3 pSafe = rayOrigin + min(distWall, tMax) * rayDir;
+            safeWS = ComputeWorldSpacePosition(pSafe.xy * screenSize.zw, pSafe.z, SSL_INV_VIEW_PROJ);
         }
+        ...                                      // t / mipLevel / mipOffset 更新不变
     }
-    // 只有 offscreen/farplane 且路径全程为空时才给 lastSafeT
-    if (missKind != Offscreen && missKind != FarPlane) safeT = 0;
-    return { hit, safeT, missKind };
+
+    if (hit)                         missKind = Hit;
+    else if (miss)                   missKind = BehindOccluder;
+    else if (iterCount >= stepLimit) missKind = StepLimit;
+    else missKind = (clipDist.x <= clipDist.z || clipDist.y <= clipDist.z)
+                  ? Offscreen
+                  : (rayTowardsEye ? NearPlane : FarPlane);
+
+    if (everBelowFloor || missKind == NearPlane) safeWS = 0;
+    return { hit, missKind, everBelowFloor, safeWS };
 }
 ```
+
+关键约束：
+
+- `tMax` 计算块内的 `dist` 是**裁剪面**距离（[RayMarching.hlsl:63-74](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/RayMarching.hlsl#L63)），循环里的 `dist` 是当前 cell 边界距离；两者必须分开命名，出口分类只能用前者。
+- `pTrue` 必须保留在 `rayPos.z = bounds.z` 覆盖之前（[:121](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/RayMarching.hlsl#L121)）；用被覆盖后的 `rayPos` 重建会得到表面点而不是射线点。
+- `pTrue.xy` 已经含 0.5 像素偏移（`rayOrigin = positionSS + 0.5`），所以直接 `* screenSize.zw` 得到 UV；不要再调 `SsrReconstructPositionWS`（它会再加一次 0.5）。
+- 安全点用 `min(distWall, tMax)` 而不是当前 `t`：Hi-Z 金字塔按最近深度归约（[DepthPyramid.compute:40-42](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceCommon/DepthPyramid.compute#L40)），`!belowFloor && !hitFloor` 说明整个 cell 区间都在最近深度之前；若该归约前提变化，退回只更新 mip0。
+- `everBelowFloor` 只在 mip0 锁存；coarse 级的 `belowFloor` 会触发下降，是细化提示，不是遮挡证明。
+- 出口分类目前代码没有：`tMax = Min3` 只返回最小参数，`rayPos.z == 0`（[:129](file:///E:/GitHub/Glx.CustomURP/URPSample01/Packages/com.unity.render-pipelines.universal@14.0.12/Shaders/Utils/ScreenSpaceLighting/RayMarching.hlsl#L129)）测的是最后一个 cell 的深度，不能当 far-plane 判据。
 
 `R1Original`：
 
 ```hlsl
-float safeT = traceState.lastSafeT;
 float tmin = 0.002;
-if (traceState.missKind == Offscreen || traceState.missKind == FarPlane)
+bool hasSafe = any(trace.lastSafeWS != float3(0, 0, 0));
+bool canContinue = (s.reason == 3 || s.reason == 4) &&
+                   !trace.everBelowFloor && hasSafe &&
+                   (trace.missKind == Offscreen || trace.missKind == FarPlane ||
+                    trace.missKind == StepLimit);
+if (canContinue)
 {
-    tmin = max(0.002, safeT - max(0.01, 0.001 * safeT));
+    float d = distance(trace.lastSafeWS, s.position);   // s.position 未 bias，与 raygen 同源
+    tmin = max(0.002, d - max(0.01, 0.001 * d));
 }
 s.tMin = tmin;
 ```
@@ -540,14 +579,16 @@ ray.Origin = q.position;
 ray.Direction = normalize(q.direction);
 ray.TMin = max(q.tMin, 0.002);
 ray.TMax = q.tMax;
-if (ray.TMin >= ray.TMax) return; // 已经到最大距离
+if (ray.TMin >= ray.TMax) return; // 已经到最大距离，计 skipped 而不是 served
 ```
 
 注意：
 
+- 只有 reason 3/4（无有效屏幕命中）可续传；reason 5（历史颜色被拒但 SS 有 hit）以及 2/6 的命中都是真实表面，TMin 必须保持 0.002，否则会跳过本应命中的表面。
 - `q.position` 必须与 `q.direction` 同一世界单位；方向已归一化，`tMin` 可直接用世界距离。
 - `R2Temporal` 用 `q.tMin` 判断 hit 是否有效；TMin 必须保守，否则会把本应计入的 hit 判成无效。
-- 若 `lastSafeT` 不可证明，保持 0.002，不做续传。
+- 若 `lastSafeWS` 不可用或 `everBelowFloor` 为真，保持 0.002，不做续传。
+- `tMin >= tMax` 的样本目前仍会被 `min(_R1Counts[2], _R2K)` 计入 served；建议新增 `skipped` 计数，避免预算统计虚高。
 
 ### 7.7 Warp 利用率与重排
 
@@ -578,10 +619,10 @@ if (ray.TMin >= ray.TMax) return; // 已经到最大距离
 | `Runtime/.../Passes/SsrRequestQueue.cs` | budget 可变；adaptive K；queue 统计 |
 | `Runtime/.../SsrRayTracingCameras.cs` | 资格与 budget 更新；无 RT 时清理 |
 | `Runtime/.../ScreenSpaceLightingSettings.cs` | `rayTracingContinuation`、`adaptiveRayBudget`（默认 off）；Phase 4 另加 SSR 专用 `reflectionSkyFallback`（默认 `None`，不复用 SSGI 的 `rayMiss`） |
-| `Shaders/.../ScreenSpaceReflections.compute` | TraceState 输出；R1Original 写 tMin；R1Tiles/Offsets/Scatter 统计 |
+| `Shaders/.../ScreenSpaceReflections.compute` | TraceState 输出（含 `everBelowFloor`/`lastSafeWS`）；R1Original 仅 reason 3/4 写 tMin；R1Tiles/Offsets/Scatter 统计 |
 | `Shaders/.../SsrRequestQueue.hlsl` | 压缩/counters；tMin 传递 |
 | `Shaders/.../SsrRayRequest.hlsl` | 保持 80 B；如新增字段需同步 stride 断言 |
-| `Shaders/.../RayMarching.hlsl` | `SslRayMarchEx` 返回 safeT/missKind；保持旧入口兼容 |
+| `Shaders/.../RayMarching.hlsl` | `SslRayMarchEx` 返回 `missKind`/`everBelowFloor`/`lastSafeWS`；`SslRayMarch` 保留给 SSGI |
 | `Shaders/.../RayTracingSsr.raytrace` | 使用 q.tMin；越界/早退保护 |
 | `Editor/ShaderScriptableStripper.cs` | 若新增 keyword，加入 RT-only 剥离 |
 | `Assets/Tests/RayTracing/SSR/SsrRequestTests.cs` | 布局、tMin、计数器测试 |
@@ -599,10 +640,10 @@ if (ray.TMin >= ray.TMax) return; // 已经到最大距离
 
 ### Phase 1：TraceState + 安全 TMin（3–5 天）
 
-- `SslRayMarchEx` 输出 `lastSafeT/missKind`；只对 offscreen/farplane 启用。
-- `R1Sample.tMin` 写入保守值；raygen 已支持，只加保护。
+- `SslRayMarchEx` 输出 `missKind/everBelowFloor/lastSafeWS`；只对 StepLimit/Offscreen/FarPlane 且 `!everBelowFloor` 启用。
+- `R1Sample.tMin` 只对 reason 3/4 写入；2/5/6 保持 0.002；raygen 已支持，只加保护。
 - 固定 K，不改压缩。
-- **Gate P1**：隐藏遮挡物夹具不漏遮挡；薄墙不穿透；TMin=0 vs 续传的图像差在阈值内；GPU ms 改善 ≥5%。
+- **Gate P1**：隐藏遮挡物、薄墙、遮挡后出屏三个反例不漏遮挡/不穿透；reason 5 不续传；`tMin` 与 `q.position` 同源；TMin=0 vs 续传的图像差在阈值内；统计 `N_safe/N_miss` 与 skipped；GPU ms 改善 ≥5%。
 
 ### Phase 2：压缩 + 自适应 K（3–5 天）
 
@@ -633,9 +674,9 @@ if (ray.TMin >= ray.TMax) return; // 已经到最大距离
 | P0-1 | 分阶段 GPU 计时 | markers + CSV | 1 d |
 | P0-2 | 计数器与 N/K | counters + summary | 1 d |
 | P1-1 | TraceState | 半分辨率状态纹理 | 1 d |
-| P1-2 | SslRayMarchEx | safeT/missKind | 1.5 d |
+| P1-2 | SslRayMarchEx | missKind/everBelowFloor/lastSafeWS | 1.5 d |
 | P1-3 | R1 tMin | 分类写入 | 0.5 d |
-| P1-4 | 隐藏遮挡物夹具 | PlayMode + 图 | 1.5 d |
+| P1-4 | TMin 反例夹具（隐藏/薄墙/遮挡后出屏） | PlayMode + 图 | 2 d |
 | P2-1 | 压缩队列 | kernel + counts | 2 d |
 | P2-2 | 自适应 K | readback + clamp | 1 d |
 | P2-3 | 计数守恒测试 | EditMode/PlayMode | 1 d |
@@ -657,7 +698,8 @@ if (ray.TMin >= ray.TMax) return; // 已经到最大距离
 | Renderer | Deferred / Forward+ / Forward（RT 只在合格路径） |
 | 分辨率 | 1920×1080、3840×2160（可选） |
 | 相机 | 静止、平移、旋转、切镜 |
-| 场景 | 静态、动态遮挡物、薄墙、隐藏遮挡物、离屏遮挡物 |
+| 场景 | 静态、动态遮挡物、薄墙、隐藏遮挡物、离屏遮挡物、遮挡后出屏 |
+| TMin 出口 | StepLimit / 出屏 / 远平面 / 近平面 / 遮挡体后方 / 有 SS hit |
 | SSR | Approximation 半分辨率、RT off、RT on、TMin on/off、compaction on/off |
 | TAA | on/off（历史与抖动） |
 | XR | off（RT 不支持 XR） |
@@ -668,12 +710,15 @@ if (ray.TMin >= ray.TMax) return; // 已经到最大距离
 1. **计数守恒**（对齐 `_R1Counts`：`[0]` eligible、`[1]` requested、`[2]` served、`[3]` overflow）
    - `eligible = resolved + unresolved`；invalid（`reason = 0/1`）不计入 eligible。
    - `unresolved = requested = served + overflow`
-   - `served` 不超过 K；`queue` 写入不越界。
+   - `served` 不超过 K；`queue` 写入不越界；若新增 `skipped`，则 `served = traced + skipped`。
 2. **TMin 安全**
    - 隐藏遮挡物：RT 必须命中，不能因为 TMin 提前开始而漏遮挡。
-   - 薄墙：不能穿透；不能从墙后开始。
-   - 出屏：续传到出屏点；出屏后命中正确。
-   - `tMin >= tMax` 时不派发/直接 miss。
+   - 薄墙：不能穿透；不能从墙后开始（由 `everBelowFloor` 保证）。
+   - 遮挡后出屏：最终出口是 Offscreen 但 `everBelowFloor == true`，`tMin` 必须保持 0.002。
+   - 近平面退出：`missKind == NearPlane` 不续传。
+   - 有 SS hit 的 reason 2/5/6：`tMin` 必须为 0.002。
+   - 原点一致性：`tMin` 从 `q.position` 起算；迹线原点带 bias 的误差必须小于 PullbackBias（夹具用掠射角覆盖）。
+   - `tMin >= tMax` 时不派发/直接 miss，并计入 skipped。
 3. **图像**
    - 复用现有阈值：mean ≤ 2/255、peak ≤ 24、>8 px 计数；不因 R2b 放宽。
    - SS/HW 接缝、边缘、粗糙度淡出、clear coat 不退化。
@@ -724,9 +769,9 @@ if (ray.TMin >= ray.TMax) return; // 已经到最大距离
 
 ### 10.2 Go/No-Go
 
-- **Go Phase 1**：Phase 0 显示 DXR+R1 ≥ 30% 增量；且隐藏遮挡物夹具可设计。
+- **Go Phase 1**：Phase 0 显示 DXR+R1 ≥ 30% 增量；且隐藏遮挡物/薄墙/遮挡后出屏三个反例夹具可设计。
 - **Go Phase 2**：TMin 安全测试通过；压缩队列计数守恒。
-- **No-Go TMin**：隐藏遮挡物漏遮挡、薄墙穿透、图像超阈；保留 compaction/adaptive K，不做续传。
+- **No-Go TMin**：隐藏遮挡物漏遮挡、薄墙穿透、遮挡后出屏漏遮挡、原点一致性超阈、图像超阈；保留 compaction/adaptive K，不做续传。
 - **No-Go R2b**：压缩 + 自适应 K 的总收益 < 0.1 ms，或引入 > 0.1 ms 额外成本；记录为 v2 NO-GO，不影响 R1–R5。
 - **优先级调整**：若固定 pass（Composite/Upsample/ColorPyramid）占 > 50%，先做固定 pass 优化，R2b 延后。
 
@@ -736,7 +781,7 @@ if (ray.TMin >= ray.TMax) return; // 已经到最大距离
 
 | 风险 | 影响 | 缓解 |
 |---|---|---|
-| Hi-Z 安全距离不可靠 | 漏遮挡/穿透 | 只对 offscreen/farplane 续传；pullback；隐藏遮挡物夹具 |
+| Hi-Z 安全距离不可靠 | 漏遮挡/穿透 | 只对 StepLimit/Offscreen/FarPlane 且 `!everBelowFloor` 续传；世界点 + pullback；隐藏/薄墙/遮挡后出屏夹具 |
 | 无间接派发 | 尾部空线程 | 固定 K + 早退；自适应 K；异步回读 |
 | 压缩开销 | 新增 0.05–0.1 ms | 半分辨率、wave 前缀和、只做必要计数 |
 | 严格 miss-only | 边缘错误 | 保持三态，不二值化 |
@@ -770,7 +815,7 @@ if (ray.TMin >= ray.TMax) return; // 已经到最大距离
 2. 是否允许在 SSR 新增的 `reflectionSkyFallback=Sky` 时填天空？涉及 probe 双计。
 3. 是否接受自适应 K 的一帧延迟？
 4. 是否接受 80 B/px 的 R1Sample，还是先做 32–40 B 打包？
-5. 是否把 TMin 只用于 offscreen/farplane，还是投入更多时间做遮挡体后方的保守安全距离？
+5. 是否把 TMin 只用于 StepLimit/Offscreen/FarPlane 且 `!everBelowFloor` 的样本，还是投入更多时间做遮挡体后方的保守安全距离？
 6. 是否考虑 native plugin 的 `ExecuteIndirect(DISPATCH_RAYS)`？建议不进 v1。
 7. 4K/主机是否在本次 R2b 范围？建议仅 Windows 1080p/4K D3D12。
 
