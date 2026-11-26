@@ -29,6 +29,11 @@ namespace UnityEngine.Rendering.Universal
     internal sealed class ScreenSpaceLightingSsrPass : ScriptableRenderPass
     {
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingPrePasses + 6);
+        // P3: opaque SSR runs after the GBuffer pass so screen-space hits can read the current
+        // frame's GBuffer. The rollback path keeps k_RenderPassEvent (206); Setup picks per frame
+        // from ssrAfterGbuffer. The downstream receiver reroute (GBuffer skip, 225 composite, 230
+        // add) is part of B2; until it lands the switch must stay off (the fixture default).
+        internal const RenderPassEvent k_RenderPassEventAfterGbuffer = RenderPassEvent.AfterRenderingGbuffer;
         internal const string k_ProfilingSamplerName = "Screen Space Reflections";
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
@@ -304,6 +309,11 @@ namespace UnityEngine.Rendering.Universal
             m_History = history;
             m_Resources = resources;
             m_Settings = settings;
+            // P3 moves opaque SSR to 220; the rollback path (default) stays at 206. Chosen here,
+            // before the feature enqueues the pass, so the renderer sorts it at the right event.
+            renderPassEvent = settings != null && settings.ssrAfterGbuffer
+                ? k_RenderPassEventAfterGbuffer
+                : k_RenderPassEvent;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
