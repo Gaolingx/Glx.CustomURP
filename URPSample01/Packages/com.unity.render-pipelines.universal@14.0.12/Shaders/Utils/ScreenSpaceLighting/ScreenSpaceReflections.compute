@@ -761,12 +761,9 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
         float4 p3 = float4(0.0, 0.0, 0.0, 0.0);
         if ((ssHit.flags & SSR_HIT_FLAG_SS) != 0u && all(isfinite(ssHit.radiance)) && all(ssHit.radiance >= 0.0))
         {
-            float coverage = saturate(_R1Original[slot].ssShare);
-            // B6.1: the silhouette band gives its share back to the hardware/probe fallback.
-            float2 hitUv = SSGI_LOAD(_SsrHitPointTextureRW, traceCoord);
-            if (hitUv.x <= 1.0 && hitUv.y >= 0.0)
-                coverage *= SsrHitEdgeConfidence(hitUv);
-            p3 = float4(max(ssHit.radiance, 0.0), coverage);
+            // B6.1: the silhouette confidence is already folded into ssShare by R1Original, so the
+            // complement is requested from the hardware fill there.
+            p3 = float4(max(ssHit.radiance, 0.0), saturate(_R1Original[slot].ssShare));
         }
         SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, p3);
         return;

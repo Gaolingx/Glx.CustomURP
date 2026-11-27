@@ -87,8 +87,12 @@ namespace UnityEditor.Rendering.Universal.Tests
                         Assert.AreEqual(frame,s.frame);
                         Assert.AreEqual(.002f,s.tMin); Assert.AreEqual(37.5f,s.tMax); Assert.AreEqual(uint.MaxValue,s.instance);
                         float fade=x==2?.5f:x==5?.216f:1f;
-                        Assert.AreEqual(reason==2?fade:reason==6?.352f:0,s.ss,.0001f);
-                        Assert.AreEqual(reason==2?0:reason==6?.648f:fade,s.request,.0001f);
+                        // B6.1: on the weighted (P3) path the x==3 hit lands next to the background
+                        // column, so the silhouette confidence is 0 and its share moves to the
+                        // hardware request.
+                        bool silhouetteZero=weighted && x==3;
+                        Assert.AreEqual(silhouetteZero?0f:reason==2?fade:reason==6?.352f:0,s.ss,.0001f);
+                        Assert.AreEqual(reason==2?0:reason==6?(silhouetteZero?fade:.648f):fade,s.request,.0001f);
                     }
                 }
                 // R1Rank permutes the pixel each lane inspects and R1Scatter writes the first quota

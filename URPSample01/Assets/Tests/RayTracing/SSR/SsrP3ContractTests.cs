@@ -476,10 +476,12 @@ public sealed class SsrP3ContractTests
             "A merge slot with zero coverage must borrow from its same-surface neighbours.");
         StringAssert.Contains("opacity=saturate(0.5*(weightSum/accepted));", compute,
             "The borrowed alpha must stay capped at 0.5 so the environment probe keeps its share.");
-        StringAssert.Contains("coverage*=SsrHitEdgeConfidence(hitUv);", compute,
-            "The P3 screen-space coverage must fade at hit silhouettes (the binary hit/miss edge).");
 
         var queue = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrRequestQueue.hlsl"));
+        StringAssert.Contains("floatsilhouette=_R1WeightedQuota!=0u?SsrHitEdgeConfidence(hit):1.0;", queue,
+            "The P3 silhouette confidence must be folded into the R1 coverage split, not the reproject,");
+        StringAssert.Contains("s.ssShare*=silhouette;", queue,
+            "so the faded share becomes a hardware request (reason 6) instead of empty coverage.");
         StringAssert.Contains("uintR1TileQuota(uintwanted,uinttotalWanted)", queue,
             "The R1 budget must be shared by wanted count (B6.1).");
         StringAssert.Contains("if(_R1WeightedQuota==0u||_R1K<=tiles)", queue,

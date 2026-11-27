@@ -97,7 +97,12 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
                 s.reason = 5;
                 if (accepted && isfinite(edge))
                 {
-                    s.requestShare = fade * (1-edge); // never reclaim material roughness fade
+                    // B6.1 (P3): a hit on a depth silhouette is the least reliable sample, so its
+                    // share goes back to the hardware fill (reason 6) instead of leaving a binary
+                    // edge that the probe has to fill. The P1 rollback keeps the plain formula.
+                    float silhouette = _R1WeightedQuota != 0u ? SsrHitEdgeConfidence(hit) : 1.0;
+                    s.ssShare *= silhouette;
+                    s.requestShare = fade * (1 - edge * silhouette); // never reclaim material roughness fade
                     s.reason = s.requestShare > 0 ? 6 : 2;
                 }
             }
