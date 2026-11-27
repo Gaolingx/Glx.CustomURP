@@ -39,6 +39,8 @@ namespace UnityEngine.Rendering.Universal
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
 
         const int k_TileSize = 8;
+        const string k_GbufferNormalsOctKeyword = "_GBUFFER_NORMALS_OCT";
+        const string k_GlxSsrShadeSsKeyword = "_GLX_SSR_SHADE_SS";
 
         ScreenSpaceLightingHistory m_History;
         ScreenSpaceLightingResources m_Resources;
@@ -51,6 +53,7 @@ namespace UnityEngine.Rendering.Universal
         static readonly ProfilingSampler s_HybridComposite = new ProfilingSampler("SSR DXR Composite");
         static readonly ProfilingSampler s_HybridTemporal = new ProfilingSampler("SSR DXR Temporal");
         static readonly ProfilingSampler s_HitDeferred = new ProfilingSampler("SSR Hit Shading");
+        static readonly ProfilingSampler s_HitSs = new ProfilingSampler("SSR Hit Shading (SS)");
         int m_AdditionalLightCount;
         Vector3 m_CameraPositionWS;
         bool m_LoggedHitDeferredMissing;
@@ -422,7 +425,7 @@ namespace UnityEngine.Rendering.Universal
                         screenWidth, screenHeight, traceWidth, traceHeight, false));
                     PushSsrRayLength(cmd, cs, ref cameraData, settings);
                     Matrix4x4 coldPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
-                    if (TryTrace(cmd, cs, depthTexture, normalTexture, null, null, traceWidth, traceHeight, coldPrevInvViewProj))
+                    if (TryTrace(cmd, cs, ref cameraData, depthTexture, normalTexture, null, null, traceWidth, traceHeight, coldPrevInvViewProj))
                     {
                         using (new ProfilingScope(cmd, s_Reconstruction))
                             Composite(cmd, cs, depthTexture, normalTexture, null, true, screenWidth, screenHeight);
@@ -463,7 +466,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        bool TryTrace(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
+        bool TryTrace(CommandBuffer cmd, ComputeShader cs, ref CameraData cameraData, RTHandle depth, RTHandle normals,
             RTHandle motion, RTHandle hit, int w, int h, in Matrix4x4 prevInvViewProj)
         {
             if (requestQueue == null || m_Snapshot == null || m_Scene == null) return false;
@@ -475,6 +478,10 @@ namespace UnityEngine.Rendering.Universal
                 RecordOriginals(cmd, cs, depth, normals, motion, hit, w, h);
                 requestQueue.Trace(cmd, cs, m_Resources.rayTracingSsr, m_Scene, m_Snapshot, w, h);
                 DispatchHitDeferred(cmd);
+                // P3: re-shade SS hits from the current-frame GBuffer before the temporal merge, so
+                // the temporal only folds RT hits into the hardware history.
+                if (m_Settings != null && m_Settings.ssrAfterGbuffer)
+                    DispatchHitSs(cmd, ref cameraData, depth, hit, w, h);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 if (s_RequestEvidence && !s_EvidenceRequested)
                 {
@@ -553,6 +560,52 @@ namespace UnityEngine.Rendering.Universal
             }
             using (new ProfilingScope(cmd, s_HitDeferred))
                 cmd.DispatchCompute(cs, kernel, (requestQueue.budget + 63) / 64, 1, 1);
+        }
+
+        // P3: shade the screen-space hits from the current-frame GBuffer. Runs between DispatchRays
+        // (RT) and the temporal merge; the shaded sample lands in the slot-indexed _R2Hits with the
+        // SS bit, so the reproject reads this frame's surface radiance instead of the previous colour.
+        void DispatchHitSs(CommandBuffer cmd, ref CameraData cameraData, RTHandle depth, RTHandle hit, int traceWidth, int traceHeight)
+        {
+            if (requestQueue == null || hit == null)
+                return;
+            var cs = m_Resources.ssrHitSsCompute;
+            if (cs == null)
+                return;
+            if (!(cameraData.renderer is UniversalRenderer renderer))
+                return;
+            var deferred = renderer.deferredLights;
+            if (deferred == null || deferred.GbufferAttachments == null || deferred.GbufferAttachments.Length < 3)
+                return;
+
+            int kernel = cs.FindKernel("SsrHitSs");
+            SetKeyword(cs, k_GbufferNormalsOctKeyword, ScreenSpaceLightingSsgiPass.UseOctEncodedNormals(renderer));
+
+            cmd.SetComputeBufferParam(cs, kernel, "_R1Original", requestQueue.originals);
+            cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
+            cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTexture", hit);
+            cmd.SetComputeTextureParam(cs, kernel, "_GBuffer0", deferred.GbufferAttachments[0]);
+            cmd.SetComputeTextureParam(cs, kernel, "_GBuffer1", deferred.GbufferAttachments[1]);
+            cmd.SetComputeTextureParam(cs, kernel, "_GBuffer2", deferred.GbufferAttachments[2]);
+            cmd.SetComputeTextureParam(cs, kernel, "_CameraDepthTexture", depth);
+            int screenWidth = Mathf.Max(1, m_History.ssrWidth);
+            int screenHeight = Mathf.Max(1, m_History.ssrHeight);
+            cmd.SetComputeVectorParam(cs, "_SsrScreenSize",
+                new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight));
+            cmd.SetComputeVectorParam(cs, "_SsrTraceSize", new Vector4(traceWidth, traceHeight, 0f, 0f));
+            cmd.SetComputeIntParam(cs, "_SsrHitLightCount", m_AdditionalLightCount);
+            cmd.SetComputeVectorParam(cs, "_CdCameraPositionWS", m_CameraPositionWS);
+            // Same placeholder policy as the RT hit kernel: GlxProbeQuery declares the published
+            // atlas unconditionally, and an unbound declared resource drops the whole dispatch.
+            if (m_Settings == null || !m_Settings.rayTracingProbeFallback)
+            {
+                cmd.SetComputeTextureParam(cs, kernel, "_GlxProbeIrrSnapshot", Texture2D.blackTexture);
+                cmd.SetComputeTextureParam(cs, kernel, "_GlxProbeDistSnapshot", Texture2D.blackTexture);
+                cmd.SetComputeBufferParam(cs, kernel, "_GlxProbeStateSnapshot", requestQueue.counters);
+                cmd.SetComputeBufferParam(cs, kernel, "_GlxProbePublishedSnapshot", requestQueue.counters);
+            }
+            using (new ProfilingScope(cmd, s_HitSs))
+                cmd.DispatchCompute(cs, kernel, (traceWidth + 7) / 8, (traceHeight + 7) / 8, 1);
         }
 
         // Merges this frame's hardware hits with the previous resolved result. The request budget
@@ -655,6 +708,10 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, !pbr);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, halfResolution);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
+            // P3: the SS radiance comes from the SsrHitSs kernel (current-frame GBuffer) only when the
+            // hybrid queue exists; otherwise the reproject keeps the previous-colour path.
+            bool ssrShadeSs = m_Settings != null && m_Settings.ssrAfterGbuffer && requestQueue != null;
+            SetKeyword(compute, k_GlxSsrShadeSsKeyword, ssrShadeSs);
             SetKeyword(denoiser, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
 
@@ -725,7 +782,7 @@ namespace UnityEngine.Rendering.Universal
                 hybridPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
             // R1 re-derives the trace direction from the same blue-noise sequence as the trace, so the
             // request covers the algorithm's own hit point for this pixel and frame.
-            bool traced = halfResolution && TryTrace(cmd, compute, depthTexture, normalTexture,
+            bool traced = halfResolution && TryTrace(cmd, compute, ref cameraData, depthTexture, normalTexture,
                 motionTexture, pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint,
                 traceWidth, traceHeight, hybridPrevInvViewProj);
 
@@ -744,6 +801,12 @@ namespace UnityEngine.Rendering.Universal
             else
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
                     halfResolution && m_History.ssrApproxOutput != null ? m_History.ssrApproxOutput : m_History.ssrOutput);
+            // P3: the reproject reads this frame's SS shading from the slot-indexed buffers.
+            if (ssrShadeSs)
+            {
+                cmd.SetComputeBufferParam(compute, reprojectKernel, "_R1Original", requestQueue.originals);
+                cmd.SetComputeBufferParam(compute, reprojectKernel, "_R2Hits", requestQueue.hits);
+            }
             cmd.DispatchCompute(compute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_ReprojectDispatchCount++;

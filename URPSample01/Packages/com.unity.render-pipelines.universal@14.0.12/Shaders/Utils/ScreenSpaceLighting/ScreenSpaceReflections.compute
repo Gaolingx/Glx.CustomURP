@@ -37,6 +37,8 @@
 #pragma multi_compile _ SSR_NORMALS_OCT
 #pragma multi_compile _ SSL_XR_ARRAY
 #pragma multi_compile _ SSGI_BLUE_NOISE
+// P3: selects the reproject variant that reads SS radiance from _R2Hits (see SSR_HIT_FLAG_SS).
+#pragma multi_compile _ _GLX_SSR_SHADE_SS
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/Sampling.hlsl"
@@ -107,6 +109,12 @@ SSGI_RW_TEXTURE2D_FLOAT4(_SsrReprojectTextureRW);
 
 #define _SsrPBRBias _SsrPbrParams.y
 #define _SsrFrameIndex (int)_SsrPbrFlags.x
+
+// P3: the reproject reads SS radiance from _R2Hits (shaded from the current GBuffer by SsrHitSs)
+// instead of the previous colour pyramid. This is keyword-gated so the rollback / D3D11 variant
+// never references the R1/R2 buffers, which are unbound without the hybrid queue, and so cannot
+// drop the dispatch.
+#define SSR_HIT_FLAG_SS 8u
 
 // The Approximation reproject writes the material-facing texture directly; the PBR path writes the
 // un-accumulated signal consumed by the reflection denoiser.
@@ -351,7 +359,10 @@ void R2Temporal(uint3 id : SV_DispatchThreadID)
 
     if (hit.flags != 0u)
     {
-        bool resolved = (hit.flags & 2u) != 0u && hit.hitT >= q.tMin && hit.hitT <= q.tMax &&
+        // P3: SS hits were shaded into _R2Hits for the reproject; they are not hardware fill and must
+        // not enter the temporal history, where they would be merged a second time.
+        bool isSs = (hit.flags & SSR_HIT_FLAG_SS) != 0u;
+        bool resolved = !isSs && (hit.flags & 2u) != 0u && hit.hitT >= q.tMin && hit.hitT <= q.tMax &&
             all(isfinite(hit.radiance)) && all(hit.radiance >= 0.0);
         if (resolved)
         {
@@ -605,6 +616,21 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     uint2 traceCoord = dispatchThreadId.xy;
     if (any(traceCoord >= (uint2)_SsrTraceSize.xy)) return;
     uint2 inputCoord = SsrGetFullResCoord(traceCoord);
+
+#if !defined(SSR_APPROX) && defined(_GLX_SSR_SHADE_SS)
+    {
+        // P3: the SS radiance is the current-frame GBuffer shading from SsrHitSs, not the previous
+        // colour pyramid. Keep the R1 coverage (edge x roughness fade) already stored in ssShare.
+        uint slot = traceCoord.y * (uint)_SsrTraceSize.x + traceCoord.x;
+        GlxPublishedHit ssHit = _R2Hits[slot];
+        float4 p3 = float4(0.0, 0.0, 0.0, 0.0);
+        if ((ssHit.flags & SSR_HIT_FLAG_SS) != 0u && all(isfinite(ssHit.radiance)) && all(ssHit.radiance >= 0.0))
+            p3 = float4(max(ssHit.radiance, 0.0), saturate(_R1Original[slot].ssShare));
+        SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, p3);
+        return;
+    }
+#endif
+
     float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
     float2 hitUv = SSGI_LOAD(_SsrHitPointTextureRW, traceCoord);

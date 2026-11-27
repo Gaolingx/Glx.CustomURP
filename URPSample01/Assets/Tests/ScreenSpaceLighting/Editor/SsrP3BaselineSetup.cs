@@ -377,6 +377,18 @@ public static class SsrP3BaselineSetup
             throw new InvalidOperationException("SsrIndirectSpecular.compute was not found; the P3 receiver reroute would skip indirect specular.");
         if (indirectField.GetValue(resources) == null)
             indirectField.SetValue(resources, indirectKernel);
+
+        // P3 SS hit shading from the current GBuffer (B3).
+        var ssHitField = resources?.GetType().GetField("ssrHitSsCompute", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (ssHitField == null)
+            throw new MissingFieldException("ScreenSpaceLightingResources.ssrHitSsCompute was not found.");
+        const string ssHitKernelPath = "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/SsrHitSs.compute";
+        AssetDatabase.ImportAsset(ssHitKernelPath, ImportAssetOptions.ForceSynchronousImport);
+        var ssHitKernel = AssetDatabase.LoadAssetAtPath<ComputeShader>(ssHitKernelPath);
+        if (ssHitKernel == null)
+            throw new InvalidOperationException("SsrHitSs.compute was not found; P3 SS hits would not be shaded from the GBuffer.");
+        if (ssHitField.GetValue(resources) == null)
+            ssHitField.SetValue(resources, ssHitKernel);
     }
 
     static UniversalRenderPipelineAsset CreatePipeline(UniversalRendererData renderer)

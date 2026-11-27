@@ -327,10 +327,18 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
-    public void SsrHitDeferred_AcceptsGbufferSource()
+    public void SsrHitSs_ShadesScreenSpaceHitsFromCurrentGbuffer()
     {
-        var kernel = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute"));
-        StringAssert.Contains("SsrHitSurfaceSourceGbuffer", kernel,
-            "P3 SS hits read the current-frame GBuffer and publish source 2; the kernel must accept it (C2.7/C8).");
+        // P3 SS hits are re-shaded from the current-frame GBuffer by a dedicated compute kernel and
+        // published with source 2; the RT hit kernel keeps reading the request-indexed records.
+        var ss = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrHitSs.compute"));
+        StringAssert.Contains("SsrHitSurfaceSourceGbuffer", ss,
+            "SS hits read the current-frame GBuffer and must publish source 2 (C2.7/C8).");
+        StringAssert.Contains("_GBuffer0", ss, "The SS hit kernel must read the GBuffer surface.");
+        StringAssert.Contains("SsrShadeSurface(", ss, "The SS hit kernel must use the shared shading (D3).");
+
+        var reproject = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
+        StringAssert.Contains("SSR_HIT_FLAG_SS", reproject,
+            "The temporal must exclude SS-flagged hits from the hardware history (D4).");
     }
 }

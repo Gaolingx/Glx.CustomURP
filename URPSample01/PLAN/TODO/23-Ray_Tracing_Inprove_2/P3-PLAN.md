@@ -1,6 +1,6 @@
 # 23 P3 实施计划：SSR 后置 + SS/RT 共用命中着色（根治）
 
-**状态：** B0/B1/B2 完成（2026-11-27）。B1 的 3 条红断言属 B3/B4；B2 为 build/静态验证，像素/性能在 B6。B3–B6 未开工。前置：P0 完成、P1 PARTIAL（命中核已执行，缝门禁 NOT MET）。
+**状态：** B0–B4 完成（2026-11-27）。`SsrP3ContractTests` 12 过 / 0 红 / 1 跳过（仅 D3D12 payload 编译）。B2–B4 为 build/静态验证，像素/性能在 B6。B5（编排清理/回滚开关收尾）与 B6（统一复测）未开工。前置：P0 完成、P1 PARTIAL。
 **上位计划：** [plan.md](plan.md) §P3；契约：[contracts.md](contracts.md)。
 **验收方式：** 实现与文档按 B0–B5 逐步提交，**测量统一放到最后的 B6 一批**（含决策 #4/#5 的量化与六项阻断门禁）。
 
@@ -187,6 +187,12 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 - `ssrAfterGbuffer` 关闭时行为与 P1 逐位一致。
 
 ### B3 SS 命中读当前 GBuffer
+> **状态：完成（2026-11-27，build/静态；像素在 B6）。** 实际实现：
+> - 新增 `SsrHitSs.compute`：按 trace 像素全屏 dispatch，读 `_SsrHitPointTexture`→当期 `_GBuffer0/1/2`+depth 构面（`source = gbuffer`），调 B4 的 `SsrShadeSurface`，写 `_R2Hits[slot]`（`flags = GlxHit | SS`）。由 `SsrPass.TryTrace` 在 DispatchRays 后、Temporal 前 dispatch。
+> - `R2Temporal` 跳过 SS 位（SS 不进硬件历史，避免二次合并）；RT 路径不变。
+> - `SSR_REPROJECT` 加 `_GLX_SSR_SHADE_SS` 关键字分支：P3 时读 `_R2Hits[slot]` 的 SS radiance 与 `_R1Original[slot].ssShare` 覆盖率，替代前帧色采样；keyword 关闭（P1/D3D11）时整段不引用 R1/R2 缓冲，避免未绑定丢 dispatch。
+> - `SsrReadOriginalColor` 仍在 R1 分类里跑——但其**覆盖率**（edge×fade=ssShare）在 P3 复用，只有**颜色**改为当期 GBuffer 着色，符合“覆盖率只表噪声/覆盖、不表着色折中”。
+> - D3D11（无 hybrid 队列）：SS 核不派发、keyword 关闭，P3 回落到前帧色 SS + 225 仅环境项；`ssrAfterGbuffer` 默认关时整条 P3 不激活。
 - `ScreenSpaceReflections.compute` 的 trace 输出命中 UV/有效性，不再调 `SsrReadOriginalColor`（opaque 路径）；
 - `SsrHitDeferred.compute` 改为 trace 全屏 dispatch：SS 分支读当前 GBuffer 构面，RT 分支读记录；
 - Temporal/PBR merge 改按覆盖率加权；denoiser 不变。
