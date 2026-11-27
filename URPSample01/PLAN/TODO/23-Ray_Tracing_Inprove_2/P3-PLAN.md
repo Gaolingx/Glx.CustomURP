@@ -192,7 +192,9 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 - Temporal/PBR merge 改按覆盖率加权；denoiser 不变。
 
 ### B4 公共着色函数
-- 抽 `SsrShadeSurface.hlsl`，raygen 回退与命中核共用；
+> **状态：完成（2026-11-27）。** 抽出 `SsrShadeSurface.hlsl`（`SsrShadedSample { radiance, weight }` + `SsrShadeSurface(CdShade + 环境项)`），`SsrHitDeferred.compute` 改为调用它。
+> 修订：真正的共用范围是**两个 compute 命中核**（RT 核 + B3 的 SS 核）；材质 closest-hit 运行在 per-draw 材质头环境，**无法**包含 compute 的 `ClusteredDeferred.hlsl`，故不接该头，仅作 `hitDeferredShading` 关闭时的 P1 回退（P3 路径下所有命中由核着色）。契约 C8 与 tripwire 同步。
+- 抽 `SsrShadeSurface.hlsl`，命中核共用；
 - probe/sky 层级：`rayTracingProbeFallback` 开时绑真实图集并把 `_GlxHitLowFrequencySource = 1`；否则保持 P1 近似。
 
 ### B5 编排与清理

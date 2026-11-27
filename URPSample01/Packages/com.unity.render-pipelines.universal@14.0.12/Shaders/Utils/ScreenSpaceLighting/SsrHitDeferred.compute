@@ -12,9 +12,9 @@
 #include "../../RayTracing/GlxPublishedHit.hlsl"
 #include "../../RayTracing/SsrHitSurface.hlsl"
 #include "../../RayTracing/GlxProbeSampling.hlsl"
+#include "../../RayTracing/SsrShadeSurface.hlsl"
 #include "SsrRayRequest.hlsl"
 
-#define SSR_HIT_LIGHT_CAP 64u
 #define SSR_HIT_FLAG 2u // == GlxHit in GlxBasicPayload.hlsl
 
 StructuredBuffer<R1Sample> _R1Queue;
@@ -59,49 +59,12 @@ void SsrHitDeferred(uint3 id : SV_DispatchThreadID)
 
     float3 direction = normalize(q.direction);
     float3 positionWS = q.position + direction * distance;
-    float3 normalWS = normalize(s.gb1.xyz);
-    half smoothness = half(1.0 - saturate(s.gb1.w));
 
-    // Synthetic GBuffer, same encoding ClusteredDeferred decodes. gbuffer1 carries the
-    // reflectivity the material published, and the packed flag word stays 0: receive
-    // shadows, specular highlights on, neither subtractive nor specular-setup.
-    uint materialType = 1u;
-    half4 gbuffer0 = half4(s.gb0.rgb, 0.0);
-    half4 gbuffer1 = half4(s.gb2.rgb, 0.0);
-    half4 gbuffer2 = half4(normalWS, smoothness);
-
-    CdInputData inputData;
-    inputData.positionWS = positionWS;
-    inputData.normalWS = normalWS;
-    // The hit surface is seen along the reversed reflection ray, not from the camera.
-    inputData.viewDirectionWS = half3(-direction);
-    inputData.normalizedScreenSpaceUV = 0.0;
-
-    half4 shadowMask = half4(1.0, 1.0, 1.0, 1.0);
-    half3 color = 0.0;
-
-    CdLight mainLight = CdMainLight(positionWS);
-    mainLight.shadowAttenuation = CdMainLightShadow(
-        CdTransformWorldToShadowCoord(positionWS, float2(0.0, 0.0)), positionWS, shadowMask, half4(1.0, 1.0, 1.0, 1.0));
-    color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, mainLight, inputData);
-
-    uint lightCount = min(_SsrHitLightCount, SSR_HIT_LIGHT_CAP);
-    [loop] for (uint i = 0; i < lightCount; ++i)
-    {
-        CdLight light = CdGetAdditionalLight(i, positionWS);
-        light.shadowAttenuation = CdAdditionalLightShadow(i, positionWS, light.direction, shadowMask, half4(1.0, 1.0, 1.0, 1.0));
-        color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, light, inputData);
-    }
-
-    // Ambient: the probe low-frequency irradiance the closest-hit path already used. The
-    // specular share reuses the same irradiance until P2 brings the probe/sky hierarchy.
-    BRDFData brdf = CdBRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
-    half3 ambientRadiance = half3(GlxHitLowFrequencyIrradiance(positionWS, normalWS)) * INV_PI;
-    color += brdf.diffuse * ambientRadiance + brdf.specular * ambientRadiance + s.gb3.rgb;
-
-    if (!all(isfinite(color))) return;
+    // Shared single-point shading (D3): the same function the screen-space hit kernel uses.
+    SsrShadedSample sample = SsrShadeSurface(s, positionWS, -direction, _SsrHitLightCount);
+    if (!all(isfinite(sample.radiance))) return;
     GlxPublishedHit hit;
-    hit.radiance = max(color, 0.0);
+    hit.radiance = sample.radiance;
     hit.hitT = distance;
     hit.flags = SSR_HIT_FLAG;
     hit.mode = 0;

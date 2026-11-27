@@ -189,9 +189,13 @@ public sealed class SsrP3ContractTests
             "A compute shader cannot declare the acceleration structure.");
 
         var source = ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute");
-        StringAssert.Contains("ClusteredDeferred.hlsl", source,
-            "The hit kernel must reuse the ClusteredDeferred shading code, not a second lighting model.");
-        StringAssert.Contains("CdShade(", source, "Direct lighting must go through CdShade.");
+        StringAssert.Contains("SsrShadeSurface.hlsl", source,
+            "The hit kernel must reuse the shared ClusteredDeferred-based shading, not a second lighting model.");
+        StringAssert.Contains("SsrShadeSurface(", source, "Direct lighting must go through the shared SsrShadeSurface.");
+        var shadeSource = ReadPackage("Shaders/RayTracing/SsrShadeSurface.hlsl");
+        StringAssert.Contains("ClusteredDeferred.hlsl", shadeSource,
+            "The shared shading must reuse the ClusteredDeferred code.");
+        StringAssert.Contains("CdShade(", shadeSource, "Direct lighting must go through CdShade.");
         var normalized = Normalize(source);
         StringAssert.Contains("StructuredBuffer<SsrHitSurface>_R2Surfaces;", normalized,
             "The hit kernel reads the C2.7 record buffer.");
@@ -303,18 +307,23 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
-    public void SsrShadeSurface_IsSharedByRaygenAndKernel()
+    public void SsrShadeSurface_IsSharedByHitKernels()
     {
+        // The closest-hit material shader cannot include the compute ClusteredDeferred kernel (it
+        // runs with per-draw material headers), so the shared single-point shading covers the two
+        // compute hit kernels: the RT hit kernel and the P3 screen-space hit kernel. It stays the
+        // P1 fallback used only when hitDeferredShading is off.
         var surface = ReadPackage("Shaders/RayTracing/SsrShadeSurface.hlsl");
         StringAssert.Contains("SsrShadeSurface(", surface,
             "The single-point shading function must live in SsrShadeSurface.hlsl (D3).");
+        StringAssert.Contains("SsrShadedSample", surface,
+            "The shared shader must expose the SsrShadedSample { radiance, weight } result (D3).");
 
-        var ray = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace"));
-        StringAssert.Contains("SsrShadeSurface.hlsl", ray,
-            "The raygen fallback must call the shared SsrShadeSurface, not a second shading path (C8/D3).");
         var kernel = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute"));
         StringAssert.Contains("SsrShadeSurface.hlsl", kernel,
-            "The hit kernel must call the same shared SsrShadeSurface (C8/D3).");
+            "The RT hit kernel must call the shared SsrShadeSurface, not a second shading path (C8/D3).");
+        StringAssert.Contains("SsrShadeSurface(", kernel,
+            "The RT hit kernel must actually invoke SsrShadeSurface.");
     }
 
     [Test]

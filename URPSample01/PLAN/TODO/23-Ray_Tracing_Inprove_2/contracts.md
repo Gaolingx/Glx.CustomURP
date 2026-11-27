@@ -132,7 +132,7 @@ hit 表面记录只承载标准 PBR 字段：baseColor、specular occlusion、no
 | `GlxBasicPayload` | 64 字节 / 9 字段（前 4 个为发布头） | `GlxBasicPayload.hlsl` |
 | `SsrHitSurface` | 80 字节 / 5 字段 / version 1 | `SsrHitSurface.hlsl`（C2.7） |
 | `SsrHitSurfaceSourceMask` | `3u`（2 bit；0 RT / 1 SS / 2 GBuffer） | `SsrHitSurface.hlsl`（C2.7，P3） |
-| `SsrShadeSurface` | 单点着色函数，raygen 回退与命中核共用 | `Shaders/RayTracing/SsrShadeSurface.hlsl`（P3，D3） |
+| `SsrShadeSurface` | 单点着色函数，RT 命中核与 P3 SS 命中核共用（closest-hit 材质着色器 per-draw 头无法包含 compute 头，仅作 P1 回退） | `Shaders/RayTracing/SsrShadeSurface.hlsl`（P3，D3） |
 | SSR pass 事件 | 回滚常量 206 仍在；P3 常量 = `AfterRenderingGbuffer`(220) | `SsrPass.cs`（C1，P3） |
 | 间接镜面合成 pass | `ScreenSpaceLightingSsrIndirectSpecularPass`，事件 = `AfterRenderingGbuffer + 5`(225) | `Passes/SsrIndirectSpecularPass.cs`（P3，D1） |
 | `ssrAfterGbuffer` | 默认 `false`（P3 B6 通过前） | `ScreenSpaceLightingSettings.cs`（D6） |
