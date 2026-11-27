@@ -1,0 +1,85 @@
+{
+  "tool": {
+    "renderdoc": "1.47",
+    "analysis": "renderdoc-mcp v0.3.0 (open_capture / list_events / get_pass_info / list_resources / export_buffer)",
+    "capture": "renderdoc-mcp capture_frame (ExecuteAndInject + TargetControl TriggerCapture, delayFrames 300)"
+  },
+  "player": {
+    "exe": "PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P0/Player/SsrP3Baseline.exe",
+    "fixture": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3Baseline.unity",
+    "frameSize": "1920x1080 R16G16B16A16_SFloat",
+    "traceSize": "960x540"
+  },
+  "captures": {
+    "p3-d3d12-nodenoise": {
+      "file": "p3-d3d12-nodenoise_frame2442.rdc",
+      "bytes": 113708927,
+      "sha256": "c2de6b306615e855d570e8b5da31fa6fbf2ffcd6c187ec191dc8b0f38922a5c2",
+      "api": "D3D12",
+      "args": "-force-d3d12 -p3-variant nodenoise -p3-ssr-after-gbuffer -p3-warmup 900",
+      "events": 314,
+      "draws": 120,
+      "markerOrder": [
+        {"eventId": 1487, "name": "SSR Trace"},
+        {"eventId": 1498, "name": "SSR R1 Original"},
+        {"eventId": 1509, "name": "SSR R1 Offsets"},
+        {"eventId": 1518, "name": "SSR R1 Scatter"},
+        {"eventId": 1527, "name": "SSR R2 Clear"},
+        {"eventId": 1534, "name": "SSR DXR Trace and Shade"},
+        {"eventId": 1549, "name": "SSR Hit Shading (RT)", "dispatchEventId": 1560, "dispatches": 1},
+        {"eventId": 1562, "name": "SSR Hit Shading (SS)", "dispatchEventId": 1571, "dispatches": 1},
+        {"eventId": 1573, "name": "SSR DXR Temporal"},
+        {"eventId": 1585, "name": "SSR Reconstruction"},
+        {"eventId": 1608, "name": "SSR Material Binding", "dispatches": 0},
+        {"eventId": 1610, "name": "SSR Indirect Specular", "dispatchEventId": 1618, "dispatches": 1},
+        {"eventId": 1620, "name": "Clustered Deferred", "dispatchEventId": 1630, "dispatches": 1}
+      ],
+      "notes": [
+        "The B2c 225 kernel now dispatches for real (1618) after the unity_MatrixInvVP fix.",
+        "225 (1618) precedes the deferred light kernel (1630), matching the frozen order.",
+        "Both hit-shading kernels run in the same frame: RT 1 dispatch, SS 1 dispatch."
+      ]
+    },
+    "p3-d3d11-base": {
+      "file": "p3-d3d11-base_frame4846.rdc",
+      "bytes": 64227040,
+      "sha256": "ac3a44452ea5c88ec04611659f02ea10a4c8f289577d977337d0b2a926c260f2",
+      "api": "D3D11",
+      "args": "-force-d3d11 -p3-variant base -p3-ssr-after-gbuffer -p3-warmup 900",
+      "events": 240,
+      "draws": 121,
+      "markerOrder": [
+        {"eventId": 645, "name": "SSR Trace"},
+        {"eventId": 670, "name": "SSR Reconstruction"},
+        {"eventId": 794, "name": "SSR Material Binding", "dispatches": 0},
+        {"eventId": 797, "name": "SSR Indirect Specular", "dispatchEventId": 815, "dispatches": 1},
+        {"eventId": 820, "name": "Clustered Deferred"}
+      ],
+      "notes": [
+        "No DXR markers on Direct3D11; the SS hit kernel and RT hit kernel are absent as designed.",
+        "The 225 composite still runs (815) before the deferred light kernel (820), so the environment specular survives without RT."
+      ]
+    }
+  },
+  "r1CandidateScan": {
+    "strideBytes": 80,
+    "entries": 518400,
+    "candidates": {
+      "ResourceId::14321": {"reasonHistogram": {"0": 323455, "1": 7720, "2": 8162, "4": 179049, "6": 14}, "ssShareSlots": 8162},
+      "ResourceId::14359": {"reasonHistogram": {"0": 323455, "1": 7720, "2": 8157, "4": 179051, "6": 17}, "ssShareSlots": 8157},
+      "ResourceId::14420": {"reasonHistogram": {"0": 323455, "1": 7720, "2": 8167, "4": 179042, "6": 16}, "ssShareSlots": 8167}
+    },
+    "note": "Three frame copies of _R1Original exist; the seam metric was run against all three (see validation/P3/seam)."
+  },
+  "r2HitsScan": {
+    "strideBytes": 24,
+    "entries": 518400,
+    "candidates": {
+      "ResourceId::14327": {"flagHistogram": {"0": 498337, "1": 11554, "2": 402, "10": 8107}},
+      "ResourceId::14365": {"flagHistogram": {"0": 498338, "1": 11542, "2": 416, "10": 8104}},
+      "ResourceId::14426": {"flagHistogram": {"0": 498331, "1": 11551, "2": 406, "10": 8112}}
+    },
+    "note": "flags 2 = GlxHit (RT-shaded), flags 10 = GlxHit|SS (SS-shaded from the current GBuffer). The normal run has no magenta debug colour; the debug=1 frame is captured separately in seam/magenta-p3."
+  },
+  "localOnly": "The .rdc files and renderdoc-mcp-export/*.bin stay local (gitignored), as in P1."
+}

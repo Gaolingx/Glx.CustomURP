@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** B6 完成——命中核执行已被 RenderDoc 证实，环境光/阴影补齐，SS/RT 边界度量落地。**缝指标未显著下降（0.011384 → 0.011382，NOT MET）**；执行、无 NaN、D3D11 逐位一致通过；性能门禁仍 OPEN。P3 实施计划已写（[P3-PLAN.md](P3-PLAN.md)）；**P3 已开工：B0–B5 完成（`SsrP3ContractTests` 14 过 / 0 红 / 1 跳过），B6（统一复测）未开工。**
+**当前阶段：** P3 B6 已执行（2026-11-27）——24 组抓帧 + RenderDoc 证实 220/221/225/230 与两个命中核在 GPU 上执行；**缝门禁 1 与静止方差门禁 3（字面）NOT MET**，门禁 4/6 PASS，门禁 5 仅为 proxy（GPU 计时器噪声，真 GPU 门禁 OPEN），门禁 2 PARTIAL。证据在 [validation/P3](validation/P3/README.md)。P3 开关保持默认关闭。
 
 ## 已完成
 
@@ -72,6 +72,16 @@
 - 回归：D3D12 base `b1e0a889`（两次一致，无 NaN）；D3D11 `7fb3e01b`（重建后首次运行出现过一次 ULP 离群 `484aafb6`，随后 4/4 复现基线）。
 - 结论：**P1 缝验收 NOT MET**。要继续要一份能区分两条路径的测例（金属/粗糙命中面、多附加灯、阴影中的命中）或由 owner 按"执行+一致性"签收。性能 ≤0.3 ms 仍 OPEN。
 
+## P3 B6 关键结论（统一复测，2026-11-27）
+
+- **构建**：首个 Player 构建暴露 225 核 D3D11 编译失败（compute include 下 `unity_MatrixInvVP` 未声明），修复后 0 错误、4 变体全编（commit `19e819a`）。静态序列/计时能力随后加入捕获器（`-p3-static N`：先 N 帧纯计时、再 N 帧逐帧 ROI 回读）。
+- **管线顺序（RenderDoc，D3D12 nodenoise）**：`Hit Shading (RT)` 1549→1560、`(SS)` 1562→1571、`Indirect Specular` 1610→1618、`Clustered Deferred` 1620→1630；225 真正 dispatch 且先于 230。D3D11：无 DXR marker，225 仍 dispatch（815）先于 230（820）。`_R2Hits` flags `2=RT`、`10=SS`（8,107–8,167 槽）。
+- **确定性**：12/12 组 run-01=run-02 逐位一致；D3D12 rollback base 仍为 `b1e0a889`，D3D11 三变体仍为 `7fb3e01b/1bfd98e9/8ab8e569`。
+- **ssroff 等价比**：P3 与 P1 在 SSR 关闭时双 API 逐位相同——225 的环境项单次计数无漂移。
+- **门禁**：1 缝 NOT MET（median −9.1%，mean +18.1%；洋红/关闭对照证明 median 被内容主导）；2 PARTIAL（边界 median 0.00215 luma）；3 静止方差 NOT MET 字面（4.2×/13.6× 基线，绝对 std ≤5.9e-6，无漂移）；4 PASS（无 NaN、回退哈希一致）；5 PARTIAL/OPEN（中位数 proxy 在 +0.5 ms 内，GPU 计时器存在 923 ms / 1.8e12 ms 无效样本，逐 pass 耗时未测）；6 PASS。
+- **D5 #4**：一帧跳变整帧 meanAbs 2.14e-4、最差 block 0.0338（阈值 1e-3 / 0.05）→ PASS；D3D11 6.3e-5 / 0.0240 → PASS。
+- **D5 #5**：300 帧无 ghost 漂移；但 P3 ROI 方差高于 P1，按字面记 NOT MET，不称“已修复”。
+
 ## 未完成 / 门禁
 
 | Gate | 状态 | 说明 |
@@ -92,6 +102,14 @@
 | P3 B4 公共着色函数 | CLOSED（build/静态，2026-11-27） | `SsrShadeSurface.hlsl`（`SsrShadedSample` + `SsrShadeSurface`）由 RT 命中核与 B3 SS 命中核共用；closest-hit 因 per-draw 头无法包含 compute 头，仅作 P1 回退（契约 C8 已修订） |
 | P3 B3 SS 读当前 GBuffer | CLOSED（build/静态，2026-11-27；像素在 B6） | 新增 `SsrHitSs.compute`（trace 全屏读当期 GBuffer 构面，`source=gbuffer`，调 `SsrShadeSurface`，写 `_R2Hits` 带 SS 位）；`R2Temporal` 跳过 SS；`SSR_REPROJECT` 经 `_GLX_SSR_SHADE_SS` 关键字读 `_R2Hits` 与 `ssShare` 覆盖率替代前帧色；D3D11 无队列时 keyword 关、回落前帧色 SS |
 | P3 B5 编排与清理 | CLOSED（build/静态，2026-11-27） | marker 统一 `SSR Hit Shading (RT)` / `(SS)`；tripwire 增 `SsrP3_PassOrderIsMonotonic`（220<221<225<230）与 `SsrP3_SwitchDefaultsOffAndKeywordsDeclared`（`ssrAfterGbuffer=false`、两处关键字、marker 名）；回滚 206 路径保留为现役参考 |
+| P3 B6 构建（shader 变体真编） | CLOSED（2026-11-27） | 首次构建 14 个 D3D11 错误（225 核 `unity_MatrixInvVP` 未声明）；修复后 0 错误、`SsrIndirectSpecular` 4 变体全编（`19e819a`） |
+| P3 B6 执行/顺序（RenderDoc） | CLOSED（2026-11-27） | D3D12：RT/SS 命中核各 1 dispatch，225 dispatch 先于 230；D3D11：无 DXR，225 仍先于 230；`_R2Hits` flags 2/10 计数见 [CaptureAnalysis](validation/P3/RenderDoc/CaptureAnalysis.json) |
+| P3 B6 门禁 1（缝） | **NOT MET** | median 0.002364→0.002149（−9.1%）、mean +18.1%；threshold 50%；洋红 mean +7.6%、关闭对照 median 更低 → 内容主导 |
+| P3 B6 门禁 2（SS/RT 一致） | **PARTIAL** | 边界 median 0.00215 luma（ROI 均值 0.17%）；缺配对反射口径与阈值 |
+| P3 B6 门禁 3（静止方差） | **NOT MET（字面）** | 4.2×/13.6× 基线；绝对 std ≤5.9e-6 luma，无漂移 |
+| P3 B6 门禁 4（NaN/回退） | **PASS** | 24/24 无 NaN；D3D11 三变体与 D3D12 base 冻结哈希一致 |
+| P3 B6 门禁 5（性能） | **PARTIAL / OPEN** | 中位数 proxy 在 +0.5 ms 内；FrameTimingManager GPU 样本有 923 ms / 1.8e12 ms 无效值，逐 pass 与真 GPU 门禁仍 OPEN |
+| P3 B6 门禁 6（证据） | **PASS** | 双 API×两进程×三变体×两路径 24 组；哈希/PNG/计数器/设置恢复齐备（raw 与 .rdc 按政策留本机） |
 | P1 命中着色执行 | CLOSED | 根因：未绑定探针图集导致 Unity 丢弃 dispatch；已修复并双 API 回归（见 [P1 README](validation/P1/README.md#b5-fix2renderdoc-定位根因已修复)） |
 | P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
 | P1 hit GBuffer + 延迟着色核 | CLOSED | B3 核 + B4 开关/回退完成；B5 构建验证 + 证据 |
@@ -130,6 +148,12 @@ python "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\compare.py"
 & renderdoccmd capture -w -c "$out\capture-p3" -d "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Player" `
   "$exe" -force-d3d12 -p3-output "$out" -p3-variant base -p3-ssr-after-gbuffer -p3-warmup 900
 
+# B6 测量批次（双 API × {p1,p3} × 三变体 × 两进程）与静态 300 帧（D5 #5 方差 + 门禁 5 计时）。
+# 证据落 validation/P3/<Win64-API>/<p1|p3>/<variant>/<run>；静态落在 validation/P3/Static。
+$V = "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation"
+& $exe -force-d3d12 -p3-output "$V\P3\Static\d3d12\p3\base" -p3-variant base -p3-ssr-after-gbuffer -p3-run static-300 -p3-static 300
+python "$V\P3\compare_p3.py"
+
 # 契约测试（-runTests 不能带 -quit，否则导入后直接退出、不产出 XML）
 & $U -batchmode -nographics -projectPath $P -runTests -testPlatform EditMode `
   -testFilter SsrP3ContractTests `
@@ -137,8 +161,8 @@ python "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\compare.py"
   -logFile "$env:TEMP\ssr-p3-b1-tests.log"
 ```
 
-## 下一阶段（P1）入口
+## 下一阶段（P3 收口）入口
 
-1. 先读 [contracts.md](contracts.md) C2/C3：新增 hit 表面记录必须带版本位，24B payload 不动。
-2. 先做"去 top-4 截断 + shadow atlas 采样"的 hit 光照核（不依赖世界 cluster），用 `nodenoise` 帧做 A/B。
-3. 发现任何布局/Pass 顺序变化，先改契约与本文件的 gate 表，再改代码。
+1. 门禁 1/3 已按字面记 NOT MET：若要继续，先换一个有判别力的测例（金属/粗糙命中面、多附加灯、阴影中的命中）并冻结新基线，别在同一夹具上调阈值。
+2. 门禁 5 需真 GPU 时间：给捕获器加逐 pass GPU counter（或改用带 counter 的 RenderDoc/DXGI 方案），当前 FrameTimingManager 的 gpuFrameTime 在本机不可信。
+3. `ssrAfterGbuffer` 在门禁全绿前保持默认关闭；回滚 206 路径继续作为现役像素参考，不删除。

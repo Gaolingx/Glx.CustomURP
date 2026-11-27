@@ -1,6 +1,6 @@
 # 23 P3 实施计划：SSR 后置 + SS/RT 共用命中着色（根治）
 
-**状态：** B0–B5 完成（2026-11-27）。`SsrP3ContractTests` 14 过 / 0 红 / 1 跳过（仅 D3D12 payload 编译）。B2–B5 为 build/静态验证，像素/性能在 B6。B6（统一复测）未开工。前置：P0 完成、P1 PARTIAL。
+**状态：** B0–B6 完成（2026-11-27）。B6 已执行：24 组抓帧 + RenderDoc 证实 225 与两个命中核在 GPU 上执行；门禁 1（缝）与门禁 3（静止方差字面）NOT MET，门禁 4/6 PASS，门禁 5 PARTIAL/OPEN（GPU 计时器噪声），门禁 2 PARTIAL。证据：[validation/P3](validation/P3/README.md)。`ssrAfterGbuffer` 保持默认关闭。前置：P0 完成、P1 PARTIAL。
 **上位计划：** [plan.md](plan.md) §P3；契约：[contracts.md](contracts.md)。
 **验收方式：** 实现与文档按 B0–B5 逐步提交，**测量统一放到最后的 B6 一批**（含决策 #4/#5 的量化与六项阻断门禁）。
 
@@ -209,6 +209,7 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 - 删除 P1 的 206 专用分支（保留在开关后面），更新 RenderDoc 抓帧脚本说明。
 
 ### B6 统一复测（唯一测量批）
+> **状态：完成（2026-11-27，测量批；门禁未全绿）。** 构建暴露并修复了 225 核的 D3D11 编译错误（`19e819a`）；24 组双 API 两进程抓帧落 [validation/P3](validation/P3/README.md)；RenderDoc 证实 RT/SS 命中核与 225 执行、顺序正确；门禁 1/3 字面 NOT MET、2 PARTIAL、4/6 PASS、5 PARTIAL/OPEN。`ssrAfterGbuffer` 默认仍为 false。
 - 双 API、两进程、三变体（base/nodenoise/ssroff）× {P1 路径, P3 路径}；
 - 六项阻断门禁 + D5 的 #4/#5 量化；
 - 证据落 `validation/P3/`，更新 HANDOFF/README/ACCEPTANCE。

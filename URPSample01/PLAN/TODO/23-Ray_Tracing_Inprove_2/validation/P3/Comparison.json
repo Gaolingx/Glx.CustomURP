@@ -1,0 +1,721 @@
+{
+  "frames": {
+    "Win64-D3D12/p1/base": {
+      "run01": "b1e0a88906fc808bca3fd11687fb281abe610aaece3edcdc5b42de3596b9b5f6",
+      "run02": "b1e0a88906fc808bca3fd11687fb281abe610aaece3edcdc5b42de3596b9b5f6",
+      "graphicsDeviceType": "Direct3D12",
+      "supportsRayTracing": true,
+      "lumaMean": 0.2654535059221042,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": false,
+      "p3SsrRollback": true,
+      "featureSsrAfterGbuffer": false,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 14,
+      "r1Requested": 179076,
+      "r1Served": 11952,
+      "r1Overflow": 167124,
+      "hitDeferredDispatches": 120,
+      "ssrDispatch": {
+        "frameIndex": 121,
+        "pbr": true,
+        "halfResolution": true,
+        "traceWidth": 960,
+        "traceHeight": 540,
+        "traceDispatches": 1,
+        "reprojectDispatches": 1,
+        "hwMergeDispatches": 1,
+        "temporalDispatches": 1,
+        "copyHistoryDispatches": 1,
+        "bilateralHDispatches": 1,
+        "bilateralVDispatches": 1,
+        "upsampleDispatches": 1,
+        "historyValid": true,
+        "historyResetCount": 2
+      }
+    },
+    "Win64-D3D12/p1/nodenoise": {
+      "run01": "402b5eab31f5caff5b76d73545b17a698b98edd3bf36d24954efb94ed22a8fe0",
+      "run02": "402b5eab31f5caff5b76d73545b17a698b98edd3bf36d24954efb94ed22a8fe0",
+      "graphicsDeviceType": "Direct3D12",
+      "supportsRayTracing": true,
+      "lumaMean": 0.2656178299572373,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": false,
+      "p3SsrRollback": true,
+      "featureSsrAfterGbuffer": false,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 14,
+      "r1Requested": 179076,
+      "r1Served": 11952,
+      "r1Overflow": 167124,
+      "hitDeferredDispatches": 120,
+      "ssrDispatch": {
+        "frameIndex": 121,
+        "pbr": true,
+        "halfResolution": true,
+        "traceWidth": 960,
+        "traceHeight": 540,
+        "traceDispatches": 1,
+        "reprojectDispatches": 1,
+        "hwMergeDispatches": 1,
+        "temporalDispatches": 0,
+        "copyHistoryDispatches": 0,
+        "bilateralHDispatches": 0,
+        "bilateralVDispatches": 0,
+        "upsampleDispatches": 1,
+        "historyValid": false,
+        "historyResetCount": 2
+      }
+    },
+    "Win64-D3D12/p1/ssroff": {
+      "run01": "1295029d7507f87aac4e421444597d420f4918ba405f28ed0d56aaf704b43533",
+      "run02": "1295029d7507f87aac4e421444597d420f4918ba405f28ed0d56aaf704b43533",
+      "graphicsDeviceType": "Direct3D12",
+      "supportsRayTracing": true,
+      "lumaMean": 0.2657515787588102,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": false,
+      "p3SsrRollback": true,
+      "featureSsrAfterGbuffer": false,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 0,
+      "r1Requested": 0,
+      "r1Served": 0,
+      "r1Overflow": 0,
+      "hitDeferredDispatches": 0,
+      "ssrDispatch": {
+        "frameIndex": -1,
+        "pbr": false,
+        "halfResolution": false,
+        "traceWidth": 0,
+        "traceHeight": 0,
+        "traceDispatches": 0,
+        "reprojectDispatches": 0,
+        "hwMergeDispatches": 0,
+        "temporalDispatches": 0,
+        "copyHistoryDispatches": 0,
+        "bilateralHDispatches": 0,
+        "bilateralVDispatches": 0,
+        "upsampleDispatches": 0,
+        "historyValid": false,
+        "historyResetCount": 0
+      }
+    },
+    "Win64-D3D12/p3/base": {
+      "run01": "e3e645acc2fbcf087631bb40ff97c88e7d2314d179fdf7a5f536674c8d255ffe",
+      "run02": "e3e645acc2fbcf087631bb40ff97c88e7d2314d179fdf7a5f536674c8d255ffe",
+      "graphicsDeviceType": "Direct3D12",
+      "supportsRayTracing": true,
+      "lumaMean": 0.2655122834486399,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": true,
+      "p3SsrRollback": false,
+      "featureSsrAfterGbuffer": true,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 14,
+      "r1Requested": 179066,
+      "r1Served": 11956,
+      "r1Overflow": 167110,
+      "hitDeferredDispatches": 120,
+      "ssrDispatch": {
+        "frameIndex": 121,
+        "pbr": true,
+        "halfResolution": true,
+        "traceWidth": 960,
+        "traceHeight": 540,
+        "traceDispatches": 1,
+        "reprojectDispatches": 1,
+        "hwMergeDispatches": 1,
+        "temporalDispatches": 1,
+        "copyHistoryDispatches": 1,
+        "bilateralHDispatches": 1,
+        "bilateralVDispatches": 1,
+        "upsampleDispatches": 1,
+        "historyValid": true,
+        "historyResetCount": 2
+      }
+    },
+    "Win64-D3D12/p3/nodenoise": {
+      "run01": "9d9d5680fb9760a53a9fe586284eddaba5d746fcb636b2fbfba13efb8d70635b",
+      "run02": "9d9d5680fb9760a53a9fe586284eddaba5d746fcb636b2fbfba13efb8d70635b",
+      "graphicsDeviceType": "Direct3D12",
+      "supportsRayTracing": true,
+      "lumaMean": 0.26568448844945775,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": true,
+      "p3SsrRollback": false,
+      "featureSsrAfterGbuffer": true,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 14,
+      "r1Requested": 179066,
+      "r1Served": 11956,
+      "r1Overflow": 167110,
+      "hitDeferredDispatches": 120,
+      "ssrDispatch": {
+        "frameIndex": 121,
+        "pbr": true,
+        "halfResolution": true,
+        "traceWidth": 960,
+        "traceHeight": 540,
+        "traceDispatches": 1,
+        "reprojectDispatches": 1,
+        "hwMergeDispatches": 1,
+        "temporalDispatches": 0,
+        "copyHistoryDispatches": 0,
+        "bilateralHDispatches": 0,
+        "bilateralVDispatches": 0,
+        "upsampleDispatches": 1,
+        "historyValid": false,
+        "historyResetCount": 2
+      }
+    },
+    "Win64-D3D12/p3/ssroff": {
+      "run01": "1295029d7507f87aac4e421444597d420f4918ba405f28ed0d56aaf704b43533",
+      "run02": "1295029d7507f87aac4e421444597d420f4918ba405f28ed0d56aaf704b43533",
+      "graphicsDeviceType": "Direct3D12",
+      "supportsRayTracing": true,
+      "lumaMean": 0.2657515787588102,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": true,
+      "p3SsrRollback": false,
+      "featureSsrAfterGbuffer": true,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 0,
+      "r1Requested": 0,
+      "r1Served": 0,
+      "r1Overflow": 0,
+      "hitDeferredDispatches": 0,
+      "ssrDispatch": {
+        "frameIndex": -1,
+        "pbr": false,
+        "halfResolution": false,
+        "traceWidth": 0,
+        "traceHeight": 0,
+        "traceDispatches": 0,
+        "reprojectDispatches": 0,
+        "hwMergeDispatches": 0,
+        "temporalDispatches": 0,
+        "copyHistoryDispatches": 0,
+        "bilateralHDispatches": 0,
+        "bilateralVDispatches": 0,
+        "upsampleDispatches": 0,
+        "historyValid": false,
+        "historyResetCount": 0
+      }
+    },
+    "Win64-D3D11/p1/base": {
+      "run01": "7fb3e01b95bdd935cb5e0ea681e0e9b73438230a0de4664f74521e4a9224c42c",
+      "run02": "7fb3e01b95bdd935cb5e0ea681e0e9b73438230a0de4664f74521e4a9224c42c",
+      "graphicsDeviceType": "Direct3D11",
+      "supportsRayTracing": false,
+      "lumaMean": 0.26546981572047323,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": false,
+      "p3SsrRollback": true,
+      "featureSsrAfterGbuffer": false,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 0,
+      "r1Requested": 0,
+      "r1Served": 0,
+      "r1Overflow": 0,
+      "hitDeferredDispatches": 0,
+      "ssrDispatch": {
+        "frameIndex": 121,
+        "pbr": true,
+        "halfResolution": true,
+        "traceWidth": 960,
+        "traceHeight": 540,
+        "traceDispatches": 1,
+        "reprojectDispatches": 1,
+        "hwMergeDispatches": 0,
+        "temporalDispatches": 1,
+        "copyHistoryDispatches": 1,
+        "bilateralHDispatches": 1,
+        "bilateralVDispatches": 1,
+        "upsampleDispatches": 1,
+        "historyValid": true,
+        "historyResetCount": 2
+      }
+    },
+    "Win64-D3D11/p1/nodenoise": {
+      "run01": "1bfd98e99589c6f9e0f375785ad023fe32b92d610895e4ce91cc02a32a0754a2",
+      "run02": "1bfd98e99589c6f9e0f375785ad023fe32b92d610895e4ce91cc02a32a0754a2",
+      "graphicsDeviceType": "Direct3D11",
+      "supportsRayTracing": false,
+      "lumaMean": 0.26562260698049545,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": false,
+      "p3SsrRollback": true,
+      "featureSsrAfterGbuffer": false,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 0,
+      "r1Requested": 0,
+      "r1Served": 0,
+      "r1Overflow": 0,
+      "hitDeferredDispatches": 0,
+      "ssrDispatch": {
+        "frameIndex": 121,
+        "pbr": true,
+        "halfResolution": true,
+        "traceWidth": 960,
+        "traceHeight": 540,
+        "traceDispatches": 1,
+        "reprojectDispatches": 1,
+        "hwMergeDispatches": 0,
+        "temporalDispatches": 0,
+        "copyHistoryDispatches": 0,
+        "bilateralHDispatches": 0,
+        "bilateralVDispatches": 0,
+        "upsampleDispatches": 1,
+        "historyValid": false,
+        "historyResetCount": 2
+      }
+    },
+    "Win64-D3D11/p1/ssroff": {
+      "run01": "8ab8e5699250712bdf5d77a373f028664817fdd36b18342477303cf1451c0362",
+      "run02": "8ab8e5699250712bdf5d77a373f028664817fdd36b18342477303cf1451c0362",
+      "graphicsDeviceType": "Direct3D11",
+      "supportsRayTracing": false,
+      "lumaMean": 0.26575157731499816,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": false,
+      "p3SsrRollback": true,
+      "featureSsrAfterGbuffer": false,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 0,
+      "r1Requested": 0,
+      "r1Served": 0,
+      "r1Overflow": 0,
+      "hitDeferredDispatches": 0,
+      "ssrDispatch": {
+        "frameIndex": -1,
+        "pbr": false,
+        "halfResolution": false,
+        "traceWidth": 0,
+        "traceHeight": 0,
+        "traceDispatches": 0,
+        "reprojectDispatches": 0,
+        "hwMergeDispatches": 0,
+        "temporalDispatches": 0,
+        "copyHistoryDispatches": 0,
+        "bilateralHDispatches": 0,
+        "bilateralVDispatches": 0,
+        "upsampleDispatches": 0,
+        "historyValid": false,
+        "historyResetCount": 0
+      }
+    },
+    "Win64-D3D11/p3/base": {
+      "run01": "30a6409ca90c9229ca3ce991cf7291fb06f44eb31281be4dbe599eac9b9afcc8",
+      "run02": "30a6409ca90c9229ca3ce991cf7291fb06f44eb31281be4dbe599eac9b9afcc8",
+      "graphicsDeviceType": "Direct3D11",
+      "supportsRayTracing": false,
+      "lumaMean": 0.26551542374641496,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": true,
+      "p3SsrRollback": false,
+      "featureSsrAfterGbuffer": true,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 0,
+      "r1Requested": 0,
+      "r1Served": 0,
+      "r1Overflow": 0,
+      "hitDeferredDispatches": 0,
+      "ssrDispatch": {
+        "frameIndex": 121,
+        "pbr": true,
+        "halfResolution": true,
+        "traceWidth": 960,
+        "traceHeight": 540,
+        "traceDispatches": 1,
+        "reprojectDispatches": 1,
+        "hwMergeDispatches": 0,
+        "temporalDispatches": 1,
+        "copyHistoryDispatches": 1,
+        "bilateralHDispatches": 1,
+        "bilateralVDispatches": 1,
+        "upsampleDispatches": 1,
+        "historyValid": true,
+        "historyResetCount": 2
+      }
+    },
+    "Win64-D3D11/p3/nodenoise": {
+      "run01": "6f43f8dbafbb7eba46aa5e13b1faa3d1e9d1c045eaaa7baced9bb19460380bff",
+      "run02": "6f43f8dbafbb7eba46aa5e13b1faa3d1e9d1c045eaaa7baced9bb19460380bff",
+      "graphicsDeviceType": "Direct3D11",
+      "supportsRayTracing": false,
+      "lumaMean": 0.2656255690296734,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": true,
+      "p3SsrRollback": false,
+      "featureSsrAfterGbuffer": true,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 0,
+      "r1Requested": 0,
+      "r1Served": 0,
+      "r1Overflow": 0,
+      "hitDeferredDispatches": 0,
+      "ssrDispatch": {
+        "frameIndex": 121,
+        "pbr": true,
+        "halfResolution": true,
+        "traceWidth": 960,
+        "traceHeight": 540,
+        "traceDispatches": 1,
+        "reprojectDispatches": 1,
+        "hwMergeDispatches": 0,
+        "temporalDispatches": 0,
+        "copyHistoryDispatches": 0,
+        "bilateralHDispatches": 0,
+        "bilateralVDispatches": 0,
+        "upsampleDispatches": 1,
+        "historyValid": false,
+        "historyResetCount": 2
+      }
+    },
+    "Win64-D3D11/p3/ssroff": {
+      "run01": "8ab8e5699250712bdf5d77a373f028664817fdd36b18342477303cf1451c0362",
+      "run02": "8ab8e5699250712bdf5d77a373f028664817fdd36b18342477303cf1451c0362",
+      "graphicsDeviceType": "Direct3D11",
+      "supportsRayTracing": false,
+      "lumaMean": 0.26575157731499816,
+      "nonFinite": 0,
+      "p3SsrAfterGbuffer": true,
+      "p3SsrRollback": false,
+      "featureSsrAfterGbuffer": true,
+      "featureSsrIndirectSource": "A1",
+      "featureReadback": "ok",
+      "tlasInstances": 0,
+      "r1Requested": 0,
+      "r1Served": 0,
+      "r1Overflow": 0,
+      "hitDeferredDispatches": 0,
+      "ssrDispatch": {
+        "frameIndex": -1,
+        "pbr": false,
+        "halfResolution": false,
+        "traceWidth": 0,
+        "traceHeight": 0,
+        "traceDispatches": 0,
+        "reprojectDispatches": 0,
+        "hwMergeDispatches": 0,
+        "temporalDispatches": 0,
+        "copyHistoryDispatches": 0,
+        "bilateralHDispatches": 0,
+        "bilateralVDispatches": 0,
+        "upsampleDispatches": 0,
+        "historyValid": false,
+        "historyResetCount": 0
+      }
+    }
+  },
+  "determinism": {
+    "Win64-D3D12/p1/base": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D12/p1/nodenoise": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D12/p1/ssroff": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D12/p3/base": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D12/p3/nodenoise": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D12/p3/ssroff": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D11/p1/base": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D11/p1/nodenoise": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D11/p1/ssroff": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D11/p3/base": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D11/p3/nodenoise": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    },
+    "Win64-D3D11/p3/ssroff": {
+      "bitIdentical": true,
+      "firstUnityFrame": [
+        1,
+        1
+      ],
+      "unityFrameAtCapture": [
+        121,
+        121
+      ]
+    }
+  },
+  "frozenParity": {
+    "Win64-D3D11/p1/base": {
+      "expected": "7fb3e01b95bdd935cb5e0ea681e0e9b73438230a0de4664f74521e4a9224c42c",
+      "actual": "7fb3e01b95bdd935cb5e0ea681e0e9b73438230a0de4664f74521e4a9224c42c",
+      "match": true
+    },
+    "Win64-D3D11/p1/nodenoise": {
+      "expected": "1bfd98e99589c6f9e0f375785ad023fe32b92d610895e4ce91cc02a32a0754a2",
+      "actual": "1bfd98e99589c6f9e0f375785ad023fe32b92d610895e4ce91cc02a32a0754a2",
+      "match": true
+    },
+    "Win64-D3D11/p1/ssroff": {
+      "expected": "8ab8e5699250712bdf5d77a373f028664817fdd36b18342477303cf1451c0362",
+      "actual": "8ab8e5699250712bdf5d77a373f028664817fdd36b18342477303cf1451c0362",
+      "match": true
+    },
+    "Win64-D3D12/p1/base": {
+      "expected": "b1e0a88906fc808bca3fd11687fb281abe610aaece3edcdc5b42de3596b9b5f6",
+      "actual": "b1e0a88906fc808bca3fd11687fb281abe610aaece3edcdc5b42de3596b9b5f6",
+      "match": true
+    }
+  },
+  "comparisons": {
+    "Win64-D3D12/p1-vs-p3/base": {
+      "full": {
+        "samples": 2073600,
+        "meanAbs": 0.00021359735616931208,
+        "p99Abs": 0.003662109375,
+        "maxAbs": 0.418212890625,
+        "fractionOver1e2": 0.006112557870370371,
+        "lumaMeanA": 0.06647111910349204,
+        "lumaMeanB": 0.06648478599077096
+      },
+      "floorRoi": {
+        "samples": 725760,
+        "meanAbs": 0.0005950872807696173,
+        "p99Abs": 0.01947021484375,
+        "maxAbs": 0.31689453125,
+        "fractionOver1e2": 0.017315641534391534,
+        "lumaMeanA": 0.03262143970784897,
+        "lumaMeanB": 0.03265736109410434
+      },
+      "d5OneFrameJump": {
+        "blocks": 2040,
+        "maxBlockMeanAbs": 0.033804264831542835,
+        "p99BlockMeanAbs": 0.0041310140937566575
+      }
+    },
+    "Win64-D3D12/p1-vs-p3/nodenoise": {
+      "full": {
+        "samples": 2073600,
+        "meanAbs": 0.00040745965124648295,
+        "p99Abs": 0.00390625,
+        "maxAbs": 10.527008056640625,
+        "fractionOver1e2": 0.006177662037037037,
+        "lumaMeanA": 0.0665112491261834,
+        "lumaMeanB": 0.06652717794827069
+      },
+      "floorRoi": {
+        "samples": 725760,
+        "meanAbs": 0.001143221302217487,
+        "p99Abs": 0.02008056640625,
+        "maxAbs": 10.527008056640625,
+        "fractionOver1e2": 0.017509920634920635,
+        "lumaMeanA": 0.03272953332879135,
+        "lumaMeanB": 0.032778472481639086
+      }
+    },
+    "Win64-D3D12/p1-vs-p3/ssroff": {
+      "full": {
+        "samples": 2073600,
+        "meanAbs": 0.0,
+        "p99Abs": 0.0,
+        "maxAbs": 0.0,
+        "fractionOver1e2": 0.0,
+        "lumaMeanA": 0.06654373323053966,
+        "lumaMeanB": 0.06654373323053966
+      },
+      "floorRoi": {
+        "samples": 725760,
+        "meanAbs": 0.0,
+        "p99Abs": 0.0,
+        "maxAbs": 0.0,
+        "fractionOver1e2": 0.0,
+        "lumaMeanA": 0.032825685661405694,
+        "lumaMeanB": 0.032825685661405694
+      }
+    },
+    "Win64-D3D11/p1-vs-p3/base": {
+      "full": {
+        "samples": 2073600,
+        "meanAbs": 6.333431343973418e-05,
+        "p99Abs": 0.0006103515625,
+        "maxAbs": 0.21435546875,
+        "fractionOver1e2": 0.000712770061728395,
+        "lumaMeanA": 0.06647516546915526,
+        "lumaMeanB": 0.06648648554075316
+      },
+      "floorRoi": {
+        "samples": 725760,
+        "meanAbs": 0.0001741923352397939,
+        "p99Abs": 0.00244140625,
+        "maxAbs": 0.21435546875,
+        "fractionOver1e2": 0.0020034171075837743,
+        "lumaMeanA": 0.0326330012376546,
+        "lumaMeanB": 0.03266482746009158
+      },
+      "d5OneFrameJump": {
+        "blocks": 2040,
+        "maxBlockMeanAbs": 0.023978093385696453,
+        "p99BlockMeanAbs": 0.00041379584670069025
+      }
+    },
+    "Win64-D3D11/p1-vs-p3/nodenoise": {
+      "full": {
+        "samples": 2073600,
+        "meanAbs": 9.375493283625003e-05,
+        "p99Abs": 0.00067138671875,
+        "maxAbs": 4.6748046875,
+        "fractionOver1e2": 0.0006573109567901235,
+        "lumaMeanA": 0.06651281166286527,
+        "lumaMeanB": 0.06651343697071407
+      },
+      "floorRoi": {
+        "samples": 725760,
+        "meanAbs": 0.0002606255404743147,
+        "p99Abs": 0.0029296875,
+        "maxAbs": 4.6748046875,
+        "fractionOver1e2": 0.0018325617283950616,
+        "lumaMeanA": 0.032733998249062785,
+        "lumaMeanB": 0.0327354136806348
+      }
+    },
+    "Win64-D3D11/p1-vs-p3/ssroff": {
+      "full": {
+        "samples": 2073600,
+        "meanAbs": 0.0,
+        "p99Abs": 0.0,
+        "maxAbs": 0.0,
+        "fractionOver1e2": 0.0,
+        "lumaMeanA": 0.06654373308893081,
+        "lumaMeanB": 0.06654373308893081
+      },
+      "floorRoi": {
+        "samples": 725760,
+        "meanAbs": 0.0,
+        "p99Abs": 0.0,
+        "maxAbs": 0.0,
+        "fractionOver1e2": 0.0,
+        "lumaMeanA": 0.03282568578656073,
+        "lumaMeanB": 0.03282568578656073
+      }
+    }
+  },
+  "roi": {
+    "x0": 0.15,
+    "y0": 0.45,
+    "x1": 0.85,
+    "y1": 0.95,
+    "space": "normalized top-down"
+  },
+  "sampleStride": 2,
+  "blockSize": 32
+}

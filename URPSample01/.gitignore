@@ -83,6 +83,13 @@ crashlytics-build.properties
 /PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P0/Player/
 /PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P0/**/frame.raw
 /PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P1/**/frame.raw
+# P3 follows the same evidence policy as P0/P1: hashes, PNGs, Player.json and analysis JSON are
+# committed; raw frames, capture binaries and buffer dumps stay local.
+/PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P3/Player/
+/PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P3/**/frame.raw
+/PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P3/RenderDoc/**/*.rdc
+/PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P3/RenderDoc/renderdoc-mcp-export/
+/PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P3/RenderDoc/out-*/
 # P1 RenderDoc captures stay local (2 x ~110 MB, repo .rdc total is already near the 1 GB
 # budget); CaptureAnalysis.json records the filenames, sizes, SHAs and every event ID.
 /PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P1/RenderDoc/**/*.rdc
