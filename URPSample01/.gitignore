@@ -102,5 +102,3 @@ crashlytics-build.properties
 /PLAN/Done/23-Ray_Tracing_Inprove_2/validation/P3/**/_R1Original.bin
 /PLAN/Done/23-Ray_Tracing_Inprove_2/validation/P3/**/_R2Hits.bin
 
-# Temporary: left local until the RenderDoc handle on this capture is released.
-/PLAN/TODO/23-Ray_Tracing_Inprove_2/
