@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal bool probeRelocation = true;
         [SerializeField] internal bool probeClassification = true;
 
-        [SerializeField, Range(0f, 1f), Tooltip("Probe-volume coverage c applied once to lerp(bakedGI, E/pi, c) and to the SSGI DDGI miss tier. Test hook for the G3 weight sweep.")]
+        [SerializeField, Range(0f, 1f), Tooltip("Probe-volume coverage c, applied by exactly one owner: the SSGI DDGI miss tier when SSGI output is bound, otherwise the material lerp(bakedGI, E/pi, c). Test hook for the G3 weight sweep.")]
         internal float probeCoverage = 1f;
 
         [SerializeField]

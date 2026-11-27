@@ -176,38 +176,40 @@ void ReprojectGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
         else
         {
-            // Miss hierarchy, highest priority first: DDGI probe volume, reflection probes, sky.
-            // The probe tiers are only sampled for the share the previous tier left uncovered, so
-            // the composed color stays normalized and no tier is counted twice. The resulting
-            // weight is the share of baked GI this radiance replaces; the material keeps the rest.
-            int fallback = (int)_SsgiFallbackParams.x;
-            if (fallback != RAYMARCHINGFALLBACKHIERARCHY_NONE)
-            {
-                float3 positionWS = SsgiReconstructPositionWS((float2)inputCoord, deviceDepth);
-                float weight = 0.0;
-                float3 color = float3(0.0, 0.0, 0.0);
+            // Miss hierarchy. DDGI is terminal for the pixels it covers, like HDRP's probe volume:
+            // whenever the producer is bound and the query hits, DDGI owns the miss, independent of
+            // rayMiss. c is the DDGI strength against baked GI, not a probe/sky coverage, so the
+            // (1 - c) remainder stays baked and is NOT filled by the tail. rayMiss only selects the
+            // tail used where DDGI is unavailable (query miss or producer off). The stored weight
+            // is the share of baked GI this radiance replaces; the material keeps the rest.
+            float3 positionWS = SsgiReconstructPositionWS((float2)inputCoord, deviceDepth);
+            float weight = 0.0;
+            float3 color = float3(0.0, 0.0, 0.0);
+            bool ddgiCovers = false;
 
-                // DDGI tier: GlxProbeQuery returns the clamped-cosine convolution the material
-                // divides by PI, so E/pi is the radiance. The coverage is the same global value the
-                // material-side probe blend uses (zero when the producer is off or unpublished).
+            // DDGI tier: GlxProbeQuery returns the clamped-cosine convolution the material
+            // divides by PI, so E/pi is the radiance. The coverage is the same global value the
+            // material-side probe blend uses (zero when the producer is off or unpublished).
 #if defined(SSL_DDGI)
-                float ddgiCoverage = saturate(_SsgiFallbackParams.y);
-                if (ddgiCoverage > 0.0)
+            float ddgiCoverage = saturate(_SsgiFallbackParams.y);
+            {
+                float3 irradiance;
+                // A published-but-fully-black generation is treated as no data so the tail still
+                // gets a chance instead of the DDGI tier owning a black pixel.
+                if (GlxProbeQuery(positionWS, normalWS, irradiance) && any(irradiance > 0.0))
                 {
-                    float3 irradiance;
-                    // A published-but-fully-black generation is treated as no data so the lower
-                    // tiers still get a chance instead of the DDGI tier owning a black pixel.
-                    if (GlxProbeQuery(positionWS, normalWS, irradiance) && any(irradiance > 0.0))
-                    {
-                        color += max(irradiance, 0.0) * 0.31830988618 * ddgiCoverage;
-                        weight = ddgiCoverage;
-                    }
+                    color += max(irradiance, 0.0) * 0.31830988618 * ddgiCoverage;
+                    weight = ddgiCoverage;
+                    ddgiCovers = true;
                 }
+            }
 #endif
 
-                if ((RAYMARCHINGFALLBACKHIERARCHY_REFLECTION_PROBES & fallback) != 0 && weight < 1.0)
+            int fallback = (int)_SsgiFallbackParams.x;
+            if (!ddgiCovers && fallback != RAYMARCHINGFALLBACKHIERARCHY_NONE)
+            {
+                if ((RAYMARCHINGFALLBACKHIERARCHY_REFLECTION_PROBES & fallback) != 0)
                 {
-                    float remaining = 1.0 - weight;
                     float probeWeight = 0.0;
                     float3 probeColor = float3(0.0, 0.0, 0.0);
 #if defined(SSL_PROBE_ATLAS)
@@ -220,17 +222,15 @@ void ReprojectGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
                     probeColor = SslSampleReflectionProbesList(sampleDir, positionWS, probeWeight);
 #else
                     // Default reflection cubemap. A black cubemap carries no data; leaving its weight
-                    // at zero keeps the baked/DDGI base instead of replacing it with black.
+                    // at zero keeps the baked base instead of replacing it with black.
                     probeColor = SsgiSampleReflectionProbe(sampleDir);
                     probeWeight = any(probeColor > 0.0) ? 1.0 : 0.0;
 #endif
-                    // The samplers return premultiplied radiance: normalize it, then take only the
-                    // share the DDGI tier left uncovered.
-                    float take = min(probeWeight, remaining);
-                    if (take > 0.0)
+                    // Premultiplied at this point; the common tail below normalizes by weight.
+                    if (probeWeight > 0.0)
                     {
-                        color += (probeColor / probeWeight) * take;
-                        weight += take;
+                        color += probeColor;
+                        weight = probeWeight;
                     }
                 }
 
@@ -239,14 +239,14 @@ void ReprojectGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
                     color += SsgiEvaluateAmbientProbe(normalWS) * (1.0 - weight);
                     weight = 1.0;
                 }
-
-                // The material contract is un-premultiplied radiance plus the weight, so normalize
-                // the composed tiers: final = base * (1 - weight) + radiance * weight. A fully black
-                // fallback (unpublished probes, no ambient, black cubemap) must not replace the
-                // material base: zero weight leaves baked GI / the DDGI blend in place.
-                if (weight > 0.0 && any(color > 0.0))
-                    result = float4(SsgiClampRadiance(color * rcp(weight)), saturate(weight));
             }
+
+            // The material contract is un-premultiplied radiance plus the weight, so normalize
+            // the composed tiers: final = base * (1 - weight) + radiance * weight. A fully black
+            // fallback (unpublished probes, no ambient, black cubemap) must not replace the
+            // material base: zero weight leaves baked GI / the DDGI blend in place.
+            if (weight > 0.0 && any(color > 0.0))
+                result = float4(SsgiClampRadiance(color * rcp(weight)), saturate(weight));
         }
     }
 

@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_EditorSsgiBoundCount;
         internal static int s_EditorSsrBoundCount;
         internal static int s_EditorProbeBoundCount;
+        internal static int s_EditorProbeOwnedBySsgiCount;
 #endif
 
         internal ScreenSpaceLightingSetupPass()
@@ -101,12 +102,22 @@ namespace UnityEngine.Rendering.Universal
                     cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationKeyword);
                 }
 
-                // Probe fallback is independent of the SSGI result: a ready generation is blended at
-                // the receiver even when this camera has no screen-space output. Off or unpublished
-                // generations keep the keyword off and the coverage at zero (exact baked-GI path).
-                bool bindProbe = m_ProbeFallback != null && m_ProbeFallback.BindPublishedGlobals(cmd);
+                // DDGI ownership is exclusive. When this frame's SSGI dispatch bound the published
+                // generation, the SSGI texture already carries the DDGI tier, so the material must
+                // not blend it again (the URP equivalent of HDRP's "SSGI replaces bakeDiffuseLighting"
+                // branch). The material-side pre-blend remains the owner for cameras without SSGI
+                // output, or when SSGI intensity is zero and the shader returns the base unchanged.
+                bool probeReady = m_ProbeFallback != null && m_ProbeFallback.BindPublishedGlobals(cmd);
+                bool ssgiOwnsProbe = bindSsgi &&
+                                     Mathf.Max(0f, settings.intensity.value) > 0f &&
+                                     m_SsgiPass.ddgiBoundThisFrame;
+                bool bindProbe = probeReady && !ssgiOwnsProbe;
                 // A2 needs to know whether the published atlas is bound before it selects its variant.
-                m_SsrIndirectPass?.SetProbeEnvBound(bindProbe);
+                m_SsrIndirectPass?.SetProbeEnvBound(probeReady);
+#if UNITY_EDITOR
+                if (ssgiOwnsProbe)
+                    s_EditorProbeOwnedBySsgiCount++;
+#endif
                 if (bindProbe)
                 {
                     cmd.SetGlobalVector(

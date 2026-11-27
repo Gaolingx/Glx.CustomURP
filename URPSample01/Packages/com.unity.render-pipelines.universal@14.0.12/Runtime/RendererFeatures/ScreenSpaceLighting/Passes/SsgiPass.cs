@@ -9,9 +9,11 @@ namespace UnityEngine.Rendering.Universal
     // pyramid (203) and before the Deferred GBuffer (210) or Forward opaque geometry (250).
     //
     // A miss follows the HDRP-style hierarchy: the DDGI probe volume first, then reflection probes,
-    // then the sky, each tier only receiving the share the previous one left uncovered. The stored
-    // weight is the share of the material base this radiance replaces, so a partial (or unavailable)
-    // fallback keeps the baked GI / DDGI blend instead of darkening the image.
+    // then the sky. DDGI is terminal for the pixels it covers and independent of rayMiss; its
+    // coverage c blends it against baked GI, so the (1 - c) remainder stays baked and is not
+    // handed to the tail. rayMiss selects the tail used only where DDGI is unavailable. The stored
+    // weight is the share of the material base this radiance replaces, so a partial (or
+    // unavailable) fallback keeps the baked GI instead of darkening the image.
     internal sealed class ScreenSpaceLightingSsgiPass : ScriptableRenderPass
     {
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingPrePasses + 5);
@@ -184,6 +186,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         internal bool producedOutput => m_ProducedOutput;
+        // True when this frame's dispatch bound a published DDGI generation, i.e. the SSGI output
+        // owns the DDGI term. The material binding pass reads it to suppress its own DDGI pre-blend
+        // instead of applying the probe volume twice.
+        internal bool ddgiBoundThisFrame { get; private set; }
         internal RTHandle finalTexture => m_ProducedOutput ? m_FinalTexture : null;
         internal RTHandle historyTexture => m_HistoryWritten ? m_History.GetSsgiHistoryHF(m_History.ssgiWriteSlot) : null;
         internal RTHandle accumulationTexture => m_History != null ? m_History.ssgiAccumulation : null;
@@ -218,6 +224,7 @@ namespace UnityEngine.Rendering.Universal
             s_EditorExecuteCount++;
 #endif
             m_ProducedOutput = false;
+            ddgiBoundThisFrame = false;
             m_FinalTexture = null;
             m_HistoryWritten = false;
 
@@ -397,6 +404,7 @@ namespace UnityEngine.Rendering.Universal
             // The DDGI tier is keyword-gated: bind the published snapshot first so the enabled
             // variant always dispatches with the same generation the material consumes.
             bool ddgiBound = m_ProbeFallback != null && m_ProbeFallback.BindPublishedGlobals(cmd);
+            ddgiBoundThisFrame = ddgiBound;
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiDdgiKeyword, ddgiBound);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

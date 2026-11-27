@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Falls back on the sky.</summary>
         [InspectorName("Sky")]
         Sky = 0x01,
-        /// <summary>Returns black (the material keeps its baked GI).</summary>
+        /// <summary>No probe/sky tail. DDGI still applies when published; the uncovered share keeps the baked GI.</summary>
         [InspectorName("None")]
         None = 0x00,
     }
@@ -47,10 +47,11 @@ namespace UnityEngine.Rendering.Universal
         public BoolParameter enabled = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
-        /// Controls the fallback hierarchy used to light a pixel whose ray missed. The DDGI probe
-        /// volume is always the first tier; this setting selects what fills the uncovered share.
+        /// Selects the tail of the miss hierarchy. The DDGI probe volume is applied on every miss
+        /// it covers, regardless of this setting (like HDRP's probe volume tier); this value only
+        /// decides the fallback used where DDGI is unavailable (outside the volume or off).
         /// </summary>
-        [Tooltip("Fallback for indirect diffuse when a ray misses. The DDGI probe volume comes first, then Reflection Probes (or Sky) fill the uncovered share. None keeps the baked GI / DDGI material blend.")]
+        [Tooltip("Tail of the indirect-diffuse miss hierarchy. The DDGI probe volume is applied on every miss it covers, independent of this setting, and its coverage blends against baked GI. This value selects the fallback used where DDGI is unavailable: Reflection Probes and Sky, Reflection Probes only, Sky only, or None (no probe/sky tail, baked GI).")]
         public RayMarchingFallbackHierarchyParameter rayMiss = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
 
         /// <summary>

@@ -8,8 +8,10 @@
 //   bound by URP explicitly (the HDRP light list and EnvLightData are not used);
 // - ray directions use the blue-noise distributed Owen scrambled Sobol sequence when the package
 //   LUTs are available and fall back to an interleaved-gradient based sequence otherwise;
-// - the miss fallback is DDGI probe volume (the shared GlxProbeQuery), then Forward+ reflection
-//   probe atlas / default cubemap (ReflectionProbeFallback.hlsl), then the sky ambient probe;
+// - the miss fallback is the DDGI probe volume (the shared GlxProbeQuery) first, independent of
+//   rayMiss. DDGI is terminal for covered pixels; its coverage blends against baked GI. rayMiss
+//   only selects the tail used where DDGI is unavailable: Forward+ reflection probe atlas /
+//   default cubemap (ReflectionProbeFallback.hlsl), then the sky ambient probe;
 // - the reprojection writes un-premultiplied radiance plus a validity weight; a miss with no tier
 //   data writes weight 0 so the material keeps the baked GI instead of darkening the pixel;
 // - all private resource names carry the _Ssgi prefix.

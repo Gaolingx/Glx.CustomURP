@@ -12,11 +12,12 @@
 // EnvironmentBRDF, exactly like bakedGI; emission is never part of this term. intensity multiplies the
 // radiance (not the weight, so values above 1 brighten the bounce) and zero is an exact no-op.
 //
-// The dynamic probe fallback replaces bakedGI with Pgi = Eprobe/pi at the receiver P/N before the
-// screen-space share is applied: base = lerp(bakedGI, Pgi, c), then lerp(base, Lss, w). c is the
-// probe-volume coverage/validity, never derived from brightness, and is applied once. The probe path
-// does not depend on the SSGI result, so a camera with no screen-space output still shows a ready
-// probe generation.
+// DDGI has a single owner per camera. When the SSGI texture is bound and its dispatch bound the
+// published generation, the SSGI result already contains the DDGI tier, so the material pre-blend
+// is disabled and base = bakedGI. Otherwise (no screen-space output, or SSGI intensity zero) the
+// material pre-blend owns it: base = lerp(bakedGI, Pgi, c), then lerp(base, Lss, w). c is the
+// probe-volume coverage/validity, never derived from brightness, and is applied by exactly one of
+// the two paths.
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ScreenSpaceLighting/ScreenSpaceLightingInput.hlsl"
 
