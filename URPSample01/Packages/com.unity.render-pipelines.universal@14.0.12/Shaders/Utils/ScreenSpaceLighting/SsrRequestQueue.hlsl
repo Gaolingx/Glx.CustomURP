@@ -224,9 +224,9 @@ void R1Offsets(uint3 id : SV_DispatchThreadID)
     }
     uint total=r1Scan[R1_SCAN_LANES-1];
     uint base=r1Scan[lane]-local; // exclusive: the slice start in queue order
-    for(uint p=begin;p<end;++p)
+    for(uint q=begin;q<end;++q)
     {
-        uint t=rotate+p; if(t>=tiles) t-=tiles;
+        uint t=rotate+q; if(t>=tiles) t-=tiles;
         uint n=R1TileQuota(_R1Tile[t].x,totalWanted);
         _R1Tile[t]=uint2(n,base); base+=n;
     }
