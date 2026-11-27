@@ -14,9 +14,9 @@
     "ssrIndirectSource": "A1",
     "groundMaterial": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3Ground.mat",
     "rayTracingInstances": 14,
-    "frameSceneSHA256": "20fefdf252b58da55041da3c7bcfa90b37d3c26826657d1db6290eeaa89b4182",
-    "profileSHA256": "8b673ceeca0b1e79519bac9fbc6445d9b436690ef8ab4be287303a7fd89320f3",
-    "rendererSHA256": "05caa377a540a2d6b7e88637e433badc70f788d9610f6b77b7ba72f74ce18b26",
+    "frameSceneSHA256": "9e3a7d5e8aa8ffceb5cbd0b182710cc71d5774bc9f18e0ca0d63d2b76f617f64",
+    "profileSHA256": "ec1ba3cbf6a1c5c83554d81ebcb954a7790562d314cd751982fd6cccef7a26f8",
+    "rendererSHA256": "80bc601d127667bb9983840bcc12c51d15af7e5038a5536651fd40bfa1ee964f",
     "pipelineSHA256": "130801ef4c8c7827810214df03a0255f6f2703abfc9d1544a38dea8a64e1947b",
-    "groundMaterialSHA256": "1720e3c26438486f2958406fe9b1f21abdf3eb6cb26535f086279e08c578d8e1"
+    "groundMaterialSHA256": "e3feaa062ece8032fe9a778fa4ccb2ba6c2ae7fc7b4adda5b0acaf99a89784ea"
 }
