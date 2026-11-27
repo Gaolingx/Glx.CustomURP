@@ -1,6 +1,6 @@
 # 23 P3 实施计划：SSR 后置 + SS/RT 共用命中着色（根治）
 
-**状态：** B0–B4 完成（2026-11-27）。`SsrP3ContractTests` 12 过 / 0 红 / 1 跳过（仅 D3D12 payload 编译）。B2–B4 为 build/静态验证，像素/性能在 B6。B5（编排清理/回滚开关收尾）与 B6（统一复测）未开工。前置：P0 完成、P1 PARTIAL。
+**状态：** B0–B5 完成（2026-11-27）。`SsrP3ContractTests` 14 过 / 0 红 / 1 跳过（仅 D3D12 payload 编译）。B2–B5 为 build/静态验证，像素/性能在 B6。B6（统一复测）未开工。前置：P0 完成、P1 PARTIAL。
 **上位计划：** [plan.md](plan.md) §P3；契约：[contracts.md](contracts.md)。
 **验收方式：** 实现与文档按 B0–B5 逐步提交，**测量统一放到最后的 B6 一批**（含决策 #4/#5 的量化与六项阻断门禁）。
 
@@ -204,6 +204,7 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 - probe/sky 层级：`rayTracingProbeFallback` 开时绑真实图集并把 `_GlxHitLowFrequencySource = 1`；否则保持 P1 近似。
 
 ### B5 编排与清理
+> **状态：完成（2026-11-27）。** 命中着色 marker 统一为 `SSR Hit Shading (RT)` / `(SS)`；新增 tripwire：`SsrP3_PassOrderIsMonotonic`（220<221<225<230、221=220+1、225=220+5）与 `SsrP3_SwitchDefaultsOffAndKeywordsDeclared`（`ssrAfterGbuffer` 默认 false、`_GLX_SSR_SPECULAR`/`_GLX_SSR_SHADE_SS` 关键字、marker 名）。**回滚 206 路径保留为现役参考**（不删除，B6 需 P1 像素对照）；`ssrAfterGbuffer` 仍在 B6 通过后才考虑默认开启。
 - 回滚开关、Pass 断言、marker 命名（`SSR Hit Shading (SS)` / `(RT)`）；
 - 删除 P1 的 206 专用分支（保留在开关后面），更新 RenderDoc 抓帧脚本说明。
 

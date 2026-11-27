@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** B6 完成——命中核执行已被 RenderDoc 证实，环境光/阴影补齐，SS/RT 边界度量落地。**缝指标未显著下降（0.011384 → 0.011382，NOT MET）**；执行、无 NaN、D3D11 逐位一致通过；性能门禁仍 OPEN。P3 实施计划已写（[P3-PLAN.md](P3-PLAN.md)）；**P3 已开工：B0–B4 完成（`SsrP3ContractTests` 12 过 / 0 红 / 1 跳过），B5/B6 未开工。**
+**当前阶段：** B6 完成——命中核执行已被 RenderDoc 证实，环境光/阴影补齐，SS/RT 边界度量落地。**缝指标未显著下降（0.011384 → 0.011382，NOT MET）**；执行、无 NaN、D3D11 逐位一致通过；性能门禁仍 OPEN。P3 实施计划已写（[P3-PLAN.md](P3-PLAN.md)）；**P3 已开工：B0–B5 完成（`SsrP3ContractTests` 14 过 / 0 红 / 1 跳过），B6（统一复测）未开工。**
 
 ## 已完成
 
@@ -91,6 +91,7 @@
 | P3 B2 接收者重路由 | CLOSED（build/静态，2026-11-27；像素在 B6） | B2a SSR 事件 206↔220（`ssrAfterGbuffer`）；B2b GBuffer3 去间接镜面（`GlobalIlluminationDeferredDiffuse` + `_GlxSsrAfterGbuffer`）；B2c 225 `SsrIndirectSpecular` + specular RT + 资源/builder；B2d `_GLX_SSR_SPECULAR` 变体在 230 相加（避免未绑定声明丢 dispatch）；B2e 221 SSR 材质绑定。`ssrAfterGbuffer` 关时不 enqueue 221/225、不启用变体，P1 路径不变 |
 | P3 B4 公共着色函数 | CLOSED（build/静态，2026-11-27） | `SsrShadeSurface.hlsl`（`SsrShadedSample` + `SsrShadeSurface`）由 RT 命中核与 B3 SS 命中核共用；closest-hit 因 per-draw 头无法包含 compute 头，仅作 P1 回退（契约 C8 已修订） |
 | P3 B3 SS 读当前 GBuffer | CLOSED（build/静态，2026-11-27；像素在 B6） | 新增 `SsrHitSs.compute`（trace 全屏读当期 GBuffer 构面，`source=gbuffer`，调 `SsrShadeSurface`，写 `_R2Hits` 带 SS 位）；`R2Temporal` 跳过 SS；`SSR_REPROJECT` 经 `_GLX_SSR_SHADE_SS` 关键字读 `_R2Hits` 与 `ssShare` 覆盖率替代前帧色；D3D11 无队列时 keyword 关、回落前帧色 SS |
+| P3 B5 编排与清理 | CLOSED（build/静态，2026-11-27） | marker 统一 `SSR Hit Shading (RT)` / `(SS)`；tripwire 增 `SsrP3_PassOrderIsMonotonic`（220<221<225<230）与 `SsrP3_SwitchDefaultsOffAndKeywordsDeclared`（`ssrAfterGbuffer=false`、两处关键字、marker 名）；回滚 206 路径保留为现役参考 |
 | P1 命中着色执行 | CLOSED | 根因：未绑定探针图集导致 Unity 丢弃 dispatch；已修复并双 API 回归（见 [P1 README](validation/P1/README.md#b5-fix2renderdoc-定位根因已修复)） |
 | P1 契约（C2.7 + `SsrHitSurface`） | CLOSED | 80B / 5 字段 / version 1 已冻结，tripwire 5/5 |
 | P1 hit GBuffer + 延迟着色核 | CLOSED | B3 核 + B4 开关/回退完成；B5 构建验证 + 证据 |
@@ -122,6 +123,12 @@ python "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\compare.py"
 # RenderDoc 抓帧（可选 -p3-warmup N 拉长渲染窗口，便于中段触发；默认 120）
 & renderdoccmd capture -w -c "$out\capture" -d "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Player" `
   "$exe" -force-d3d12 -p3-output "$out" -p3-variant base -p3-hit-debug 1 -p3-warmup 900
+
+# P3 路径抓帧：-p3-ssr-after-gbuffer 打开接收者重路由（SSR 220 / 绑定 221 / 合成 225 / 230 相加）。
+# 现役 marker： "SSR Hit Shading (RT)"、"SSR Hit Shading (SS)"、"SSR Indirect Specular"、"SSR Material Binding"。
+# 回滚对照用 -p3-ssr-rollback。上一行 legacy 抓帧里的 "SSR Hit Shading" 已更名为 "SSR Hit Shading (RT)"。
+& renderdoccmd capture -w -c "$out\capture-p3" -d "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Player" `
+  "$exe" -force-d3d12 -p3-output "$out" -p3-variant base -p3-ssr-after-gbuffer -p3-warmup 900
 
 # 契约测试（-runTests 不能带 -quit，否则导入后直接退出、不产出 XML）
 & $U -batchmode -nographics -projectPath $P -runTests -testPlatform EditMode `

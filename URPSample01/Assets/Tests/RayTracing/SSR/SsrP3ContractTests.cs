@@ -341,4 +341,48 @@ public sealed class SsrP3ContractTests
         StringAssert.Contains("SSR_HIT_FLAG_SS", reproject,
             "The temporal must exclude SS-flagged hits from the hardware history (D4).");
     }
+
+    // --- B5 orchestration tripwires: pass order, switch default and marker/keyword names.
+    [Test]
+    public void SsrP3_PassOrderIsMonotonic()
+    {
+        var asm = typeof(ScreenSpaceLightingRendererFeature).Assembly;
+        int EventOf(string typeName, string fieldName)
+        {
+            var type = asm.GetType("UnityEngine.Rendering.Universal." + typeName, throwOnError: false);
+            Assert.IsNotNull(type, typeName + " was not found.");
+            var field = type.GetField(fieldName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            Assert.IsNotNull(field, typeName + "." + fieldName + " is missing.");
+            var raw = field.IsLiteral ? field.GetRawConstantValue() : field.GetValue(null);
+            return Convert.ToInt32(raw);
+        }
+
+        int ssr = EventOf("ScreenSpaceLightingSsrPass", "k_RenderPassEventAfterGbuffer"); // 220
+        int bind = EventOf("ScreenSpaceLightingSsrBindPass", "k_RenderPassEvent");          // 221
+        int indirect = EventOf("ScreenSpaceLightingSsrIndirectSpecularPass", "k_RenderPassEvent"); // 225
+        int deferred = (int)RenderPassEvent.BeforeRenderingDeferredLights;                  // 230
+
+        Assert.AreEqual((int)RenderPassEvent.AfterRenderingGbuffer, ssr, "SSR must inject at AfterRenderingGbuffer (220).");
+        Assert.AreEqual(ssr + 1, bind, "The SSR material binding must run at 221.");
+        Assert.AreEqual(ssr + 5, indirect, "The indirect-specular composite must run at 225.");
+        Assert.Less(indirect, deferred, "The composite must run before ClusteredDeferred (230).");
+        Assert.Less(ssr, bind, "Binding must follow the SSR pass.");
+    }
+
+    [Test]
+    public void SsrP3_SwitchDefaultsOffAndKeywordsDeclared()
+    {
+        var settings = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingSettings.cs"));
+        StringAssert.Contains("internalboolssrAfterGbuffer=false;", settings,
+            "ssrAfterGbuffer must default off until the B6 gates pass (D6).");
+
+        StringAssert.Contains("_GLX_SSR_SPECULAR", ReadPackage("Shaders/Utils/ClusteredDeferred.compute"),
+            "The deferred kernel must declare the gated specular variant.");
+        StringAssert.Contains("_GLX_SSR_SHADE_SS", ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"),
+            "The reproject must declare the gated SS-shading variant.");
+
+        var pass = ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs");
+        StringAssert.Contains("SSR Hit Shading (RT)", pass, "The RT hit kernel marker must be named (RT).");
+        StringAssert.Contains("SSR Hit Shading (SS)", pass, "The SS hit kernel marker must be named (SS).");
+    }
 }

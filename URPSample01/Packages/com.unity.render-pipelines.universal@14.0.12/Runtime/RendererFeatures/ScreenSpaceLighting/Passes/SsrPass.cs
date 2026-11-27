@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
         RayTracingAccelerationStructure m_Snapshot;
         static readonly ProfilingSampler s_HybridComposite = new ProfilingSampler("SSR DXR Composite");
         static readonly ProfilingSampler s_HybridTemporal = new ProfilingSampler("SSR DXR Temporal");
-        static readonly ProfilingSampler s_HitDeferred = new ProfilingSampler("SSR Hit Shading");
+        static readonly ProfilingSampler s_HitDeferred = new ProfilingSampler("SSR Hit Shading (RT)");
         static readonly ProfilingSampler s_HitSs = new ProfilingSampler("SSR Hit Shading (SS)");
         int m_AdditionalLightCount;
         Vector3 m_CameraPositionWS;
