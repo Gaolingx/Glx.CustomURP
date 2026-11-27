@@ -338,8 +338,11 @@ void R2Composite(uint3 id : SV_DispatchThreadID)
     // use spatially filtered RGB/alpha as SS evidence or spread HW into another slot.
     uint2 coord = ((id.xy + 1u) * (uint2)_SsrTraceSize.xy - 1u) / (uint2)_SsrScreenSize.xy;
     uint slot = coord.y * (uint)_SsrTraceSize.x + coord.x;
+    // B6.2: the 12-byte coverage record decides the domain; the 64-byte geometry record is only
+    // fetched for slots that pass it.
+    R1Coverage cov = _R1Coverage[slot];
+    if (cov.reason < 2u) return; // outside the hybrid domain: preserve regular SSR
     R1Sample q = _R1Original[slot];
-    if (q.reason < 2u) return; // outside the hybrid domain: preserve regular SSR
     float4 n = SSGI_LOAD(_SsrNormalTexture, id.xy);
     float3 normal; float roughness;
     float depth = SSGI_LOAD(_SsrDepthTexture, id.xy);
@@ -348,7 +351,7 @@ void R2Composite(uint3 id : SV_DispatchThreadID)
     float3 position = SsrReconstructPositionWS(id.xy, depth);
     if (abs(dot(position - q.position, q.normal)) > max(0.002, 0.001 * distance(q.position, SSL_SSR_CAMERA_POSITION_WS))) return;
 
-    float s = saturate(q.ssShare);
+    float s = saturate(cov.ssShare);
     float3 ss = 0;
 #if defined(SSR_R2_COMPOSITE)
     if (s > 0) ss = SsrSamplePreviousColor(SSGI_LOAD(_SsrHitPointTextureRW,coord),q.roughness,s);
@@ -359,7 +362,7 @@ void R2Composite(uint3 id : SV_DispatchThreadID)
     bool resolved = hwSample.a > 0.0 && all(isfinite(hwSample.rgb)) && all(hwSample.rgb >= 0.0);
     // The stored share is clamped by this frame's roughness/edge fade so a material change cannot
     // keep a stale coverage.
-    float hw = resolved ? min(min(1.0 - s, q.requestShare), hwSample.a) : 0;
+    float hw = resolved ? min(min(1.0 - s, cov.requestShare), hwSample.a) : 0;
     float a = s + hw;
     float3 sum = s * ss;
     if (hw > 0) sum += hw * hwSample.rgb;
@@ -384,7 +387,7 @@ void R2Temporal(uint3 id : SV_DispatchThreadID)
     if (any(id.xy >= (uint2)_SsrTraceSize.xy)) return;
 
     uint slot = id.y * (uint)_SsrTraceSize.x + id.x;
-    R1Sample q = _R1Original[slot];
+    R1Coverage cov = _R1Coverage[slot];
     GlxPublishedHit hit = _R2Hits[slot];
 
     float3 radiance = 0.0;
@@ -398,15 +401,16 @@ void R2Temporal(uint3 id : SV_DispatchThreadID)
     bool isSs = (hit.flags & SSR_HIT_FLAG_SS) != 0u;
     if (hit.flags != 0u && !isSs)
     {
-        bool resolved = (hit.flags & 2u) != 0u && hit.hitT >= q.tMin && hit.hitT <= q.tMax &&
+        // R1 stores the frame-constant tMin/tMax in every record; compare against the same uniforms.
+        bool resolved = (hit.flags & 2u) != 0u && hit.hitT >= 0.002 && hit.hitT <= _SsrRayLength &&
             all(isfinite(hit.radiance)) && all(hit.radiance >= 0.0);
         if (resolved)
         {
             radiance = hit.radiance;
-            weight = min(1.0 - saturate(q.ssShare), q.requestShare);
+            weight = min(1.0 - saturate(cov.ssShare), cov.requestShare);
         }
     }
-    else if (q.reason >= 2u && q.requestShare > 0.0 && _SsrHwHistoryValid > 0.5)
+    else if (cov.reason >= 2u && cov.requestShare > 0.0 && _SsrHwHistoryValid > 0.5)
     {
         uint2 src = SsrGetFullResCoord(id.xy);
         float depth = SSGI_LOAD(_SsrDepthTexture, src);
@@ -465,7 +469,7 @@ void R2Temporal(uint3 id : SV_DispatchThreadID)
 // acceptance tests as SsrFillMissedPixel) and the borrowed alpha is capped at 0.5, so the probe
 // keeps a visible share and the boundary ramps instead of stepping. The neighbour's hardware
 // share is recomputed from its own requestShare, which is the spatial tap of the HW history.
-bool SsrBorrowMergedNeighbour(uint2 coord, R1Sample center, out float3 radiance, out float opacity)
+bool SsrBorrowMergedNeighbour(uint2 coord, R1Coverage center, out float3 radiance, out float opacity)
 {
     radiance = float3(0.0, 0.0, 0.0);
     opacity = 0.0;
@@ -518,7 +522,7 @@ bool SsrBorrowMergedNeighbour(uint2 coord, R1Sample center, out float3 radiance,
             if (distance(neighbourWS, centerWS) > tolerance)
                 continue;
 
-            R1Sample qn = _R1Original[neighbourCoord.y * (uint)_SsrTraceSize.x + neighbourCoord.x];
+            R1Coverage qn = _R1Coverage[neighbourCoord.y * (uint)_SsrTraceSize.x + neighbourCoord.x];
             float4 ssSource = SSGI_LOAD(_SsrMergeSource, neighbourCoord);
             float sn = saturate(ssSource.a);
             float4 hwSource = SSGI_LOAD(_SsrHwHistory, neighbourCoord);
@@ -558,7 +562,7 @@ void SsrPbrHwMerge(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (any(coord >= (uint2)_SsrTraceSize.xy)) return;
 
     uint slot = coord.y * (uint)_SsrTraceSize.x + coord.x;
-    R1Sample q = _R1Original[slot];
+    R1Coverage cov = _R1Coverage[slot];
 
     float4 ss = SSGI_LOAD(_SsrMergeSource, coord);
     float s = saturate(ss.a);
@@ -567,8 +571,8 @@ void SsrPbrHwMerge(uint3 dispatchThreadId : SV_DispatchThreadID)
     bool resolved = hwSample.a > 0.0 && all(isfinite(hwSample.rgb)) && all(hwSample.rgb >= 0.0);
     // Outside the hybrid domain (invalid material, roughness fade, full screen-space coverage) the
     // request share is zero, so the merge leaves the screen-space sample untouched.
-    float hw = (q.reason >= 2u && q.requestShare > 0.0 && resolved)
-        ? min(min(1.0 - s, q.requestShare), hwSample.a)
+    float hw = (cov.reason >= 2u && cov.requestShare > 0.0 && resolved)
+        ? min(min(1.0 - s, cov.requestShare), hwSample.a)
         : 0.0;
 
     float a = s + hw;
@@ -587,7 +591,7 @@ void SsrPbrHwMerge(uint3 dispatchThreadId : SV_DispatchThreadID)
         // fill). Borrowing from covered neighbours turns the binary coverage boundary into a
         // partial-coverage ramp before the denoiser sees it.
         float borrowedOpacity;
-        SsrBorrowMergedNeighbour(coord, q, radiance, borrowedOpacity);
+        SsrBorrowMergedNeighbour(coord, cov, radiance, borrowedOpacity);
         a = borrowedOpacity;
     }
     SSGI_STORE(_SsrOutputTextureRW, coord, float4(radiance, a));
@@ -763,7 +767,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
         {
             // B6.1: the silhouette confidence is already folded into ssShare by R1Original, so the
             // complement is requested from the hardware fill there.
-            p3 = float4(max(ssHit.radiance, 0.0), saturate(_R1Original[slot].ssShare));
+            p3 = float4(max(ssHit.radiance, 0.0), saturate(_R1Coverage[slot].ssShare));
         }
         SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, p3);
         return;

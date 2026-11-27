@@ -23,6 +23,7 @@
 #include "SsrRayRequest.hlsl"
 
 StructuredBuffer<R1Sample> _R1Original;
+StructuredBuffer<R1Coverage> _R1Coverage;
 RWStructuredBuffer<GlxPublishedHit> _R2Hits;
 TEXTURE2D(_SsrHitPointTexture);
 float4 _SsrScreenSize; // xy size, zw inverse size
@@ -40,9 +41,11 @@ void SsrHitSs(uint3 id : SV_DispatchThreadID)
         return;
 
     uint slot = coord.y * (uint)_SsrTraceSize.x + coord.x;
-    R1Sample q = _R1Original[slot];
-    if (q.ssShare <= 0.0)
+    // B6.2: the coverage record is far smaller than the request record, so the no-coverage early
+    // out runs before the geometry fetch.
+    if (_R1Coverage[slot].ssShare <= 0.0)
         return; // no screen-space coverage: the probe/RT fill owns this pixel
+    R1Sample q = _R1Original[slot];
 
     float2 hitUv = LOAD_TEXTURE2D(_SsrHitPointTexture, coord);
     if (hitUv.x > 1.0 || hitUv.y < 0.0)
@@ -92,5 +95,5 @@ void SsrHitSs(uint3 id : SV_DispatchThreadID)
     hit.hitT = distance;
     hit.flags = SSR_HIT_FLAG | SSR_HIT_FLAG_SS;
     hit.mode = 0;
-    _R2Hits[q.slot] = hit;
+    _R2Hits[slot] = hit;
 }

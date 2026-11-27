@@ -228,27 +228,33 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
-    public void R1Sample_IsTheFrozen80ByteRecord()
+    public void R1Sample_IsTheFrozen64ByteRecord()
     {
         var source = ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrRayRequest.hlsl");
         var fields = Declarations(StructBody(source, "R1Sample"));
         var expected = new[]
         {
-            "uint slot", "uint sequenceFrame", "uint reason", "uint sourcePixel",
+            "uint slot", "uint reason",
             "float3 position", "float roughness", "float3 normal", "float tMin",
-            "float3 direction", "float tMax", "float ssShare", "float requestShare",
-            "uint materialId", "uint instanceId"
+            "float3 direction", "float tMax", "float ssShare", "float requestShare"
         };
-        CollectionAssert.AreEqual(expected, fields, "R1Sample fields changed; the 80-byte record (C8) was broken.");
-        Assert.AreEqual(80, fields.Sum(f => SizeOf(f.Split(' ')[0])), "R1Sample must stay 80 bytes.");
+        CollectionAssert.AreEqual(expected, fields, "R1Sample fields changed; the 64-byte record (C8/B6.2) was broken.");
+        Assert.AreEqual(64, fields.Sum(f => SizeOf(f.Split(' ')[0])), "R1Sample must stay 64 bytes.");
+
+        // B6.2 early screen: the consumers gate on this record before fetching the geometry one.
+        var coverage = Declarations(StructBody(source, "R1Coverage"));
+        CollectionAssert.AreEqual(new[] { "float ssShare", "float requestShare", "uint reason" }, coverage,
+            "R1Coverage changed; the early-screen record was broken.");
+        Assert.AreEqual(12, coverage.Sum(f => SizeOf(f.Split(' ')[0])), "R1Coverage must stay 12 bytes.");
     }
 
     [Test]
     public void QueueBuffers_KeepTheFrozenStridesAndTileGrid()
     {
         var queue = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrRequestQueue.cs"));
-        StringAssert.Contains("Ensure(reforiginals,width*height,80)", queue, "R1 originals stride is frozen at 80.");
-        StringAssert.Contains("Ensure(refrequests,k,80)", queue, "R1 request queue stride is frozen at 80.");
+        StringAssert.Contains("Ensure(reforiginals,width*height,64)", queue, "R1 originals stride is frozen at 64.");
+        StringAssert.Contains("Ensure(refcoverage,width*height,12)", queue, "R1 coverage stride is frozen at 12.");
+        StringAssert.Contains("Ensure(refrequests,k,64)", queue, "R1 request queue stride is frozen at 64.");
         StringAssert.Contains("Ensure(refhits,width*height,24)", queue, "R2 hit stride is frozen at 24.");
         StringAssert.Contains("Ensure(refcounters,11,4)", queue, "R1 counters stay 11 x uint.");
         StringAssert.Contains("(width+7)/8", queue, "R1 uses 8x8 tiles.");

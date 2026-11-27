@@ -608,6 +608,7 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(cs, k_GbufferNormalsOctKeyword, ScreenSpaceLightingSsgiPass.UseOctEncodedNormals(renderer));
 
             cmd.SetComputeBufferParam(cs, kernel, "_R1Original", requestQueue.originals);
+            cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", requestQueue.coverage);
             cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
             cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTexture", hit);
             cmd.SetComputeTextureParam(cs, kernel, "_GBuffer0", deferred.GbufferAttachments[0]);
@@ -648,7 +649,7 @@ namespace UnityEngine.Rendering.Universal
             // same dispatch. Without history the stale slot is bound but never sampled because the
             // validity uniform is zero.
             int readBinding = readSlot >= 0 ? readSlot : (m_History.ssrHwWriteSlot ^ 1);
-            cmd.SetComputeBufferParam(cs, kernel, "_R1Original", requestQueue.originals);
+            cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", requestQueue.coverage);
             cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
             cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depth);
             cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normals);
@@ -678,6 +679,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 int kernel = cs.FindKernel(cold ? "R2CompositeCold" : "R2Composite");
                 cmd.SetComputeBufferParam(cs, kernel, "_R1Original", requestQueue.originals);
+                cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", requestQueue.coverage);
                 cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrHwHistory,
                     m_History.GetSsrHwHistory(m_History.ssrHwWriteSlot));
                 cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depth);
@@ -830,7 +832,7 @@ namespace UnityEngine.Rendering.Universal
             // P3: the reproject reads this frame's SS shading from the slot-indexed buffers.
             if (ssrShadeSs)
             {
-                cmd.SetComputeBufferParam(compute, reprojectKernel, "_R1Original", requestQueue.originals);
+                cmd.SetComputeBufferParam(compute, reprojectKernel, "_R1Coverage", requestQueue.coverage);
                 cmd.SetComputeBufferParam(compute, reprojectKernel, "_R2Hits", requestQueue.hits);
             }
             cmd.DispatchCompute(compute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
@@ -848,7 +850,7 @@ namespace UnityEngine.Rendering.Universal
                 // The reprojection wrote the SS-only signal into the denoise intermediate, leaving
                 // ssrPbrOriginal free as the merge output and the denoiser's temporal input.
                 int mergeKernel = compute.FindKernel("SsrPbrHwMerge");
-                cmd.SetComputeBufferParam(compute, mergeKernel, "_R1Original", requestQueue.originals);
+                cmd.SetComputeBufferParam(compute, mergeKernel, "_R1Coverage", requestQueue.coverage);
                 cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrMergeSource,
                     m_History.ssrDenoiseIntermediate1);
                 cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrHwHistory,

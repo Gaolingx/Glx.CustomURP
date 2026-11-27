@@ -2,6 +2,8 @@
 // reason: invalid, rough, reliable SS, missing history, trace miss, rejected history, edge.
 #include "SsrRayRequest.hlsl"
 RWStructuredBuffer<R1Sample> _R1Original, _R1Queue;
+// B6.2: slot-indexed early screen written by the classify kernel, read by the per-pixel consumers.
+RWStructuredBuffer<R1Coverage> _R1Coverage;
 RWStructuredBuffer<uint2> _R1Tile; // count then exclusive base in rotated tile order
 RWStructuredBuffer<uint2> _R1Mask; // wanted bit per pixel, 64 bits per tile
 RWStructuredBuffer<uint> _R1Counts; // eligible, requested, served, overflow, then histogram
@@ -68,10 +70,6 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
     uint2 src = SsrGetFullResCoord(id.xy);
     R1Sample s = (R1Sample)0;
     s.slot = id.y * (uint)_SsrTraceSize.x + id.x;
-    s.sourcePixel = src.y * (uint)_SsrScreenSize.x + src.x;
-    s.sequenceFrame = _SsrFrameIndex; // original sequence key = trace coordinate + frame
-    // Opaque prepass has no material/instance identifier. Never fabricate one.
-    s.instanceId = s.materialId = 0xffffffffu;
     s.tMin = 0.002; s.tMax = _SsrRayLength;
     float d = SSGI_LOAD(_SsrDepthTexture,src);
     float4 n = SSGI_LOAD(_SsrNormalTexture,src);
@@ -110,6 +108,11 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
         }
     }
     _R1Original[s.slot] = s;
+    R1Coverage cov;
+    cov.ssShare = s.ssShare;
+    cov.requestShare = s.requestShare;
+    cov.reason = s.reason;
+    _R1Coverage[s.slot] = cov;
     InterlockedAdd(r1Reason[s.reason],1);
     if (s.reason >= 2) InterlockedAdd(r1Eligible,1);
     if (s.requestShare > 0)

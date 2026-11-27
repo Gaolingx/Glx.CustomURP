@@ -13,11 +13,15 @@ namespace UnityEditor.Rendering.Universal.Tests
     {
         struct Sample
         {
-            public uint slot, frame, reason, pixel;
+            public uint slot, reason;
             public Vector3 position; public float roughness;
             public Vector3 normal; public float tMin;
             public Vector3 direction; public float tMax;
-            public float ss, request; public uint material, instance;
+            public float ss, request;
+        }
+        struct Coverage
+        {
+            public float ss, request; public uint reason;
         }
         [Test] public void ZeroBudgetDoesNotRecordOrAllocate()
         {
@@ -65,15 +69,21 @@ namespace UnityEditor.Rendering.Universal.Tests
                     cmd.SetComputeTextureParam(cs,kernel,"_SsrColorPyramid",Tex(W,H,(x,y)=>Color.black));
                 }
                 q.Record(cmd,cs,kernel,w,h,frame,weighted); Graphics.ExecuteCommandBuffer(cmd);
-                var rc=AsyncGPUReadback.Request(q.counters); var ro=AsyncGPUReadback.Request(q.originals); var rq=AsyncGPUReadback.Request(q.requests);
-                while(!rc.done || !ro.done || !rq.done) yield return null;
-                Assert.IsFalse(rc.hasError || ro.hasError || rq.hasError);
+                var rc=AsyncGPUReadback.Request(q.counters); var ro=AsyncGPUReadback.Request(q.originals);
+                var rq=AsyncGPUReadback.Request(q.requests); var rg=AsyncGPUReadback.Request(q.coverage);
+                while(!rc.done || !ro.done || !rq.done || !rg.done) yield return null;
+                Assert.IsFalse(rc.hasError || ro.hasError || rq.hasError || rg.hasError);
                 var counts=rc.GetData<uint>(); var originals=ro.GetData<Sample>(); var queue=rq.GetData<Sample>();
+                var coverage=rg.GetData<Coverage>();
                 uint[] golden=new uint[11]; var expected=new List<int>();
                 for(int i=0;i<w*h;i++) {
                     int x=i%w,y=i/w,sx=x*W/w,sy=y*H/h;
                     int reason=empty || x==0?0:x==1?1:!history?3:x==2?2:x==3?6:x==4?5:4;
-                    var s=originals[i]; Assert.AreEqual(reason,s.reason,"slot "+i); Assert.AreEqual(i,s.slot); Assert.AreEqual(sy*W+sx,s.pixel);
+                    var s=originals[i]; Assert.AreEqual(reason,s.reason,"slot "+i); Assert.AreEqual(i,s.slot);
+                    var cov=coverage[i];
+                    Assert.AreEqual(reason,cov.reason,"coverage reason "+i);
+                    Assert.AreEqual(s.ss,cov.ss,"coverage ss "+i);
+                    Assert.AreEqual(s.request,cov.request,"coverage request "+i);
                     golden[4+reason]++; if(reason>=2) golden[0]++; if(reason>=3) golden[1]++;
                     if(reason>=2) {
                         var pos=new Vector3((sx+.5f)*2/W-1,1-(sy+.5f)*2/H,.5f);
@@ -84,8 +94,7 @@ namespace UnityEditor.Rendering.Universal.Tests
                             Assert.AreEqual(1,s.direction.magnitude,.0001f); Assert.Greater(s.direction.z,0);
                             if (x==2) Assert.Greater((s.direction-dir).magnitude,.0001f,"rough GGX must not use the mirror fallback");
                         }
-                        Assert.AreEqual(frame,s.frame);
-                        Assert.AreEqual(.002f,s.tMin); Assert.AreEqual(37.5f,s.tMax); Assert.AreEqual(uint.MaxValue,s.instance);
+                        Assert.AreEqual(.002f,s.tMin); Assert.AreEqual(37.5f,s.tMax);
                         float fade=x==2?.5f:x==5?.216f:1f;
                         // B6.1: on the weighted (P3) path the x==3 hit lands next to the background
                         // column, so the silhouette confidence is 0 and its share moves to the
@@ -164,16 +173,16 @@ namespace UnityEditor.Rendering.Universal.Tests
             using (var q = new SsrRequestQueue(w * h, 0))
             using (var cmd = new CommandBuffer())
             {
-                q.originals = new ComputeBuffer(w * h, 80);
-                var samples = new Sample[w * h];
-                void Set(int i, uint reason, float request) { samples[i].slot = (uint)i; samples[i].reason = reason; samples[i].request = request; samples[i].ss = Ss(i); }
+                q.coverage = new ComputeBuffer(w * h, 12);
+                var coverage = new Coverage[w * h];
+                void Set(int i, uint reason, float request) { coverage[i].reason = reason; coverage[i].request = request; coverage[i].ss = Ss(i); }
                 Set(0, 0, 0f); Set(1, 4, 1f); Set(2, 6, 0.5f); Set(3, 2, 0f);
                 Set(4, 4, 1f); Set(5, 4, 1f); Set(6, 4, 1f); Set(7, 4, 1f);
-                q.originals.SetData(samples);
+                q.coverage.SetData(coverage);
 
                 int kernel = cs.FindKernel("SsrPbrHwMerge");
                 cmd.SetComputeVectorParam(cs, "_SsrTraceSize", new Vector4(w, h, 1f / w, 1f / h));
-                cmd.SetComputeBufferParam(cs, kernel, "_R1Original", q.originals);
+                cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", q.coverage);
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrMergeSource",
                     Make(w, h, (x, y) => { int i = y * w + x; return new Color(1, 1, 1, Ss(i)); }));
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrHwHistory",
@@ -321,23 +330,22 @@ namespace UnityEditor.Rendering.Universal.Tests
             using (var q = new SsrRequestQueue(W * H, 0))
             using (var cmd = new CommandBuffer())
             {
-                q.originals = new ComputeBuffer(W * H, 80);
-                var samples = new Sample[W * H];
-                for (int i = 0; i < samples.Length; i++)
+                q.coverage = new ComputeBuffer(W * H, 12);
+                var coverage = new Coverage[W * H];
+                for (int i = 0; i < coverage.Length; i++)
                 {
-                    samples[i].slot = (uint)i;
-                    samples[i].reason = 2; samples[i].request = 0f; samples[i].ss = 1f;
+                    coverage[i].reason = 2; coverage[i].request = 0f; coverage[i].ss = 1f;
                 }
-                samples[2 * W + 2].reason = 4; samples[2 * W + 2].request = 1f; samples[2 * W + 2].ss = 0f;
-                samples[2 * W + 6].reason = 4; samples[2 * W + 6].request = 1f; samples[2 * W + 6].ss = 0f;
-                q.originals.SetData(samples);
+                coverage[2 * W + 2].reason = 4; coverage[2 * W + 2].request = 1f; coverage[2 * W + 2].ss = 0f;
+                coverage[2 * W + 6].reason = 4; coverage[2 * W + 6].request = 1f; coverage[2 * W + 6].ss = 0f;
+                q.coverage.SetData(coverage);
 
                 int kernel = cs.FindKernel("SsrPbrHwMerge");
                 cmd.SetGlobalMatrix("unity_MatrixInvVP", Matrix4x4.identity);
                 cmd.SetComputeVectorParam(cs, "_SsrCameraPositionWS", new Vector4(0, 0, 3, 0));
                 cmd.SetComputeVectorParam(cs, "_SsrScreenSize", new Vector4(W, H, 1f / W, 1f / H));
                 cmd.SetComputeVectorParam(cs, "_SsrTraceSize", new Vector4(W, H, 1f / W, 1f / H));
-                cmd.SetComputeBufferParam(cs, kernel, "_R1Original", q.originals);
+                cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", q.coverage);
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrMergeSource",
                     Make(W, H, (x, y) => UncoveredColumn(x) ? new Color(0, 0, 0, 0) : new Color(2, 2, 2, x == 2 ? 0f : 1f)));
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrHwHistory", Make(W, H, (x, y) => Color.clear));

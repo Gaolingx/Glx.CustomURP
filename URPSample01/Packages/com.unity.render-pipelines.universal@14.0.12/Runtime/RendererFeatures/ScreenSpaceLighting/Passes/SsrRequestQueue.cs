@@ -11,11 +11,14 @@ namespace UnityEngine.Rendering.Universal
     {
         internal readonly int budget, seed;
         internal ComputeBuffer originals, requests, counters;
+        // B6.2 early screen: 12 bytes per slot (ssShare, requestShare, reason). The per-pixel
+        // consumers read this first and only fetch the 64-byte request record when in domain.
+        internal ComputeBuffer coverage;
         internal ComputeBuffer hits;
         // C2.7 hit surface: request-indexed, written by the raygen, read by the deferred kernel.
         internal ComputeBuffer surfaces;
         ComputeBuffer tiles, masks;
-        internal long residentBytes => Bytes(originals) + Bytes(tiles) + Bytes(masks) + Bytes(requests) + Bytes(counters) + Bytes(hits) + Bytes(surfaces);
+        internal long residentBytes => Bytes(originals) + Bytes(coverage) + Bytes(tiles) + Bytes(masks) + Bytes(requests) + Bytes(counters) + Bytes(hits) + Bytes(surfaces);
         static long Bytes(ComputeBuffer buffer) => buffer == null ? 0 : buffer.count * (long)buffer.stride;
         static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSR DXR Trace and Shade");
         internal static ProfilingSampler traceSampler => s_Trace;
@@ -43,10 +46,11 @@ namespace UnityEngine.Rendering.Universal
             if (budget == 0) return;
             int gx = (width+7)/8, gy = (height+7)/8;
             int k = Mathf.Min(budget,gx*gy*8,width*height);
-            Ensure(ref originals,width*height,80);
+            Ensure(ref originals,width*height,64);
+            Ensure(ref coverage,width*height,12);
             Ensure(ref tiles,gx*gy,8);
             Ensure(ref masks,gx*gy,8);
-            Ensure(ref requests,k,80);
+            Ensure(ref requests,k,64);
             Ensure(ref surfaces,k,80);
             Ensure(ref counters,11,4);
             cmd.SetBufferData(counters,s_Zero);
@@ -56,6 +60,7 @@ namespace UnityEngine.Rendering.Universal
             // even-split frame hashes.
             cmd.SetComputeIntParam(cs,"_R1WeightedQuota",weightedQuota ? 1 : 0);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Original",originals);
+            cmd.SetComputeBufferParam(cs,kernel,"_R1Coverage",coverage);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Counts",counters);
             // The classify kernel owns the per-tile mask and count now; the tile pass is gone.
             cmd.SetComputeBufferParam(cs,kernel,"_R1Tile",tiles);
@@ -97,15 +102,16 @@ namespace UnityEngine.Rendering.Universal
 
         static void Ensure(ref ComputeBuffer buffer,int count,int stride)
         {
-            if (buffer != null && buffer.count == count) return;
+            // The stride is part of the reuse check so a layout change never keeps an old buffer.
+            if (buffer != null && buffer.count == count && buffer.stride == stride) return;
             var replacement = new ComputeBuffer(count,stride);
             buffer?.Release(); buffer = replacement;
         }
         public void Dispose()
         {
-            originals?.Release(); tiles?.Release(); masks?.Release(); requests?.Release(); counters?.Release();
+            originals?.Release(); coverage?.Release(); tiles?.Release(); masks?.Release(); requests?.Release(); counters?.Release();
             hits?.Release(); surfaces?.Release();
-            originals = tiles = masks = requests = counters = hits = surfaces = null;
+            originals = coverage = tiles = masks = requests = counters = hits = surfaces = null;
         }
     }
 }

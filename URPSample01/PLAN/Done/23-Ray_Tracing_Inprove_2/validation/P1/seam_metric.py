@@ -2,7 +2,7 @@
 
 Two masks come from the captured frame of the fixed player:
 
-* _R1Original[slot] (80 B R1Sample, trace resolution 960x540) classifies every trace
+* _R1Original[slot] (64 B R1Sample, trace resolution 960x540) classifies every trace
   slot: reason 2 = the screen-space march resolved it (ssShare ~1), reason 4/6 = hybrid
   but left to the hardware path (requestShare > 0), reason 0/1 = outside the hybrid
   domain. The SS/RT seam is the boundary between reason 2 and reason 4/6.
@@ -26,7 +26,7 @@ from pathlib import Path
 
 W, H = 1920, 1080
 TW, TH = 960, 540
-STRIDE = 80
+STRIDE = 64
 ROI = (0.15, 0.45, 0.85, 0.95)
 MAGENTA = (2.0, 0.0, 2.0)
 
@@ -52,8 +52,10 @@ def load_classification(path):
     reasons = bytearray(TW * TH)
     ss_share = array.array("f", bytes(TW * TH * 4))
     for i in range(TW * TH):
-        _slot, _seq, reason, _src = struct.unpack_from("<IIII", data, i * STRIDE)
-        ss_share[i] = struct.unpack_from("<f", data, i * STRIDE + 64)[0]
+        # B6.2 (64 B record): slot, reason, position, roughness, normal, tMin, direction, tMax,
+        # ssShare, requestShare. ssShare sits at byte 56; the coverage export carries it at 0.
+        reason = struct.unpack_from("<I", data, i * STRIDE + 4)[0]
+        ss_share[i] = struct.unpack_from("<f", data, i * STRIDE + 56)[0]
         reasons[i] = reason & 0xFF
     return reasons, ss_share
 
@@ -173,7 +175,7 @@ def region_means(luma, reasons, ss_share):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--originals", type=Path, required=True, help="_R1Original 80 B export")
+    parser.add_argument("--originals", type=Path, required=True, help="_R1Original 64 B export")
     parser.add_argument("--hits", type=Path, help="debug=1 _R2Hits export (served mask)")
     parser.add_argument("--frame", action="append", default=[], metavar="NAME=PATH")
     parser.add_argument("--out", type=Path, required=True)
