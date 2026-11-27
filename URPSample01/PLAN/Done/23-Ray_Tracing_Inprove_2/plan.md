@@ -102,7 +102,7 @@
 统一遵循 [20 号证据布局](../../Done/20-Ray_tracing/validation/README.md)：
 
 ```
-PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/<ID>/<platform>-<renderer>/<variant>/run-XX/
+PLAN/Done/23-Ray_Tracing_Inprove_2/validation/<ID>/<platform>-<renderer>/<variant>/run-XX/
 ```
 
 - 每个 run 至少包含：`Player.json`、`frame.raw`（线性 RGBA16F）、`frame.png`（审查用 tonemap）、`Summary.json`。

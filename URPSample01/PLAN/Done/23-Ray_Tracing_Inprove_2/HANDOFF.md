@@ -4,6 +4,24 @@
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
 **当前阶段：** B6.1 已执行（2026-11-27，build `0f019dc1…`，双 API × 6 用例 × 两进程）：B7/B8 之后 P3 路径重测完成，确定性 12/12；`ssrAfterGbuffer` 已在 feature Inspector 暴露（`91f5fb1`），owner 在 Editor 目视确认“显著改善，仅余一条缝”，随后的剪影份额修复（`3f4bcb5`：置信度移入 R1、退化份额转为 reason 6 的硬件请求）在 `SsrRaw`/Game 视图下闭合了丝状缺口。**门禁 1 的旧 mask 口径失效**（覆盖率拆分把剪影带移出 reason 2），需改连续份额口径；**D3D12 P1 哈希改为 `3fc8ab22`**（归因 B8 `22809df` 的命中核阴影变体，D3D11 不变）需重录基线；`fullres` 与 D3D11 无队列导出（P3 要求半分辨率 + requestQueue）。`ssrAfterGbuffer` 仍默认关闭。证据在 [validation/P3](validation/P3/README.md)。
 
+## 归档结论（2026-11-27，owner 要求归档）
+
+**归档是归档决定，不是全绿。** P3 路径按 B6.1 证据交付，`ssrAfterGbuffer` 默认关闭；owner 已在 Editor 目视签收 B6.1 后的效果（“显著改善，仅余一条缝”），剪影份额修复（`3f4bcb5`）后 `SsrRaw` 的丝状缺口闭合。
+
+| 项 | 判定 | 证据 |
+|---|---|---|
+| P0 契约 / ABI / 布局 tripwire | **PASS** | [B61/tests/EditMode.xml](validation/P3/B61/tests/EditMode.xml)（31/31、1 skip） |
+| P3 B7/B8 代码修正 | PASS（代码/静态） | `96379de` / `22809df` |
+| B6.1 归因矩阵 | 完成，确定性 **12/12** | [B61/Comparison.json](validation/P3/B61/Comparison.json) |
+| 门禁 1（缝） | **OPEN（口径失效）** | reason-2 mask 随覆盖率拆分收缩（ss 8149→55、pairs 556→149） |
+| 门禁 2 / 3 / 5 | 未在 B6.1 重测（B6 旧值：2 PARTIAL、3 NOT MET 字面、5 OPEN/proxy） | [validation/P3/README.md](validation/P3/README.md) |
+| P1 回滚哈希 D3D11 | **PASS**（`7fb3e01b`） | B61/Comparison.json |
+| P1 回滚哈希 D3D12 | **需重录**：`3fc8ab22`（B8 命中核阴影变体） | 同上 |
+| 全分辨率 P3 | **不支持**：命中核与请求队列要求半分辨率 + requestQueue | contracts §B6.1 运行约束 |
+| 剩余已知限制 | 门禁 1 需连续份额口径；全帧 GPU 计时仍为 proxy | — |
+
+**未完成 / 未开始**：P2（世界空间 light cluster + 材质矩阵）；`fullResolution` 下的 P3 命中核；门禁 1/2/3/5 的正式签收。
+
 ## 已完成
 
 | 交付 | 位置 | 状态 |
@@ -148,37 +166,37 @@ $P = "E:\GitHub\Glx.CustomURP\URPSample01"
 & $U -batchmode -quit -projectPath $P -executeMethod SsrP3BaselineSetup.BuildPlayerMenu -logFile "$env:TEMP\ssr-p3-build.log"
 
 # 捕获（每个变体两个全新进程）
-$exe = "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Player\SsrP3Baseline.exe"
+$exe = "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation\P0\Player\SsrP3Baseline.exe"
 foreach ($v in "base","nodenoise","ssroff") {
   foreach ($r in "run-01","run-02") {
-    $out = "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Win64-D3D12\$v\$r"
+    $out = "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation\P0\Win64-D3D12\$v\$r"
     & $exe -force-d3d12 -p3-output $out -p3-variant $v -p3-run $r
   }
 }
 
 # 对比
-python "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\compare.py"
+python "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation\P0\compare.py"
 
 # RenderDoc 抓帧（可选 -p3-warmup N 拉长渲染窗口，便于中段触发；默认 120）
-& renderdoccmd capture -w -c "$out\capture" -d "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Player" `
+& renderdoccmd capture -w -c "$out\capture" -d "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation\P0\Player" `
   "$exe" -force-d3d12 -p3-output "$out" -p3-variant base -p3-hit-debug 1 -p3-warmup 900
 
 # P3 路径抓帧：-p3-ssr-after-gbuffer 打开接收者重路由（SSR 221 / 绑定 222 / 合成 225 / 230 相加）。
 # 现役 marker： "SSR Hit Shading (RT)"、"SSR Hit Shading (SS)"、"SSR Indirect Specular"、"SSR Material Binding"。
 # 回滚对照用 -p3-ssr-rollback。上一行 legacy 抓帧里的 "SSR Hit Shading" 已更名为 "SSR Hit Shading (RT)"。
-& renderdoccmd capture -w -c "$out\capture-p3" -d "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Player" `
+& renderdoccmd capture -w -c "$out\capture-p3" -d "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation\P0\Player" `
   "$exe" -force-d3d12 -p3-output "$out" -p3-variant base -p3-ssr-after-gbuffer -p3-warmup 900
 
 # B6 测量批次（双 API × {p1,p3} × 三变体 × 两进程）与静态 300 帧（D5 #5 方差 + 门禁 5 计时）。
 # 证据落 validation/P3/<Win64-API>/<p1|p3>/<variant>/<run>；静态落在 validation/P3/Static。
-$V = "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation"
+$V = "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation"
 & $exe -force-d3d12 -p3-output "$V\P3\Static\d3d12\p3\base" -p3-variant base -p3-ssr-after-gbuffer -p3-run static-300 -p3-static 300
 python "$V\P3\compare_p3.py"
 
 # 契约测试（-runTests 不能带 -quit，否则导入后直接退出、不产出 XML）
 & $U -batchmode -nographics -projectPath $P -runTests -testPlatform EditMode `
   -testFilter SsrP3ContractTests `
-  -testResults "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P1\tests\ContractTests.xml" `
+  -testResults "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation\P1\tests\ContractTests.xml" `
   -logFile "$env:TEMP\ssr-p3-b1-tests.log"
 ```
 

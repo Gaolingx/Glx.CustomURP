@@ -16,7 +16,7 @@ param(
     [string]$Exe = ""
 )
 $ErrorActionPreference = "Stop"
-$V = Join-Path $Project "PLAN\TODO\23-Ray_Tracing_Inprove_2\validation"
+$V = Join-Path $Project "PLAN\Done\23-Ray_Tracing_Inprove_2\validation"
 $out = Join-Path $V "P3\B61"
 if ([string]::IsNullOrEmpty($Exe)) { $Exe = Join-Path $V "P0\Player\SsrP3Baseline.exe" }
 if (!(Test-Path $Exe)) { throw "Player build not found: $Exe. Rebuild the P0 fixture first." }

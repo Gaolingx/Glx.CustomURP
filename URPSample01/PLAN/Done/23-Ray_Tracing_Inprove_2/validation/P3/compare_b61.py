@@ -112,4 +112,4 @@ def main(root):
 
 if __name__ == "__main__":
     main(sys.argv[1] if len(sys.argv) > 1 else
-         "PLAN/TODO/23-Ray_Tracing_Inprove_2/validation/P3/B61")
+         "PLAN/Done/23-Ray_Tracing_Inprove_2/validation/P3/B61")

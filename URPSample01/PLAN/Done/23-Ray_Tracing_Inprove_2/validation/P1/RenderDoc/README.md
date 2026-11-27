@@ -59,7 +59,7 @@ hitDeferredKernel = 0, hitDeferredGroups = 512, settings = true, computeBound = 
 ## 复现
 
 ```powershell
-$exe = "E:\GitHub\Glx.CustomURP\URPSample01\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Player\SsrP3Baseline.exe"
+$exe = "E:\GitHub\Glx.CustomURP\URPSample01\PLAN\Done\23-Ray_Tracing_Inprove_2\validation\P0\Player\SsrP3Baseline.exe"
 $wd  = Split-Path $exe
 # 用 renderdoc-mcp 的 capture_frame 注入，exePath=$exe, workingDir=$wd,
 # cmdLine = "-force-d3d12 -p3-variant base -p3-hit-debug 1"，约 2~4 秒后触发

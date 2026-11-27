@@ -148,7 +148,7 @@ $U = "D:\Program Files\Unity\Hub\Editor\2022.3.62f1\Editor\Unity.exe"
 $P = "E:\GitHub\Glx.CustomURP\URPSample01"
 & $U -batchmode -nographics -projectPath $P -runTests -testPlatform EditMode `
   -testFilter SsrP3ContractTests `
-  -testResults "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P1\tests\ContractTests.xml" `
+  -testResults "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation\P1\tests\ContractTests.xml" `
   -logFile "$env:TEMP\ssr-p3-b1-tests.log"
 ```
 
@@ -159,10 +159,10 @@ $P = "E:\GitHub\Glx.CustomURP\URPSample01"
 SS/RT 边界度量（先用 renderdoc-mcp 在 `SSR Hit Shading` dispatch 处 `goto_event`，导出 `_R1Original`（41,472,000 B）与 debug=1 的 `_R2Hits`（12,441,600 B））：
 
 ```powershell
-python "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P1\seam_metric.py" `
+python "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation\P1\seam_metric.py" `
   --originals <_R1Original.bin> --hits <_R2Hits.bin> `
   --frame p0=<P0 base frame.raw> --frame p1=<P1 frame.raw> `
-  --out "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P1\seam\seam_ssrt.json"
+  --out "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation\P1\seam\seam_ssrt.json"
 ```
 
 `frame.raw` 不入库（`.gitignore`），`seam/evidence/*.json` 记录了每次运行的关键字段与 SHA。

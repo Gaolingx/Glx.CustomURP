@@ -42,6 +42,7 @@
 | 18-C5Cleanup | ✅ PASS | 双 API 全量 EditMode 489/489、PlayMode 45/46；构建 0 error；变体 6144/1280 Δ0 | 唯一失败为 1674 像素材质差（后按 D-C7-1 ACCEPTED）。 |
 | 19-C7Final | ○ ACCEPTED（带已知差异） | 结构、变体、T12、边界与 Forward+ 对父版回收 75–77% 通过 | Forward+ 256 对 C0 +0.20 ms、1674、256 灯跨版本图差按 [D-C7-1](Done/19-C7Final/DECISIONS.md) 接受 |
 | 20-Ray_tracing | ✅*（Windows；主机 BLOCKED） | B0/T1–T4、G1/G2/G4/G5、R1/R2/R4、I1 PASS；G3/R5 PASS*；R3 PARTIAL；I2 PASS*（Windows） | SS 同帧接缝（R3/G3）、RTAS 精确尺寸与全帧 GPU 实测、主机 PS5/XSX/XSS 签收；HEAD 复跑 T14 184/6/34-34-35 |
+| 23-Ray_Tracing_Inprove_2 | ◐ PARTIAL（已归档；P3 默认关闭） | P0 契约 PASS；P1 PARTIAL；P3 B7/B8 代码 PASS；B6.1 矩阵完成、确定性 12/12 | 门禁 1 的 reason-2 mask 随覆盖率拆分失效（改连续份额口径）；门禁 2/3/5 未在 B6.1 重测；D3D12 P1 哈希随 B8 重录；P2 未启动；owner 已目视签收 |
 
 ## 2. 01-ScreenSpaceLighting
 
@@ -665,3 +666,11 @@ Windows（Win64 D3D12 + D3D11）按 B0 逐里程碑交付：B0/T1–T4、G1/G2/G
 **未决（不阻塞 Windows 归档）**：R3/G3 的 SS 同帧接缝（P0-4，owner 暂缓）；RTAS 精确尺寸与全帧 GPU 的 PIX 实测；主机 PS5/XSX/XSS 签收 **BLOCKED**（本机 PlaybackEngines 仅 `windowsstandalonesupport`，无模块与真机，B0 禁止以 PC 成绩外推）；I2 资产级 3 个 RT shader（约 16.8 KB）作为例外记录。
 
 **2026-11-25 owner 决定（归档后变更）**：移除 RT 资格判断中的硬编码身份门控——质量档名 `High Fidelity`、`StandaloneWindows64` 构建目标、显式 `Direct3D12` 后端判断及始终为 true 的 `highQuality` 参数；保留 `supportsRayTracing`、compute、格式、相机/XR、shader 能力探测。涉及 `RayTracingSceneGate`、`RayTracingSceneResources`、`SsrRayTracingCameras`、`RayTracingProbeFallback`、`RayTracingProbeUpdate`、`ScreenSpaceLightingSettings` 与 T1/T2 测试；原“只允许高端质量档”的产品约束按本决定作废（`Done/20-Ray_tracing/HANDOFF.md` 已同步）。归档 fixture 与 verify 脚本同步到新签名：G2/G3/G3c/G4/G5/I1/R3/R4/R5/T3/T3b/T4 去掉 `highQuality` 实参、`R3SwitchPlayer` 不再输出 `gHigh/gWin64/gBackend`，D3D11 拒绝串由 `Backend` 改为 `RayTracingUnsupported`；冻结的 `evidence/` JSON 与当时的 todolist 文字保持 `Backend` 原值，仅作历史记录。
+
+## 26. 23-Ray_Tracing_Inprove_2（2026-11-27，已归档；P3 默认关闭）
+
+[轮次 HANDOFF](Done/23-Ray_Tracing_Inprove_2/HANDOFF.md) · [P3 计划](Done/23-Ray_Tracing_Inprove_2/P3-PLAN.md) · [契约](Done/23-Ray_Tracing_Inprove_2/contracts.md) · [B6.1 证据](Done/23-Ray_Tracing_Inprove_2/validation/P3/README.md) · [矩阵汇总](Done/23-Ray_Tracing_Inprove_2/validation/P3/B61/Comparison.json)。证据基线 build `0f019dc1…`；归档前代码提交 `583c3f4`。
+
+P0 契约冻结、P1 虚拟命中表面与命中核、P2 未启动；P3（SSR 221 / 绑定 222 / 合成 225 / 230、原因位 6 硬件补集、A1/A2/A3 环境源）在 B7/B8 之后重测：24 组抓帧（双 API × 6 用例 × 两进程）确定性 12/12；`thick(0.05)`/`k-low(8192)` 对 ROI 影响 ≤4.8e-5（剩余缝不由厚度/预算主导），`nodenoise` 5.3e-4。`ssrAfterGbuffer` 已暴露到 feature Inspector（`91f5fb1`）但默认关闭；owner 目视签收“显著改善，仅余一条缝”，`3f4bcb5` 把剪影置信度移入 R1 并把退化份额转为 reason 6 的硬件请求，闭合了 `SsrRaw` 的丝状缺口。
+
+**未决（不阻塞归档）**：门禁 1 的 reason-2 mask 随覆盖率拆分失效（ss 槽 8149→55、pairs 556→149），需改为连续份额口径后重判；门禁 2/3/5 未在 B6.1 重测（B6 旧值 2 PARTIAL、3 NOT MET 字面、5 OPEN/proxy）；D3D12 P1 回滚哈希因 B8 命中核阴影变体变为 `3fc8ab22`（D3D11 `7fb3e01b` 不变），需重录基线；`fullResolution=true` 不属于 P3 合法配置（命中核与请求队列要求半分辨率 + requestQueue）。B6 的 `p3` 证据（B7 前）标 SUPERSEDED；`Player`、`frame.raw`、`*.bin`、`.rdc` 按证据政策仅留本机。

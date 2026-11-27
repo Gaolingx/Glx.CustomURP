@@ -107,7 +107,7 @@ D3D11 P3（`p3-d3d11-base_frame4846.rdc`）：无 DXR/命中核 marker；`SSR In
 ```powershell
 $U = "D:\Program Files\Unity\Hub\Editor\2022.3.62f1\Editor\Unity.exe"
 $P = "E:\GitHub\Glx.CustomURP\URPSample01"
-$V = "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation"
+$V = "$P\PLAN\Done\23-Ray_Tracing_Inprove_2\validation"
 $exe = "$V\P0\Player\SsrP3Baseline.exe"
 
 # 测量批次（每格两进程）
