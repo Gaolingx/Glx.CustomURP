@@ -176,6 +176,38 @@ bool SsrDecodeMaterial(float4 normalSample, out float3 normalWS, out float perce
     return dot(normalWS, normalWS) > 0.5;
 }
 
+// B6.1: a screen-space hit that lands on (or one texel from) a depth silhouette is the least
+// reliable sample of the set: the reflected ray grazes the object there, so the hit/miss decision
+// flips with sub-pixel motion and the reproduced edge steps. Fading the published coverage near
+// those silhouettes hands the remaining share to the hardware fill / environment probe, which
+// turns the step into a one-texel ramp. Device-depth deltas at a foreground silhouette are an
+// order of magnitude above the smooth-surface gradient, so 0.05 only catches the edge band.
+float SsrHitEdgeConfidence(float2 hitUv)
+{
+    uint2 hitPixel = (uint2)(saturate(hitUv) * _SsrScreenSize.xy);
+    hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
+    float centerDepth = SSGI_LOAD(_SsrDepthTexture, hitPixel);
+    if (SsgiIsBackgroundDepth(centerDepth))
+        return 1.0;
+
+    float edge = 0.0;
+    [unroll] for (uint i = 0; i < 4; ++i)
+    {
+        int2 offset = i == 0u ? int2(1, 0) : i == 1u ? int2(-1, 0) : i == 2u ? int2(0, 1) : int2(0, -1);
+        int2 neighbour = int2(hitPixel) + offset;
+        if (neighbour.x < 0 || neighbour.y < 0 ||
+            neighbour.x >= (int)_SsrScreenSize.x || neighbour.y >= (int)_SsrScreenSize.y)
+            continue;
+
+        float neighbourDepth = SSGI_LOAD(_SsrDepthTexture, (uint2)neighbour);
+        if (SsgiIsBackgroundDepth(neighbourDepth))
+            edge = 1.0;
+        else
+            edge = max(edge, abs(neighbourDepth - centerDepth) / max(centerDepth, 1e-5));
+    }
+    return saturate(1.0 - edge / 0.05);
+}
+
 float SsrLambdaGGX(float roughness, float cosTheta)
 {
     cosTheta = max(1e-4, abs(cosTheta));
@@ -427,6 +459,96 @@ void R2Temporal(uint3 id : SV_DispatchThreadID)
 // contract as R2Composite; the difference is only where the merge happens (before the PBR temporal
 // accumulation instead of after the upsample) because the denoiser owns the history.
 #if defined(SSR_PBR_MERGE)
+// B6.1: the merge runs before the reflection denoiser, so a per-pixel coverage step at the
+// SS/RT/probe boundary would survive into the denoised image as a hard edge. A slot with no
+// coverage borrows a partial sample from its same-surface cardinal neighbourhood (the same
+// acceptance tests as SsrFillMissedPixel) and the borrowed alpha is capped at 0.5, so the probe
+// keeps a visible share and the boundary ramps instead of stepping. The neighbour's hardware
+// share is recomputed from its own requestShare, which is the spatial tap of the HW history.
+bool SsrBorrowMergedNeighbour(uint2 coord, R1Sample center, out float3 radiance, out float opacity)
+{
+    radiance = float3(0.0, 0.0, 0.0);
+    opacity = 0.0;
+
+    if (center.reason < 2u)
+        return false;
+
+    uint2 centerFull = SsrGetFullResCoord(coord);
+    float centerDepth = SSGI_LOAD(_SsrDepthTexture, centerFull);
+    float4 centerSample = SSGI_LOAD(_SsrNormalTexture, centerFull);
+    float3 centerN;
+    float centerRoughness;
+    if (!isfinite(centerDepth) || SsgiIsBackgroundDepth(centerDepth) || !all(isfinite(centerSample)) ||
+        centerSample.a < 0.825 || !SsrDecodeMaterial(centerSample, centerN, centerRoughness))
+        return false;
+
+    float3 centerWS = SsrReconstructPositionWS((float2)centerFull, centerDepth);
+    float tolerance = 0.01 * distance(centerWS, SSL_SSR_CAMERA_POSITION_WS);
+
+    float3 sum = float3(0.0, 0.0, 0.0);
+    float weightSum = 0.0;
+    uint accepted = 0;
+
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            if (abs(x) == abs(y) && abs(x) == 1)
+                continue;
+
+            int2 neighbour = int2(coord) + int2(x, y);
+            if (neighbour.x < 0 || neighbour.y < 0 ||
+                neighbour.x >= (int)_SsrTraceSize.x || neighbour.y >= (int)_SsrTraceSize.y)
+                continue;
+
+            uint2 neighbourCoord = (uint2)neighbour;
+            uint2 neighbourFull = SsrGetFullResCoord(neighbourCoord);
+            float neighbourDepth = SSGI_LOAD(_SsrDepthTexture, neighbourFull);
+            float4 neighbourSample = SSGI_LOAD(_SsrNormalTexture, neighbourFull);
+            float3 neighbourN;
+            float neighbourRoughness;
+            if (!isfinite(neighbourDepth) || SsgiIsBackgroundDepth(neighbourDepth) ||
+                !all(isfinite(neighbourSample)) || neighbourSample.a < 0.825 ||
+                !SsrDecodeMaterial(neighbourSample, neighbourN, neighbourRoughness))
+                continue;
+            if (abs(neighbourRoughness - centerRoughness) > 0.02 || dot(neighbourN, centerN) < 0.9)
+                continue;
+
+            float3 neighbourWS = SsrReconstructPositionWS((float2)neighbourFull, neighbourDepth);
+            if (distance(neighbourWS, centerWS) > tolerance)
+                continue;
+
+            R1Sample qn = _R1Original[neighbourCoord.y * (uint)_SsrTraceSize.x + neighbourCoord.x];
+            float4 ssSource = SSGI_LOAD(_SsrMergeSource, neighbourCoord);
+            float sn = saturate(ssSource.a);
+            float4 hwSource = SSGI_LOAD(_SsrHwHistory, neighbourCoord);
+            bool resolved = hwSource.a > 0.0 && all(isfinite(hwSource.rgb)) && all(hwSource.rgb >= 0.0);
+            float hwn = (qn.reason >= 2u && qn.requestShare > 0.0 && resolved)
+                ? min(min(1.0 - sn, qn.requestShare), hwSource.a)
+                : 0.0;
+            float an = sn + hwn;
+            // Only a confident neighbour may lend radiance; a half-covered neighbour would turn
+            // the fill into another step one texel further out.
+            if (an < 0.5)
+                continue;
+
+            float3 sample = sn * max(ssSource.rgb, 0.0);
+            if (hwn > 0.0)
+                sample += hwn * hwSource.rgb;
+            sum += sample;
+            weightSum += an;
+            ++accepted;
+        }
+    }
+
+    if (accepted < 2u || !(weightSum > 0.0))
+        return false;
+
+    radiance = sum / weightSum;
+    opacity = saturate(0.5 * (weightSum / accepted));
+    return true;
+}
+
 [numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
 void SsrPbrHwMerge(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -458,6 +580,15 @@ void SsrPbrHwMerge(uint3 dispatchThreadId : SV_DispatchThreadID)
         if (hw > 0.0)
             radiance += hw * hwSample.rgb;
         radiance /= a;
+    }
+    else
+    {
+        // B6.1: no current-frame evidence (screen-space miss not yet served by the hardware
+        // fill). Borrowing from covered neighbours turns the binary coverage boundary into a
+        // partial-coverage ramp before the denoiser sees it.
+        float borrowedOpacity;
+        SsrBorrowMergedNeighbour(coord, q, radiance, borrowedOpacity);
+        a = borrowedOpacity;
     }
     SSGI_STORE(_SsrOutputTextureRW, coord, float4(radiance, a));
 }
@@ -629,7 +760,14 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
         GlxPublishedHit ssHit = _R2Hits[slot];
         float4 p3 = float4(0.0, 0.0, 0.0, 0.0);
         if ((ssHit.flags & SSR_HIT_FLAG_SS) != 0u && all(isfinite(ssHit.radiance)) && all(ssHit.radiance >= 0.0))
-            p3 = float4(max(ssHit.radiance, 0.0), saturate(_R1Original[slot].ssShare));
+        {
+            float coverage = saturate(_R1Original[slot].ssShare);
+            // B6.1: the silhouette band gives its share back to the hardware/probe fallback.
+            float2 hitUv = SSGI_LOAD(_SsrHitPointTextureRW, traceCoord);
+            if (hitUv.x <= 1.0 && hitUv.y >= 0.0)
+                coverage *= SsrHitEdgeConfidence(hitUv);
+            p3 = float4(max(ssHit.radiance, 0.0), coverage);
+        }
         SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, p3);
         return;
     }

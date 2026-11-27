@@ -461,6 +461,41 @@ public sealed class SsrP3ContractTests
             "The evidence flag must record the effective decision, not only the serialized switch.");
     }
 
+    // --- B6.1: the coverage ramp (merge borrow + silhouette confidence) and the miss-weighted R1
+    // quota are P3-only. The P1 rollback path has frozen hashes, so none of this may run there.
+    [Test]
+    public void SsrB61_CoverageRampAndQuotaStayP3Only()
+    {
+        var compute = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
+        var mergeGate = compute.IndexOf("#ifdefined(SSR_PBR_MERGE)", StringComparison.Ordinal);
+        var borrow = compute.IndexOf("boolSsrBorrowMergedNeighbour(uint2coord,R1Samplecenter,", StringComparison.Ordinal);
+        Assert.GreaterOrEqual(mergeGate, 0, "The merge kernel must stay behind SSR_PBR_MERGE.");
+        Assert.Greater(borrow, mergeGate,
+            "The neighbourhood borrow must compile only in the merge kernel; other variants cannot see _SsrMergeSource.");
+        StringAssert.Contains("SsrBorrowMergedNeighbour(coord,q,radiance,borrowedOpacity);", compute,
+            "A merge slot with zero coverage must borrow from its same-surface neighbours.");
+        StringAssert.Contains("opacity=saturate(0.5*(weightSum/accepted));", compute,
+            "The borrowed alpha must stay capped at 0.5 so the environment probe keeps its share.");
+        StringAssert.Contains("coverage*=SsrHitEdgeConfidence(hitUv);", compute,
+            "The P3 screen-space coverage must fade at hit silhouettes (the binary hit/miss edge).");
+
+        var queue = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrRequestQueue.hlsl"));
+        StringAssert.Contains("uintR1TileQuota(uintwanted,uinttotalWanted)", queue,
+            "The R1 budget must be shared by wanted count (B6.1).");
+        StringAssert.Contains("if(_R1WeightedQuota==0u||_R1K<=tiles)", queue,
+            "The weighted quota must be gated: the P1 rollback path keeps its frozen even-split frames.");
+        StringAssert.Contains("local+=R1TileQuota(_R1Tile[t].x,totalWanted);", queue,
+            "The offsets scan must use the per-tile quota.");
+        StringAssert.Contains("uintquota=_R1WeightedQuota!=0u?_R1Tile[t].x:R1Quota();", queue,
+            "The scatter window stride must use the tile's served count only on the P3 path.");
+
+        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
+        StringAssert.Contains("SetComputeTextureParam(compute,mergeKernel,ScreenSpaceLightingShaderIDs.SsrDepthTexture,depthTexture);", pass,
+            "The merge kernel needs the receiver depth the borrow acceptance reads.");
+        StringAssert.Contains("SetComputeTextureParam(compute,mergeKernel,ScreenSpaceLightingShaderIDs.SsrNormalTexture,normalTexture);", pass,
+            "The merge kernel needs the receiver normals the borrow acceptance reads.");
+    }
+
     [Test]
     public void SsrIndirectKernels_Compile()
     {

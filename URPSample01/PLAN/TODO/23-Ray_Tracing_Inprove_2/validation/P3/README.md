@@ -82,6 +82,24 @@ D3D11 P3（`p3-d3d11-base_frame4846.rdc`）：无 DXR/命中核 marker；`SSR In
 2. `_R1Original` 在帧末有三份 41.47 MB 副本（8167/8157/8162 SS 槽位）；RenderDoc 绑定信息不含资源 ID，无法唯一判定消费者用的是哪份。缝指标对三份都跑了，结论一致；副本差异 ≤10 槽位。
 3. 缝指标 median 由内容主导（SSR 关闭对照反而更低）；洋红对照只在 mean 上体现（+7.6%）。因此门禁 1 的 50% median 阈值在该夹具上不可达，这是度量形状问题，不是回归。
 
+## B6.1：归因矩阵 + 覆盖率连续化
+
+**状态：代码就绪，像素待运行。** 计划与门禁口径见 [P3-PLAN.md §B6.1](../../../P3-PLAN.md)；脚本 [run_b61.ps1](run_b61.ps1)。
+
+- 用例：`base / thick(0.05) / k-low(8192) / fullres / nodenoise / p1`，双 API、两进程，输出 `B61/<api>/<case>/run-0X`。
+- 抓帧器新增参数（请求值与生效值都写 `Player.json`）：`-p3-thickness`、`-p3-fullres`、`-p3-budget`、`-p3-denoiser-radius`。
+- 指标：`seam_metric.py` 新增 `ssRtBoundaryNormalized`（边界台阶 ÷ 边界外侧本地梯度），替代被内容主导的原始 median 门禁。
+- 代码（P3-only；P1 回滚不读）：合并核同表面邻居借用（alpha ≤ 0.5）、剪影置信度（命中像素深度边缘 → 交出覆盖率份额）、R1 按 wanted 密度分配配额。
+- 全分辨率与 denoiser 参数只作 A/B 变量，不改 C4；`base` 仍为 fixture 值（半分辨率、radius 8、feedback 0.91–0.96）。
+
+| 项 | 结果 |
+|---|---|
+| 契约 + 单测（`SsrRequestTests`、`SsrP3ContractTests`） | **PASS**：31/31、1 skip（RT payload 编译需 DXR 编辑器），[EditMode.xml](B61/tests/EditMode.xml) |
+| 归因矩阵 12 组 | OPEN（待运行，需重建 P0 Player） |
+| `ssRtBoundaryNormalized` median/p90 base→改进用例下降 | OPEN |
+| P1 回滚冻结哈希（`b1e0a889` / `7fb3e01b` / `1bfd98e9` / `8ab8e569`） | 待复核 |
+| 探针边界不新增 > 0.02 台阶（相对 `ssroff`） | OPEN |
+
 ## 复现
 
 ```powershell

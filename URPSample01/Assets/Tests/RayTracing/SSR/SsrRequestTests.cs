@@ -32,8 +32,10 @@ namespace UnityEditor.Rendering.Universal.Tests
 
         [UnityTest] public IEnumerator GgxSequence() => Check(true,7,true);
         [UnityTest] public IEnumerator NoCandidates() => Check(false,0,false,true);
+        // B6.1: the miss-weighted quota only runs on the P3 path; this case mirrors it.
+        [UnityTest] public IEnumerator WeightedQuota() => Check(true,7,false,false,true);
 
-        static IEnumerator Check(bool history,int frame,bool pbr=false,bool empty=false)
+        static IEnumerator Check(bool history,int frame,bool pbr=false,bool empty=false,bool weighted=false)
         {
             const int W=35,H=19,w=17,h=9,k=11;
             var cs=Object.Instantiate(AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
@@ -62,7 +64,7 @@ namespace UnityEditor.Rendering.Universal.Tests
                     cmd.SetComputeTextureParam(cs,kernel,"_SsrMotionTexture",Tex(W,H,(x,y)=>new Color(x>W*.7f?2:0,0,0,0)));
                     cmd.SetComputeTextureParam(cs,kernel,"_SsrColorPyramid",Tex(W,H,(x,y)=>Color.black));
                 }
-                q.Record(cmd,cs,kernel,w,h,frame); Graphics.ExecuteCommandBuffer(cmd);
+                q.Record(cmd,cs,kernel,w,h,frame,weighted); Graphics.ExecuteCommandBuffer(cmd);
                 var rc=AsyncGPUReadback.Request(q.counters); var ro=AsyncGPUReadback.Request(q.originals); var rq=AsyncGPUReadback.Request(q.requests);
                 while(!rc.done || !ro.done || !rq.done) yield return null;
                 Assert.IsFalse(rc.hasError || ro.hasError || rq.hasError);
@@ -90,13 +92,32 @@ namespace UnityEditor.Rendering.Universal.Tests
                     }
                 }
                 // R1Rank permutes the pixel each lane inspects and R1Scatter writes the first quota
-                // wanted lanes in lane order, tile by tile in the rotating tile order. Mirror both so
-                // the expected queue is the queue the kernels actually build.
-                int tiles=((w+7)/8)*((h+7)/8),quota=Mathf.Max(1,k/tiles);
+                // wanted lanes in lane order, tile by tile in the rotating tile order. B6.1 made the
+                // quota per tile (one reserved slot plus a wanted-weighted share of the remainder),
+                // so the mirror computes the same per-tile quota and walks with that stride.
+                int gx=(w+7)/8, tiles=gx*((h+7)/8);
+                int[] wantedPerTile=new int[tiles];
+                for(int i=0;i<w*h;i++) {
+                    int x=i%w,y=i/w;
+                    int reason=empty || x==0?0:x==1?1:!history?3:x==2?2:x==3?6:x==4?5:4;
+                    if(reason>=3) wantedPerTile[(y/8)*gx+x/8]++;
+                }
+                int totalWanted=0; foreach(var c in wantedPerTile) totalWanted+=c;
+                int evenQuota=Mathf.Max(1,k/tiles);
+                int QuotaFor(int t) {
+                    int wn=wantedPerTile[t];
+                    if(wn==0) return 0;
+                    if(!weighted || k<=tiles) return Mathf.Min(evenQuota,wn);
+                    int quota=1+(totalWanted>0?(k-tiles)*wn/totalWanted:0);
+                    return Mathf.Min(quota,wn);
+                }
                 for(int j=0;j<tiles;j++) {
-                    int t=(frame+j)%tiles,n=0;
+                    int t=(frame+j)%tiles,n=0,quota=QuotaFor(t);
+                    // The P1 rollback keeps the even-split stride; the weighted path strides by the
+                    // tile's own served count.
+                    int stride=weighted?quota:evenQuota;
                     for(int lane=0;lane<64 && n<quota && expected.Count<k;lane++) {
-                        int order=(lane+quota*frame+t*17)%64,x=t%3*8+order%8,y=t/3*8+order/8;
+                        int order=(lane+stride*frame+t*17)%64,x=t%gx*8+order%8,y=t/gx*8+order/8;
                         if(empty || x>=w || y>=h || x<2 || (history && x==2)) continue;
                         expected.Add(y*w+x); n++;
                     }
@@ -153,6 +174,12 @@ namespace UnityEditor.Rendering.Universal.Tests
                     Make(w, h, (x, y) => { int i = y * w + x; return new Color(1, 1, 1, Ss(i)); }));
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrHwHistory",
                     Make(w, h, (x, y) => Hw(y * w + x)));
+                // B6.1: the merge kernel now reads the receiver geometry for the neighbourhood
+                // borrow, so every dispatch has to bind it even when no slot needs the borrow.
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrDepthTexture",
+                    Make(w, h, (x, y) => new Color(0.5f, 0, 0, 0)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrNormalTexture",
+                    Make(w, h, (x, y) => new Color(0, 0, 1, 1)));
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrOutputTextureRW", output);
                 cmd.DispatchCompute(cs, kernel, (w + 7) / 8, (h + 7) / 8, 1);
                 Graphics.ExecuteCommandBuffer(cmd);
@@ -258,6 +285,80 @@ namespace UnityEditor.Rendering.Universal.Tests
                     Assert.AreEqual(0f, isolated.w, 1e-3f, "depth step weight row " + y);
                 }
                 TestContext.Out.WriteLine("PBR reproject fill: " + data[8] + "; depth step: " + data[24]);
+            }
+            foreach (var o in owned) Object.DestroyImmediate(o);
+        }
+        // B6.1: a slot with no coverage (screen-space miss not yet served by the hardware fill)
+        // borrows a partial sample from its same-surface cardinal neighbours, so the coverage
+        // boundary is a ramp before the denoiser. A depth step must not leak radiance across it.
+        [UnityTest] public IEnumerator PbrHwMergeFillsMissedFromNeighbours()
+        {
+            const int W = 8, H = 6;
+            const float flat = -47f, step = -46f;
+            var cs = Object.Instantiate(AssetDatabase.LoadAssetAtPath<ComputeShader>(
+                "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
+            var owned = new List<Object> { cs };
+            Texture2D Make(int x, int y, System.Func<int, int, Color> f)
+            {
+                var tex = new Texture2D(x, y, TextureFormat.RGBAFloat, false, true);
+                var pixels = new Color[x * y];
+                for (int j = 0; j < y; j++) for (int i = 0; i < x; i++) pixels[i + j * x] = f(i, j);
+                tex.SetPixels(pixels); tex.Apply(); owned.Add(tex); return tex;
+            }
+            var output = new RenderTexture(W, H, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear)
+                { enableRandomWrite = true, useMipMap = false };
+            output.Create(); owned.Add(output);
+
+            // Column 2 is a missed centre on the flat surface (two horizontal neighbours are valid
+            // full-coverage samples). The strip from column 6 on is one world unit closer and
+            // entirely uncovered, so no neighbour can be borrowed across the depth step.
+            bool UncoveredColumn(int x) => x >= 6;
+
+            using (var q = new SsrRequestQueue(W * H, 0))
+            using (var cmd = new CommandBuffer())
+            {
+                q.originals = new ComputeBuffer(W * H, 80);
+                var samples = new Sample[W * H];
+                for (int i = 0; i < samples.Length; i++)
+                {
+                    samples[i].slot = (uint)i;
+                    samples[i].reason = 2; samples[i].request = 0f; samples[i].ss = 1f;
+                }
+                samples[2 * W + 2].reason = 4; samples[2 * W + 2].request = 1f; samples[2 * W + 2].ss = 0f;
+                samples[2 * W + 6].reason = 4; samples[2 * W + 6].request = 1f; samples[2 * W + 6].ss = 0f;
+                q.originals.SetData(samples);
+
+                int kernel = cs.FindKernel("SsrPbrHwMerge");
+                cmd.SetGlobalMatrix("unity_MatrixInvVP", Matrix4x4.identity);
+                cmd.SetComputeVectorParam(cs, "_SsrCameraPositionWS", new Vector4(0, 0, 3, 0));
+                cmd.SetComputeVectorParam(cs, "_SsrScreenSize", new Vector4(W, H, 1f / W, 1f / H));
+                cmd.SetComputeVectorParam(cs, "_SsrTraceSize", new Vector4(W, H, 1f / W, 1f / H));
+                cmd.SetComputeBufferParam(cs, kernel, "_R1Original", q.originals);
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrMergeSource",
+                    Make(W, H, (x, y) => UncoveredColumn(x) ? new Color(0, 0, 0, 0) : new Color(2, 2, 2, x == 2 ? 0f : 1f)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrHwHistory", Make(W, H, (x, y) => Color.clear));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrDepthTexture",
+                    Make(W, H, (x, y) => new Color(x >= 6 ? step : flat, 0, 0, 0)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrNormalTexture", Make(W, H, (x, y) => new Color(0, 0, 1, 1)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrOutputTextureRW", output);
+                cmd.DispatchCompute(cs, kernel, (W + 7) / 8, (H + 7) / 8, 1);
+                Graphics.ExecuteCommandBuffer(cmd);
+
+                var readback = AsyncGPUReadback.Request(output, 0, TextureFormat.RGBAFloat);
+                while (!readback.done) yield return null;
+                Assert.IsFalse(readback.hasError);
+                var data = readback.GetData<Vector4>();
+                // Two accepted neighbours with a = 1 each: radiance is the borrowed 2.0, alpha is
+                // 0.5 * mean coverage (the probe keeps the other half).
+                var filled = data[2 * W + 2];
+                Assert.AreEqual(2f, filled.x, 1e-3f, "fill r");
+                Assert.AreEqual(2f, filled.y, 1e-3f, "fill g");
+                Assert.AreEqual(2f, filled.z, 1e-3f, "fill b");
+                Assert.AreEqual(0.5f, filled.w, 1e-3f, "fill alpha");
+                var isolated = data[2 * W + 6];
+                Assert.AreEqual(0f, isolated.x, 1e-3f, "depth step r");
+                Assert.AreEqual(0f, isolated.w, 1e-3f, "depth step alpha");
+                TestContext.Out.WriteLine("merge fill: " + filled + "; depth step: " + isolated);
             }
             foreach (var o in owned) Object.DestroyImmediate(o);
         }

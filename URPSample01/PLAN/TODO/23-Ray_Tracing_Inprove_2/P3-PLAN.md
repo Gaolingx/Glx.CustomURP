@@ -237,7 +237,33 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 - **P3 强制命中核**：`ssrAfterGbuffer` 原不依赖 `hitDeferredShading`，开关关闭时 SS 侧走核、RT 侧走 closest-hit，B4 的“P3 下所有命中由核着色”不成立。现 `DispatchHitDeferred` 使用 `hitDeferredShading || ssrAfterGbuffer`，并在 `Player.json` 记录生效值。
 - 影响：P3 路径像素（尤其阴影中的反射）会变化，B6 的 `p3` 证据继续失效；D3D11 无 SS 核，行为不变。门禁 2（SS/RT 一致性）应受益，但仍需 B6.1 重测。
 
-## 6. 验收（B6 已执行；B7/B8 之后 P3 路径需 B6.1 重测）
+### B6.1 归因矩阵 + 覆盖率连续化（B8 之后）
+
+> **状态：代码就绪（2026-11-27，像素待 B6.1 运行）。** 目标是把“剩余可见缝”从颜色缝拆成两个可分别量测的源：覆盖/可见性台阶与半分辨率量化。不改任何缓冲布局，P1 回滚路径保持逐位不变（所有新行为只在 `_GLX_SSR_SHADE_SS` / P3 合并核 / `_R1WeightedQuota` 内生效）。契约与单测：`SsrRequestTests` + `SsrP3ContractTests` 31/31 通过、1 skip（RT payload 编译需 DXR 编辑器），证据 `validation/P3/B61/tests/EditMode.xml`。
+
+**归因矩阵（单构建、双 API、两进程）**：[run_b61.ps1](validation/P3/run_b61.ps1)
+
+| 用例 | 参数 | 隔离的嫌疑 |
+|---|---|---|
+| `base` | fixture 值（半分辨率、thickness 0.01、K 32768、denoise 开） | 参照 |
+| `thick` | `-p3-thickness 0.05` | 掠射/厚度二值接受（反射上缘被啃掉） |
+| `k-low` | `-p3-budget 8192` | 预算稀疏导致 miss 像素在 HW 历史收敛前落到 probe（队列上限 32768，K 只能降不能升） |
+| `fullres` | `-p3-fullres 1` | 半分辨率命中 UV 量化（锯齿尺度） |
+| `nodenoise` | variant `nodenoise` | 把覆盖台阶与 denoiser 平滑分开 |
+| `p1` | `-p3-ssr-rollback` | 回滚哈希回归（`b1e0a889`/`7fb3e01b` 等不得变化） |
+
+抓帧器新增 `-p3-thickness/-p3-fullres/-p3-budget/-p3-denoiser-radius`，请求值与生效值都写进 `Player.json`（`p3ThicknessRequested` 等）。
+
+**指标（门禁 1 改法）**：`seam_metric.py` 新增 `ssRtBoundaryNormalized`——SS↔RT 边界台阶除以边界外侧的本地梯度（`ssRtOuter`），median/p90/mean 三个比值。理由是 B6 的原始 median 被内容主导（`ssroff` 对照反而更低）；归一化后 1.0 表示“缝不比场景自身梯度更锐”，可直接跨用例比较。
+
+**代码改动（P3-only，均不改 ABI）**：
+1. **覆盖率软化**（`SsrPbrHwMerge`）：中心 `a == 0` 时，从 4 邻居（十字）借用已覆盖样本——要求同表面（深度容差 `0.01 × 视距`、法线 `dot > 0.9`、roughness 差 `≤ 0.02`）、每条来源自身有效、至少 2 个邻居被接受；借用 alpha 上限 0.5（probe 始终保留份额）。HW 历史通过邻居的 `min(1-s, requestShare)` 一并读取，等价于给 HW 历史加空间 tap。
+2. **掠射/剪影置信度**（P3 reproject）：在命中像素做 3×3 深度边缘检测，`confidence = saturate(1 - edgeNorm / threshold)`，用 `ssShare × confidence` 发布；剪影处自动让出份额给 probe/HW，硬边变成 1–2 px 的斜坡。
+3. **HW 预算按 miss 密度分配**（`R1Quota`/`R1Offsets`/`R1Rank`）：每 tile 先保留 1 个配额，其余 `K − tiles` 按 `wanted` 占比分配，配额上限为该 tile 的 wanted 数；窗口步长改为该 tile 实际配额。`_R1WeightedQuota` 由 `ssrAfterGbuffer` 门控，P1 仍均分；K ≤ tiles 时也退回均分。确定性不变（无原子加）。
+
+**验收补丁**：门禁 1 用 `ssRtBoundaryNormalized` 的 median/p90（用例内 base→改进用例下降），门禁 2 用 `region` 的 SS/RT 均值差（归一化到 ROI 均值）；新增判据——P3 帧相对 `ssroff` 的探针边界不得新增 > 0.02 的台阶。回滚用例与 B6 冻结哈希逐位一致。
+
+
 
 沿用 plan.md §P3 六条，其中 1/2 的度量口径细化（P1 已证明原口径被内容/历史主导）：
 

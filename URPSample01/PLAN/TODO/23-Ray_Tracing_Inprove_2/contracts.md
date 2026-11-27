@@ -5,6 +5,7 @@
 **修订：** 2026-11-27 新增 C2.7（P1，additive：新缓冲 + 新版本位）；同日 P1 传输修订：ray payload 24 → 64 字节（closest-hit 不得写 UAV，表面经 payload 回传），发布结果仍为 24 字节；同日 **P3 修订**：C1 注入点 206→220（回滚保留 206），C2 `flags` 增 SS 位，C2.7 `source` 增 `gbuffer=2`（mask 扩到 2 bit，版本仍 1），C8 新增 `SsrShadeSurface` 共享与 pass 事件 tripwire。P3 不改任何缓冲的 stride 或 24B/64B/80B 布局。
 **B7 修订（同日）：** P3 注入点再移到 `AfterRenderingGbuffer + 1`（221）、材质绑定 222，使 SSR 严格晚于 Decal GBuffer（220）；225 增可用性门控（GBuffer 只在 225 可执行时才去镜面）；reason 6 保留硬件覆盖补集（SS 不进硬件历史，但边补集复投影硬件历史）；225 环境源接 A2/A3（`_GLX_SSR_PROBE_ENV` 门控探针声明）。仍不改任何缓冲布局。
 **B8 修订（同日）：** SS 命中核补齐与 RT 核相同的阴影 multi_compile（否则共享着色的阴影项为常量 1）；`ssrAfterGbuffer` 为真时强制运行 RT 命中核，保证 P3 下所有命中由同一核着色。不改缓冲布局，也不改事件号。
+**B6.1 修订（2026-11-27）：** 覆盖率连续化与预算分配，**全部 P3-only / P1 回滚逐位不变**：① P3 命中份额乘剪影置信度（命中像素 3×3 深度边缘检测，`deviceDepth` 相对差 0.05 截止）；② P3 合并核在中心 `a==0` 时从同表面十字邻居借用部分样本（同深度容差 `0.01×视距`、法线 `dot>0.9`、roughness 差 `≤0.02`、至少 2 个邻居、借用 alpha ≤ 0.5）；③ R1 每 tile 配额 = 1 + 预算余量 × wanted/总 wanted（上限 wanted），由 `_R1WeightedQuota` 门控、仅 `ssrAfterGbuffer` 为真时开启，P1 仍为均分。不改任何缓冲 stride；P1 路径（206 注入、R2Composite/旧复投影、均分配额）不读这些新行为。
 **适用范围：** 本轮 P1–P3 的全部改动。任何一条契约被打破，都必须先改本文件、改 tripwire 测试、重录基线，再进实现。
 
 ## C1. Pass 顺序与资源生命周期
@@ -79,6 +80,7 @@ hit 表面记录只承载标准 PBR 字段：baseColor、specular occlusion、no
 - `a == 0` 表示"保持 probe/sky"，不得解释为黑色反射。
 - 权重构成：smoothness fade × screen-edge fade × RT 覆盖率，乘积夹在 [0,1]。
 - **P3 覆盖率（B7）**：SS 份额 = `ssShare`（edge × roughness fade）；硬件份额 = `min(1 - s, requestShare)`，只有 reason 6（屏幕边缘部分覆盖）两者同时非零。SS 辐射不得进入硬件历史（避免二次合并），但 reason 6 的硬件补集必须由 `R2Temporal` 复投影硬件历史保留；合并核按 `s·SS + hw·HW` 归一化，`a = s + hw`。
+- **P3 覆盖率连续化（B6.1）**：SS 份额在发布前乘剪影置信度（命中像素邻域深度边缘检测）；合并核中心 `a == 0` 时可用同表面邻居的合并样本填充，借用 alpha 上限 0.5（probe 始终保留份额），邻居几何门槛与 `SsrFillMissedPixel` 一致。该填充写在 denoiser 之前，denoiser 仍只负责噪声/历史，不承担缝修复（C4 不变）。
 - **P3 禁止**：改为预乘、把权重塞进 alpha 以外通道、在材质端二次乘 BRDF。
 
 ## C4. Denoiser 契约

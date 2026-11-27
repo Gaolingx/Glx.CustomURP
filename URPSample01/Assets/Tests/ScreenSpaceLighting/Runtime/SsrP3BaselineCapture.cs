@@ -44,6 +44,13 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
     bool m_P3SsrAfterGbuffer;
     bool m_P3SsrRollback;
     string m_P3SsrIndirect;
+    // B6.1 attribution matrix overrides. Negative means "keep the fixture value". They are applied
+    // on top of the variant so the matrix stays one build and the requested values land in
+    // Player.json next to the values the volume/feature actually resolved.
+    float m_P3Thickness = -1f;
+    int m_P3FullResolution = -1;
+    int m_P3DenoiserRadius = -1;
+    int m_P3Budget = -1;
     // Steady-state sequence (-p3-static N): after the capture frame the player keeps rendering the
     // static camera so the ROI luma variance (D5 #5) and native frame timing (gate 5) can be
     // measured. Only every k_StaticSampleStride-th frame is read back, so the other frames time
@@ -131,6 +138,11 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         public bool p3SsrAfterGbufferRequested;
         public bool p3SsrRollbackRequested;
         public string p3SsrIndirectRequested;
+        // B6.1 attribution overrides; negative = the fixture value was used.
+        public float p3ThicknessRequested;
+        public int p3FullResolutionRequested;
+        public int p3DenoiserRadiusRequested;
+        public int p3BudgetRequested;
         public bool featureSsrAfterGbuffer;
         public string featureSsrIndirectSource;
         public string featureReadback;
@@ -236,6 +248,14 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         m_P3SsrAfterGbuffer = HasFlag("-p3-ssr-after-gbuffer");
         m_P3SsrRollback = HasFlag("-p3-ssr-rollback");
         m_P3SsrIndirect = Arg("-p3-ssr-indirect");
+        if (float.TryParse(Arg("-p3-thickness"), NumberStyles.Float, CultureInfo.InvariantCulture, out var thickness) && thickness >= 0f)
+            m_P3Thickness = thickness;
+        if (int.TryParse(Arg("-p3-fullres"), out var fullRes) && fullRes >= 0)
+            m_P3FullResolution = fullRes;
+        if (int.TryParse(Arg("-p3-denoiser-radius"), out var denoiserRadius) && denoiserRadius > 0)
+            m_P3DenoiserRadius = denoiserRadius;
+        if (int.TryParse(Arg("-p3-budget"), out var budget) && budget > 0)
+            m_P3Budget = budget;
         if (int.TryParse(Arg("-p3-static"), out var staticFrames) && staticFrames > 0)
             m_StaticFrames = staticFrames;
         if (int.TryParse(Arg("-p3-warmup"), out var warmupOverride) && warmupOverride > 0)
@@ -318,6 +338,15 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
                 m_Error = "Unknown -p3-variant: " + m_Variant;
                 break;
         }
+
+        // B6.1: the attribution matrix reuses this one build. Overrides are the last write so the
+        // variant (base/nodenoise/ssroff) still defines the baseline behaviour.
+        if (m_P3Thickness >= 0f)
+            ssr.depthBufferThickness.Override(m_P3Thickness);
+        if (m_P3FullResolution >= 0)
+            ssr.fullResolution.Override(m_P3FullResolution != 0);
+        if (m_P3DenoiserRadius > 0)
+            ssr.denoiserRadius.Override(m_P3DenoiserRadius);
     }
 
     void EndCamera(ScriptableRenderContext context, Camera camera)
@@ -633,6 +662,10 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             p3SsrAfterGbufferRequested = m_P3SsrAfterGbuffer,
             p3SsrRollbackRequested = m_P3SsrRollback,
             p3SsrIndirectRequested = m_P3SsrIndirect,
+            p3ThicknessRequested = m_P3Thickness,
+            p3FullResolutionRequested = m_P3FullResolution,
+            p3DenoiserRadiusRequested = m_P3DenoiserRadius,
+            p3BudgetRequested = m_P3Budget,
             unityFrameAtCapture = Time.frameCount,
             firstUnityFrame = m_FirstUnityFrame,
             variantApplied = m_Variant,
@@ -796,6 +829,12 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             int index = ParseIndirect(m_P3SsrIndirect);
             if (indirect != null && index >= 0)
                 indirect.SetValue(settings, Enum.ToObject(indirect.FieldType, index));
+
+            // B6.1: the hardware fill budget is a feature field, not a volume parameter, so the
+            // matrix has to override it here before the first render builds the request queue.
+            var budget = type.GetField("reflectionRayBudget", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (budget != null && m_P3Budget > 0 && budget.FieldType == typeof(int))
+                budget.SetValue(settings, m_P3Budget);
         }
         catch (Exception exception)
         {

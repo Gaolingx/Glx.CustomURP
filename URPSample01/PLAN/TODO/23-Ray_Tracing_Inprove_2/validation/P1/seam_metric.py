@@ -135,6 +135,21 @@ def measure(luma, pairs, outer):
     return summarize(steps), summarize(outer_steps)
 
 
+def normalize(boundary, gradient):
+    """B6.1: the raw step is content dominated (a high-contrast reflected object next to
+    sky beats any shading difference), so the gate reads the boundary step relative to the
+    local gradient just outside it. 1.0 means the SS/RT edge is no sharper than the scene's
+    own gradients; values well above 1 are the seam."""
+    median_gradient = gradient.get("median", 0.0)
+    p90_gradient = gradient.get("p90", 0.0)
+    eps = 1e-9
+    return {
+        "boundaryMedianOverGradientMedian": boundary.get("median", 0.0) / max(median_gradient, eps),
+        "boundaryP90OverGradientP90": boundary.get("p90", 0.0) / max(p90_gradient, eps),
+        "boundaryMeanOverGradientMean": boundary.get("mean", 0.0) / max(gradient.get("mean", 0.0), eps),
+    }
+
+
 def region_means(luma, reasons, ss_share):
     ss, rt, other = [], [], []
     for ty in range(TH):
@@ -203,6 +218,7 @@ def main():
             "region": region_means(luma, reasons, ss_share),
             "ssRtBoundary": ss_rt,
             "ssRtOuter": ss_rt_outer,
+            "ssRtBoundaryNormalized": normalize(ss_rt, ss_rt_outer),
         }
         if served_pairs is not None:
             served_steps, _ = measure(luma, served_pairs, [])

@@ -690,7 +690,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrMotionTexture,motion);
                 cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrColorPyramid,m_History.readColorPyramid);
             }
-            requestQueue.Record(cmd,cs,kernel,w,h,Time.frameCount);
+            requestQueue.Record(cmd,cs,kernel,w,h,Time.frameCount, m_Settings != null && m_Settings.ssrAfterGbuffer);
         }
 
         void Dispatch(
@@ -839,6 +839,10 @@ namespace UnityEngine.Rendering.Universal
                     m_History.GetSsrHwHistory(m_History.ssrHwWriteSlot));
                 cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
                     m_History.ssrPbrOriginal);
+                // B6.1: the merge borrows radiance from same-surface neighbours for slots with no
+                // coverage, so it needs the receiver geometry the reprojection used.
+                cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depthTexture);
+                cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
                 cmd.DispatchCompute(compute, mergeKernel, traceGroupsX, traceGroupsY, viewCount);
                 m_History.SwapSsrHwBuffers();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
             this.seed = seed;
         }
 
-        internal void Record(CommandBuffer cmd, ComputeShader cs, int kernel, int width, int height, int frame)
+        internal void Record(CommandBuffer cmd, ComputeShader cs, int kernel, int width, int height, int frame, bool weightedQuota = false)
         {
             if (budget == 0) return;
             int gx = (width+7)/8, gy = (height+7)/8;
@@ -52,6 +52,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetBufferData(counters,s_Zero);
             cmd.SetComputeIntParam(cs,"_R1Phase",unchecked(frame+seed));
             cmd.SetComputeIntParam(cs,"_R1K",k);
+            // B6.1: the miss-weighted allocation is P3-only; the rollback path keeps its frozen
+            // even-split frame hashes.
+            cmd.SetComputeIntParam(cs,"_R1WeightedQuota",weightedQuota ? 1 : 0);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Original",originals);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Counts",counters);
             // The classify kernel owns the per-tile mask and count now; the tile pass is gone.

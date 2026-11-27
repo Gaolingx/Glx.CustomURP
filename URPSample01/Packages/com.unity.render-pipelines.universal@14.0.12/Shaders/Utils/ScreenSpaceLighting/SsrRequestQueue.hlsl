@@ -6,6 +6,9 @@ RWStructuredBuffer<uint2> _R1Tile; // count then exclusive base in rotated tile 
 RWStructuredBuffer<uint2> _R1Mask; // wanted bit per pixel, 64 bits per tile
 RWStructuredBuffer<uint> _R1Counts; // eligible, requested, served, overflow, then histogram
 uint _R1K, _R1Phase;
+// B6.1: weighted quota is a P3-path decision. The P1 rollback path keeps the even split, so its
+// frozen frame hashes do not move.
+uint _R1WeightedQuota;
 float _SsrRayLength; // volume rayLength, already clamped to the camera far plane
 
 uint2 R1Grid() { return ((uint2)_SsrTraceSize.xy + 7) / 8; }
@@ -16,6 +19,23 @@ uint R1Quota()
 {
     uint tiles = max(1u, R1Grid().x * R1Grid().y);
     return max(1u, _R1K / tiles);
+}
+// B6.1: an even split wastes the budget on tiles whose reflections are already fully resolved and
+// starves the tiles where the screen-space trace missed (the reflection silhouettes). Every tile
+// with requests keeps one slot, and the rest of the budget is shared by the wanted count, capped
+// at the tile's own wanted count. The total never exceeds K, so the scatter budget check and the
+// rotation stay exact; K <= tiles falls back to the even split so no tile starves outright.
+// wanted is a tile count (<= 64), so the product below stays well inside 32 bits.
+uint R1TileQuota(uint wanted, uint totalWanted)
+{
+    if (wanted == 0u)
+        return 0u;
+    uint tiles = max(1u, R1Grid().x * R1Grid().y);
+    if (_R1WeightedQuota == 0u || _R1K <= tiles)
+        return min(R1Quota(), wanted);
+    uint extra = _R1K - tiles;
+    uint quota = 1u + (totalWanted > 0u ? (extra * wanted) / totalWanted : 0u);
+    return min(quota, wanted);
 }
 
 #if defined(SSR_R1_HISTORY) || defined(SSR_R1_COLD)
@@ -125,7 +145,10 @@ void R1Rank(uint2 tile, uint lane, out uint slot, out uint rank, out uint count)
 {
     uint t = R1TileId(tile);
     uint2 bits = _R1Mask[t];
-    uint order = (lane + R1Quota() * _R1Phase + t*17) % 64;
+    // B6.1: on the P3 path the window stride is the tile's own served count, so a weighted quota
+    // still advances disjoint pixel sets per frame. The P1 rollback keeps the even-split stride.
+    uint quota = _R1WeightedQuota != 0u ? _R1Tile[t].x : R1Quota();
+    uint order = (lane + quota * _R1Phase + t*17) % 64;
     uint2 coord = tile*8 + uint2(order%8,order/8);
     slot = coord.y*(uint)_SsrTraceSize.x+coord.x;
     // Pixels outside the trace size never set a bit, so the mask carries the bounds check too.
@@ -147,7 +170,9 @@ groupshared uint r1Scan[R1_SCAN_LANES];
 void R1Offsets(uint3 id : SV_DispatchThreadID)
 {
     uint lane=id.x;
-    uint2 grid=R1Grid(); uint tiles=max(1u,grid.x*grid.y); uint quota=R1Quota();
+    uint2 grid=R1Grid(); uint tiles=max(1u,grid.x*grid.y);
+    // B6.1: quota is per tile now, shared by the frame's wanted count (written by R1Original).
+    uint totalWanted=_R1Counts[1];
     uint chunk=(tiles+R1_SCAN_LANES-1)/R1_SCAN_LANES;
     uint begin=min(lane*chunk,tiles), end=min(begin+chunk,tiles);
     uint rotate=_R1Phase%tiles;
@@ -155,7 +180,7 @@ void R1Offsets(uint3 id : SV_DispatchThreadID)
     for(uint p=begin;p<end;++p)
     {
         uint t=rotate+p; if(t>=tiles) t-=tiles;
-        local+=min(quota,_R1Tile[t].x);
+        local+=R1TileQuota(_R1Tile[t].x,totalWanted);
     }
     r1Scan[lane]=local;
     GroupMemoryBarrierWithGroupSync();
@@ -172,7 +197,7 @@ void R1Offsets(uint3 id : SV_DispatchThreadID)
     for(uint p=begin;p<end;++p)
     {
         uint t=rotate+p; if(t>=tiles) t-=tiles;
-        uint n=min(quota,_R1Tile[t].x);
+        uint n=R1TileQuota(_R1Tile[t].x,totalWanted);
         _R1Tile[t]=uint2(n,base); base+=n;
     }
     // Degenerate K < tiles: the scatter bounds check drops whatever exceeds the budget.
