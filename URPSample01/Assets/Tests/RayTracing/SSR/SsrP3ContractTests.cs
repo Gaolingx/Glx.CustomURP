@@ -436,6 +436,31 @@ public sealed class SsrP3ContractTests
             "The Setup pass must report whether the published probe generation is bound.");
     }
 
+    // --- B8 audit follow-up: both hit kernels must compile the same shadow set, and P3 cannot leave
+    // the RT side on the closest-hit approximation while the SS side uses the shared kernel.
+    [Test]
+    public void SsrHitKernels_ShareTheShadowKeywords()
+    {
+        foreach (var file in new[] { "SsrHitDeferred.compute", "SsrHitSs.compute" })
+        {
+            var source = ReadPackage("Shaders/Utils/ScreenSpaceLighting/" + file).Replace("\r\n", "\n");
+            StringAssert.Contains("#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE", source,
+                file + " must compile the main-light shadow variants; without them the shared shading sees no shadows (D3).");
+            StringAssert.Contains("#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS", source,
+                file + " must compile the additional-light shadow variant; without it every additional light is unshadowed (D3).");
+        }
+    }
+
+    [Test]
+    public void SsrP3_ForcesTheDeferredHitKernel()
+    {
+        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
+        StringAssert.Contains("m_Settings.hitDeferredShading||m_Settings.ssrAfterGbuffer", pass,
+            "P3 must run the RT hit kernel even when hitDeferredShading is off, or SS and RT hits use different shading.");
+        StringAssert.Contains("s_HitDeferredSettings=useDeferredHitShading;", pass,
+            "The evidence flag must record the effective decision, not only the serialized switch.");
+    }
+
     [Test]
     public void SsrIndirectKernels_Compile()
     {

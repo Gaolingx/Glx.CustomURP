@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** P3 B7 审计修正已落地（2026-11-27，代码/静态；像素待 B6.1）——SSR 221 / 绑定 222（严格晚于 Decal 220）、225 可用性门控、reason 6 保留硬件补集、225 环境源接 A2/A3。**B6 的 `p3` 证据因此失效**（`p1` 回滚哈希不变），门禁 1/2/3/5 需重测；`ssrAfterGbuffer` 仍默认关闭。B6 原始结论见下文；证据在 [validation/P3](validation/P3/README.md)。
+**当前阶段：** P3 B7/B8 审计修正已落地（2026-11-27，代码/静态；像素待 B6.1）——SSR 221 / 绑定 222（严格晚于 Decal 220）、225 可用性门控、reason 6 保留硬件补集、225 环境源接 A2/A3；B8 又补齐 SS 命中核的阴影变体并让 P3 强制运行 RT 命中核。**B6 的 `p3` 证据因此失效**（`p1` 回滚哈希不变），门禁 1/2/3/5 需重测；`ssrAfterGbuffer` 仍默认关闭。B6 原始结论见下文；证据在 [validation/P3](validation/P3/README.md)。
 
 ## 已完成
 
@@ -93,6 +93,12 @@ B6 审计发现四个缺口，已按“代码先行、像素待 B6.1”落地：
 
 影响：`Win64-*/p3/*` 的 B6 证据对 B7 HEAD 失效，门禁 1/2/3/5 需在 B6.1 重测；`p1` 回滚哈希应保持不变。契约测试新增事件/门控/补集/A2 断言与两个命中核的编译 smoke test，结果落 [validation/P3/tests/ContractTests-B7.xml](validation/P3/tests/ContractTests-B7.xml)。
 
+## P3 B8 审核补充（2026-11-27，B7 之后）
+
+- **SS 命中核缺阴影变体**：`SsrHitSs.compute` 只声明了 `_GBUFFER_NORMALS_OCT`，共享着色在缺 `_MAIN_LIGHT_SHADOWS(_CASCADE)`/`_ADDITIONAL_LIGHT_SHADOWS` 时把阴影项编译成常量 1（`ClusteredDeferred.hlsl` 的 `!defined(CD_MAIN_LIGHT_CALCULATE_SHADOWS)` 分支），于是 SS 命中无阴影、RT 命中单 tap 阴影——直接违反 D3 的 SHADOW_LOW 同口径，也是门禁 2 未解释差的候选来源（B6 的 RenderDoc 反汇编只检查了 RT 核）。现补齐同一组变体，tripwire 对两个核同时断言。
+- **P3 只统一了一半**：`ssrAfterGbuffer` 不依赖 `hitDeferredShading`，开关关闭时 SS 侧走核、RT 侧保留 closest-hit；fixture 靠显式打开才规避。现 `DispatchHitDeferred` 使用 `hitDeferredShading || ssrAfterGbuffer`，P3 下两个命中核无条件运行，`Player.json` 的 `hitDeferredSettings` 记录生效值。
+- 影响：P3 路径的阴影中反射会变化，B6 的 `p3` 证据继续失效；D3D11 无 SS 核、行为不变。门禁 2/3 应受益，仍需 B6.1 重测。
+
 ## 未完成 / 门禁
 
 | Gate | 状态 | 说明 |
@@ -115,7 +121,8 @@ B6 审计发现四个缺口，已按“代码先行、像素待 B6.1”落地：
 | P3 B5 编排与清理 | CLOSED（build/静态，2026-11-27） | marker 统一 `SSR Hit Shading (RT)` / `(SS)`；tripwire 增 `SsrP3_PassOrderIsMonotonic`（B7 起为 221<222<225<230）与 `SsrP3_SwitchDefaultsOffAndKeywordsDeclared`（`ssrAfterGbuffer=false`、两处关键字、marker 名）；回滚 206 路径保留为现役参考 |
 | P3 B7 事件与门控 | CLOSED（代码/静态，2026-11-27） | SSR 221 / 绑定 222（严格晚于 Decal 220）；`CanExecute` 门控 `_GlxSsrAfterGbuffer`，225 不可用时 GBuffer 保持 P1 写镜面并首次告警 |
 | P3 B7 覆盖率与环境源 | CLOSED（代码/静态，2026-11-27） | `R2Temporal` 对 SS 槽复投影硬件历史以保留 reason 6 补集；225 按 `ssrIndirectSource` 支持 A1/A2/A3，A2 受 `_GLX_SSR_PROBE_ENV` 与已发布图集约束 |
-| P3 B6.1 重测（P3 路径） | **OPEN** | B6 的 `p3` 证据对 B7 HEAD 失效；门禁 1/2/3/5 需重跑，A2 需探针夹具；`p1` 回滚哈希用于回归 |
+| P3 B8 阴影与强制命中核 | CLOSED（代码/静态，2026-11-27） | `SsrHitSs.compute` 补齐 `_MAIN_LIGHT_SHADOWS(_CASCADE)`/`_ADDITIONAL_LIGHT_SHADOWS`；`DispatchHitDeferred` 在 `ssrAfterGbuffer` 下无条件运行 |
+| P3 B6.1 重测（P3 路径） | **OPEN** | B6 的 `p3` 证据对 B7/B8 HEAD 失效；门禁 1/2/3/5 需重跑，A2 需探针夹具；`p1` 回滚哈希用于回归 |
 | P3 B6 构建（shader 变体真编） | CLOSED（2026-11-27） | 首次构建 14 个 D3D11 错误（225 核 `unity_MatrixInvVP` 未声明）；修复后 0 错误、`SsrIndirectSpecular` 4 变体全编（`19e819a`） |
 | P3 B6 执行/顺序（RenderDoc） | CLOSED（2026-11-27，B7 之前的 HEAD） | D3D12：RT/SS 命中核各 1 dispatch，225 dispatch 先于 230；D3D11：无 DXR，225 仍先于 230；`_R2Hits` flags 2/10 计数见 [CaptureAnalysis](validation/P3/RenderDoc/CaptureAnalysis.json)。B7 改动事件号后需重抓 |
 | P3 B6 门禁 1（缝） | **NOT MET** | median 0.002364→0.002149（−9.1%）、mean +18.1%；threshold 50%；洋红 mean +7.6%、关闭对照 median 更低 → 内容主导 |

@@ -1,7 +1,7 @@
 # 23 P3 实施计划：SSR 后置 + SS/RT 共用命中着色（根治）
 
 **状态：** B0–B6 完成（2026-11-27）。B6 已执行：24 组抓帧 + RenderDoc 证实 225 与两个命中核在 GPU 上执行；门禁 1（缝）与门禁 3（静止方差字面）NOT MET，门禁 4/6 PASS，门禁 5 PARTIAL/OPEN（GPU 计时器噪声），门禁 2 PARTIAL。证据：[validation/P3](validation/P3/README.md)。`ssrAfterGbuffer` 保持默认关闭。前置：P0 完成、P1 PARTIAL。
-**B7 审计修正（2026-11-27，B6 之后）：** ① 不透明 SSR 移到 221、绑定 222，严格晚于 Decal GBuffer(220)；② 225 增加可用性门控，GBuffer 只在 225 可执行时才去镜面；③ reason 6 保留硬件覆盖补集（SS 不进硬件历史，边补集复投影）；④ 225 环境源接 A2 探针图集 / A3 均匀环境（默认仍 A1）。这些改动使 **P3 路径的 B6 证据失效**（P1 回滚路径哈希不变），门禁 1/2/3/5 需在 B6.1 重测；A2 需要一份开启探针兜底的夹具才能验证。
+**B7 审计修正（2026-11-27，B6 之后）：** ① 不透明 SSR 移到 221、绑定 222，严格晚于 Decal GBuffer(220)；② 225 增加可用性门控，GBuffer 只在 225 可执行时才去镜面；③ reason 6 保留硬件覆盖补集（SS 不进硬件历史，边补集复投影）；④ 225 环境源接 A2 探针图集 / A3 均匀环境（默认仍 A1）。**B8 补充：** ⑤ SS 命中核补齐阴影 multi_compile；⑥ `ssrAfterGbuffer` 强制运行 RT 命中核。这些改动使 **P3 路径的 B6 证据失效**（P1 回滚路径哈希不变），门禁 1/2/3/5 需在 B6.1 重测；A2 需要一份开启探针兜底的夹具才能验证。
 **上位计划：** [plan.md](plan.md) §P3；契约：[contracts.md](contracts.md)。
 **验收方式：** 实现与文档按 B0–B5 逐步提交，**测量统一放到最后的 B6 一批**（含决策 #4/#5 的量化与六项阻断门禁）。
 
@@ -208,7 +208,7 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 
 ### B4 公共着色函数
 > **状态：完成（2026-11-27）。** 抽出 `SsrShadeSurface.hlsl`（`SsrShadedSample { radiance, weight }` + `SsrShadeSurface(CdShade + 环境项)`），`SsrHitDeferred.compute` 改为调用它。
-> 修订：真正的共用范围是**两个 compute 命中核**（RT 核 + B3 的 SS 核）；材质 closest-hit 运行在 per-draw 材质头环境，**无法**包含 compute 的 `ClusteredDeferred.hlsl`，故不接该头，仅作 `hitDeferredShading` 关闭时的 P1 回退（P3 路径下所有命中由核着色）。契约 C8 与 tripwire 同步。
+> 修订：真正的共用范围是**两个 compute 命中核**（RT 核 + B3 的 SS 核）；材质 closest-hit 运行在 per-draw 材质头环境，**无法**包含 compute 的 `ClusteredDeferred.hlsl`，故不接该头，只在 P3 之外、`hitDeferredShading` 关闭时作为 closest-hit 回退；P3（`ssrAfterGbuffer`）下两个命中核无条件运行（B8）。契约 C8 与 tripwire 同步。
 - 抽 `SsrShadeSurface.hlsl`，命中核共用；
 - probe/sky 层级：`rayTracingProbeFallback` 开时绑真实图集并把 `_GlxHitLowFrequencySource = 1`；否则保持 P1 近似。
 
@@ -231,7 +231,13 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 - **环境源 A2/A3**：225 按 `ssrIndirectSource` 选 A1/A2/A3；A2 仅在 Setup 成功绑定已发布探针图集时开启 `_GLX_SSR_PROBE_ENV`（探针为方向化辐照度 ×1/π，无 roughness mip/盒投影）。A1 仍为默认。
 - **测试**：`SsrP3ContractTests` 更新事件断言，新增门控/补集/A2 三条 tripwire 与两个命中的 compute 编译 smoke test。
 
-## 6. 验收（B6 已执行；B7 之后 P3 路径需 B6.1 重测）
+### B8 审核补充（B7 之后，代码先行、像素待 B6.1）
+> **状态：完成（代码/静态，2026-11-27）。** 补齐 B7 审核的两处遗漏：
+- **SS 命中核阴影**：`SsrHitSs.compute` 原来只有 `_GBUFFER_NORMALS_OCT`，共享着色里 `CdMainLightRealtimeShadow`/`CdAdditionalLightRealtimeShadow` 编译成常量 1 → SS 命中无阴影、RT 命中单 tap 阴影。现补齐与 `SsrHitDeferred.compute` 相同的 `_MAIN_LIGHT_SHADOWS(_CASCADE)` / `_ADDITIONAL_LIGHT_SHADOWS` 变体；tripwire 对两个核同时断言。
+- **P3 强制命中核**：`ssrAfterGbuffer` 原不依赖 `hitDeferredShading`，开关关闭时 SS 侧走核、RT 侧走 closest-hit，B4 的“P3 下所有命中由核着色”不成立。现 `DispatchHitDeferred` 使用 `hitDeferredShading || ssrAfterGbuffer`，并在 `Player.json` 记录生效值。
+- 影响：P3 路径像素（尤其阴影中的反射）会变化，B6 的 `p3` 证据继续失效；D3D11 无 SS 核，行为不变。门禁 2（SS/RT 一致性）应受益，但仍需 B6.1 重测。
+
+## 6. 验收（B6 已执行；B7/B8 之后 P3 路径需 B6.1 重测）
 
 沿用 plan.md §P3 六条，其中 1/2 的度量口径细化（P1 已证明原口径被内容/历史主导）：
 

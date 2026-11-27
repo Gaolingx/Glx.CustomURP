@@ -4,6 +4,7 @@
 **基线提交：** `350d18c`
 **修订：** 2026-11-27 新增 C2.7（P1，additive：新缓冲 + 新版本位）；同日 P1 传输修订：ray payload 24 → 64 字节（closest-hit 不得写 UAV，表面经 payload 回传），发布结果仍为 24 字节；同日 **P3 修订**：C1 注入点 206→220（回滚保留 206），C2 `flags` 增 SS 位，C2.7 `source` 增 `gbuffer=2`（mask 扩到 2 bit，版本仍 1），C8 新增 `SsrShadeSurface` 共享与 pass 事件 tripwire。P3 不改任何缓冲的 stride 或 24B/64B/80B 布局。
 **B7 修订（同日）：** P3 注入点再移到 `AfterRenderingGbuffer + 1`（221）、材质绑定 222，使 SSR 严格晚于 Decal GBuffer（220）；225 增可用性门控（GBuffer 只在 225 可执行时才去镜面）；reason 6 保留硬件覆盖补集（SS 不进硬件历史，但边补集复投影硬件历史）；225 环境源接 A2/A3（`_GLX_SSR_PROBE_ENV` 门控探针声明）。仍不改任何缓冲布局。
+**B8 修订（同日）：** SS 命中核补齐与 RT 核相同的阴影 multi_compile（否则共享着色的阴影项为常量 1）；`ssrAfterGbuffer` 为真时强制运行 RT 命中核，保证 P3 下所有命中由同一核着色。不改缓冲布局，也不改事件号。
 **适用范围：** 本轮 P1–P3 的全部改动。任何一条契约被打破，都必须先改本文件、改 tripwire 测试、重录基线，再进实现。
 
 ## C1. Pass 顺序与资源生命周期
@@ -61,7 +62,7 @@
 - 写入范围：只有 `GlxReflectionMode` 的 closest-hit 填 payload 表面字段，raygen 也只在该模式的结果上组装记录；shadow / probe / ProbeGeo 模式一律不写。P3 的 SS 命中由独立命中核 `SsrHitSs.compute` 读当前帧 GBuffer 后构面（不写 80B 记录，只在本地构造 `source = gbuffer` 的 `SsrHitSurface` 并着色），raygen 仍只写 RT 记录。
 - 传输精度：payload 里的法线是八面体 `float2`、金属度标量（raygen 合成 fresnel0），其余为 float；记录通道语义冻结，8bit vs 16F 的打包（P2 A/B）只能改编解码，不得改字段顺序、数量或 stride。
 - P1 着色：`SsrHitDeferred.compute` 解码记录 → `CdShade`（主光 + 全部附加灯，上限 64；shadow atlas 单 tap，SHADOW_LOW 口径）。记录无效、未启用或 compute 缺失时保留 closest-hit 的 radiance。P1 不采 screen-space shadow / cookie / light layer / SSAO / shadowmask；环境光用探测低频辐照度，specular 份额同源近似，P2 换 probe/sky 层级。
-- 开关与回退：`ScreenSpaceLightingSettings.hitDeferredShading`（默认 **关**，P0 基线即 closest-hit）控制是否运行该核。D3D11 / 无光追时不进入 DXR 路径，整条链路保持 P0 的屏幕空间行为；开关开但 compute 缺失时告警一次并保留 closest-hit radiance。注册期拒绝的材质（C2.7）不进 RTAS，命中自然落入 probe/sky。
+- 开关与回退：`ScreenSpaceLightingSettings.hitDeferredShading`（默认 **关**，P0 基线即 closest-hit）控制是否运行该核。D3D11 / 无光追时不进入 DXR 路径，整条链路保持 P0 的屏幕空间行为；开关开但 compute 缺失时告警一次并保留 closest-hit radiance。注册期拒绝的材质（C2.7）不进 RTAS，命中自然落入 probe/sky。**P3 例外（B8）：`ssrAfterGbuffer` 为真时无条件运行该核**——SS 命中与 RT 命中必须共用同一着色路径，否则会重新引入 P3 要消除的着色缝；`Player.json` 的 `hitDeferredSettings` 记录的是生效值。
 
 **材质能力边界**
 
@@ -141,6 +142,8 @@ hit 表面记录只承载标准 PBR 字段：baseColor、specular occlusion、no
 | 接收者重路由门控 | `_GlxSsrAfterGbuffer` 只在 `CanExecute`（compute/kernel/目标 RT/延迟 GBuffer/深度就绪）为真时发 1 | `ScreenSpaceLightingSetupPass.cs`（B7） |
 | 环境源变体 | `_GLX_SSR_PROBE_ENV` 只在 A2 且 Setup 成功绑定已发布探针图集时开启；A1/A3 不声明探针资源 | `SsrIndirectSpecular.compute`（B7，D1） |
 | reason 6 补集 | `R2Temporal` 对 SS 槽不写 SS 辐射，但 `requestShare > 0` 时复投影硬件历史 | `ScreenSpaceReflections.compute`（B7，D4） |
+| 命中核阴影变体 | `SsrHitDeferred.compute` 与 `SsrHitSs.compute` 必须声明同一组 `_MAIN_LIGHT_SHADOWS(_CASCADE)` / `_ADDITIONAL_LIGHT_SHADOWS`；缺任一个时共享着色的阴影项编译成常量 1 | 两个 compute（B8，D3） |
+| P3 强制命中核 | `ssrAfterGbuffer` 为真时 `DispatchHitDeferred` 无条件运行（`hitDeferredShading \|\| ssrAfterGbuffer`） | `SsrPass.cs`（B8，C2.7） |
 | `ssrAfterGbuffer` | 默认 `false`（P3 门禁全绿前） | `ScreenSpaceLightingSettings.cs`（D6） |
 | payload 硬上限 | 64 字节 | 20 号 B0 Freeze |
 | tile | 8×8 | `SsrRequestQueue.hlsl` / `SSR_TILE_SIZE` |

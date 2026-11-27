@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="21" result="Skipped:Ignored" total="21" passed="20" failed="0" inconclusive="0" skipped="1" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.1870136">
+  <test-suite type="TestSuite" id="1750" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="638" result="Skipped" label="Ignored" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.187014" total="21" passed="20" failed="0" inconclusive="0" skipped="1" asserts="0">
+    <properties />
+    <reason>
+      <message><![CDATA[One or more child tests were ignored]]></message>
+    </reason>
+    <test-suite type="Assembly" id="1830" name="Unity.RayTracing.Tests.Editor.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RayTracing.Tests.Editor.dll" runstate="Runnable" testcasecount="55" result="Skipped" label="Ignored" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.171206" total="21" passed="20" failed="0" inconclusive="0" skipped="1" asserts="0">
+      <properties>
+        <property name="_PID" value="54340" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <reason>
+        <message><![CDATA[One or more child tests were ignored]]></message>
+      </reason>
+      <test-suite type="TestFixture" id="1764" name="SsrP3ContractTests" fullname="SsrP3ContractTests" classname="SsrP3ContractTests" runstate="Runnable" testcasecount="21" result="Skipped" label="Ignored" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.169411" total="21" passed="20" failed="0" inconclusive="0" skipped="1" asserts="0">
+        <properties />
+        <reason>
+          <message><![CDATA[One or more child tests were ignored]]></message>
+        </reason>
+        <test-case id="1765" name="GlxBasicPayload_IsTheFrozen64ByteTransport" fullname="SsrP3ContractTests.GlxBasicPayload_IsTheFrozen64ByteTransport" methodname="GlxBasicPayload_IsTheFrozen64ByteTransport" classname="SsrP3ContractTests" runstate="Runnable" seed="2140805931" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.018752" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1767" name="GlxPublishedHit_IsTheFrozen24ByteResult" fullname="SsrP3ContractTests.GlxPublishedHit_IsTheFrozen24ByteResult" methodname="GlxPublishedHit_IsTheFrozen24ByteResult" classname="SsrP3ContractTests" runstate="Runnable" seed="378497557" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.000550" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1770" name="HitShading_IsASwitchAndRejectsUnsupportedMaterials" fullname="SsrP3ContractTests.HitShading_IsASwitchAndRejectsUnsupportedMaterials" methodname="HitShading_IsASwitchAndRejectsUnsupportedMaterials" classname="SsrP3ContractTests" runstate="Runnable" seed="1472887910" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.004310" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1772" name="QueueBuffers_KeepTheFrozenStridesAndTileGrid" fullname="SsrP3ContractTests.QueueBuffers_KeepTheFrozenStridesAndTileGrid" methodname="QueueBuffers_KeepTheFrozenStridesAndTileGrid" classname="SsrP3ContractTests" runstate="Runnable" seed="130083319" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.001325" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1771" name="R1Sample_IsTheFrozen80ByteRecord" fullname="SsrP3ContractTests.R1Sample_IsTheFrozen80ByteRecord" methodname="R1Sample_IsTheFrozen80ByteRecord" classname="SsrP3ContractTests" runstate="Runnable" seed="107893846" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.000523" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1769" name="SsrHitDeferred_ReusesClusteredDeferredAndKeepsTheLegacyFallback" fullname="SsrP3ContractTests.SsrHitDeferred_ReusesClusteredDeferredAndKeepsTheLegacyFallback" methodname="SsrHitDeferred_ReusesClusteredDeferredAndKeepsTheLegacyFallback" classname="SsrP3ContractTests" runstate="Runnable" seed="14084831" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.002145" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1782" name="SsrHitKernels_ShareTheShadowKeywords" fullname="SsrP3ContractTests.SsrHitKernels_ShareTheShadowKeywords" methodname="SsrHitKernels_ShareTheShadowKeywords" classname="SsrP3ContractTests" runstate="Runnable" seed="894922407" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.000519" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1777" name="SsrHitSs_ShadesScreenSpaceHitsFromCurrentGbuffer" fullname="SsrP3ContractTests.SsrHitSs_ShadesScreenSpaceHitsFromCurrentGbuffer" methodname="SsrHitSs_ShadesScreenSpaceHitsFromCurrentGbuffer" classname="SsrP3ContractTests" runstate="Runnable" seed="1334077163" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.001155" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1768" name="SsrHitSurface_IsTheFrozen80ByteReflectionRecord" fullname="SsrP3ContractTests.SsrHitSurface_IsTheFrozen80ByteReflectionRecord" methodname="SsrHitSurface_IsTheFrozen80ByteReflectionRecord" classname="SsrP3ContractTests" runstate="Runnable" seed="235874363" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.001136" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1784" name="SsrIndirectKernels_Compile" fullname="SsrP3ContractTests.SsrIndirectKernels_Compile" methodname="SsrIndirectKernels_Compile" classname="SsrP3ContractTests" runstate="Runnable" seed="822608519" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.087980" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1781" name="SsrIndirectSpecular_SelectsProbeEnvOnlyWhenBound" fullname="SsrP3ContractTests.SsrIndirectSpecular_SelectsProbeEnvOnlyWhenBound" methodname="SsrIndirectSpecular_SelectsProbeEnvOnlyWhenBound" classname="SsrP3ContractTests" runstate="Runnable" seed="308924755" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.001441" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1775" name="SsrIndirectSpecularPass_InjectsBetweenGbufferAndDeferred" fullname="SsrP3ContractTests.SsrIndirectSpecularPass_InjectsBetweenGbufferAndDeferred" methodname="SsrIndirectSpecularPass_InjectsBetweenGbufferAndDeferred" classname="SsrP3ContractTests" runstate="Runnable" seed="699544421" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.000430" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1783" name="SsrP3_ForcesTheDeferredHitKernel" fullname="SsrP3ContractTests.SsrP3_ForcesTheDeferredHitKernel" methodname="SsrP3_ForcesTheDeferredHitKernel" classname="SsrP3ContractTests" runstate="Runnable" seed="844983098" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.001625" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1778" name="SsrP3_PassOrderIsMonotonic" fullname="SsrP3ContractTests.SsrP3_PassOrderIsMonotonic" methodname="SsrP3_PassOrderIsMonotonic" classname="SsrP3ContractTests" runstate="Runnable" seed="768862951" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.000564" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1779" name="SsrP3_ReceiverRerouteRequiresTheComposite" fullname="SsrP3ContractTests.SsrP3_ReceiverRerouteRequiresTheComposite" methodname="SsrP3_ReceiverRerouteRequiresTheComposite" classname="SsrP3ContractTests" runstate="Runnable" seed="1624029915" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.000988" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1785" name="SsrP3_SwitchDefaultsOffAndKeywordsDeclared" fullname="SsrP3ContractTests.SsrP3_SwitchDefaultsOffAndKeywordsDeclared" methodname="SsrP3_SwitchDefaultsOffAndKeywordsDeclared" classname="SsrP3ContractTests" runstate="Runnable" seed="1012895670" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.001487" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1773" name="SsrPass_LegacyEventStaysPrepass6_ForRollback" fullname="SsrP3ContractTests.SsrPass_LegacyEventStaysPrepass6_ForRollback" methodname="SsrPass_LegacyEventStaysPrepass6_ForRollback" classname="SsrP3ContractTests" runstate="Runnable" seed="208653263" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.000235" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1774" name="SsrPass_P3InjectsAfterDecalGbuffer_IsSwitched" fullname="SsrP3ContractTests.SsrPass_P3InjectsAfterDecalGbuffer_IsSwitched" methodname="SsrPass_P3InjectsAfterDecalGbuffer_IsSwitched" classname="SsrP3ContractTests" runstate="Runnable" seed="1377306041" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.001526" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1766" name="SsrRayPayload_CompilesToTheFrozen64ByteSize" fullname="SsrP3ContractTests.SsrRayPayload_CompilesToTheFrozen64ByteSize" methodname="SsrRayPayload_CompilesToTheFrozen64ByteSize" classname="SsrP3ContractTests" runstate="Runnable" seed="986924550" result="Skipped" label="Ignored" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.028314" asserts="0">
+          <properties />
+          <reason>
+            <message><![CDATA[Ray tracing is unavailable on this editor API; rerun with -force-d3d12.]]></message>
+          </reason>
+          <output><![CDATA[Importer(RayTracingShaderImporter) generated inconsistent result for asset(guid:6843167171ab4d5da13564020769b74f) "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace"
+]]></output>
+        </test-case>
+        <test-case id="1776" name="SsrShadeSurface_IsSharedByHitKernels" fullname="SsrP3ContractTests.SsrShadeSurface_IsSharedByHitKernels" methodname="SsrShadeSurface_IsSharedByHitKernels" classname="SsrP3ContractTests" runstate="Runnable" seed="1407270780" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.000729" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1780" name="SsrTemporal_ReprojectsTheHardwareShareForSsSlots" fullname="SsrP3ContractTests.SsrTemporal_ReprojectsTheHardwareShareForSsSlots" methodname="SsrTemporal_ReprojectsTheHardwareShareForSsSlots" classname="SsrP3ContractTests" runstate="Runnable" seed="1113918801" result="Passed" start-time="2026-11-27 06:25:37Z" end-time="2026-11-27 06:25:37Z" duration="0.001201" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

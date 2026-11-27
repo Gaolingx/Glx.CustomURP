@@ -1,6 +1,6 @@
 # 23 实施计划：SS 命中 / RT 命中统一着色（P3 = HDRP Mixed 语义）
 
-**状态：** P0 完成（基线 `2a38d40`，契约已冻结）；A 决策已锁定（§2）；P1 PARTIAL（命中核已执行，缝门禁 NOT MET，见 [validation/P1/README.md](validation/P1/README.md)）；P3 B0–B6 完成、B7 审计修正已落地（注入点 221/绑定 222、225 可用性门控、reason 6 保留硬件补集、225 环境源接 A2/A3），P3 门禁待 B6.1 重测：[P3-PLAN.md](P3-PLAN.md)
+**状态：** P0 完成（基线 `2a38d40`，契约已冻结）；A 决策已锁定（§2）；P1 PARTIAL（命中核已执行，缝门禁 NOT MET，见 [validation/P1/README.md](validation/P1/README.md)）；P3 B0–B6 完成、B7/B8 审计修正已落地（注入点 221/绑定 222、225 可用性门控、reason 6 保留硬件补集、225 环境源接 A2/A3、SS 命中核补阴影变体、P3 强制命中核），P3 门禁待 B6.1 重测：[P3-PLAN.md](P3-PLAN.md)
 **日期：** 2026-11-26
 **目标提交：** `350d18c` 之后
 **契约：** [contracts.md](contracts.md)（P0 冻结，P1–P3 按版本位放宽）

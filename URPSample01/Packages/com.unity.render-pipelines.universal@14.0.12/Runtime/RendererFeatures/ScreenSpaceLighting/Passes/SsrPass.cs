@@ -513,11 +513,18 @@ namespace UnityEngine.Rendering.Universal
         // P1: replace the closest-hit radiance with deferred shading of the published hit
         // surface. Runs between DispatchRays and the temporal merge; invalid records (a miss,
         // an unwritten slot, or a non-reflection source) keep the closest-hit result.
+        //
+        // P3 always uses this kernel: the screen-space hit kernel shades with the same
+        // SsrShadeSurface, so leaving RT hits on the closest-hit approximation would reintroduce the
+        // very shading seam P3 removes.
+        bool useDeferredHitShading => m_Settings != null &&
+                                      (m_Settings.hitDeferredShading || m_Settings.ssrAfterGbuffer);
+
         void DispatchHitDeferred(CommandBuffer cmd)
         {
             s_HitDeferredCalls++;
-            s_HitDeferredSettings = m_Settings != null && m_Settings.hitDeferredShading;
-            if (m_Settings == null || !m_Settings.hitDeferredShading)
+            s_HitDeferredSettings = useDeferredHitShading;
+            if (!useDeferredHitShading)
             {
                 s_HitDeferredSkipsSettings++;
                 return;

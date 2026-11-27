@@ -1,16 +1,22 @@
 // P3 (B3): shade screen-space reflection hits from the current-frame GBuffer.
 //
-// The opaque SSR pass runs after the GBuffer pass (event 220), so an SS hit can be re-shaded from
-// the hit pixel's surface (GBuffer0/1/2 + depth) with the same SsrShadeSurface the RT hit kernel
-// uses. The shaded radiance is published into the slot-indexed _R2Hits with the SS source bit; the
-// reproject kernel then reads it instead of the previous-frame colour pyramid, and R2Temporal only
-// folds RT hits into the hardware history (so SS is not counted twice).
+// The opaque SSR pass runs after the GBuffer and the Decal GBuffer pass (event 221), so an SS hit
+// can be re-shaded from the hit pixel's surface (GBuffer0/1/2 + depth) with the same SsrShadeSurface
+// the RT hit kernel uses. The shaded radiance is published into the slot-indexed _R2Hits with the SS
+// source bit; the reproject kernel then reads it instead of the previous-frame colour pyramid, and
+// R2Temporal only folds RT hits into the hardware history (so SS is not counted twice).
 //
 // The geometric coverage is unchanged: the R1 classification already stored the prev-colour opacity
 // (screen-edge x roughness fade) in ssShare; P3 keeps that coverage and only replaces the radiance.
+//
+// The shadow multi_compile set must match SsrHitDeferred.compute: without it the shared shading
+// compiles CdMainLightRealtimeShadow/CdAdditionalLightRealtimeShadow to a constant 1, so SS hits
+// would look unshadowed next to single-tap-shadowed RT hits (D3 SHADOW_LOW parity).
 #pragma kernel SsrHitSs
 
 #pragma multi_compile _ _GBUFFER_NORMALS_OCT
+#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
 
 #include "../../RayTracing/SsrShadeSurface.hlsl"
 #include "../../RayTracing/GlxPublishedHit.hlsl"
