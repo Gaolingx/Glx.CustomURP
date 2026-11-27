@@ -10,11 +10,13 @@
     "rayTracingReflections": true,
     "reflectionRayBudget": 32768,
     "hitDeferredShading": true,
+    "ssrAfterGbuffer": false,
+    "ssrIndirectSource": "A1",
     "groundMaterial": "Assets/Tests/RayTracing/SSR/Fixture/SsrP3Ground.mat",
     "rayTracingInstances": 14,
-    "frameSceneSHA256": "dccb05eb330cd93d5370a59500cfc6d40864ce99afb16d35f4da2ab972ea1c33",
-    "profileSHA256": "9501af8e070b5e42cc60bb5ad2b98886daa48fac070d3dd5926809daace5617b",
-    "rendererSHA256": "5b19af9c3d9060133b4d452b6beaea0879bb74f75196174acb63cc02cf932ca9",
+    "frameSceneSHA256": "20fefdf252b58da55041da3c7bcfa90b37d3c26826657d1db6290eeaa89b4182",
+    "profileSHA256": "8b673ceeca0b1e79519bac9fbc6445d9b436690ef8ab4be287303a7fd89320f3",
+    "rendererSHA256": "05caa377a540a2d6b7e88637e433badc70f788d9610f6b77b7ba72f74ce18b26",
     "pipelineSHA256": "130801ef4c8c7827810214df03a0255f6f2703abfc9d1544a38dea8a64e1947b",
-    "groundMaterialSHA256": "0c2a9d38077871b21cd14ac912c3093195437d557a6253c1d66ef2997b992306"
+    "groundMaterialSHA256": "1720e3c26438486f2958406fe9b1f21abdf3eb6cb26535f086279e08c578d8e1"
 }
