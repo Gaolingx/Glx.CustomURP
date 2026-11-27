@@ -8,9 +8,10 @@ namespace UnityEngine.Rendering.Universal
     // accumulation, bilateral diffuse denoise and bilateral upsample. Runs after the shared depth
     // pyramid (203) and before the Deferred GBuffer (210) or Forward opaque geometry (250).
     //
-    // The HDRP probe/sky fallback hierarchy is replaced by an explicit weight: a miss stores weight 0
-    // and the Core GlobalIllumination blend keeps the baked GI. This is what keeps emission from being
-    // added twice and keeps a miss from darkening the image.
+    // A miss follows the HDRP-style hierarchy: the DDGI probe volume first, then reflection probes,
+    // then the sky, each tier only receiving the share the previous one left uncovered. The stored
+    // weight is the share of the material base this radiance replaces, so a partial (or unavailable)
+    // fallback keeps the baked GI / DDGI blend instead of darkening the image.
     internal sealed class ScreenSpaceLightingSsgiPass : ScriptableRenderPass
     {
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingPrePasses + 5);
@@ -112,6 +113,7 @@ namespace UnityEngine.Rendering.Universal
             public bool blueNoiseKeyword;
             public bool probeAtlasKeyword;
             public bool probeListKeyword;
+            public bool ddgiKeyword;
             public bool normalsOctKeyword;
             public bool xrArrayKeyword;
 
@@ -187,10 +189,16 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle accumulationTexture => m_History != null ? m_History.ssgiAccumulation : null;
         internal RTHandle rawTexture => m_History != null ? m_History.ssgiProjection : null;
 
-        // A dynamic probe fallback owns the miss path: the material blends Pgi into bakedGI, so the
-        // screen-space trace must write weight 0 on a miss instead of a probe/sky fallback.
-        internal void SetProbeFallback(bool active) => m_ProbeFallbackActive = active;
-        bool m_ProbeFallbackActive;
+        // The DDGI producer is the first miss tier, ahead of reflection probes and sky. The pass
+        // binds its published snapshot itself because the SSGI dispatch (205) runs before the
+        // material binding pass (207) that would otherwise publish these globals.
+        internal void SetProbeFallback(RayTracingProbeFallback probe, float coverage)
+        {
+            m_ProbeFallback = probe;
+            m_ProbeCoverage = Mathf.Clamp01(coverage);
+        }
+        RayTracingProbeFallback m_ProbeFallback;
+        float m_ProbeCoverage;
 
         internal ScreenSpaceLightingSsgiPass()
         {
@@ -386,12 +394,17 @@ namespace UnityEngine.Rendering.Universal
             // when the Screen Space Lighting feature opts into the atlas.
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SslProbeAtlasKeyword, forwardPlus);
             SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SslProbeListKeyword, probeList);
+            // The DDGI tier is keyword-gated: bind the published snapshot first so the enabled
+            // variant always dispatches with the same generation the material consumes.
+            bool ddgiBound = m_ProbeFallback != null && m_ProbeFallback.BindPublishedGlobals(cmd);
+            SetKeyword(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiDdgiKeyword, ddgiBound);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             stats.halfResKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiHalfResKeyword);
             stats.blueNoiseKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword);
             stats.probeAtlasKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SslProbeAtlasKeyword);
             stats.probeListKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SslProbeListKeyword);
+            stats.ddgiKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiDdgiKeyword);
             stats.normalsOctKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword);
             stats.xrArrayKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceShaderIDs.XrArrayKeyword);
 #endif
@@ -464,7 +477,7 @@ namespace UnityEngine.Rendering.Universal
             // Miss fallback: hierarchy, default reflection cubemap and the ambient probe SH uploaded from
             // RenderSettings (compute kernels cannot read the per-draw unity_SH* constants).
             cmd.SetComputeVectorParam(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiFallbackParams,
-                new Vector4(m_ProbeFallbackActive ? 0f : (int)settings.rayMiss.value, 0f, 0f, 0f));
+                new Vector4((int)settings.rayMiss.value, ddgiBound ? m_ProbeCoverage : 0f, 0f, 0f));
             // x: perspective flag for the Forward+ cluster zbin lookup.
             cmd.SetComputeVectorParam(ssgiCompute, ScreenSpaceLightingShaderIDs.SsgiProbeAtlasParams,
                 new Vector4(cameraData.camera.orthographic ? 0f : 1f, 0f, 0f, 0f));

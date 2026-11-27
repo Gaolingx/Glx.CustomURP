@@ -210,7 +210,9 @@ namespace UnityEngine.Rendering.Universal
             // (207). Both consumers share the scene service, so the TLAS is built at most once.
             var ssgiSettings = stack != null ? stack.GetComponent<ScreenSpaceGlobalIllumination>() : null;
             bool probeActive = m_ProbeFallback != null && m_ProbeFallback.Prepare(cameraData, ssgiSettings);
-            m_SsgiPass.SetProbeFallback(m_Settings.rayTracingProbeFallback && probeActive);
+            m_SsgiPass.SetProbeFallback(
+                m_Settings.rayTracingProbeFallback && probeActive ? m_ProbeFallback : null,
+                probeActive ? m_Settings.probeCoverage : 0f);
             m_SetupPass.SetProbeFallback(m_ProbeFallback, probeActive ? m_Settings.probeCoverage : 0f);
 
             m_SsgiPass.Setup(history, m_Settings.resources);

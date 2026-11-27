@@ -47,9 +47,10 @@ namespace UnityEngine.Rendering.Universal
         public BoolParameter enabled = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
-        /// Controls the fallback hierarchy used to light a pixel whose ray missed.
+        /// Controls the fallback hierarchy used to light a pixel whose ray missed. The DDGI probe
+        /// volume is always the first tier; this setting selects what fills the uncovered share.
         /// </summary>
-        [Tooltip("Controls the fallback hierarchy for indirect diffuse when a ray misses. Reflection Probes and Sky replaces the baked GI with the probe / sky ambient, like HDRP; None keeps the baked GI.")]
+        [Tooltip("Fallback for indirect diffuse when a ray misses. The DDGI probe volume comes first, then Reflection Probes (or Sky) fill the uncovered share. None keeps the baked GI / DDGI material blend.")]
         public RayMarchingFallbackHierarchyParameter rayMiss = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
 
         /// <summary>

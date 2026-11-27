@@ -1,9 +1,10 @@
 // Screen Space Global Illumination trace and reproject.
 // Ported from HDRP 14.0.12 Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute.
-// A hit reprojects the radiance of the hit point. A miss falls back through the same hierarchy HDRP
-// uses (reflection probes, then the sky ambient probe); the fallback is expressed through the same
-// validity weight the material consumes, so the URP weight contract is preserved (weight 0 keeps the
-// baked GI for the "None" fallback).
+// A hit reprojects the radiance of the hit point. A miss falls back through the HDRP-style hierarchy
+// (the DDGI probe volume, then reflection probes, then the sky ambient probe); each tier only fills
+// the share the previous one left uncovered, and the result is un-premultiplied radiance plus the
+// material's replacement weight. Weight 0 (no tier produced data, or rayMiss = None) keeps the baked
+// GI / DDGI material blend.
 #pragma kernel TraceGlobalIllumination
 #pragma kernel ReprojectGlobalIllumination
 
@@ -12,6 +13,7 @@
 #pragma multi_compile _ SSGI_BLUE_NOISE
 #pragma multi_compile _ SSL_XR_ARRAY
 #pragma multi_compile _ SSL_PROBE_ATLAS SSL_PROBE_LIST
+#pragma multi_compile _ SSL_DDGI
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
@@ -19,6 +21,13 @@
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/RayMarching.hlsl"
 #if defined(SSL_PROBE_ATLAS) || defined(SSL_PROBE_LIST)
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ReflectionProbeFallback.hlsl"
+#endif
+// DDGI miss tier. This is the same read-only query (and the same E/pi conversion) the material
+// diffuse blend uses, so the probe volume is sampled identically on both sides of the hierarchy.
+// Keyword-gated so the variant dispatched without a published probe generation references no
+// probe buffers at all.
+#if defined(SSL_DDGI)
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RayTracing/GlxProbeQuery.hlsl"
 #endif
 
 #define SSGI_TILE_SIZE 8
@@ -48,7 +57,7 @@ SSGI_RW_TEXTURE2D_FLOAT4(_SsgiProjectionTextureRW);
 #define RAYMARCHINGFALLBACKHIERARCHY_REFLECTION_PROBES 2
 #define RAYMARCHINGFALLBACKHIERARCHY_REFLECTION_PROBES_AND_SKY 3
 
-float4 _SsgiFallbackParams;            // x: fallback hierarchy, y..w: reserved
+float4 _SsgiFallbackParams;            // x: fallback hierarchy, y: DDGI coverage (0 = off), z..w: reserved
 float4 _SsgiReflectionProbeHDRDecode;  // xy: HDR scale/bias of the default reflection cubemap
 TEXTURECUBE(_SsgiReflectionProbeCubemap);
 
@@ -167,36 +176,62 @@ void ReprojectGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
         else
         {
-            // HDRP hierarchy: reflection probes first, then the ambient probe fills the remainder.
+            // Miss hierarchy, highest priority first: DDGI probe volume, reflection probes, sky.
+            // The probe tiers are only sampled for the share the previous tier left uncovered, so
+            // the composed color stays normalized and no tier is counted twice. The resulting
+            // weight is the share of baked GI this radiance replaces; the material keeps the rest.
             int fallback = (int)_SsgiFallbackParams.x;
             if (fallback != RAYMARCHINGFALLBACKHIERARCHY_NONE)
             {
+                float3 positionWS = SsgiReconstructPositionWS((float2)inputCoord, deviceDepth);
                 float weight = 0.0;
                 float3 color = float3(0.0, 0.0, 0.0);
 
-                if ((RAYMARCHINGFALLBACKHIERARCHY_REFLECTION_PROBES & fallback) != 0)
+                // DDGI tier: GlxProbeQuery returns the clamped-cosine convolution the material
+                // divides by PI, so E/pi is the radiance. The coverage is the same global value the
+                // material-side probe blend uses (zero when the producer is off or unpublished).
+#if defined(SSL_DDGI)
+                float ddgiCoverage = saturate(_SsgiFallbackParams.y);
+                if (ddgiCoverage > 0.0)
                 {
+                    float3 irradiance;
+                    // A published-but-fully-black generation is treated as no data so the lower
+                    // tiers still get a chance instead of the DDGI tier owning a black pixel.
+                    if (GlxProbeQuery(positionWS, normalWS, irradiance) && any(irradiance > 0.0))
+                    {
+                        color += max(irradiance, 0.0) * 0.31830988618 * ddgiCoverage;
+                        weight = ddgiCoverage;
+                    }
+                }
+#endif
+
+                if ((RAYMARCHINGFALLBACKHIERARCHY_REFLECTION_PROBES & fallback) != 0 && weight < 1.0)
+                {
+                    float remaining = 1.0 - weight;
+                    float probeWeight = 0.0;
+                    float3 probeColor = float3(0.0, 0.0, 0.0);
 #if defined(SSL_PROBE_ATLAS)
-                    // Forward+: walk the same per-pixel probe list the fragment path uses. The
-                    // remaining weight is left for the sky so ProbesAndSky keeps HDRP's blend.
-                    float3 positionWS = SsgiReconstructPositionWS((float2)inputCoord, deviceDepth);
+                    // Forward+: walk the same per-pixel probe list the fragment path uses.
                     float2 normalizedUV = ((float2)inputCoord + 0.5) * _SsgiScreenSize.zw;
-                    float probeWeight;
-                    float3 probeColor = SslSampleReflectionProbesAtlas(sampleDir, positionWS, normalizedUV, probeWeight);
-                    color += probeColor;
-                    weight = probeWeight;
+                    probeColor = SslSampleReflectionProbesAtlas(sampleDir, positionWS, normalizedUV, probeWeight);
 #elif defined(SSL_PROBE_LIST)
                     // Forward / Deferred with the feature toggle: no cluster list, so every visible
                     // probe in the atlas is tested and the box weight rejects the distant ones.
-                    float3 positionWS = SsgiReconstructPositionWS((float2)inputCoord, deviceDepth);
-                    float probeWeight;
-                    float3 probeColor = SslSampleReflectionProbesList(sampleDir, positionWS, probeWeight);
-                    color += probeColor;
-                    weight = probeWeight;
+                    probeColor = SslSampleReflectionProbesList(sampleDir, positionWS, probeWeight);
 #else
-                    color += SsgiSampleReflectionProbe(sampleDir);
-                    weight = 1.0;
+                    // Default reflection cubemap. A black cubemap carries no data; leaving its weight
+                    // at zero keeps the baked/DDGI base instead of replacing it with black.
+                    probeColor = SsgiSampleReflectionProbe(sampleDir);
+                    probeWeight = any(probeColor > 0.0) ? 1.0 : 0.0;
 #endif
+                    // The samplers return premultiplied radiance: normalize it, then take only the
+                    // share the DDGI tier left uncovered.
+                    float take = min(probeWeight, remaining);
+                    if (take > 0.0)
+                    {
+                        color += (probeColor / probeWeight) * take;
+                        weight += take;
+                    }
                 }
 
                 if ((RAYMARCHINGFALLBACKHIERARCHY_SKY & fallback) != 0 && weight < 1.0)
@@ -205,7 +240,12 @@ void ReprojectGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
                     weight = 1.0;
                 }
 
-                result = float4(SsgiClampRadiance(color), weight);
+                // The material contract is un-premultiplied radiance plus the weight, so normalize
+                // the composed tiers: final = base * (1 - weight) + radiance * weight. A fully black
+                // fallback (unpublished probes, no ambient, black cubemap) must not replace the
+                // material base: zero weight leaves baked GI / the DDGI blend in place.
+                if (weight > 0.0 && any(color > 0.0))
+                    result = float4(SsgiClampRadiance(color * rcp(weight)), saturate(weight));
             }
         }
     }

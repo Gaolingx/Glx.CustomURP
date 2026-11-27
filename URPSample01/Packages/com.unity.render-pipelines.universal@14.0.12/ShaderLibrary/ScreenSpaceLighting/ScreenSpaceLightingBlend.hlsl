@@ -5,9 +5,10 @@
 // plugin only provides a valid texture and a weight.
 //
 // SSGI replaces the baked diffuse term with the blend weight. A hit carries the radiance of the hit
-// point; a miss carries the fallback the volume selected (reflection probes / sky ambient, weight 1,
-// exactly like HDRP replacing bakeDiffuseLighting) or weight 0 for rayMiss = None, which keeps the
-// baked GI. The radiance is already one-bounce incoming light, so it is blended before
+// point; a miss carries the DDGI/probe/sky fallback composed in that order (weight 1 when the
+// hierarchy fills the pixel, partial when no sky tier is selected, exactly like HDRP replacing
+// bakeDiffuseLighting) or weight 0 for rayMiss = None, which keeps the baked GI. The radiance is
+// already one-bounce incoming light, so it is blended before
 // EnvironmentBRDF, exactly like bakedGI; emission is never part of this term. intensity multiplies the
 // radiance (not the weight, so values above 1 brighten the bounce) and zero is an exact no-op.
 //
@@ -29,7 +30,9 @@ half3 ScreenSpaceLightingApplyProbeDiffuse(half3 bakedGI, float3 positionWS, hal
 {
 #if defined(GLX_PROBE_CONSUMER)
     float3 irradiance;
-    if (!GlxProbeQuery(positionWS, normalWS, irradiance))
+    // All-zero irradiance means the published generation has no usable data yet (the same test the
+    // SSGI miss tier applies); blending toward it would black out the receiver, so keep baked GI.
+    if (!GlxProbeQuery(positionWS, normalWS, irradiance) || !any(irradiance > 0.0))
         return bakedGI;
 
     half3 probeRadiance = max(irradiance, 0.0) * 0.31830988618;

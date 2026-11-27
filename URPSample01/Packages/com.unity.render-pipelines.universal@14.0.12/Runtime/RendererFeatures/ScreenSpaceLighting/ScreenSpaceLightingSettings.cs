@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Tooltip("P3: environment source mixed with SSR in the deferred indirect-specular composite. A1 samples _GlossyEnvironmentCubeMap (default); A2 uses the published GI probe atlas when the probe fallback runs (directional irradiance, no roughness mips; probe coverage blends it over the cubemap); A3 uses the ambient irradiance stand-in.")]
         internal SsrIndirectSource ssrIndirectSource = SsrIndirectSource.A1;
 
-        [SerializeField, Tooltip("Update the scene probe cache from the shared RT scene as the SSGI diffuse fallback. Requires hardware ray tracing support.")]
+        [SerializeField, Tooltip("Update the scene probe cache from the shared RT scene as the first SSGI miss tier (DDGI, before reflection probes and sky). Requires hardware ray tracing support.")]
         internal bool rayTracingProbeFallback = false;
 
         // Manually placed bounded probe volume (v1 has no rolling volumes). The batch, directions and
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal bool probeRelocation = true;
         [SerializeField] internal bool probeClassification = true;
 
-        [SerializeField, Range(0f, 1f), Tooltip("Probe-volume coverage c applied once to lerp(bakedGI, E/pi, c). Test hook for the G3 weight sweep.")]
+        [SerializeField, Range(0f, 1f), Tooltip("Probe-volume coverage c applied once to lerp(bakedGI, E/pi, c) and to the SSGI DDGI miss tier. Test hook for the G3 weight sweep.")]
         internal float probeCoverage = 1f;
 
         [SerializeField]

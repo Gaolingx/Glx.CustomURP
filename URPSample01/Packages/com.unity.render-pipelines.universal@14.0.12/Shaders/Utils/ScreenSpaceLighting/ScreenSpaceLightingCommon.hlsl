@@ -8,10 +8,10 @@
 //   bound by URP explicitly (the HDRP light list and EnvLightData are not used);
 // - ray directions use the blue-noise distributed Owen scrambled Sobol sequence when the package
 //   LUTs are available and fall back to an interleaved-gradient based sequence otherwise;
-// - the miss fallback reads the Forward+ reflection probe atlas when available
-//   (ReflectionProbeFallback.hlsl) and the default cubemap otherwise; probe volumes are not ported;
-// - the reprojection writes radiance plus a validity weight; a miss writes weight 0 so the material
-//   keeps the baked GI instead of darkening the pixel;
+// - the miss fallback is DDGI probe volume (the shared GlxProbeQuery), then Forward+ reflection
+//   probe atlas / default cubemap (ReflectionProbeFallback.hlsl), then the sky ambient probe;
+// - the reprojection writes un-premultiplied radiance plus a validity weight; a miss with no tier
+//   data writes weight 0 so the material keeps the baked GI instead of darkening the pixel;
 // - all private resource names carry the _Ssgi prefix.
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
