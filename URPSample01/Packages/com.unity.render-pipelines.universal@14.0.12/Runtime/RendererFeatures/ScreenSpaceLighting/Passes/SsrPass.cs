@@ -827,6 +827,11 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4 hybridPrevInvViewProj = default;
             if (halfResolution && requestQueue != null)
                 hybridPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
+            // P3 drops the previous-colour pyramid sample from the R1 classification (the radiance
+            // comes from this frame's GBuffer), so the keyword must be set before RecordOriginals
+            // runs inside TryTrace. Whether the trace publishes is only known afterwards; the
+            // re-set below restores the previous-colour reproject when it fails.
+            SetKeyword(compute, k_GlxSsrShadeSsKeyword, ssrShadeSs);
             // R1 re-derives the trace direction from the same blue-noise sequence as the trace, so the
             // request covers the algorithm's own hit point for this pixel and frame.
             bool traced = halfResolution && TryTrace(cmd, compute, ref cameraData, depthTexture, normalTexture,

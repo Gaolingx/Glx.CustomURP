@@ -90,10 +90,29 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
             s.reason = 4;
             if (all(hit >= 0) && all(hit <= 1))
             {
-                float edge; bool accepted;
-                SsrReadOriginalColor(hit,s.roughness,s.ssShare,edge,accepted);
+                float edge, share;
+                bool usable;
+#if defined(_GLX_SSR_SHADE_SS)
+                // P3: the radiance is shaded from this frame's GBuffer by SsrHitSs, so the
+                // previous-colour pyramid sample has no consumer here. Its mip-selected gather, the
+                // mip-adjusted border limit and the colour validity test only existed to validate
+                // that sample; coverage is the material fade times the edge fade.
+                uint2 hitPixel = (uint2)(saturate(hit) * _SsrScreenSize.xy);
+                hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
+                float2 prevFrameNDC = hit - SSGI_LOAD(_SsrMotionTexture, hitPixel).xy;
+                // The same on-screen test the pyramid path applies at mip 0 (its limit is 1), minus
+                // the mip border expansion: nothing is sampled from the pyramid here.
+                usable = all(prevFrameNDC >= 0.0) && all(prevFrameNDC <= 1.0);
+                edge = usable ? EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength) : 0.0;
+                share = fade * edge;
+#else
+                bool accepted;
+                SsrReadOriginalColor(hit,s.roughness,share,edge,accepted);
+                usable = accepted && isfinite(edge);
+#endif
+                s.ssShare = usable ? share : 0.0;
                 s.reason = 5;
-                if (accepted && isfinite(edge))
+                if (usable)
                 {
                     // B6.1 (P3): a hit on a depth silhouette is the least reliable sample, so its
                     // share goes back to the hardware fill (reason 6) instead of leaving a binary
@@ -107,7 +126,10 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
 #endif
         }
     }
-    _R1Original[s.slot] = s;
+    // Only reason >= 2 can be read later: every consumer gates on the 12-byte coverage record
+    // first, and the scatter ranks slots with requestShare > 0 only. Background, rough and invalid
+    // pixels stop paying a 64-byte store each.
+    if (s.reason >= 2u) _R1Original[s.slot] = s;
     R1Coverage cov;
     cov.ssShare = s.ssShare;
     cov.requestShare = s.requestShare;

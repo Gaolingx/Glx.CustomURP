@@ -453,6 +453,33 @@ public sealed class SsrP3ContractTests
             "The P3 reproject must not read a record left by an earlier frame.");
     }
 
+    // R1 used to write the 64-byte geometry record for every slot and, under P3, still gathered the
+    // previous-colour pyramid only to validate a sample nothing read. Both are pure traffic there.
+    [Test]
+    public void R1_PublishesInDomainRecordsAndSkipsThePyramidUnderP3()
+    {
+        var queue = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrRequestQueue.hlsl"));
+        StringAssert.Contains("if(s.reason>=2u)_R1Original[s.slot]=s;", queue,
+            "Background, rough and invalid slots are never read; only reason >= 2 needs the record.");
+        StringAssert.Contains("usable=all(prevFrameNDC>=0.0)&&all(prevFrameNDC<=1.0);", queue,
+            "The P3 classification must keep the on-screen test: an off-screen previous hit is not " +
+            "full coverage.");
+        StringAssert.Contains("edge=usable?EdgeOfScreenFade(prevFrameNDC,_SsrEdgeFadeRcpLength):0.0;", queue,
+            "The P3 classification must derive the share from the edge fade, not the colour pyramid.");
+        var p3 = queue.IndexOf("#ifdefined(_GLX_SSR_SHADE_SS)", StringComparison.Ordinal);
+        var sample = queue.IndexOf("SsrReadOriginalColor(hit,s.roughness,share,edge,accepted);", StringComparison.Ordinal);
+        Assert.GreaterOrEqual(p3, 0, "The R1 classification needs the P3 variant.");
+        Assert.Greater(sample, p3, "The pyramid sample must live in the non-P3 branch only.");
+
+        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
+        var keyword = pass.IndexOf("SetKeyword(compute,k_GlxSsrShadeSsKeyword,ssrShadeSs);", StringComparison.Ordinal);
+        var trace = pass.IndexOf("booltraced=halfResolution&&TryTrace(", StringComparison.Ordinal);
+        Assert.GreaterOrEqual(keyword, 0, "The P3 keyword must be published to the compute shader.");
+        Assert.GreaterOrEqual(trace, 0);
+        Assert.Less(keyword, trace,
+            "RecordOriginals runs inside TryTrace, so the P3 keyword must be set before it.");
+    }
+
     [Test]
     public void SsrIndirectSpecular_SelectsProbeEnvOnlyWhenBound()
     {

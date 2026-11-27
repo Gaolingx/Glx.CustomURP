@@ -83,13 +83,13 @@ namespace UnityEditor.Rendering.Universal.Tests
                 for(int i=0;i<w*h;i++) {
                     int x=i%w,y=i/w,sx=x*W/w,sy=y*H/h;
                     int reason=empty || x==0?0:x==1?1:!history?3:x==2?2:x==3?6:x==4?5:4;
-                    var s=originals[i]; Assert.AreEqual(reason,s.reason,"slot "+i); Assert.AreEqual(i,s.slot);
                     var cov=coverage[i];
                     Assert.AreEqual(reason,cov.reason,"coverage reason "+i);
-                    Assert.AreEqual(s.ss,cov.ss,"coverage ss "+i);
-                    Assert.AreEqual(s.request,cov.request,"coverage request "+i);
                     golden[4+reason]++; if(reason>=2) golden[0]++; if(reason>=3) golden[1]++;
                     if(reason>=2) {
+                        var s=originals[i]; Assert.AreEqual(reason,s.reason,"slot "+i); Assert.AreEqual(i,s.slot);
+                        Assert.AreEqual(s.ss,cov.ss,"coverage ss "+i);
+                        Assert.AreEqual(s.request,cov.request,"coverage request "+i);
                         var pos=new Vector3((sx+.5f)*2/W-1,1-(sy+.5f)*2/H,.5f);
                         Assert.Less((s.position-pos).magnitude,.0001f);
                         var dir=Vector3.Reflect((pos-new Vector3(0,0,3)).normalized,Vector3.forward);
@@ -106,6 +106,11 @@ namespace UnityEditor.Rendering.Universal.Tests
                         bool silhouetteZero=weighted && x==3;
                         Assert.AreEqual(silhouetteZero?0f:reason==2?fade:reason==6?.352f:0,s.ss,.0001f);
                         Assert.AreEqual(reason==2?0:reason==6?(silhouetteZero?fade:.648f):fade,s.request,.0001f);
+                    } else {
+                        // Only reason >= 2 publishes the 64-byte geometry record; the coverage
+                        // record is written for every slot and is zero outside the hybrid domain.
+                        Assert.AreEqual(0f,cov.ss,1e-6f,"coverage ss "+i);
+                        Assert.AreEqual(0f,cov.request,1e-6f,"coverage request "+i);
                     }
                 }
                 // R1Rank permutes the pixel each lane inspects and R1Scatter writes the first quota
@@ -413,9 +418,11 @@ namespace UnityEditor.Rendering.Universal.Tests
                 var hitData = new Hit[W * H];
                 for (int i = 0; i < cov.Length; i++) { cov[i].reason = 2; cov[i].ss = 0.5f; cov[i].request = 0f; }
                 // Slot 0 keeps a published SS hit (GlxHit | SS bit); the other slots have none, so
-                // they must fall back to the pyramid instead of writing zero coverage.
+                // they must fall back to the pyramid instead of writing zero coverage. The record
+                // is accepted only when its served stamp matches this dispatch.
                 hitData[0].radiance = new Vector3(1f, 2f, 3f);
                 hitData[0].flags = 2u | 8u;
+                hitData[0].mode = 7u;
                 coverage.SetData(cov);
                 hits.SetData(hitData);
 
@@ -426,6 +433,7 @@ namespace UnityEditor.Rendering.Universal.Tests
                 cmd.SetComputeVectorParam(cs, "_SsrRoughnessFadeParams", new Vector4(2, 1, 0.5f, 4));
                 cmd.SetComputeVectorParam(cs, "_SsrPyramidParams", Vector4.zero);
                 cmd.SetComputeVectorParam(cs, "_SsrColorPyramidScaleAndLimitPrev", Vector4.one);
+                cmd.SetComputeIntParam(cs, "_R2HitFrame", 7);
                 cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", coverage);
                 cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", hits);
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrNormalTexture", Make(W, H, (x, y) => new Color(0, 0, 1, 1)));
