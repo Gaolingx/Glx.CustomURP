@@ -25,6 +25,8 @@
 StructuredBuffer<R1Sample> _R1Original;
 StructuredBuffer<R1Coverage> _R1Coverage;
 RWStructuredBuffer<GlxPublishedHit> _R2Hits;
+// Served stamp; the consumers reject a record whose stamp is not this frame's.
+uint _R2HitFrame;
 TEXTURE2D(_SsrHitPointTexture);
 float4 _SsrScreenSize; // xy size, zw inverse size
 float4 _SsrTraceSize;  // xy trace size
@@ -94,6 +96,6 @@ void SsrHitSs(uint3 id : SV_DispatchThreadID)
     hit.radiance = sample.radiance;
     hit.hitT = distance;
     hit.flags = SSR_HIT_FLAG | SSR_HIT_FLAG_SS;
-    hit.mode = 0;
+    hit.mode = _R2HitFrame;
     _R2Hits[slot] = hit;
 }

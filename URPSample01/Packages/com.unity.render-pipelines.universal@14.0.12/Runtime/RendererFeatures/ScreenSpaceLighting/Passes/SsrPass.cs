@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_History.BeginSsrHwFrame();
                 RecordOriginals(cmd, cs, depth, normals, motion, hit, w, h);
-                requestQueue.Trace(cmd, cs, m_Resources.rayTracingSsr, m_Scene, m_Snapshot, w, h);
+                requestQueue.Trace(cmd, m_Resources.rayTracingSsr, m_Scene, m_Snapshot, w, h);
                 DispatchHitDeferred(cmd);
                 // P3: re-shade SS hits from the current-frame GBuffer before the temporal merge, so
                 // the temporal only folds RT hits into the hardware history. Only the PBR reproject
@@ -584,6 +584,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeBufferParam(cs, kernel, "_R2Surfaces", requestQueue.surfaces);
             cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
             cmd.SetComputeIntParam(cs, "_R2K", requestQueue.budget);
+            cmd.SetComputeIntParam(cs, "_R2HitFrame", requestQueue.hitFrame);
             cmd.SetComputeIntParam(cs, "_SsrHitLightCount", m_AdditionalLightCount);
             cmd.SetComputeIntParam(cs, "_SsrHitDebug", s_HitDebug);
             // Shadow fade in ClusteredDeferred measures from this position.
@@ -626,6 +627,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeBufferParam(cs, kernel, "_R1Original", requestQueue.originals);
             cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", requestQueue.coverage);
             cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
+            cmd.SetComputeIntParam(cs, "_R2HitFrame", requestQueue.hitFrame);
             cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTexture", hit);
             cmd.SetComputeTextureParam(cs, kernel, "_GBuffer0", deferred.GbufferAttachments[0]);
             cmd.SetComputeTextureParam(cs, kernel, "_GBuffer1", deferred.GbufferAttachments[1]);
@@ -667,6 +669,7 @@ namespace UnityEngine.Rendering.Universal
             int readBinding = readSlot >= 0 ? readSlot : (m_History.ssrHwWriteSlot ^ 1);
             cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", requestQueue.coverage);
             cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
+            cmd.SetComputeIntParam(cs, "_R2HitFrame", requestQueue.hitFrame);
             cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depth);
             cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normals);
             cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrMotionTexture, motion != null ? motion : depth);
@@ -855,6 +858,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmd.SetComputeBufferParam(compute, reprojectKernel, "_R1Coverage", requestQueue.coverage);
                 cmd.SetComputeBufferParam(compute, reprojectKernel, "_R2Hits", requestQueue.hits);
+                cmd.SetComputeIntParam(compute, "_R2HitFrame", requestQueue.hitFrame);
             }
             cmd.DispatchCompute(compute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

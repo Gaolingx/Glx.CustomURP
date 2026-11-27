@@ -7,6 +7,9 @@
 StructuredBuffer<R1Sample> _R1Queue;
 StructuredBuffer<uint> _R1Counts;
 RWStructuredBuffer<GlxPublishedHit> _R2Hits;
+// Served stamp: the hit buffer is not cleared every frame, so the consumer accepts a record only
+// when its mode holds this frame's value. A miss still publishes (flags = GlxMiss).
+uint _R2HitFrame;
 // C2.7: request-indexed hit surface. A miss or an invalid request publishes version 0, so
 // the consumer never needs a separate clear of this 80-byte buffer.
 RWStructuredBuffer<SsrHitSurface> _R2Surfaces;
@@ -46,7 +49,9 @@ void TraceSsrRequests()
         if ((p.flags & GlxHit) != 0)
             surface = SsrBuildHitSurface(p);
     }
-    _R2Hits[q.slot] = GlxPublishPayload(p);
+    GlxPublishedHit published = GlxPublishPayload(p);
+    published.mode = _R2HitFrame;
+    _R2Hits[q.slot] = published;
     _R2Surfaces[index] = surface;
 }
 

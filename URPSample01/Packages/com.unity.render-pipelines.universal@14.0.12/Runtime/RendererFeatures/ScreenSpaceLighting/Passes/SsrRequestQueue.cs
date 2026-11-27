@@ -18,19 +18,23 @@ namespace UnityEngine.Rendering.Universal
         // C2.7 hit surface: request-indexed, written by the raygen, read by the deferred kernel.
         internal ComputeBuffer surfaces;
         ComputeBuffer tiles, masks;
+        // This frame's served stamp. Every publisher writes it into GlxPublishedHit.mode, so the
+        // hit buffer no longer needs a per-frame clear: consumers reject a record whose stamp is
+        // not this frame's.
+        internal int hitFrame;
         internal long residentBytes => Bytes(originals) + Bytes(coverage) + Bytes(tiles) + Bytes(masks) + Bytes(requests) + Bytes(counters) + Bytes(hits) + Bytes(surfaces);
         static long Bytes(ComputeBuffer buffer) => buffer == null ? 0 : buffer.count * (long)buffer.stride;
         static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSR DXR Trace and Shade");
         internal static ProfilingSampler traceSampler => s_Trace;
-        // The request build and the hit clear ran inside SsrPass's sampler with no marker of their
-        // own, so a GPU capture attributed their time to nothing.
+        // The request build ran inside SsrPass's sampler with no marker of its own, so a GPU
+        // capture attributed its time to nothing.
         static readonly ProfilingSampler s_R1Original = new ProfilingSampler("SSR R1 Original");
         static readonly ProfilingSampler s_R1Offsets = new ProfilingSampler("SSR R1 Offsets");
         static readonly ProfilingSampler s_R1Scatter = new ProfilingSampler("SSR R1 Scatter");
-        static readonly ProfilingSampler s_R2Clear = new ProfilingSampler("SSR R2 Clear");
         static readonly int s_Scene = Shader.PropertyToID("_GlxScene");
         static readonly int s_K = Shader.PropertyToID("_R2K");
         static readonly int s_Hits = Shader.PropertyToID("_R2Hits");
+        static readonly int s_HitFrame = Shader.PropertyToID("_R2HitFrame");
         static readonly int s_Surfaces = Shader.PropertyToID("_R2Surfaces");
         static readonly int s_Counts = Shader.PropertyToID("_R1Counts");
         static readonly int s_Requests = Shader.PropertyToID("_R1Queue");
@@ -43,6 +47,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Record(CommandBuffer cmd, ComputeShader cs, int kernel, int width, int height, int frame, bool weightedQuota = false)
         {
+            // The stamp is consumed by the raygen and the hit kernels whether or not this camera
+            // spends a budget this frame, so it is set before the early out.
+            hitFrame = unchecked(frame + seed);
             if (budget == 0) return;
             int gx = (width+7)/8, gy = (height+7)/8;
             int k = Mathf.Min(budget,gx*gy*8,width*height);
@@ -77,20 +84,17 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd,s_R1Scatter)) cmd.DispatchCompute(cs,scatter,gx,gy,1);
         }
 
-        internal void Trace(CommandBuffer cmd, ComputeShader cs, RayTracingShader shader,
+        internal void Trace(CommandBuffer cmd, RayTracingShader shader,
             RayTracingSceneResources scene, RayTracingAccelerationStructure snapshot, int width, int height)
         {
             if (budget == 0) return;
             Ensure(ref hits, width * height, 24);
-            int clear = cs.FindKernel("R2Clear");
-            cmd.SetComputeBufferParam(cs, clear, s_Hits, hits);
-            using (new ProfilingScope(cmd,s_R2Clear))
-                cmd.DispatchCompute(cs, clear, (width + 7) / 8, (height + 7) / 8, 1);
             using (new ProfilingScope(cmd, s_Trace))
             {
                 cmd.SetRayTracingShaderPass(shader, "GlxDXR");
                 cmd.SetRayTracingAccelerationStructure(shader, s_Scene, snapshot);
                 cmd.SetRayTracingIntParam(shader, s_K, budget);
+                cmd.SetRayTracingIntParam(shader, s_HitFrame, hitFrame);
                 cmd.SetRayTracingBufferParam(shader, s_Requests, requests);
                 cmd.SetRayTracingBufferParam(shader, s_Counts, counters);
                 cmd.SetRayTracingBufferParam(shader, s_Hits, hits);

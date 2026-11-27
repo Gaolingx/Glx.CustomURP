@@ -21,6 +21,8 @@ StructuredBuffer<R1Sample> _R1Queue;
 StructuredBuffer<uint> _R1Counts;
 StructuredBuffer<SsrHitSurface> _R2Surfaces;
 RWStructuredBuffer<GlxPublishedHit> _R2Hits;
+// Served stamp; the consumers reject a record whose stamp is not this frame's.
+uint _R2HitFrame;
 uint _R2K;
 uint _SsrHitLightCount;
 // Diagnostics: 0 = shade, 1 = write a fixed colour, 2 = echo the record (version, source,
@@ -44,7 +46,7 @@ void SsrHitDeferred(uint3 id : SV_DispatchThreadID)
             : float3(record.misc.z, record.misc.w, record.misc.x > 0.0 ? 1.0 : 0.0);
         debugHit.hitT = 1.0;
         debugHit.flags = SSR_HIT_FLAG;
-        debugHit.mode = 0;
+        debugHit.mode = _R2HitFrame;
         _R2Hits[probe.slot] = debugHit;
         return;
     }
@@ -67,6 +69,6 @@ void SsrHitDeferred(uint3 id : SV_DispatchThreadID)
     hit.radiance = sample.radiance;
     hit.hitT = distance;
     hit.flags = SSR_HIT_FLAG;
-    hit.mode = 0;
+    hit.mode = _R2HitFrame;
     _R2Hits[q.slot] = hit;
 }

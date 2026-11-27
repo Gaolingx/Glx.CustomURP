@@ -26,7 +26,6 @@
 #pragma kernel R1Cold SSR_R1_COLD
 #pragma kernel R1Offsets
 #pragma kernel R1Scatter
-#pragma kernel R2Clear
 #pragma kernel R2Composite SSR_R2_COMPOSITE
 #pragma kernel R2CompositeCold SSR_R2_COLD
 #pragma kernel R2Temporal SSR_R2_TEMPORAL
@@ -313,13 +312,11 @@ bool SsrOriginalDirection(uint2 traceCoord, float3 normalWS, float3 viewWS, floa
 
 // Published 24-byte result (C2); no AS declaration in compute variants.
 RWStructuredBuffer<GlxPublishedHit> _R2Hits;
-
-[numthreads(8,8,1)]
-void R2Clear(uint3 id : SV_DispatchThreadID)
-{
-    if (any(id.xy >= (uint2)_SsrTraceSize.xy)) return;
-    _R2Hits[id.y * (uint)_SsrTraceSize.x + id.x] = (GlxPublishedHit)0;
-}
+// Served stamp: every publisher writes this frame's value into GlxPublishedHit.mode, so a slot is
+// served only when its record matches. The slot buffer is never cleared: a record left by an
+// earlier frame (or by a previous buffer allocation) fails the stamp, and the existing record
+// validation then rejects whatever survived.
+uint _R2HitFrame;
 
 #if defined(SSR_R2_COMPOSITE) || defined(SSR_R2_COLD)
 [numthreads(8,8,1)]
@@ -389,6 +386,10 @@ void R2Temporal(uint3 id : SV_DispatchThreadID)
     uint slot = id.y * (uint)_SsrTraceSize.x + id.x;
     R1Coverage cov = _R1Coverage[slot];
     GlxPublishedHit hit = _R2Hits[slot];
+    // No per-frame clear: the record is this frame's only when its stamp matches, and a published
+    // but empty record (flags == 0, malformed request) keeps the old "fall through to history"
+    // behaviour the clear used to produce.
+    bool served = hit.flags != 0u && hit.mode == _R2HitFrame;
 
     float3 radiance = 0.0;
     float weight = 0.0;
@@ -398,8 +399,8 @@ void R2Temporal(uint3 id : SV_DispatchThreadID)
     // enter the hardware history; but a slot that also requested hardware fill (requestShare > 0)
     // keeps its complement by reprojecting the hardware history instead of clearing it. The merge
     // kernels then blend s * SS with min(1 - s, requestShare) * HW.
-    bool isSs = (hit.flags & SSR_HIT_FLAG_SS) != 0u;
-    if (hit.flags != 0u && !isSs)
+    bool isSs = served && (hit.flags & SSR_HIT_FLAG_SS) != 0u;
+    if (served && !isSs)
     {
         // R1 stores the frame-constant tMin/tMax in every record; compare against the same uniforms.
         bool resolved = (hit.flags & 2u) != 0u && hit.hitT >= 0.002 && hit.hitT <= _SsrRayLength &&
@@ -763,7 +764,10 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
         uint slot = traceCoord.y * (uint)_SsrTraceSize.x + traceCoord.x;
         GlxPublishedHit ssHit = _R2Hits[slot];
         float share = saturate(_R1Coverage[slot].ssShare);
-        if ((ssHit.flags & SSR_HIT_FLAG_SS) != 0u && all(isfinite(ssHit.radiance)) && all(ssHit.radiance >= 0.0))
+        // The stamp is the served bit: a record left behind by an earlier frame (this slot was
+        // traced but SsrHitSs found no shadable hit) must not be reused as this frame's radiance.
+        if (ssHit.mode == _R2HitFrame && (ssHit.flags & SSR_HIT_FLAG_SS) != 0u &&
+            all(isfinite(ssHit.radiance)) && all(ssHit.radiance >= 0.0))
         {
             // B6.1: the silhouette confidence is already folded into ssShare by R1Original, so the
             // complement is requested from the hardware fill there.

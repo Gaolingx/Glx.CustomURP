@@ -412,12 +412,45 @@ public sealed class SsrP3ContractTests
         // reason 6 (screen-edge partial coverage) keeps its hardware complement: an SS-flagged slot
         // no longer clears the hardware history; requestShare > 0 reprojects it for the merge.
         var compute = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
-        StringAssert.Contains("boolisSs=(hit.flags&SSR_HIT_FLAG_SS)!=0u;", compute,
+        StringAssert.Contains("boolserved=hit.flags!=0u&&hit.mode==_R2HitFrame;", compute,
+            "The temporal must treat the frame stamp as the served bit: the hit buffer is no longer " +
+            "cleared every frame.");
+        StringAssert.Contains("boolisSs=served&&(hit.flags&SSR_HIT_FLAG_SS)!=0u;", compute,
             "The temporal must classify SS-flagged hits for the history rule.");
-        StringAssert.Contains("if(hit.flags!=0u&&!isSs)", compute,
-            "SS-flagged hits must fall through to the hardware-history reprojection instead of clearing it.");
+        StringAssert.Contains("if(served&&!isSs)", compute,
+            "An unserved slot must fall through to the hardware-history reprojection instead of " +
+            "publishing a stale record.");
         StringAssert.Contains("floatssShare", Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrRayRequest.hlsl")),
             "The edge share must stay in R1Sample.ssShare (C3).");
+    }
+
+    [Test]
+    public void ServedStamp_ReplacesThePerFrameHitClear()
+    {
+        // The hit buffer is never cleared: per-frame validity comes from GlxPublishedHit.mode
+        // holding that frame's stamp (the field had no other reader).
+        var queue = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrRequestQueue.cs"));
+        StringAssert.DoesNotContain("R2Clear", queue,
+            "The R2 clear pass must be gone, not merely skipped on some frames.");
+        StringAssert.Contains("SetRayTracingIntParam(shader,s_HitFrame,hitFrame)", queue,
+            "The raygen must receive the served stamp.");
+
+        var compute = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
+        StringAssert.DoesNotContain("R2Clear", compute,
+            "The hit-clear kernel must be deleted from the compute shader.");
+
+        var publishers = new[]
+        {
+            "Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace",
+            "Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute",
+            "Shaders/Utils/ScreenSpaceLighting/SsrHitSs.compute",
+        };
+        foreach (var path in publishers)
+            StringAssert.Contains("_R2HitFrame", Normalize(ReadPackage(path)),
+                path + " must stamp the record it publishes, or its slot stays unserved.");
+
+        StringAssert.Contains("ssHit.mode==_R2HitFrame", compute,
+            "The P3 reproject must not read a record left by an earlier frame.");
     }
 
     [Test]
