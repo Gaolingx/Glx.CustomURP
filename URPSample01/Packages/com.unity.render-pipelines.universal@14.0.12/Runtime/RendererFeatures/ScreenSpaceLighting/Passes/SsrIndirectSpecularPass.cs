@@ -91,6 +91,10 @@ namespace UnityEngine.Rendering.Universal
                 return false;
             if (!(renderingData.cameraData.renderer is UniversalRenderer renderer))
                 return false;
+            // A Deferred-configured renderer can fall back to Forward per camera, and the GBuffer it
+            // would composite was never drawn this frame.
+            if (renderer.renderingModeActual != RenderingMode.Deferred)
+                return false;
             var deferred = renderer.deferredLights;
             if (deferred == null || deferred.GbufferAttachments == null || deferred.GbufferAttachments.Length < 3)
                 return false;

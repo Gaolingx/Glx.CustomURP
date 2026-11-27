@@ -536,6 +536,48 @@ public sealed class SsrP3ContractTests
         }
     }
 
+    // P3 reads the SS hit from the current-frame GBuffer, so the keyword must follow the per-camera
+    // rendering mode, not only the feature switch. A Deferred-configured renderer that falls back to
+    // Forward (or a Forward renderer) has no GBuffer source and the reproject must keep the
+    // previous-colour path instead of zeroing the screen-space share.
+    [Test]
+    public void SsrP3_RequiresTheDeferredGbufferPerCamera()
+    {
+        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
+        StringAssert.Contains("staticboolSsrGbufferActive(inCameraDatacameraData)", pass,
+            "The P3 gate must be a shared per-camera helper.");
+        StringAssert.Contains("renderer.renderingModeActual!=RenderingMode.Deferred", pass,
+            "A Deferred-configured renderer that fell back to Forward must not run SsrHitSs.");
+        StringAssert.Contains("m_Settings.ssrAfterGbuffer&&requestQueue!=null&&SsrGbufferActive(cameraData)", pass,
+            "The _GLX_SSR_SHADE_SS keyword must require an active GBuffer for this camera.");
+        StringAssert.Contains("m_Settings.ssrAfterGbuffer&&SsrGbufferActive(cameraData)", pass,
+            "The SS hit kernel dispatch must follow the same per-camera gate.");
+        StringAssert.Contains("ssrShadeSs&=traced;", pass,
+            "A failed hybrid trace must disable the P3 reproject variant instead of reading stale R1/R2.");
+        StringAssert.Contains("boolssrShadeSs=pbr&&", pass,
+            "P3 SS shading is PBR-only; the Approximation composite does not read the SS publication.");
+        StringAssert.Contains("if(pbr&&m_Settings!=null&&m_Settings.ssrAfterGbuffer&&SsrGbufferActive(cameraData))", pass,
+            "SsrHitSs must not overwrite the RT hit an Approximation frame still needs for its hardware fill.");
+
+        var composite = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrIndirectSpecularPass.cs"));
+        StringAssert.Contains("if(renderer.renderingModeActual!=RenderingMode.Deferred)", composite,
+            "The deferred indirect-specular composite cannot run against a GBuffer that was not drawn.");
+    }
+
+    [Test]
+    public void SsrP3_FallsBackToThePreviousColourWhenTheSsHitHasNoGbufferSource()
+    {
+        var compute = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
+        StringAssert.DoesNotContain("float4p3=", compute,
+            "The P3 reproject must not write a zero sample through a single unconditional path.");
+        StringAssert.Contains("floatshare=saturate(_R1Coverage[slot].ssShare);", compute,
+            "The fallback must keep the R1 coverage (including the silhouette fade).");
+        StringAssert.Contains("SsrReadOriginalColor(fallbackHit,fallbackRoughness,fallbackOpacity,fallbackEdge,fallbackAccepted);", compute,
+            "A slot without an SS publication must sample the previous colour pyramid.");
+        StringAssert.Contains("if(fallbackAccepted)", compute,
+            "Only an accepted previous-colour sample may publish radiance.");
+    }
+
     [Test]
     public void SsrP3_SwitchDefaultsOffAndKeywordsDeclared()
     {

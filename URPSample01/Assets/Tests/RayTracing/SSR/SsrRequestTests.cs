@@ -23,6 +23,10 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             public float ss, request; public uint reason;
         }
+        struct Hit
+        {
+            public Vector3 radiance; public float hitT; public uint flags; public uint mode;
+        }
         [Test] public void ZeroBudgetDoesNotRecordOrAllocate()
         {
             using(var q=new SsrRequestQueue(0)) {
@@ -371,6 +375,85 @@ namespace UnityEditor.Rendering.Universal.Tests
                 Assert.AreEqual(0f, isolated.x, 1e-3f, "depth step r");
                 Assert.AreEqual(0f, isolated.w, 1e-3f, "depth step alpha");
                 TestContext.Out.WriteLine("merge fill: " + filled + "; depth step: " + isolated);
+            }
+            foreach (var o in owned) Object.DestroyImmediate(o);
+        }
+
+        // P3 reads the SS hit radiance from _R2Hits. When the hit surface has no current-frame
+        // GBuffer source (a forward-only material, or a forward renderer that skipped SsrHitSs) no
+        // SS flag is published; the reproject must keep the R1 coverage and the previous-colour
+        // radiance instead of zeroing the screen-space share.
+        [UnityTest]
+        public IEnumerator P3FallbackKeepsPreviousColourWhenTheSsHitIsMissing()
+        {
+            const int W = 4, H = 2;
+            var cs = Object.Instantiate(AssetDatabase.LoadAssetAtPath<ComputeShader>(
+                "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
+            var owned = new List<Object> { cs };
+            Texture2D Make(int x, int y, System.Func<int, int, Color> f)
+            {
+                var tex = new Texture2D(x, y, TextureFormat.RGBAFloat, false, true);
+                var pixels = new Color[x * y];
+                for (int j = 0; j < y; j++) for (int i = 0; i < x; i++) pixels[i + j * x] = f(i, j);
+                tex.SetPixels(pixels); tex.Apply(); owned.Add(tex); return tex;
+            }
+            var output = new RenderTexture(W, H, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear)
+                { enableRandomWrite = true, useMipMap = false };
+            output.Create(); owned.Add(output);
+
+            using (var coverage = new ComputeBuffer(W * H, 12))
+            using (var hits = new ComputeBuffer(W * H, 24))
+            using (var cmd = new CommandBuffer())
+            {
+                cs.DisableKeyword("SSR_APPROX");
+                cs.EnableKeyword("_GLX_SSR_SHADE_SS");
+                int kernel = cs.FindKernel("ScreenSpaceReflectionsReprojection");
+
+                var cov = new Coverage[W * H];
+                var hitData = new Hit[W * H];
+                for (int i = 0; i < cov.Length; i++) { cov[i].reason = 2; cov[i].ss = 0.5f; cov[i].request = 0f; }
+                // Slot 0 keeps a published SS hit (GlxHit | SS bit); the other slots have none, so
+                // they must fall back to the pyramid instead of writing zero coverage.
+                hitData[0].radiance = new Vector3(1f, 2f, 3f);
+                hitData[0].flags = 2u | 8u;
+                coverage.SetData(cov);
+                hits.SetData(hitData);
+
+                cmd.SetGlobalMatrix("unity_MatrixInvVP", Matrix4x4.identity);
+                cmd.SetComputeVectorParam(cs, "_SsrCameraPositionWS", new Vector4(0, 0, 3, 0));
+                cmd.SetComputeVectorParam(cs, "_SsrScreenSize", new Vector4(W, H, 1f / W, 1f / H));
+                cmd.SetComputeVectorParam(cs, "_SsrTraceSize", new Vector4(W, H, 1f / W, 1f / H));
+                cmd.SetComputeVectorParam(cs, "_SsrRoughnessFadeParams", new Vector4(2, 1, 0.5f, 4));
+                cmd.SetComputeVectorParam(cs, "_SsrPyramidParams", Vector4.zero);
+                cmd.SetComputeVectorParam(cs, "_SsrColorPyramidScaleAndLimitPrev", Vector4.one);
+                cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", coverage);
+                cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", hits);
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrNormalTexture", Make(W, H, (x, y) => new Color(0, 0, 1, 1)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrDepthTexture", Make(W, H, (x, y) => new Color(0.5f, 0, 0, 0)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTextureRW", Make(W, H, (x, y) => new Color(0.5f, 0.5f, 0, 0)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrMotionTexture", Make(W, H, (x, y) => Color.clear));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrColorPyramid", Make(W, H, (x, y) => new Color(0.25f, 0.5f, 0.75f, 1)));
+                cmd.SetComputeTextureParam(cs, kernel, "_SsrReprojectTextureRW", output);
+                cmd.DispatchCompute(cs, kernel, (W + 7) / 8, (H + 7) / 8, 1);
+                Graphics.ExecuteCommandBuffer(cmd);
+
+                var readback = AsyncGPUReadback.Request(output, 0, TextureFormat.RGBAFloat);
+                while (!readback.done) yield return null;
+                Assert.IsFalse(readback.hasError);
+                var data = readback.GetData<Vector4>();
+                // Slot 0 publishes the current-frame SS radiance; the rest sample the pyramid with
+                // edge fade 1 and keep the R1 share as the weight.
+                for (int i = 0; i < data.Length; i++)
+                {
+                    float r = i == 0 ? 1f : 0.25f;
+                    float g = i == 0 ? 2f : 0.5f;
+                    float b = i == 0 ? 3f : 0.75f;
+                    Assert.AreEqual(r, data[i].x, 1e-3f, "radiance r " + i);
+                    Assert.AreEqual(g, data[i].y, 1e-3f, "radiance g " + i);
+                    Assert.AreEqual(b, data[i].z, 1e-3f, "radiance b " + i);
+                    Assert.AreEqual(0.5f, data[i].w, 1e-3f, "weight " + i);
+                }
+                TestContext.Out.WriteLine("P3 fallback: " + data[0]);
             }
             foreach (var o in owned) Object.DestroyImmediate(o);
         }

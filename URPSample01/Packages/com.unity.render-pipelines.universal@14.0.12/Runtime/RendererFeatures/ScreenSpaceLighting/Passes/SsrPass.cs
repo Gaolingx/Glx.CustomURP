@@ -434,7 +434,7 @@ namespace UnityEngine.Rendering.Universal
                         screenWidth, screenHeight, traceWidth, traceHeight, false));
                     PushSsrRayLength(cmd, cs, ref cameraData, settings);
                     Matrix4x4 coldPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
-                    if (TryTrace(cmd, cs, ref cameraData, depthTexture, normalTexture, null, null, traceWidth, traceHeight, coldPrevInvViewProj))
+                    if (TryTrace(cmd, cs, ref cameraData, depthTexture, normalTexture, null, null, traceWidth, traceHeight, false, coldPrevInvViewProj))
                     {
                         using (new ProfilingScope(cmd, s_Reconstruction))
                             Composite(cmd, cs, depthTexture, normalTexture, null, true, screenWidth, screenHeight);
@@ -476,7 +476,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         bool TryTrace(CommandBuffer cmd, ComputeShader cs, ref CameraData cameraData, RTHandle depth, RTHandle normals,
-            RTHandle motion, RTHandle hit, int w, int h, in Matrix4x4 prevInvViewProj)
+            RTHandle motion, RTHandle hit, int w, int h, bool pbr, in Matrix4x4 prevInvViewProj)
         {
             if (requestQueue == null || m_Snapshot == null || m_Scene == null) return false;
             m_History.EnsureSsrHwHistory(w, h);
@@ -488,8 +488,10 @@ namespace UnityEngine.Rendering.Universal
                 requestQueue.Trace(cmd, cs, m_Resources.rayTracingSsr, m_Scene, m_Snapshot, w, h);
                 DispatchHitDeferred(cmd);
                 // P3: re-shade SS hits from the current-frame GBuffer before the temporal merge, so
-                // the temporal only folds RT hits into the hardware history.
-                if (m_Settings != null && m_Settings.ssrAfterGbuffer)
+                // the temporal only folds RT hits into the hardware history. Only the PBR reproject
+                // reads the SS publication; the Approximation composite uses the previous colour and
+                // would lose this frame's RT hit if SsrHitSs overwrote its slot.
+                if (pbr && m_Settings != null && m_Settings.ssrAfterGbuffer && SsrGbufferActive(cameraData))
                     DispatchHitSs(cmd, ref cameraData, depth, hit, w, h);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 if (s_RequestEvidence && !s_EvidenceRequested)
@@ -535,6 +537,21 @@ namespace UnityEngine.Rendering.Universal
         // very shading seam P3 removes.
         bool useDeferredHitShading => m_Settings != null &&
                                       (m_Settings.hitDeferredShading || m_Settings.ssrAfterGbuffer);
+
+        // P3 shades the SS hit from the current-frame GBuffer. A Deferred-configured renderer can
+        // still fall back to Forward for a camera (MSAA, RenderGraph, unsupported attachments), and
+        // a Forward renderer never allocates deferredLights at all; in both cases SsrHitSs has no
+        // source. The reproject must then keep the previous-colour path instead of zeroing the
+        // screen-space share, so the keyword and the dispatch use this per-camera test.
+        static bool SsrGbufferActive(in CameraData cameraData)
+        {
+            if (!(cameraData.renderer is UniversalRenderer renderer) ||
+                renderer.renderingModeActual != RenderingMode.Deferred)
+                return false;
+
+            var deferred = renderer.deferredLights;
+            return deferred != null && deferred.GbufferAttachments != null && deferred.GbufferAttachments.Length >= 3;
+        }
 
         void DispatchHitDeferred(CommandBuffer cmd)
         {
@@ -598,11 +615,10 @@ namespace UnityEngine.Rendering.Universal
             var cs = m_Resources.ssrHitSsCompute;
             if (cs == null)
                 return;
-            if (!(cameraData.renderer is UniversalRenderer renderer))
+            if (!SsrGbufferActive(cameraData))
                 return;
+            var renderer = (UniversalRenderer)cameraData.renderer;
             var deferred = renderer.deferredLights;
-            if (deferred == null || deferred.GbufferAttachments == null || deferred.GbufferAttachments.Length < 3)
-                return;
 
             int kernel = cs.FindKernel("SsrHitSs");
             SetKeyword(cs, k_GbufferNormalsOctKeyword, ScreenSpaceLightingSsgiPass.UseOctEncodedNormals(renderer));
@@ -738,8 +754,8 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
             // P3: the SS radiance comes from the SsrHitSs kernel (current-frame GBuffer) only when the
             // hybrid queue exists; otherwise the reproject keeps the previous-colour path.
-            bool ssrShadeSs = m_Settings != null && m_Settings.ssrAfterGbuffer && requestQueue != null;
-            SetKeyword(compute, k_GlxSsrShadeSsKeyword, ssrShadeSs);
+            bool ssrShadeSs = pbr && m_Settings != null && m_Settings.ssrAfterGbuffer && requestQueue != null &&
+                              SsrGbufferActive(cameraData);
             SetKeyword(denoiser, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
 
@@ -812,7 +828,12 @@ namespace UnityEngine.Rendering.Universal
             // request covers the algorithm's own hit point for this pixel and frame.
             bool traced = halfResolution && TryTrace(cmd, compute, ref cameraData, depthTexture, normalTexture,
                 motionTexture, pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint,
-                traceWidth, traceHeight, hybridPrevInvViewProj);
+                traceWidth, traceHeight, pbr, hybridPrevInvViewProj);
+
+            // A failed hybrid trace leaves the R1/R2 buffers without this frame's data. Keep the
+            // previous-colour path instead of letting the P3 reproject read stale records.
+            ssrShadeSs &= traced;
+            SetKeyword(compute, k_GlxSsrShadeSsKeyword, ssrShadeSs);
 
             using (new ProfilingScope(cmd, s_Reconstruction))
             {

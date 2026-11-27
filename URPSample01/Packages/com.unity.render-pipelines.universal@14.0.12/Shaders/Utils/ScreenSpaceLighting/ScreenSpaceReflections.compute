@@ -762,14 +762,37 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
         // colour pyramid. Keep the R1 coverage (edge x roughness fade) already stored in ssShare.
         uint slot = traceCoord.y * (uint)_SsrTraceSize.x + traceCoord.x;
         GlxPublishedHit ssHit = _R2Hits[slot];
-        float4 p3 = float4(0.0, 0.0, 0.0, 0.0);
+        float share = saturate(_R1Coverage[slot].ssShare);
         if ((ssHit.flags & SSR_HIT_FLAG_SS) != 0u && all(isfinite(ssHit.radiance)) && all(ssHit.radiance >= 0.0))
         {
             // B6.1: the silhouette confidence is already folded into ssShare by R1Original, so the
             // complement is requested from the hardware fill there.
-            p3 = float4(max(ssHit.radiance, 0.0), saturate(_R1Coverage[slot].ssShare));
+            SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, float4(max(ssHit.radiance, 0.0), share));
+            return;
         }
-        SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, p3);
+
+        // The hit surface has no current-frame GBuffer source: a forward-only material inside a
+        // deferred frame writes no GBuffer, and a forward renderer never runs the SS hit kernel.
+        // Falling back to the previous colour pyramid per slot keeps the pre-P3 radiance instead
+        // of zeroing the whole screen-space share; ssShare still carries the silhouette/edge fade.
+        float4 fallbackNormal = SSGI_LOAD(_SsrNormalTexture, inputCoord);
+        float3 fallbackN;
+        float fallbackRoughness;
+        if (share > 0.0 && SsrDecodeMaterial(fallbackNormal, fallbackN, fallbackRoughness))
+        {
+            float2 fallbackHit = SSGI_LOAD(_SsrHitPointTextureRW, traceCoord);
+            float fallbackOpacity;
+            float fallbackEdge;
+            bool fallbackAccepted;
+            float3 fallbackColor = SsrReadOriginalColor(fallbackHit, fallbackRoughness, fallbackOpacity, fallbackEdge, fallbackAccepted);
+            if (fallbackAccepted)
+            {
+                SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, float4(max(fallbackColor, 0.0), share));
+                return;
+            }
+        }
+
+        SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, float4(0.0, 0.0, 0.0, 0.0));
         return;
     }
 #endif
