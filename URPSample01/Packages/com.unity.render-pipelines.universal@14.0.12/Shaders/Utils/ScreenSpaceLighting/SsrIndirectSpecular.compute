@@ -33,6 +33,11 @@ half4 _GlossyEnvironmentCubeMap_HDR;
 
 RWTexture2D<float4> _GlxSsrSpecularRW;
 
+// Unity's per-camera globals are not declared by the core headers inside a compute include;
+// the pipeline still uploads them (same pattern as ClusteredDeferred.hlsl and
+// ScreenSpaceLightingCommon.hlsl).
+float4x4 unity_MatrixInvVP;
+
 // xy screen size, zw inverse screen size.
 float4 _SsrIndirectScreenSize;
 // xyz camera position (WS), w unused.
