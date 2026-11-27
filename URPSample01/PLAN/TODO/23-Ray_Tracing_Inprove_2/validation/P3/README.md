@@ -1,6 +1,8 @@
 # 23 P3 B6：统一复测（唯一测量批）
 
 **状态：** B6 已执行（2026-11-27）。24 组抓帧、双 API、两进程、三变体 × {P1 回滚, P3 after-GBuffer}；GPU 管线顺序与 225 执行已被 RenderDoc 证实；**门禁 1（缝）与门禁 3（静止方差字面值）NOT MET**，门禁 4/6 PASS，门禁 5 为 proxy（GPU 计时器噪声，真 GPU 门禁仍 OPEN），门禁 2 PARTIAL。
+
+> **B7 之后（2026-11-27）：** 本目录的 `p3` 路径证据是在 B7 之前采集的。B7 把 SSR 注入点从 220 移到 **221**、绑定移到 **222**，并改了 reason 6 覆盖与 225 环境源（新增可选 A2/A3，默认 A1），因此 `Win64-*/p3/*` 的哈希与门禁 2/3 结论只对旧 HEAD 有效，需在 B6.1 重测；`Win64-*/p1/*` 回滚路径不受影响，继续作为回归基线（`b1e0a889` / `7fb3e01b` 等冻结值应保持不变）。A2 需要一份开启探针兜底的夹具才能验证。
 **前置：** [P3-PLAN.md](../../../P3-PLAN.md) §6；[HANDOFF.md](../../../HANDOFF.md)；P0/P1 证据在 [P0](../P0/README.md) / [P1](../P1/README.md)。
 
 ## 运行批次
@@ -9,7 +11,7 @@
 Win64-<D3D12|D3D11>/<p1|p3>/<base|nodenoise|ssroff>/<run-01|run-02>/Player.json + frame.png (+frame.raw, 本机)
 ```
 
-- `p1` 路径带 `-p3-ssr-rollback`（206 注入、GBuffer 保留镜面）；`p3` 路径带 `-p3-ssr-after-gbuffer`（220 / 221 / 225 / 230）。
+- `p1` 路径带 `-p3-ssr-rollback`（206 注入、GBuffer 保留镜面）；`p3` 路径带 `-p3-ssr-after-gbuffer`（采集时为 220/221/225/230；B7 起为 221/222/225/230）。
 - 每变体两个全新进程；`firstUnityFrame=1`、`unityFrameAtCapture=121`。
 - 静态序列：`Static/<api>/<p1|p3>/base`，`-p3-static 300`（先 300 帧纯计时，再 300 帧逐帧 ROI 回读）。
 - RenderDoc：`RenderDoc/`（`.rdc` 与导出 bin 按 P0/P1 政策留本机；分析见 [CaptureAnalysis.json](RenderDoc/CaptureAnalysis.json)）。

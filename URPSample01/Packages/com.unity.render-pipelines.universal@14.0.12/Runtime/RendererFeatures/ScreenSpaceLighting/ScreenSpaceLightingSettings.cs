@@ -40,10 +40,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Tooltip("Light ray-traced reflection hits with the ClusteredDeferred kernel instead of the closest-hit approximation. Requires hardware ray tracing and SsrHitDeferred.compute; unsupported materials are rejected at registration (C2.7).")]
         internal bool hitDeferredShading = false;
 
-        [SerializeField, Tooltip("P3: inject opaque SSR after the GBuffer pass (AfterRenderingGbuffer) so screen-space hits read the current-frame GBuffer, and move the deferred receiver's indirect specular out of the GBuffer pass. Off keeps the P1 path (SSR at 206, GBuffer writes SSR). Default stays off until P3 B6 passes.")]
+        [SerializeField, Tooltip("P3: inject opaque SSR after the GBuffer and the Decal GBuffer pass (event 221) so screen-space hits read the current-frame GBuffer, and move the deferred receiver's indirect specular out of the GBuffer pass. Falls back to the P1 GBuffer specular when the 225 composite cannot run. Off keeps the P1 path (SSR at 206, GBuffer writes SSR). Default stays off until the P3 gates pass.")]
         internal bool ssrAfterGbuffer = false;
 
-        [SerializeField, Tooltip("P3: environment source mixed with SSR in the deferred indirect-specular composite. A1 samples _GlossyEnvironmentCubeMap (default); A2 uses the published GI probe atlas when the probe fallback runs; A3 uses the ambient irradiance stand-in.")]
+        [SerializeField, Tooltip("P3: environment source mixed with SSR in the deferred indirect-specular composite. A1 samples _GlossyEnvironmentCubeMap (default); A2 uses the published GI probe atlas when the probe fallback runs (directional irradiance, no roughness mips; probe coverage blends it over the cubemap); A3 uses the ambient irradiance stand-in.")]
         internal SsrIndirectSource ssrIndirectSource = SsrIndirectSource.A1;
 
         [SerializeField, Tooltip("Update the scene probe cache from the shared RT scene as the SSGI diffuse fallback. Requires hardware ray tracing support.")]

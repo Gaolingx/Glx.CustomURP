@@ -3,22 +3,33 @@
 // The deferred Lit GBuffer pass now writes only emission + indirect diffuse into GBuffer3 (the
 // _CdBakedColor the deferred kernel loads). This kernel rebuilds the indirect-specular term the
 // GBuffer used to fold in: it decodes GBuffer0/1/2 + depth, reconstructs the reflection vector,
-// samples the environment reflection (_GlossyEnvironmentCubeMap, the A1 source) and the opaque SSR
-// result, blends them with the SSR coverage, and applies EnvironmentBRDFSpecular once. The result is
-// multiplied by the surface occlusion (GBuffer1.a) so it matches the original EnvironmentBRDF *
-// occlusion the deferred kernel used to receive. ClusteredDeferred adds this texture to the baked
-// colour, so the environment reflection is sampled exactly once.
+// samples the environment reflection and the opaque SSR result, blends them with the SSR coverage,
+// and applies EnvironmentBRDFSpecular once. The result is multiplied by the surface occlusion
+// (GBuffer1.a) so it matches the original EnvironmentBRDF * occlusion the deferred kernel used to
+// receive. ClusteredDeferred adds this texture to the baked colour, so the environment reflection is
+// sampled exactly once.
+//
+// Environment source (_SsrIndirectParams.z, SsrIndirectSource):
+//   A1 = the per-camera _GlossyEnvironmentCubeMap (sky/default reflection), roughness mips;
+//   A2 = the published GI probe atlas (directional irradiance x 1/pi, no roughness mips), blended
+//        over the cubemap remainder by probe coverage; only compiled when the Setup pass bound a
+//        published generation (the keyword guards the declarations);
+//   A3 = the uniform _GlossyEnvironmentColor ambient, a pure fallback.
 //
 // Everything this kernel declares is bound by the pass; nothing relies on per-draw state.
 #pragma kernel SsrIndirectSpecular
 
 #pragma multi_compile _ _GBUFFER_NORMALS_OCT
+#pragma multi_compile _ _GLX_SSR_PROBE_ENV
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.hlsl"
+#if defined(_GLX_SSR_PROBE_ENV)
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RayTracing/GlxProbeQuery.hlsl"
+#endif
 
 TEXTURE2D(_GBuffer0);
 TEXTURE2D(_GBuffer1);
@@ -31,6 +42,9 @@ TEXTURECUBE(_GlossyEnvironmentCubeMap);
 SAMPLER(sampler_GlossyEnvironmentCubeMap);
 half4 _GlossyEnvironmentCubeMap_HDR;
 
+// A3 fallback: the per-camera ambient glossy colour URP uploads every frame.
+float4 _GlossyEnvironmentColor;
+
 RWTexture2D<float4> _GlxSsrSpecularRW;
 
 // Unity's per-camera globals are not declared by the core headers inside a compute include;
@@ -42,7 +56,7 @@ float4x4 unity_MatrixInvVP;
 float4 _SsrIndirectScreenSize;
 // xyz camera position (WS), w unused.
 float4 _SsrIndirectCameraPos;
-// x SSR intensity, yzw reserved.
+// x SSR intensity, y A2 probe coverage, z SsrIndirectSource (0 A1, 1 A2, 2 A3), w unused.
 float4 _SsrIndirectParams;
 
 #define SSR_INDIRECT_FLAG_SPECULAR_SETUP 8u
@@ -89,6 +103,38 @@ BRDFData SsrIndirectBRDFFromGbuffer(half3 albedo, half3 packedSpecular, half smo
     return brdfData;
 }
 
+// A1: per-camera sky/default reflection cubemap with the material roughness mip.
+half3 SsrIndirectSampleSky(float3 reflectVector, half perceptualRoughness)
+{
+    half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+    half4 encodedEnv = SAMPLE_TEXTURECUBE_LOD(_GlossyEnvironmentCubeMap, sampler_GlossyEnvironmentCubeMap, reflectVector, mip);
+    return DecodeHDREnvironment(encodedEnv, _GlossyEnvironmentCubeMap_HDR);
+}
+
+// Selects the environment reflection for the receiver. The probe atlas carries directional
+// irradiance only (no roughness mips, no box projection), so A2 approximates glossy reflections
+// from the mirror direction and keeps the cubemap as the uncovered remainder.
+half3 SsrIndirectEnvironment(float3 positionWS, float3 reflectVector, half perceptualRoughness)
+{
+    uint source = (uint)(_SsrIndirectParams.z + 0.5h);
+    // A3 never samples the cubemap: the uniform ambient is the whole term.
+    if (source == 2u)
+        return _GlossyEnvironmentColor.rgb;
+    half3 sky = SsrIndirectSampleSky(reflectVector, perceptualRoughness);
+#if defined(_GLX_SSR_PROBE_ENV)
+    if (source == 1u)
+    {
+        half3 irradiance;
+        if (GlxProbeQuery(positionWS, reflectVector, irradiance))
+        {
+            half3 probeRadiance = max(irradiance, 0.0h) * INV_PI;
+            return lerp(sky, probeRadiance, saturate(_SsrIndirectParams.y));
+        }
+    }
+#endif
+    return sky;
+}
+
 [numthreads(16, 16, 1)]
 void SsrIndirectSpecular(uint3 id : SV_DispatchThreadID)
 {
@@ -128,9 +174,7 @@ void SsrIndirectSpecular(uint3 id : SV_DispatchThreadID)
     half occlusion = gbuffer1.a;
     BRDFData brdfData = SsrIndirectBRDFFromGbuffer(gbuffer0.rgb, gbuffer1.rgb, gbuffer2.a, materialFlags);
 
-    half mip = PerceptualRoughnessToMipmapLevel(brdfData.perceptualRoughness);
-    half4 encodedEnv = SAMPLE_TEXTURECUBE_LOD(_GlossyEnvironmentCubeMap, sampler_GlossyEnvironmentCubeMap, reflectVector, mip);
-    half3 environmentSpecular = DecodeHDREnvironment(encodedEnv, _GlossyEnvironmentCubeMap_HDR);
+    half3 environmentSpecular = SsrIndirectEnvironment(positionWS, reflectVector, brdfData.perceptualRoughness);
 
     half4 ssr = LOAD_TEXTURE2D(_ScreenSpaceSsrTexture, pixel);
     half weight = saturate(ssr.a * max(_SsrIndirectParams.x, 0.0h));

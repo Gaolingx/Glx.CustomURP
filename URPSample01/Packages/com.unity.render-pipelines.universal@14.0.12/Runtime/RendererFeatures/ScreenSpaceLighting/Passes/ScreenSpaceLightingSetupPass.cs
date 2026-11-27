@@ -12,9 +12,11 @@ namespace UnityEngine.Rendering.Universal
 
         ScreenSpaceLightingSsgiPass m_SsgiPass;
         ScreenSpaceLightingSsrPass m_SsrPass;
+        ScreenSpaceLightingSsrIndirectSpecularPass m_SsrIndirectPass;
         RayTracingProbeFallback m_ProbeFallback;
         float m_ProbeCoverage;
         bool m_SsrAfterGbuffer;
+        bool m_WarnedReceiverUnavailable;
 
 #if UNITY_EDITOR
         // Editor-only evidence hook: verification code reads this counter to prove the pass ran and
@@ -31,10 +33,12 @@ namespace UnityEngine.Rendering.Universal
             ConfigureInput(ScriptableRenderPassInput.None);
         }
 
-        internal void Setup(ScreenSpaceLightingSsgiPass ssgiPass, ScreenSpaceLightingSsrPass ssrPass, bool ssrAfterGbuffer)
+        internal void Setup(ScreenSpaceLightingSsgiPass ssgiPass, ScreenSpaceLightingSsrPass ssrPass,
+            ScreenSpaceLightingSsrIndirectSpecularPass ssrIndirectPass, bool ssrAfterGbuffer)
         {
             m_SsgiPass = ssgiPass;
             m_SsrPass = ssrPass;
+            m_SsrIndirectPass = ssrIndirectPass;
             m_SsrAfterGbuffer = ssrAfterGbuffer;
         }
 
@@ -54,7 +58,22 @@ namespace UnityEngine.Rendering.Universal
             {
                 // P3: publish the receiver switch before the GBuffer pass so the deferred Lit
                 // fragment keeps only indirect diffuse. 0 on the rollback path keeps GBuffer3 as P1.
-                cmd.SetGlobalFloat(ScreenSpaceLightingShaderIDs.GlxSsrAfterGbuffer, m_SsrAfterGbuffer ? 1f : 0f);
+                // The switch is also 0 whenever the 225 composite cannot run, so a missing kernel or
+                // target degrades to the P1 GBuffer path instead of dropping every reflection.
+                bool routeReceiver = m_SsrAfterGbuffer &&
+                                     m_SsrIndirectPass != null &&
+                                     m_SsrIndirectPass.CanExecute(renderingData);
+                // The composite follows the same decision, so a later reallocation cannot double-add.
+                m_SsrIndirectPass?.SetReceiverRouted(routeReceiver);
+                if (m_SsrAfterGbuffer && !routeReceiver && !m_WarnedReceiverUnavailable)
+                {
+                    m_WarnedReceiverUnavailable = true;
+                    Debug.LogWarning("[ScreenSpaceLighting] ssrAfterGbuffer is on but the 225 indirect-specular " +
+                                     "composite cannot run (missing compute/kernel, target or deferred GBuffer); " +
+                                     "the deferred GBuffer keeps its indirect specular and the P3 receiver reroute " +
+                                     "stays off until it can.");
+                }
+                cmd.SetGlobalFloat(ScreenSpaceLightingShaderIDs.GlxSsrAfterGbuffer, routeReceiver ? 1f : 0f);
 
                 var stack = VolumeManager.instance.stack;
                 var settings = stack != null ? stack.GetComponent<ScreenSpaceGlobalIllumination>() : null;
@@ -86,6 +105,8 @@ namespace UnityEngine.Rendering.Universal
                 // the receiver even when this camera has no screen-space output. Off or unpublished
                 // generations keep the keyword off and the coverage at zero (exact baked-GI path).
                 bool bindProbe = m_ProbeFallback != null && m_ProbeFallback.BindPublishedGlobals(cmd);
+                // A2 needs to know whether the published atlas is bound before it selects its variant.
+                m_SsrIndirectPass?.SetProbeEnvBound(bindProbe);
                 if (bindProbe)
                 {
                     cmd.SetGlobalVector(

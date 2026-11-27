@@ -1,6 +1,6 @@
 # 23 实施计划：SS 命中 / RT 命中统一着色（P3 = HDRP Mixed 语义）
 
-**状态：** P0 完成（基线 `2a38d40`，契约已冻结）；A 决策已锁定（§2）；P1 PARTIAL（命中核已执行，缝门禁 NOT MET，见 [validation/P1/README.md](validation/P1/README.md)）；P3 实施计划已写：[P3-PLAN.md](P3-PLAN.md)
+**状态：** P0 完成（基线 `2a38d40`，契约已冻结）；A 决策已锁定（§2）；P1 PARTIAL（命中核已执行，缝门禁 NOT MET，见 [validation/P1/README.md](validation/P1/README.md)）；P3 B0–B6 完成、B7 审计修正已落地（注入点 221/绑定 222、225 可用性门控、reason 6 保留硬件补集、225 环境源接 A2/A3），P3 门禁待 B6.1 重测：[P3-PLAN.md](P3-PLAN.md)
 **日期：** 2026-11-26
 **目标提交：** `350d18c` 之后
 **契约：** [contracts.md](contracts.md)（P0 冻结，P1–P3 按版本位放宽）
@@ -71,7 +71,7 @@
 
 | 内容 | 说明 |
 |---|---|
-| 注入点 | `206` → `AfterRenderingGbuffer`（220）；transparent 路径不动 |
+| 注入点 | `206` → `AfterRenderingGbuffer + 1`（221，晚于 Decal 220；B7）；transparent 路径不动 |
 | 接收者 | 延迟接收者的 env+SSR 间接镜面从 GBuffer pass 移到 220 后的合成（225）或 230 核；forward 接收者不变 |
 | SS 命中 | 读命中像素的当前帧 GBuffer，取表面数据，走 P1 的同一 hit 光照核；不再采前帧颜色金字塔 |
 | 合成 | `ssShare/hwShare` 只表示覆盖率与 smoothness/edge fade，不表示"两条着色路径的折中" |

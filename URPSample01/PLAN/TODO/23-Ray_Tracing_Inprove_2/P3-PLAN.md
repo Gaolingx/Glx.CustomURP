@@ -1,6 +1,7 @@
 # 23 P3 实施计划：SSR 后置 + SS/RT 共用命中着色（根治）
 
 **状态：** B0–B6 完成（2026-11-27）。B6 已执行：24 组抓帧 + RenderDoc 证实 225 与两个命中核在 GPU 上执行；门禁 1（缝）与门禁 3（静止方差字面）NOT MET，门禁 4/6 PASS，门禁 5 PARTIAL/OPEN（GPU 计时器噪声），门禁 2 PARTIAL。证据：[validation/P3](validation/P3/README.md)。`ssrAfterGbuffer` 保持默认关闭。前置：P0 完成、P1 PARTIAL。
+**B7 审计修正（2026-11-27，B6 之后）：** ① 不透明 SSR 移到 221、绑定 222，严格晚于 Decal GBuffer(220)；② 225 增加可用性门控，GBuffer 只在 225 可执行时才去镜面；③ reason 6 保留硬件覆盖补集（SS 不进硬件历史，边补集复投影）；④ 225 环境源接 A2 探针图集 / A3 均匀环境（默认仍 A1）。这些改动使 **P3 路径的 B6 证据失效**（P1 回滚路径哈希不变），门禁 1/2/3/5 需在 B6.1 重测；A2 需要一份开启探针兜底的夹具才能验证。
 **上位计划：** [plan.md](plan.md) §P3；契约：[contracts.md](contracts.md)。
 **验收方式：** 实现与文档按 B0–B5 逐步提交，**测量统一放到最后的 B6 一批**（含决策 #4/#5 的量化与六项阻断门禁）。
 
@@ -31,17 +32,18 @@
 
 ```
 Prepass(200) → SSGI(205) → GBuffer(210，只写 albedo/specular/normal/baked+env+emission，不再写 SSR)
-→ SSR(220)：
+→ Decal GBuffer(220)
+→ SSR(221，B7：从 220 让开 Decal 同事件)：
     R1 分类（prepass 深度/法线）
     SS trace（半分辨率）→ 命中 UV + 有效性（不再采前帧颜色）
     RT trace（FDT 预算队列，不变）
     命中着色核（trace 全屏 dispatch）：SS 命中读当前 GBuffer 构面；RT 命中读 SsrHitSurface；
                                     两者调同一个 SsrShadeSurface；写 radiance+权重
-    temporal / PBR merge / denoiser / 重建（输入语义不变）
-→ 间接镜面合成(225)：读 GBuffer1/2+depth 重建反射向量，env(probe/sky) 与 SSR 按权重混合，
-                     写一张 specular RT（或直接由 230 采样）
+    temporal / PBR merge / denoiser / 重建（输入语义不变；SS 不进硬件历史，reason 6 复投影补集）
+→ 间接镜面合成(225)：读 GBuffer1/2+depth 重建反射向量，env(A1/A2/A3) 与 SSR 按权重混合，
+                     写一张 specular RT（仅当 225 可执行时 GBuffer 才去镜面）
 → Deferred lights(230)：直射 + 间接镜面 RT
-→ Setup/绑定(221→ 实际需 >220 且 <230)：SSR/SSGI 纹理与 keyword
+→ Setup/绑定(222，B7)：SSR/SSGI 纹理与 keyword
 → Forward opaque(250) / 透明(449+)：保持现有材质端混合
 ```
 
@@ -66,6 +68,8 @@ Prepass(200) → SSGI(205) → GBuffer(210，只写 albedo/specular/normal/baked
 - A3：保留 P1 的 `_GlxHitAmbientIrradiance` 级近似（均一环境），仅作 fallback。
 
 **推荐：A + A1 起步**，把 A2 记为 P3 已知质量差（与 A 决策“阴影/探针质量差计入容差”一致）。`rayTracingProbeFallback` 开启时优先 A2。
+
+> **B7 落地：** A2/A3 已接入 225（不再只是记录）。`ssrIndirectSource = A1`（默认）走 `_GlossyEnvironmentCubeMap`；`A2` 在 Setup 成功绑定已发布探针图集时启用 `_GLX_SSR_PROBE_ENV`，沿反射方向取 `GlxProbeQuery` 的辐照度 ×1/π，按 `probeCoverage` 与天空混合（图集无 roughness mip / 盒投影，是漫反射级近似）；`A3` 用 `_GlossyEnvironmentColor`。A2 需要一份开启探针兜底的夹具才能做像素验证，现有 fixture（`rayTracingProbeFallback=0`）无法覆盖。
 
 #### D1-B0 选型结论（2026-11-27，代码核验）
 
@@ -118,6 +122,8 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 - 命中核按 slot 输出 `radiance`（预乘）与 `weight`，Temporal 与 `SsrPbrHwMerge` 不再用 `min(1-s, requestShare)` 做“路径折中”；
 - denoiser 输入仍是 radiance+weight，历史/降噪语义不变。
 
+> **B7 修正：** 上一版的字面实现（SS 命中覆盖同槽 RT 后把硬件历史清零）会丢掉 reason 6（屏幕边缘部分覆盖）的硬件补集。现行为：SS 辐射不进硬件历史；`R2Temporal` 对 SS 槽在 `requestShare > 0` 时照常复投影硬件历史；合并核按 `s·SS + hw·HW`（`hw = min(1-s, requestShare)`）归一化，`a = s + hw`。一个槽只发布一份 radiance，所以 reason 6 的补集来自复投影的硬件历史（当帧新服务的 RT 辐射会被 SS 覆盖，记录为已知限制）。`min(..., requestShare)` 保留的语义是“预算可用性”，不是两条着色路径的折中。
+
 ### D5 决策 #4 / #5（在 B6 统一量化，不再拖）
 
 - **#4 一帧跳变**：开关 `ssrAfterGbuffer` 时，同一相机静止帧在切换前后各取一帧，统计 ROI 的 meanAbs/p99/max；判据：整帧 meanAbs ≤ 1e-3 且无 >0.05 的区域性跳变，否则记录为已知代价。
@@ -136,29 +142,32 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 | 206 | **SSR** | （回滚路径专用） |
 | 207 | 材质绑定 | （回滚路径专用） |
 | 210 | GBuffer（含 SSR） | GBuffer（**不含 SSR**，保留 env） |
-| **220** | Decal | **SSR**（+ Decal 同事件，顺序按 queue 固定） |
-| **221** | — | 材质绑定（SSGI + SSR） |
-| **225** | — | 间接镜面合成（D1-A） |
+| **220** | Decal | Decal GBuffer（不变） |
+| **221** | — | **SSR**（B7：从 220 后移一个事件，严格晚于 Decal） |
+| **222** | — | 材质绑定（SSGI + SSR；B7：从 221 后移） |
+| **225** | — | 间接镜面合成（D1-A，含可用性门控） |
 | 230 | ClusteredDeferred | ClusteredDeferred（+ specular RT） |
 | 250 | Forward opaque | 不变（仍走材质端 blend） |
 | 400/449/501 | 颜色金字塔/透明 SSR/历史 | 不变 |
 
 排序约束（写进 tripwire）：
 
-1. SSR(220) 必须在 GBuffer(210) 之后、Deferred lights(230) 之前；
-2. 绑定 pass 必须 >220 且 <230；
+1. SSR(221) 必须在 GBuffer(210) 与 Decal GBuffer(220) 之后、Deferred lights(230) 之前；
+2. 绑定 pass 必须 >221 且 <230（现为 222）；
 3. 透明 SSR(449) 与折射(448) 的事件不变；
-4. 回滚路径的 206/207 必须仍可独立工作。
+4. 回滚路径的 206/207 必须仍可独立工作；
+5. 225 不可执行时 GBuffer 必须保留间接镜面（可用性门控）。
 
 ## 4. 契约与测试变更
 
 | 契约 | 变更 |
 |---|---|
-| C1（注入点） | 206 → 220；保留“回滚路径 206”记录；`SsrP3ContractTests` 断言改为“220 或 206+开关” |
+| C1（注入点） | 206 → 221（B7：原 220，后移让开 Decal）；绑定 222；保留“回滚路径 206/207”记录；`SsrP3ContractTests` 断言改为“221 或 206+开关” |
 | C2（24B 发布） | 布局不变；`flags` 增加 `SS` 位（SS 命中由核发布），24B 不变 |
-| C2.7（表面记录） | `source` 增加 `gbuffer = 2`；字段与 80B 布局不变；版本位仍 1 |
+| C2.7（表面记录） | `source` 增加 `gbuffer = 2`；字段与 80B 布局不变；版本位仍 1；SS 记录由 `SsrHitSs` 在本地构面，不写 80B 缓冲 |
+| C3（覆盖率） | reason 6：`s = ssShare`、`hw = min(1-s, requestShare)`；SS 不进硬件历史，补集由 `R2Temporal` 复投影 |
 | C8（写者） | raygen 只写 RT 记录；命中核接受 `source ∈ {rt, gbuffer}`；SS 不写记录时不触碰 24B 之外的字段 |
-| 新增 tripwire | `SsrShadeSurface` 被 raygen 与 kernel 同时 include；GBuffer pass 不再 include SSR blend；pass 事件断言；`ssrAfterGbuffer` 默认值与开关路径 |
+| 新增 tripwire | 221/222/225 事件顺序；`_GLX_SSR_PROBE_ENV` 只在 A2 且图集已绑定；`CanExecute` 门控；SS 槽的硬件补集复投影；两个命中核的编译 smoke test |
 
 ## 5. 任务分解
 
@@ -204,7 +213,7 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 - probe/sky 层级：`rayTracingProbeFallback` 开时绑真实图集并把 `_GlxHitLowFrequencySource = 1`；否则保持 P1 近似。
 
 ### B5 编排与清理
-> **状态：完成（2026-11-27）。** 命中着色 marker 统一为 `SSR Hit Shading (RT)` / `(SS)`；新增 tripwire：`SsrP3_PassOrderIsMonotonic`（220<221<225<230、221=220+1、225=220+5）与 `SsrP3_SwitchDefaultsOffAndKeywordsDeclared`（`ssrAfterGbuffer` 默认 false、`_GLX_SSR_SPECULAR`/`_GLX_SSR_SHADE_SS` 关键字、marker 名）。**回滚 206 路径保留为现役参考**（不删除，B6 需 P1 像素对照）；`ssrAfterGbuffer` 仍在 B6 通过后才考虑默认开启。
+> **状态：完成（2026-11-27）。** 命中着色 marker 统一为 `SSR Hit Shading (RT)` / `(SS)`；新增 tripwire：`SsrP3_PassOrderIsMonotonic`（B7 起为 221<222<225<230、221=220+1、222=221+1、225=220+5）与 `SsrP3_SwitchDefaultsOffAndKeywordsDeclared`（`ssrAfterGbuffer` 默认 false、`_GLX_SSR_SPECULAR`/`_GLX_SSR_SHADE_SS` 关键字、marker 名）。**回滚 206 路径保留为现役参考**（不删除，B6 需 P1 像素对照）；`ssrAfterGbuffer` 仍在门禁全绿后才考虑默认开启。
 - 回滚开关、Pass 断言、marker 命名（`SSR Hit Shading (SS)` / `(RT)`）；
 - 删除 P1 的 206 专用分支（保留在开关后面），更新 RenderDoc 抓帧脚本说明。
 
@@ -214,9 +223,19 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 - 六项阻断门禁 + D5 的 #4/#5 量化；
 - 证据落 `validation/P3/`，更新 HANDOFF/README/ACCEPTANCE。
 
-## 6. 验收（B6 统一执行）
+### B7 审计修正（B6 之后，代码先行、像素待 B6.1）
+> **状态：完成（代码/静态，2026-11-27）。** 修正 B6 审计发现的四个缺口，B6 的 P3 证据因此失效（P1 回滚哈希不变），门禁 1/2/3/5 需重测。
+- **Decal 顺序**：SSR 221 / 绑定 222，严格晚于 Decal GBuffer(220)；tripwire 断言 `ssr == AfterRenderingGbuffer + 1`、`bind == ssr + 1`、225 不变。
+- **接收者门控**：`ScreenSpaceLightingSsrIndirectSpecularPass.CanExecute`（settings/compute/kernel/目标 RT/延迟 GBuffer/深度）为真时才把 `_GlxSsrAfterGbuffer` 发 1，并首次降级告警一次；否则 GBuffer 保持 P1 写镜面，不再静默丢反射。
+- **reason 6 补集**：`R2Temporal` 对 SS 槽不进硬件历史，但 `requestShare > 0` 时复投影硬件历史；合并核按 `s·SS + hw·HW` 归一化。已知限制：同槽只发布一份 radiance，当帧新服务的 RT 会被 SS 覆盖。
+- **环境源 A2/A3**：225 按 `ssrIndirectSource` 选 A1/A2/A3；A2 仅在 Setup 成功绑定已发布探针图集时开启 `_GLX_SSR_PROBE_ENV`（探针为方向化辐照度 ×1/π，无 roughness mip/盒投影）。A1 仍为默认。
+- **测试**：`SsrP3ContractTests` 更新事件断言，新增门控/补集/A2 三条 tripwire 与两个命中的 compute 编译 smoke test。
+
+## 6. 验收（B6 已执行；B7 之后 P3 路径需 B6.1 重测）
 
 沿用 plan.md §P3 六条，其中 1/2 的度量口径细化（P1 已证明原口径被内容/历史主导）：
+
+> B7 修改了 P3 路径的注入点（221/222）、reason 6 覆盖与 225 环境源，因此现有 `Win64-*/p3/*` 证据只对 B7 之前的 HEAD 有效；`p1`（回滚）路径哈希应保持 `b1e0a889` / `7fb3e01b` 等冻结值不变，可用于回归。门禁 1/2/3/5 需在 B6.1 重测，A2 需要探针夹具。
 
 1. **缝**：`nodenoise` 下，SS↔RT 相邻块（`reason==2` vs `reason==4/6`，P1 的 `seam_metric.py`）的 **median step ≤ P0 的 50%**，mean 不上升；洋红/关闭对照证明指标敏感；probe 边界不新增跳变。
 2. **一致性**：同一条反射在 SS 块与 RT 块上的 radiance 均值/色温差 ≤ 阈值（不依赖 denoiser）。
@@ -235,6 +254,10 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 | 回滚路径位图漂移 | B2 完成后立即做一次“开关关闭 = P1 帧 SHA”的静态校验 |
 | 缝门禁仍不可达（内容主导） | 指标改为 median + nodenoise；必要时新增一份金属/多灯判别测例（新基线，记在 P3 证据里） |
 | P2 未完成（世界 cluster/材质矩阵） | P3 的命中核先用 P1 的 64 灯全量遍历；P2 完成后替换，不阻塞 P3 |
+| 探针场景环境换源（A1 只采默认 cubemap） | B7 接入 A2（受 `_GLX_SSR_PROBE_ENV` + 已发布图集约束）并按 `probeCoverage` 混合；**仍需探针夹具做像素验证**，默认 A1 时探针场景与 P1 有已知差异 |
+| Decal 与 SSR 同事件顺序不定 | B7 已把 SSR 移到 221、绑定 222，严格晚于 Decal GBuffer(220) |
+| 前向-only / 自发光命中面在 SS 路径缺失或不一致 | **OPEN**：SS 命中读 GBuffer，normal=0 时按 miss 处理；`gb3`（emissive）无来源。需独立夹具与判据后再修，本轮不做“已修复”表述 |
+| reason 6 当帧新服务的 RT 辐射被 SS 覆盖 | 记录为已知限制：补集只来自复投影的硬件历史；若需要当帧新鲜度，需为 SS 辐射另开一份发布缓冲 |
 
 ## 8. 依赖与顺序
 

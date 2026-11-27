@@ -10,9 +10,9 @@ using UnityEngine.Rendering.Universal;
 
 // Freezes the round 23 contracts documented in PLAN/TODO/23-Ray_Tracing_Inprove_2/contracts.md.
 // A failure here means an ABI or pass-order change landed without updating the contract document,
-// the baseline fixture and the evidence. The P3 tests (P3InjectsAfterGbuffer / SsrIndirectSpecularPass
-// / SsrShadeSurface / AcceptsGbufferSource, plus the C2.7 gbuffer source) are RED until B2–B4 land;
-// the legacy 206 event test stays green for the rollback path. Keep tests and code in one change.
+// the baseline fixture and the evidence. The B7 tests additionally freeze the decal-safe SSR event
+// (221/222), the 225 availability gate, the reason-6 hardware complement and the A2 probe
+// environment source. Keep tests and code in one change.
 public sealed class SsrP3ContractTests
 {
     const string PackageRoot = "Packages/com.unity.render-pipelines.universal@14.0.12";
@@ -275,16 +275,16 @@ public sealed class SsrP3ContractTests
     // --- P3 contract assertions. These are intentionally RED until B2–B4 implement the P3 path;
     // each failure names the artifact B2/B3/B4 must add. Keep them in the same change as the code.
     [Test]
-    public void SsrPass_P3InjectsAfterGbuffer_IsSwitched()
+    public void SsrPass_P3InjectsAfterDecalGbuffer_IsSwitched()
     {
         var type = typeof(ScreenSpaceLightingRendererFeature).Assembly.GetType(
             "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass", throwOnError: false);
         Assert.IsNotNull(type, "ScreenSpaceLightingSsrPass was not found.");
         var field = type.GetField("k_RenderPassEventAfterGbuffer", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-        Assert.IsNotNull(field, "P3 needs k_RenderPassEventAfterGbuffer; the pass must be able to inject at AfterRenderingGbuffer (C1).");
+        Assert.IsNotNull(field, "P3 needs k_RenderPassEventAfterGbuffer; the pass must inject right after the Decal GBuffer event (C1).");
         var raw = field.IsLiteral ? field.GetRawConstantValue() : field.GetValue(null);
-        Assert.AreEqual((int)RenderPassEvent.AfterRenderingGbuffer, Convert.ToInt32(raw),
-            "The P3 SSR injection point must be AfterRenderingGbuffer (220).");
+        Assert.AreEqual((int)RenderPassEvent.AfterRenderingGbuffer + 1, Convert.ToInt32(raw),
+            "The P3 SSR injection point must be AfterRenderingGbuffer + 1 (221), strictly after Decal GBuffer (220).");
 
         var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
         StringAssert.Contains("ssrAfterGbuffer", pass,
@@ -339,7 +339,8 @@ public sealed class SsrP3ContractTests
 
         var reproject = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
         StringAssert.Contains("SSR_HIT_FLAG_SS", reproject,
-            "The temporal must exclude SS-flagged hits from the hardware history (D4).");
+            "The temporal must classify SS-flagged hits: they never publish SS radiance as hardware fill, " +
+            "but a slot with requestShare > 0 keeps its reprojected hardware complement (D4).");
     }
 
     // --- B5 orchestration tripwires: pass order, switch default and marker/keyword names.
@@ -357,16 +358,114 @@ public sealed class SsrP3ContractTests
             return Convert.ToInt32(raw);
         }
 
-        int ssr = EventOf("ScreenSpaceLightingSsrPass", "k_RenderPassEventAfterGbuffer"); // 220
-        int bind = EventOf("ScreenSpaceLightingSsrBindPass", "k_RenderPassEvent");          // 221
+        int ssr = EventOf("ScreenSpaceLightingSsrPass", "k_RenderPassEventAfterGbuffer"); // 221
+        int bind = EventOf("ScreenSpaceLightingSsrBindPass", "k_RenderPassEvent");          // 222
         int indirect = EventOf("ScreenSpaceLightingSsrIndirectSpecularPass", "k_RenderPassEvent"); // 225
         int deferred = (int)RenderPassEvent.BeforeRenderingDeferredLights;                  // 230
 
-        Assert.AreEqual((int)RenderPassEvent.AfterRenderingGbuffer, ssr, "SSR must inject at AfterRenderingGbuffer (220).");
-        Assert.AreEqual(ssr + 1, bind, "The SSR material binding must run at 221.");
-        Assert.AreEqual(ssr + 5, indirect, "The indirect-specular composite must run at 225.");
+        Assert.AreEqual((int)RenderPassEvent.AfterRenderingGbuffer + 1, ssr,
+            "SSR must inject after the Decal GBuffer event (220), at 221.");
+        Assert.AreEqual(ssr + 1, bind, "The SSR material binding must run at 222.");
+        Assert.AreEqual(ssr + 4, indirect, "The indirect-specular composite must stay at 225 (>222 and <230).");
         Assert.Less(indirect, deferred, "The composite must run before ClusteredDeferred (230).");
         Assert.Less(ssr, bind, "Binding must follow the SSR pass.");
+        Assert.Greater(ssr, (int)RenderPassEvent.AfterRenderingGbuffer,
+            "Decal GBuffer injects exactly at AfterRenderingGbuffer; SSR must not share that event.");
+    }
+
+    // --- B7 audit corrections: decal-safe order, receiver availability, reason-6 complement and
+    // the A2 probe environment source.
+    [Test]
+    public void SsrP3_ReceiverRerouteRequiresTheComposite()
+    {
+        // The GBuffer may only drop its indirect specular when the 225 pass can composite it.
+        var setup = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/ScreenSpaceLightingSetupPass.cs"));
+        StringAssert.Contains("m_SsrIndirectPass.CanExecute(renderingData)", setup,
+            "The receiver switch must be published from the 225 availability, not the raw feature bool.");
+        StringAssert.Contains("routeReceiver?1f:0f", setup,
+            "The published _GlxSsrAfterGbuffer must follow the availability result.");
+
+        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrIndirectSpecularPass.cs"));
+        StringAssert.Contains("internalboolCanExecute(inRenderingDatarenderingData)", pass,
+            "The composite must expose CanExecute so the GBuffer can degrade to the P1 path.");
+        StringAssert.Contains("m_History.ssrIndirectSpecular==null", pass,
+            "CanExecute must check the composite target.");
+        StringAssert.Contains("GetCameraDepthTexture(renderer)==null", pass,
+            "CanExecute must check the depth source the kernel loads from.");
+        StringAssert.Contains("m_History.ssrWidth==width", pass,
+            "CanExecute must reject a stale target size so the composite never samples the wrong extent.");
+        StringAssert.Contains("if(!m_ReceiverRouted)", pass,
+            "Execute must follow the Setup pass's routing decision instead of re-evaluating mid-frame.");
+        StringAssert.Contains("SetReceiverRouted(routeReceiver)", setup,
+            "The Setup pass must record the routing decision for the composite.");
+    }
+
+    [Test]
+    public void SsrTemporal_ReprojectsTheHardwareShareForSsSlots()
+    {
+        // reason 6 (screen-edge partial coverage) keeps its hardware complement: an SS-flagged slot
+        // no longer clears the hardware history; requestShare > 0 reprojects it for the merge.
+        var compute = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
+        StringAssert.Contains("boolisSs=(hit.flags&SSR_HIT_FLAG_SS)!=0u;", compute,
+            "The temporal must classify SS-flagged hits for the history rule.");
+        StringAssert.Contains("if(hit.flags!=0u&&!isSs)", compute,
+            "SS-flagged hits must fall through to the hardware-history reprojection instead of clearing it.");
+        StringAssert.Contains("floatssShare", Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrRayRequest.hlsl")),
+            "The edge share must stay in R1Sample.ssShare (C3).");
+    }
+
+    [Test]
+    public void SsrIndirectSpecular_SelectsProbeEnvOnlyWhenBound()
+    {
+        var kernel = ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrIndirectSpecular.compute");
+        var normalized = Normalize(kernel);
+        StringAssert.Contains("#pragma multi_compile _ _GLX_SSR_PROBE_ENV", kernel.Replace("\r\n", "\n"),
+            "A2 needs a keyword so the probe declarations are only compiled when the atlas is bound.");
+        StringAssert.Contains("#ifdefined(_GLX_SSR_PROBE_ENV)", normalized,
+            "The probe atlas include must be gated, or an unbound declared resource drops the dispatch.");
+        StringAssert.Contains("GlxProbeQuery(positionWS,reflectVector,irradiance)", normalized.Replace(" ", ""),
+            "A2 must sample the published atlas along the reflection direction.");
+        StringAssert.Contains("_GlossyEnvironmentColor", normalized,
+            "A3 must fall back to the uniform ambient colour.");
+
+        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrIndirectSpecularPass.cs"));
+        StringAssert.Contains("ssrIndirectSource==SsrIndirectSource.A2", pass,
+            "The composite must select A2 from the feature setting.");
+        StringAssert.Contains("SetProbeEnvBound(bindProbe)", Normalize(ReadPackage(
+            "Runtime/RendererFeatures/ScreenSpaceLighting/Passes/ScreenSpaceLightingSetupPass.cs")),
+            "The Setup pass must report whether the published probe generation is bound.");
+    }
+
+    [Test]
+    public void SsrIndirectKernels_Compile()
+    {
+        if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+            Assert.Ignore("No graphics device; rerun without -nographics to compile the P3 compute kernels.");
+
+        foreach (var item in new[]
+        {
+            ("Indirect specular", "Shaders/Utils/ScreenSpaceLighting/SsrIndirectSpecular.compute", "SsrIndirectSpecular"),
+            ("SS hit", "Shaders/Utils/ScreenSpaceLighting/SsrHitSs.compute", "SsrHitSs"),
+        })
+        {
+            ComputeShader shader = null;
+            foreach (var root in new[]
+            {
+                PackageRoot,
+                "Packages/com.unity.render-pipelines.universal",
+            })
+            {
+                var path = root + "/" + item.Item2;
+                if (!File.Exists(Path.Combine(ProjectRoot, path))) continue;
+                UnityEditor.AssetDatabase.ImportAsset(path, UnityEditor.ImportAssetOptions.ForceSynchronousImport);
+                shader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
+                if (shader != null) break;
+            }
+            Assert.IsNotNull(shader, item.Item1 + " compute shader did not load: " + item.Item2);
+            Assert.IsTrue(shader.HasKernel(item.Item3),
+                item.Item1 + " kernel '" + item.Item3 + "' is missing; the shader failed to compile on " +
+                SystemInfo.graphicsDeviceType + ".");
+        }
     }
 
     [Test]

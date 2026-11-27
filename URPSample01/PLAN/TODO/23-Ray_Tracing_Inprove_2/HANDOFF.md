@@ -2,7 +2,7 @@
 
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
-**当前阶段：** P3 B6 已执行（2026-11-27）——24 组抓帧 + RenderDoc 证实 220/221/225/230 与两个命中核在 GPU 上执行；**缝门禁 1 与静止方差门禁 3（字面）NOT MET**，门禁 4/6 PASS，门禁 5 仅为 proxy（GPU 计时器噪声，真 GPU 门禁 OPEN），门禁 2 PARTIAL。证据在 [validation/P3](validation/P3/README.md)。P3 开关保持默认关闭。
+**当前阶段：** P3 B7 审计修正已落地（2026-11-27，代码/静态；像素待 B6.1）——SSR 221 / 绑定 222（严格晚于 Decal 220）、225 可用性门控、reason 6 保留硬件补集、225 环境源接 A2/A3。**B6 的 `p3` 证据因此失效**（`p1` 回滚哈希不变），门禁 1/2/3/5 需重测；`ssrAfterGbuffer` 仍默认关闭。B6 原始结论见下文；证据在 [validation/P3](validation/P3/README.md)。
 
 ## 已完成
 
@@ -82,6 +82,17 @@
 - **D5 #4**：一帧跳变整帧 meanAbs 2.14e-4、最差 block 0.0338（阈值 1e-3 / 0.05）→ PASS；D3D11 6.3e-5 / 0.0240 → PASS。
 - **D5 #5**：300 帧无 ghost 漂移；但 P3 ROI 方差高于 P1，按字面记 NOT MET，不称“已修复”。
 
+## P3 B7 审计修正（2026-11-27，B6 之后）
+
+B6 审计发现四个缺口，已按“代码先行、像素待 B6.1”落地：
+
+- **Decal 顺序**：Decal GBuffer 也注入 220，若 SSR 同在 220，先后取决于 feature 注入顺序（fixture 无 decal，证据不覆盖）。SSR 移到 **221**、材质绑定 **222**，严格晚于 decal；225 不变。
+- **静默丢镜面**：`_GlxSsrAfterGbuffer` 原只按开关发布，225 若因缺 kernel/目标 RT 提前返回，GBuffer 又已去镜面 → 整帧反射消失。现由 `ScreenSpaceLightingSsrIndirectSpecularPass.CanExecute`（settings/compute/kernel/目标 RT/延迟 GBuffer/深度）决定是否发 1，并在首次降级时告警一次。
+- **reason 6 补集**：SS 命中覆盖同槽 RT 后，`R2Temporal` 原把硬件历史清零，导致屏幕边缘 `requestShare` 补集被丢弃、覆盖率掉到 `edge×fade`。现 SS 仍不进硬件历史，但 `requestShare > 0` 时复投影硬件历史，合并核 `s·SS + hw·HW` 归一化；已知限制：当帧新服务的 RT 辐射仍被 SS 覆盖。
+- **环境源 A2/A3**：225 原来只采 `_GlossyEnvironmentCubeMap`（= `ReflectionProbe.defaultTexture`），而 P1 材质侧用 `unity_SpecCube0` 或探针混合 → 探针场景会换源且未被测。现按 `ssrIndirectSource` 选 A1/A2/A3；A2 仅在 Setup 成功绑定已发布图集时启用 `_GLX_SSR_PROBE_ENV`，沿反射方向取 `GlxProbeQuery` 辐照度 ×1/π，按 `probeCoverage` 与天空混合（无 roughness mip/盒投影）。默认仍 A1；A2 需探针夹具验证。
+
+影响：`Win64-*/p3/*` 的 B6 证据对 B7 HEAD 失效，门禁 1/2/3/5 需在 B6.1 重测；`p1` 回滚哈希应保持不变。契约测试新增事件/门控/补集/A2 断言与两个命中核的编译 smoke test，结果落 [validation/P3/tests/ContractTests-B7.xml](validation/P3/tests/ContractTests-B7.xml)。
+
 ## 未完成 / 门禁
 
 | Gate | 状态 | 说明 |
@@ -95,15 +106,18 @@
 | D3D11 回退基线 | CLOSED | 首次录制，三变体两进程逐位一致；tlas 0、R1 全 0 |
 | P1 验收（SS/RT 缝下降） | **NOT MET** | 0.011384 → 0.011382（base）；nodenoise +12.5%；洋红对照证明指标敏感。见 [P1 README](validation/P1/README.md#b6环境光阴影补齐--ssrt-边界度量) |
 | P1 性能（≤0.3 ms） | **OPEN** | 未测；需 Player FrameTimingManager 或带 GPU counter 的抓帧 |
-| P3 实施计划 | CLOSED（2026-11-27） | [P3-PLAN.md](P3-PLAN.md)：接收者重路由（GBuffer4 现写 SSR）、220 注入点、SS 读当前 GBuffer、契约/tripwire、B0–B6；复测统一在 P3 B6 |
+| P3 实施计划 | CLOSED（2026-11-27） | [P3-PLAN.md](P3-PLAN.md)：接收者重路由（GBuffer3 不再写间接镜面）、220→221 注入点、SS 读当前 GBuffer、契约/tripwire、B0–B7；复测统一在 B6/B6.1 |
 | P3 B0 选型 + harness 开关 | CLOSED（2026-11-27） | D1=A1（`_GlossyEnvironmentCubeMap`，不碰 `unity_SpecCube0`）；feature 增 `ssrAfterGbuffer`/`ssrIndirectSource`；捕获器增 `-p3-ssr-after-gbuffer`/`-p3-ssr-rollback`/`-p3-ssr-indirect`；`Player.json` 记 requested 与 feature 回读 |
 | P3 B1 契约先行 | CLOSED（红，2026-11-27） | contracts.md C1/C2/C2.7/C8 更新；`SsrP3ContractTests` 新增 4 条 P3 断言 + C2.7 gbuffer 源（预期红，B2–B4 转绿）；legacy 206 断言保持绿；未改渲染行为 |
-| P3 B2 接收者重路由 | CLOSED（build/静态，2026-11-27；像素在 B6） | B2a SSR 事件 206↔220（`ssrAfterGbuffer`）；B2b GBuffer3 去间接镜面（`GlobalIlluminationDeferredDiffuse` + `_GlxSsrAfterGbuffer`）；B2c 225 `SsrIndirectSpecular` + specular RT + 资源/builder；B2d `_GLX_SSR_SPECULAR` 变体在 230 相加（避免未绑定声明丢 dispatch）；B2e 221 SSR 材质绑定。`ssrAfterGbuffer` 关时不 enqueue 221/225、不启用变体，P1 路径不变 |
+| P3 B2 接收者重路由 | CLOSED（build/静态，2026-11-27；像素在 B6） | B2a SSR 事件 206↔220（B7 改为 221）；B2b GBuffer3 去间接镜面（`GlobalIlluminationDeferredDiffuse` + `_GlxSsrAfterGbuffer`）；B2c 225 `SsrIndirectSpecular` + specular RT + 资源/builder；B2d `_GLX_SSR_SPECULAR` 变体在 230 相加（避免未绑定声明丢 dispatch）；B2e 材质绑定（B7 改为 222）。`ssrAfterGbuffer` 关时不 enqueue 绑定/225、不启用变体，P1 路径不变 |
 | P3 B4 公共着色函数 | CLOSED（build/静态，2026-11-27） | `SsrShadeSurface.hlsl`（`SsrShadedSample` + `SsrShadeSurface`）由 RT 命中核与 B3 SS 命中核共用；closest-hit 因 per-draw 头无法包含 compute 头，仅作 P1 回退（契约 C8 已修订） |
 | P3 B3 SS 读当前 GBuffer | CLOSED（build/静态，2026-11-27；像素在 B6） | 新增 `SsrHitSs.compute`（trace 全屏读当期 GBuffer 构面，`source=gbuffer`，调 `SsrShadeSurface`，写 `_R2Hits` 带 SS 位）；`R2Temporal` 跳过 SS；`SSR_REPROJECT` 经 `_GLX_SSR_SHADE_SS` 关键字读 `_R2Hits` 与 `ssShare` 覆盖率替代前帧色；D3D11 无队列时 keyword 关、回落前帧色 SS |
-| P3 B5 编排与清理 | CLOSED（build/静态，2026-11-27） | marker 统一 `SSR Hit Shading (RT)` / `(SS)`；tripwire 增 `SsrP3_PassOrderIsMonotonic`（220<221<225<230）与 `SsrP3_SwitchDefaultsOffAndKeywordsDeclared`（`ssrAfterGbuffer=false`、两处关键字、marker 名）；回滚 206 路径保留为现役参考 |
+| P3 B5 编排与清理 | CLOSED（build/静态，2026-11-27） | marker 统一 `SSR Hit Shading (RT)` / `(SS)`；tripwire 增 `SsrP3_PassOrderIsMonotonic`（B7 起为 221<222<225<230）与 `SsrP3_SwitchDefaultsOffAndKeywordsDeclared`（`ssrAfterGbuffer=false`、两处关键字、marker 名）；回滚 206 路径保留为现役参考 |
+| P3 B7 事件与门控 | CLOSED（代码/静态，2026-11-27） | SSR 221 / 绑定 222（严格晚于 Decal 220）；`CanExecute` 门控 `_GlxSsrAfterGbuffer`，225 不可用时 GBuffer 保持 P1 写镜面并首次告警 |
+| P3 B7 覆盖率与环境源 | CLOSED（代码/静态，2026-11-27） | `R2Temporal` 对 SS 槽复投影硬件历史以保留 reason 6 补集；225 按 `ssrIndirectSource` 支持 A1/A2/A3，A2 受 `_GLX_SSR_PROBE_ENV` 与已发布图集约束 |
+| P3 B6.1 重测（P3 路径） | **OPEN** | B6 的 `p3` 证据对 B7 HEAD 失效；门禁 1/2/3/5 需重跑，A2 需探针夹具；`p1` 回滚哈希用于回归 |
 | P3 B6 构建（shader 变体真编） | CLOSED（2026-11-27） | 首次构建 14 个 D3D11 错误（225 核 `unity_MatrixInvVP` 未声明）；修复后 0 错误、`SsrIndirectSpecular` 4 变体全编（`19e819a`） |
-| P3 B6 执行/顺序（RenderDoc） | CLOSED（2026-11-27） | D3D12：RT/SS 命中核各 1 dispatch，225 dispatch 先于 230；D3D11：无 DXR，225 仍先于 230；`_R2Hits` flags 2/10 计数见 [CaptureAnalysis](validation/P3/RenderDoc/CaptureAnalysis.json) |
+| P3 B6 执行/顺序（RenderDoc） | CLOSED（2026-11-27，B7 之前的 HEAD） | D3D12：RT/SS 命中核各 1 dispatch，225 dispatch 先于 230；D3D11：无 DXR，225 仍先于 230；`_R2Hits` flags 2/10 计数见 [CaptureAnalysis](validation/P3/RenderDoc/CaptureAnalysis.json)。B7 改动事件号后需重抓 |
 | P3 B6 门禁 1（缝） | **NOT MET** | median 0.002364→0.002149（−9.1%）、mean +18.1%；threshold 50%；洋红 mean +7.6%、关闭对照 median 更低 → 内容主导 |
 | P3 B6 门禁 2（SS/RT 一致） | **PARTIAL** | 边界 median 0.00215 luma（ROI 均值 0.17%）；缺配对反射口径与阈值 |
 | P3 B6 门禁 3（静止方差） | **NOT MET（字面）** | 4.2×/13.6× 基线；绝对 std ≤5.9e-6 luma，无漂移 |
@@ -142,7 +156,7 @@ python "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\compare.py"
 & renderdoccmd capture -w -c "$out\capture" -d "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Player" `
   "$exe" -force-d3d12 -p3-output "$out" -p3-variant base -p3-hit-debug 1 -p3-warmup 900
 
-# P3 路径抓帧：-p3-ssr-after-gbuffer 打开接收者重路由（SSR 220 / 绑定 221 / 合成 225 / 230 相加）。
+# P3 路径抓帧：-p3-ssr-after-gbuffer 打开接收者重路由（SSR 221 / 绑定 222 / 合成 225 / 230 相加）。
 # 现役 marker： "SSR Hit Shading (RT)"、"SSR Hit Shading (SS)"、"SSR Indirect Specular"、"SSR Material Binding"。
 # 回滚对照用 -p3-ssr-rollback。上一行 legacy 抓帧里的 "SSR Hit Shading" 已更名为 "SSR Hit Shading (RT)"。
 & renderdoccmd capture -w -c "$out\capture-p3" -d "$P\PLAN\TODO\23-Ray_Tracing_Inprove_2\validation\P0\Player" `

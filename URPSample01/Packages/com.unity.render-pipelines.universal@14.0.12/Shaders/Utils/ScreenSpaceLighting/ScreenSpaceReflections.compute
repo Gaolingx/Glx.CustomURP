@@ -342,7 +342,8 @@ void R2Composite(uint3 id : SV_DispatchThreadID)
 // the PBR merge). Served samples publish their resolved radiance; unserved samples reproject the
 // previous result and reuse it only while the receiver surface still matches. A served finite miss
 // clears the pixel (the ray really found nothing), and pixels outside the hybrid domain are cleared
-// so a later re-entry starts fresh.
+// so a later re-entry starts fresh. SS-flagged slots never publish SS radiance as hardware fill; a
+// slot that also requests hardware (the screen-edge complement) still reprojects its history.
 #if defined(SSR_R2_TEMPORAL)
 [numthreads(8,8,1)]
 void R2Temporal(uint3 id : SV_DispatchThreadID)
@@ -357,12 +358,15 @@ void R2Temporal(uint3 id : SV_DispatchThreadID)
     float3 radiance = 0.0;
     float weight = 0.0;
 
-    if (hit.flags != 0u)
+    // P3: an SS-flagged hit owns only the screen-space share of the slot (R1 reason 2, or the edge
+    // share of reason 6). The SS radiance replaces the RT publication in _R2Hits, so it must not
+    // enter the hardware history; but a slot that also requested hardware fill (requestShare > 0)
+    // keeps its complement by reprojecting the hardware history instead of clearing it. The merge
+    // kernels then blend s * SS with min(1 - s, requestShare) * HW.
+    bool isSs = (hit.flags & SSR_HIT_FLAG_SS) != 0u;
+    if (hit.flags != 0u && !isSs)
     {
-        // P3: SS hits were shaded into _R2Hits for the reproject; they are not hardware fill and must
-        // not enter the temporal history, where they would be merged a second time.
-        bool isSs = (hit.flags & SSR_HIT_FLAG_SS) != 0u;
-        bool resolved = !isSs && (hit.flags & 2u) != 0u && hit.hitT >= q.tMin && hit.hitT <= q.tMax &&
+        bool resolved = (hit.flags & 2u) != 0u && hit.hitT >= q.tMin && hit.hitT <= q.tMax &&
             all(isfinite(hit.radiance)) && all(hit.radiance >= 0.0);
         if (resolved)
         {

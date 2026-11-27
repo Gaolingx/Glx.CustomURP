@@ -25,15 +25,18 @@ namespace UnityEngine.Rendering.Universal
     // keeps the reflection probe.
     //
     // Runs after the SSGI dispatch (205) and before the material binding pass (207), so Deferred
-    // GBuffer (210) and Forward opaque geometry (250) consume the same texture.
+    // GBuffer (210) and Forward opaque geometry (250) consume the same texture. With
+    // ssrAfterGbuffer the pass moves to 221 and the binding to 222 (both after the Decal GBuffer
+    // pass at 220), so the deferred receiver takes the 225 composite instead of the material blend.
     internal sealed class ScreenSpaceLightingSsrPass : ScriptableRenderPass
     {
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingPrePasses + 6);
         // P3: opaque SSR runs after the GBuffer pass so screen-space hits can read the current
         // frame's GBuffer. The rollback path keeps k_RenderPassEvent (206); Setup picks per frame
-        // from ssrAfterGbuffer. The downstream receiver reroute (GBuffer skip, 225 composite, 230
-        // add) is part of B2; until it lands the switch must stay off (the fixture default).
-        internal const RenderPassEvent k_RenderPassEventAfterGbuffer = RenderPassEvent.AfterRenderingGbuffer;
+        // from ssrAfterGbuffer. This sits at +1 because the Decal GBuffer pass also injects at
+        // AfterRenderingGbuffer (220): a distinct event makes "SSR after decals" deterministic
+        // instead of depending on the renderer-feature injection order.
+        internal const RenderPassEvent k_RenderPassEventAfterGbuffer = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingGbuffer + 1);
         internal const string k_ProfilingSamplerName = "Screen Space Reflections";
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
