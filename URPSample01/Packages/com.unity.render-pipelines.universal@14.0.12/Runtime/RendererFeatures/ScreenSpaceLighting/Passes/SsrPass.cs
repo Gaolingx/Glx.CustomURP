@@ -154,6 +154,10 @@ namespace UnityEngine.Rendering.Universal
         internal static bool s_RequestEvidence;
         internal static int s_EvidenceTlasInstances = -1;
         internal static uint[] s_EvidenceCounters;
+        // B6.1: the seam metric's classification and served masks. Exported by the capture player
+        // so the gradient-normalised gate is reproducible without a RenderDoc buffer export.
+        internal static byte[] s_EvidenceOriginals;
+        internal static byte[] s_EvidenceHits;
         internal static bool s_EvidenceRequested;
 
         internal static void ResetEvidence()
@@ -161,6 +165,8 @@ namespace UnityEngine.Rendering.Universal
             s_RequestEvidence = false;
             s_EvidenceTlasInstances = -1;
             s_EvidenceCounters = null;
+            s_EvidenceOriginals = null;
+            s_EvidenceHits = null;
             s_EvidenceRequested = false;
         }
 
@@ -494,6 +500,16 @@ namespace UnityEngine.Rendering.Universal
                     {
                         if (request.hasError) return;
                         s_EvidenceCounters = request.GetData<uint>().ToArray();
+                    });
+                    AsyncGPUReadback.Request(requestQueue.originals, request =>
+                    {
+                        if (request.hasError) return;
+                        s_EvidenceOriginals = request.GetData<byte>().ToArray();
+                    });
+                    AsyncGPUReadback.Request(requestQueue.hits, request =>
+                    {
+                        if (request.hasError) return;
+                        s_EvidenceHits = request.GetData<byte>().ToArray();
                     });
                 }
 #endif

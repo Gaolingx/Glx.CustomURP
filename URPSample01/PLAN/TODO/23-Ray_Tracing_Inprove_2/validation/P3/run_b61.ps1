@@ -36,11 +36,24 @@ foreach ($api in @("d3d12", "d3d11")) {
         foreach ($run in @("run-01", "run-02")) {
             $dir = Join-Path $out "$api\$($case.name)\$run"
             New-Item -ItemType Directory -Force -Path $dir | Out-Null
+            $playerJson = Join-Path $dir "Player.json"
+            Remove-Item $playerJson -ErrorAction SilentlyContinue
             $cli = @($flag, "-p3-output", $dir, "-p3-variant", $case.variant, "-p3-run", $run)
             if ($case.name -ne "p1") { $cli += "-p3-ssr-after-gbuffer" }
             $cli += $case.extra
             & $Exe @cli
-            if ($LASTEXITCODE -ne 0) { throw "Player failed: $api/$($case.name)/$run (exit $LASTEXITCODE)" }
+            # The player bootstrap returns before the render process writes its report, so poll for
+            # Player.json (written last) instead of trusting the launcher's exit code.
+            $deadline = (Get-Date).AddSeconds(240)
+            $report = $null
+            while ((Get-Date) -lt $deadline) {
+                if (Test-Path $playerJson) {
+                    try { $report = Get-Content $playerJson -Raw | ConvertFrom-Json; break } catch { }
+                }
+                Start-Sleep -Milliseconds 500
+            }
+            if ($null -eq $report) { throw "Player wrote no readable Player.json: $api/$($case.name)/$run" }
+            if (-not $report.passed) { throw "Player failed: $api/$($case.name)/$run ($($report.error))" }
         }
     }
 }

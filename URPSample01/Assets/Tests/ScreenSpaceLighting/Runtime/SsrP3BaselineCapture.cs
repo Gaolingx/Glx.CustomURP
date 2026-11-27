@@ -36,6 +36,8 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
     // Capture-frame evidence, sampled by the pass (see RequestRayTracingEvidence).
     int m_EvidenceTlasInstances = -1;
     uint[] m_EvidenceCounters;
+    byte[] m_EvidenceOriginals;
+    byte[] m_EvidenceHits;
     string m_EvidenceError;
     int m_HitDebug;
     float m_HitAmbientScale;
@@ -172,6 +174,11 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         public string framePng;
         public long frameRawBytes;
         public string frameSHA256;
+        // B6.1: seam-metric inputs next to the frame (empty when the evidence hook did not run).
+        public string originalsBin;
+        public int originalsBinBytes;
+        public string hitsBin;
+        public int hitsBinBytes;
         public double lumaMin;
         public double lumaMean;
         public double lumaMax;
@@ -591,8 +598,12 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             var type = FindType("UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass");
             var tlas = type?.GetField("s_EvidenceTlasInstances", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
             var counters = type?.GetField("s_EvidenceCounters", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            var originals = type?.GetField("s_EvidenceOriginals", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            var hits = type?.GetField("s_EvidenceHits", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
             if (tlas != null) m_EvidenceTlasInstances = (int)tlas.GetValue(null);
             m_EvidenceCounters = counters?.GetValue(null) as uint[];
+            m_EvidenceOriginals = originals?.GetValue(null) as byte[];
+            m_EvidenceHits = hits?.GetValue(null) as byte[];
         }
         catch (Exception exception)
         {
@@ -620,6 +631,22 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         var raw = readback.GetRawTextureData();
         var rawPath = Path.Combine(m_OutputRoot, "frame.raw");
         File.WriteAllBytes(rawPath, raw);
+
+        // B6.1: reproducible seam-metric inputs (classification + served mask) next to the frame.
+        string originalsBin = null, hitsBin = null;
+        int originalsBinBytes = 0, hitsBinBytes = 0;
+        if (m_EvidenceOriginals != null && m_EvidenceOriginals.Length > 0)
+        {
+            originalsBin = "_R1Original.bin";
+            originalsBinBytes = m_EvidenceOriginals.Length;
+            File.WriteAllBytes(Path.Combine(m_OutputRoot, originalsBin), m_EvidenceOriginals);
+        }
+        if (m_EvidenceHits != null && m_EvidenceHits.Length > 0)
+        {
+            hitsBin = "_R2Hits.bin";
+            hitsBinBytes = m_EvidenceHits.Length;
+            File.WriteAllBytes(Path.Combine(m_OutputRoot, hitsBin), m_EvidenceHits);
+        }
 
         var pixels = readback.GetPixels();
         Destroy(readback);
@@ -672,6 +699,10 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             frameRaw = Path.GetFileName(rawPath),
             frameRawBytes = raw.LongLength,
             frameSHA256 = Hash(raw),
+            originalsBin = originalsBin,
+            originalsBinBytes = originalsBinBytes,
+            hitsBin = hitsBin,
+            hitsBinBytes = hitsBinBytes,
             ssrDispatch = ReadDispatchStats()
         };
 
