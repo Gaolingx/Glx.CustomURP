@@ -474,11 +474,11 @@ public sealed class SsrP3ContractTests
     {
         var compute = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
         var mergeGate = compute.IndexOf("#ifdefined(SSR_PBR_MERGE)", StringComparison.Ordinal);
-        var borrow = compute.IndexOf("boolSsrBorrowMergedNeighbour(uint2coord,R1Samplecenter,", StringComparison.Ordinal);
+        var borrow = compute.IndexOf("boolSsrBorrowMergedNeighbour(uint2coord,R1Coveragecenter,", StringComparison.Ordinal);
         Assert.GreaterOrEqual(mergeGate, 0, "The merge kernel must stay behind SSR_PBR_MERGE.");
         Assert.Greater(borrow, mergeGate,
             "The neighbourhood borrow must compile only in the merge kernel; other variants cannot see _SsrMergeSource.");
-        StringAssert.Contains("SsrBorrowMergedNeighbour(coord,q,radiance,borrowedOpacity);", compute,
+        StringAssert.Contains("SsrBorrowMergedNeighbour(coord,cov,radiance,borrowedOpacity);", compute,
             "A merge slot with zero coverage must borrow from its same-surface neighbours.");
         StringAssert.Contains("opacity=saturate(0.5*(weightSum/accepted));", compute,
             "The borrowed alpha must stay capped at 0.5 so the environment probe keeps its share.");
