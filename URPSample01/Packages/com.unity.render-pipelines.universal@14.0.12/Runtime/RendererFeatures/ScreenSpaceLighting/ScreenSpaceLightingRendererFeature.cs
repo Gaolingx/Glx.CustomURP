@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
         RayTracingProbeFallback m_ProbeFallback;
         readonly System.Collections.Generic.Dictionary<int, int> m_CameraViews = new System.Collections.Generic.Dictionary<int, int>();
         bool m_LoggedMissingResources;
-        // The hybrid path is silently idle without a half-resolution SSR volume; warn once per broken episode.
+        // The hybrid path is silently idle without an enabled SSR volume; warn once per broken episode.
         bool m_LoggedRayTracingReflectionConfig;
 #if UNITY_EDITOR
         ScreenSpaceEditorCameraMotionPass m_EditorMotionPass;
@@ -263,8 +263,8 @@ namespace UnityEngine.Rendering.Universal
                 renderer.EnqueuePass(m_DebugPass);
         }
 
-        // RR only runs with an enabled half-resolution SSR volume, so a mismatch leaves the hybrid
-        // path silently idle. Report it once per broken episode rather than every frame.
+        // RR needs an enabled SSR volume; without one the hybrid path stays idle. Report it once per
+        // broken episode rather than every frame.
         void LogRayTracingReflectionConfigTrapOnce(in CameraData cameraData, ScreenSpaceReflection ssr)
         {
             if (!m_Settings.rayTracingReflections || m_Settings.reflectionRayBudget <= 0)
@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering.Universal
             if (camera == null || cameraData.cameraType != CameraType.Game || cameraData.renderType != CameraRenderType.Base)
                 return;
 
-            if (ssr != null && ssr.enabled.value && !ssr.fullResolution.value)
+            if (ssr != null && ssr.enabled.value)
             {
                 m_LoggedRayTracingReflectionConfig = false;
                 return;
@@ -290,11 +290,10 @@ namespace UnityEngine.Rendering.Universal
 
             m_LoggedRayTracingReflectionConfig = true;
             string reason = ssr == null ? "no Screen Space Reflection volume is active"
-                : !ssr.enabled.value ? "the Screen Space Reflection volume is disabled"
-                : "Full Resolution is enabled";
+                : "the Screen Space Reflection volume is disabled";
             Debug.LogWarning(
                 $"Screen space ray tracing reflections (RR) are enabled, but {camera.name} keeps screen-space only: {reason}. " +
-                "Enable the Screen Space Reflection volume and disable Full Resolution.");
+                "Enable the Screen Space Reflection volume.");
         }
 
         void LogMissingResourcesOnce()

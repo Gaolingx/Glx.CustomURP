@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
         static readonly uint[] s_Zero = new uint[11];
         internal SsrRequestQueue(int k, int seed = 20261125)
         {
-            budget = Mathf.Clamp(k, 0, 32768);
+            budget = Mathf.Clamp(k, 0, 131072);
             this.seed = seed;
         }
 

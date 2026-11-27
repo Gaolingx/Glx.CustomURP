@@ -32,12 +32,12 @@ namespace UnityEngine.Rendering.Universal
         internal static bool Eligible(in CameraData camera, ScreenSpaceLightingSettings settings, ScreenSpaceReflection ssr)
         {
             // Both algorithms consume the fill: Approximation point-expands it after the upsample,
-            // PBR folds it into the reprojection before its denoiser. Only the half resolution path
-            // has the trace-sized targets and the request classification both rely on.
+            // PBR folds it into the reprojection before its denoiser. The trace-sized targets exist
+            // at both resolutions; the fixed-K budget is simply spread over 4x more tiles at full
+            // resolution, so the requested budget must scale up with the trace size.
             if (!settings.rayTracingReflections || settings.reflectionRayBudget <= 0 || ssr == null || !ssr.enabled.value ||
-                ssr.fullResolution.value ||
                 settings.resources?.rayTracingSsr == null || !settings.resources.hasSsrResources ||
-                settings.resources.bilateralUpsampleCompute == null) return false;
+                (!ssr.fullResolution.value && settings.resources.bilateralUpsampleCompute == null)) return false;
             return camera.camera &&
                 camera.cameraType == CameraType.Game && camera.renderType == CameraRenderType.Base &&
                 (camera.xr == null || !camera.xr.enabled) && camera.cameraTargetDescriptor.dimension == TextureDimension.Tex2D &&
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (!m_Cameras.TryGetValue(camera.camera, out var entry))
                         m_Cameras[camera.camera] = entry = new Entry();
-                    int k = Mathf.Clamp(settings.reflectionRayBudget, 0, 32768);
+                    int k = Mathf.Clamp(settings.reflectionRayBudget, 0, 131072);
                     if (entry.queue == null || entry.queue.budget != k)
                     {
                         entry.queue?.Dispose();

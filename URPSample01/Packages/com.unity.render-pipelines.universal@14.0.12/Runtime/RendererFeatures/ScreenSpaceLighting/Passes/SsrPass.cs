@@ -429,7 +429,7 @@ namespace UnityEngine.Rendering.Universal
                     SetKeyword(cs, ScreenSpaceShaderIDs.XrArrayKeyword, false);
                     SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
                     SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, true);
-                    SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, true);
+                    SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, halfResolution);
                     PushShaderVariables(cmd, cs, CreateShaderVariables(ref cameraData, settings,
                         screenWidth, screenHeight, traceWidth, traceHeight, false));
                     PushSsrRayLength(cmd, cs, ref cameraData, settings);
@@ -825,7 +825,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             Matrix4x4 hybridPrevInvViewProj = default;
-            if (halfResolution && requestQueue != null)
+            if (requestQueue != null)
                 hybridPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
             // P3 drops the previous-colour pyramid sample from the R1 classification (the radiance
             // comes from this frame's GBuffer), so the keyword must be set before RecordOriginals
@@ -834,7 +834,7 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(compute, k_GlxSsrShadeSsKeyword, ssrShadeSs);
             // R1 re-derives the trace direction from the same blue-noise sequence as the trace, so the
             // request covers the algorithm's own hit point for this pixel and frame.
-            bool traced = halfResolution && TryTrace(cmd, compute, ref cameraData, depthTexture, normalTexture,
+            bool traced = TryTrace(cmd, compute, ref cameraData, depthTexture, normalTexture,
                 motionTexture, pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint,
                 traceWidth, traceHeight, pbr, hybridPrevInvViewProj);
 

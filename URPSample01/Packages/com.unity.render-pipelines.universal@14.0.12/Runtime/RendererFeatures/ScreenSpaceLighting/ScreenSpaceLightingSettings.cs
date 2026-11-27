@@ -31,10 +31,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Publishes the reflection probe atlas in Forward and Deferred so the SSGI miss fallback can sample local reflection probes. Ignored in Forward+, which always publishes the atlas. Enabling it allocates and updates the atlas, and the sky part of Reflection Probes and Sky becomes the ambient probe.")]
         internal bool publishProbeAtlas = false;
 
-        [SerializeField, Tooltip("Resolve unresolved half-resolution opaque SSR against registered scene meshes, for both the Approximation and PBR Accumulation algorithms. Requires hardware ray tracing support.")]
+        [SerializeField, Tooltip("Resolve unresolved opaque SSR against registered scene meshes, for both the Approximation and PBR Accumulation algorithms at full or half resolution. Requires hardware ray tracing support.")]
         internal bool rayTracingReflections = false;
 
-        [SerializeField, Range(0, 32768), Tooltip("Fixed ray dispatch width per eligible camera. Zero disables hardware reflection requests.")]
+        [SerializeField, Range(0, 131072), Tooltip("Fixed ray dispatch width per eligible camera. Zero disables hardware reflection requests. Full resolution needs roughly 4x the half resolution budget to keep the same per-pixel fill density.")]
         internal int reflectionRayBudget = 32768;
 
         [SerializeField, Tooltip("Light ray-traced reflection hits with the ClusteredDeferred kernel instead of the closest-hit approximation. Requires hardware ray tracing and SsrHitDeferred.compute; unsupported materials are rejected at registration (C2.7). P3 (ssrAfterGbuffer) always runs the kernel so SS and RT hits share one shading path.")]
