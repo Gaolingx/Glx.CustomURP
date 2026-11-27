@@ -84,21 +84,23 @@ D3D11 P3（`p3-d3d11-base_frame4846.rdc`）：无 DXR/命中核 marker；`SSR In
 
 ## B6.1：归因矩阵 + 覆盖率连续化
 
-**状态：代码就绪，像素待运行。** 计划与门禁口径见 [P3-PLAN.md §B6.1](../../../P3-PLAN.md)；脚本 [run_b61.ps1](run_b61.ps1)。
+**状态：已执行（2026-11-27，双 API × 6 用例 × 两进程，build `0f019dc1…`）。** 计划与门禁口径见 [P3-PLAN.md §B6.1](../../../P3-PLAN.md)；脚本 [run_b61.ps1](run_b61.ps1) / [compare_b61.py](compare_b61.py)；汇总 [B61/Comparison.json](B61/Comparison.json)。
 
-- 用例：`base / thick(0.05) / k-low(8192) / fullres / nodenoise / p1`，双 API、两进程，输出 `B61/<api>/<case>/run-0X`。
-- 抓帧器新增参数（请求值与生效值都写 `Player.json`）：`-p3-thickness`、`-p3-fullres`、`-p3-budget`、`-p3-denoiser-radius`。
-- 指标：`seam_metric.py` 新增 `ssRtBoundaryNormalized`（边界台阶 ÷ 边界外侧本地梯度），替代被内容主导的原始 median 门禁。
-- 代码（P3-only；P1 回滚不读）：合并核同表面邻居借用（alpha ≤ 0.5）、剪影置信度（命中像素深度边缘 → 交出覆盖率份额）、R1 按 wanted 密度分配配额。
-- 全分辨率与 denoiser 参数只作 A/B 变量，不改 C4；`base` 仍为 fixture 值（半分辨率、radius 8、feedback 0.91–0.96）。
+- 抓帧器新增 `-p3-thickness/-p3-fullres/-p3-budget/-p3-denoiser-radius`，并把 `_R1Original`（分类）与 `_R2Hits` 随帧导出，指标可复现（`frame.raw`/`.bin` 只留本机）。
+- 确定性：**12/12** 组两进程逐位一致。
+- **P1 回滚**：D3D11 `7fb3e01b` 与冻结值一致；**D3D12 为 `3fc8ab22`，与 B6 冻结的 `b1e0a889` 不同**。归因：B8（`22809df`）给命中核补了阴影变体，fixture 的 `hitDeferredShading=true` 使 P1 的 HW 填充辐亮度变化；D3D11 无 RT 队列故不变。B6.1 的 R1 改动本身对 P1 不生效（`_R1WeightedQuota=0`）。**D3D12 P1 哈希需随 B8 重录基线**。
+- **分辨率/API 边界**：`fullres` 与全部 D3D11 用例没有 `_R1Original`/`_R2Hits` 导出——P3 的 SS 命中核与请求队列都要求**半分辨率 + requestQueue**；`fullResolution=true` 时 SSR 退回前帧颜色路径且无 HW 补集。因此 `fullres` 只作对照，不是合法 P3 变体。
+- 相对 `base` 的整帧/ROI luma 差（D3D12）：`thick` 1.6e-5 / 4.5e-5、`k-low` 1.7e-5 / 4.8e-5、`nodenoise` 1.9e-4 / 5.3e-4、`p1` 2.6e-4 / 7.1e-4；D3D11 的 `k-low` 与 base 逐位相同。
+- **缝指标（门禁 1）不可直接沿用**：覆盖率拆分把剪影带从 reason 2 移入 reason 6，`ss` 槽位由 8149（p1）降至 55（p3），`ssRtPairs` 556→149；归一化 median 0.700→0.108 但 p90/grad 0.87→1.79。即该 mask 已不再描述新的 SS/RT 边界，需改成“连续份额边界”口径后再判门禁。
 
 | 项 | 结果 |
 |---|---|
-| 契约 + 单测（`SsrRequestTests`、`SsrP3ContractTests`） | **PASS**：31/31、1 skip（RT payload 编译需 DXR 编辑器），[EditMode.xml](B61/tests/EditMode.xml) |
-| 归因矩阵 12 组 | OPEN（待运行，需重建 P0 Player） |
-| `ssRtBoundaryNormalized` median/p90 base→改进用例下降 | OPEN |
-| P1 回滚冻结哈希（`b1e0a889` / `7fb3e01b` / `1bfd98e9` / `8ab8e569`） | 待复核 |
-| 探针边界不新增 > 0.02 台阶（相对 `ssroff`） | OPEN |
+| 契约 + 单测 | **PASS**：31/31、1 skip（RT payload 编译需 DXR 编辑器），[EditMode.xml](B61/tests/EditMode.xml) |
+| 归因矩阵 24 组（双 API × 6 用例 × 两进程） | **完成**，确定性 12/12 |
+| `thick`/`k-low` 对画面影响 | 极小（≤4.8e-5 ROI）→ 剩余缝不由厚度/预算主导 |
+| `nodenoise` 与 `base` | 5.3e-4 ROI → denoiser 参与了边界柔化但非唯一来源 |
+| P1 冻结哈希 | D3D11 PASS；D3D12 需按 B8 重录 |
+| 门禁 1（归一化缝指标） | **口径失效，OPEN**（mask 跟随覆盖率拆分改变了定义） |
 
 ## 复现
 

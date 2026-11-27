@@ -239,7 +239,8 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 rayDi
 
 ### B6.1 归因矩阵 + 覆盖率连续化（B8 之后）
 
-> **状态：代码就绪（2026-11-27，像素待 B6.1 运行）。** 目标是把“剩余可见缝”从颜色缝拆成两个可分别量测的源：覆盖/可见性台阶与半分辨率量化。不改任何缓冲布局，P1 回滚路径保持逐位不变（所有新行为只在 `_GLX_SSR_SHADE_SS` / P3 合并核 / `_R1WeightedQuota` 内生效）。契约与单测：`SsrRequestTests` + `SsrP3ContractTests` 31/31 通过、1 skip（RT payload 编译需 DXR 编辑器），证据 `validation/P3/B61/tests/EditMode.xml`。
+> **状态：已执行（2026-11-27，双 API × 6 用例 × 两进程，build `0f019dc1…`）。** 目标是把“剩余可见缝”从颜色缝拆成两个可分别量测的源：覆盖/可见性台阶与半分辨率量化。不改任何缓冲布局，P1 回滚路径保持逐位不变（所有新行为只在 `_GLX_SSR_SHADE_SS` / P3 合并核 / `_R1WeightedQuota` 内生效）。契约与单测：`SsrRequestTests` + `SsrP3ContractTests` 31/31 通过、1 skip（RT payload 编译需 DXR 编辑器），证据 `validation/P3/B61/tests/EditMode.xml`。
+> **B6.1 结论：** 确定性 12/12；`thick`/`k-low` 对 ROI 的影响 ≤4.8e-5（剩余缝不由厚度/预算主导），`nodenoise` 5.3e-4；`fullres` 与 D3D11 无 `_R1Original`（P3 命中核与队列要求半分辨率+队列，`fullResolution` 会退回前帧颜色且无 HW 补集）；D3D11 P1 冻结哈希不变，**D3D12 P1 变为 `3fc8ab22`**（归因 B8 `22809df` 的命中核阴影变体，需重录基线）；**门禁 1 的旧 mask 口径失效**——覆盖率拆分把剪影带从 reason 2 移入 reason 6（ss 8149→55、pairs 556→149），需改成连续份额边界后再判。证据：[validation/P3/README.md](validation/P3/README.md)。
 
 **归因矩阵（单构建、双 API、两进程）**：[run_b61.ps1](validation/P3/run_b61.ps1)
 

@@ -5,7 +5,8 @@
 **修订：** 2026-11-27 新增 C2.7（P1，additive：新缓冲 + 新版本位）；同日 P1 传输修订：ray payload 24 → 64 字节（closest-hit 不得写 UAV，表面经 payload 回传），发布结果仍为 24 字节；同日 **P3 修订**：C1 注入点 206→220（回滚保留 206），C2 `flags` 增 SS 位，C2.7 `source` 增 `gbuffer=2`（mask 扩到 2 bit，版本仍 1），C8 新增 `SsrShadeSurface` 共享与 pass 事件 tripwire。P3 不改任何缓冲的 stride 或 24B/64B/80B 布局。
 **B7 修订（同日）：** P3 注入点再移到 `AfterRenderingGbuffer + 1`（221）、材质绑定 222，使 SSR 严格晚于 Decal GBuffer（220）；225 增可用性门控（GBuffer 只在 225 可执行时才去镜面）；reason 6 保留硬件覆盖补集（SS 不进硬件历史，但边补集复投影硬件历史）；225 环境源接 A2/A3（`_GLX_SSR_PROBE_ENV` 门控探针声明）。仍不改任何缓冲布局。
 **B8 修订（同日）：** SS 命中核补齐与 RT 核相同的阴影 multi_compile（否则共享着色的阴影项为常量 1）；`ssrAfterGbuffer` 为真时强制运行 RT 命中核，保证 P3 下所有命中由同一核着色。不改缓冲布局，也不改事件号。
-**B6.1 修订（2026-11-27）：** 覆盖率连续化与预算分配，**全部 P3-only / P1 回滚逐位不变**：① P3 命中份额乘剪影置信度（命中像素 3×3 深度边缘检测，`deviceDepth` 相对差 0.05 截止）；② P3 合并核在中心 `a==0` 时从同表面十字邻居借用部分样本（同深度容差 `0.01×视距`、法线 `dot>0.9`、roughness 差 `≤0.02`、至少 2 个邻居、借用 alpha ≤ 0.5）；③ R1 每 tile 配额 = 1 + 预算余量 × wanted/总 wanted（上限 wanted），由 `_R1WeightedQuota` 门控、仅 `ssrAfterGbuffer` 为真时开启，P1 仍为均分。不改任何缓冲 stride；P1 路径（206 注入、R2Composite/旧复投影、均分配额）不读这些新行为。
+**B6.1 修订（2026-11-27）：** 覆盖率连续化与预算分配，**全部 P3-only / P1 回滚逐位不变**：① 剪影置信度在 R1 分类内折叠（命中像素邻域深度边缘检测，`deviceDepth` 相对差 0.05 截止）：`ssShare *= silhouette`、`requestShare = fade × (1 − edge × silhouette)`，退化的份额成为 reason 6 的硬件请求；② P3 合并核在中心 `a==0` 时从同表面十字邻居借用部分样本（同深度容差 `0.01×视距`、法线 `dot>0.9`、roughness 差 `≤0.02`、至少 2 个邻居、借用 alpha ≤ 0.5）；③ R1 每 tile 配额 = 1 + 预算余量 × wanted/总 wanted（上限 wanted），由 `_R1WeightedQuota` 门控、仅 `ssrAfterGbuffer` 为真时开启，P1 仍为均分。不改任何缓冲 stride；P1 路径不读这些新行为。
+**B6.1 运行约束：** P3 的 SS 命中核与 R1/R2 队列都要求**半分辨率 + requestQueue**；`fullResolution=true` 时 SSR 退回前帧颜色路径且没有硬件补集（`fullres` 用例只作对照，不是合法 P3 变体）。缝指标的 reason-2 mask 会随剪影份额移入 reason 6 而收缩，旧 mask 口径不再描述 P3 的 SS/RT 边界，需改为连续份额口径后再判门禁 1。
 **适用范围：** 本轮 P1–P3 的全部改动。任何一条契约被打破，都必须先改本文件、改 tripwire 测试、重录基线，再进实现。
 
 ## C1. Pass 顺序与资源生命周期

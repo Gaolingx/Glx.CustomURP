@@ -1,0 +1,66 @@
+{
+  "frame": {
+    "width": 1920,
+    "height": 1080,
+    "traceWidth": 960,
+    "traceHeight": 540
+  },
+  "roi": {
+    "x0": 0.15,
+    "y0": 0.45,
+    "x1": 0.85,
+    "y1": 0.95,
+    "space": "normalized top-down"
+  },
+  "classification": {
+    "ssSlots": 55,
+    "rtSlots": 187170,
+    "reasonHistogram": {
+      "0": 323455,
+      "1": 7720,
+      "2": 55,
+      "4": 179049,
+      "6": 8121
+    }
+  },
+  "frames": {
+    "nodenoise": {
+      "path": "frame.raw",
+      "region": {
+        "ssBlocks": 46,
+        "ssMeanLuma": 0.1138146320540134,
+        "rtBlocks": 17248,
+        "rtMeanLuma": 0.14057563079210258,
+        "otherBlocks": 164146,
+        "otherMeanLuma": 0.1293169978566297
+      },
+      "ssRtBoundary": {
+        "samples": 149,
+        "mean": 0.008808488435668234,
+        "median": 0.0013617351651191711,
+        "p90": 0.01977461762726307,
+        "p95": 0.05979037471115589,
+        "p99": 0.13972418010234833,
+        "max": 0.1637083850800991
+      },
+      "ssRtOuter": {
+        "samples": 2,
+        "mean": 0.006368627306073904,
+        "median": 0.012153572402894497,
+        "p90": 0.012153572402894497,
+        "p95": 0.012153572402894497,
+        "p99": 0.012153572402894497,
+        "max": 0.012153572402894497
+      },
+      "ssRtBoundaryNormalized": {
+        "boundaryMedianOverGradientMedian": 0.1120440245861258,
+        "boundaryP90OverGradientP90": 1.627062148620067,
+        "boundaryMeanOverGradientMean": 1.383106282144565
+      }
+    }
+  },
+  "boundary": {
+    "ssRtPairs": 149,
+    "ssRtOuterPairs": 2
+  }
+}
