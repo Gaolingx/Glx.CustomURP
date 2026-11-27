@@ -44,6 +44,27 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
     bool m_P3SsrAfterGbuffer;
     bool m_P3SsrRollback;
     string m_P3SsrIndirect;
+    // Steady-state sequence (-p3-static N): after the capture frame the player keeps rendering the
+    // static camera so the ROI luma variance (D5 #5) and native frame timing (gate 5) can be
+    // measured. Only every k_StaticSampleStride-th frame is read back, so the other frames time
+    // without the synchronous readback stall.
+    int m_StaticFrames;
+    int m_StaticRemaining;
+    int m_StaticIndex;
+    readonly List<float> m_StaticRoiLuma = new List<float>();
+    readonly List<double> m_CpuFrameTimes = new List<double>();
+    readonly List<double> m_GpuFrameTimes = new List<double>();
+    double m_CpuFrameTimeSum;
+    double m_GpuFrameTimeSum;
+    float m_CpuFrameTimeMax;
+    int m_TimingSamples;
+    int m_GpuTimingSamples;
+    bool m_CaptureWritten;
+    // The seam metric's floor ROI, converted to Unity's bottom-up readback space.
+    const float RoiX0 = 0.15f;
+    const float RoiY0Top = 0.45f;
+    const float RoiX1 = 0.85f;
+    const float RoiY1Top = 0.95f;
 
     [Serializable]
     sealed class PlayerReport
@@ -144,6 +165,19 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         public double lumaMax;
         public int nonFiniteSamples;
         public SsrDispatchStats ssrDispatch;
+        public int staticFrames;
+        public int staticSamples;
+        public float[] staticRoiMeanLuma;
+        public double staticRoiMeanVariance;
+        public double staticRoiMeanMin;
+        public double staticRoiMeanMax;
+        public int timingSamples;
+        public int gpuTimingSamples;
+        public double cpuFrameTimeMeanMs;
+        public float cpuFrameTimeMaxMs;
+        public double gpuFrameTimeMeanMs;
+        public double[] cpuFrameTimeMs;
+        public double[] gpuFrameTimeMs;
     }
 
     [Serializable]
@@ -202,6 +236,8 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         m_P3SsrAfterGbuffer = HasFlag("-p3-ssr-after-gbuffer");
         m_P3SsrRollback = HasFlag("-p3-ssr-rollback");
         m_P3SsrIndirect = Arg("-p3-ssr-indirect");
+        if (int.TryParse(Arg("-p3-static"), out var staticFrames) && staticFrames > 0)
+            m_StaticFrames = staticFrames;
         if (int.TryParse(Arg("-p3-warmup"), out var warmupOverride) && warmupOverride > 0)
         {
             warmupRenders = warmupOverride;
@@ -311,6 +347,8 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             if (m_RenderEnds + 1 == captureRender)
                 RequestRayTracingEvidence();
 #endif
+            if (m_CaptureWritten && m_StaticRemaining > m_StaticFrames)
+                FrameTimingManager.CaptureFrameTimings();
             captureCamera.Render();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (m_RenderEnds >= captureRender)
@@ -322,14 +360,156 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             if (m_RenderEnds < captureRender)
                 return;
 
-            WriteCapture();
-            Finish();
+            if (!m_CaptureWritten)
+            {
+                WriteCapture();
+                m_CaptureWritten = true;
+                if (m_StaticFrames <= 0)
+                {
+                    Finish();
+                    return;
+                }
+                BeginStaticPhase();
+                return;
+            }
+
+            SampleStaticFrame();
+            m_StaticRemaining--;
+            if (m_StaticRemaining <= 0)
+            {
+                WriteStaticReport();
+                Finish();
+            }
         }
         catch (Exception exception)
         {
             m_Error = exception.ToString();
             Finish();
         }
+    }
+
+    void BeginStaticPhase()
+    {
+        // The capture frame and its evidence are already on disk. Time the remaining frames at
+        // native speed so FrameTimingManager is not clamped by Time.captureFramerate.
+        Time.captureFramerate = 0;
+        Application.targetFrameRate = -1;
+        QualitySettings.vSyncCount = 0;
+        // Two phases: N timing-only frames, then N frames sampled for the ROI variance. The
+        // synchronous readback in the second phase must not pollute the frame timing.
+        m_StaticRemaining = m_StaticFrames * 2;
+    }
+
+    void SampleStaticFrame()
+    {
+        m_StaticIndex++;
+        if (m_StaticIndex <= m_StaticFrames)
+            CollectFrameTiming();
+        else
+            m_StaticRoiLuma.Add(ReadRoiMeanLuma());
+    }
+
+    Texture2D m_StaticRoiTexture;
+
+    float ReadRoiMeanLuma()
+    {
+        int x0 = Mathf.RoundToInt(RoiX0 * width);
+        int x1 = Mathf.RoundToInt(RoiX1 * width);
+        int yTop = Mathf.RoundToInt(RoiY0Top * height);
+        int yTop1 = Mathf.RoundToInt(RoiY1Top * height);
+        int roiWidth = x1 - x0;
+        int roiHeight = yTop1 - yTop;
+        int y = height - yTop1;
+        if (m_StaticRoiTexture == null)
+            m_StaticRoiTexture = new Texture2D(roiWidth, roiHeight, TextureFormat.RGBAHalf, false, true);
+
+        var previous = RenderTexture.active;
+        try
+        {
+            RenderTexture.active = m_Target;
+            m_StaticRoiTexture.ReadPixels(new Rect(x0, y, roiWidth, roiHeight), 0, 0, false);
+            m_StaticRoiTexture.Apply(false);
+        }
+        finally
+        {
+            RenderTexture.active = previous;
+        }
+
+        var pixels = m_StaticRoiTexture.GetPixels();
+        double sum = 0.0;
+        for (var i = 0; i < pixels.Length; i++)
+        {
+            var c = pixels[i];
+            sum += 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+        }
+        return (float)(sum / pixels.Length);
+    }
+
+    readonly FrameTiming[] m_FrameTiming = new FrameTiming[1];
+
+    void CollectFrameTiming()
+    {
+        if (FrameTimingManager.GetLatestTimings(1, m_FrameTiming) < 1)
+            return;
+        var timing = m_FrameTiming[0];
+        if (timing.cpuFrameTime <= 0)
+            return;
+        m_TimingSamples++;
+        m_CpuFrameTimes.Add(timing.cpuFrameTime);
+        m_CpuFrameTimeSum += timing.cpuFrameTime;
+        if (timing.cpuFrameTime > m_CpuFrameTimeMax)
+            m_CpuFrameTimeMax = (float)timing.cpuFrameTime;
+        // gpuFrameTime is 0 whenever the platform or driver did not return a GPU sample; keep the
+        // raw zeros in the evidence array but exclude them from the mean.
+        m_GpuFrameTimes.Add(timing.gpuFrameTime);
+        if (timing.gpuFrameTime > 0)
+        {
+            m_GpuTimingSamples++;
+            m_GpuFrameTimeSum += timing.gpuFrameTime;
+        }
+    }
+
+    void WriteStaticReport()
+    {
+        var path = Path.Combine(m_OutputRoot, "Player.json");
+        PlayerReport report;
+        try
+        {
+            report = JsonUtility.FromJson<PlayerReport>(File.ReadAllText(path));
+        }
+        catch (Exception)
+        {
+            report = new PlayerReport { variant = m_Variant, run = m_Run };
+        }
+
+        double mean = 0.0;
+        foreach (var value in m_StaticRoiLuma)
+            mean += value;
+        mean /= Math.Max(1, m_StaticRoiLuma.Count);
+        double varianceSum = 0.0;
+        double min = double.MaxValue;
+        double max = double.MinValue;
+        foreach (var value in m_StaticRoiLuma)
+        {
+            varianceSum += (value - mean) * (value - mean);
+            if (value < min) min = value;
+            if (value > max) max = value;
+        }
+
+        report.staticFrames = m_StaticFrames;
+        report.staticSamples = m_StaticRoiLuma.Count;
+        report.staticRoiMeanLuma = m_StaticRoiLuma.ToArray();
+        report.staticRoiMeanVariance = varianceSum / Math.Max(1, m_StaticRoiLuma.Count);
+        report.staticRoiMeanMin = m_StaticRoiLuma.Count > 0 ? min : 0.0;
+        report.staticRoiMeanMax = m_StaticRoiLuma.Count > 0 ? max : 0.0;
+        report.timingSamples = m_TimingSamples;
+        report.gpuTimingSamples = m_GpuTimingSamples;
+        report.cpuFrameTimeMeanMs = m_TimingSamples > 0 ? m_CpuFrameTimeSum / m_TimingSamples : 0.0;
+        report.cpuFrameTimeMaxMs = m_CpuFrameTimeMax;
+        report.gpuFrameTimeMeanMs = m_GpuTimingSamples > 0 ? m_GpuFrameTimeSum / m_GpuTimingSamples : 0.0;
+        report.cpuFrameTimeMs = m_CpuFrameTimes.ToArray();
+        report.gpuFrameTimeMs = m_GpuFrameTimes.ToArray();
+        File.WriteAllText(path, JsonUtility.ToJson(report, true));
     }
 
     static void SetHitDebug(int mode)
