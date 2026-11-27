@@ -25,6 +25,10 @@ namespace UnityEngine.Rendering.Universal
         internal const string k_ProfilingSamplerName = "Screen Space Reflections Transparent";
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
+        // Per-dispatch markers: the pass-level scope alone leaves both kernels as anonymous
+        // "Compute ScreenSpaceReflections" rows in the Frame Debugger.
+        static readonly ProfilingSampler s_Trace = new ProfilingSampler("SSR Transparent Trace");
+        static readonly ProfilingSampler s_Reproject = new ProfilingSampler("SSR Transparent Reproject");
 
         const int k_TileSize = 8;
 
@@ -210,7 +214,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramid, m_History.depthPyramid);
                 cmd.SetComputeBufferParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramidMipLevelOffsets, m_History.depthPyramidOffsets);
                 cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW, m_History.ssrTransparentHitPoint);
-                cmd.DispatchCompute(compute, traceKernel, groupsX, groupsY, viewCount);
+                using (new ProfilingScope(cmd, s_Trace))
+                    cmd.DispatchCompute(compute, traceKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 s_LastTraceDispatchCount++;
 #endif
@@ -225,7 +230,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrColorPyramid, m_History.readColorPyramid);
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, m_History.transparentDepth);
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW, m_History.ssrTransparentOutput);
-                cmd.DispatchCompute(compute, reprojectKernel, groupsX, groupsY, viewCount);
+                using (new ProfilingScope(cmd, s_Reproject))
+                    cmd.DispatchCompute(compute, reprojectKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 s_LastReprojectDispatchCount++;
 #endif

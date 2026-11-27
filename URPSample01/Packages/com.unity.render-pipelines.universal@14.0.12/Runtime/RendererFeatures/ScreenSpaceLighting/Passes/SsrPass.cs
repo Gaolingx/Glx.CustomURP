@@ -85,6 +85,17 @@ namespace UnityEngine.Rendering.Universal
         // I2 timing hook: reproject/upsample/composite after the hardware trace, plus the pass
         // sampler that contains both trace and reconstruction.
         static readonly ProfilingSampler s_Reconstruction = new ProfilingSampler("SSR Reconstruction");
+        // Per-dispatch markers for the reconstruction chain: without them the Frame Debugger falls
+        // back to the compute asset name ("Compute ReflectionDenoiser"), so the PBR-only merge and
+        // the four denoiser kernels collapse into anonymous, indistinguishable rows.
+        static readonly ProfilingSampler s_Reproject = new ProfilingSampler("SSR Reproject");
+        static readonly ProfilingSampler s_PbrHwMerge = new ProfilingSampler("SSR PBR HW Merge");
+        static readonly ProfilingSampler s_DebugParams = new ProfilingSampler("SSR Debug Params");
+        static readonly ProfilingSampler s_DenoiseTemporal = new ProfilingSampler("SSR Denoise Temporal");
+        static readonly ProfilingSampler s_DenoiseCopyHistory = new ProfilingSampler("SSR Denoise Copy History");
+        static readonly ProfilingSampler s_DenoiseBilateralH = new ProfilingSampler("SSR Denoise Bilateral H");
+        static readonly ProfilingSampler s_DenoiseBilateralV = new ProfilingSampler("SSR Denoise Bilateral V");
+        static readonly ProfilingSampler s_Upsample = new ProfilingSampler("SSR Upsample");
         internal static ProfilingSampler passSampler => s_ProfilingSampler;
         internal static ProfilingSampler reconstructionSampler => s_Reconstruction;
         bool m_LoggedHybridFailure;
@@ -865,7 +876,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeBufferParam(compute, reprojectKernel, "_R2Hits", requestQueue.hits);
                 cmd.SetComputeIntParam(compute, "_R2HitFrame", requestQueue.hitFrame);
             }
-            cmd.DispatchCompute(compute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
+            using (new ProfilingScope(cmd, s_Reproject))
+                cmd.DispatchCompute(compute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_ReprojectDispatchCount++;
             s_LastDispatchStats.reprojectDispatches++;
@@ -891,7 +903,8 @@ namespace UnityEngine.Rendering.Universal
                 // coverage, so it needs the receiver geometry the reprojection used.
                 cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depthTexture);
                 cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
-                cmd.DispatchCompute(compute, mergeKernel, traceGroupsX, traceGroupsY, viewCount);
+                using (new ProfilingScope(cmd, s_PbrHwMerge))
+                    cmd.DispatchCompute(compute, mergeKernel, traceGroupsX, traceGroupsY, viewCount);
                 m_History.SwapSsrHwBuffers();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 s_LastDispatchStats.hwMergeDispatches++;
@@ -906,7 +919,8 @@ namespace UnityEngine.Rendering.Universal
                 int debugKernel = compute.FindKernel("DebugSsrParams");
                 cmd.SetComputeTextureParam(compute, debugKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
                     m_History.ssrDebugParams);
-                cmd.DispatchCompute(compute, debugKernel, screenGroupsX, screenGroupsY, viewCount);
+                using (new ProfilingScope(cmd, s_DebugParams))
+                    cmd.DispatchCompute(compute, debugKernel, screenGroupsX, screenGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 s_LastDispatchStats.debugDispatches++;
 #endif
@@ -1041,7 +1055,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountTexture, m_History.GetSsrPbrSampleCount(readSlot));
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrDenoiseIntermediate0);
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseSampleCountRW, m_History.GetSsrPbrSampleCount(writeSlot));
-            cmd.DispatchCompute(denoiser, temporalKernel, groupsX, groupsY, viewCount);
+            using (new ProfilingScope(cmd, s_DenoiseTemporal))
+                cmd.DispatchCompute(denoiser, temporalKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchStats.temporalDispatches++;
 #endif
@@ -1060,7 +1075,8 @@ namespace UnityEngine.Rendering.Universal
             var copyKernel = denoiser.FindKernel("CopyHistory");
             cmd.SetComputeTextureParam(denoiser, copyKernel, ScreenSpaceLightingShaderIDs.DenoiseInputTexture, m_History.ssrDenoiseIntermediate0);
             cmd.SetComputeTextureParam(denoiser, copyKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.GetSsrPbrHistory(writeSlot));
-            cmd.DispatchCompute(denoiser, copyKernel, groupsX, groupsY, viewCount);
+            using (new ProfilingScope(cmd, s_DenoiseCopyHistory))
+                cmd.DispatchCompute(denoiser, copyKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchStats.copyHistoryDispatches++;
 #endif
@@ -1077,7 +1093,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.DenoiseNormalTexture, normalTexture);
             cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrDenoiseIntermediate1);
             cmd.SetComputeTextureParam(denoiser, filterHKernel, ScreenSpaceLightingShaderIDs.ReflectionFilterMapping, mapping);
-            cmd.DispatchCompute(denoiser, filterHKernel, groupsX, groupsY, viewCount);
+            using (new ProfilingScope(cmd, s_DenoiseBilateralH))
+                cmd.DispatchCompute(denoiser, filterHKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchStats.bilateralHDispatches++;
 #endif
@@ -1095,7 +1112,8 @@ namespace UnityEngine.Rendering.Universal
             // filtered result back into the noisy input. The half resolution path upsamples it.
             cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrPbrOriginal);
             cmd.SetComputeTextureParam(denoiser, filterVKernel, ScreenSpaceLightingShaderIDs.ReflectionFilterMapping, mapping);
-            cmd.DispatchCompute(denoiser, filterVKernel, groupsX, groupsY, viewCount);
+            using (new ProfilingScope(cmd, s_DenoiseBilateralV))
+                cmd.DispatchCompute(denoiser, filterVKernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchStats.bilateralVDispatches++;
 #endif
@@ -1137,7 +1155,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(upsample, kernel, ScreenSpaceLightingShaderIDs.SsgiDepthTexture, depthTexture);
             cmd.SetComputeTextureParam(upsample, kernel, ScreenSpaceLightingShaderIDs.SsgiLowResolutionTexture, lowResolution);
             cmd.SetComputeTextureParam(upsample, kernel, ScreenSpaceLightingShaderIDs.SsgiUpsampledTextureRW, output);
-            cmd.DispatchCompute(upsample, kernel, groupsX, groupsY, viewCount);
+            using (new ProfilingScope(cmd, s_Upsample))
+                cmd.DispatchCompute(upsample, kernel, groupsX, groupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             s_LastDispatchStats.upsampleDispatches++;
 #endif
