@@ -473,7 +473,7 @@ public sealed class SsrP3ContractTests
 
         var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
         var keyword = pass.IndexOf("SetKeyword(compute,k_GlxSsrShadeSsKeyword,ssrShadeSs);", StringComparison.Ordinal);
-        var trace = pass.IndexOf("booltraced=halfResolution&&TryTrace(", StringComparison.Ordinal);
+        var trace = pass.IndexOf("booltraced=TryTrace(", StringComparison.Ordinal);
         Assert.GreaterOrEqual(keyword, 0, "The P3 keyword must be published to the compute shader.");
         Assert.GreaterOrEqual(trace, 0);
         Assert.Less(keyword, trace,
