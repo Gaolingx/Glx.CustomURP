@@ -680,6 +680,9 @@ namespace UnityEngine.Rendering.Universal
 
             var cb = CreateShaderVariables(ref cameraData, settings, screenWidth, screenHeight,
                 traceWidth, traceHeight, m_History.ssrPbrHasValidHistory);
+            // HDRP's mixed march has its own step budget (rayMaxIterationsRT): the pixels it leaves
+            // unresolved are handed to hardware rays, so it must not pay the full SSR iteration count.
+            cb._SsrRayMarchingParams.x = Mathf.Max(1, settings.mixedRayMaxIterations.value);
             PushShaderVariables(cmd, compute, cb);
             PushSsrRayLength(cmd, compute, ref cameraData, settings);
 

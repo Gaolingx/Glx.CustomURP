@@ -100,6 +100,14 @@ namespace UnityEngine.Rendering.Universal
         public ClampedIntParameter rayMaxIterations = new ClampedIntParameter(64, 1, 256);
 
         /// <summary>
+        /// Maximum number of Hi-Z ray marching steps for the mixed (screen-space-first) trace. A miss
+        /// is resolved by a hardware ray anyway, so this budget trades march quality for ray work
+        /// instead of sharing the full SSR iteration count. Mirrors HDRP's rayMaxIterationsRT.
+        /// </summary>
+        [Tooltip("Maximum Hi-Z ray marching steps for the mixed (screen-space-first) trace. Lower values hand more pixels to the hardware rays.")]
+        public ClampedIntParameter mixedRayMaxIterations = new ClampedIntParameter(48, 1, 256);
+
+        /// <summary>
         /// Allows rays that exit the geometry to sample the sky from the previous color pyramid.
         /// </summary>
         [Tooltip("Allows screenspace rays that miss the scene to sample the sky.")]

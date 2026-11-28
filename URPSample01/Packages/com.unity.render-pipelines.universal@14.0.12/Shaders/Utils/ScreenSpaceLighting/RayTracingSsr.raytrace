@@ -5,10 +5,11 @@
 // the resolved share. The reflection denoiser owns the temporal accumulation, so there is no request
 // queue, budget or per-pixel classification.
 //
-// With _SsrScreenSpaceFirst the raygen first checks the hit UV the screen space march published for
-// this trace pixel. A resolved hit samples the previous color pyramid (motion reprojected, roughness
-// mip) and skips TraceRay; a miss traces the configured hardware rays. This mirrors HDRP's Mixed
-// tracing, where the raymarch writes the hit and the raygen only handles the unresolved pixels.
+// With _SsrScreenSpaceFirst the raygen checks the hit UV the screen space march published for this
+// trace pixel before touching the depth/normal prologue. A resolved hit samples the previous color
+// pyramid (motion reprojected, roughness mip), writes and returns; a miss falls through to the
+// configured hardware rays. This mirrors HDRP's Mixed tracing, where the raymarch writes the hit and
+// the raygen only handles the unresolved pixels.
 //
 // The ray tracing compiler runs without the SRP core prelude (core Common.hlsl is suppressed), so
 // this file is self-contained: it declares the light globals it reads and reproduces the URP direct
@@ -155,17 +156,13 @@ float SsrEdgeOfScreenFade(float2 coordNDC, float fadeRcpLength)
     return (t.x * t.x * (3.0 - 2.0 * t.x)) * (t.y * t.y * (3.0 - 2.0 * t.y));
 }
 
-// Resolves the trace pixel the screen space march hit, mirroring SsrReadOriginalColor in
-// ScreenSpaceReflections.compute: reproject the hit pixel with its motion vector and sample the
-// previous color pyramid with the roughness mip. Returns 0 and opacity 0 for a miss, an
-// off-screen reprojection or an invalid color, which hands the pixel to the hardware trace.
-float3 SsrReadScreenSpaceHit(uint2 traceCoord, float perceptualRoughness, out float opacity)
+// Resolves a marched hit NDC, mirroring SsrReadOriginalColor in ScreenSpaceReflections.compute:
+// reproject the hit pixel with its motion vector and sample the previous color pyramid with the
+// roughness mip. Returns 0 and opacity 0 for an off-screen reprojection or an invalid color, which
+// hands the pixel to the hardware trace.
+float3 SsrReadNdcHit(float2 hitNdc, float perceptualRoughness, out float opacity)
 {
     opacity = 0.0;
-    float2 hitNdc = _SsrSsHitPointTexture.Load(int3(traceCoord, 0));
-    if (!(hitNdc.x <= 1.0 && hitNdc.y >= 0.0))
-        return 0.0;
-
     uint2 hitPixel = (uint2)(saturate(hitNdc) * _SsrScreenSize.xy);
     hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
     float2 motion = _SsrMotionTexture.Load(int3(hitPixel, 0)).xy;
@@ -192,6 +189,56 @@ float3 SsrReadScreenSpaceHit(uint2 traceCoord, float perceptualRoughness, out fl
     }
 
     return color;
+}
+
+// Material decode shared by the screen-space-first early out and the hardware trace prologue, so the
+// two paths can never disagree on what counts as a traceable pixel.
+bool SsrDecodeRaygenMaterial(float4 normalSample, out float3 normalWS, out float perceptualRoughness)
+{
+    normalWS = normalSample.rgb;
+    if (_SsrNormalsOct != 0)
+        normalWS = SsrDecodeOctNormalLocal(SsrUnpack888ToFloat2(normalSample.rgb) * 2.0 - 1.0);
+    else
+    {
+        float lenSq = dot(normalWS, normalWS);
+        normalWS = lenSq > 1e-8 ? normalWS * rsqrt(lenSq) : 0.0;
+    }
+
+    float encodedSmoothness = normalSample.a;
+    bool materialValid = encodedSmoothness > 0.0 && dot(normalWS, normalWS) > 0.5;
+    float smoothness = _SsrGbufferSmoothness != 0
+        ? saturate(encodedSmoothness)
+        : saturate(encodedSmoothness * 2.0 - 1.0);
+    perceptualRoughness = materialValid ? 1.0 - smoothness : 1.0;
+    return materialValid;
+}
+
+// Screen-space-first fast path: the march already resolved this trace pixel, so resolve its radiance
+// from the previous color pyramid and leave before the depth read, the position reconstruct and the
+// normal bias the hardware trace needs. Costs the hit point read, the normal read (roughness mip) and
+// the pyramid sample. HDRP's equivalent is the direction buffer's validity channel; the march's
+// sentinel in the hit point texture plays that role here.
+bool SsrResolveMarchHit(uint2 traceCoord, uint2 inputCoord, out float4 result)
+{
+    result = 0.0;
+    float2 hitNdc = _SsrSsHitPointTexture.Load(int3(traceCoord, 0));
+    if (!(hitNdc.x <= 1.0 && hitNdc.y >= 0.0))
+        return false;
+
+    float3 normalWS;
+    float perceptualRoughness;
+    if (!SsrDecodeRaygenMaterial(_SsrNormalTexture.Load(int3(inputCoord, 0)), normalWS, perceptualRoughness))
+        return false;
+    if (perceptualRoughness > _SsrRoughnessFadeParams.z)
+        return false;
+
+    float opacity;
+    float3 color = SsrReadNdcHit(hitNdc, perceptualRoughness, opacity);
+    if (opacity <= 0.0)
+        return false;
+
+    result = float4(color, opacity);
+    return true;
 }
 
 // Heitz 2018 GGX visible normal sampling. Inputs/outputs are world space.
@@ -335,23 +382,18 @@ void TraceSsrFullScreen()
     uint2 inputCoord = SsrFullResCoord(traceCoord);
     float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
-    float deviceDepth = _SsrDepthTexture.Load(int3(inputCoord, 0));
-    float4 normalSample = _SsrNormalTexture.Load(int3(inputCoord, 0));
-    float3 normalWS = normalSample.rgb;
-    if (_SsrNormalsOct != 0)
-        normalWS = SsrDecodeOctNormalLocal(SsrUnpack888ToFloat2(normalSample.rgb) * 2.0 - 1.0);
-    else
+    // Screen-space-first: a pixel the march resolved never pays the prologue below.
+    if (_SsrScreenSpaceFirst != 0 && SsrResolveMarchHit(traceCoord, inputCoord, result))
     {
-        float lenSq = dot(normalWS, normalWS);
-        normalWS = lenSq > 1e-8 ? normalWS * rsqrt(lenSq) : 0.0;
+        _SsrRtRadianceRW[traceCoord] = result;
+        return;
     }
 
-    float encodedSmoothness = normalSample.a;
-    bool materialValid = encodedSmoothness > 0.0 && dot(normalWS, normalWS) > 0.5;
-    float smoothness = _SsrGbufferSmoothness != 0
-        ? saturate(encodedSmoothness)
-        : saturate(encodedSmoothness * 2.0 - 1.0);
-    float perceptualRoughness = materialValid ? 1.0 - smoothness : 1.0;
+    float deviceDepth = _SsrDepthTexture.Load(int3(inputCoord, 0));
+    float4 normalSample = _SsrNormalTexture.Load(int3(inputCoord, 0));
+    float3 normalWS;
+    float perceptualRoughness;
+    bool materialValid = SsrDecodeRaygenMaterial(normalSample, normalWS, perceptualRoughness);
     float roughnessFadeEnd = _SsrRoughnessFadeParams.z;
 
     // DXR is D3D12-only, where the project uses reversed Z: the far plane (no geometry) is 0.
@@ -369,19 +411,6 @@ void TraceSsrFullScreen()
             float3 biasedPosWS = camPosWS + (positionWS - camPosWS) *
                 (1.0 - 0.001 * rcp(max(dot(normalWS, normalize(viewWS)), 1e-6)));
             viewWS = normalize(camPosWS - biasedPosWS);
-
-            if (_SsrScreenSpaceFirst != 0)
-            {
-                // The march resolved this ray: keep the reprojected previous frame radiance and stop
-                // before TraceRay. The denoiser accumulates it like any hardware hit.
-                float ssOpacity;
-                float3 ssColor = SsrReadScreenSpaceHit(traceCoord, perceptualRoughness, ssOpacity);
-                if (ssOpacity > 0.0)
-                {
-                    _SsrRtRadianceRW[traceCoord] = float4(ssColor, ssOpacity);
-                    return;
-                }
-            }
 
             uint sampleCount = max((uint)_SsrRayTraceParams.z, 1u);
             uint baseSample = (uint)_SsrRayTraceParams.y * sampleCount;

@@ -109,3 +109,16 @@ P0-2 和 P0-3 建议先做：前者直接减少你看到的空洞和 HW 依赖�
 - 依赖：前帧颜色金字塔、motion、共享 depth pyramid、`ssrPbrHitPoint` 缺任一（冷启动/无运动相机）时该帧回退 RayTracedOnly，并在 Editor/Dev 下打一行 `[SSL][SSR] tracing mode:` 状态日志。
 - 与 HDRP Mixed 的已知差异：HDRP 把 SS 命中写进 GBuffer 再统一 lighting（无时域色差）；我们采样前帧颜色金字塔，所以缝合区仍有 SSR 惯例的滞后，这正是 §1 结论 1 指出的差异，本次不做 GBuffer 统一着色。
 - 验证：`dotnet build` Runtime/Editor/Tests 三个 csproj 0 error；HLSL 需回 Unity 编译。Frame Debugger 中 `ScreenSpaceFirst` 应看到 “SSR Trace”（compute）后紧跟 “SSR Ray Traced”（DispatchRays），`RayTracedOnly` 只有后者。像素与性能证据仍需 Unity 侧采集，本文不视为已验收。
+
+## 4. 2026-11-29 对齐 HDRP Mixed 的结构（第 1、2 步）
+
+**背景：** 2026-11-28 的 GPU 抓帧显示 `ScreenSpaceFirst` 反而更慢（SSR 合计 0.40 → 0.53 ms）：march 新增 0.18 ms，raygen 只从 0.16 降到 0.13 ms。RT Core 利用率 13.4% → 7.2%（射线量约减半）但 raygen 时间只降 19%，因为跳过发生在 lane 级、且位于深度/法线 prologue 之后。对照 HDRP 14 的 Mixed（`RayMarchGBuffer` 写表面 + `direction.w=0`、`BinRays` 按 tile/方向压缩、binned raygen 首行退出、march 用独立预算 `rayMaxIterationsRT` 默认 48），先落两处不改变着色模型的结构对齐。
+
+**已实现：**
+
+- **独立 march 预算**：`ScreenSpaceReflection.mixedRayMaxIterations`（`ClampedIntParameter(48, 1, 256)`，镜像 HDRP 的 `rayMaxIterationsRT`）。`SsrPass.DispatchScreenSpaceFirstTrace` 只在该 dispatch 覆盖 `_SsrRayMarchingParams.x`；回退 SSR 仍用 `rayMaxIterations`（64）。Volume 组件默认 inspector 自动暴露，无需改 Editor 绘制列表。
+- **raygen 早退**：`TraceSsrFullScreen` 在读取深度/法线 prologue 之前先查 march 的 hit point（sentinel 即 miss）。命中路径 = hit point Load + 法线 Load（取粗糙度 mip）+ 颜色金字塔采样，然后写出并 `return`；不再付深度 Load、位置重建、法线偏移与重复 fade。材质解码抽出 `SsrDecodeRaygenMaterial`，早退路径与 prologue 共用，避免两条路径对"可追踪像素"的判断分歧。`SsrReadScreenSpaceHit` 改为 `SsrReadNdcHit(hitNdc, ...)`，省掉重复读取。
+
+**验证（截至本次提交）：** `dotnet build` Runtime / Editor / Editor.Tests 三个 csproj 0 error；`RayTracingSsr.raytrace` 用 `dxc -HV 2018 -T lib_6_3` 编译 0 error。Unity Frame Debugger 与 GPU 计时仍需在编辑器里补：确认 `ScreenSpaceFirst` 仍是 “SSR Trace” → “SSR Ray Traced”，并对比 `mixedRayMaxIterations` 48 与 64 的 march/raygen 时长。本文不视为已验收。
+
+**第 3 步（待做，验证第 1、2 步之后）：** tile 压缩 + 方向 bin。按 HDRP 的做法：march 之后用一个 16×16 tile 的 binning 核把 `w=0`（已解决）像素剔除并按八面体方向成 bin，raygen 改 1D binned 派发、首行按 tile 计数退出，使整 warp 提前结束并让剩余射线 BVH 相干。注意我们的 hit point 纹理是 R16G16_SFloat，标记可复用 sentinel，不必扩通道；方向 bin 需要 raygen 能从 bin 记录里还原像素坐标与方向（我们的方向由 `SsrSequenceSample` 现场生成，与 HDRP 的 direction buffer 不同，这一项要么加一张方向缓冲，要么先只做 tile 压缩）。
