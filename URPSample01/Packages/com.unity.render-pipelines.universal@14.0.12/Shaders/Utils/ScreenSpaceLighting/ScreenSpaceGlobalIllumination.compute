@@ -190,8 +190,10 @@ void ReprojectGlobalIllumination(uint3 dispatchThreadId : SV_DispatchThreadID)
             // DDGI tier: GlxProbeQuery returns the clamped-cosine convolution the material
             // divides by PI, so E/pi is the radiance. The coverage is the same global value the
             // material-side probe blend uses (zero when the producer is off or unpublished).
+            // Zero coverage owns nothing: claiming the miss with weight 0 would starve the tail.
 #if defined(SSL_DDGI)
             float ddgiCoverage = saturate(_SsgiFallbackParams.y);
+            if (ddgiCoverage > 0.0)
             {
                 float3 irradiance;
                 // A published-but-fully-black generation is treated as no data so the tail still
