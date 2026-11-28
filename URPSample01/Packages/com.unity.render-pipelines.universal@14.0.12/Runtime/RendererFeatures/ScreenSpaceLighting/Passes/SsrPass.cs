@@ -40,7 +40,6 @@ namespace UnityEngine.Rendering.Universal
 
         const int k_TileSize = 8;
         const string k_GbufferNormalsOctKeyword = "_GBUFFER_NORMALS_OCT";
-        const string k_GlxSsrShadeSsKeyword = "_GLX_SSR_SHADE_SS";
 
         ScreenSpaceLightingHistory m_History;
         ScreenSpaceLightingResources m_Resources;
@@ -546,12 +545,12 @@ namespace UnityEngine.Rendering.Universal
             return deferred != null && deferred.GbufferAttachments != null && deferred.GbufferAttachments.Length >= 3;
         }
 
-        // Replace the closest-hit radiance with deferred shading of the published hit surface. Runs
-        // between DispatchRays and the temporal merge; invalid records (a miss, an unwritten slot, or
-        // a non-reflection source) keep the closest-hit result.
+        // Replace the transport-only payload radiance with deferred shading of the published hit
+        // surface. Runs between DispatchRays and the temporal merge; invalid records (a miss, an
+        // unwritten slot, or a non-reflection source) keep the payload radiance (emission).
         //
-        // The screen-space hit kernel shades with the same SsrShadeSurface, so leaving RT hits on the
-        // closest-hit approximation would reintroduce the very shading seam that kernel removes.
+        // The screen-space hit kernel shades with the same SsrShadeSurface, so the RT and SS sides
+        // stay on one lighting model.
         void DispatchHitDeferred(CommandBuffer cmd)
         {
             s_HitDeferredCalls++;
@@ -563,7 +562,7 @@ namespace UnityEngine.Rendering.Universal
                 s_HitDeferredSkipsCompute++;
                 if (!m_LoggedHitDeferredMissing)
                 {
-                    Debug.LogWarning("SSR hit shading is enabled but SsrHitDeferred.compute is missing; keeping the closest-hit result.");
+                    Debug.LogWarning("SSR hit shading is enabled but SsrHitDeferred.compute is missing; keeping the published payload radiance.");
                     m_LoggedHitDeferredMissing = true;
                 }
                 return;
@@ -821,10 +820,10 @@ namespace UnityEngine.Rendering.Universal
             if (requestQueue != null)
                 hybridPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
             // The PBR reproject reads radiance from this frame's GBuffer (the R1 classification
-            // drops the previous-colour pyramid sample), so the keyword must be set before
-            // RecordOriginals runs inside TryTrace. Whether the trace publishes is only known
-            // afterwards; the re-set below restores the previous-colour reproject when it fails.
-            SetKeyword(compute, k_GlxSsrShadeSsKeyword, ssrShadeSs);
+            // drops the previous-colour pyramid sample), so the R1 gate must be published before
+            // RecordOriginals runs inside TryTrace. The P3 reproject is a separate kernel, selected
+            // below from the same post-trace decision.
+            cmd.SetComputeFloatParam(compute, ScreenSpaceLightingShaderIDs.SsrShadeSs, ssrShadeSs ? 1f : 0f);
             // R1 re-derives the trace direction from the same blue-noise sequence as the trace, so the
             // request covers the algorithm's own hit point for this pixel and frame.
             bool traced = TryTrace(cmd, compute, ref cameraData, depthTexture, normalTexture,
@@ -834,11 +833,14 @@ namespace UnityEngine.Rendering.Universal
             // A failed hybrid trace leaves the R1/R2 buffers without this frame's data. Keep the
             // previous-colour path instead of letting the reproject read stale records.
             ssrShadeSs &= traced;
-            SetKeyword(compute, k_GlxSsrShadeSsKeyword, ssrShadeSs);
 
             using (new ProfilingScope(cmd, s_Reconstruction))
             {
-            var reprojectKernel = compute.FindKernel("ScreenSpaceReflectionsReprojection");
+            // The P3 kernel is the only one that declares _R1Coverage/_R2Hits; dispatching the plain
+            // kernel on a no-queue frame keeps those unbound declarations out of the D3D11 path.
+            var reprojectKernel = compute.FindKernel(ssrShadeSs
+                ? "ScreenSpaceReflectionsReprojectionSs"
+                : "ScreenSpaceReflectionsReprojection");
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,
                 pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint);
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);

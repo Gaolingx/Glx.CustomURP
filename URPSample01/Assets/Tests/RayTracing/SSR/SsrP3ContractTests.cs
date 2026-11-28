@@ -179,7 +179,7 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
-    public void SsrHitDeferred_ReusesClusteredDeferredAndKeepsTheLegacyFallback()
+    public void SsrHitDeferred_ReusesClusteredDeferredAndKeepsTheUnpublishedPayload()
     {
         // The record header must stay include-safe for compute shaders: no AS, no payload.
         var record = ReadPackage("Shaders/RayTracing/SsrHitSurface.hlsl");
@@ -206,7 +206,7 @@ public sealed class SsrP3ContractTests
         StringAssert.Contains("RWStructuredBuffer<GlxPublishedHit>_R2Hits;", normalized,
             "The hit kernel publishes the frozen 24-byte result.");
         StringAssert.Contains("uint(s.misc.z+0.5)!=SsrHitSurfaceVersion", normalized,
-            "Invalid or unwritten records must keep the closest-hit radiance.");
+            "Invalid or unwritten records must keep the raygen's payload radiance.");
     }
 
     [Test]
@@ -401,18 +401,18 @@ public sealed class SsrP3ContractTests
             "full coverage.");
         StringAssert.Contains("edge=usable?EdgeOfScreenFade(prevFrameNDC,_SsrEdgeFadeRcpLength):0.0;", queue,
             "The P3 classification must derive the share from the edge fade, not the colour pyramid.");
-        var p3 = queue.IndexOf("#ifdefined(_GLX_SSR_SHADE_SS)", StringComparison.Ordinal);
+        var p3 = queue.IndexOf("if(_SsrShadeSs>0.5f)", StringComparison.Ordinal);
         var sample = queue.IndexOf("SsrReadOriginalColor(hit,s.roughness,share,edge,accepted);", StringComparison.Ordinal);
-        Assert.GreaterOrEqual(p3, 0, "The R1 classification needs the P3 variant.");
+        Assert.GreaterOrEqual(p3, 0, "The R1 classification needs the runtime P3 gate.");
         Assert.Greater(sample, p3, "The pyramid sample must live in the non-P3 branch only.");
 
         var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
-        var keyword = pass.IndexOf("SetKeyword(compute,k_GlxSsrShadeSsKeyword,ssrShadeSs);", StringComparison.Ordinal);
+        var gate = pass.IndexOf("SetComputeFloatParam(compute,ScreenSpaceLightingShaderIDs.SsrShadeSs,ssrShadeSs?1f:0f);", StringComparison.Ordinal);
         var trace = pass.IndexOf("booltraced=TryTrace(", StringComparison.Ordinal);
-        Assert.GreaterOrEqual(keyword, 0, "The P3 keyword must be published to the compute shader.");
+        Assert.GreaterOrEqual(gate, 0, "The P3 gate must be published to the compute shader.");
         Assert.GreaterOrEqual(trace, 0);
-        Assert.Less(keyword, trace,
-            "RecordOriginals runs inside TryTrace, so the P3 keyword must be set before it.");
+        Assert.Less(gate, trace,
+            "RecordOriginals runs inside TryTrace, so the P3 gate must be set before it.");
     }
 
     [Test]
@@ -420,14 +420,14 @@ public sealed class SsrP3ContractTests
     {
         var kernel = ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrIndirectSpecular.compute");
         var normalized = Normalize(kernel);
-        StringAssert.Contains("#pragma multi_compile _ _GLX_SSR_PROBE_ENV", kernel.Replace("\r\n", "\n"),
-            "A2 needs a keyword so the probe declarations are only compiled when the atlas is bound.");
-        StringAssert.Contains("#ifdefined(_GLX_SSR_PROBE_ENV)", normalized,
-            "The probe atlas include must be gated, or an unbound declared resource drops the dispatch.");
         StringAssert.Contains("GlxProbeQuery(positionWS,reflectVector,irradiance)", normalized.Replace(" ", ""),
             "A2 must sample the published atlas along the reflection direction.");
         StringAssert.Contains("_GlossyEnvironmentColor", normalized,
             "A3 must fall back to the uniform ambient colour.");
+
+        var fallback = Normalize(ReadPackage("Runtime/RendererFeatures/RayTracing/GI/RayTracingProbeFallback.cs"));
+        StringAssert.Contains("SetGlobalInt(RayTracingProbeUpdate.s_SnapshotValid,0)", fallback,
+            "An unpublished generation must bind an invalid snapshot instead of leaving the declaration unbound.");
 
         var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrIndirectSpecularPass.cs"));
         StringAssert.Contains("ssrIndirectSource==SsrIndirectSource.A2", pass,
@@ -438,8 +438,22 @@ public sealed class SsrP3ContractTests
             "of which stage owns the diffuse tier.");
     }
 
-    // --- B8 audit follow-up: both hit kernels must compile the same shadow set, and P3 cannot leave
-    // the RT side on the closest-hit approximation while the SS side uses the shared kernel.
+    // --- B8 audit follow-up: both hit kernels must compile the same shadow set; the closest-hit
+    // reflection branch publishes the C2.7 transport and leaves all SSR shading to those kernels.
+    [Test]
+    public void ReflectionClosestHit_PublishesTransportOnly()
+    {
+        var source = Normalize(ReadPackage("Shaders/RayTracing/GlxLitHit.hlsl"));
+        var reflection = source.IndexOf("if(mode==GlxReflectionMode)", StringComparison.Ordinal);
+        Assert.GreaterOrEqual(reflection, 0, "The reflection branch must stay explicit.");
+        var publish = source.IndexOf("payload.ssrEmissive=emission;return;", reflection, StringComparison.Ordinal);
+        Assert.Greater(publish, reflection,
+            "The reflection branch must publish the transport record and return before the light loop.");
+        var shade = source.IndexOf("GlxShadeLights(payload,hitNormal,surface);", reflection, StringComparison.Ordinal);
+        Assert.Greater(shade, publish,
+            "Reflection hits are shaded once by the RT/SS hit kernels; the closest-hit must not repeat it.");
+    }
+
     [Test]
     public void SsrHitKernels_ShareTheShadowKeywords()
     {
@@ -535,15 +549,13 @@ public sealed class SsrP3ContractTests
         StringAssert.Contains("renderer.renderingModeActual!=RenderingMode.Deferred", pass,
             "A Deferred-configured renderer that fell back to Forward must not run SsrHitSs.");
         StringAssert.Contains("boolssrShadeSs=pbr&&requestQueue!=null&&SsrGbufferActive(cameraData);", pass,
-            "The _GLX_SSR_SHADE_SS keyword must require a queue and an active GBuffer for this camera.");
+            "The P3 gate must require a queue and an active GBuffer for this camera.");
         StringAssert.Contains("if(pbr&&SsrGbufferActive(cameraData))", pass,
             "The SS hit kernel dispatch must follow the same per-camera gate.");
         StringAssert.Contains("ssrShadeSs&=traced;", pass,
             "A failed hybrid trace must disable the P3 reproject variant instead of reading stale R1/R2.");
         StringAssert.Contains("boolssrShadeSs=pbr&&", pass,
             "P3 SS shading is PBR-only; the Approximation composite does not read the SS publication.");
-        StringAssert.DoesNotContain("ssrAfterGbuffer", pass,
-            "The topology has no per-frame switch; only the GBuffer capability gate remains.");
 
         var composite = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrIndirectSpecularPass.cs"));
         StringAssert.Contains("if(renderer.renderingModeActual!=RenderingMode.Deferred)", composite,
@@ -554,6 +566,8 @@ public sealed class SsrP3ContractTests
     public void SsrP3_FallsBackToThePreviousColourWhenTheSsHitHasNoGbufferSource()
     {
         var compute = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
+        StringAssert.Contains("voidScreenSpaceReflectionsReprojectionSs(", compute,
+            "The P3 reproject must be its own kernel so the plain kernel has no R1/R2 binding.");
         StringAssert.DoesNotContain("float4p3=", compute,
             "The P3 reproject must not write a zero sample through a single unconditional path.");
         StringAssert.Contains("floatshare=saturate(_R1Coverage[slot].ssShare);", compute,
@@ -567,17 +581,51 @@ public sealed class SsrP3ContractTests
     [Test]
     public void SsrP3_KeywordsDeclaredAndMarkersNamed()
     {
-        var settings = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingSettings.cs"));
-        StringAssert.DoesNotContain("ssrAfterGbuffer", settings,
-            "The after-GBuffer topology is unconditional; it is not a serialized switch.");
-
-        StringAssert.Contains("_GLX_SSR_SPECULAR", ReadPackage("Shaders/Utils/ClusteredDeferred.compute"),
-            "The deferred kernel must declare the gated specular variant.");
-        StringAssert.Contains("_GLX_SSR_SHADE_SS", ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"),
-            "The reproject must declare the gated SS-shading variant.");
+        var deferredKernel = ReadPackage("Shaders/Utils/ClusteredDeferred.compute");
+        StringAssert.Contains("TEXTURE2D(_GlxSsrSpecular);", deferredKernel,
+            "The deferred kernel samples the composite unconditionally.");
+        StringAssert.Contains("Texture2D.blackTexture", ReadPackage("Runtime/ClusteredDeferred/ClusteredDeferredPass.cs"),
+            "A frame without a routed receiver must bind a black composite instead of dropping the dispatch.");
+        StringAssert.Contains("_SsrShadeSs",
+            ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrRequestQueue.hlsl"),
+            "The R1 classification must read the runtime P3 gate.");
 
         var pass = ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs");
         StringAssert.Contains("SSR Hit Shading (RT)", pass, "The RT hit kernel marker must be named (RT).");
         StringAssert.Contains("SSR Hit Shading (SS)", pass, "The SS hit kernel marker must be named (SS).");
+    }
+
+    // Ledger for the removed migration paths. The individual feature tests assert the surviving
+    // shape; this one fails if a closed keyword, switch or capture flag comes back anywhere.
+    [Test]
+    public void MigrationDebt_ClosedPathsStayClosed()
+    {
+        var closedShaders = new[] { "_GLX_SSR_SPECULAR", "_GLX_SSR_SHADE_SS", "_GLX_SSR_PROBE_ENV" };
+        var shaderRoot = Path.Combine(ProjectRoot, PackageRoot, "Shaders");
+        foreach (var path in Directory.GetFiles(shaderRoot, "*", SearchOption.AllDirectories))
+        {
+            var extension = Path.GetExtension(path);
+            if (extension != ".hlsl" && extension != ".compute" && extension != ".shader" &&
+                extension != ".raytrace" && extension != ".cginc")
+                continue;
+            var text = File.ReadAllText(path);
+            foreach (var symbol in closedShaders)
+                StringAssert.DoesNotContain(symbol, text, "Closed migration keyword revived: " + symbol + " in " + path);
+        }
+
+        var runtimeRoot = Path.Combine(ProjectRoot, PackageRoot, "Runtime");
+        foreach (var path in Directory.GetFiles(runtimeRoot, "*.cs", SearchOption.AllDirectories))
+        {
+            var text = File.ReadAllText(path);
+            StringAssert.DoesNotContain("ssrAfterGbuffer", text, "The removed P1 topology switch was revived: " + path);
+            StringAssert.DoesNotContain("hitDeferredShading", text, "The removed hit-shading switch was revived: " + path);
+        }
+
+        var capture = File.ReadAllText(Path.Combine(ProjectRoot,
+            "Assets/Tests/ScreenSpaceLighting/Runtime/SsrP3BaselineCapture.cs"));
+        StringAssert.DoesNotContain("-p3-ssr-after-gbuffer", capture,
+            "The ignored P1 capture flag must stay deleted.");
+        StringAssert.Contains("-p3-ssr-rollback", capture,
+            "Archived p1 runs must still fail loudly instead of producing a mislabelled P3 run.");
     }
 }

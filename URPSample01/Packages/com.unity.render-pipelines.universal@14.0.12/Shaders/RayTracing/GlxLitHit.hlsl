@@ -9,12 +9,10 @@
 #include "GlxProbeSampling.hlsl"
 #include "SsrHitSurface.hlsl"
 
-struct GlxHitSurface { BRDFData brdf; float3 albedo; };
-float3 GlxLightBrdf(GlxHitSurface s, float3 n, float3 l, uint mode)
-{
-    if (mode == GlxProbeMode) return s.albedo;
-    return DirectBRDF(s.brdf, n, l, -WorldRayDirection());
-}
+// Only probe GI reaches the shared light loop here; SSR reflection hits return with the transport
+// record, so the surface needs nothing beyond the albedo the probe BRDF reads.
+struct GlxHitSurface { float3 albedo; };
+float3 GlxLightBrdf(GlxHitSurface s, float3 n, float3 l, uint mode) { return s.albedo; }
 #include "GlxHitLights.hlsl"
 
 float3 GlxWeights(float2 bary)
@@ -142,35 +140,27 @@ void GlxLitClosestHit(inout GlxBasicPayload payload : SV_RayPayload,
         payload.flags = GlxHit;
         payload.hitT = RayTCurrent();
         payload.radiance = emission;
-        GlxHitSurface surface;
-        surface.albedo = base.rgb;
-        half alpha = base.a;
-        InitializeBRDFData(base.rgb, metallic, 0, smoothness, alpha, surface.brdf);
         float3 hitNormal = dot(n, WorldRayDirection()) > 0 ? -n : n;
         if (mode == GlxReflectionMode)
         {
-            // C2.7 transport: the raygen publishes the surface record; shadow and probe
-            // modes must leave these fields untouched.
+            // SSR reflections are lit exactly once, by the RT/SS hit kernels, from this transport
+            // record. Shading them here too would repeat every light visit and shadow ray only for
+            // SsrHitDeferred to overwrite the result. Emission stays as the unpublished fallback.
             payload.ssrBaseColor = base.rgb;
             payload.ssrNormalOct = SsrEncodeOctNormal(hitNormal);
             payload.ssrRoughness = 1.0 - smoothness;
             payload.ssrMetallic = metallic;
             payload.ssrEmissive = emission;
+            return;
         }
+
+        GlxHitSurface surface;
+        surface.albedo = base.rgb;
         GlxShadeLights(payload, hitNormal, surface);
-        // Reflection hits take the explicit ambient/probe low-frequency term (never feedback).
         // Probe hits add the single 1-hop feedback term from the previous published generation;
         // it is read once here and never traced again, so this stays a cache update, not a path.
         float3 hitPosition = WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
-        if (mode == GlxReflectionMode)
-        {
-            payload.radiance += surface.brdf.diffuse *
-                (GlxHitLowFrequencyIrradiance(hitPosition, hitNormal) * 0.31830988618);
-        }
-        else
-        {
-            payload.radiance += GlxProbeFeedbackRadiance(hitPosition, hitNormal, surface.albedo);
-        }
+        payload.radiance += GlxProbeFeedbackRadiance(hitPosition, hitNormal, surface.albedo);
         return;
     }
     float3 toLight = normalize(float3(f16tof32(payload.flags & 0xffffu), f16tof32(payload.flags >> 16), payload.hitT));

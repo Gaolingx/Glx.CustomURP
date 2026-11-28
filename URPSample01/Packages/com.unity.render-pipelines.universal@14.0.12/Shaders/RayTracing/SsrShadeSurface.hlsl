@@ -63,7 +63,7 @@ SsrShadedSample SsrShadeSurface(SsrHitSurface s, float3 positionWS, float3 viewD
         color += CdShade(materialType, gbuffer0, gbuffer1, gbuffer2, light, inputData);
     }
 
-    // Ambient: the probe low-frequency irradiance the closest-hit path already used. The specular
+    // Ambient: the probe low-frequency irradiance shared with the probe-GI path. The specular
     // share reuses the same irradiance until P2 brings the probe/sky hierarchy.
     BRDFData brdf = CdBRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
     half3 ambientRadiance = half3(GlxHitLowFrequencyIrradiance(positionWS, normalWS)) * INV_PI;

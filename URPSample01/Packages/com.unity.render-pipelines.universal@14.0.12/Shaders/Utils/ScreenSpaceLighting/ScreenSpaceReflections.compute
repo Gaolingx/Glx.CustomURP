@@ -21,6 +21,7 @@
 //   lambda terms with world-space vectors as if they were in the local frame.
 #pragma kernel ScreenSpaceReflectionsTracing                  SSR_TRACE
 #pragma kernel ScreenSpaceReflectionsReprojection             SSR_REPROJECT
+#pragma kernel ScreenSpaceReflectionsReprojectionSs           SSR_REPROJECT_SS
 #pragma kernel DebugSsrParams
 #pragma kernel R1Original SSR_R1_HISTORY
 #pragma kernel R1Cold SSR_R1_COLD
@@ -36,8 +37,6 @@
 #pragma multi_compile _ SSR_NORMALS_OCT
 #pragma multi_compile _ SSL_XR_ARRAY
 #pragma multi_compile _ SSGI_BLUE_NOISE
-// P3: selects the reproject variant that reads SS radiance from _R2Hits (see SSR_HIT_FLAG_SS).
-#pragma multi_compile _ _GLX_SSR_SHADE_SS
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceLightingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/Sampling.hlsl"
@@ -65,7 +64,7 @@ SSGI_TEXTURE2D_FLOAT4(_SsrColorPyramid);
 // Trace output: ndc of the hit point, or (99, 0) for a miss.
 #if defined(SSR_TRACE)
 SSGI_RW_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
-#elif defined(SSR_REPROJECT) || defined(SSR_R1_HISTORY) || defined(SSR_R2_COMPOSITE)
+#elif defined(SSR_REPROJECT) || defined(SSR_REPROJECT_SS) || defined(SSR_R1_HISTORY) || defined(SSR_R2_COMPOSITE)
 SSGI_TEXTURE2D_FLOAT2(_SsrHitPointTextureRW);
 #endif
 // Approximation output: rgb = radiance, a = blend weight.
@@ -109,10 +108,9 @@ SSGI_RW_TEXTURE2D_FLOAT4(_SsrReprojectTextureRW);
 #define _SsrPBRBias _SsrPbrParams.y
 #define _SsrFrameIndex (int)_SsrPbrFlags.x
 
-// The reproject reads SS radiance from _R2Hits (shaded from the current GBuffer by SsrHitSs)
-// instead of the previous colour pyramid. This is keyword-gated so the variant without a hybrid
-// queue never references the R1/R2 buffers, which are unbound there, and so cannot drop the
-// dispatch.
+// The P3 reproject reads SS radiance from _R2Hits (shaded from the current GBuffer by SsrHitSs)
+// instead of the previous colour pyramid. It is a separate kernel entry so the plain kernel never
+// references the R1/R2 buffers, which are unbound on a D3D11 / no-queue dispatch and would drop it.
 #define SSR_HIT_FLAG_SS 8u
 
 // The Approximation reproject writes the material-facing texture directly; the PBR path writes the
@@ -757,50 +755,6 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     if (any(traceCoord >= (uint2)_SsrTraceSize.xy)) return;
     uint2 inputCoord = SsrGetFullResCoord(traceCoord);
 
-#if !defined(SSR_APPROX) && defined(_GLX_SSR_SHADE_SS)
-    {
-        // P3: the SS radiance is the current-frame GBuffer shading from SsrHitSs, not the previous
-        // colour pyramid. Keep the R1 coverage (edge x roughness fade) already stored in ssShare.
-        uint slot = traceCoord.y * (uint)_SsrTraceSize.x + traceCoord.x;
-        GlxPublishedHit ssHit = _R2Hits[slot];
-        float share = saturate(_R1Coverage[slot].ssShare);
-        // The stamp is the served bit: a record left behind by an earlier frame (this slot was
-        // traced but SsrHitSs found no shadable hit) must not be reused as this frame's radiance.
-        if (ssHit.mode == _R2HitFrame && (ssHit.flags & SSR_HIT_FLAG_SS) != 0u &&
-            all(isfinite(ssHit.radiance)) && all(ssHit.radiance >= 0.0))
-        {
-            // B6.1: the silhouette confidence is already folded into ssShare by R1Original, so the
-            // complement is requested from the hardware fill there.
-            SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, float4(max(ssHit.radiance, 0.0), share));
-            return;
-        }
-
-        // The hit surface has no current-frame GBuffer source: a forward-only material inside a
-        // deferred frame writes no GBuffer, and a forward renderer never runs the SS hit kernel.
-        // Falling back to the previous colour pyramid per slot keeps the pre-P3 radiance instead
-        // of zeroing the whole screen-space share; ssShare still carries the silhouette/edge fade.
-        float4 fallbackNormal = SSGI_LOAD(_SsrNormalTexture, inputCoord);
-        float3 fallbackN;
-        float fallbackRoughness;
-        if (share > 0.0 && SsrDecodeMaterial(fallbackNormal, fallbackN, fallbackRoughness))
-        {
-            float2 fallbackHit = SSGI_LOAD(_SsrHitPointTextureRW, traceCoord);
-            float fallbackOpacity;
-            float fallbackEdge;
-            bool fallbackAccepted;
-            float3 fallbackColor = SsrReadOriginalColor(fallbackHit, fallbackRoughness, fallbackOpacity, fallbackEdge, fallbackAccepted);
-            if (fallbackAccepted)
-            {
-                SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, float4(max(fallbackColor, 0.0), share));
-                return;
-            }
-        }
-
-        SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, float4(0.0, 0.0, 0.0, 0.0));
-        return;
-    }
-#endif
-
     float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
     float2 hitUv = SSGI_LOAD(_SsrHitPointTextureRW, traceCoord);
@@ -922,6 +876,59 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 #endif
 
     SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, result);
+}
+#endif
+
+#if defined(SSR_REPROJECT_SS)
+// P3 reproject: selected on the CPU only when SsrHitSs published this frame. Keeping it out of the
+// plain kernel means the D3D11 / no-queue dispatch never declares _R1Coverage or _R2Hits.
+[numthreads(SSR_TILE_SIZE, SSR_TILE_SIZE, 1)]
+void ScreenSpaceReflectionsReprojectionSs(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    SSGI_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 traceCoord = dispatchThreadId.xy;
+    if (any(traceCoord >= (uint2)_SsrTraceSize.xy)) return;
+    uint2 inputCoord = SsrGetFullResCoord(traceCoord);
+
+    // The SS radiance is the current-frame GBuffer shading from SsrHitSs, not the previous colour
+    // pyramid. Keep the R1 coverage (edge x roughness fade) already stored in ssShare.
+    uint slot = traceCoord.y * (uint)_SsrTraceSize.x + traceCoord.x;
+    GlxPublishedHit ssHit = _R2Hits[slot];
+    float share = saturate(_R1Coverage[slot].ssShare);
+    // The stamp is the served bit: a record left behind by an earlier frame (this slot was
+    // traced but SsrHitSs found no shadable hit) must not be reused as this frame's radiance.
+    if (ssHit.mode == _R2HitFrame && (ssHit.flags & SSR_HIT_FLAG_SS) != 0u &&
+        all(isfinite(ssHit.radiance)) && all(ssHit.radiance >= 0.0))
+    {
+        // B6.1: the silhouette confidence is already folded into ssShare by R1Original, so the
+        // complement is requested from the hardware fill there.
+        SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, float4(max(ssHit.radiance, 0.0), share));
+        return;
+    }
+
+    // The hit surface has no current-frame GBuffer source: a forward-only material inside a
+    // deferred frame writes no GBuffer, and a forward renderer never runs the SS hit kernel.
+    // Falling back to the previous colour pyramid per slot keeps the pre-P3 radiance instead
+    // of zeroing the whole screen-space share; ssShare still carries the silhouette/edge fade.
+    float4 fallbackNormal = SSGI_LOAD(_SsrNormalTexture, inputCoord);
+    float3 fallbackN;
+    float fallbackRoughness;
+    if (share > 0.0 && SsrDecodeMaterial(fallbackNormal, fallbackN, fallbackRoughness))
+    {
+        float2 fallbackHit = SSGI_LOAD(_SsrHitPointTextureRW, traceCoord);
+        float fallbackOpacity;
+        float fallbackEdge;
+        bool fallbackAccepted;
+        float3 fallbackColor = SsrReadOriginalColor(fallbackHit, fallbackRoughness, fallbackOpacity, fallbackEdge, fallbackAccepted);
+        if (fallbackAccepted)
+        {
+            SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, float4(max(fallbackColor, 0.0), share));
+            return;
+        }
+    }
+
+    SSGI_STORE(SSR_APPROX_OUTPUT, traceCoord, float4(0.0, 0.0, 0.0, 0.0));
 }
 #endif
 

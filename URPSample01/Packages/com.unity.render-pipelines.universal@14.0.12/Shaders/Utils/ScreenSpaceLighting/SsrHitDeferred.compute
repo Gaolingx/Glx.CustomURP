@@ -52,7 +52,7 @@ void SsrHitDeferred(uint3 id : SV_DispatchThreadID)
     }
 
     SsrHitSurface s = _R2Surfaces[index];
-    if (uint(s.misc.z + 0.5) != SsrHitSurfaceVersion) return; // keep the closest-hit radiance
+    if (uint(s.misc.z + 0.5) != SsrHitSurfaceVersion) return; // a miss or rejected request published no surface
     if (uint(s.misc.w + 0.5) != SsrHitSurfaceSourceRt) return;
 
     R1Sample q = _R1Queue[index];

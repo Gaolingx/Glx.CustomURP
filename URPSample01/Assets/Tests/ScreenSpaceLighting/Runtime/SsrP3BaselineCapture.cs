@@ -43,8 +43,6 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
     float m_HitAmbientScale;
     // P3 harness switches (B0). They are applied to the active feature's serialized settings
     // before the first render; the pass consumes them from B2 on.
-    bool m_P3SsrAfterGbuffer;
-    bool m_P3SsrRollback;
     string m_P3SsrIndirect;
     // B6.1 attribution matrix overrides. Negative means "keep the fixture value". They are applied
     // on top of the variant so the matrix stays one build and the requested values land in
@@ -135,17 +133,13 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         public bool ssrSingleReflectionBounce;
         public bool featureRayTracingReflections;
         public int featureReflectionRayBudget;
-        public bool featureHitDeferredShading;
-        // P3 harness: the requested switches and the state read back from the feature settings.
-        public bool p3SsrAfterGbufferRequested;
-        public bool p3SsrRollbackRequested;
+        // P3 harness: the requested switch and the state read back from the feature settings.
         public string p3SsrIndirectRequested;
         // B6.1 attribution overrides; negative = the fixture value was used.
         public float p3ThicknessRequested;
         public int p3FullResolutionRequested;
         public int p3DenoiserRadiusRequested;
         public int p3BudgetRequested;
-        public bool featureSsrAfterGbuffer;
         public string featureSsrIndirectSource;
         public string featureReadback;
         // Direct DXR evidence: the TLAS the reflection dispatch used and the R1 request
@@ -252,12 +246,11 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         m_Run = Arg("-p3-run") ?? "run-01";
         m_HitDebug = int.TryParse(Arg("-p3-hit-debug"), out var debugMode) ? debugMode : 0;
         m_HitAmbientScale = float.TryParse(Arg("-p3-hit-ambient"), NumberStyles.Float, CultureInfo.InvariantCulture, out var ambientScale) ? ambientScale : 1f;
-        m_P3SsrAfterGbuffer = HasFlag("-p3-ssr-after-gbuffer");
-        m_P3SsrRollback = HasFlag("-p3-ssr-rollback");
-        if (m_P3SsrRollback)
+        // Archived run_b61.ps1 still enumerates a "p1" case. Fail loudly instead of producing a
+        // mislabelled P3 run now that the rollback topology is gone.
+        if (HasFlag("-p3-ssr-rollback"))
             throw new ArgumentException(
-                "-p3-ssr-rollback is no longer valid: the P1 rollback topology was removed. " +
-                "Drop the flag; the capture runs the single after-GBuffer topology.");
+                "-p3-ssr-rollback is no longer valid: the P1 rollback topology was removed.");
         m_P3SsrIndirect = Arg("-p3-ssr-indirect");
         if (float.TryParse(Arg("-p3-thickness"), NumberStyles.Float, CultureInfo.InvariantCulture, out var thickness) && thickness >= 0f)
             m_P3Thickness = thickness;
@@ -690,8 +683,6 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             captureRender = m_RenderEnds,
             hitDebug = m_HitDebug,
             hitAmbientScale = m_HitAmbientScale,
-            p3SsrAfterGbufferRequested = m_P3SsrAfterGbuffer,
-            p3SsrRollbackRequested = m_P3SsrRollback,
             p3SsrIndirectRequested = m_P3SsrIndirect,
             p3ThicknessRequested = m_P3Thickness,
             p3FullResolutionRequested = m_P3FullResolution,

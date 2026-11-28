@@ -1,5 +1,7 @@
 # 23 冻结契约（P0）
 
+> **SUPERSEDED（2026-11-28）：** P1 回滚拓扑（`487c118`）与 `_GLX_SSR_*` 迁移开关（本次清理）已删除；本文保留为历史证据，门禁与哈希引用不再代表 HEAD 行为。
+
 **冻结时间：** 2026-11-26
 **基线提交：** `350d18c`
 **修订：** 2026-11-27 新增 C2.7（P1，additive：新缓冲 + 新版本位）；同日 P1 传输修订：ray payload 24 → 64 字节（closest-hit 不得写 UAV，表面经 payload 回传），发布结果仍为 24 字节；同日 **P3 修订**：C1 注入点 206→220（回滚保留 206），C2 `flags` 增 SS 位，C2.7 `source` 增 `gbuffer=2`（mask 扩到 2 bit，版本仍 1），C8 新增 `SsrShadeSurface` 共享与 pass 事件 tripwire。P3 不改任何缓冲的 stride 或 24B/64B/80B 布局。

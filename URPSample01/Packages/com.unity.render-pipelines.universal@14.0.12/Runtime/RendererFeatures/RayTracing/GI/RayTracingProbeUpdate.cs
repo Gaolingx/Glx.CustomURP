@@ -80,10 +80,11 @@ namespace UnityEngine.Rendering.Universal
         static readonly int s_Scene = Shader.PropertyToID("_GlxScene");
         // Published generation, read by the probe closest hit for the 1-hop feedback term and by
         // the material-side consumer. Kept as globals so one binding serves ray tracing and draws.
-        static readonly int s_IrrSnapshot = Shader.PropertyToID("_GlxProbeIrrSnapshot");
-        static readonly int s_DistSnapshot = Shader.PropertyToID("_GlxProbeDistSnapshot");
-        static readonly int s_StateSnapshot = Shader.PropertyToID("_GlxProbeStateSnapshot");
-        static readonly int s_PublishedSnapshot = Shader.PropertyToID("_GlxProbePublishedSnapshot");
+        // Internal so the fallback can publish an invalid snapshot when nothing is ready.
+        internal static readonly int s_IrrSnapshot = Shader.PropertyToID("_GlxProbeIrrSnapshot");
+        internal static readonly int s_DistSnapshot = Shader.PropertyToID("_GlxProbeDistSnapshot");
+        internal static readonly int s_StateSnapshot = Shader.PropertyToID("_GlxProbeStateSnapshot");
+        internal static readonly int s_PublishedSnapshot = Shader.PropertyToID("_GlxProbePublishedSnapshot");
         static readonly int s_IrrSize = Shader.PropertyToID("_GlxProbeIrrSize");
         static readonly int s_DistSize = Shader.PropertyToID("_GlxProbeDistSize");
         static readonly int s_CountX = Shader.PropertyToID("_GlxProbeCountX");
@@ -91,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
         static readonly int s_CountZ = Shader.PropertyToID("_GlxProbeCountZ");
         static readonly int s_Origin = Shader.PropertyToID("_GlxProbeOrigin");
         static readonly int s_Spacing = Shader.PropertyToID("_GlxProbeSpacing");
-        static readonly int s_SnapshotValid = Shader.PropertyToID("_GlxProbeSnapshotValid");
+        internal static readonly int s_SnapshotValid = Shader.PropertyToID("_GlxProbeSnapshotValid");
         static readonly int s_FeedbackEnabled = Shader.PropertyToID("_GlxProbeFeedbackEnabled");
         static readonly int s_FeedbackCap = Shader.PropertyToID("_GlxProbeFeedbackAlbedoCap");
 

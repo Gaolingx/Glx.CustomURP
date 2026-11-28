@@ -1,5 +1,7 @@
 # 23 P3 实施计划：SSR 后置 + SS/RT 共用命中着色（根治）
 
+> **SUPERSEDED（2026-11-28）：** P1 回滚拓扑（`487c118`）与 `_GLX_SSR_*` 迁移开关（本次清理）已删除；本文保留为历史证据，门禁与哈希引用不再代表 HEAD 行为。
+
 **状态：** B0–B6 完成（2026-11-27）。B6 已执行：24 组抓帧 + RenderDoc 证实 225 与两个命中核在 GPU 上执行；门禁 1（缝）与门禁 3（静止方差字面）NOT MET，门禁 4/6 PASS，门禁 5 PARTIAL/OPEN（GPU 计时器噪声），门禁 2 PARTIAL。证据：[validation/P3](validation/P3/README.md)。`ssrAfterGbuffer` 保持默认关闭。前置：P0 完成、P1 PARTIAL。
 **B7 审计修正（2026-11-27，B6 之后）：** ① 不透明 SSR 移到 221、绑定 222，严格晚于 Decal GBuffer(220)；② 225 增加可用性门控，GBuffer 只在 225 可执行时才去镜面；③ reason 6 保留硬件覆盖补集（SS 不进硬件历史，边补集复投影）；④ 225 环境源接 A2 探针图集 / A3 均匀环境（默认仍 A1）。**B8 补充：** ⑤ SS 命中核补齐阴影 multi_compile；⑥ `ssrAfterGbuffer` 强制运行 RT 命中核。这些改动使 **P3 路径的 B6 证据失效**（P1 回滚路径哈希不变），门禁 1/2/3/5 需在 B6.1 重测；A2 需要一份开启探针兜底的夹具才能验证。
 **上位计划：** [plan.md](plan.md) §P3；契约：[contracts.md](contracts.md)。

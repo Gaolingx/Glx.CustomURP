@@ -164,13 +164,13 @@ namespace UnityEngine.Rendering.Universal
         // Tells the deferred Lit GBuffer fragment to skip the indirect-specular term. Set before the
         // GBuffer pass; 0 keeps the GBuffer's own output when the 225 composite cannot run.
         internal static readonly int GlxSsrAfterGbuffer = Shader.PropertyToID("_GlxSsrAfterGbuffer");
-        // The deferred light kernel's variant that adds the 225 indirect-specular texture. Enabled
-        // only while the composite texture is bound this frame, so an unrouted frame never declares it.
-        internal static readonly string GlxSsrSpecularKeyword = "_GLX_SSR_SPECULAR";
 
         internal static readonly string SsrNormalsOctKeyword = "SSR_NORMALS_OCT";
         internal static readonly string SsrApproxKeyword = "SSR_APPROX";
         internal static readonly string SsrHalfResKeyword = "SSR_HALF_RES";
+        // P3 SS radiance-source gate, published before RecordOriginals and re-published before the
+        // reproject. A uniform keeps the D3D11 previous-colour fallback without a variant axis.
+        internal static readonly int SsrShadeSs = Shader.PropertyToID("_SsrShadeSs");
 
         // ---------------------------------------------------------------------------------------
         // Transparent Screen Space Reflections

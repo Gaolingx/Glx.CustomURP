@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int CameraPositionWS = Shader.PropertyToID("_CdCameraPositionWS");
             public static readonly int ViewForward = Shader.PropertyToID("_CdViewForward");
             public static readonly int CameraParams = Shader.PropertyToID("_CdCameraParams");
+            public static readonly int SsrSpecular = Shader.PropertyToID("_GlxSsrSpecular");
         }
 
         const int k_ThreadGroupSize = 16;
@@ -68,6 +69,27 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         internal bool isAvailable => m_Compute != null && m_Kernel >= 0;
+
+        static RTHandle s_SpecularComposite;
+        static int s_SpecularCompositeFrame = -1;
+
+        // Published by the indirect-specular pass (225) after it composites the term the deferred
+        // GBuffer no longer writes.
+        internal static void PublishSpecularComposite(RTHandle texture)
+        {
+            s_SpecularComposite = texture;
+            s_SpecularCompositeFrame = Time.frameCount;
+        }
+
+        // Consumed once per dispatch. A publish from an earlier frame is stale: the receiver may have
+        // been routed for a camera whose deferred kernel never ran.
+        static RTHandle ConsumeSpecularComposite()
+        {
+            var texture = s_SpecularCompositeFrame == Time.frameCount ? s_SpecularComposite : null;
+            s_SpecularComposite = null;
+            s_SpecularCompositeFrame = -1;
+            return texture;
+        }
 
         // XR/foveated, preview and overlay cameras use ordinary Forward.
         internal static bool IsEligibleCamera(ref CameraData cameraData)
@@ -157,6 +179,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // G3: compact per-(tile, zbin) lists. Skipped while the feature is off or on the CPU
                 // fallback; the kernel then keeps reading the bitmaps.
                 m_ForwardLights.BuildClusterCells(cmd, (RenderTargetIdentifier)depthCopy, zBufferParams);
+
+                // The kernel always samples the composite, so bind it on every dispatch; black keeps
+                // a frame without a routed receiver from dropping the dispatch on an unbound texture.
+                var specular = ConsumeSpecularComposite();
+                if (specular != null)
+                    cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.SsrSpecular, Bindable(specular));
+                else
+                    cmd.SetComputeTextureParam(m_Compute, m_Kernel, ShaderIDs.SsrSpecular, Texture2D.blackTexture);
 
                 cmd.DispatchCompute(m_Compute, m_Kernel,
                     (width + k_ThreadGroupSize - 1) / k_ThreadGroupSize,

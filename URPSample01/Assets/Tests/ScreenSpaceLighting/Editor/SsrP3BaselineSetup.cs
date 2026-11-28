@@ -353,7 +353,7 @@ public static class SsrP3BaselineSetup
         AssetDatabase.ImportAsset(hitKernelPath, ImportAssetOptions.ForceSynchronousImport);
         var hitKernel = AssetDatabase.LoadAssetAtPath<ComputeShader>(hitKernelPath);
         if (hitKernel == null)
-            throw new InvalidOperationException("SsrHitDeferred.compute was not found; hit shading would fall back to closest-hit.");
+            throw new InvalidOperationException("SsrHitDeferred.compute was not found; reflections would keep the unlit payload radiance.");
         if (hitField.GetValue(resources) == null)
             hitField.SetValue(resources, hitKernel);
 

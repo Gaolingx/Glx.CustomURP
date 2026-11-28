@@ -21,25 +21,26 @@ namespace UnityEditor.Rendering.Universal.Tests
             .Select(line => string.Join(" ", line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)))
             .ToArray();
 
-        // _CONTACT_SHADOWS_DEFERRED and _GLX_SSR_SPECULAR are the two axes added after the frozen
-        // eight; neither may reorder or replace them.
+        // _CONTACT_SHADOWS_DEFERRED is the only axis added after the frozen eight; it may not reorder
+        // or replace them. The SSR indirect-specular composite is no longer an axis: the deferred
+        // kernel declares its texture unconditionally and ClusteredDeferredPass binds black when the
+        // 225 pass published nothing.
         [Test]
         public void OnlyKnownAxesFollowFrozenDeclarations()
         {
             CollectionAssert.AreEqual(
-                FrozenAxes.Concat(new[] { "_ _CONTACT_SHADOWS_DEFERRED", "_ _GLX_SSR_SPECULAR" })
+                FrozenAxes.Concat(new[] { "_ _CONTACT_SHADOWS_DEFERRED" })
                     .Select(axis => "#pragma multi_compile " + axis).ToArray(), Declarations());
         }
 
         [Test]
-        public void ContactAndSsrAxesGrowTheFrozenBudget()
+        public void ContactShadowAxisGrowsTheFrozenBudget()
         {
             var widths = Declarations().Select(line => line.Split(' ').Length - 2).ToArray();
             CollectionAssert.AreEqual(new[] { 2, 4, 2, 5, 2, 2, 2, 2 }, widths.Take(8).ToArray());
-            CollectionAssert.AreEqual(new[] { 2, 2 }, widths.Skip(8).ToArray());
+            CollectionAssert.AreEqual(new[] { 2 }, widths.Skip(8).ToArray());
             Assert.AreEqual(1280, widths.Take(8).Aggregate(1, (n, width) => n * width));
-            Assert.AreEqual(2560, widths.Take(9).Aggregate(1, (n, width) => n * width));
-            Assert.AreEqual(5120, widths.Aggregate(1, (n, width) => n * width));
+            Assert.AreEqual(2560, widths.Aggregate(1, (n, width) => n * width));
         }
     }
 }

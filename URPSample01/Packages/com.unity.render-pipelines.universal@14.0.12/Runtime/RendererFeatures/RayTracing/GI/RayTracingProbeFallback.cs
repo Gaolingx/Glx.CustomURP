@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
         readonly HashSet<uint> m_Ids = new HashSet<uint>();
         RayTracingProbeUpdate m_Producer;
         RayTracingProbeConfig m_Config;
+        ComputeBuffer m_DummyState, m_DummyPublished;
         int m_SceneHandle;
         bool m_Requested, m_Active, m_Disposed;
 
@@ -116,8 +117,31 @@ namespace UnityEngine.Rendering.Universal
             return m_Active;
         }
 
-        internal bool BindPublishedGlobals(CommandBuffer cmd) =>
-            m_Active && m_Producer != null && m_Producer.BindPublishedGlobals(cmd);
+        internal bool BindPublishedGlobals(CommandBuffer cmd)
+        {
+            if (m_Active && m_Producer != null && m_Producer.BindPublishedGlobals(cmd))
+                return true;
+            BindDummyPublishedGlobals(cmd);
+            return false;
+        }
+
+        // The indirect-specular kernel declares the probe query unconditionally, and an unbound
+        // declaration drops the dispatch on D3D11. A one-element pair plus valid=0 keeps the binding
+        // legal while GlxProbeQuery returns false without reading it.
+        void BindDummyPublishedGlobals(CommandBuffer cmd)
+        {
+            if (m_DummyState == null)
+            {
+                m_DummyState = new ComputeBuffer(1, 16);
+                m_DummyPublished = new ComputeBuffer(1, 4);
+            }
+
+            cmd.SetGlobalTexture(RayTracingProbeUpdate.s_IrrSnapshot, Texture2D.blackTexture);
+            cmd.SetGlobalTexture(RayTracingProbeUpdate.s_DistSnapshot, Texture2D.blackTexture);
+            cmd.SetGlobalBuffer(RayTracingProbeUpdate.s_StateSnapshot, m_DummyState);
+            cmd.SetGlobalBuffer(RayTracingProbeUpdate.s_PublishedSnapshot, m_DummyPublished);
+            cmd.SetGlobalInt(RayTracingProbeUpdate.s_SnapshotValid, 0);
+        }
 
         void Request(bool wanted)
         {
@@ -166,6 +190,9 @@ namespace UnityEngine.Rendering.Universal
             if (m_Disposed) return;
             m_Disposed = true;
             Reset();
+            m_DummyState?.Release();
+            m_DummyPublished?.Release();
+            m_DummyState = m_DummyPublished = null;
         }
     }
 }

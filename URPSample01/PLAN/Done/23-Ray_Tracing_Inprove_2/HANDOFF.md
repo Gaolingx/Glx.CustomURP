@@ -1,5 +1,7 @@
 # 23 HANDOFF：SS/RT 统一着色（P3 前置）
 
+> **SUPERSEDED（2026-11-28）：** P1 回滚拓扑（`487c118`）与 `_GLX_SSR_*` 迁移开关（本次清理）已删除；本文保留为历史证据，门禁与哈希引用不再代表 HEAD 行为。
+
 **更新时间：** 2026-11-27
 **基线上限：** `350d18c`（P0 的 fixture 与证据均为其后新增文件）
 **当前阶段：** B6.1 已执行（2026-11-27，build `0f019dc1…`，双 API × 6 用例 × 两进程）：B7/B8 之后 P3 路径重测完成，确定性 12/12；`ssrAfterGbuffer` 已在 feature Inspector 暴露（`91f5fb1`），owner 在 Editor 目视确认“显著改善，仅余一条缝”，随后的剪影份额修复（`3f4bcb5`：置信度移入 R1、退化份额转为 reason 6 的硬件请求）在 `SsrRaw`/Game 视图下闭合了丝状缺口。**门禁 1 的旧 mask 口径失效**（覆盖率拆分把剪影带移出 reason 2），需改连续份额口径；**D3D12 P1 哈希改为 `3fc8ab22`**（归因 B8 `22809df` 的命中核阴影变体，D3D11 不变）需重录基线；`fullres` 与 D3D11 无队列导出（P3 要求半分辨率 + requestQueue）。`ssrAfterGbuffer` 仍默认关闭。证据在 [validation/P3](validation/P3/README.md)。

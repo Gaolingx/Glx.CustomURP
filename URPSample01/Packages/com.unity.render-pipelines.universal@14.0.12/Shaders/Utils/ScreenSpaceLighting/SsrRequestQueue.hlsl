@@ -9,6 +9,10 @@ RWStructuredBuffer<uint2> _R1Mask; // wanted bit per pixel, 64 bits per tile
 RWStructuredBuffer<uint> _R1Counts; // eligible, requested, served, overflow, then histogram
 uint _R1K, _R1Phase;
 float _SsrRayLength; // volume rayLength, already clamped to the camera far plane
+// P3 radiance source: 1 when SsrHitSs shaded this frame's SS hits from the GBuffer, 0 for the
+// previous-colour pyramid path (no RT queue, a Forward camera, or a failed hybrid trace). A
+// uniform keeps both shapes in one variant instead of doubling every kernel in this file.
+float _SsrShadeSs;
 
 uint2 R1Grid() { return ((uint2)_SsrTraceSize.xy + 7) / 8; }
 uint R1TileId(uint2 g) { return g.y * R1Grid().x + g.x; }
@@ -89,24 +93,27 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
             {
                 float edge, share;
                 bool usable;
-#if defined(_GLX_SSR_SHADE_SS)
-                // The radiance is shaded from this frame's GBuffer by SsrHitSs, so the
-                // previous-colour pyramid sample has no consumer here. Its mip-selected gather, the
-                // mip-adjusted border limit and the colour validity test only existed to validate
-                // that sample; coverage is the material fade times the edge fade.
-                uint2 hitPixel = (uint2)(saturate(hit) * _SsrScreenSize.xy);
-                hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
-                float2 prevFrameNDC = hit - SSGI_LOAD(_SsrMotionTexture, hitPixel).xy;
-                // The same on-screen test the pyramid path applies at mip 0 (its limit is 1), minus
-                // the mip border expansion: nothing is sampled from the pyramid here.
-                usable = all(prevFrameNDC >= 0.0) && all(prevFrameNDC <= 1.0);
-                edge = usable ? EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength) : 0.0;
-                share = fade * edge;
-#else
-                bool accepted;
-                SsrReadOriginalColor(hit,s.roughness,share,edge,accepted);
-                usable = accepted && isfinite(edge);
-#endif
+                if (_SsrShadeSs > 0.5f)
+                {
+                    // The radiance is shaded from this frame's GBuffer by SsrHitSs, so the
+                    // previous-colour pyramid sample has no consumer here. Its mip-selected gather, the
+                    // mip-adjusted border limit and the colour validity test only existed to validate
+                    // that sample; coverage is the material fade times the edge fade.
+                    uint2 hitPixel = (uint2)(saturate(hit) * _SsrScreenSize.xy);
+                    hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
+                    float2 prevFrameNDC = hit - SSGI_LOAD(_SsrMotionTexture, hitPixel).xy;
+                    // The same on-screen test the pyramid path applies at mip 0 (its limit is 1), minus
+                    // the mip border expansion: nothing is sampled from the pyramid here.
+                    usable = all(prevFrameNDC >= 0.0) && all(prevFrameNDC <= 1.0);
+                    edge = usable ? EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength) : 0.0;
+                    share = fade * edge;
+                }
+                else
+                {
+                    bool accepted;
+                    SsrReadOriginalColor(hit,s.roughness,share,edge,accepted);
+                    usable = accepted && isfinite(edge);
+                }
                 s.ssShare = usable ? share : 0.0;
                 s.reason = 5;
                 if (usable)

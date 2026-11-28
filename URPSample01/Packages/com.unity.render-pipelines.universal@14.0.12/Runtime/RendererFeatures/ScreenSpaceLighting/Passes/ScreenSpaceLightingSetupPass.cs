@@ -175,9 +175,6 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeParams, Vector4.zero);
                 cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionKeyword);
                 cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionParams, Vector4.zero);
-                // P3: the deferred kernel's specular variant is per-frame; never let it leak past the
-                // opaque phase (the composite texture is not refreshed for transparents).
-                cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.GlxSsrSpecularKeyword);
             }
         }
 
@@ -192,7 +189,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeParams, Vector4.zero);
             cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionKeyword);
             cmd.SetGlobalVector(ScreenSpaceLightingShaderIDs.ScreenSpaceReflectionParams, Vector4.zero);
-            cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.GlxSsrSpecularKeyword);
             // Refraction is enabled later (448) and consumed by transparents only; this is the safety
             // net for a camera that never reaches the transparent phase.
             cmd.DisableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceRefractionKeyword);

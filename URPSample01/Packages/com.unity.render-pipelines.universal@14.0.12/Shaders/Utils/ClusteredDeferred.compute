@@ -19,20 +19,16 @@
 #pragma multi_compile _ _DEFERRED_MIXED_LIGHTING
 // Cameras without the feature never bind a contact texture. The off kernel must not declare it.
 #pragma multi_compile _ _CONTACT_SHADOWS_DEFERRED
-// With opaque SSR after the GBuffer pass the deferred receiver's indirect specular is composited
-// by the plugin (225) and published as a global. The keyword gates the declaration so a frame
-// without a routed receiver never declares an unbound texture (which would drop the dispatch), and
-// only the enabled variant adds it.
-#pragma multi_compile _ _GLX_SSR_SPECULAR
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ClusteredDeferred.hlsl"
 #if defined(_CONTACT_SHADOWS_DEFERRED)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ContactShadows.hlsl"
 #endif
-#if defined(_GLX_SSR_SPECULAR)
-// P3 indirect-specular composite, bound as a global by ScreenSpaceLightingSsrIndirectSpecularPass.
+// P3 indirect-specular composite. ClusteredDeferredPass binds it on every dispatch: the texture the
+// 225 pass published this frame, or a 1x1 black when no receiver was routed. The unconditional
+// binding is what keeps the declared texture from being unbound (which would drop the dispatch),
+// so this needs no keyword variant.
 TEXTURE2D(_GlxSsrSpecular);
-#endif
 
 RWTexture2D<float4> _CdLightingTextureRW;
 
@@ -159,9 +155,7 @@ void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
             // separately. Add it to the baked colour before the SSAO-cancel multiply so it follows
             // the same occlusion handling as the baked term.
             float3 baked = result.rgb;
-#if defined(_GLX_SSR_SPECULAR)
             baked += LOAD_TEXTURE2D(_GlxSsrSpecular, pixel).rgb;
-#endif
             // Reproduce the R16G16B16A16_SFloat store/load before Blend One SrcAlpha.
             // A half cast alone is a no-op on desktop backends where half maps to float.
             float4 light = f16tof32(f32tof16(CdDeferredLighting(pixel, materialType, rawDepth)));

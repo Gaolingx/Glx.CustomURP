@@ -406,8 +406,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             using (var cmd = new CommandBuffer())
             {
                 cs.DisableKeyword("SSR_APPROX");
-                cs.EnableKeyword("_GLX_SSR_SHADE_SS");
-                int kernel = cs.FindKernel("ScreenSpaceReflectionsReprojection");
+                int kernel = cs.FindKernel("ScreenSpaceReflectionsReprojectionSs");
 
                 var cov = new Coverage[W * H];
                 var hitData = new Hit[W * H];

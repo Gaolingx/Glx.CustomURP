@@ -12,24 +12,22 @@
 // Environment source (_SsrIndirectParams.z, SsrIndirectSource):
 //   A1 = the per-camera _GlossyEnvironmentCubeMap (sky/default reflection), roughness mips;
 //   A2 = the published GI probe atlas (directional irradiance x 1/pi, no roughness mips), blended
-//        over the cubemap remainder by probe coverage; only compiled when the Setup pass bound a
-//        published generation (the keyword guards the declarations);
+//        over the cubemap remainder by probe coverage. The query always compiles; the Setup pass
+//        binds an invalid one-element snapshot when no generation is published, so GlxProbeQuery
+//        returns false and A2 falls back to the cubemap;
 //   A3 = the uniform _GlossyEnvironmentColor ambient, a pure fallback.
 //
 // Everything this kernel declares is bound by the pass; nothing relies on per-draw state.
 #pragma kernel SsrIndirectSpecular
 
 #pragma multi_compile _ _GBUFFER_NORMALS_OCT
-#pragma multi_compile _ _GLX_SSR_PROBE_ENV
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.hlsl"
-#if defined(_GLX_SSR_PROBE_ENV)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RayTracing/GlxProbeQuery.hlsl"
-#endif
 
 TEXTURE2D(_GBuffer0);
 TEXTURE2D(_GBuffer1);
@@ -121,7 +119,6 @@ half3 SsrIndirectEnvironment(float3 positionWS, float3 reflectVector, half perce
     if (source == 2u)
         return _GlossyEnvironmentColor.rgb;
     half3 sky = SsrIndirectSampleSky(reflectVector, perceptualRoughness);
-#if defined(_GLX_SSR_PROBE_ENV)
     if (source == 1u)
     {
         half3 irradiance;
@@ -131,7 +128,6 @@ half3 SsrIndirectEnvironment(float3 positionWS, float3 reflectVector, half perce
             return lerp(sky, probeRadiance, saturate(_SsrIndirectParams.y));
         }
     }
-#endif
     return sky;
 }
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -15,9 +16,6 @@ namespace UnityEngine.Rendering.Universal
     {
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingGbuffer + 5);
         internal const string k_ProfilingSamplerName = "SSR Indirect Specular";
-        // A2 declaration gate: the probe atlas resources must not be declared unless the Setup pass
-        // bound a published generation this frame (an unbound declared resource drops the dispatch).
-        internal const string k_ProbeEnvKeyword = "_GLX_SSR_PROBE_ENV";
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
 
@@ -32,8 +30,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int ScreenSize = Shader.PropertyToID("_SsrIndirectScreenSize");
             public static readonly int CameraPos = Shader.PropertyToID("_SsrIndirectCameraPos");
             public static readonly int Params = Shader.PropertyToID("_SsrIndirectParams");
-            // Global consumed by the deferred light kernel (installed in B2d).
-            public static readonly int SpecularGlobal = Shader.PropertyToID("_GlxSsrSpecular");
         }
 
         const string k_NormalsOctKeyword = "_GBUFFER_NORMALS_OCT";
@@ -130,9 +126,10 @@ namespace UnityEngine.Rendering.Universal
 
             bool octNormals = ScreenSpaceLightingSsgiPass.UseOctEncodedNormals(renderer);
             SetKeyword(m_Compute, k_NormalsOctKeyword, octNormals);
-            // A2 only when the atlas is really bound; A1/A3 never declare the probe resources.
+            // A2 blends the published probe atlas over the cubemap. The kernel always declares the
+            // query; the Setup pass keeps the binding valid (real or invalid dummy), so this only
+            // selects the runtime source and its weight.
             bool probeEnv = m_Settings.ssrIndirectSource == SsrIndirectSource.A2 && m_ProbeEnvBound;
-            SetKeyword(m_Compute, k_ProbeEnvKeyword, probeEnv);
             float probeWeight = probeEnv ? Mathf.Clamp01(m_Settings.probeCoverage) : 0f;
 
             var cmd = renderingData.commandBuffer;
@@ -156,12 +153,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DispatchCompute(m_Compute, m_Kernel, (width + 15) / 16, (height + 15) / 16, 1);
             }
 
-            // Publish the composite as a global and switch the deferred kernel to the variant that
-            // adds it. The keyword is enabled only here, after the texture is bound, so a frame
-            // without a routed receiver never declares an unbound texture; the cleanup pass
-            // disables it after opaques.
-            cmd.SetGlobalTexture(ShaderIDs.SpecularGlobal, m_History.ssrIndirectSpecular);
-            cmd.EnableShaderKeyword(ScreenSpaceLightingShaderIDs.GlxSsrSpecularKeyword);
+            // Hand the composite to the deferred kernel (230). It binds the texture per dispatch and
+            // falls back to black when no receiver was routed, so the kernel needs no variant.
+            ClusteredDeferredPass.PublishSpecularComposite(m_History.ssrIndirectSpecular);
         }
 
         static void SetKeyword(ComputeShader compute, string keyword, bool enabled)
