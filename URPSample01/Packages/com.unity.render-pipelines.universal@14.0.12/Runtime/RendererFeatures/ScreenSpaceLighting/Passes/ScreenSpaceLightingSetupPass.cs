@@ -24,8 +24,6 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_EditorExecuteCount;
         internal static int s_EditorSsgiBoundCount;
         internal static int s_EditorSsrBoundCount;
-        internal static int s_EditorProbeBoundCount;
-        internal static int s_EditorProbeOwnedBySsgiCount;
 #endif
 
         internal ScreenSpaceLightingSetupPass()
@@ -114,19 +112,12 @@ namespace UnityEngine.Rendering.Universal
                 bool bindProbe = probeReady && !ssgiOwnsProbe;
                 // A2 needs to know whether the published atlas is bound before it selects its variant.
                 m_SsrIndirectPass?.SetProbeEnvBound(probeReady);
-#if UNITY_EDITOR
-                if (ssgiOwnsProbe)
-                    s_EditorProbeOwnedBySsgiCount++;
-#endif
                 if (bindProbe)
                 {
                     cmd.SetGlobalVector(
                         ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeParams,
                         new Vector4(m_ProbeCoverage, 0f, 0f, 0f));
                     cmd.EnableShaderKeyword(ScreenSpaceLightingShaderIDs.ScreenSpaceGlobalIlluminationProbeKeyword);
-#if UNITY_EDITOR
-                    s_EditorProbeBoundCount++;
-#endif
                 }
                 else
                 {

@@ -115,7 +115,6 @@ namespace UnityEngine.Rendering.Universal
             public bool blueNoiseKeyword;
             public bool probeAtlasKeyword;
             public bool probeListKeyword;
-            public bool ddgiKeyword;
             public bool normalsOctKeyword;
             public bool xrArrayKeyword;
 
@@ -412,7 +411,6 @@ namespace UnityEngine.Rendering.Universal
             stats.blueNoiseKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword);
             stats.probeAtlasKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SslProbeAtlasKeyword);
             stats.probeListKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SslProbeListKeyword);
-            stats.ddgiKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiDdgiKeyword);
             stats.normalsOctKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword);
             stats.xrArrayKeyword = ssgiCompute.IsKeywordEnabled(ScreenSpaceShaderIDs.XrArrayKeyword);
 #endif
