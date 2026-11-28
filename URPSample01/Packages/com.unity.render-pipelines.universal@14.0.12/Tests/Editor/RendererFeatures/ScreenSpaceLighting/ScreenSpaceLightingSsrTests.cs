@@ -59,10 +59,11 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void SsrPassRunsAfterSsgiAndBeforeMaterialBinding()
         {
-            Assert.AreEqual(206, (int)ScreenSpaceLightingSsrPass.k_RenderPassEvent);
+            Assert.AreEqual((int)RenderPassEvent.AfterRenderingGbuffer + 1, (int)ScreenSpaceLightingSsrPass.k_RenderPassEvent);
             Assert.Less((int)ScreenSpaceLightingSsgiPass.k_RenderPassEvent, (int)ScreenSpaceLightingSsrPass.k_RenderPassEvent);
-            Assert.Less((int)ScreenSpaceLightingSsrPass.k_RenderPassEvent, (int)ScreenSpaceLightingSetupPass.k_RenderPassEvent);
-            Assert.Less((int)ScreenSpaceLightingSetupPass.k_RenderPassEvent, (int)RenderPassEvent.BeforeRenderingGbuffer);
+            Assert.Less((int)ScreenSpaceLightingSsrPass.k_RenderPassEvent, (int)ScreenSpaceLightingSsrBindPass.k_RenderPassEvent);
+            Assert.Less((int)ScreenSpaceLightingSsrBindPass.k_RenderPassEvent,
+                (int)ScreenSpaceLightingSsrIndirectSpecularPass.k_RenderPassEvent);
         }
 
         [Test]
@@ -167,8 +168,12 @@ namespace UnityEditor.Rendering.Universal.Tests
                 Assert.Contains(feature.setupPass, renderer.queuedPasses);
                 Assert.IsFalse(feature.ssgiPass.producedOutput);
                 Assert.Less(
+                    (int)feature.setupPass.renderPassEvent,
+                    (int)feature.ssrPass.renderPassEvent);
+                Assert.Contains(feature.ssrBindPass, renderer.queuedPasses);
+                Assert.Less(
                     (int)feature.ssrPass.renderPassEvent,
-                    (int)feature.setupPass.renderPassEvent);
+                    (int)feature.ssrBindPass.renderPassEvent);
             }
             finally
             {

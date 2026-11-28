@@ -20,8 +20,8 @@ namespace ContactShadowTests.PlayMode
             public DebugSettings(ScreenSpaceContactShadowsRendererFeature feature)
             {
                 settings = feature.GetType().GetField("m_Settings", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(feature);
-                mode = settings.GetType().GetField("debugMode");
-                slot = settings.GetType().GetField("debugSlot");
+                mode = settings.GetType().GetField("debugMode", BindingFlags.NonPublic | BindingFlags.Instance);
+                slot = settings.GetType().GetField("debugSlot", BindingFlags.NonPublic | BindingFlags.Instance);
                 originalMode = mode.GetValue(settings);
                 originalSlot = slot.GetValue(settings);
             }

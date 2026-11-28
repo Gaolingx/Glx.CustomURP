@@ -85,7 +85,8 @@ namespace UnityEditor.Rendering.Universal.Tests
 
         // ShaderUtil under-reported broken compute variants in the T4 shadow round, so the player
         // build logs remain the authority on compilation. This pins the declared matrix instead:
-        // 2 * 4 * 2 * 5 * 2 * 2 * 2 * 2 = 1280 combinations.
+        // 2 * 4 * 2 * 5 * 2 * 2 * 2 * 2 = 1280, then contact shadows and SSR specular each add one
+        // 2x axis, for 5120 combinations.
         [Test]
         public void ComputeDeclaresTheDocumentedKeywordMatrix()
         {
@@ -100,9 +101,9 @@ namespace UnityEditor.Rendering.Universal.Tests
                 groups.Add(options.Length);
             }
 
-            CollectionAssert.AreEqual(new[] { 2, 4, 2, 5, 2, 2, 2, 2 }, groups,
+            CollectionAssert.AreEqual(new[] { 2, 4, 2, 5, 2, 2, 2, 2, 2, 2 }, groups,
                 "The clustered deferred keyword groups changed; update the variant budget and evidence.");
-            Assert.AreEqual(1280, groups.Aggregate(1, (total, options) => total * options));
+            Assert.AreEqual(5120, groups.Aggregate(1, (total, options) => total * options));
         }
 
         // C2 keeps _FORWARD_PLUS off in clustered deferred, so the forward cluster path needs its
