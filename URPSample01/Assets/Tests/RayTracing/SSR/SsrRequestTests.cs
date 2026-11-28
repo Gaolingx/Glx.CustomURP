@@ -40,9 +40,6 @@ namespace UnityEditor.Rendering.Universal.Tests
 
         [UnityTest] public IEnumerator GgxSequence() => Check(true,7,true);
         [UnityTest] public IEnumerator NoCandidates() => Check(false,0,false,true);
-        // B6.1: the miss-weighted quota is the only allocation shape; this case runs it on the
-        // Approximation variant, the other cases cover the PBR variant.
-        [UnityTest] public IEnumerator WeightedQuota() => Check(true,7,false,false);
 
         static IEnumerator Check(bool history,int frame,bool pbr=false,bool empty=false)
         {

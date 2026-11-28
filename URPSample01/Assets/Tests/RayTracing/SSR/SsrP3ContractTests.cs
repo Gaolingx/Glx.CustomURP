@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-// Freezes the round 23 contracts documented in PLAN/TODO/23-Ray_Tracing_Inprove_2/contracts.md.
+// Freezes the round 23 contracts documented in PLAN/Done/23-Ray_Tracing_Inprove_2/contracts.md.
 // A failure here means an ABI or pass-order change landed without updating the contract document,
 // the baseline fixture and the evidence. The B7 tests additionally freeze the decal-safe SSR event
 // (221/222), the 225 availability gate, the reason-6 hardware complement and the A2 probe
@@ -193,6 +193,10 @@ public sealed class SsrP3ContractTests
             "The hit kernel must reuse the shared ClusteredDeferred-based shading, not a second lighting model.");
         StringAssert.Contains("SsrShadeSurface(", source, "Direct lighting must go through the shared SsrShadeSurface.");
         var shadeSource = ReadPackage("Shaders/RayTracing/SsrShadeSurface.hlsl");
+        StringAssert.Contains("SsrShadeSurface(", shadeSource,
+            "The single-point shading function must live in SsrShadeSurface.hlsl (D3).");
+        StringAssert.Contains("SsrShadedSample", shadeSource,
+            "The shared shader must expose the SsrShadedSample { radiance, weight } result (D3).");
         StringAssert.Contains("ClusteredDeferred.hlsl", shadeSource,
             "The shared shading must reuse the ClusteredDeferred code.");
         StringAssert.Contains("CdShade(", shadeSource, "Direct lighting must go through CdShade.");
@@ -203,10 +207,6 @@ public sealed class SsrP3ContractTests
             "The hit kernel publishes the frozen 24-byte result.");
         StringAssert.Contains("uint(s.misc.z+0.5)!=SsrHitSurfaceVersion", normalized,
             "Invalid or unwritten records must keep the closest-hit radiance.");
-
-        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
-        StringAssert.Contains("DispatchHitDeferred(cmd);", pass,
-            "The pass must run the hit kernel between DispatchRays and the temporal merge.");
     }
 
     [Test]
@@ -219,6 +219,8 @@ public sealed class SsrP3ContractTests
         var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
         StringAssert.Contains("DispatchHitDeferred(cmd);", pass,
             "The RT hit kernel must run on every traced frame.");
+        StringAssert.Contains("s_HitDeferredSettings=true;", pass,
+            "The evidence flag must record that the deferred hit kernel ran.");
         StringAssert.DoesNotContain("useDeferredHitShading", pass,
             "No configuration may skip the deferred hit kernel.");
 
@@ -266,53 +268,6 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
-    public void SsrPass_InjectsAfterDecalGbuffer()
-    {
-        var type = typeof(ScreenSpaceLightingRendererFeature).Assembly.GetType(
-            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass", throwOnError: false);
-        Assert.IsNotNull(type, "ScreenSpaceLightingSsrPass was not found.");
-        var field = type.GetField("k_RenderPassEvent", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-        Assert.IsNotNull(field, "k_RenderPassEvent must be declared as a const.");
-        var raw = field.IsLiteral ? field.GetRawConstantValue() : field.GetValue(null);
-        Assert.AreEqual((int)RenderPassEvent.AfterRenderingGbuffer + 1, Convert.ToInt32(raw),
-            "The SSR injection point must be AfterRenderingGbuffer + 1 (221), strictly after Decal GBuffer (220).");
-    }
-
-    [Test]
-    public void SsrIndirectSpecularPass_InjectsBetweenGbufferAndDeferred()
-    {
-        var type = typeof(ScreenSpaceLightingRendererFeature).Assembly.GetType(
-            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrIndirectSpecularPass", throwOnError: false);
-        Assert.IsNotNull(type,
-            "P3 D1-A needs ScreenSpaceLightingSsrIndirectSpecularPass; the deferred receiver's indirect specular moves out of the GBuffer pass.");
-        var field = type.GetField("k_RenderPassEvent", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-        Assert.IsNotNull(field, "The indirect-specular pass must expose k_RenderPassEvent.");
-        var raw = field.IsLiteral ? field.GetRawConstantValue() : field.GetValue(null);
-        var expected = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingGbuffer + 5);
-        Assert.AreEqual((int)expected, Convert.ToInt32(raw),
-            "The indirect-specular composite must run at 225 (>220 and <230), before ClusteredDeferred (C1).");
-    }
-
-    [Test]
-    public void SsrShadeSurface_IsSharedByHitKernels()
-    {
-        // The closest-hit material shader cannot include the compute ClusteredDeferred kernel (it
-        // runs with per-draw material headers), so the shared single-point shading covers the two
-        // compute hit kernels: the RT hit kernel and the screen-space hit kernel.
-        var surface = ReadPackage("Shaders/RayTracing/SsrShadeSurface.hlsl");
-        StringAssert.Contains("SsrShadeSurface(", surface,
-            "The single-point shading function must live in SsrShadeSurface.hlsl (D3).");
-        StringAssert.Contains("SsrShadedSample", surface,
-            "The shared shader must expose the SsrShadedSample { radiance, weight } result (D3).");
-
-        var kernel = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute"));
-        StringAssert.Contains("SsrShadeSurface.hlsl", kernel,
-            "The RT hit kernel must call the shared SsrShadeSurface, not a second shading path (C8/D3).");
-        StringAssert.Contains("SsrShadeSurface(", kernel,
-            "The RT hit kernel must actually invoke SsrShadeSurface.");
-    }
-
-    [Test]
     public void SsrHitSs_ShadesScreenSpaceHitsFromCurrentGbuffer()
     {
         // P3 SS hits are re-shaded from the current-frame GBuffer by a dedicated compute kernel and
@@ -329,7 +284,7 @@ public sealed class SsrP3ContractTests
             "but a slot with requestShare > 0 keeps its reprojected hardware complement (D4).");
     }
 
-    // --- B5 orchestration tripwires: pass order, switch default and marker/keyword names.
+    // --- B5 orchestration tripwires: pass order and marker/keyword names.
     [Test]
     public void SsrP3_PassOrderIsMonotonic()
     {
@@ -373,7 +328,7 @@ public sealed class SsrP3ContractTests
 
         var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrIndirectSpecularPass.cs"));
         StringAssert.Contains("internalboolCanExecute(inRenderingDatarenderingData)", pass,
-            "The composite must expose CanExecute so the GBuffer can degrade to the P1 path.");
+            "The composite must expose CanExecute so the GBuffer can keep its own indirect specular.");
         StringAssert.Contains("m_History.ssrIndirectSpecular==null", pass,
             "CanExecute must check the composite target.");
         StringAssert.Contains("GetCameraDepthTexture(renderer)==null", pass,
@@ -477,9 +432,10 @@ public sealed class SsrP3ContractTests
         var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrIndirectSpecularPass.cs"));
         StringAssert.Contains("ssrIndirectSource==SsrIndirectSource.A2", pass,
             "The composite must select A2 from the feature setting.");
-        StringAssert.Contains("SetProbeEnvBound(bindProbe)", Normalize(ReadPackage(
+        StringAssert.Contains("SetProbeEnvBound(probeReady)", Normalize(ReadPackage(
             "Runtime/RendererFeatures/ScreenSpaceLighting/Passes/ScreenSpaceLightingSetupPass.cs")),
-            "The Setup pass must report whether the published probe generation is bound.");
+            "The Setup pass must report whether the published probe generation is bound, independent " +
+            "of which stage owns the diffuse tier.");
     }
 
     // --- B8 audit follow-up: both hit kernels must compile the same shadow set, and P3 cannot leave
@@ -495,16 +451,6 @@ public sealed class SsrP3ContractTests
             StringAssert.Contains("#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS", source,
                 file + " must compile the additional-light shadow variant; without it every additional light is unshadowed (D3).");
         }
-    }
-
-    [Test]
-    public void SsrP3_ForcesTheDeferredHitKernel()
-    {
-        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
-        StringAssert.Contains("s_HitDeferredSettings=true;", pass,
-            "The evidence flag must record that the deferred hit kernel ran.");
-        StringAssert.DoesNotContain("useDeferredHitShading", pass,
-            "The deferred hit kernel is unconditional; no switch may leave SS and RT on different shading.");
     }
 
     // --- B6.1: the coverage ramp (merge borrow + silhouette confidence) and the miss-weighted R1

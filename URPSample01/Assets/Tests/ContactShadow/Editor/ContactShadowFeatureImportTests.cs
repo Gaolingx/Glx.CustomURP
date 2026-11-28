@@ -90,7 +90,7 @@ public class ContactShadowFeatureImportTests
             so.Update();
             CheckDefault<ComputeShader>(so, "depthPyramidCompute", "ScreenSpaceCommon/DepthPyramid.compute");
             CheckDefault<ComputeShader>(so, "contactShadowsCompute", "ContactShadows/ContactShadows.compute");
-            CheckDefault<Shader>(so, "debugShader", "ContactShadows/ContactShadowDebug.shader", "Blit.shader");
+            CheckDefault<Shader>(so, "debugShader", "ContactShadows/ContactShadowDebug.shader");
             var mode = so.FindProperty("m_Settings.debugMode");
             int slotMode = Array.IndexOf(mode.enumNames, "Slot");
             Assert.That(slotMode, Is.GreaterThan(0));
@@ -126,15 +126,13 @@ public class ContactShadowFeatureImportTests
         CreateLightPrefab(profile);
     }
 
-    // Later rounds supply the contact compute/debug assets. Verify Assign Defaults against what
-    // actually exists; when absent, use a named serialization probe, never claim it as a default.
-    static void CheckDefault<T>(SerializedObject so, string field, string path, string probe = null) where T : Object
+    // Later rounds supply the contact compute/debug assets; verify Assign Defaults against what
+    // actually exists.
+    static void CheckDefault<T>(SerializedObject so, string field, string path) where T : Object
     {
         var property = so.FindProperty("m_Resources." + field);
         var expected = AssetDatabase.LoadAssetAtPath<T>(Utils + path);
         Assert.That(property.objectReferenceValue, Is.EqualTo(expected), "Assign Defaults: " + field);
-        if (!expected && probe != null && string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(Utils + path)))
-            property.objectReferenceValue = AssetDatabase.LoadAssetAtPath<T>(Utils + probe);
         Assert.That(property.objectReferenceValue, Is.InstanceOf<T>(), field);
     }
 
