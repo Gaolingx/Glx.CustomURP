@@ -36,6 +36,10 @@ static const uint GlxInvalid = 0u;
 static const uint GlxMiss = 1u;
 static const uint GlxHit = 2u;
 static const uint GlxShadowed = 4u;
+// Radiance-mode ray that escaped all registered geometry inside the sky range. Carries the
+// directional environment radiance in .radiance and the range in .hitT, so the cosine
+// convolution treats it like a far hit while a finite-range miss stays unresolved.
+static const uint GlxSky = 8u;
 
 bool GlxUsesLightTable(uint mode) { return mode == GlxReflectionMode || mode == GlxProbeMode; }
 

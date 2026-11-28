@@ -40,19 +40,47 @@ namespace UnityEditor.Rendering.Universal.Tests
             return result;
         }
 
+        // Octahedral seam borders, RTXGI order: (srcX, srcY, dstX, dstY) in tile coordinates
+        // with one texel of border. A border texel copies the interior texel the seam folds
+        // onto; a tile-edge mirror would be wrong away from the corners.
+        internal static readonly (int sx, int sy, int dx, int dy)[] Gutter6 =
+        {
+            (6,6,0,0),
+            (6,1,1,0),(5,1,2,0),(4,1,3,0),(3,1,4,0),(2,1,5,0),(1,1,6,0),
+            (1,6,7,0),
+            (1,6,0,1),(1,5,0,2),(1,4,0,3),(1,3,0,4),(1,2,0,5),(1,1,0,6),
+            (6,1,0,7),
+            (6,6,7,1),(6,5,7,2),(6,4,7,3),(6,3,7,4),(6,2,7,5),(6,1,7,6),
+            (1,1,7,7),
+            (6,6,1,7),(5,6,2,7),(4,6,3,7),(3,6,4,7),(2,6,5,7),(1,6,6,7)
+        };
+
+        internal static readonly (int sx, int sy, int dx, int dy)[] Gutter14 =
+        {
+            (14,14,0,0),
+            (14,1,1,0),(13,1,2,0),(12,1,3,0),(11,1,4,0),(10,1,5,0),(9,1,6,0),(8,1,7,0),
+            (7,1,8,0),(6,1,9,0),(5,1,10,0),(4,1,11,0),(3,1,12,0),(2,1,13,0),(1,1,14,0),
+            (1,14,15,0),
+            (1,14,0,1),(1,13,0,2),(1,12,0,3),(1,11,0,4),(1,10,0,5),(1,9,0,6),(1,8,0,7),
+            (1,7,0,8),(1,6,0,9),(1,5,0,10),(1,4,0,11),(1,3,0,12),(1,2,0,13),(1,1,0,14),
+            (14,1,0,15),
+            (14,14,15,1),(14,13,15,2),(14,12,15,3),(14,11,15,4),(14,10,15,5),(14,9,15,6),(14,8,15,7),
+            (14,7,15,8),(14,6,15,9),(14,5,15,10),(14,4,15,11),(14,3,15,12),(14,2,15,13),(14,1,15,14),
+            (1,1,15,15),
+            (14,14,1,15),(13,14,2,15),(12,14,3,15),(11,14,4,15),(10,14,5,15),(9,14,6,15),(8,14,7,15),
+            (7,14,8,15),(6,14,9,15),(5,14,10,15),(4,14,11,15),(3,14,12,15),(2,14,13,15),(1,14,14,15)
+        };
+
+        internal static (int sx, int sy, int dx, int dy)[] Gutter(int interior) =>
+            interior == 6 ? Gutter6 : Gutter14;
+
         internal void FillGutter(int probe)
         {
-            int n = Interior;
-            for (int y = -1; y <= n; ++y)
-            for (int x = -1; x <= n; ++x)
-            {
-                bool outsideX = x < 0 || x >= n, outsideY = y < 0 || y >= n;
-                if (!outsideX && !outsideY) continue;
-                int sx = Mathf.Clamp(x, 0, n - 1), sy = Mathf.Clamp(y, 0, n - 1);
-                if (outsideY) sx = n - 1 - sx;
-                if (outsideX) sy = n - 1 - sy;
-                Array.Copy(Words, Address(probe, sx, sy), Words, Address(probe, x, y), Channels);
-            }
+            // Tile coordinate t spans -1..Interior after the border offset; Address() takes
+            // interior-relative coordinates.
+            foreach (var e in Gutter(Interior))
+                Array.Copy(Words, Address(probe, e.sx - 1, e.sy - 1),
+                    Words, Address(probe, e.dx - 1, e.dy - 1), Channels);
         }
 
         internal static Vector2 Oct(Vector3 dir)

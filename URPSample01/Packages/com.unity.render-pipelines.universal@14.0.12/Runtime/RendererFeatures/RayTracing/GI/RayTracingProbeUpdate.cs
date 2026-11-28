@@ -78,6 +78,8 @@ namespace UnityEngine.Rendering.Universal
         static readonly int s_ReadbackMeta = Shader.PropertyToID("_GlxProbeReadbackMeta");
         static readonly int s_ReadbackProbe = Shader.PropertyToID("_GlxProbeReadbackProbe");
         static readonly int s_Scene = Shader.PropertyToID("_GlxScene");
+        static readonly int s_SkyCube = Shader.PropertyToID("_GlxProbeSkyCube");
+        static readonly int s_SkyCubeHDR = Shader.PropertyToID("_GlxProbeSkyCubeHDR");
         // Published generation, read by the probe closest hit for the 1-hop feedback term and by
         // the material-side consumer. Kept as globals so one binding serves ray tracing and draws.
         // Internal so the fallback can publish an invalid snapshot when nothing is ready.
@@ -215,6 +217,15 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetRayTracingBufferParam(m_Trace, s_Results, m_Results);
             cmd.SetRayTracingBufferParam(m_Trace, s_Counters, m_Counters);
             m_Scene.BindLights(cmd, m_Trace);
+            // Directional environment for escaped radiance rays. The per-camera
+            // _GlossyEnvironmentCubeMap global is recorded into the camera command buffer after
+            // this batch executes, so bind the default reflection cube to this dispatch instead.
+            var sky = ReflectionProbe.defaultTexture;
+            if (sky != null)
+            {
+                cmd.SetRayTracingTextureParam(m_Trace, s_SkyCube, new RenderTargetIdentifier(sky));
+                cmd.SetRayTracingVectorParam(m_Trace, s_SkyCubeHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
+            }
             // The batch traces from the previously published offset/state, so the hit shader can
             // read that same generation for one 8-neighbour feedback query (never this batch's
             // write targets). First batch has no published generation.

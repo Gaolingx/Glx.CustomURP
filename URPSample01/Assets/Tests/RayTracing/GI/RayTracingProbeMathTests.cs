@@ -92,6 +92,18 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
+        public void SkyIsAMeasuredSampleForDistanceMoments()
+        {
+            // Class cos .5 is sky at the moment cap; the other classes stay hits at 3.7.
+            var rays = Rays(14, j => j == 1 ? Kind.Sky : Kind.Hit);
+            for (int i = 32; i < 128; ++i)
+                if (rays[i].Category == Kind.Sky) rays[i].Distance = 1.5f;
+            Vector4 m = Run(new ProbeHalfAtlas(14, 2), rays, true, new[] {72,24,0,0,0,0}, 0);
+            Near(m.x, (4*3.7f + 2*1.5f + 3.7f) / 7);
+            Near(m.y, (4*13.69f + 2*2.25f + 13.69f) / 7);
+        }
+
+        [Test]
         public void FeedbackAddsCappedPreviousIrradianceOnce()
         {
             var rays = Rays(6, j => Kind.Hit);
@@ -129,7 +141,7 @@ namespace UnityEditor.Rendering.Universal.Tests
 
         [TestCase(6, 4)]
         [TestCase(14, 2)]
-        public void OctahedralInteriorAndFoldedGutters(int n, int channels)
+        public void OctahedralInteriorAndSeamGutters(int n, int channels)
         {
             var atlas = new ProbeHalfAtlas(n, channels);
             // Probe 9 is the second tile on the second atlas row. Seed different values
@@ -152,13 +164,20 @@ namespace UnityEditor.Rendering.Universal.Tests
                 for (int c = 0; c < channels; ++c)
                     Assert.That(Mathf.HalfToFloat(atlas.Words[addr+c]), Is.EqualTo(expected[c]));
             }
-            for (int i = 0; i < n; ++i)
+            var gutter = ProbeHalfAtlas.Gutter(n);
+            Assert.That(gutter.Length, Is.EqualTo(4*n + 4));
+            var dests = new System.Collections.Generic.HashSet<int>();
+            foreach (var e in gutter)
             {
-                for (int j = 0; j < n; ++j) Check(j+1, i+1, i*n+j+1);
-                Check(i+1, 0, n-i); Check(i+1, n+1, n*n-i);
-                Check(0, i+1, (n-1-i)*n+1); Check(n+1, i+1, (n-i)*n);
+                Assert.That(e.dx == 0 || e.dy == 0 || e.dx == n + 1 || e.dy == n + 1, Is.True,
+                    $"dest {e.dx},{e.dy} is not a border texel");
+                Assert.That(dests.Add(e.dy * (n + 2) + e.dx), Is.True, $"dest {e.dx},{e.dy} filled twice");
+                Check(e.dx, e.dy, (e.sy - 1) * n + (e.sx - 1) + 1);
             }
-            Check(0,0,n*n); Check(n+1,0,(n-1)*n+1); Check(0,n+1,n); Check(n+1,n+1,1);
+            // The seam is not a tile-edge mirror: the south-west corner takes the north-east
+            // interior texel, and the west-south border takes north-west.
+            Check(0, 0, n*n);
+            Check(0, 1, n*(n-1) + 1);
             Readback(atlas, 9, -1, -1); Readback(atlas, 9, n, n/2);
             Assert.That(ProbeHalfAtlas.Oct(new Vector3(-1, 2, -1)), Is.EqualTo(new Vector2(-.5f, .75f)));
         }

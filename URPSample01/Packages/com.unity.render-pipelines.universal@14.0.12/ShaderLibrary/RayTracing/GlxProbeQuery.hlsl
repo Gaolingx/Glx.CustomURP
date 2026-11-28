@@ -73,13 +73,15 @@ bool GlxProbeQuery(float3 position, float3 normal, out float3 irradiance)
         if (data.w <= 0.5 || _GlxProbePublishedSnapshot[probe] == 0) continue;
         float3 delta = _GlxProbeOrigin.xyz + coord * _GlxProbeSpacing + data.xyz - position;
         float distance = length(delta);
+        // Point -> probe: the wrap term needs the probe seen from the receiver. The distance
+        // map is indexed outward from the probe, so the visibility test samples -direction.
         float3 direction = distance > 1e-4 ? delta / distance : normal;
         float3 weight = float3(step.x == 0 ? 1.0 - fraction.x : fraction.x,
                                step.y == 0 ? 1.0 - fraction.y : fraction.y,
                                step.z == 0 ? 1.0 - fraction.z : fraction.z);
         float trilinear = weight.x * weight.y * weight.z;
         if (trilinear <= 0) continue;
-        float2 moments = GlxSampleProbeMoments(probe, GlxOctEncode(direction));
+        float2 moments = GlxSampleProbeMoments(probe, GlxOctEncode(-direction));
         float variance = abs(moments.x * moments.x - moments.y);
         float delta2 = moments.x - distance;
         float chebyshev = variance / (variance + delta2 * delta2 + 1e-6);

@@ -16,8 +16,11 @@
 #pragma kernel ProbeReadbackDist
 #pragma kernel ProbeReadbackMeta
 
+#include "GlxProbeRanges.hlsl"
+
 #define GLX_HIT 2u
 #define GLX_MISS 1u
+#define GLX_SKY 8u
 #define GLX_PROBE_MODE 4u
 #define GLX_PROBE_GEO_MODE 5u
 #define PI 3.14159265358979323846
@@ -82,14 +85,38 @@ float3 GlxOctNormal(uint n, int x, int y)
                             v - (v >= 0 ? 1.0 : -1.0) * max(0.0, -z), z));
 }
 
-// G1 ProbeHalfAtlas.FillGutter: fold the one-texel border onto the interior seam.
-int2 GlxFold(int n, int x, int y)
+// Octahedral seam borders, RTXGI order: (srcX, srcY, dstX, dstY) in tile coordinates with
+// one texel of border on every side. A border texel takes the interior texel the seam folds
+// onto; mirroring the tile edge does not reproduce that mapping away from the corners.
+#define IRR_BORDER_TEXELS (IRR_INTERIOR * 4 + 4)
+static const uint4 IRR_BORDER_OFFSETS[IRR_BORDER_TEXELS] =
 {
-    int sx = clamp(x, 0, n - 1), sy = clamp(y, 0, n - 1);
-    if (y < 0 || y >= n) sx = n - 1 - sx;
-    if (x < 0 || x >= n) sy = n - 1 - sy;
-    return int2(sx, sy);
-}
+    uint4(6, 6, 0, 0),
+    uint4(6, 1, 1, 0), uint4(5, 1, 2, 0), uint4(4, 1, 3, 0), uint4(3, 1, 4, 0), uint4(2, 1, 5, 0), uint4(1, 1, 6, 0),
+    uint4(1, 6, 7, 0),
+    uint4(1, 6, 0, 1), uint4(1, 5, 0, 2), uint4(1, 4, 0, 3), uint4(1, 3, 0, 4), uint4(1, 2, 0, 5), uint4(1, 1, 0, 6),
+    uint4(6, 1, 0, 7),
+    uint4(6, 6, 7, 1), uint4(6, 5, 7, 2), uint4(6, 4, 7, 3), uint4(6, 3, 7, 4), uint4(6, 2, 7, 5), uint4(6, 1, 7, 6),
+    uint4(1, 1, 7, 7),
+    uint4(6, 6, 1, 7), uint4(5, 6, 2, 7), uint4(4, 6, 3, 7), uint4(3, 6, 4, 7), uint4(2, 6, 5, 7), uint4(1, 6, 6, 7)
+};
+
+#define DIST_BORDER_TEXELS (DIST_INTERIOR * 4 + 4)
+static const uint4 DIST_BORDER_OFFSETS[DIST_BORDER_TEXELS] =
+{
+    uint4(14, 14, 0, 0),
+    uint4(14, 1, 1, 0), uint4(13, 1, 2, 0), uint4(12, 1, 3, 0), uint4(11, 1, 4, 0), uint4(10, 1, 5, 0), uint4(9, 1, 6, 0), uint4(8, 1, 7, 0),
+    uint4(7, 1, 8, 0), uint4(6, 1, 9, 0), uint4(5, 1, 10, 0), uint4(4, 1, 11, 0), uint4(3, 1, 12, 0), uint4(2, 1, 13, 0), uint4(1, 1, 14, 0),
+    uint4(1, 14, 15, 0),
+    uint4(1, 14, 0, 1), uint4(1, 13, 0, 2), uint4(1, 12, 0, 3), uint4(1, 11, 0, 4), uint4(1, 10, 0, 5), uint4(1, 9, 0, 6), uint4(1, 8, 0, 7),
+    uint4(1, 7, 0, 8), uint4(1, 6, 0, 9), uint4(1, 5, 0, 10), uint4(1, 4, 0, 11), uint4(1, 3, 0, 12), uint4(1, 2, 0, 13), uint4(1, 1, 0, 14),
+    uint4(14, 1, 0, 15),
+    uint4(14, 14, 15, 1), uint4(14, 13, 15, 2), uint4(14, 12, 15, 3), uint4(14, 11, 15, 4), uint4(14, 10, 15, 5), uint4(14, 9, 15, 6), uint4(14, 8, 15, 7),
+    uint4(14, 7, 15, 8), uint4(14, 6, 15, 9), uint4(14, 5, 15, 10), uint4(14, 4, 15, 11), uint4(14, 3, 15, 12), uint4(14, 2, 15, 13), uint4(14, 1, 15, 14),
+    uint4(1, 1, 15, 15),
+    uint4(14, 14, 1, 15), uint4(13, 14, 2, 15), uint4(12, 14, 3, 15), uint4(11, 14, 4, 15), uint4(10, 14, 5, 15), uint4(9, 14, 6, 15), uint4(8, 14, 7, 15),
+    uint4(7, 14, 8, 15), uint4(6, 14, 9, 15), uint4(5, 14, 10, 15), uint4(4, 14, 11, 15), uint4(3, 14, 12, 15), uint4(2, 14, 13, 15), uint4(1, 14, 14, 15)
+};
 
 float3 GlxGridPosition(uint probe)
 {
@@ -129,79 +156,113 @@ void ProbePrepare(uint3 group : SV_GroupID, uint lane : SV_GroupIndex)
 
     GlxProbeRay ray;
     ray.originTMin = float4(origin, _GlxProbeTMin);
-    ray.directionTMax = float4(direction, _GlxProbeTMax);
+    // Radiance rays run to infinity: a miss then proves the ray escaped every registered
+    // surface, which is the only miss the sky input accepts. Maintenance rays stay near-field
+    // so a truncated ray never classifies as geometry or as sky.
+    ray.directionTMax = float4(direction, maintenance ? _GlxProbeTMax : GLX_PROBE_SKY_TMAX);
     ray.meta = uint4(maintenance ? GLX_PROBE_GEO_MODE : GLX_PROBE_MODE, slot, rayIndex, valid ? 1u : 0u);
     _GlxProbeRays[index] = ray;
     if (rayIndex == 0) InterlockedAdd(_GlxProbeCounters[active ? 5u : 6u], 1);
 }
 
 // Cosine-weighted convolution, G1 convention: E = pi * sum(w L) / sum(w).
-// Only rays 32..R-1 contribute; the fixed maintenance prefix is excluded.
+// Only rays 32..R-1 contribute; the fixed maintenance prefix is excluded. A sky sample is a
+// radiance sample like a hit (the miss shader already decided the ray escaped all geometry).
 [numthreads(IRR_TILE, IRR_TILE, 1)]
 void ProbeIrradiance(uint3 id : SV_DispatchThreadID)
 {
+    // The dispatch is exactly (1, 1, budget) and one thread group owns one probe, so no
+    // group-uniform early return may precede the barrier (FXC rejects it as varying flow).
     uint slot = id.z;
-    if (slot >= _GlxProbeBudget) return;
     uint probe = _GlxProbeBatch[slot];
-    if (_GlxProbeData[probe].w <= 0.5) return; // inactive: keep the previous tile
+    bool active = _GlxProbeData[probe].w > 0.5; // inactive: keep the previous tile
+    bool interior = id.x >= 1u && id.x <= IRR_INTERIOR && id.y >= 1u && id.y <= IRR_INTERIOR;
+    uint2 tileBase = uint2((probe % PROBES_PER_ROW) * IRR_TILE, (probe / PROBES_PER_ROW) * IRR_TILE);
 
-    int2 folded = GlxFold(IRR_INTERIOR, (int)id.x - 1, (int)id.y - 1);
-    float3 normal = GlxOctNormal(IRR_INTERIOR, folded.x, folded.y);
-    float3 sum = 0;
-    float denominator = 0;
-    uint base = slot * _GlxProbeRaysPerProbe;
-    [loop] for (uint i = 32u; i < _GlxProbeRaysPerProbe; ++i)
+    if (active && interior)
     {
-        GlxProbePayload p = _GlxProbeResults[base + i];
-        if ((p.flags & GLX_HIT) == 0) continue; // no sky input in G2: unresolved carries no sample
-        if (!all(isfinite(p.radiance)) || any(p.radiance < 0)) continue;
-        float w = saturate(dot(normal, _GlxProbeRays[base + i].directionTMax.xyz));
-        if (w <= 0) continue;
-        sum += w * p.radiance;
-        denominator += w;
+        float3 normal = GlxOctNormal(IRR_INTERIOR, (int)id.x - 1, (int)id.y - 1);
+        float3 sum = 0;
+        float denominator = 0;
+        uint base = slot * _GlxProbeRaysPerProbe;
+        [loop] for (uint i = 32u; i < _GlxProbeRaysPerProbe; ++i)
+        {
+            GlxProbePayload p = _GlxProbeResults[base + i];
+            if ((p.flags & (GLX_HIT | GLX_SKY)) == 0) continue; // unresolved carries no sample
+            if (!all(isfinite(p.radiance)) || any(p.radiance < 0)) continue;
+            float w = saturate(dot(normal, _GlxProbeRays[base + i].directionTMax.xyz));
+            if (w <= 0) continue;
+            sum += w * p.radiance;
+            denominator += w;
+        }
+        if (denominator > 0)
+        {
+            uint2 texel = tileBase + id.xy;
+            float3 current = PI * sum / denominator;
+            bool published = _GlxProbePublished[probe] != 0;
+            float3 value = published ? lerp(current, _GlxProbeIrrPrev[texel].rgb, _GlxProbePreviousWeight) : current;
+            if (!all(isfinite(value))) value = 0;
+            _GlxProbeIrrWrite[texel] = float4(value, 1);
+            InterlockedOr(_GlxProbeUpdated[probe], 1u);
+        }
     }
-    if (denominator <= 0) return;
-
-    uint2 texel = uint2((probe % PROBES_PER_ROW) * IRR_TILE + id.x, (probe / PROBES_PER_ROW) * IRR_TILE + id.y);
-    float3 current = PI * sum / denominator;
-    bool published = _GlxProbePublished[probe] != 0;
-    float3 value = published ? lerp(current, _GlxProbeIrrPrev[texel].rgb, _GlxProbePreviousWeight) : current;
-    if (!all(isfinite(value))) value = 0;
-    _GlxProbeIrrWrite[texel] = float4(value, 1);
-    InterlockedOr(_GlxProbeUpdated[probe], 1u);
+    AllMemoryBarrierWithGroupSync();
+    if (active)
+    {
+        for (uint index = id.y * IRR_TILE + id.x; index < IRR_BORDER_TEXELS; index += IRR_TILE * IRR_TILE)
+        {
+            uint4 o = IRR_BORDER_OFFSETS[index];
+            _GlxProbeIrrWrite[tileBase + o.zw] = _GlxProbeIrrWrite[tileBase + o.xy];
+        }
+    }
 }
 
+// Sky samples enter the moments at the moment cap: the miss shader writes the sky range as
+// hitT, so an open direction stops occluding its neighbours instead of storing a zero mean.
 [numthreads(DIST_TILE, DIST_TILE, 1)]
 void ProbeDistance(uint3 id : SV_DispatchThreadID)
 {
     uint slot = id.z;
-    if (slot >= _GlxProbeBudget) return;
     uint probe = _GlxProbeBatch[slot];
-    if (_GlxProbeData[probe].w <= 0.5) return;
+    bool active = _GlxProbeData[probe].w > 0.5;
+    bool interior = id.x >= 1u && id.x <= DIST_INTERIOR && id.y >= 1u && id.y <= DIST_INTERIOR;
+    uint2 tileBase = uint2((probe % PROBES_PER_ROW) * DIST_TILE, (probe / PROBES_PER_ROW) * DIST_TILE);
 
-    int2 folded = GlxFold(DIST_INTERIOR, (int)id.x - 1, (int)id.y - 1);
-    float3 normal = GlxOctNormal(DIST_INTERIOR, folded.x, folded.y);
-    float sum = 0, sumSq = 0, denominator = 0;
-    uint base = slot * _GlxProbeRaysPerProbe;
-    [loop] for (uint i = 32u; i < _GlxProbeRaysPerProbe; ++i)
+    if (active && interior)
     {
-        GlxProbePayload p = _GlxProbeResults[base + i];
-        if ((p.flags & GLX_HIT) == 0) continue;
-        float w = saturate(dot(normal, _GlxProbeRays[base + i].directionTMax.xyz));
-        if (w <= 0) continue;
-        float d = min(max(p.hitT, 0.0), _GlxProbeMomentCap);
-        sum += w * d;
-        sumSq += w * d * d;
-        denominator += w;
+        float3 normal = GlxOctNormal(DIST_INTERIOR, (int)id.x - 1, (int)id.y - 1);
+        float sum = 0, sumSq = 0, denominator = 0;
+        uint base = slot * _GlxProbeRaysPerProbe;
+        [loop] for (uint i = 32u; i < _GlxProbeRaysPerProbe; ++i)
+        {
+            GlxProbePayload p = _GlxProbeResults[base + i];
+            if ((p.flags & (GLX_HIT | GLX_SKY)) == 0) continue;
+            float w = saturate(dot(normal, _GlxProbeRays[base + i].directionTMax.xyz));
+            if (w <= 0) continue;
+            float d = min(max(p.hitT, 0.0), _GlxProbeMomentCap);
+            sum += w * d;
+            sumSq += w * d * d;
+            denominator += w;
+        }
+        if (denominator > 0)
+        {
+            uint2 texel = tileBase + id.xy;
+            float2 current = float2(sum, sumSq) / denominator;
+            bool published = _GlxProbePublished[probe] != 0;
+            float2 value = published ? lerp(current, _GlxProbeDistPrev[texel], _GlxProbePreviousWeight) : current;
+            if (!all(isfinite(value))) value = 0;
+            _GlxProbeDistWrite[texel] = value;
+        }
     }
-    if (denominator <= 0) return;
-
-    uint2 texel = uint2((probe % PROBES_PER_ROW) * DIST_TILE + id.x, (probe / PROBES_PER_ROW) * DIST_TILE + id.y);
-    float2 current = float2(sum, sumSq) / denominator;
-    bool published = _GlxProbePublished[probe] != 0;
-    float2 value = published ? lerp(current, _GlxProbeDistPrev[texel], _GlxProbePreviousWeight) : current;
-    if (!all(isfinite(value))) value = 0;
-    _GlxProbeDistWrite[texel] = value;
+    AllMemoryBarrierWithGroupSync();
+    if (active)
+    {
+        for (uint index = id.y * DIST_TILE + id.x; index < DIST_BORDER_TEXELS; index += DIST_TILE * DIST_TILE)
+        {
+            uint4 o = DIST_BORDER_OFFSETS[index];
+            _GlxProbeDistWrite[tileBase + o.zw] = _GlxProbeDistWrite[tileBase + o.xy];
+        }
+    }
 }
 
 // Reads only the fixed 32 maintenance rays, which return the shading normal in radiance.
