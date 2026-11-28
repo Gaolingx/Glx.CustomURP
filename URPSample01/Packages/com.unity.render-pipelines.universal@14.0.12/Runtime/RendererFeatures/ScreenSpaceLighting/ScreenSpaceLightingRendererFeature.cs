@@ -127,13 +127,13 @@ namespace UnityEngine.Rendering.Universal
 
             var cameraData = renderingData.cameraData;
             int frameIndex = Time.frameCount;
-            m_SsrPass.SetHybrid(null, null, null);
+            m_SsrPass.SetRayTracing(null, null);
             var stack = VolumeManager.instance.stack;
             if (!m_Settings.rayTracingProbeFallback)
                 m_ProbeFallback?.Reset();
             var ssr = stack != null ? stack.GetComponent<ScreenSpaceReflection>() : null;
             bool hybrid = SsrRayTracingCameras.Eligible(cameraData, m_Settings, ssr);
-            if (!m_Settings.rayTracingReflections || m_Settings.reflectionRayBudget <= 0)
+            if (!m_Settings.rayTracingReflections || m_Settings.rayTracingSamples <= 0)
                 m_HybridCameras?.Clear();
             else if (!hybrid)
                 m_HybridCameras?.Forget(cameraData.camera);
@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.Universal
         // broken episode rather than every frame.
         void LogRayTracingReflectionConfigTrapOnce(in CameraData cameraData, ScreenSpaceReflection ssr)
         {
-            if (!m_Settings.rayTracingReflections || m_Settings.reflectionRayBudget <= 0)
+            if (!m_Settings.rayTracingReflections || m_Settings.rayTracingSamples <= 0)
             {
                 m_LoggedRayTracingReflectionConfig = false;
                 return;

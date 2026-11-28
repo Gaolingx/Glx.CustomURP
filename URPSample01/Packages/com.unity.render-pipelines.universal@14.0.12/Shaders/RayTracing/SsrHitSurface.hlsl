@@ -8,9 +8,9 @@
 // decision and may change encode/decode only, never field order, field count or stride.
 // The header declares no resources, so a compute shader can include it.
 // stride 80
-// gb0: xyz linear baseColor, w specular occlusion (1 when unknown)
+// gb0: xyz linear baseColor, w metallic
 // gb1: xyz world-space shading normal, w perceptual roughness
-// gb2: xyz fresnel0, w coat mask (URP has no clear coat, always 0)
+// gb2: reserved (0)
 // gb3: xyz emissive including baked, w reserved (0)
 // misc: x distance (RayTCurrent, > 0), y surfaceType, z version, w source flags
 struct SsrHitSurface

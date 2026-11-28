@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal
     {
         internal static readonly string[] k_ReflectionFields =
         {
-            "publishProbeAtlas", "rayTracingReflections", "reflectionRayBudget",
+            "publishProbeAtlas", "rayTracingReflections", "rayTracingSamples",
             "ssrIndirectSource", "rayTracingProbeFallback"
         };
 
@@ -25,8 +25,7 @@ namespace UnityEditor.Rendering.Universal
         {
             "depthPyramidCompute", "colorPyramidShader", "debugShader",
             "ssgiCompute", "ssgiTemporalFilterCompute", "ssgiDiffuseDenoiserCompute", "bilateralUpsampleCompute",
-            "ssrCompute", "ssrReflectionDenoiserCompute", "ssrHitDeferredCompute",
-            "ssrHitSsCompute", "ssrIndirectSpecularCompute",
+            "ssrCompute", "ssrReflectionDenoiserCompute", "ssrIndirectSpecularCompute",
 #if UNITY_STANDALONE_WIN
             "rayTracingSsr", "rayTracingGi",
 #endif

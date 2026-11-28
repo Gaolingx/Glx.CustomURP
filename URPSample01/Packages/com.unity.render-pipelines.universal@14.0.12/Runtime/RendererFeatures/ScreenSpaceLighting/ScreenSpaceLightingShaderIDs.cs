@@ -138,11 +138,12 @@ namespace UnityEngine.Rendering.Universal
         // PBR reproject output, consumed by the reflection denoiser.
         internal static readonly int SsrReprojectTextureRW = Shader.PropertyToID("_SsrReprojectTextureRW");
 
-        // Hardware reflection fill history (Approximation and PBR hybrid).
-        internal static readonly int SsrHwHistory = Shader.PropertyToID("_SsrHwHistory");
-        internal static readonly int SsrHwHistoryRW = Shader.PropertyToID("_SsrHwHistoryRW");
-        internal static readonly int SsrHwHistoryValid = Shader.PropertyToID("_SsrHwHistoryValid");
-        internal static readonly int SsrMergeSource = Shader.PropertyToID("_SsrMergeSource");
+        // Ray traced reflections: full-screen N-sample dispatch writes radiance + weight here.
+        internal static readonly int SsrRtRadianceRW = Shader.PropertyToID("_SsrRtRadianceRW");
+        internal static readonly int SsrRayTraceParams = Shader.PropertyToID("_SsrRayTraceParams");
+        internal static readonly int SsrNormalsOctFlag = Shader.PropertyToID("_SsrNormalsOct");
+        internal static readonly int SsrHitLightCount = Shader.PropertyToID("_SsrHitLightCount");
+        internal static readonly int SsrBlueNoiseValid = Shader.PropertyToID("_SsrBlueNoiseValid");
 
         // Constant buffer members.
         internal static readonly int SsrScreenSize = Shader.PropertyToID("_SsrScreenSize");
@@ -168,9 +169,6 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly string SsrNormalsOctKeyword = "SSR_NORMALS_OCT";
         internal static readonly string SsrApproxKeyword = "SSR_APPROX";
         internal static readonly string SsrHalfResKeyword = "SSR_HALF_RES";
-        // P3 SS radiance-source gate, published before RecordOriginals and re-published before the
-        // reproject. A uniform keeps the D3D11 previous-colour fallback without a variant axis.
-        internal static readonly int SsrShadeSs = Shader.PropertyToID("_SsrShadeSs");
 
         // ---------------------------------------------------------------------------------------
         // Transparent Screen Space Reflections

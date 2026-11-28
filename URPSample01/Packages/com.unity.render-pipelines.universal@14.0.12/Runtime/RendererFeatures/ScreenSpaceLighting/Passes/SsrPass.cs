@@ -4,25 +4,23 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // Opaque Screen Space Reflections: Approximation and PBR Accumulation.
+    // Opaque Screen Space Reflections: Approximation and PBR Accumulation, plus a ray traced path.
     //
-    // Approximation: Trace writes the mirror hit, Reproject samples the previous color pyramid and
-    // writes radiance + weight. At full resolution that result is the material-facing texture; at
-    // half resolution it is bilaterally upsampled into the full resolution output.
+    // With ray tracing enabled (and the device capable), every trace pixel traces
+    // settings.rayTracingSamples rays against the scene each frame and the hits are shaded
+    // immediately; the reflection denoiser then temporally accumulates the result. The volume
+    // algorithm only selects the fallback used when the device cannot trace. This mirrors HDRP's
+    // RayTracing mode: no screen space march and no per-pixel mixing of the two sources.
     //
-    // Approximation + DXR and PBR Accumulation + DXR: the request budget only serves a slice of the
-    // unresolved pixels per frame, so a temporal pass merges each frame's hits with the previous
-    // resolved fill (reprojected by motion, rejected on receiver depth/normal/roughness) before the
-    // consumer reads it. Without it the rotating selection makes every unserved hole alternate
-    // between probe and hardware radiance. The Approximation composite point-expands the fill into
-    // the full resolution output after the upsample; the PBR merge folds it into the trace
-    // resolution reprojection before the reflection denoiser, which owns the temporal accumulation.
+    // Screen-space Approximation: Trace writes the mirror hit, Reproject samples the previous color
+    // pyramid and writes radiance + weight. At full resolution that result is the material-facing
+    // texture; at half resolution it is bilaterally upsampled into the full resolution output.
     //
-    // PBR Accumulation: Trace samples the GGX visible normal distribution, Reproject gathers the
-    // reflected surface and writes the un-accumulated signal, then the reflection denoiser
-    // temporally accumulates it against the history and runs a separable bilateral filter. The
-    // material-facing contract is un-premultiplied radiance with the blend weight in alpha, so a miss
-    // keeps the reflection probe.
+    // Screen-space PBR Accumulation: Trace samples the GGX visible normal distribution, Reproject
+    // gathers the reflected surface and writes the un-accumulated signal, then the reflection
+    // denoiser temporally accumulates it against the history and runs a separable bilateral filter.
+    // The material-facing contract is un-premultiplied radiance with the blend weight in alpha, so a
+    // miss keeps the reflection probe.
     //
     // Runs at 221, after the Decal GBuffer pass (220), and the material binding moves to 222, so the
     // deferred receiver takes the 225 composite instead of the material blend while Forward opaque
@@ -39,33 +37,22 @@ namespace UnityEngine.Rendering.Universal
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
 
         const int k_TileSize = 8;
-        const string k_GbufferNormalsOctKeyword = "_GBUFFER_NORMALS_OCT";
 
         ScreenSpaceLightingHistory m_History;
         ScreenSpaceLightingResources m_Resources;
         ScreenSpaceLightingSettings m_Settings;
-        // Plain field: Player builds strip unused internal properties, and the capture reads
-        // this (plus counters) through reflection for the R1 evidence.
-        internal SsrRequestQueue requestQueue;
         RayTracingSceneResources m_Scene;
         RayTracingAccelerationStructure m_Snapshot;
-        static readonly ProfilingSampler s_HybridComposite = new ProfilingSampler("SSR DXR Composite");
-        static readonly ProfilingSampler s_HybridTemporal = new ProfilingSampler("SSR DXR Temporal");
-        static readonly ProfilingSampler s_HitDeferred = new ProfilingSampler("SSR Hit Shading (RT)");
-        static readonly ProfilingSampler s_HitSs = new ProfilingSampler("SSR Hit Shading (SS)");
+        static readonly int s_CdCameraPositionWS = Shader.PropertyToID("_CdCameraPositionWS");
+        static readonly int s_Scene = Shader.PropertyToID("_GlxScene");
+        static readonly int s_SsrInvViewProj = Shader.PropertyToID("_SsrInvViewProj");
+        static readonly int s_GlxProbeIrrSnapshot = Shader.PropertyToID("_GlxProbeIrrSnapshot");
+        static readonly int s_GlxProbeDistSnapshot = Shader.PropertyToID("_GlxProbeDistSnapshot");
+        static readonly int s_GlxProbeStateSnapshot = Shader.PropertyToID("_GlxProbeStateSnapshot");
+        static readonly int s_GlxProbePublishedSnapshot = Shader.PropertyToID("_GlxProbePublishedSnapshot");
+        static readonly ProfilingSampler s_RayTrace = new ProfilingSampler("SSR Ray Traced");
         int m_AdditionalLightCount;
         Vector3 m_CameraPositionWS;
-        bool m_LoggedHitDeferredMissing;
-        // Hit-kernel diagnostics: the Player report reads these to tell "dispatch recorded" from
-        // "dispatch skipped by a gate", which a GPU capture alone cannot distinguish.
-        internal static int s_HitDeferredCalls;
-        internal static int s_HitDeferredDispatches;
-        internal static int s_HitDeferredSkipsSettings;
-        internal static int s_HitDeferredSkipsCompute;
-        internal static int s_HitDeferredGroups;
-        internal static int s_HitDeferredKernel = -1;
-        internal static bool s_HitDeferredSettings;
-        internal static bool s_HitDeferredComputeBound;
         // P1 calibration knob for the omnidirectional ambient stand-in (Player harness
         // -p3-hit-ambient). 1 = the physical SH average; 0 reproduces the pre-ambient frame.
         internal static float s_HitAmbientScale = 1f;
@@ -82,10 +69,9 @@ namespace UnityEngine.Rendering.Universal
         // sampler that contains both trace and reconstruction.
         static readonly ProfilingSampler s_Reconstruction = new ProfilingSampler("SSR Reconstruction");
         // Per-dispatch markers for the reconstruction chain: without them the Frame Debugger falls
-        // back to the compute asset name ("Compute ReflectionDenoiser"), so the PBR-only merge and
-        // the four denoiser kernels collapse into anonymous, indistinguishable rows.
+        // back to the compute asset name ("Compute ReflectionDenoiser") and the four denoiser kernels
+        // collapse into anonymous, indistinguishable rows.
         static readonly ProfilingSampler s_Reproject = new ProfilingSampler("SSR Reproject");
-        static readonly ProfilingSampler s_PbrHwMerge = new ProfilingSampler("SSR PBR HW Merge");
         static readonly ProfilingSampler s_DebugParams = new ProfilingSampler("SSR Debug Params");
         static readonly ProfilingSampler s_DenoiseTemporal = new ProfilingSampler("SSR Denoise Temporal");
         static readonly ProfilingSampler s_DenoiseCopyHistory = new ProfilingSampler("SSR Denoise Copy History");
@@ -94,22 +80,22 @@ namespace UnityEngine.Rendering.Universal
         static readonly ProfilingSampler s_Upsample = new ProfilingSampler("SSR Upsample");
         internal static ProfilingSampler passSampler => s_ProfilingSampler;
         internal static ProfilingSampler reconstructionSampler => s_Reconstruction;
-        bool m_LoggedHybridFailure;
 
-        internal void SetHybrid(SsrRequestQueue queue, RayTracingSceneResources scene, RayTracingAccelerationStructure snapshot)
+        internal void SetRayTracing(RayTracingSceneResources scene, RayTracingAccelerationStructure snapshot)
         {
-            requestQueue = queue;
             m_Scene = scene;
             m_Snapshot = snapshot;
         }
 
-        // See the call site: the hit kernel's ambient term reads one irradiance value, so publish
-        // the SH average as irradiance (SH * PI) once per camera. Only the hardware path consumes
-        // it; without a queue (D3D11 or a screen-space-only camera) nothing is written, which keeps
-        // those frames bit-identical.
+        bool RayTracingActive =>
+            m_Scene != null && m_Snapshot != null && m_Resources != null &&
+            m_Resources.rayTracingSsr != null && m_Settings != null && m_Settings.rayTracingSamples > 0;
+
+        // The hit shading reads one irradiance value, so publish the SH average as irradiance
+        // (SH * PI) once per camera. Only the ray traced path consumes it.
         void PushHitAmbient(CommandBuffer cmd)
         {
-            if (requestQueue == null)
+            if (!RayTracingActive)
                 return;
             if (s_HitAmbientScale <= 0f)
             {
@@ -153,33 +139,6 @@ namespace UnityEngine.Rendering.Universal
         internal static int s_LastDebugParamsFrame = -1;
         internal static string s_LastDebugParamsTarget = string.Empty;
         internal static string s_LastMaterialOutputTarget = string.Empty;
-
-        // Evidence hook for the P0 OPEN gates: the capture asks for one frame's R1 counters and
-        // TLAS size. A synchronous read inside the pass would race the recorded commands, and
-        // reading after the frame finds the hybrid queue already detached, so the counters come
-        // back through an async readback that WaitAllRequests completes.
-        internal static bool s_RequestEvidence;
-        internal static int s_EvidenceTlasInstances = -1;
-        internal static uint[] s_EvidenceCounters;
-        // B6.1: the seam metric's classification and served masks. Exported by the capture player
-        // so the gradient-normalised gate is reproducible without a RenderDoc buffer export.
-        internal static byte[] s_EvidenceOriginals;
-        internal static byte[] s_EvidenceHits;
-        internal static bool s_EvidenceRequested;
-
-        internal static void ResetEvidence()
-        {
-            s_RequestEvidence = false;
-            s_EvidenceTlasInstances = -1;
-            s_EvidenceCounters = null;
-            s_EvidenceOriginals = null;
-            s_EvidenceHits = null;
-            s_EvidenceRequested = false;
-        }
-
-        // Diagnostic bisect: 0 shades, 1 writes a fixed colour, 2 echoes the record. Set by the
-        // capture player before rendering; it only affects the hit kernel.
-        internal static int s_HitDebug;
 
         // Verification snapshot: the player cannot see the editor-only counters above, so every
         // dispatched frame publishes the algorithm, sizes, groups, keywords and history slots it
@@ -358,8 +317,11 @@ namespace UnityEngine.Rendering.Universal
             }
 
             ref var cameraData = ref renderingData.cameraData;
+            bool rayTraced = RayTracingActive;
             bool cold = m_History.readColorPyramid == null;
-            if (cold && requestQueue == null) return;
+            // The ray traced path does not sample the previous color pyramid, so it can render the
+            // first frame; the screen space paths need it.
+            if (cold && !rayTraced) return;
 
             var descriptor = cameraData.cameraTargetDescriptor;
             int viewCount = ScreenSpaceLightingXr.GetViewCount(cameraData);
@@ -369,13 +331,16 @@ namespace UnityEngine.Rendering.Universal
             var normalTexture = ScreenSpaceLightingRenderUtils.GetNormalTexture(cameraData.renderer);
             var motionTexture = ScreenSpaceLightingRenderUtils.GetMotionTexture(cameraData.renderer);
             cold |= motionTexture == null;
-            if (depthTexture == null || normalTexture == null || (cold && requestQueue == null))
+            if (depthTexture == null || normalTexture == null || (cold && !rayTraced))
                 return;
 
             int screenWidth = Mathf.Max(1, descriptor.width);
             int screenHeight = Mathf.Max(1, descriptor.height);
-            bool pbr = settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
-            m_History.SyncSsrPbrAlgorithm(settings.usedAlgorithm.value);
+            // The ray traced path reuses the PBR accumulation resources: both produce an
+            // un-premultiplied radiance + weight signal and share the reflection denoiser. The volume
+            // algorithm only selects the screen space fallback when the device cannot trace.
+            bool pbr = settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation || rayTraced;
+            m_History.SyncSsrPbrAlgorithm(pbr ? ScreenSpaceReflectionAlgorithm.PBRAccumulation : ScreenSpaceReflectionAlgorithm.Approximation);
 
             // Approximation and PBR share the volume's resolution switch. A half resolution trace
             // writes a trace sized color target and is bilaterally upsampled into the full resolution
@@ -406,10 +371,9 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
                 ScreenSpaceLightingXr.FillViewConstants(cameraData, viewCount, m_XrViews, m_History);
 
-            // A cold frame or a frame without the hybrid consumer cannot extend the fill history;
-            // drop it so a later re-entry never reuses radiance from before the gap.
-            if ((cold || requestQueue == null) && m_History.ssrHwHasValidHistory)
-                m_History.ResetSsrHwHistory();
+            // Without a motion texture the denoiser cannot reproject, so this frame writes no
+            // history and the accumulation restarts next frame.
+            bool denoiseFrame = pbr && settings.denoise.value && motionTexture != null;
 
             var cmd = renderingData.commandBuffer;
             // P1 ambient: GlxHitLowFrequencyIrradiance reads _GlxHitAmbientIrradiance, which nothing
@@ -420,40 +384,43 @@ namespace UnityEngine.Rendering.Universal
             PushHitAmbient(cmd);
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
-                if (cold)
+                if (rayTraced)
                 {
-                    // PBR samples the previous color pyramid and accumulates in the denoiser, so a
-                    // frame without history has nothing to reconstruct; start next frame. The
-                    // Approximation cold path below only exists to seed its hardware history.
-                    if (pbr) return;
+                    DispatchRayTraced(cmd, ref cameraData, settings, depthTexture, normalTexture,
+                        screenWidth, screenHeight, traceWidth, traceHeight, octNormals);
 
-                    var cs = m_Resources.ssrCompute;
-                    SetKeyword(cs, ScreenSpaceShaderIDs.XrArrayKeyword, false);
-                    SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
-                    SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, true);
-                    SetKeyword(cs, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, halfResolution);
-                    PushShaderVariables(cmd, cs, CreateShaderVariables(ref cameraData, settings,
-                        screenWidth, screenHeight, traceWidth, traceHeight, false));
-                    PushSsrRayLength(cmd, cs, ref cameraData, settings);
-                    Matrix4x4 coldPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
-                    if (TryTrace(cmd, cs, ref cameraData, depthTexture, normalTexture, null, null, traceWidth, traceHeight, false, coldPrevInvViewProj))
+                    if (denoiseFrame)
                     {
-                        using (new ProfilingScope(cmd, s_Reconstruction))
-                            Composite(cmd, cs, depthTexture, normalTexture, null, true, screenWidth, screenHeight);
-                        m_History.SwapSsrHwBuffers();
-                        m_OutputTexture = m_History.ssrOutput;
-                        m_ProducedOutput = true;
+                        var denoiser = m_Resources.ssrReflectionDenoiserCompute;
+                        bool pbrHistoryValid = m_History.ssrPbrHasValidHistory;
+                        PushDenoiserShaderVariables(cmd, ref cameraData, denoiser, screenWidth, screenHeight,
+                            traceWidth, traceHeight, pbrHistoryValid);
+                        DispatchReflectionDenoise(cmd, denoiser, settings, depthTexture, normalTexture,
+                            motionTexture, ScreenSpaceLightingRenderUtils.DivideRoundUp(traceWidth, k_TileSize),
+                            ScreenSpaceLightingRenderUtils.DivideRoundUp(traceHeight, k_TileSize), viewCount,
+                            pbrHistoryValid, halfResolution);
                     }
-                    return;
+
+                    if (halfResolution)
+                    {
+                        DispatchUpsample(cmd, depthTexture, m_History.ssrPbrOriginal, m_History.ssrOutput,
+                            screenWidth, screenHeight, traceWidth, traceHeight,
+                            ScreenSpaceLightingRenderUtils.DivideRoundUp(screenWidth, k_TileSize),
+                            ScreenSpaceLightingRenderUtils.DivideRoundUp(screenHeight, k_TileSize),
+                            viewCount, useTextureArray);
+                    }
                 }
-                Dispatch(cmd, ref cameraData, settings, depthTexture, normalTexture, motionTexture,
-                    screenWidth, screenHeight, traceWidth, traceHeight, viewCount, useTextureArray, octNormals,
-                    pbr, halfResolution, debugParams);
+                else
+                {
+                    Dispatch(cmd, ref cameraData, settings, depthTexture, normalTexture, motionTexture,
+                        screenWidth, screenHeight, traceWidth, traceHeight, viewCount, useTextureArray,
+                        octNormals, pbr, halfResolution, debugParams);
+                }
             }
 
             // Skipping the denoiser means nothing writes the PBR history this frame, so a later
             // re-enable must not sample the stale accumulation: drop it once, on the transition.
-            if (pbr && settings.denoise.value)
+            if (denoiseFrame)
                 m_History.SwapSsrPbrBuffers();
             else if (pbr && m_History.ssrPbrHasValidHistory)
                 m_History.ResetSsrPbrHistory();
@@ -477,251 +444,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        bool TryTrace(CommandBuffer cmd, ComputeShader cs, ref CameraData cameraData, RTHandle depth, RTHandle normals,
-            RTHandle motion, RTHandle hit, int w, int h, bool pbr, in Matrix4x4 prevInvViewProj)
-        {
-            if (requestQueue == null || m_Snapshot == null || m_Scene == null) return false;
-            m_History.EnsureSsrHwHistory(w, h);
-            if (!m_History.ssrHwResourcesAllocated) return false;
-            try
-            {
-                m_History.BeginSsrHwFrame();
-                RecordOriginals(cmd, cs, depth, normals, motion, hit, w, h);
-                requestQueue.Trace(cmd, m_Resources.rayTracingSsr, m_Scene, m_Snapshot, w, h);
-                DispatchHitDeferred(cmd);
-                // Re-shade SS hits from the current-frame GBuffer before the temporal merge, so the
-                // temporal only folds RT hits into the hardware history. Only the PBR reproject reads
-                // the SS publication; the Approximation composite uses the previous colour and would
-                // lose this frame's RT hit if SsrHitSs overwrote its slot.
-                if (pbr && SsrGbufferActive(cameraData))
-                    DispatchHitSs(cmd, ref cameraData, depth, hit, w, h);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                if (s_RequestEvidence && !s_EvidenceRequested)
-                {
-                    s_EvidenceRequested = true;
-                    s_EvidenceTlasInstances = m_Scene != null ? m_Scene.instanceCount : -1;
-                    AsyncGPUReadback.Request(requestQueue.counters, request =>
-                    {
-                        if (request.hasError) return;
-                        s_EvidenceCounters = request.GetData<uint>().ToArray();
-                    });
-                    AsyncGPUReadback.Request(requestQueue.originals, request =>
-                    {
-                        if (request.hasError) return;
-                        s_EvidenceOriginals = request.GetData<byte>().ToArray();
-                    });
-                    AsyncGPUReadback.Request(requestQueue.hits, request =>
-                    {
-                        if (request.hasError) return;
-                        s_EvidenceHits = request.GetData<byte>().ToArray();
-                    });
-                }
-#endif
-                Temporal(cmd, cs, depth, normals, motion, prevInvViewProj);
-                m_LoggedHybridFailure = false;
-                return true;
-            }
-            catch (System.Exception ex)
-            {
-                // Only private scratch may have been written: don't composite or publish it.
-                if (!m_LoggedHybridFailure) Debug.LogWarning($"SSR DXR unavailable; retaining screen-space output: {ex.Message}");
-                m_LoggedHybridFailure = true;
-                return false;
-            }
-        }
-
-        // Shades the SS hit from the current-frame GBuffer. A Deferred-configured renderer can
-        // still fall back to Forward for a camera (MSAA, RenderGraph, unsupported attachments), and
-        // a Forward renderer never allocates deferredLights at all; in both cases SsrHitSs has no
-        // source. The reproject must then keep the previous-colour path instead of zeroing the
-        // screen-space share, so the keyword and the dispatch use this per-camera test.
-        static bool SsrGbufferActive(in CameraData cameraData)
-        {
-            if (!(cameraData.renderer is UniversalRenderer renderer) ||
-                renderer.renderingModeActual != RenderingMode.Deferred)
-                return false;
-
-            var deferred = renderer.deferredLights;
-            return deferred != null && deferred.GbufferAttachments != null && deferred.GbufferAttachments.Length >= 3;
-        }
-
-        // Replace the transport-only payload radiance with deferred shading of the published hit
-        // surface. Runs between DispatchRays and the temporal merge; invalid records (a miss, an
-        // unwritten slot, or a non-reflection source) keep the payload radiance (emission).
-        //
-        // The screen-space hit kernel shades with the same SsrShadeSurface, so the RT and SS sides
-        // stay on one lighting model.
-        void DispatchHitDeferred(CommandBuffer cmd)
-        {
-            s_HitDeferredCalls++;
-            s_HitDeferredSettings = true;
-            var cs = m_Resources.ssrHitDeferredCompute;
-            s_HitDeferredComputeBound = cs != null;
-            if (cs == null)
-            {
-                s_HitDeferredSkipsCompute++;
-                if (!m_LoggedHitDeferredMissing)
-                {
-                    Debug.LogWarning("SSR hit shading is enabled but SsrHitDeferred.compute is missing; keeping the published payload radiance.");
-                    m_LoggedHitDeferredMissing = true;
-                }
-                return;
-            }
-
-            int kernel = cs.FindKernel("SsrHitDeferred");
-            s_HitDeferredKernel = kernel;
-            s_HitDeferredGroups = (requestQueue.k + 63) / 64;
-            s_HitDeferredDispatches++;
-            cmd.SetComputeBufferParam(cs, kernel, "_R1Queue", requestQueue.requests);
-            cmd.SetComputeBufferParam(cs, kernel, "_R1Counts", requestQueue.counters);
-            cmd.SetComputeBufferParam(cs, kernel, "_R2Surfaces", requestQueue.surfaces);
-            cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
-            cmd.SetComputeIntParam(cs, "_R2K", requestQueue.k);
-            cmd.SetComputeIntParam(cs, "_R2HitFrame", requestQueue.hitFrame);
-            cmd.SetComputeIntParam(cs, "_SsrHitLightCount", m_AdditionalLightCount);
-            cmd.SetComputeIntParam(cs, "_SsrHitDebug", s_HitDebug);
-            // Shadow fade in ClusteredDeferred measures from this position.
-            cmd.SetComputeVectorParam(cs, "_CdCameraPositionWS", m_CameraPositionWS);
-            // GlxProbeQuery declares the published-probe atlas unconditionally, and Unity aborts a
-            // compute dispatch at the first declared resource that is unbound: the log carries
-            // "Property (...) ... is not set" and no dispatch reaches the GPU. Without the GI probe
-            // fallback nothing publishes those globals, so bind placeholders that are never
-            // sampled (_GlxHitLowFrequencySource is 0 and the ambient comes from
-            // _GlxHitAmbientIrradiance). With the fallback on, the producer's globals are used.
-            if (!m_Settings.rayTracingProbeFallback)
-            {
-                cmd.SetComputeTextureParam(cs, kernel, "_GlxProbeIrrSnapshot", Texture2D.blackTexture);
-                cmd.SetComputeTextureParam(cs, kernel, "_GlxProbeDistSnapshot", Texture2D.blackTexture);
-                cmd.SetComputeBufferParam(cs, kernel, "_GlxProbeStateSnapshot", requestQueue.counters);
-                cmd.SetComputeBufferParam(cs, kernel, "_GlxProbePublishedSnapshot", requestQueue.counters);
-            }
-            using (new ProfilingScope(cmd, s_HitDeferred))
-                cmd.DispatchCompute(cs, kernel, (requestQueue.k + 63) / 64, 1, 1);
-        }
-
-        // Shades the screen-space hits from the current-frame GBuffer. Runs between DispatchRays
-        // (RT) and the temporal merge; the shaded sample lands in the slot-indexed _R2Hits with the
-        // SS bit, so the reproject reads this frame's surface radiance instead of the previous colour.
-        void DispatchHitSs(CommandBuffer cmd, ref CameraData cameraData, RTHandle depth, RTHandle hit, int traceWidth, int traceHeight)
-        {
-            if (requestQueue == null || hit == null)
-                return;
-            var cs = m_Resources.ssrHitSsCompute;
-            if (cs == null)
-                return;
-            if (!SsrGbufferActive(cameraData))
-                return;
-            var renderer = (UniversalRenderer)cameraData.renderer;
-            var deferred = renderer.deferredLights;
-
-            int kernel = cs.FindKernel("SsrHitSs");
-            SetKeyword(cs, k_GbufferNormalsOctKeyword, ScreenSpaceLightingSsgiPass.UseOctEncodedNormals(renderer));
-
-            cmd.SetComputeBufferParam(cs, kernel, "_R1Original", requestQueue.originals);
-            cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", requestQueue.coverage);
-            cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
-            cmd.SetComputeIntParam(cs, "_R2HitFrame", requestQueue.hitFrame);
-            cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTexture", hit);
-            cmd.SetComputeTextureParam(cs, kernel, "_GBuffer0", deferred.GbufferAttachments[0]);
-            cmd.SetComputeTextureParam(cs, kernel, "_GBuffer1", deferred.GbufferAttachments[1]);
-            cmd.SetComputeTextureParam(cs, kernel, "_GBuffer2", deferred.GbufferAttachments[2]);
-            cmd.SetComputeTextureParam(cs, kernel, "_CameraDepthTexture", depth);
-            int screenWidth = Mathf.Max(1, m_History.ssrWidth);
-            int screenHeight = Mathf.Max(1, m_History.ssrHeight);
-            cmd.SetComputeVectorParam(cs, "_SsrScreenSize",
-                new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight));
-            cmd.SetComputeVectorParam(cs, "_SsrTraceSize", new Vector4(traceWidth, traceHeight, 0f, 0f));
-            cmd.SetComputeIntParam(cs, "_SsrHitLightCount", m_AdditionalLightCount);
-            cmd.SetComputeVectorParam(cs, "_CdCameraPositionWS", m_CameraPositionWS);
-            // Same placeholder policy as the RT hit kernel: GlxProbeQuery declares the published
-            // atlas unconditionally, and an unbound declared resource drops the whole dispatch.
-            if (m_Settings == null || !m_Settings.rayTracingProbeFallback)
-            {
-                cmd.SetComputeTextureParam(cs, kernel, "_GlxProbeIrrSnapshot", Texture2D.blackTexture);
-                cmd.SetComputeTextureParam(cs, kernel, "_GlxProbeDistSnapshot", Texture2D.blackTexture);
-                cmd.SetComputeBufferParam(cs, kernel, "_GlxProbeStateSnapshot", requestQueue.counters);
-                cmd.SetComputeBufferParam(cs, kernel, "_GlxProbePublishedSnapshot", requestQueue.counters);
-            }
-            using (new ProfilingScope(cmd, s_HitSs))
-                cmd.DispatchCompute(cs, kernel, (traceWidth + 7) / 8, (traceHeight + 7) / 8, 1);
-        }
-
-        // Merges this frame's hardware hits with the previous resolved result. The request budget
-        // only serves a slice of the holes per frame, so without this every unserved pixel would
-        // alternate between probe and hardware radiance.
-        void Temporal(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
-            RTHandle motion, in Matrix4x4 prevInvViewProj)
-        {
-            int kernel = cs.FindKernel("R2Temporal");
-            var previousDepth = m_History.readPreviousDepth;
-            var previousNormals = m_History.readPreviousNormals;
-            int readSlot = m_History.ssrHwReadSlot;
-            // Never bind the write slot as the input: a texture cannot be an SRV and a UAV in the
-            // same dispatch. Without history the stale slot is bound but never sampled because the
-            // validity uniform is zero.
-            int readBinding = readSlot >= 0 ? readSlot : (m_History.ssrHwWriteSlot ^ 1);
-            cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", requestQueue.coverage);
-            cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
-            cmd.SetComputeIntParam(cs, "_R2HitFrame", requestQueue.hitFrame);
-            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depth);
-            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normals);
-            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrMotionTexture, motion != null ? motion : depth);
-            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.HistoryDepthTexture,
-                previousDepth != null ? previousDepth : depth);
-            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.HistoryNormalTexture,
-                previousNormals != null ? previousNormals : normals);
-            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrHwHistory,
-                m_History.GetSsrHwHistory(readBinding));
-            cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrHwHistoryRW,
-                m_History.GetSsrHwHistory(m_History.ssrHwWriteSlot));
-            cmd.SetComputeFloatParam(cs, ScreenSpaceLightingShaderIDs.SsrHwHistoryValid, readSlot >= 0 ? 1f : 0f);
-            cmd.SetComputeMatrixParam(cs, ScreenSpaceLightingShaderIDs.SsgiPrevInvViewProj, prevInvViewProj);
-            using (new ProfilingScope(cmd, s_HybridTemporal))
-            {
-                cmd.DispatchCompute(cs, kernel,
-                    ScreenSpaceLightingRenderUtils.DivideRoundUp(m_History.ssrTraceWidth, k_TileSize),
-                    ScreenSpaceLightingRenderUtils.DivideRoundUp(m_History.ssrTraceHeight, k_TileSize), 1);
-            }
-        }
-
-        void Composite(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
-            RTHandle motion, bool cold, int w, int h)
-        {
-            using (new ProfilingScope(cmd, s_HybridComposite))
-            {
-                int kernel = cs.FindKernel(cold ? "R2CompositeCold" : "R2Composite");
-                cmd.SetComputeBufferParam(cs, kernel, "_R1Original", requestQueue.originals);
-                cmd.SetComputeBufferParam(cs, kernel, "_R1Coverage", requestQueue.coverage);
-                cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrHwHistory,
-                    m_History.GetSsrHwHistory(m_History.ssrHwWriteSlot));
-                cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depth);
-                cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normals);
-                cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW, m_History.ssrOutput);
-                if (!cold)
-                {
-                    cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW, m_History.ssrHitPoint);
-                    cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrMotionTexture, motion);
-                    cmd.SetComputeTextureParam(cs, kernel, ScreenSpaceLightingShaderIDs.SsrColorPyramid, m_History.readColorPyramid);
-                }
-                cmd.DispatchCompute(cs, kernel, (w + 7) / 8, (h + 7) / 8, 1);
-            }
-        }
-
-        void RecordOriginals(CommandBuffer cmd, ComputeShader cs, RTHandle depth, RTHandle normals,
-            RTHandle motion, RTHandle hit, int w, int h)
-        {
-            int kernel = cs.FindKernel(hit == null ? "R1Cold" : "R1Original");
-            BindSsrBlueNoise(cmd, cs, kernel);
-            cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrDepthTexture,depth);
-            cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrNormalTexture,normals);
-            if (hit != null)
-            {
-                cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,hit);
-                cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrMotionTexture,motion);
-                cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrColorPyramid,m_History.readColorPyramid);
-            }
-            requestQueue.Record(cmd,cs,kernel,w,h,Time.frameCount);
-        }
 
         void Dispatch(
             CommandBuffer cmd,
@@ -748,9 +470,6 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, !pbr);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, halfResolution);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
-            // The SS radiance comes from the SsrHitSs kernel (current-frame GBuffer) only when the
-            // hybrid queue exists; otherwise the reproject keeps the previous-colour path.
-            bool ssrShadeSs = pbr && requestQueue != null && SsrGbufferActive(cameraData);
             SetKeyword(denoiser, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
 
@@ -816,31 +535,9 @@ namespace UnityEngine.Rendering.Universal
             s_EditorTraceDispatchCount++;
 #endif
 
-            Matrix4x4 hybridPrevInvViewProj = default;
-            if (requestQueue != null)
-                hybridPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
-            // The PBR reproject reads radiance from this frame's GBuffer (the R1 classification
-            // drops the previous-colour pyramid sample), so the R1 gate must be published before
-            // RecordOriginals runs inside TryTrace. The P3 reproject is a separate kernel, selected
-            // below from the same post-trace decision.
-            cmd.SetComputeFloatParam(compute, ScreenSpaceLightingShaderIDs.SsrShadeSs, ssrShadeSs ? 1f : 0f);
-            // R1 re-derives the trace direction from the same blue-noise sequence as the trace, so the
-            // request covers the algorithm's own hit point for this pixel and frame.
-            bool traced = TryTrace(cmd, compute, ref cameraData, depthTexture, normalTexture,
-                motionTexture, pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint,
-                traceWidth, traceHeight, pbr, hybridPrevInvViewProj);
-
-            // A failed hybrid trace leaves the R1/R2 buffers without this frame's data. Keep the
-            // previous-colour path instead of letting the reproject read stale records.
-            ssrShadeSs &= traced;
-
             using (new ProfilingScope(cmd, s_Reconstruction))
             {
-            // The P3 kernel is the only one that declares _R1Coverage/_R2Hits; dispatching the plain
-            // kernel on a no-queue frame keeps those unbound declarations out of the D3D11 path.
-            var reprojectKernel = compute.FindKernel(ssrShadeSs
-                ? "ScreenSpaceReflectionsReprojectionSs"
-                : "ScreenSpaceReflectionsReprojection");
+            var reprojectKernel = compute.FindKernel("ScreenSpaceReflectionsReprojection");
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW,
                 pbr ? m_History.ssrPbrHitPoint : m_History.ssrHitPoint);
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
@@ -849,17 +546,10 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depthTexture);
             if (pbr)
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrReprojectTextureRW,
-                    traced ? m_History.ssrDenoiseIntermediate1 : m_History.ssrPbrOriginal);
+                    m_History.ssrPbrOriginal);
             else
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
                     halfResolution && m_History.ssrApproxOutput != null ? m_History.ssrApproxOutput : m_History.ssrOutput);
-            // The reproject reads this frame's SS shading from the slot-indexed buffers.
-            if (ssrShadeSs)
-            {
-                cmd.SetComputeBufferParam(compute, reprojectKernel, "_R1Coverage", requestQueue.coverage);
-                cmd.SetComputeBufferParam(compute, reprojectKernel, "_R2Hits", requestQueue.hits);
-                cmd.SetComputeIntParam(compute, "_R2HitFrame", requestQueue.hitFrame);
-            }
             using (new ProfilingScope(cmd, s_Reproject))
                 cmd.DispatchCompute(compute, reprojectKernel, traceGroupsX, traceGroupsY, viewCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -869,31 +559,6 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             s_EditorReprojectDispatchCount++;
 #endif
-
-            if (pbr && traced)
-            {
-                // Fold the hardware fill into this frame's reprojection before the denoiser reads it.
-                // The reprojection wrote the SS-only signal into the denoise intermediate, leaving
-                // ssrPbrOriginal free as the merge output and the denoiser's temporal input.
-                int mergeKernel = compute.FindKernel("SsrPbrHwMerge");
-                cmd.SetComputeBufferParam(compute, mergeKernel, "_R1Coverage", requestQueue.coverage);
-                cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrMergeSource,
-                    m_History.ssrDenoiseIntermediate1);
-                cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrHwHistory,
-                    m_History.GetSsrHwHistory(m_History.ssrHwWriteSlot));
-                cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
-                    m_History.ssrPbrOriginal);
-                // B6.1: the merge borrows radiance from same-surface neighbours for slots with no
-                // coverage, so it needs the receiver geometry the reprojection used.
-                cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depthTexture);
-                cmd.SetComputeTextureParam(compute, mergeKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
-                using (new ProfilingScope(cmd, s_PbrHwMerge))
-                    cmd.DispatchCompute(compute, mergeKernel, traceGroupsX, traceGroupsY, viewCount);
-                m_History.SwapSsrHwBuffers();
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                s_LastDispatchStats.hwMergeDispatches++;
-#endif
-            }
 
             if (debugParams)
             {
@@ -936,13 +601,105 @@ namespace UnityEngine.Rendering.Universal
                     screenWidth, screenHeight, traceWidth, traceHeight, screenGroupsX, screenGroupsY,
                     viewCount, useTextureArray);
             }
+            }
+        }
 
-            if (traced && !pbr)
+        // Full-screen ray traced reflections: one thread per trace pixel traces
+        // settings.rayTracingSamples rays, shades every hit with the shared single-point kernel and
+        // writes un-premultiplied radiance plus the resolved share into ssrPbrOriginal. The reflection
+        // denoiser then accumulates the samples across frames, exactly like the screen-space PBR
+        // signal. Misses publish weight 0 so the material keeps its probe/sky term.
+        void DispatchRayTraced(
+            CommandBuffer cmd,
+            ref CameraData cameraData,
+            ScreenSpaceReflection settings,
+            RTHandle depthTexture,
+            RTHandle normalTexture,
+            int screenWidth,
+            int screenHeight,
+            int traceWidth,
+            int traceHeight,
+            bool octNormals)
+        {
+            var shader = m_Resources.rayTracingSsr;
+            float near = Mathf.Max(1e-5f, cameraData.camera.nearClipPlane);
+            float far = Mathf.Max(near + 1e-4f, cameraData.camera.farClipPlane);
+
+            float roughnessFadeEnd = 1f - settings.minSmoothness.value;
+            float roughnessFadeStart = 1f - settings.smoothnessFadeStart.value;
+            float roughnessFadeLength = roughnessFadeEnd - roughnessFadeStart;
+            float fadeRcpLength = roughnessFadeLength != 0f ? 1f / roughnessFadeLength : 0f;
+            float fadeEndTimesRcpLength = roughnessFadeLength != 0f ? roughnessFadeEnd * fadeRcpLength : 1f;
+            int samples = Mathf.Clamp(m_Settings.rayTracingSamples, 1, 32);
+
+            cmd.SetRayTracingShaderPass(shader, "GlxDXR");
+            cmd.SetRayTracingAccelerationStructure(shader, s_Scene, m_Snapshot);
+            m_Scene.BindLights(cmd, shader);
+
+            cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depthTexture);
+            cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
+            cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsrRtRadianceRW, m_History.ssrPbrOriginal);
+
+            cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrScreenSize,
+                new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight));
+            cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrTraceSize,
+                new Vector4(traceWidth, traceHeight, 1f / traceWidth, 1f / traceHeight));
+            cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrRoughnessFadeParams,
+                new Vector4(fadeRcpLength, fadeEndTimesRcpLength, roughnessFadeEnd, 0f));
+            cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrRayTraceParams,
+                new Vector4(Mathf.Min(settings.rayLength.value, far), Time.frameCount, samples, settings.biasFactor.value));
+            cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrCameraPositionWS, m_CameraPositionWS);
+            // Same value ScriptableRenderer publishes as unity_MatrixInvVP; ray tracing shaders do not
+            // receive the built-in camera constants, so bind it explicitly.
+            Matrix4x4 invViewProj = Matrix4x4.Inverse(cameraData.GetViewMatrix()) *
+                Matrix4x4.Inverse(cameraData.GetGPUProjectionMatrix());
+            cmd.SetRayTracingMatrixParam(shader, s_SsrInvViewProj, invViewProj);
+            // ClusteredDeferred reads the camera from its own uniform. The raster pass only sets it on
+            // the ClusteredDeferred compute shader, so bind it here instead of relying on the global.
+            cmd.SetRayTracingVectorParam(shader, s_CdCameraPositionWS, m_CameraPositionWS);
+            cmd.SetRayTracingIntParam(shader, ScreenSpaceLightingShaderIDs.SsrNormalsOctFlag, octNormals ? 1 : 0);
+            cmd.SetRayTracingIntParam(shader, ScreenSpaceLightingShaderIDs.SsrHitLightCount, m_AdditionalLightCount);
+            cmd.SetRayTracingIntParam(shader, ScreenSpaceLightingShaderIDs.SsrBlueNoiseValid,
+                m_Resources.hasSsrBlueNoise ? 1 : 0);
+            if (m_Resources.hasSsrBlueNoise)
             {
-                Composite(cmd, compute, depthTexture, normalTexture, motionTexture, false, screenWidth, screenHeight);
-                m_History.SwapSsrHwBuffers();
+                cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsgiOwenScrambledTexture,
+                    m_Resources.ssgiOwenScrambledTexture);
+                cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsgiScramblingTileXSPP,
+                    m_Resources.ssrScramblingTile);
+                cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsgiRankingTileXSPP,
+                    m_Resources.ssrRankingTile);
             }
+            else
+            {
+                // The sequence falls back to IGN + R2, but a declared texture must still be bound or
+                // Unity drops the dispatch.
+                cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsgiOwenScrambledTexture,
+                    Texture2D.whiteTexture);
+                cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsgiScramblingTileXSPP,
+                    Texture2D.whiteTexture);
+                cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsgiRankingTileXSPP,
+                    Texture2D.whiteTexture);
             }
+
+            // GlxProbeQuery declares the published-probe atlas unconditionally and Unity drops a
+            // dispatch at the first unbound declared resource. Without the GI probe fallback nothing
+            // publishes those globals, so bind placeholders that are never sampled
+            // (_GlxHitLowFrequencySource is 0 and the ambient comes from _GlxHitAmbientIrradiance).
+            if (m_Settings == null || !m_Settings.rayTracingProbeFallback)
+            {
+                cmd.SetRayTracingTextureParam(shader, s_GlxProbeIrrSnapshot, Texture2D.blackTexture);
+                cmd.SetRayTracingTextureParam(shader, s_GlxProbeDistSnapshot, Texture2D.blackTexture);
+                var placeholder = m_Scene.lightCounters;
+                if (placeholder != null)
+                {
+                    cmd.SetRayTracingBufferParam(shader, s_GlxProbeStateSnapshot, placeholder);
+                    cmd.SetRayTracingBufferParam(shader, s_GlxProbePublishedSnapshot, placeholder);
+                }
+            }
+
+            using (new ProfilingScope(cmd, s_RayTrace))
+                cmd.DispatchRays(shader, "TraceSsrFullScreen", (uint)traceWidth, (uint)traceHeight, 1, null);
         }
 
         // The reflection denoiser reuses the geometry helpers of the SSGI temporal filter, so it reads
@@ -1033,8 +790,12 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseDepthTexture, depthTexture);
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseNormalTexture, normalTexture);
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseMotionTexture, motionTexture);
-            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistoryDepthTexture, m_History.readPreviousDepth);
-            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistoryNormalTexture, m_History.readPreviousNormals);
+            // The ray traced path can run on a frame that has no color history yet; the temporal
+            // kernel never samples these when _HistoryValidity is zero, but they must be bound.
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistoryDepthTexture,
+                m_History.readPreviousDepth != null ? m_History.readPreviousDepth : depthTexture);
+            cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistoryNormalTexture,
+                m_History.readPreviousNormals != null ? m_History.readPreviousNormals : normalTexture);
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistoryBuffer, m_History.GetSsrPbrHistory(readSlot));
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.HistorySampleCountTexture, m_History.GetSsrPbrSampleCount(readSlot));
             cmd.SetComputeTextureParam(denoiser, temporalKernel, ScreenSpaceLightingShaderIDs.DenoiseOutputTextureRW, m_History.ssrDenoiseIntermediate0);

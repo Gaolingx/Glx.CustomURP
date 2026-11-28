@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // Renderer owns the scene; cameras borrow its built snapshot but never share request slots.
-    // Only subscribe while an eligible consumer exists (SetActive(false) skips AddRenderPasses).
+    // Renderer owns the scene; cameras borrow its built snapshot. Only subscribe while an eligible
+    // consumer exists (SetActive(false) skips AddRenderPasses).
     internal sealed class SsrRayTracingCameras : IDisposable
     {
         sealed class Entry
         {
-            internal SsrRequestQueue queue;
             internal int frame;
         }
         readonly ScreenSpaceLightingRendererFeature m_Owner;
@@ -31,11 +29,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal static bool Eligible(in CameraData camera, ScreenSpaceLightingSettings settings, ScreenSpaceReflection ssr)
         {
-            // Both algorithms consume the fill: Approximation point-expands it after the upsample,
-            // PBR folds it into the reprojection before its denoiser. The trace-sized targets exist
-            // at both resolutions; the fixed-K budget is simply spread over 4x more tiles at full
-            // resolution, so the requested budget must scale up with the trace size.
-            if (!settings.rayTracingReflections || settings.reflectionRayBudget <= 0 || ssr == null || !ssr.enabled.value ||
+            // The ray traced path traces every trace pixel, so it always needs the trace sized color
+            // targets; a half resolution trace additionally needs the bilateral upsample.
+            if (!settings.rayTracingReflections || settings.rayTracingSamples <= 0 || ssr == null || !ssr.enabled.value ||
                 settings.resources?.rayTracingSsr == null || !settings.resources.hasSsrResources ||
                 (!ssr.fullResolution.value && settings.resources.bilateralUpsampleCompute == null)) return false;
             return camera.camera &&
@@ -55,14 +51,8 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (!m_Cameras.TryGetValue(camera.camera, out var entry))
                         m_Cameras[camera.camera] = entry = new Entry();
-                    int k = Mathf.Clamp(settings.reflectionRayBudget, 0, 131072);
-                    if (entry.queue == null || entry.queue.budget != k)
-                    {
-                        entry.queue?.Dispose();
-                        entry.queue = new SsrRequestQueue(k);
-                    }
                     entry.frame = Time.frameCount;
-                    pass.SetHybrid(entry.queue, m_Scene, snapshot);
+                    pass.SetRayTracing(m_Scene, snapshot);
                     if (!m_Subscribed)
                     {
                         RenderPipelineManager.endContextRendering += EndContext;
@@ -82,12 +72,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Forget(Camera camera)
         {
-            if (!ReferenceEquals(camera, null) && m_Cameras.TryGetValue(camera, out var entry))
-            {
-                entry.queue.Dispose();
-                m_Cameras.Remove(camera);
-            }
-            if (m_Cameras.Count == 0) Clear();
+            if (ReferenceEquals(camera, null) || !m_Cameras.Remove(camera))
+                return;
+            if (m_Cameras.Count == 0)
+                Clear();
         }
 
         void SceneUnloaded(Scene scene)
@@ -100,7 +88,8 @@ namespace UnityEngine.Rendering.Universal
 
         void EndContext(ScriptableRenderContext context, List<Camera> cameras)
         {
-            if (!m_Owner || !m_Owner.isActive || !m_Owner.settings.rayTracingReflections || m_Owner.settings.reflectionRayBudget <= 0)
+            if (!m_Owner || !m_Owner.isActive || !m_Owner.settings.rayTracingReflections ||
+                m_Owner.settings.rayTracingSamples <= 0)
             { Clear(); return; }
             m_Release.Clear();
             foreach (var pair in m_Cameras)
@@ -122,7 +111,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 m_Subscribed = false;
             }
-            foreach (var entry in m_Cameras.Values) entry.queue.Dispose();
             m_Cameras.Clear();
             m_Members.Clear();
             // The scene is shared with the GI probe producer; drop only this consumer's bit.

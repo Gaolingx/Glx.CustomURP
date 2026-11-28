@@ -143,9 +143,9 @@ void GlxLitClosestHit(inout GlxBasicPayload payload : SV_RayPayload,
         float3 hitNormal = dot(n, WorldRayDirection()) > 0 ? -n : n;
         if (mode == GlxReflectionMode)
         {
-            // SSR reflections are lit exactly once, by the RT/SS hit kernels, from this transport
+            // SSR reflections are lit exactly once, by the reflection raygen, from this transport
             // record. Shading them here too would repeat every light visit and shadow ray only for
-            // SsrHitDeferred to overwrite the result. Emission stays as the unpublished fallback.
+            // the raygen to overwrite the result. Emission stays as the unpublished fallback.
             payload.ssrBaseColor = base.rgb;
             payload.ssrNormalOct = SsrEncodeOctNormal(hitNormal);
             payload.ssrRoughness = 1.0 - smoothness;

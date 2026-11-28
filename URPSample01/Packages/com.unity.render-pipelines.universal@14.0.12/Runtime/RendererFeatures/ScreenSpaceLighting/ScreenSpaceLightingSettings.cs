@@ -31,11 +31,11 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Publishes the reflection probe atlas in Forward and Deferred so the SSGI miss fallback can sample local reflection probes. Ignored in Forward+, which always publishes the atlas. Enabling it allocates and updates the atlas, and the sky part of Reflection Probes and Sky becomes the ambient probe.")]
         internal bool publishProbeAtlas = false;
 
-        [SerializeField, Tooltip("Resolve unresolved opaque SSR against registered scene meshes, for both the Approximation and PBR Accumulation algorithms at full or half resolution. Requires hardware ray tracing support.")]
+        [SerializeField, Tooltip("Trace opaque reflections against registered scene meshes instead of the screen space march, at full or half resolution. Requires hardware ray tracing support. When enabled, rayTracingSamples rays are traced per pixel per frame and the volume algorithm only selects the screen-space fallback used when the device cannot trace.")]
         internal bool rayTracingReflections = false;
 
-        [SerializeField, Range(0, 131072), Tooltip("Fixed ray dispatch width per eligible camera. Zero disables hardware reflection requests. Full resolution needs roughly 4x the half resolution budget to keep the same per-pixel fill density.")]
-        internal int reflectionRayBudget = 32768;
+        [SerializeField, Range(1, 32), Tooltip("Ray-traced reflection samples per pixel per frame. Every trace pixel is ray traced each frame; the reflection denoiser accumulates the samples across frames.")]
+        internal int rayTracingSamples = 1;
 
         [SerializeField, Tooltip("Environment source mixed with SSR in the deferred indirect-specular composite. A1 samples _GlossyEnvironmentCubeMap (default); A2 uses the published GI probe atlas when the probe fallback runs (directional irradiance, no roughness mips; probe coverage blends it over the cubemap); A3 uses the ambient irradiance stand-in.")]
         internal SsrIndirectSource ssrIndirectSource = SsrIndirectSource.A1;

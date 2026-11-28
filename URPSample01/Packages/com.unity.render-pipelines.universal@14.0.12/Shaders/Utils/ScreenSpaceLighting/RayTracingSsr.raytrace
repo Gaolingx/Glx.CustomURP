@@ -1,58 +1,354 @@
 #pragma max_recursion_depth 2
 
-#include "SsrRayRequest.hlsl"
-#include "../../RayTracing/GlxHitLightCounters.hlsl"
+// Full-screen ray traced reflections (HDRP RayTracing-style): one thread per trace pixel traces
+// _SsrRayTraceParams.z rays, shades every hit immediately and writes un-premultiplied radiance plus
+// the resolved share. The reflection denoiser owns the temporal accumulation, so there is no request
+// queue, budget or per-pixel classification.
+//
+// The ray tracing compiler runs without the SRP core prelude (core Common.hlsl is suppressed), so
+// this file is self-contained: it declares the light globals it reads and reproduces the URP direct
+// BRDF (same GGX approximation as ShaderLibrary/BRDF.hlsl) instead of including ClusteredDeferred.
+// The shading is unshadowed and visits up to 64 additional lights, matching the previous compute
+// hit kernel's compiled variant.
+//
+// rayMiss writes GlxMiss: the material's blend keeps the reflection probe / sky share for the
+// samples that did not resolve.
+
+#include "../../RayTracing/GlxBasicPayload.hlsl"
 #include "../../RayTracing/SsrHitSurface.hlsl"
 
-StructuredBuffer<R1Sample> _R1Queue;
-StructuredBuffer<uint> _R1Counts;
-RWStructuredBuffer<GlxPublishedHit> _R2Hits;
-// Served stamp: the hit buffer is not cleared every frame, so the consumer accepts a record only
-// when its mode holds this frame's value. A miss still publishes (flags = GlxMiss).
-uint _R2HitFrame;
-// C2.7: request-indexed hit surface. A miss or an invalid request publishes version 0, so
-// the consumer never needs a separate clear of this 80-byte buffer.
-RWStructuredBuffer<SsrHitSurface> _R2Surfaces;
-uint _R2K;
+static const float k_SsrPi = 3.14159265358979323846;
+static const float k_SsrInvPi = 0.31830988618379067154;
+static const float k_SsrMinGgxRoughness = 0.000244140625; // HALF_MIN_SQRT
+static const uint k_SsrHitLightCap = 64u;
+static const float2 k_SsrR2Sequence = float2(0.7548776662466927, 0.5698402909980532);
 
-// Raygen only: assemble the published-surface record from the reflection payload.
+// URP global light data (same names ForwardLights / ClusteredDeferred upload).
+float4 _MainLightPosition;
+float4 _MainLightColor;
+float4 _AdditionalLightsPosition[256];
+float4 _AdditionalLightsColor[256];
+float4 _AdditionalLightsAttenuation[256];
+float4 _AdditionalLightsSpotDir[256];
+float4 _GlxHitAmbientIrradiance;
+
+Texture2D<float> _SsrDepthTexture;
+Texture2D<float4> _SsrNormalTexture;
+Texture2D<float> _SsgiOwenScrambledTexture;
+Texture2D<float> _SsgiScramblingTileXSPP;
+Texture2D<float> _SsgiRankingTileXSPP;
+RWTexture2D<float4> _SsrRtRadianceRW;
+
+float4 _SsrScreenSize;
+float4 _SsrTraceSize;
+float4 _SsrRoughnessFadeParams;
+// x: ray length, y: frame index, z: samples per pixel, w: GGX bias.
+float4 _SsrRayTraceParams;
+float4 _SsrCameraPositionWS;
+// Same inverse (view * GPU projection) the compute trace reads from unity_MatrixInvVP; the ray
+// tracing shader has no built-in camera constants, so the pass binds it explicitly.
+float4x4 _SsrInvViewProj;
+uint _SsrNormalsOct;
+uint _SsrBlueNoiseValid;
+uint _SsrHitLightCount;
+
+// Mirrors GetBNDSequenceSample with the 1SPP tiles (HDRP binds the same set to the screen space
+// SSR trace). Falls back to IGN + R2 when the package LUTs are missing.
+float SsrSequenceSample(uint2 pixelCoord, uint sampleIndex, uint dimension)
+{
+    if (_SsrBlueNoiseValid != 0)
+    {
+        pixelCoord = pixelCoord & 127;
+        sampleIndex = sampleIndex & 255;
+        dimension = dimension & 255;
+
+        uint rankingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (dimension & 7);
+        uint rankedSampleIndex = sampleIndex ^ clamp(
+            (uint)(_SsgiRankingTileXSPP[uint2(rankingIndex & 127, rankingIndex / 128)] * 256.0), 0, 255);
+        uint value = clamp((uint)(_SsgiOwenScrambledTexture[uint2(dimension, rankedSampleIndex)] * 256.0), 0, 255);
+        float scramblingValue = min(_SsgiScramblingTileXSPP[uint2(rankingIndex & 127, rankingIndex / 128)], 0.999);
+        value = value ^ uint(scramblingValue * 256.0);
+        return (scramblingValue + value) / 256.0;
+    }
+
+    // Interleaved gradient noise, matching core Random.hlsl.
+    const float3 magic = float3(0.06711056, 0.00583715, 52.9829189);
+    float2 ignCoord = float2(pixelCoord) + 5.588238 * (int)sampleIndex;
+    float ign = frac(magic.z * frac(dot(ignCoord, magic.xy)));
+    return frac(frac((sampleIndex + 1) * k_SsrR2Sequence[dimension & 1u]) + ign);
+}
+
+uint2 SsrFullResCoord(uint2 traceCoord)
+{
+    float2 scale = _SsrScreenSize.xy * _SsrTraceSize.zw;
+    uint2 coord = (uint2)floor((float2)traceCoord * scale);
+    return min(coord, (uint2)_SsrScreenSize.xy - 1u);
+}
+
+// Octahedron decode without core Packing.hlsl.
+float3 SsrDecodeOctNormalLocal(float2 e)
+{
+    float3 n = float3(e, 1.0 - abs(e.x) - abs(e.y));
+    if (n.z < 0.0)
+        n.xy = (1.0 - abs(n.yx)) * (n.xy >= 0.0 ? 1.0 : -1.0);
+    return normalize(n);
+}
+
+float2 SsrUnpack888ToFloat2(float3 input)
+{
+    uint3 i = (uint3)(input * 255.0);
+    return float2((i.x << 4) | (i.y >> 4), (i.y << 4) | (i.z >> 4)) / 255.0;
+}
+
+float3 SsrReconstructPositionWS(uint2 coord, float deviceDepth)
+{
+    float2 uv = (coord + 0.5) * _SsrScreenSize.zw;
+    // DXR is D3D12-only, where the project renders with reversed Z and UV-origin top-left.
+    float2 ndc = float2(uv.x, uv.y) * 2.0 - 1.0;
+    float4 positionCS = float4(ndc, deviceDepth, 1.0);
+    float4 positionWS = mul(_SsrInvViewProj, positionCS);
+    return positionWS.xyz / positionWS.w;
+}
+
+float SsrPerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, float fadeEndTimesRcpLength)
+{
+    float t = saturate((perceptualRoughness - fadeRcpLength) / max(fadeEndTimesRcpLength - fadeRcpLength, 1e-6));
+    return t * t * (3.0 - 2.0 * t);
+}
+
+// Heitz 2018 GGX visible normal sampling. Inputs/outputs are world space.
+bool SsrSampleDirection(float alpha, float3 N, float3 V, float2 u, out float3 direction)
+{
+    direction = 0.0;
+    float3 up = abs(N.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
+    float3 T = normalize(cross(up, N));
+    float3 B = cross(N, T);
+    float3 Ve = float3(dot(V, T), dot(V, B), dot(V, N));
+    if (Ve.z <= 1e-5)
+        return false;
+
+    float3 Vh = normalize(float3(alpha * Ve.x, alpha * Ve.y, Ve.z));
+    float lensq = Vh.x * Vh.x + Vh.y * Vh.y;
+    float3 T1 = lensq > 0.0 ? float3(-Vh.y, Vh.x, 0.0) * rsqrt(lensq) : float3(1.0, 0.0, 0.0);
+    float3 T2 = cross(Vh, T1);
+
+    float r = sqrt(u.x);
+    float phi = 2.0 * k_SsrPi * u.y;
+    float t1 = r * cos(phi);
+    float t2 = r * sin(phi);
+    float s = 0.5 * (1.0 + Vh.z);
+    t2 = (1.0 - s) * sqrt(max(0.0, 1.0 - t1 * t1)) + s * t2;
+    float3 Nh = t1 * T1 + t2 * T2 + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * Vh;
+
+    float3 Ne = normalize(float3(alpha * Nh.x, alpha * Nh.y, max(0.0, Nh.z)));
+    float3 Le = 2.0 * dot(Ve, Ne) * Ne - Ve;
+    if (Le.z <= 0.0)
+        return false;
+
+    direction = normalize(T * Le.x + B * Le.y + N * Le.z);
+    return true;
+}
+
+// URP DirectBRDFSpecular (ShaderLibrary/BRDF.hlsl), float precision.
+float SsrSpecularTerm(float roughness, float roughness2, float roughness2MinusOne, float normalizationTerm,
+    float3 N, float3 L, float3 V)
+{
+    float3 halfDir = normalize(L + V);
+    float NoH = saturate(dot(N, halfDir));
+    float LoH = saturate(dot(L, halfDir));
+    float d = NoH * NoH * roughness2MinusOne + 1.00001;
+    float specularTerm = roughness2 / max((d * d) * max(0.1, LoH * LoH) * normalizationTerm, 1e-8);
+    return specularTerm;
+}
+
+float SsrDistanceAttenuation(float distanceSqr, float2 distanceAttenuation)
+{
+    float factor = distanceSqr * distanceAttenuation.x;
+    float smoothFactor = saturate(1.0 - factor * factor);
+    smoothFactor *= smoothFactor;
+    return smoothFactor / max(distanceSqr, 1e-6);
+}
+
+float SsrAngleAttenuation(float3 spotDirection, float3 lightDirection, float2 spotAttenuation)
+{
+    float atten = saturate(dot(spotDirection, lightDirection) * spotAttenuation.x + spotAttenuation.y);
+    return atten * atten;
+}
+
+float3 SsrShadeDirect(float3 N, float3 V, float3 diffuseColor, float3 specularColor,
+    float roughness, float roughness2, float roughness2MinusOne, float normalizationTerm,
+    float3 lightDirection, float3 lightColor)
+{
+    float NdotL = saturate(dot(N, lightDirection));
+    if (NdotL <= 0.0)
+        return 0.0;
+    float3 brdf = diffuseColor + specularColor * SsrSpecularTerm(
+        roughness, roughness2, roughness2MinusOne, normalizationTerm, N, lightDirection, V);
+    return brdf * lightColor * NdotL;
+}
+
+// SsrHitSurface shading, mirroring the ClusteredDeferred Lit path the compute hit kernel used:
+// albedo * (1 - reflectivity) diffuse, lerp(dielectric, albedo, metallic) specular, URP GGX
+// specular and the ambient irradiance term. Shadows are not sampled (the previous compute hit
+// kernel compiled without shadow keywords).
+float3 SsrShadeHitSurface(SsrHitSurface s, float3 positionWS, float3 viewWS)
+{
+    float3 N = normalize(s.gb1.xyz);
+    float perceptualRoughness = saturate(s.gb1.w);
+    float3 albedo = max(s.gb0.rgb, 0.0);
+    float metallic = saturate(s.gb0.w);
+    float3 emissive = max(s.gb3.rgb, 0.0);
+
+    float oneMinusReflectivity = 0.96 * (1.0 - metallic);
+    float3 diffuseColor = albedo * oneMinusReflectivity;
+    float3 specularColor = lerp(float3(0.04, 0.04, 0.04), albedo, metallic);
+
+    float roughness = max(perceptualRoughness * perceptualRoughness, k_SsrMinGgxRoughness);
+    float roughness2 = roughness * roughness;
+    float normalizationTerm = roughness * 4.0 + 2.0;
+    float roughness2MinusOne = roughness2 - 1.0;
+
+    float3 color = emissive;
+    color += SsrShadeDirect(N, viewWS, diffuseColor, specularColor,
+        roughness, roughness2, roughness2MinusOne, normalizationTerm,
+        normalize(_MainLightPosition.xyz), _MainLightColor.rgb);
+
+    uint lightCount = min(_SsrHitLightCount, k_SsrHitLightCap);
+    [loop] for (uint i = 0; i < lightCount; ++i)
+    {
+        float4 lightPositionWS = _AdditionalLightsPosition[i];
+        float3 lightVector = lightPositionWS.xyz - positionWS * lightPositionWS.w;
+        float distanceSqr = max(dot(lightVector, lightVector), 1e-8);
+        float3 lightDirection = lightVector * rsqrt(distanceSqr);
+        float4 attenuation = _AdditionalLightsAttenuation[i];
+        float atten = SsrDistanceAttenuation(distanceSqr, attenuation.xy);
+        // w != 0 marks a spot light (directional lights store w == 0).
+        atten *= lerp(1.0, SsrAngleAttenuation(_AdditionalLightsSpotDir[i].xyz, lightDirection, attenuation.zw),
+            lightPositionWS.w != 0.0 ? 1.0 : 0.0);
+        float3 lightColor = _AdditionalLightsColor[i].rgb * atten;
+        color += SsrShadeDirect(N, viewWS, diffuseColor, specularColor,
+            roughness, roughness2, roughness2MinusOne, normalizationTerm, lightDirection, lightColor);
+    }
+
+    // PushHitAmbient publishes the SH irradiance (SH * PI); the BRDF expects radiance.
+    float3 ambientRadiance = max(_GlxHitAmbientIrradiance.xyz, 0.0) * k_SsrInvPi;
+    color += (diffuseColor + specularColor) * ambientRadiance;
+    return max(color, 0.0);
+}
+
 SsrHitSurface SsrBuildHitSurface(in GlxBasicPayload p)
 {
     SsrHitSurface s;
-    float3 dielectric = float3(0.04, 0.04, 0.04); // URP kDielectricSpec.rgb
-    s.gb0 = float4(p.ssrBaseColor, 1.0);
+    s.gb0 = float4(p.ssrBaseColor, p.ssrMetallic);
     s.gb1 = float4(SsrDecodeOctNormal(p.ssrNormalOct), p.ssrRoughness);
-    s.gb2 = float4(lerp(dielectric, p.ssrBaseColor, p.ssrMetallic), 0.0);
+    s.gb2 = float4(0.0, 0.0, 0.0, 0.0);
     s.gb3 = float4(p.ssrEmissive, 0.0);
     s.misc = float4(p.hitT, (float)SsrSurfaceTypeLit, (float)SsrHitSurfaceVersion, (float)SsrHitSurfaceSourceRt);
     return s;
 }
 
 [shader("raygeneration")]
-void TraceSsrRequests()
+void TraceSsrFullScreen()
 {
-    uint index = DispatchRaysIndex().x;
-    if (index >= min(_R1Counts[2], _R2K)) return;
-    R1Sample q = _R1Queue[index];
-    GlxBasicPayload p = GlxEmptyPayload(GlxReflectionMode);
-    SsrHitSurface surface = (SsrHitSurface)0;
-    if (all(isfinite(q.position)) && all(isfinite(q.direction)) && dot(q.direction,q.direction) > 0 &&
-        q.tMax > q.tMin && q.tMin >= 0)
+    uint2 traceCoord = DispatchRaysIndex().xy;
+    if (any(traceCoord >= (uint2)_SsrTraceSize.xy))
+        return;
+
+    uint2 inputCoord = SsrFullResCoord(traceCoord);
+    float4 result = float4(0.0, 0.0, 0.0, 0.0);
+
+    float deviceDepth = _SsrDepthTexture.Load(int3(inputCoord, 0));
+    float4 normalSample = _SsrNormalTexture.Load(int3(inputCoord, 0));
+    float3 normalWS = normalSample.rgb;
+    if (_SsrNormalsOct != 0)
+        normalWS = SsrDecodeOctNormalLocal(SsrUnpack888ToFloat2(normalSample.rgb) * 2.0 - 1.0);
+    else
     {
-        RayDesc ray;
-        ray.Origin = q.position;
-        ray.Direction = normalize(q.direction);
-        ray.TMin = q.tMin;
-        ray.TMax = q.tMax;
-        TraceRay(_GlxScene, RAY_FLAG_NONE, 0xff, 0, 1, 0, ray, p);
-        GlxRecordLightCounters(p);
-        if ((p.flags & GlxHit) != 0)
-            surface = SsrBuildHitSurface(p);
+        float lenSq = dot(normalWS, normalWS);
+        normalWS = lenSq > 1e-8 ? normalWS * rsqrt(lenSq) : 0.0;
     }
-    GlxPublishedHit published = GlxPublishPayload(p);
-    published.mode = _R2HitFrame;
-    _R2Hits[q.slot] = published;
-    _R2Surfaces[index] = surface;
+
+    float encodedSmoothness = normalSample.a;
+    bool materialValid = encodedSmoothness > 0.0 && dot(normalWS, normalWS) > 0.5;
+    float perceptualRoughness = materialValid ? 1.0 - saturate(encodedSmoothness * 2.0 - 1.0) : 1.0;
+    float roughnessFadeEnd = _SsrRoughnessFadeParams.z;
+
+    // DXR is D3D12-only, where the project uses reversed Z: the far plane (no geometry) is 0.
+    if (materialValid && deviceDepth > 0.0 && perceptualRoughness <= roughnessFadeEnd)
+    {
+        float fade = SsrPerceptualRoughnessFade(perceptualRoughness,
+            _SsrRoughnessFadeParams.x, _SsrRoughnessFadeParams.y);
+        float3 positionWS = SsrReconstructPositionWS(inputCoord, deviceDepth);
+        float3 viewWS = _SsrCameraPositionWS.xyz - positionWS;
+
+        if (fade > 0.0 && dot(normalWS, viewWS) > 0.0)
+        {
+            // Same distance-dependent normal bias as the screen-space trace.
+            float3 camPosWS = _SsrCameraPositionWS.xyz;
+            float3 biasedPosWS = camPosWS + (positionWS - camPosWS) *
+                (1.0 - 0.001 * rcp(max(dot(normalWS, normalize(viewWS)), 1e-6)));
+            viewWS = normalize(camPosWS - biasedPosWS);
+
+            uint sampleCount = max((uint)_SsrRayTraceParams.z, 1u);
+            uint baseSample = (uint)_SsrRayTraceParams.y * sampleCount;
+            float rayLength = _SsrRayTraceParams.x;
+            float alpha = clamp(perceptualRoughness * perceptualRoughness,
+                k_SsrMinGgxRoughness * k_SsrMinGgxRoughness, 0.99999);
+
+            float3 accumRadiance = 0.0;
+            uint hits = 0;
+
+            for (uint sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex)
+            {
+                uint sequence = baseSample + sampleIndex;
+                float2 xi = float2(
+                    SsrSequenceSample(traceCoord, sequence, 0),
+                    SsrSequenceSample(traceCoord, sequence, 1));
+                xi.x = lerp(xi.x, 0.0, _SsrRayTraceParams.w);
+
+                float3 direction;
+                if (!SsrSampleDirection(alpha, normalWS, viewWS, xi, direction))
+                    continue;
+                if (dot(normalWS, direction) <= 0.0)
+                    continue;
+
+                RayDesc ray;
+                ray.Origin = biasedPosWS;
+                ray.Direction = direction;
+                ray.TMin = 0.002;
+                ray.TMax = rayLength;
+                GlxBasicPayload payload = GlxEmptyPayload(GlxReflectionMode);
+                TraceRay(_GlxScene, RAY_FLAG_NONE, 0xff, 0, 1, 0, ray, payload);
+                if ((payload.flags & GlxHit) == 0)
+                    continue;
+
+                SsrHitSurface surface = SsrBuildHitSurface(payload);
+                if (uint(surface.misc.z + 0.5) != SsrHitSurfaceVersion)
+                    continue;
+                float distance = surface.misc.x;
+                if (!(distance > 0.0))
+                    continue;
+
+                float3 hitPositionWS = ray.Origin + direction * distance;
+                float3 shaded = SsrShadeHitSurface(surface, hitPositionWS, -direction);
+                if (!all(isfinite(shaded)))
+                    continue;
+
+                accumRadiance += shaded;
+                ++hits;
+            }
+
+            if (hits > 0)
+            {
+                // Un-premultiplied radiance over the hits, weight = resolved share x roughness fade.
+                // The combined term matches HDRP (fade * sum / sampleCount) while a fully missed
+                // pixel keeps weight 0 and therefore the material's probe/sky fallback.
+                result = float4(accumRadiance / hits, fade * hits / sampleCount);
+            }
+        }
+    }
+
+    _SsrRtRadianceRW[traceCoord] = result;
 }
 
 [shader("miss")]
