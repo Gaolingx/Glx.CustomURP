@@ -3,14 +3,14 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // P3 (B2, D1-A): deferred indirect-specular composite. Runs after the opaque SSR pass (221) and
-    // the GBuffer pass, before ClusteredDeferred (230), and produces the indirect-specular term the
-    // deferred GBuffer no longer writes. The deferred light kernel adds the result to the baked colour.
+    // Deferred indirect-specular composite. Runs after the opaque SSR pass (221) and the GBuffer
+    // pass, before ClusteredDeferred (230), and produces the indirect-specular term the deferred
+    // GBuffer no longer writes. The deferred light kernel adds the result to the baked colour.
     //
-    // The pass is inert unless ssrAfterGbuffer is on, so the rollback path never pays for it and the
-    // P1 frame stays bit-identical. Its availability is also published to the GBuffer pass: the
-    // receiver only drops its indirect specular when this pass can actually composite it (see
-    // CanExecute), so a missing kernel or target can never make reflections vanish silently.
+    // The pass is inert when it has nothing to composite. Its availability is also published to the
+    // GBuffer pass: the receiver only drops its indirect specular when this pass can actually
+    // composite it (see CanExecute), so a missing kernel or target can never make reflections
+    // vanish silently.
     internal sealed class ScreenSpaceLightingSsrIndirectSpecularPass : ScriptableRenderPass
     {
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingGbuffer + 5);
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.Universal
         // (probe-aware) fallback rather than an empty composite.
         internal bool CanExecute(in RenderingData renderingData)
         {
-            if (m_Settings == null || !m_Settings.ssrAfterGbuffer)
+            if (m_Settings == null)
                 return false;
             if (m_Compute == null || m_Kernel < 0 || m_History == null || m_History.ssrIndirectSpecular == null)
                 return false;
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
                 return false;
             if (ScreenSpaceRenderUtils.GetCameraDepthTexture(renderer) == null)
                 return false;
-            // A stale target would composite the wrong size, so fall back to the P1 path instead.
+            // A stale target would composite the wrong size, so keep the GBuffer's own specular.
             int width = renderingData.cameraData.cameraTargetDescriptor.width;
             int height = renderingData.cameraData.cameraTargetDescriptor.height;
             return width > 0 && height > 0 && m_History.ssrWidth == width && m_History.ssrHeight == height;
@@ -157,8 +157,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Publish the composite as a global and switch the deferred kernel to the variant that
-            // adds it. The keyword is enabled only here, after the texture is bound, so the rollback
-            // path never declares an unbound texture; the cleanup pass disables it after opaques.
+            // adds it. The keyword is enabled only here, after the texture is bound, so a frame
+            // without a routed receiver never declares an unbound texture; the cleanup pass
+            // disables it after opaques.
             cmd.SetGlobalTexture(ShaderIDs.SpecularGlobal, m_History.ssrIndirectSpecular);
             cmd.EnableShaderKeyword(ScreenSpaceLightingShaderIDs.GlxSsrSpecularKeyword);
         }

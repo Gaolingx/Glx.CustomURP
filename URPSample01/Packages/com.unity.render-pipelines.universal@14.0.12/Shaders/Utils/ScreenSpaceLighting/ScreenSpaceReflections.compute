@@ -109,10 +109,10 @@ SSGI_RW_TEXTURE2D_FLOAT4(_SsrReprojectTextureRW);
 #define _SsrPBRBias _SsrPbrParams.y
 #define _SsrFrameIndex (int)_SsrPbrFlags.x
 
-// P3: the reproject reads SS radiance from _R2Hits (shaded from the current GBuffer by SsrHitSs)
-// instead of the previous colour pyramid. This is keyword-gated so the rollback / D3D11 variant
-// never references the R1/R2 buffers, which are unbound without the hybrid queue, and so cannot
-// drop the dispatch.
+// The reproject reads SS radiance from _R2Hits (shaded from the current GBuffer by SsrHitSs)
+// instead of the previous colour pyramid. This is keyword-gated so the variant without a hybrid
+// queue never references the R1/R2 buffers, which are unbound there, and so cannot drop the
+// dispatch.
 #define SSR_HIT_FLAG_SS 8u
 
 // The Approximation reproject writes the material-facing texture directly; the PBR path writes the

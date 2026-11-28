@@ -19,8 +19,6 @@ MonoBehaviour:
     publishProbeAtlas: 0
     rayTracingReflections: 1
     reflectionRayBudget: 32768
-    hitDeferredShading: 1
-    ssrAfterGbuffer: 0
     ssrIndirectSource: 0
     rayTracingProbeFallback: 0
     probeGridOrigin: {x: -3.5, y: 0.5, z: -3.5}

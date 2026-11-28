@@ -161,11 +161,11 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int ScreenSpaceReflectionParams = Shader.PropertyToID("_ScreenSpaceSsrParams");
         internal static readonly string ScreenSpaceReflectionKeyword = "_SCREEN_SPACE_SSR";
 
-        // P3: tells the deferred Lit GBuffer fragment to skip the indirect-specular term. Set before
-        // the GBuffer pass; 0 on the rollback path keeps the P1 GBuffer output.
+        // Tells the deferred Lit GBuffer fragment to skip the indirect-specular term. Set before the
+        // GBuffer pass; 0 keeps the GBuffer's own output when the 225 composite cannot run.
         internal static readonly int GlxSsrAfterGbuffer = Shader.PropertyToID("_GlxSsrAfterGbuffer");
-        // P3: the deferred light kernel's variant that adds the 225 indirect-specular texture. Enabled
-        // only while the composite texture is bound this frame, so the rollback path never declares it.
+        // The deferred light kernel's variant that adds the 225 indirect-specular texture. Enabled
+        // only while the composite texture is bound this frame, so an unrouted frame never declares it.
         internal static readonly string GlxSsrSpecularKeyword = "_GLX_SSR_SPECULAR";
 
         internal static readonly string SsrNormalsOctKeyword = "SSR_NORMALS_OCT";

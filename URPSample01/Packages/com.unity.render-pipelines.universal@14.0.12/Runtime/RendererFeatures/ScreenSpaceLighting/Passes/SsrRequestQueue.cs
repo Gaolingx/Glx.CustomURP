@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
             this.seed = seed;
         }
 
-        internal void Record(CommandBuffer cmd, ComputeShader cs, int kernel, int width, int height, int frame, bool weightedQuota = false)
+        internal void Record(CommandBuffer cmd, ComputeShader cs, int kernel, int width, int height, int frame)
         {
             // The stamp is consumed by the raygen and the hit kernels whether or not this camera
             // spends a budget this frame, so it is set before the early out.
@@ -63,9 +63,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetBufferData(counters,s_Zero);
             cmd.SetComputeIntParam(cs,"_R1Phase",unchecked(frame+seed));
             cmd.SetComputeIntParam(cs,"_R1K",k);
-            // B6.1: the miss-weighted allocation is P3-only; the rollback path keeps its frozen
-            // even-split frame hashes.
-            cmd.SetComputeIntParam(cs,"_R1WeightedQuota",weightedQuota ? 1 : 0);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Original",originals);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Coverage",coverage);
             cmd.SetComputeBufferParam(cs,kernel,"_R1Counts",counters);

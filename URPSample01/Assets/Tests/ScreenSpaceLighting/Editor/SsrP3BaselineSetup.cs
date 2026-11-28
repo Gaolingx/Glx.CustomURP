@@ -305,15 +305,6 @@ public static class SsrP3BaselineSetup
             throw new InvalidOperationException("ScreenSpaceLightingRendererFeature.m_Settings was not found.");
         settings.FindPropertyRelative("rayTracingReflections").boolValue = true;
         settings.FindPropertyRelative("reflectionRayBudget").intValue = 32768;
-        var hitDeferred = settings.FindPropertyRelative("hitDeferredShading");
-        if (hitDeferred == null)
-            throw new MissingFieldException("ScreenSpaceLightingSettings.hitDeferredShading was not found.");
-        hitDeferred.boolValue = true;
-        // P3 switches stay at the P1 path until B6 passes: the harness flips them per run.
-        var afterGbuffer = settings.FindPropertyRelative("ssrAfterGbuffer");
-        if (afterGbuffer == null)
-            throw new MissingFieldException("ScreenSpaceLightingSettings.ssrAfterGbuffer was not found.");
-        afterGbuffer.boolValue = false;
         var indirectSource = settings.FindPropertyRelative("ssrIndirectSource");
         if (indirectSource == null)
             throw new MissingFieldException("ScreenSpaceLightingSettings.ssrIndirectSource was not found.");
@@ -552,8 +543,6 @@ public static class SsrP3BaselineSetup
             captureRender = CaptureRender,
             rayTracingReflections = true,
             reflectionRayBudget = 32768,
-            hitDeferredShading = true,
-            ssrAfterGbuffer = false,
             ssrIndirectSource = "A1",
             groundMaterial = FixtureRoot + "/SsrP3Ground.mat",
             rayTracingInstances = m_LastRayTracingInstances,
@@ -712,8 +701,6 @@ public static class SsrP3BaselineSetup
         public int captureRender;
         public bool rayTracingReflections;
         public int reflectionRayBudget;
-        public bool hitDeferredShading;
-        public bool ssrAfterGbuffer;
         public string ssrIndirectSource;
         public string groundMaterial;
         public int rayTracingInstances;

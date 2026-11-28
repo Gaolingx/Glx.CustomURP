@@ -236,8 +236,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal RTHandle ssrHitPoint { get; private set; }
         internal RTHandle ssrOutput { get; private set; }
-        // P3: indirect-specular composite written by SsrIndirectSpecular (225) and added by the
-        // deferred light kernel. Full resolution; only sampled when ssrAfterGbuffer is on.
+        // Indirect-specular composite written by SsrIndirectSpecular (225) and added by the
+        // deferred light kernel. Full resolution; sampled only on frames the receiver is routed.
         internal RTHandle ssrIndirectSpecular { get; private set; }
         // Trace sized intermediate for the half resolution Approximation path. Null while the trace
         // runs at full resolution, where the reproject writes ssrOutput directly.

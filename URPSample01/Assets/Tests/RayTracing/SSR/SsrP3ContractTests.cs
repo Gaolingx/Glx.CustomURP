@@ -210,15 +210,17 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
-    public void HitShading_IsASwitchAndRejectsUnsupportedMaterials()
+    public void HitShading_IsUnconditionalAndRejectsUnsupportedMaterials()
     {
         var settings = ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingSettings.cs");
-        StringAssert.Contains("internal bool hitDeferredShading = false;", settings,
-            "Hit shading must stay off by default; the P0 baseline is the closest-hit path.");
+        StringAssert.DoesNotContain("hitDeferredShading", settings,
+            "The hit kernel has no switch any more; every routed receiver runs it.");
 
         var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
-        StringAssert.Contains("m_Settings.hitDeferredShading", pass,
-            "The kernel must follow the serialized feature switch, not a static default.");
+        StringAssert.Contains("DispatchHitDeferred(cmd);", pass,
+            "The RT hit kernel must run on every traced frame.");
+        StringAssert.DoesNotContain("useDeferredHitShading", pass,
+            "No configuration may skip the deferred hit kernel.");
 
         var instances = Normalize(ReadPackage("Runtime/RendererFeatures/RayTracing/RayTracingSceneInstances.cs"));
         StringAssert.Contains("ReportUnsupportedSurface", instances,
@@ -264,37 +266,16 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
-    public void SsrPass_LegacyEventStaysPrepass6_ForRollback()
-    {
-        var type = typeof(ScreenSpaceLightingRendererFeature).Assembly.GetType(
-            "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass", throwOnError: false);
-        Assert.IsNotNull(type, "ScreenSpaceLightingSsrPass was not found; the pass class was renamed.");
-        var field = type.GetField("k_RenderPassEvent", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-        Assert.IsNotNull(field, "k_RenderPassEvent is not declared as a const any more.");
-
-        var raw = field.IsLiteral ? field.GetRawConstantValue() : field.GetValue(null);
-        var expected = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingPrePasses + 6);
-        Assert.AreEqual((int)expected, Convert.ToInt32(raw),
-            "The legacy SSR injection point must stay 206 for the ssrAfterGbuffer=false rollback path (C1).");
-    }
-
-    // --- P3 contract assertions. These are intentionally RED until B2–B4 implement the P3 path;
-    // each failure names the artifact B2/B3/B4 must add. Keep them in the same change as the code.
-    [Test]
-    public void SsrPass_P3InjectsAfterDecalGbuffer_IsSwitched()
+    public void SsrPass_InjectsAfterDecalGbuffer()
     {
         var type = typeof(ScreenSpaceLightingRendererFeature).Assembly.GetType(
             "UnityEngine.Rendering.Universal.ScreenSpaceLightingSsrPass", throwOnError: false);
         Assert.IsNotNull(type, "ScreenSpaceLightingSsrPass was not found.");
-        var field = type.GetField("k_RenderPassEventAfterGbuffer", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-        Assert.IsNotNull(field, "P3 needs k_RenderPassEventAfterGbuffer; the pass must inject right after the Decal GBuffer event (C1).");
+        var field = type.GetField("k_RenderPassEvent", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+        Assert.IsNotNull(field, "k_RenderPassEvent must be declared as a const.");
         var raw = field.IsLiteral ? field.GetRawConstantValue() : field.GetValue(null);
         Assert.AreEqual((int)RenderPassEvent.AfterRenderingGbuffer + 1, Convert.ToInt32(raw),
-            "The P3 SSR injection point must be AfterRenderingGbuffer + 1 (221), strictly after Decal GBuffer (220).");
-
-        var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
-        StringAssert.Contains("ssrAfterGbuffer", pass,
-            "The pass must choose its event from the ssrAfterGbuffer switch (C1/D6).");
+            "The SSR injection point must be AfterRenderingGbuffer + 1 (221), strictly after Decal GBuffer (220).");
     }
 
     [Test]
@@ -317,8 +298,7 @@ public sealed class SsrP3ContractTests
     {
         // The closest-hit material shader cannot include the compute ClusteredDeferred kernel (it
         // runs with per-draw material headers), so the shared single-point shading covers the two
-        // compute hit kernels: the RT hit kernel and the P3 screen-space hit kernel. It stays the
-        // P1 fallback used only when hitDeferredShading is off.
+        // compute hit kernels: the RT hit kernel and the screen-space hit kernel.
         var surface = ReadPackage("Shaders/RayTracing/SsrShadeSurface.hlsl");
         StringAssert.Contains("SsrShadeSurface(", surface,
             "The single-point shading function must live in SsrShadeSurface.hlsl (D3).");
@@ -364,7 +344,7 @@ public sealed class SsrP3ContractTests
             return Convert.ToInt32(raw);
         }
 
-        int ssr = EventOf("ScreenSpaceLightingSsrPass", "k_RenderPassEventAfterGbuffer"); // 221
+        int ssr = EventOf("ScreenSpaceLightingSsrPass", "k_RenderPassEvent"); // 221
         int bind = EventOf("ScreenSpaceLightingSsrBindPass", "k_RenderPassEvent");          // 222
         int indirect = EventOf("ScreenSpaceLightingSsrIndirectSpecularPass", "k_RenderPassEvent"); // 225
         int deferred = (int)RenderPassEvent.BeforeRenderingDeferredLights;                  // 230
@@ -521,16 +501,16 @@ public sealed class SsrP3ContractTests
     public void SsrP3_ForcesTheDeferredHitKernel()
     {
         var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
-        StringAssert.Contains("m_Settings.hitDeferredShading||m_Settings.ssrAfterGbuffer", pass,
-            "P3 must run the RT hit kernel even when hitDeferredShading is off, or SS and RT hits use different shading.");
-        StringAssert.Contains("s_HitDeferredSettings=useDeferredHitShading;", pass,
-            "The evidence flag must record the effective decision, not only the serialized switch.");
+        StringAssert.Contains("s_HitDeferredSettings=true;", pass,
+            "The evidence flag must record that the deferred hit kernel ran.");
+        StringAssert.DoesNotContain("useDeferredHitShading", pass,
+            "The deferred hit kernel is unconditional; no switch may leave SS and RT on different shading.");
     }
 
     // --- B6.1: the coverage ramp (merge borrow + silhouette confidence) and the miss-weighted R1
-    // quota are P3-only. The P1 rollback path has frozen hashes, so none of this may run there.
+    // quota are the only request-allocation shape.
     [Test]
-    public void SsrB61_CoverageRampAndQuotaStayP3Only()
+    public void SsrB61_CoverageRampAndWeightedQuota()
     {
         var compute = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
         var mergeGate = compute.IndexOf("#ifdefined(SSR_PBR_MERGE)", StringComparison.Ordinal);
@@ -544,18 +524,18 @@ public sealed class SsrP3ContractTests
             "The borrowed alpha must stay capped at 0.5 so the environment probe keeps its share.");
 
         var queue = Normalize(ReadPackage("Shaders/Utils/ScreenSpaceLighting/SsrRequestQueue.hlsl"));
-        StringAssert.Contains("floatsilhouette=_R1WeightedQuota!=0u?SsrHitEdgeConfidence(hit):1.0;", queue,
-            "The P3 silhouette confidence must be folded into the R1 coverage split, not the reproject,");
+        StringAssert.Contains("floatsilhouette=SsrHitEdgeConfidence(hit);", queue,
+            "The silhouette confidence must be folded into the R1 coverage split, not the reproject,");
         StringAssert.Contains("s.ssShare*=silhouette;", queue,
             "so the faded share becomes a hardware request (reason 6) instead of empty coverage.");
         StringAssert.Contains("uintR1TileQuota(uintwanted,uinttotalWanted)", queue,
             "The R1 budget must be shared by wanted count (B6.1).");
-        StringAssert.Contains("if(_R1WeightedQuota==0u||_R1K<=tiles)", queue,
-            "The weighted quota must be gated: the P1 rollback path keeps its frozen even-split frames.");
+        StringAssert.Contains("if(_R1K<=tiles)", queue,
+            "K <= tiles must fall back to the even split so no tile starves outright.");
         StringAssert.Contains("local+=R1TileQuota(_R1Tile[t].x,totalWanted);", queue,
             "The offsets scan must use the per-tile quota.");
-        StringAssert.Contains("uintquota=_R1WeightedQuota!=0u?_R1Tile[t].x:R1Quota();", queue,
-            "The scatter window stride must use the tile's served count only on the P3 path.");
+        StringAssert.Contains("uintquota=_R1Tile[t].x;", queue,
+            "The scatter window stride must use the tile's served count.");
 
         var pass = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs"));
         StringAssert.Contains("SetComputeTextureParam(compute,mergeKernel,ScreenSpaceLightingShaderIDs.SsrDepthTexture,depthTexture);", pass,
@@ -608,16 +588,16 @@ public sealed class SsrP3ContractTests
             "The P3 gate must be a shared per-camera helper.");
         StringAssert.Contains("renderer.renderingModeActual!=RenderingMode.Deferred", pass,
             "A Deferred-configured renderer that fell back to Forward must not run SsrHitSs.");
-        StringAssert.Contains("m_Settings.ssrAfterGbuffer&&requestQueue!=null&&SsrGbufferActive(cameraData)", pass,
-            "The _GLX_SSR_SHADE_SS keyword must require an active GBuffer for this camera.");
-        StringAssert.Contains("m_Settings.ssrAfterGbuffer&&SsrGbufferActive(cameraData)", pass,
+        StringAssert.Contains("boolssrShadeSs=pbr&&requestQueue!=null&&SsrGbufferActive(cameraData);", pass,
+            "The _GLX_SSR_SHADE_SS keyword must require a queue and an active GBuffer for this camera.");
+        StringAssert.Contains("if(pbr&&SsrGbufferActive(cameraData))", pass,
             "The SS hit kernel dispatch must follow the same per-camera gate.");
         StringAssert.Contains("ssrShadeSs&=traced;", pass,
             "A failed hybrid trace must disable the P3 reproject variant instead of reading stale R1/R2.");
         StringAssert.Contains("boolssrShadeSs=pbr&&", pass,
             "P3 SS shading is PBR-only; the Approximation composite does not read the SS publication.");
-        StringAssert.Contains("if(pbr&&m_Settings!=null&&m_Settings.ssrAfterGbuffer&&SsrGbufferActive(cameraData))", pass,
-            "SsrHitSs must not overwrite the RT hit an Approximation frame still needs for its hardware fill.");
+        StringAssert.DoesNotContain("ssrAfterGbuffer", pass,
+            "The topology has no per-frame switch; only the GBuffer capability gate remains.");
 
         var composite = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrIndirectSpecularPass.cs"));
         StringAssert.Contains("if(renderer.renderingModeActual!=RenderingMode.Deferred)", composite,
@@ -639,11 +619,11 @@ public sealed class SsrP3ContractTests
     }
 
     [Test]
-    public void SsrP3_SwitchDefaultsOffAndKeywordsDeclared()
+    public void SsrP3_KeywordsDeclaredAndMarkersNamed()
     {
         var settings = Normalize(ReadPackage("Runtime/RendererFeatures/ScreenSpaceLighting/ScreenSpaceLightingSettings.cs"));
-        StringAssert.Contains("internalboolssrAfterGbuffer=false;", settings,
-            "ssrAfterGbuffer must default off until the B6 gates pass (D6).");
+        StringAssert.DoesNotContain("ssrAfterGbuffer", settings,
+            "The after-GBuffer topology is unconditional; it is not a serialized switch.");
 
         StringAssert.Contains("_GLX_SSR_SPECULAR", ReadPackage("Shaders/Utils/ClusteredDeferred.compute"),
             "The deferred kernel must declare the gated specular variant.");

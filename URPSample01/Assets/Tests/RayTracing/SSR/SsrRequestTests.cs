@@ -40,10 +40,11 @@ namespace UnityEditor.Rendering.Universal.Tests
 
         [UnityTest] public IEnumerator GgxSequence() => Check(true,7,true);
         [UnityTest] public IEnumerator NoCandidates() => Check(false,0,false,true);
-        // B6.1: the miss-weighted quota only runs on the P3 path; this case mirrors it.
-        [UnityTest] public IEnumerator WeightedQuota() => Check(true,7,false,false,true);
+        // B6.1: the miss-weighted quota is the only allocation shape; this case runs it on the
+        // Approximation variant, the other cases cover the PBR variant.
+        [UnityTest] public IEnumerator WeightedQuota() => Check(true,7,false,false);
 
-        static IEnumerator Check(bool history,int frame,bool pbr=false,bool empty=false,bool weighted=false)
+        static IEnumerator Check(bool history,int frame,bool pbr=false,bool empty=false)
         {
             const int W=35,H=19,w=17,h=9,k=11;
             var cs=Object.Instantiate(AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.universal/Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute"));
@@ -72,7 +73,7 @@ namespace UnityEditor.Rendering.Universal.Tests
                     cmd.SetComputeTextureParam(cs,kernel,"_SsrMotionTexture",Tex(W,H,(x,y)=>new Color(x>W*.7f?2:0,0,0,0)));
                     cmd.SetComputeTextureParam(cs,kernel,"_SsrColorPyramid",Tex(W,H,(x,y)=>Color.black));
                 }
-                q.Record(cmd,cs,kernel,w,h,frame,weighted); Graphics.ExecuteCommandBuffer(cmd);
+                q.Record(cmd,cs,kernel,w,h,frame); Graphics.ExecuteCommandBuffer(cmd);
                 var rc=AsyncGPUReadback.Request(q.counters); var ro=AsyncGPUReadback.Request(q.originals);
                 var rq=AsyncGPUReadback.Request(q.requests); var rg=AsyncGPUReadback.Request(q.coverage);
                 while(!rc.done || !ro.done || !rq.done || !rg.done) yield return null;
@@ -100,10 +101,9 @@ namespace UnityEditor.Rendering.Universal.Tests
                         }
                         Assert.AreEqual(.002f,s.tMin); Assert.AreEqual(37.5f,s.tMax);
                         float fade=x==2?.5f:x==5?.216f:1f;
-                        // B6.1: on the weighted (P3) path the x==3 hit lands next to the background
-                        // column, so the silhouette confidence is 0 and its share moves to the
-                        // hardware request.
-                        bool silhouetteZero=weighted && x==3;
+                        // B6.1: the x==3 hit lands next to the background column, so the silhouette
+                        // confidence is 0 and its share moves to the hardware request.
+                        bool silhouetteZero=x==3;
                         Assert.AreEqual(silhouetteZero?0f:reason==2?fade:reason==6?.352f:0,s.ss,.0001f);
                         Assert.AreEqual(reason==2?0:reason==6?(silhouetteZero?fade:.648f):fade,s.request,.0001f);
                     } else {
@@ -125,19 +125,17 @@ namespace UnityEditor.Rendering.Universal.Tests
                     if(reason>=3) wantedPerTile[(y/8)*gx+x/8]++;
                 }
                 int totalWanted=0; foreach(var c in wantedPerTile) totalWanted+=c;
-                int evenQuota=Mathf.Max(1,k/tiles);
                 int QuotaFor(int t) {
                     int wn=wantedPerTile[t];
                     if(wn==0) return 0;
-                    if(!weighted || k<=tiles) return Mathf.Min(evenQuota,wn);
+                    if(k<=tiles) return Mathf.Min(Mathf.Max(1,k/tiles),wn);
                     int quota=1+(totalWanted>0?(k-tiles)*wn/totalWanted:0);
                     return Mathf.Min(quota,wn);
                 }
                 for(int j=0;j<tiles;j++) {
                     int t=(frame+j)%tiles,n=0,quota=QuotaFor(t);
-                    // The P1 rollback keeps the even-split stride; the weighted path strides by the
-                    // tile's own served count.
-                    int stride=weighted?quota:evenQuota;
+                    // The window strides by the tile's own served count.
+                    int stride=quota;
                     for(int lane=0;lane<64 && n<quota && expected.Count<k;lane++) {
                         int order=(lane+stride*frame+t*17)%64,x=t%gx*8+order%8,y=t/gx*8+order/8;
                         if(empty || x>=w || y>=h || x<2 || (history && x==2)) continue;

@@ -4,8 +4,8 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class ScreenSpaceLightingSetupPass : ScriptableRenderPass
     {
-        // Material binding/debug slot from the pass order table, after SSGI (205) and opaque SSR
-        // (206) and before Deferred GBuffer (210) or Forward opaque geometry (250).
+        // Material binding/debug slot from the pass order table, after SSGI (205), before the
+        // deferred GBuffer (210), the Decal GBuffer (220) and Forward opaque geometry (250).
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingPrePasses + 7);
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler("Screen Space Lighting Setup");
@@ -15,8 +15,6 @@ namespace UnityEngine.Rendering.Universal
         ScreenSpaceLightingSsrIndirectSpecularPass m_SsrIndirectPass;
         RayTracingProbeFallback m_ProbeFallback;
         float m_ProbeCoverage;
-        bool m_SsrAfterGbuffer;
-        bool m_WarnedReceiverUnavailable;
 
 #if UNITY_EDITOR
         // Editor-only evidence hook: verification code reads this counter to prove the pass ran and
@@ -33,12 +31,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal void Setup(ScreenSpaceLightingSsgiPass ssgiPass, ScreenSpaceLightingSsrPass ssrPass,
-            ScreenSpaceLightingSsrIndirectSpecularPass ssrIndirectPass, bool ssrAfterGbuffer)
+            ScreenSpaceLightingSsrIndirectSpecularPass ssrIndirectPass)
         {
             m_SsgiPass = ssgiPass;
             m_SsrPass = ssrPass;
             m_SsrIndirectPass = ssrIndirectPass;
-            m_SsrAfterGbuffer = ssrAfterGbuffer;
         }
 
         internal void SetProbeFallback(RayTracingProbeFallback probe, float coverage)
@@ -55,26 +52,17 @@ namespace UnityEngine.Rendering.Universal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
-                // P3: publish the receiver switch before the GBuffer pass so the deferred Lit
-                // fragment keeps only indirect diffuse. 0 on the rollback path keeps GBuffer3 as P1.
-                // The switch is also 0 whenever the 225 composite cannot run, so a missing kernel or
-                // target degrades to the P1 GBuffer path instead of dropping every reflection.
-                bool routeReceiver = m_SsrAfterGbuffer &&
-                                     m_SsrIndirectPass != null &&
+                var stack = VolumeManager.instance != null ? VolumeManager.instance.stack : null;
+                // Publish the receiver switch before the GBuffer pass so the deferred Lit fragment
+                // keeps only indirect diffuse. 0 whenever the 225 composite cannot run, so a missing
+                // kernel or target keeps the GBuffer's own indirect specular instead of dropping
+                // every reflection.
+                bool routeReceiver = m_SsrIndirectPass != null &&
                                      m_SsrIndirectPass.CanExecute(renderingData);
                 // The composite follows the same decision, so a later reallocation cannot double-add.
                 m_SsrIndirectPass?.SetReceiverRouted(routeReceiver);
-                if (m_SsrAfterGbuffer && !routeReceiver && !m_WarnedReceiverUnavailable)
-                {
-                    m_WarnedReceiverUnavailable = true;
-                    Debug.LogWarning("[ScreenSpaceLighting] ssrAfterGbuffer is on but the 225 indirect-specular " +
-                                     "composite cannot run (missing compute/kernel, target or deferred GBuffer); " +
-                                     "the deferred GBuffer keeps its indirect specular and the P3 receiver reroute " +
-                                     "stays off until it can.");
-                }
                 cmd.SetGlobalFloat(ScreenSpaceLightingShaderIDs.GlxSsrAfterGbuffer, routeReceiver ? 1f : 0f);
 
-                var stack = VolumeManager.instance.stack;
                 var settings = stack != null ? stack.GetComponent<ScreenSpaceGlobalIllumination>() : null;
                 bool ssgiActive = settings != null && settings.enabled.value;
                 bool bindSsgi = ssgiActive &&

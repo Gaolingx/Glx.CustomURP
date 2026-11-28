@@ -24,19 +24,16 @@ namespace UnityEngine.Rendering.Universal
     // material-facing contract is un-premultiplied radiance with the blend weight in alpha, so a miss
     // keeps the reflection probe.
     //
-    // Runs after the SSGI dispatch (205) and before the material binding pass (207), so Deferred
-    // GBuffer (210) and Forward opaque geometry (250) consume the same texture. With
-    // ssrAfterGbuffer the pass moves to 221 and the binding to 222 (both after the Decal GBuffer
-    // pass at 220), so the deferred receiver takes the 225 composite instead of the material blend.
+    // Runs at 221, after the Decal GBuffer pass (220), and the material binding moves to 222, so the
+    // deferred receiver takes the 225 composite instead of the material blend while Forward opaque
+    // geometry (250) still consumes the material binding.
     internal sealed class ScreenSpaceLightingSsrPass : ScriptableRenderPass
     {
-        internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingPrePasses + 6);
-        // P3: opaque SSR runs after the GBuffer pass so screen-space hits can read the current
-        // frame's GBuffer. The rollback path keeps k_RenderPassEvent (206); Setup picks per frame
-        // from ssrAfterGbuffer. This sits at +1 because the Decal GBuffer pass also injects at
+        // Opaque SSR runs after the GBuffer pass so screen-space hits can read the current frame's
+        // GBuffer. This sits at +1 because the Decal GBuffer pass also injects at
         // AfterRenderingGbuffer (220): a distinct event makes "SSR after decals" deterministic
         // instead of depending on the renderer-feature injection order.
-        internal const RenderPassEvent k_RenderPassEventAfterGbuffer = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingGbuffer + 1);
+        internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingGbuffer + 1);
         internal const string k_ProfilingSamplerName = "Screen Space Reflections";
 
         static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_ProfilingSamplerName);
@@ -60,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
         int m_AdditionalLightCount;
         Vector3 m_CameraPositionWS;
         bool m_LoggedHitDeferredMissing;
-        // P1 diagnostics: the Player report reads these to tell "dispatch recorded" from
+        // Hit-kernel diagnostics: the Player report reads these to tell "dispatch recorded" from
         // "dispatch skipped by a gate", which a GPU capture alone cannot distinguish.
         internal static int s_HitDeferredCalls;
         internal static int s_HitDeferredDispatches;
@@ -332,11 +329,6 @@ namespace UnityEngine.Rendering.Universal
             m_History = history;
             m_Resources = resources;
             m_Settings = settings;
-            // P3 moves opaque SSR to 220; the rollback path (default) stays at 206. Chosen here,
-            // before the feature enqueues the pass, so the renderer sorts it at the right event.
-            renderPassEvent = settings != null && settings.ssrAfterGbuffer
-                ? k_RenderPassEventAfterGbuffer
-                : k_RenderPassEvent;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -498,11 +490,11 @@ namespace UnityEngine.Rendering.Universal
                 RecordOriginals(cmd, cs, depth, normals, motion, hit, w, h);
                 requestQueue.Trace(cmd, m_Resources.rayTracingSsr, m_Scene, m_Snapshot, w, h);
                 DispatchHitDeferred(cmd);
-                // P3: re-shade SS hits from the current-frame GBuffer before the temporal merge, so
-                // the temporal only folds RT hits into the hardware history. Only the PBR reproject
-                // reads the SS publication; the Approximation composite uses the previous colour and
-                // would lose this frame's RT hit if SsrHitSs overwrote its slot.
-                if (pbr && m_Settings != null && m_Settings.ssrAfterGbuffer && SsrGbufferActive(cameraData))
+                // Re-shade SS hits from the current-frame GBuffer before the temporal merge, so the
+                // temporal only folds RT hits into the hardware history. Only the PBR reproject reads
+                // the SS publication; the Approximation composite uses the previous colour and would
+                // lose this frame's RT hit if SsrHitSs overwrote its slot.
+                if (pbr && SsrGbufferActive(cameraData))
                     DispatchHitSs(cmd, ref cameraData, depth, hit, w, h);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 if (s_RequestEvidence && !s_EvidenceRequested)
@@ -539,17 +531,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // P1: replace the closest-hit radiance with deferred shading of the published hit
-        // surface. Runs between DispatchRays and the temporal merge; invalid records (a miss,
-        // an unwritten slot, or a non-reflection source) keep the closest-hit result.
-        //
-        // P3 always uses this kernel: the screen-space hit kernel shades with the same
-        // SsrShadeSurface, so leaving RT hits on the closest-hit approximation would reintroduce the
-        // very shading seam P3 removes.
-        bool useDeferredHitShading => m_Settings != null &&
-                                      (m_Settings.hitDeferredShading || m_Settings.ssrAfterGbuffer);
-
-        // P3 shades the SS hit from the current-frame GBuffer. A Deferred-configured renderer can
+        // Shades the SS hit from the current-frame GBuffer. A Deferred-configured renderer can
         // still fall back to Forward for a camera (MSAA, RenderGraph, unsupported attachments), and
         // a Forward renderer never allocates deferredLights at all; in both cases SsrHitSs has no
         // source. The reproject must then keep the previous-colour path instead of zeroing the
@@ -564,15 +546,16 @@ namespace UnityEngine.Rendering.Universal
             return deferred != null && deferred.GbufferAttachments != null && deferred.GbufferAttachments.Length >= 3;
         }
 
+        // Replace the closest-hit radiance with deferred shading of the published hit surface. Runs
+        // between DispatchRays and the temporal merge; invalid records (a miss, an unwritten slot, or
+        // a non-reflection source) keep the closest-hit result.
+        //
+        // The screen-space hit kernel shades with the same SsrShadeSurface, so leaving RT hits on the
+        // closest-hit approximation would reintroduce the very shading seam that kernel removes.
         void DispatchHitDeferred(CommandBuffer cmd)
         {
             s_HitDeferredCalls++;
-            s_HitDeferredSettings = useDeferredHitShading;
-            if (!useDeferredHitShading)
-            {
-                s_HitDeferredSkipsSettings++;
-                return;
-            }
+            s_HitDeferredSettings = true;
             var cs = m_Resources.ssrHitDeferredCompute;
             s_HitDeferredComputeBound = cs != null;
             if (cs == null)
@@ -617,7 +600,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DispatchCompute(cs, kernel, (requestQueue.budget + 63) / 64, 1, 1);
         }
 
-        // P3: shade the screen-space hits from the current-frame GBuffer. Runs between DispatchRays
+        // Shades the screen-space hits from the current-frame GBuffer. Runs between DispatchRays
         // (RT) and the temporal merge; the shaded sample lands in the slot-indexed _R2Hits with the
         // SS bit, so the reproject reads this frame's surface radiance instead of the previous colour.
         void DispatchHitSs(CommandBuffer cmd, ref CameraData cameraData, RTHandle depth, RTHandle hit, int traceWidth, int traceHeight)
@@ -738,7 +721,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrMotionTexture,motion);
                 cmd.SetComputeTextureParam(cs,kernel,ScreenSpaceLightingShaderIDs.SsrColorPyramid,m_History.readColorPyramid);
             }
-            requestQueue.Record(cmd,cs,kernel,w,h,Time.frameCount, m_Settings != null && m_Settings.ssrAfterGbuffer);
+            requestQueue.Record(cmd,cs,kernel,w,h,Time.frameCount);
         }
 
         void Dispatch(
@@ -766,10 +749,9 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, !pbr);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, halfResolution);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
-            // P3: the SS radiance comes from the SsrHitSs kernel (current-frame GBuffer) only when the
+            // The SS radiance comes from the SsrHitSs kernel (current-frame GBuffer) only when the
             // hybrid queue exists; otherwise the reproject keeps the previous-colour path.
-            bool ssrShadeSs = pbr && m_Settings != null && m_Settings.ssrAfterGbuffer && requestQueue != null &&
-                              SsrGbufferActive(cameraData);
+            bool ssrShadeSs = pbr && requestQueue != null && SsrGbufferActive(cameraData);
             SetKeyword(denoiser, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
 
@@ -838,10 +820,10 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4 hybridPrevInvViewProj = default;
             if (requestQueue != null)
                 hybridPrevInvViewProj = ScreenSpaceLightingRenderUtils.GetPreviousViewProjection(cameraData).inverse;
-            // P3 drops the previous-colour pyramid sample from the R1 classification (the radiance
-            // comes from this frame's GBuffer), so the keyword must be set before RecordOriginals
-            // runs inside TryTrace. Whether the trace publishes is only known afterwards; the
-            // re-set below restores the previous-colour reproject when it fails.
+            // The PBR reproject reads radiance from this frame's GBuffer (the R1 classification
+            // drops the previous-colour pyramid sample), so the keyword must be set before
+            // RecordOriginals runs inside TryTrace. Whether the trace publishes is only known
+            // afterwards; the re-set below restores the previous-colour reproject when it fails.
             SetKeyword(compute, k_GlxSsrShadeSsKeyword, ssrShadeSs);
             // R1 re-derives the trace direction from the same blue-noise sequence as the trace, so the
             // request covers the algorithm's own hit point for this pixel and frame.
@@ -850,7 +832,7 @@ namespace UnityEngine.Rendering.Universal
                 traceWidth, traceHeight, pbr, hybridPrevInvViewProj);
 
             // A failed hybrid trace leaves the R1/R2 buffers without this frame's data. Keep the
-            // previous-colour path instead of letting the P3 reproject read stale records.
+            // previous-colour path instead of letting the reproject read stale records.
             ssrShadeSs &= traced;
             SetKeyword(compute, k_GlxSsrShadeSsKeyword, ssrShadeSs);
 
@@ -869,7 +851,7 @@ namespace UnityEngine.Rendering.Universal
             else
                 cmd.SetComputeTextureParam(compute, reprojectKernel, ScreenSpaceLightingShaderIDs.SsrOutputTextureRW,
                     halfResolution && m_History.ssrApproxOutput != null ? m_History.ssrApproxOutput : m_History.ssrOutput);
-            // P3: the reproject reads this frame's SS shading from the slot-indexed buffers.
+            // The reproject reads this frame's SS shading from the slot-indexed buffers.
             if (ssrShadeSs)
             {
                 cmd.SetComputeBufferParam(compute, reprojectKernel, "_R1Coverage", requestQueue.coverage);

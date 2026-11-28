@@ -8,9 +8,6 @@ RWStructuredBuffer<uint2> _R1Tile; // count then exclusive base in rotated tile 
 RWStructuredBuffer<uint2> _R1Mask; // wanted bit per pixel, 64 bits per tile
 RWStructuredBuffer<uint> _R1Counts; // eligible, requested, served, overflow, then histogram
 uint _R1K, _R1Phase;
-// B6.1: weighted quota is a P3-path decision. The P1 rollback path keeps the even split, so its
-// frozen frame hashes do not move.
-uint _R1WeightedQuota;
 float _SsrRayLength; // volume rayLength, already clamped to the camera far plane
 
 uint2 R1Grid() { return ((uint2)_SsrTraceSize.xy + 7) / 8; }
@@ -22,7 +19,7 @@ uint R1Quota()
     uint tiles = max(1u, R1Grid().x * R1Grid().y);
     return max(1u, _R1K / tiles);
 }
-// B6.1: an even split wastes the budget on tiles whose reflections are already fully resolved and
+// An even split wastes the budget on tiles whose reflections are already fully resolved and
 // starves the tiles where the screen-space trace missed (the reflection silhouettes). Every tile
 // with requests keeps one slot, and the rest of the budget is shared by the wanted count, capped
 // at the tile's own wanted count. The total never exceeds K, so the scatter budget check and the
@@ -33,7 +30,7 @@ uint R1TileQuota(uint wanted, uint totalWanted)
     if (wanted == 0u)
         return 0u;
     uint tiles = max(1u, R1Grid().x * R1Grid().y);
-    if (_R1WeightedQuota == 0u || _R1K <= tiles)
+    if (_R1K <= tiles)
         return min(R1Quota(), wanted);
     uint extra = _R1K - tiles;
     uint quota = 1u + (totalWanted > 0u ? (extra * wanted) / totalWanted : 0u);
@@ -93,7 +90,7 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
                 float edge, share;
                 bool usable;
 #if defined(_GLX_SSR_SHADE_SS)
-                // P3: the radiance is shaded from this frame's GBuffer by SsrHitSs, so the
+                // The radiance is shaded from this frame's GBuffer by SsrHitSs, so the
                 // previous-colour pyramid sample has no consumer here. Its mip-selected gather, the
                 // mip-adjusted border limit and the colour validity test only existed to validate
                 // that sample; coverage is the material fade times the edge fade.
@@ -114,10 +111,10 @@ void R1Cold(uint3 id : SV_DispatchThreadID, uint gtid : SV_GroupIndex)
                 s.reason = 5;
                 if (usable)
                 {
-                    // B6.1 (P3): a hit on a depth silhouette is the least reliable sample, so its
-                    // share goes back to the hardware fill (reason 6) instead of leaving a binary
-                    // edge that the probe has to fill. The P1 rollback keeps the plain formula.
-                    float silhouette = _R1WeightedQuota != 0u ? SsrHitEdgeConfidence(hit) : 1.0;
+                    // A hit on a depth silhouette is the least reliable sample, so its share goes
+                    // back to the hardware fill (reason 6) instead of leaving a binary edge that the
+                    // probe has to fill.
+                    float silhouette = SsrHitEdgeConfidence(hit);
                     s.ssShare *= silhouette;
                     s.requestShare = fade * (1 - edge * silhouette); // never reclaim material roughness fade
                     s.reason = s.requestShare > 0 ? 6 : 2;
@@ -175,9 +172,9 @@ void R1Rank(uint2 tile, uint lane, out uint slot, out uint rank, out uint count)
 {
     uint t = R1TileId(tile);
     uint2 bits = _R1Mask[t];
-    // B6.1: on the P3 path the window stride is the tile's own served count, so a weighted quota
-    // still advances disjoint pixel sets per frame. The P1 rollback keeps the even-split stride.
-    uint quota = _R1WeightedQuota != 0u ? _R1Tile[t].x : R1Quota();
+    // The window stride is the tile's own served count, so a weighted quota still advances
+    // disjoint pixel sets per frame.
+    uint quota = _R1Tile[t].x;
     uint order = (lane + quota * _R1Phase + t*17) % 64;
     uint2 coord = tile*8 + uint2(order%8,order/8);
     slot = coord.y*(uint)_SsrTraceSize.x+coord.x;

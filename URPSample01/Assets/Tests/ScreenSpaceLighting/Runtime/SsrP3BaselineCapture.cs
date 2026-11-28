@@ -254,6 +254,10 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         m_HitAmbientScale = float.TryParse(Arg("-p3-hit-ambient"), NumberStyles.Float, CultureInfo.InvariantCulture, out var ambientScale) ? ambientScale : 1f;
         m_P3SsrAfterGbuffer = HasFlag("-p3-ssr-after-gbuffer");
         m_P3SsrRollback = HasFlag("-p3-ssr-rollback");
+        if (m_P3SsrRollback)
+            throw new ArgumentException(
+                "-p3-ssr-rollback is no longer valid: the P1 rollback topology was removed. " +
+                "Drop the flag; the capture runs the single after-GBuffer topology.");
         m_P3SsrIndirect = Arg("-p3-ssr-indirect");
         if (float.TryParse(Arg("-p3-thickness"), NumberStyles.Float, CultureInfo.InvariantCulture, out var thickness) && thickness >= 0f)
             m_P3Thickness = thickness;
@@ -845,17 +849,6 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
         try
         {
             var type = settings.GetType();
-            var afterGbuffer = type.GetField("ssrAfterGbuffer", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (afterGbuffer != null)
-            {
-                bool value = m_P3SsrRollback
-                    ? false
-                    : m_P3SsrAfterGbuffer
-                        ? true
-                        : (bool)afterGbuffer.GetValue(settings);
-                afterGbuffer.SetValue(settings, value);
-            }
-
             var indirect = type.GetField("ssrIndirectSource", BindingFlags.Instance | BindingFlags.NonPublic);
             int index = ParseIndirect(m_P3SsrIndirect);
             if (indirect != null && index >= 0)
@@ -922,13 +915,9 @@ public sealed class SsrP3BaselineCapture : MonoBehaviour
             var type = settings.GetType();
             var reflections = type.GetField("rayTracingReflections", BindingFlags.Instance | BindingFlags.NonPublic);
             var budget = type.GetField("reflectionRayBudget", BindingFlags.Instance | BindingFlags.NonPublic);
-            var hitDeferred = type.GetField("hitDeferredShading", BindingFlags.Instance | BindingFlags.NonPublic);
-            var afterGbuffer = type.GetField("ssrAfterGbuffer", BindingFlags.Instance | BindingFlags.NonPublic);
             var indirect = type.GetField("ssrIndirectSource", BindingFlags.Instance | BindingFlags.NonPublic);
             report.featureRayTracingReflections = reflections != null && (bool)reflections.GetValue(settings);
             report.featureReflectionRayBudget = budget != null ? (int)budget.GetValue(settings) : -1;
-            report.featureHitDeferredShading = hitDeferred != null && (bool)hitDeferred.GetValue(settings);
-            report.featureSsrAfterGbuffer = afterGbuffer != null && (bool)afterGbuffer.GetValue(settings);
             report.featureSsrIndirectSource = indirect != null ? indirect.GetValue(settings).ToString() : "unknown";
             report.featureReadback = "ok";
         }

@@ -8,8 +8,8 @@ namespace UnityEditor.Rendering.Universal
     {
         internal static readonly string[] k_ReflectionFields =
         {
-            "publishProbeAtlas", "rayTracingReflections", "reflectionRayBudget", "hitDeferredShading",
-            "ssrAfterGbuffer", "ssrIndirectSource", "rayTracingProbeFallback"
+            "publishProbeAtlas", "rayTracingReflections", "reflectionRayBudget",
+            "ssrIndirectSource", "rayTracingProbeFallback"
         };
 
         internal static readonly string[] k_ProbeFields =

@@ -217,10 +217,10 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    // P3: with opaque SSR after the GBuffer pass the deferred receiver writes only indirect diffuse
+    // With opaque SSR after the GBuffer pass the deferred receiver writes only indirect diffuse
     // here; indirect specular is composited by SsrIndirectSpecular (225) and added by the deferred
-    // light kernel, so the environment reflection is sampled exactly once. The rollback path keeps
-    // the original full GlobalIllumination (indirect diffuse + specular) unchanged.
+    // light kernel, so the environment reflection is sampled exactly once. A frame whose composite
+    // cannot run keeps the full GlobalIllumination (indirect diffuse + specular) unchanged.
     const BRDFData noClearCoat = (BRDFData)0;
     half3 color;
     if (_GlxSsrAfterGbuffer > 0.5h)

@@ -19,10 +19,10 @@
 #pragma multi_compile _ _DEFERRED_MIXED_LIGHTING
 // Cameras without the feature never bind a contact texture. The off kernel must not declare it.
 #pragma multi_compile _ _CONTACT_SHADOWS_DEFERRED
-// P3: with opaque SSR after the GBuffer pass the deferred receiver's indirect specular is composited
-// by the plugin (225) and published as a global. The keyword gates the declaration so the rollback
-// path never declares an unbound texture (which would drop the dispatch), and only the enabled
-// variant adds it.
+// With opaque SSR after the GBuffer pass the deferred receiver's indirect specular is composited
+// by the plugin (225) and published as a global. The keyword gates the declaration so a frame
+// without a routed receiver never declares an unbound texture (which would drop the dispatch), and
+// only the enabled variant adds it.
 #pragma multi_compile _ _GLX_SSR_SPECULAR
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ClusteredDeferred.hlsl"
@@ -155,7 +155,7 @@ void ClusteredDeferred(uint3 dispatchThreadId : SV_DispatchThreadID)
         uint materialType = (GetStencilValue(LOAD_TEXTURE2D(_CdStencilTexture, pixel)) >> 5) & 3u;
         if (materialType == 1u || materialType == 2u)
         {
-            // P3: the deferred GBuffer no longer carries indirect specular; the plugin composites it
+            // The deferred GBuffer no longer carries indirect specular; the plugin composites it
             // separately. Add it to the baked colour before the SSAO-cancel multiply so it follows
             // the same occlusion handling as the baked term.
             float3 baked = result.rgb;

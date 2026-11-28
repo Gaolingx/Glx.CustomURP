@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
             m_TransparentDepthNormalsPass.Setup(history, m_Settings.resources);
             m_TransparentSsrPass.Setup(history, m_Settings.resources, m_TransparentDepthNormalsPass);
             m_RefractionPass.Setup(history);
-            m_SetupPass.Setup(m_SsgiPass, m_SsrPass, m_SsrIndirectSpecularPass, m_Settings.ssrAfterGbuffer);
+            m_SetupPass.Setup(m_SsgiPass, m_SsrPass, m_SsrIndirectSpecularPass);
             m_CurrentColorPyramidPass.Setup(history, m_Settings.resources);
             m_ColorHistoryCapturePass.Setup(history, m_Settings.resources);
             m_DebugPass.Setup(history, m_Settings, m_SsgiPass, m_SsrPass,
@@ -247,11 +247,8 @@ namespace UnityEngine.Rendering.Universal
             renderer.EnqueuePass(m_SetupPass);
             renderer.EnqueuePass(m_SsgiPass);
             renderer.EnqueuePass(m_SsrPass);
-            if (m_Settings.ssrAfterGbuffer)
-            {
-                renderer.EnqueuePass(m_SsrBindPass);
-                renderer.EnqueuePass(m_SsrIndirectSpecularPass);
-            }
+            renderer.EnqueuePass(m_SsrBindPass);
+            renderer.EnqueuePass(m_SsrIndirectSpecularPass);
             renderer.EnqueuePass(m_CleanupPass);
             renderer.EnqueuePass(m_CurrentColorPyramidPass);
             renderer.EnqueuePass(m_TransparentDepthNormalsPass);

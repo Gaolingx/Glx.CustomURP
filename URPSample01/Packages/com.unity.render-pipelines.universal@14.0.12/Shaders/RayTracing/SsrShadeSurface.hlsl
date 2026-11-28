@@ -5,13 +5,12 @@
 //
 // The RT hit kernel (SsrHitDeferred.compute) and the screen-space hit kernel (SsrHitSs, B3) both
 // decode a SsrHitSurface and must light it identically, so the reflected surface looks the same on
-// either side of the SS/RT seam. This is the ClusteredDeferred BRDF (CdShade) with the P1 SHADOW_LOW
-// single-tap shadow口径 and the explicit ambient low-frequency term.
+// either side of the SS/RT seam. This is the ClusteredDeferred BRDF (CdShade) with the single-tap
+// shadow and the explicit ambient low-frequency term.
 //
 // The material closest-hit (GlxLitClosestHit) is NOT routed through this header: it runs with the
-// full per-draw material headers and cannot include the compute-safe ClusteredDeferred kernel. It
-// remains the P1 fallback used only when hitDeferredShading is off (D3D11 / kernel missing); on the
-// P3 path the kernels below own all hit shading.
+// full per-draw material headers and cannot include the compute-safe ClusteredDeferred kernel. The
+// two hit kernels below own all SSR hit shading; closest-hit remains the probe-GI path.
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ClusteredDeferred.hlsl"
 #include "SsrHitSurface.hlsl"

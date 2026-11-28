@@ -18,7 +18,7 @@ TEXTURE2D_X(_ScreenSpaceSsrTexture);
 // x: weight scale (volume intensity), y..w: reserved, always zero
 float4 _ScreenSpaceSsrParams;
 
-// P3: 1 when opaque SSR runs after the GBuffer pass. The deferred Lit GBuffer fragment then writes
+// 1 when the 225 composite owns the deferred receiver's indirect specular. The Lit GBuffer fragment then writes
 // only the indirect-diffuse term into GBuffer3 and leaves indirect specular to the 225 composite;
 // the forward path ignores this and keeps the material-side blend. Set before the GBuffer pass.
 half _GlxSsrAfterGbuffer;

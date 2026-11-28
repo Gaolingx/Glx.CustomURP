@@ -3,14 +3,12 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // P3: bind the opaque SSR result for the material-side blend once it exists.
+    // Bind the opaque SSR result for the material-side blend once it exists.
     //
-    // On the rollback path the Setup pass (207) binds SSR right after the SSR pass (206), before the
-    // deferred GBuffer (210) reads it. With ssrAfterGbuffer the SSR pass runs at 221, after the
-    // GBuffer and the Decal GBuffer pass (220), so the deferred receiver no longer reads the material
-    // blend (the 225 composite does) but forward opaque receivers (250) still do. This pass rebinds
-    // the texture and keyword between the SSR pass (221) and the forward opaques, leaving the Setup
-    // pass's SSGI/probe binding at 207 untouched.
+    // The SSR pass runs at 221, after the GBuffer and the Decal GBuffer pass (220), so the deferred
+    // receiver no longer reads the material blend (the 225 composite does) but forward opaque
+    // receivers (250) still do. This pass rebinds the texture and keyword between the SSR pass (221)
+    // and the forward opaques, leaving the Setup pass's SSGI/probe binding at 207 untouched.
     internal sealed class ScreenSpaceLightingSsrBindPass : ScriptableRenderPass
     {
         internal const RenderPassEvent k_RenderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRenderingGbuffer + 2);

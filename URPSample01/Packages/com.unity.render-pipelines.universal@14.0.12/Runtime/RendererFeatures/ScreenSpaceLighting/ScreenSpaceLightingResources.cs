@@ -37,13 +37,13 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/SsrHitDeferred.compute")]
         internal ComputeShader ssrHitDeferredCompute;
 
-        // P3: screen-space hit shading from the current-frame GBuffer (B3). Optional; the pass only
-        // dispatches it when ssrAfterGbuffer is on.
+        // Screen-space hit shading from the current-frame GBuffer (B3). Optional; the pass only
+        // dispatches it for PBR cameras with an active deferred GBuffer.
         [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/SsrHitSs.compute")]
         internal ComputeShader ssrHitSsCompute;
 
-        // P3: deferred indirect-specular composite (D1-A). Optional; the 225 pass is skipped when
-        // this is missing so a renderer without it keeps the rollback path.
+        // Deferred indirect-specular composite (D1-A). Optional; the 225 pass is skipped when this
+        // is missing so the deferred GBuffer keeps its own indirect specular.
         [SerializeField, Reload("Shaders/Utils/ScreenSpaceLighting/SsrIndirectSpecular.compute")]
         internal ComputeShader ssrIndirectSpecularCompute;
 
