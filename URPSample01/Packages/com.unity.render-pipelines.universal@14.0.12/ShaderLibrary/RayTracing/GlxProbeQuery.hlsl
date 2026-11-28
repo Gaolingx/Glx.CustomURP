@@ -62,6 +62,7 @@ bool GlxProbeQuery(float3 position, float3 normal, out float3 irradiance)
     float3 fraction = grid - cell;
     float3 sum = 0;
     float total = 0;
+    const float crushThreshold = 0.2;
     [unroll] for (uint corner = 0; corner < 8; ++corner)
     {
         int3 step = int3(corner & 1u, (corner >> 1u) & 1u, (corner >> 2u) & 1u);
@@ -85,10 +86,14 @@ bool GlxProbeQuery(float3 position, float3 normal, out float3 irradiance)
         float variance = abs(moments.x * moments.x - moments.y);
         float delta2 = moments.x - distance;
         float chebyshev = variance / (variance + delta2 * delta2 + 1e-6);
-        chebyshev = max(chebyshev, 0.05);
+        // RTXGI: cube the visibility term and crush small weights, so a weakly lit probe
+        // cannot leak through an occluder; the 0.05 floor keeps fully covered directions.
+        chebyshev = max(chebyshev * chebyshev * chebyshev, 0.0);
         float wrap = saturate(dot(normal, direction) * 0.5 + 0.5);
-        float w = trilinear * wrap * chebyshev;
-        if (w <= 0) continue;
+        float w = max(wrap * max(chebyshev, 0.05), 1e-6);
+        if (w < crushThreshold)
+            w *= w * w * (1.0 / (crushThreshold * crushThreshold));
+        w *= trilinear;
         sum += w * GlxSampleProbeIrradiance(probe, GlxOctEncode(normal));
         total += w;
     }

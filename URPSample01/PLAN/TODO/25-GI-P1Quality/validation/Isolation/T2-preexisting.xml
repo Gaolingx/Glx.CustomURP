@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-28 16:55:31Z" end-time="2026-11-28 16:55:31Z" duration="0.313067">
+  <test-suite type="TestSuite" id="1723" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="613" result="Failed" site="Child" start-time="2026-11-28 16:55:31Z" end-time="2026-11-28 16:55:31Z" duration="0.313067" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1773" name="Unity.RayTracing.Tests.Editor.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RayTracing.Tests.Editor.dll" runstate="Runnable" testcasecount="27" result="Failed" site="Child" start-time="2026-11-28 16:55:31Z" end-time="2026-11-28 16:55:31Z" duration="0.293926" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="50544" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1774" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="27" result="Failed" site="Child" start-time="2026-11-28 16:55:31Z" end-time="2026-11-28 16:55:31Z" duration="0.292998" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1775" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="27" result="Failed" site="Child" start-time="2026-11-28 16:55:31Z" end-time="2026-11-28 16:55:31Z" duration="0.289380" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1776" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="27" result="Failed" site="Child" start-time="2026-11-28 16:55:31Z" end-time="2026-11-28 16:55:31Z" duration="0.285809" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="1777" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="27" result="Failed" site="Child" start-time="2026-11-28 16:55:31Z" end-time="2026-11-28 16:55:31Z" duration="0.282270" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1771" name="RayTracingT2Tests" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests" classname="UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-11-28 16:55:31Z" end-time="2026-11-28 16:55:31Z" duration="0.277860" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1772" name="ManualSceneKnownVectors" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests.ManualSceneKnownVectors" methodname="ManualSceneKnownVectors" classname="UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests" runstate="Runnable" seed="1566619842" result="Failed" label="Error" start-time="2026-11-28 16:55:31Z" end-time="2026-11-28 16:55:31Z" duration="0.266098" asserts="0">
+                  <properties />
+                  <failure>
+                    <message><![CDATA[System.InvalidOperationException : analytic ray mismatch]]></message>
+                    <stack-trace><![CDATA[  at T2Validation.T2VectorSuite.<Run>g__Ray|1_4 (System.Single x, System.Single z, System.Int32 dz, System.Int32 mask, System.Int32 flags, System.Single t, System.Int32 id, System.Int32 kind, T2Validation.T2VectorSuite+<>c__DisplayClass1_0& , T2Validation.T2VectorSuite+<>c__DisplayClass1_1& , T2Validation.T2VectorSuite+<>c__DisplayClass1_2& ) [0x001ea] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\RayTracing\TLAS\T2VectorSuite.cs:69 
+  at T2Validation.T2VectorSuite.Run (UnityEngine.Experimental.Rendering.RayTracingShader shader, UnityEngine.Shader surface, System.Boolean requireDxr, System.Action`1[T] log) [0x0050d] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\RayTracing\TLAS\T2VectorSuite.cs:72 
+  at UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests.ManualSceneKnownVectors () [0x00000] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\RayTracing\TLAS\RayTracingT2Tests.cs:15 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <1071a2cb0cb3433aae80a793c277a048>:0 ]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[api=Direct3D12 GPU=NVIDIA GeForce RTX 5060 Ti supportsRT=True
+opt-in off: zero builds/resources
+pass=1 queue=2000 alpha=True opaque=Enabled, ClosestHitOnly cut=Enabled
+SSR ray tracing: 'Hidden/T2/IntersectionFixture' (transparent surface) cannot provide the standard GBuffer fields required by C2.7; the submesh is skipped and its hits use the probe/sky fallback.
+frame=2 revision=1 build=1 instances=2 disabledSubmeshes=1
+rev=1 origin=(20,0,0) dz=1 mask=128 flags=0 expected=(4,71,254) gpu=(0,0,0)
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

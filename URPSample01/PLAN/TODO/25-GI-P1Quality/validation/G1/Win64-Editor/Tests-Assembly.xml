@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="27" result="Failed(Child)" total="27" passed="26" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:55Z" duration="0.4181439">
+  <test-suite type="TestSuite" id="1723" name="URPSample01" fullname="URPSample01" runstate="Runnable" testcasecount="613" result="Failed" site="Child" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:55Z" duration="0.418144" total="27" passed="26" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1773" name="Unity.RayTracing.Tests.Editor.dll" fullname="E:/GitHub/Glx.CustomURP/URPSample01/Library/ScriptAssemblies/Unity.RayTracing.Tests.Editor.dll" runstate="Runnable" testcasecount="27" result="Failed" site="Child" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:55Z" duration="0.403524" total="27" passed="26" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="53356" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1774" name="UnityEditor" fullname="UnityEditor" runstate="Runnable" testcasecount="27" result="Failed" site="Child" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:55Z" duration="0.403020" total="27" passed="26" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1775" name="Rendering" fullname="UnityEditor.Rendering" runstate="Runnable" testcasecount="27" result="Failed" site="Child" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:55Z" duration="0.399734" total="27" passed="26" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1776" name="Universal" fullname="UnityEditor.Rendering.Universal" runstate="Runnable" testcasecount="27" result="Failed" site="Child" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:55Z" duration="0.396732" total="27" passed="26" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="1777" name="Tests" fullname="UnityEditor.Rendering.Universal.Tests" runstate="Runnable" testcasecount="27" result="Failed" site="Child" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:55Z" duration="0.393657" total="27" passed="26" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1737" name="RayTracingProbeMathTests" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.051660" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="ParameterizedMethod" id="1743" name="DistanceMoments" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.DistanceMoments" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.029301" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1741" name="DistanceMoments(False)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.DistanceMoments(False)" methodname="DistanceMoments" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="2038082690" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.022510" asserts="0">
+                    <properties />
+                    <output><![CDATA[distance=[3.7,3.7,3.7,3.7]; prefix d=29
+n=14 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH; HSBTMU=96,0,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=7,7 wordAddress=10320 fp16=4366/4AD8 decoded=(3.699219, 13.687500, 0.000000, 0.000000)
+]]></output>
+                  </test-case>
+                  <test-case id="1742" name="DistanceMoments(True)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.DistanceMoments(True)" methodname="DistanceMoments" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1175838463" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000232" asserts="0">
+                    <properties />
+                    <output><![CDATA[distance=[1.5,3.7,3.7,3.7]; prefix d=29
+n=14 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH; HSBTMU=96,0,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=7,7 wordAddress=10320 fp16=40E3/4727 decoded=(2.443359, 7.152344, 0.000000, 0.000000)
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-case id="1755" name="EightNeighborValidityAndRelocation" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.EightNeighborValidityAndRelocation" methodname="EightNeighborValidityAndRelocation" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="2003369299" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.001870" asserts="0">
+                  <properties />
+                  <output><![CDATA[probe=106 xy=3,3 wordAddress=27728 fp16=4648/4648/4648/4648 decoded=(6.281250, 6.281250, 6.281250, 6.281250)
+probe=107 xy=3,3 wordAddress=27760 fp16=0000/0000/0000/0000 decoded=(0.000000, 0.000000, 0.000000, 0.000000)
+probe=114 xy=3,3 wordAddress=29776 fp16=4CB6/4CB6/4CB6/4CB6 decoded=(18.843750, 18.843750, 18.843750, 18.843750)
+probe=115 xy=3,3 wordAddress=29808 fp16=58E9/58E9/58E9/58E9 decoded=(157.125000, 157.125000, 157.125000, 157.125000)
+probe=138 xy=3,3 wordAddress=35920 fp16=58E9/58E9/58E9/58E9 decoded=(157.125000, 157.125000, 157.125000, 157.125000)
+probe=139 xy=3,3 wordAddress=35952 fp16=58E9/58E9/58E9/58E9 decoded=(157.125000, 157.125000, 157.125000, 157.125000)
+probe=146 xy=3,3 wordAddress=37968 fp16=58E9/58E9/58E9/58E9 decoded=(157.125000, 157.125000, 157.125000, 157.125000)
+probe=147 xy=3,3 wordAddress=38000 fp16=58E9/58E9/58E9/58E9 decoded=(157.125000, 157.125000, 157.125000, 157.125000)
+cell=(2, 1, 3) f=(0.25, 0.50, 0.50) offset114=(0.00, 0.00, 0.00) valid=True E/pi=(3.427515, 3.427515, 3.427515)
+cell=(2, 1, 3) f=(0.25, 0.50, 0.50) offset114=(0.00, 0.45, 0.00) valid=True E/pi=(1.499538, 1.499538, 1.499538)
+cell=(2, 1, 3) f=(0.25, 0.50, 0.50) offset114=(0.00, 0.45, 0.00) valid=True E/pi=(0.000000, 0.000000, 0.000000)
+cell=(2, 1, 3) f=(0.25, 0.50, 0.50) offset114=(0.00, 0.45, 0.00) valid=False E/pi=(0.000000, 0.000000, 0.000000)
+]]></output>
+                </test-case>
+                <test-case id="1745" name="FeedbackAddsCappedPreviousIrradianceOnce" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.FeedbackAddsCappedPreviousIrradianceOnce" methodname="FeedbackAddsCappedPreviousIrradianceOnce" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1949327735" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000706" asserts="0">
+                  <properties />
+                  <output><![CDATA[direct=(2.00, 0.38, 1.25) albedo=(1,.25,0) cap=.9 Eprev=(4,6,2)
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH; HSBTMU=96,0,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=48F1/415B/43DB/3C00 decoded=(9.882813, 2.677734, 3.927734, 1.000000)
+]]></output>
+                </test-case>
+                <test-case id="1754" name="GridEdgeDoesNotWrapIntoNextRow" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.GridEdgeDoesNotWrapIntoNextRow" methodname="GridEdgeDoesNotWrapIntoNextRow" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="424792477" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000550" asserts="0">
+                  <properties />
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1748" name="KnownSky" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.KnownSky" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.002589" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1746" name="KnownSky(False)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.KnownSky(False)" methodname="KnownSky" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1920588421" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000751" asserts="0">
+                    <properties />
+                    <output><![CDATA[sky L=(2.00, 0.38, 1.25); blocked L=0; window=False
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS; HSBTMU=0,96,0,0,0,0; skyReads=72; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=4648/3CB6/43DB/3C00 decoded=(6.281250, 1.177734, 3.927734, 1.000000)
+]]></output>
+                  </test-case>
+                  <test-case id="1747" name="KnownSky(True)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.KnownSky(True)" methodname="KnownSky" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1465789439" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000157" asserts="0">
+                    <properties />
+                    <output><![CDATA[sky L=(2.00, 0.38, 1.25); blocked L=0; window=True
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBBBSBB; HSBTMU=0,24,72,0,0,0; skyReads=24; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=3F2E/3563/3C7D/3C00 decoded=(1.794922, 0.336670, 1.122070, 1.000000)
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-case id="1753" name="NonfinitePackedChannelsBecomeZero" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.NonfinitePackedChannelsBecomeZero" methodname="NonfinitePackedChannelsBecomeZero" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="405399547" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000546" asserts="0">
+                  <properties />
+                  <output><![CDATA[probe=0 xy=0,0 wordAddress=260 fp16=0000/0000/0000/3C00 decoded=(0.000000, 0.000000, 0.000000, 1.000000)
+]]></output>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1752" name="OctahedralInteriorAndSeamGutters" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.OctahedralInteriorAndSeamGutters" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.005451" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1750" name="OctahedralInteriorAndSeamGutters(6,4)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.OctahedralInteriorAndSeamGutters(6,4)" methodname="OctahedralInteriorAndSeamGutters" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1807063048" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.003002" asserts="0">
+                    <properties />
+                    <output><![CDATA[probe=9 xy=-1,-1 wordAddress=2080 fp16=5080/D080/5480/4C80 decoded=(36.000000, -36.000000, 72.000000, 18.000000)
+probe=9 xy=6,3 wordAddress=3132 fp16=4C80/CC80/5080/4880 decoded=(18.000000, -18.000000, 36.000000, 9.000000)
+]]></output>
+                  </test-case>
+                  <test-case id="1751" name="OctahedralInteriorAndSeamGutters(14,2)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.OctahedralInteriorAndSeamGutters(14,2)" methodname="OctahedralInteriorAndSeamGutters" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1907512253" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.001033" asserts="0">
+                    <properties />
+                    <output><![CDATA[probe=9 xy=-1,-1 wordAddress=4128 fp16=5A20/DA20 decoded=(196.000000, -196.000000, 0.000000, 0.000000)
+probe=9 xy=14,7 wordAddress=6206 fp16=5620/D620 decoded=(98.000000, -98.000000, 0.000000, 0.000000)
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-case id="1744" name="SkyIsAMeasuredSampleForDistanceMoments" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.SkyIsAMeasuredSampleForDistanceMoments" methodname="SkyIsAMeasuredSampleForDistanceMoments" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="1725372854" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000366" asserts="0">
+                  <properties />
+                  <output><![CDATA[n=14 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHHHSHH; HSBTMU=72,24,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=7,7 wordAddress=10320 fp16=4225/4936 decoded=(3.072266, 10.421880, 0.000000, 0.000000)
+]]></output>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1740" name="SurfaceField" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.SurfaceField" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.001461" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1738" name="SurfaceField(False)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.SurfaceField(False)" methodname="SurfaceField" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="796185586" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000554" asserts="0">
+                    <properties />
+                    <output><![CDATA[L0=(2.00, 0.38, 1.25) L1=(2.00, 0.38, 1.25) prefix L=500
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH; HSBTMU=96,0,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=4648/3CB6/43DB/3C00 decoded=(6.281250, 1.177734, 3.927734, 1.000000)
+]]></output>
+                  </test-case>
+                  <test-case id="1739" name="SurfaceField(True)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.SurfaceField(True)" methodname="SurfaceField" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="218176511" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000162" asserts="0">
+                    <properties />
+                    <output><![CDATA[L0=(2.00, 0.38, 1.25) L1=(0.25, 3.00, 0.50) prefix L=500
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH; HSBTMU=96,0,0,0,0,0; skyReads=0; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=43DB/44B6/41D6/3C00 decoded=(3.927734, 4.710938, 2.917969, 1.000000)
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-case id="1749" name="UnresolvedIsNeitherSkyNorMeasuredBlack" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests.UnresolvedIsNeitherSkyNorMeasuredBlack" methodname="UnresolvedIsNeitherSkyNorMeasuredBlack" classname="UnityEditor.Rendering.Universal.Tests.RayTracingProbeMathTests" runstate="Runnable" seed="11913370" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000713" asserts="0">
+                  <properties />
+                  <output><![CDATA[n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUUTMUU; HSBTMU=0,0,0,24,24,48; skyReads=0; valid=False
+probe=18 xy=3,3 wordAddress=5200 fp16=4500/4400/4200/3C00 decoded=(5.000000, 4.000000, 3.000000, 1.000000)
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUUSMUU; HSBTMU=0,24,0,0,24,48; skyReads=24; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=4648/3CB6/43DB/3C00 decoded=(6.281250, 1.177734, 3.927734, 1.000000)
+n=6 cos(32..127)=[1,.5,.25,-1]x24; P=maintenance; mask=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS; HSBTMU=0,96,0,0,0,0; skyReads=72; valid=True
+probe=18 xy=3,3 wordAddress=5200 fp16=0000/0000/0000/3C00 decoded=(0.000000, 0.000000, 0.000000, 1.000000)
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1756" name="RayTracingSceneGateTests" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.024645" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1770" name="ActualEditorDeviceAndCameraDecisionWithoutClaimingShaderReadiness" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.ActualEditorDeviceAndCameraDecisionWithoutClaimingShaderReadiness" methodname="ActualEditorDeviceAndCameraDecisionWithoutClaimingShaderReadiness" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="204986510" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.004985" asserts="0">
+                  <properties />
+                  <output><![CDATA[Editor NVIDIA GeForce RTX 5060 Ti: Direct3D12, RT=True, compute=True, UAV=True, decision=MissingShaderOrPass
+original gate=MissingShaderOrPass, liveRTAS=0
+injected shader readiness only; native RTAS live=1, after unsubscribe=0
+]]></output>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1764" name="EachMissingRequirementDeniesWithoutAllocating" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.002228" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1757" name="EachMissingRequirementDeniesWithoutAllocating(&quot;Off&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;Off&quot;)" methodname="EachMissingRequirementDeniesWithoutAllocating" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="1824828238" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000717" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1758" name="EachMissingRequirementDeniesWithoutAllocating(&quot;RayTracingUnsupported&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;RayTracingUnsupported&quot;)" methodname="EachMissingRequirementDeniesWithoutAllocating" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="1190757005" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000085" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1759" name="EachMissingRequirementDeniesWithoutAllocating(&quot;ComputeUnsupported&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;ComputeUnsupported&quot;)" methodname="EachMissingRequirementDeniesWithoutAllocating" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="1829627833" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000068" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1760" name="EachMissingRequirementDeniesWithoutAllocating(&quot;FormatUnsupported&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;FormatUnsupported&quot;)" methodname="EachMissingRequirementDeniesWithoutAllocating" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="726349659" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000061" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1761" name="EachMissingRequirementDeniesWithoutAllocating(&quot;CameraUnsupported&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;CameraUnsupported&quot;)" methodname="EachMissingRequirementDeniesWithoutAllocating" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="1121056934" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000064" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1762" name="EachMissingRequirementDeniesWithoutAllocating(&quot;XrUnsupported&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;XrUnsupported&quot;)" methodname="EachMissingRequirementDeniesWithoutAllocating" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="1027547336" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000063" asserts="0">
+                    <properties />
+                  </test-case>
+                  <test-case id="1763" name="EachMissingRequirementDeniesWithoutAllocating(&quot;MissingShaderOrPass&quot;)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.EachMissingRequirementDeniesWithoutAllocating(&quot;MissingShaderOrPass&quot;)" methodname="EachMissingRequirementDeniesWithoutAllocating" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="810310507" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000057" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1768" name="ReplacementFailureCannotRetainPreviousResource" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.ReplacementFailureCannotRetainPreviousResource" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.003717" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1766" name="ReplacementFailureCannotRetainPreviousResource(True)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.ReplacementFailureCannotRetainPreviousResource(True)" methodname="ReplacementFailureCannotRetainPreviousResource" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="502301988" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.001942" asserts="0">
+                    <properties />
+                    <output><![CDATA[RT scene allocation failed: injected failure
+]]></output>
+                  </test-case>
+                  <test-case id="1767" name="ReplacementFailureCannotRetainPreviousResource(False)" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.ReplacementFailureCannotRetainPreviousResource(False)" methodname="ReplacementFailureCannotRetainPreviousResource" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="2026347663" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.000095" asserts="0">
+                    <properties />
+                  </test-case>
+                </test-suite>
+                <test-case id="1765" name="RequestsShareAcrossCameraEvaluationsAndReleaseOnLastSubscriber" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.RequestsShareAcrossCameraEvaluationsAndReleaseOnLastSubscriber" methodname="RequestsShareAcrossCameraEvaluationsAndReleaseOnLastSubscriber" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="857631886" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.001091" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="1769" name="SceneCloseFilterChangeAndOwnerDisposalReleaseExactlyOnce" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests.SceneCloseFilterChangeAndOwnerDisposalReleaseExactlyOnce" methodname="SceneCloseFilterChangeAndOwnerDisposalReleaseExactlyOnce" classname="UnityEditor.Rendering.Universal.Tests.RayTracingSceneGateTests" runstate="Runnable" seed="1061730311" result="Passed" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:54Z" duration="0.010712" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1771" name="RayTracingT2Tests" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests" classname="UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:55Z" duration="0.313561" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1772" name="ManualSceneKnownVectors" fullname="UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests.ManualSceneKnownVectors" methodname="ManualSceneKnownVectors" classname="UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests" runstate="Runnable" seed="2091960373" result="Failed" label="Error" start-time="2026-11-28 16:54:54Z" end-time="2026-11-28 16:54:55Z" duration="0.312127" asserts="0">
+                  <properties />
+                  <failure>
+                    <message><![CDATA[System.InvalidOperationException : analytic ray mismatch]]></message>
+                    <stack-trace><![CDATA[  at T2Validation.T2VectorSuite.<Run>g__Ray|1_4 (System.Single x, System.Single z, System.Int32 dz, System.Int32 mask, System.Int32 flags, System.Single t, System.Int32 id, System.Int32 kind, T2Validation.T2VectorSuite+<>c__DisplayClass1_0& , T2Validation.T2VectorSuite+<>c__DisplayClass1_1& , T2Validation.T2VectorSuite+<>c__DisplayClass1_2& ) [0x001ea] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\RayTracing\TLAS\T2VectorSuite.cs:69 
+  at T2Validation.T2VectorSuite.Run (UnityEngine.Experimental.Rendering.RayTracingShader shader, UnityEngine.Shader surface, System.Boolean requireDxr, System.Action`1[T] log) [0x0050d] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\RayTracing\TLAS\T2VectorSuite.cs:72 
+  at UnityEditor.Rendering.Universal.Tests.RayTracingT2Tests.ManualSceneKnownVectors () [0x00000] in E:\GitHub\Glx.CustomURP\URPSample01\Assets\Tests\RayTracing\TLAS\RayTracingT2Tests.cs:15 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <1071a2cb0cb3433aae80a793c277a048>:0 ]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[api=Direct3D12 GPU=NVIDIA GeForce RTX 5060 Ti supportsRT=True
+opt-in off: zero builds/resources
+pass=1 queue=2000 alpha=True opaque=Enabled, ClosestHitOnly cut=Enabled
+SSR ray tracing: 'Hidden/T2/IntersectionFixture' (transparent surface) cannot provide the standard GBuffer fields required by C2.7; the submesh is skipped and its hits use the probe/sky fallback.
+frame=9 revision=1 build=1 instances=2 disabledSubmeshes=1
+rev=1 origin=(20,0,0) dz=1 mask=128 flags=0 expected=(4,71,254) gpu=(0,0,0)
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

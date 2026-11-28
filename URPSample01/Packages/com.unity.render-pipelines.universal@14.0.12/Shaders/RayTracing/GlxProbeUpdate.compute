@@ -75,6 +75,9 @@ float3 GlxRotateY(float3 d, float angle)
     return float3(c * d.x - s * d.z, d.y, s * d.x + c * d.z);
 }
 
+float GlxLuminance(float3 c) { return dot(c, float3(0.2126, 0.7152, 0.0722)); }
+float GlxMax3(float3 v) { return max(v.x, max(v.y, v.z)); }
+
 // G1 ProbeHalfAtlas.Normal: the octahedral texel centre direction for an interior texel.
 float3 GlxOctNormal(uint n, int x, int y)
 {
@@ -199,8 +202,27 @@ void ProbeIrradiance(uint3 id : SV_DispatchThreadID)
         {
             uint2 texel = tileBase + id.xy;
             float3 current = PI * sum / denominator;
-            bool published = _GlxProbePublished[probe] != 0;
-            float3 value = published ? lerp(current, _GlxProbeIrrPrev[texel].rgb, _GlxProbePreviousWeight) : current;
+            float3 value = current;
+            if (_GlxProbePublished[probe] != 0)
+            {
+                // Blend in the gamma-5 storage domain like RTXGI, so its absolute thresholds
+                // apply to a perceptual range: linear E exceeds 1 routinely and would keep
+                // tripping the change detector.
+                float3 previous = _GlxProbeIrrPrev[texel].rgb;
+                float3 currentEnc = pow(max(current, 0.0), 0.2);
+                float3 previousEnc = pow(max(previous, 0.0), 0.2);
+                float hysteresis = _GlxProbePreviousWeight;
+                float3 delta = currentEnc - previousEnc;
+                if (GlxMax3(previousEnc - currentEnc) > 0.2) // probeIrradianceThreshold
+                    hysteresis = max(0.0, hysteresis - 0.75);
+                if (GlxLuminance(delta) > 1.0) // probeBrightnessThreshold
+                    delta *= 0.25;
+                float3 lerpDelta = (1.0 - hysteresis) * delta;
+                const float minDelta = 1.0 / 1024.0;
+                if (GlxMax3(currentEnc) < GlxMax3(previousEnc))
+                    lerpDelta = min(max(minDelta, abs(lerpDelta)), abs(delta)) * sign(lerpDelta);
+                value = pow(max(previousEnc + lerpDelta, 0.0), 5.0);
+            }
             if (!all(isfinite(value))) value = 0;
             _GlxProbeIrrWrite[texel] = float4(value, 1);
             InterlockedOr(_GlxProbeUpdated[probe], 1u);
@@ -237,7 +259,9 @@ void ProbeDistance(uint3 id : SV_DispatchThreadID)
         {
             GlxProbePayload p = _GlxProbeResults[base + i];
             if ((p.flags & (GLX_HIT | GLX_SKY)) == 0) continue;
-            float w = saturate(dot(normal, _GlxProbeRays[base + i].directionTMax.xyz));
+            // Narrow lobe: a cosine-weighted moment map is too blurred to separate near and
+            // far hits per octahedral texel, which weakens the query-time Chebyshev test.
+            float w = pow(saturate(dot(normal, _GlxProbeRays[base + i].directionTMax.xyz)), 64.0);
             if (w <= 0) continue;
             float d = min(max(p.hitT, 0.0), _GlxProbeMomentCap);
             sum += w * d;
