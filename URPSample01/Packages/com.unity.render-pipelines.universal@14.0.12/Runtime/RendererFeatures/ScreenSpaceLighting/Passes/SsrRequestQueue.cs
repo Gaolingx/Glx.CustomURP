@@ -10,6 +10,10 @@ namespace UnityEngine.Rendering.Universal
     internal sealed class SsrRequestQueue : IDisposable
     {
         internal readonly int budget, seed;
+        // This frame's actual dispatch width: the budget clamped to the trace pixel count. The
+        // raygen and the hit kernel launch with this width, so the empty tail beyond the clamp is
+        // never dispatched.
+        internal int k;
         internal ComputeBuffer originals, requests, counters;
         // B6.2 early screen: 12 bytes per slot (ssShare, requestShare, reason). The per-pixel
         // consumers read this first and only fetch the 64-byte request record when in domain.
@@ -50,9 +54,9 @@ namespace UnityEngine.Rendering.Universal
             // The stamp is consumed by the raygen and the hit kernels whether or not this camera
             // spends a budget this frame, so it is set before the early out.
             hitFrame = unchecked(frame + seed);
-            if (budget == 0) return;
             int gx = (width+7)/8, gy = (height+7)/8;
-            int k = Mathf.Min(budget,gx*gy*8,width*height);
+            k = budget == 0 ? 0 : Mathf.Min(budget,width*height);
+            if (k == 0) return;
             Ensure(ref originals,width*height,64);
             Ensure(ref coverage,width*height,12);
             Ensure(ref tiles,gx*gy,8);
@@ -84,20 +88,20 @@ namespace UnityEngine.Rendering.Universal
         internal void Trace(CommandBuffer cmd, RayTracingShader shader,
             RayTracingSceneResources scene, RayTracingAccelerationStructure snapshot, int width, int height)
         {
-            if (budget == 0) return;
+            if (k == 0) return;
             Ensure(ref hits, width * height, 24);
             using (new ProfilingScope(cmd, s_Trace))
             {
                 cmd.SetRayTracingShaderPass(shader, "GlxDXR");
                 cmd.SetRayTracingAccelerationStructure(shader, s_Scene, snapshot);
-                cmd.SetRayTracingIntParam(shader, s_K, budget);
+                cmd.SetRayTracingIntParam(shader, s_K, k);
                 cmd.SetRayTracingIntParam(shader, s_HitFrame, hitFrame);
                 cmd.SetRayTracingBufferParam(shader, s_Requests, requests);
                 cmd.SetRayTracingBufferParam(shader, s_Counts, counters);
                 cmd.SetRayTracingBufferParam(shader, s_Hits, hits);
                 cmd.SetRayTracingBufferParam(shader, s_Surfaces, surfaces);
                 scene.BindLights(cmd, shader);
-                cmd.DispatchRays(shader, "TraceSsrRequests", (uint)budget, 1, 1, null);
+                cmd.DispatchRays(shader, "TraceSsrRequests", (uint)k, 1, 1, null);
             }
         }
 

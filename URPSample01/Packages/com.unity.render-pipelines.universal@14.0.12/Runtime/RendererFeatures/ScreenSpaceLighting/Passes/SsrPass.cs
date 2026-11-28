@@ -570,13 +570,13 @@ namespace UnityEngine.Rendering.Universal
 
             int kernel = cs.FindKernel("SsrHitDeferred");
             s_HitDeferredKernel = kernel;
-            s_HitDeferredGroups = (requestQueue.budget + 63) / 64;
+            s_HitDeferredGroups = (requestQueue.k + 63) / 64;
             s_HitDeferredDispatches++;
             cmd.SetComputeBufferParam(cs, kernel, "_R1Queue", requestQueue.requests);
             cmd.SetComputeBufferParam(cs, kernel, "_R1Counts", requestQueue.counters);
             cmd.SetComputeBufferParam(cs, kernel, "_R2Surfaces", requestQueue.surfaces);
             cmd.SetComputeBufferParam(cs, kernel, "_R2Hits", requestQueue.hits);
-            cmd.SetComputeIntParam(cs, "_R2K", requestQueue.budget);
+            cmd.SetComputeIntParam(cs, "_R2K", requestQueue.k);
             cmd.SetComputeIntParam(cs, "_R2HitFrame", requestQueue.hitFrame);
             cmd.SetComputeIntParam(cs, "_SsrHitLightCount", m_AdditionalLightCount);
             cmd.SetComputeIntParam(cs, "_SsrHitDebug", s_HitDebug);
@@ -596,7 +596,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeBufferParam(cs, kernel, "_GlxProbePublishedSnapshot", requestQueue.counters);
             }
             using (new ProfilingScope(cmd, s_HitDeferred))
-                cmd.DispatchCompute(cs, kernel, (requestQueue.budget + 63) / 64, 1, 1);
+                cmd.DispatchCompute(cs, kernel, (requestQueue.k + 63) / 64, 1, 1);
         }
 
         // Shades the screen-space hits from the current-frame GBuffer. Runs between DispatchRays
