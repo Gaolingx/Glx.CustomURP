@@ -103,16 +103,23 @@ float2 SsrUnpack888ToFloat2(float3 input)
 float3 SsrReconstructPositionWS(uint2 coord, float deviceDepth)
 {
     float2 uv = (coord + 0.5) * _SsrScreenSize.zw;
-    // DXR is D3D12-only, where the project renders with reversed Z and UV-origin top-left.
-    float2 ndc = float2(uv.x, uv.y) * 2.0 - 1.0;
+    // DXR is D3D12-only: the depth texture row 0 is the top of the screen while clip space is
+    // Y-up, so the UV to NDC conversion flips Y exactly like ComputeClipSpacePosition does under
+    // UNITY_UV_STARTS_AT_TOP. Without it the reconstructed point is mirrored vertically and every
+    // ray starts from the wrong place.
+    float2 ndc = float2(uv.x, 1.0 - uv.y) * 2.0 - 1.0;
     float4 positionCS = float4(ndc, deviceDepth, 1.0);
     float4 positionWS = mul(_SsrInvViewProj, positionCS);
     return positionWS.xyz / positionWS.w;
 }
 
+// Mirrors PerceptualRoughnessFade (Remap10 + smoothstep) used by the screen space trace: the pass
+// uploads fadeRcpLength = 1 / (end - start) and end / (end - start), and the (0, 1) sentinel when
+// the fade start equals min smoothness, which must resolve to full weight. Remap10 is
+// saturate(end - x * rcp), i.e. (roughnessFadeEnd - roughness) / (roughnessFadeEnd - roughnessFadeStart).
 float SsrPerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, float fadeEndTimesRcpLength)
 {
-    float t = saturate((perceptualRoughness - fadeRcpLength) / max(fadeEndTimesRcpLength - fadeRcpLength, 1e-6));
+    float t = saturate(fadeEndTimesRcpLength - perceptualRoughness * fadeRcpLength);
     return t * t * (3.0 - 2.0 * t);
 }
 
