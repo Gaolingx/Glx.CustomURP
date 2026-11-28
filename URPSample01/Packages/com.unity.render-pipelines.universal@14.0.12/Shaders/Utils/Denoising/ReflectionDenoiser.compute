@@ -85,11 +85,15 @@ uint2 ReflectionGetGeometryCoord(uint2 effectCoord)
 #endif
 }
 
-// The depth-normals prepass stores 0.5 + 0.5 * smoothness in alpha, the same encoding the SSR trace
-// decodes. Background pixels (alpha 0) decode to roughness 1.
+// The normal buffer alpha carries the material smoothness: 0.5 + 0.5 * smoothness from the
+// depth-normals prepass, raw smoothness from the deferred GBuffer2 (selected by
+// _SsrGbufferSmoothness). Background pixels (alpha 0) decode to roughness 1.
 float ReflectionPerceptualRoughness(float4 normalSample)
 {
-    return 1.0 - saturate(normalSample.a * 2.0 - 1.0);
+    float smoothness = _SsrGbufferSmoothness != 0
+        ? saturate(normalSample.a)
+        : saturate(normalSample.a * 2.0 - 1.0);
+    return 1.0 - smoothness;
 }
 
 // HDRP TemporalAntialiasing.hlsl DirectClipToAABB (Playdead TAA): clip toward the AABB centre.

@@ -14,11 +14,16 @@ struct SsgiBilateralData
     float z01;   // Linear 0..1 depth
     float zNF;   // Linear eye depth (matches the clip w of a projected tap)
     float3 normal;
-    // The depth-normals prepass stores 0.5 + 0.5 * smoothness in alpha, the same encoding the SSR
-    // trace decodes. SSGI ignores this field; the reflection denoiser uses it for the roughness
-    // based filter radius and the min-smoothness tap rejection.
+    // The normal buffer alpha carries the material smoothness: 0.5 + 0.5 * smoothness from the
+    // depth-normals prepass, raw smoothness from the deferred GBuffer2. SSGI ignores this field; the
+    // reflection denoiser uses it for the roughness based filter radius and the min-smoothness tap
+    // rejection, so the opaque SSR pass selects the source with _SsrGbufferSmoothness.
     float roughness;
 };
+
+// 0: depth-normals prepass encoding, 1: raw GBuffer2 smoothness. Declared here because both the
+// SSGI and the reflection denoisers include this header; SSGI never reads the roughness field.
+uint _SsrGbufferSmoothness;
 
 SsgiBilateralData SsgiTapBilateralData(
     SSGI_TEXTURE_TYPE_FLOAT depthTexture,
@@ -32,7 +37,9 @@ SsgiBilateralData SsgiTapBilateralData(
     key.zNF = LinearEyeDepth(deviceDepth, _SsgiZBufferParams);
     key.position = SsgiReconstructPositionWS((float2)coordSS, deviceDepth);
     key.normal = SsgiDecodeNormalSS(normalSample);
-    key.roughness = 1.0 - saturate(normalSample.a * 2.0 - 1.0);
+    key.roughness = _SsrGbufferSmoothness != 0
+        ? 1.0 - saturate(normalSample.a)
+        : 1.0 - saturate(normalSample.a * 2.0 - 1.0);
     return key;
 }
 

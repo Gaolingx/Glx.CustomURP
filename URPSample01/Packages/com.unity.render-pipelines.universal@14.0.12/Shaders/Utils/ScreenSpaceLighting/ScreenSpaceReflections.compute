@@ -49,6 +49,9 @@ SSGI_TEXTURE2D_FLOAT(_SsrDepthTexture);
 SSGI_TEXTURE2D_FLOAT4(_SsrNormalTexture);
 SSGI_TEXTURE2D_FLOAT2(_SsrMotionTexture);
 
+// 0: depth-normals prepass smoothness encoding, 1: raw GBuffer2 smoothness (see SsrDecodeMaterial).
+uint _SsrGbufferSmoothness;
+
 // Previous frame color pyramid, captured after transparents by the SSL history pass.
 SSGI_TEXTURE2D_FLOAT4(_SsrColorPyramid);
 
@@ -120,10 +123,12 @@ float3 SsrDecodeNormalSS(float4 normalBuffer)
 #endif
 }
 
-// Returns false for materials that do not provide a valid normal/smoothness pair. The depth-normals
-// alpha uses 0.5 + 0.5 * smoothness in both paths: on Deferred the SSR pass runs before the GBuffer
-// overwrites GBuffer2, so it reads the same encoded prepass value Forward reads. Zero marks an
-// unsupported material (Unlit, SimpleLit, custom shaders).
+// Returns false for materials that do not provide a valid normal/smoothness pair. The normal buffer
+// alpha carries the material smoothness, but the two sources encode it differently: the depth-normals
+// prepass stores 0.5 + 0.5 * smoothness (0 is reserved for materials without SSR data) while the
+// deferred GBuffer2 stores the raw smoothness. From the GBuffer pass onward the opaque SSR reads
+// GBuffer2, so the source flag selects the decode instead of assuming the prepass convention.
+// Zero marks an unwritten pixel in either case (Unlit, SimpleLit, custom shaders).
 bool SsrDecodeMaterial(float4 normalSample, out float3 normalWS, out float perceptualRoughness)
 {
     normalWS = SsrDecodeNormalSS(normalSample);
@@ -134,7 +139,7 @@ bool SsrDecodeMaterial(float4 normalSample, out float3 normalWS, out float perce
         return false;
     }
 
-    float smoothness = saturate(encodedSmoothness * 2.0 - 1.0);
+    float smoothness = _SsrGbufferSmoothness != 0 ? encodedSmoothness : saturate(encodedSmoothness * 2.0 - 1.0);
     perceptualRoughness = 1.0 - smoothness;
     return dot(normalWS, normalWS) > 0.5;
 }

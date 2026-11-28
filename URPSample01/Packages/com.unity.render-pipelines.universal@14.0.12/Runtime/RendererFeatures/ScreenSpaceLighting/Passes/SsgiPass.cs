@@ -1017,6 +1017,15 @@ namespace UnityEngine.Rendering.Universal
             return universalRenderer.renderingModeActual == RenderingMode.Deferred && universalRenderer.accurateGbufferNormals;
         }
 
+        // The opaque SSR reads cameraNormalsTextureHandle. In deferred that is GBuffer2, written by
+        // the GBuffer pass, whose alpha is the raw material smoothness; otherwise it is the
+        // depth-normals prepass, which stores 0.5 + 0.5 * smoothness.
+        internal static bool UsesGbufferNormals(ScriptableRenderer renderer)
+        {
+            return renderer is UniversalRenderer universalRenderer &&
+                   universalRenderer.renderingModeActual == RenderingMode.Deferred;
+        }
+
         static RTHandle GetMotionTexture(ScriptableRenderer renderer)
         {
             if (renderer is UniversalRenderer universalRenderer)

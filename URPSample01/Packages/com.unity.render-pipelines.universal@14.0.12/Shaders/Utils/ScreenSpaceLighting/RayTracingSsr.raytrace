@@ -64,6 +64,9 @@ float4 _SsrCameraPositionWS;
 // tracing shader has no built-in camera constants, so the pass binds it explicitly.
 float4x4 _SsrInvViewProj;
 uint _SsrNormalsOct;
+// 0: depth-normals prepass smoothness encoding, 1: raw GBuffer2 smoothness (the deferred receiver
+// the raygen reads). Mirrors SsrDecodeMaterial in ScreenSpaceReflections.compute.
+uint _SsrGbufferSmoothness;
 uint _SsrBlueNoiseValid;
 uint _SsrHitLightCount;
 
@@ -109,10 +112,17 @@ float3 SsrDecodeOctNormalLocal(float2 e)
     return normalize(n);
 }
 
-float2 SsrUnpack888ToFloat2(float3 input)
+// Exact mirror of core PackFloat2To888UInt / Unpack888UIntToFloat2: r and g carry the low 8 bits
+// of the two 12-bit octahedron components and b carries both 4-bit highs. 255.5 matches core's
+// iOS precision fix. A nibble shuffle of r/g/b (or a /255 rescale) turns every octahedron into an
+// arbitrary direction; for a floor it points down and the facing gate below drops all rays.
+float2 SsrUnpack888ToFloat2(float3 packedNormal)
 {
-    uint3 i = (uint3)(input * 255.0);
-    return float2((i.x << 4) | (i.y >> 4), (i.y << 4) | (i.z >> 4)) / 255.0;
+    uint3 i = (uint3)(packedNormal * 255.5);
+    uint hi = i.z >> 4;
+    uint lo = i.z & 15u;
+    uint2 bits = i.xy | uint2(lo << 8, hi << 8);
+    return bits / 4095.0;
 }
 
 float3 SsrReconstructPositionWS(uint2 coord, float deviceDepth)
@@ -338,7 +348,10 @@ void TraceSsrFullScreen()
 
     float encodedSmoothness = normalSample.a;
     bool materialValid = encodedSmoothness > 0.0 && dot(normalWS, normalWS) > 0.5;
-    float perceptualRoughness = materialValid ? 1.0 - saturate(encodedSmoothness * 2.0 - 1.0) : 1.0;
+    float smoothness = _SsrGbufferSmoothness != 0
+        ? saturate(encodedSmoothness)
+        : saturate(encodedSmoothness * 2.0 - 1.0);
+    float perceptualRoughness = materialValid ? 1.0 - smoothness : 1.0;
     float roughnessFadeEnd = _SsrRoughnessFadeParams.z;
 
     // DXR is D3D12-only, where the project uses reversed Z: the far plane (no geometry) is 0.

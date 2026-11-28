@@ -167,6 +167,8 @@ namespace UnityEngine.Rendering.Universal
                 // The private normal target uses the forward DepthNormals encoding, never the
                 // deferred octahedral GBuffer layout.
                 SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, false);
+                // The material smoothness in that alpha also uses the prepass 0.5 + 0.5 * s encoding.
+                cmd.SetComputeIntParam(compute, ScreenSpaceLightingShaderIDs.SsrGbufferSmoothnessFlag, 0);
                 SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, true);
                 // This pass traces at full resolution and binds its own blue-noise LUTs, so it must
                 // not inherit the half resolution / LUT state the opaque pass left on the shader.

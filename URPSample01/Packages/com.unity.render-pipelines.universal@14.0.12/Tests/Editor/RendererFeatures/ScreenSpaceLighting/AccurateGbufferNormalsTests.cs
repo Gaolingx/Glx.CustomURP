@@ -77,6 +77,57 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.IsTrue(source.Contains("UnpackNormalOctQuadEncode"), $"{relativePath} must decode the octahedron normal.");
         }
 
+        [Test]
+        public void RayTracedReflectionRaygenDecodesTheOctahedronNormal()
+        {
+            // The ray tracing compiler drops the SRP core prelude, so the raygen carries its own 888
+            // unpack instead of core Unpack888ToFloat2. It must mirror the core 12-bit layout (r/g
+            // low bytes, both high nibbles in b, rescaled by 4095) or every octahedron decodes to a
+            // direction that fails the raygen's facing gate and the whole reflection is dropped.
+            const string relativePath = "Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace";
+            string path = Path.Combine(PackageRoot, relativePath);
+            Assert.IsTrue(File.Exists(path), $"Expected package file at {path}.");
+
+            string source = File.ReadAllText(path);
+            Assert.IsTrue(source.Contains("_SsrNormalsOct"),
+                $"{relativePath} must select the octahedron decode from the reflected flag.");
+            Assert.IsTrue(source.Contains("i.z >> 4") && source.Contains("& 15u") && source.Contains("<< 8"),
+                $"{relativePath} must rebuild the 4-bit highs from b like core Unpack888UIntToFloat2.");
+            Assert.IsTrue(source.Contains("4095.0"),
+                $"{relativePath} must rescale the 12-bit octahedron components by 4095.");
+        }
+
+        [Test]
+        public void ReflectionRoughnessDecodersHonorTheDeferredGbufferSmoothness()
+        {
+            // The opaque SSR runs after the GBuffer pass and reads GBuffer2, whose alpha is the raw
+            // smoothness, not the depth-normals prepass 0.5 + 0.5 * smoothness. Decoding the raw value
+            // as the prepass encoding inflates every roughness by up to 2x, which pushes materials at
+            // the volume's minSmoothness cut out of the reflection window (and silently skips the
+            // reflection bilateral filter). Every decoder and the pass that uploads the flag must
+            // keep the _SsrGbufferSmoothness branch.
+            AssertSmoothnessSourceDecoder(
+                "Shaders/Utils/ScreenSpaceLighting/ScreenSpaceReflections.compute");
+            AssertSmoothnessSourceDecoder(
+                "Shaders/Utils/ScreenSpaceLighting/RayTracingSsr.raytrace");
+            AssertSmoothnessSourceDecoder(
+                "Shaders/Utils/Denoising/BilateralFilter.hlsl");
+            AssertSmoothnessSourceDecoder(
+                "Shaders/Utils/Denoising/ReflectionDenoiser.compute");
+            AssertSmoothnessSourceDecoder(
+                "Runtime/RendererFeatures/ScreenSpaceLighting/Passes/SsrPass.cs");
+        }
+
+        static void AssertSmoothnessSourceDecoder(string relativePath)
+        {
+            string path = Path.Combine(PackageRoot, relativePath);
+            Assert.IsTrue(File.Exists(path), $"Expected package file at {path}.");
+
+            string source = File.ReadAllText(path);
+            Assert.IsTrue(source.Contains("_SsrGbufferSmoothness"),
+                $"{relativePath} must select the smoothness encoding from _SsrGbufferSmoothness.");
+        }
+
         static string Relative(string absolutePath)
         {
             return absolutePath

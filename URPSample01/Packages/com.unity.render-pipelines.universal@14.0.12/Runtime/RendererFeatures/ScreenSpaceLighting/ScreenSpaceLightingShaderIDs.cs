@@ -142,6 +142,8 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsrRtRadianceRW = Shader.PropertyToID("_SsrRtRadianceRW");
         internal static readonly int SsrRayTraceParams = Shader.PropertyToID("_SsrRayTraceParams");
         internal static readonly int SsrNormalsOctFlag = Shader.PropertyToID("_SsrNormalsOct");
+        // 0: depth-normals prepass smoothness encoding, 1: raw GBuffer2 smoothness.
+        internal static readonly int SsrGbufferSmoothnessFlag = Shader.PropertyToID("_SsrGbufferSmoothness");
         internal static readonly int SsrHitLightCount = Shader.PropertyToID("_SsrHitLightCount");
         internal static readonly int SsrBlueNoiseValid = Shader.PropertyToID("_SsrBlueNoiseValid");
 

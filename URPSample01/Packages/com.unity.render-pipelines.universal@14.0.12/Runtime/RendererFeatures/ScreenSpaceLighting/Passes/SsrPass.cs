@@ -374,6 +374,9 @@ namespace UnityEngine.Rendering.Universal
 
             bool useTextureArray = dimension == TextureDimension.Tex2DArray;
             bool octNormals = ScreenSpaceLightingSsgiPass.UseOctEncodedNormals(cameraData.renderer);
+            // From the GBuffer pass onward the deferred normal source is GBuffer2, whose alpha holds
+            // the raw material smoothness instead of the depth-normals prepass 0.5 + 0.5 encoding.
+            bool gbufferNormals = ScreenSpaceLightingSsgiPass.UsesGbufferNormals(cameraData.renderer);
             bool debugParams = pbr && m_Settings != null && m_Settings.debugEnabled &&
                                m_Settings.debugMode == ScreenSpaceLightingDebugMode.SsrPbrParams;
             if (debugParams)
@@ -400,9 +403,9 @@ namespace UnityEngine.Rendering.Universal
                     if (screenSpaceFirst)
                         DispatchScreenSpaceFirstTrace(cmd, ref cameraData, settings, depthTexture,
                             normalTexture, screenWidth, screenHeight, traceWidth, traceHeight, viewCount,
-                            useTextureArray, octNormals, halfResolution);
+                            useTextureArray, octNormals, gbufferNormals, halfResolution);
                     DispatchRayTraced(cmd, ref cameraData, settings, depthTexture, normalTexture,
-                        screenWidth, screenHeight, traceWidth, traceHeight, octNormals,
+                        screenWidth, screenHeight, traceWidth, traceHeight, octNormals, gbufferNormals,
                         screenSpaceFirst, m_History.readColorPyramid, motionTexture);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                     LogTracingMode(screenSpaceFirst);
@@ -411,6 +414,12 @@ namespace UnityEngine.Rendering.Universal
                     if (denoiseFrame)
                     {
                         var denoiser = m_Resources.ssrReflectionDenoiserCompute;
+                        // The raygen selects its octahedron branch with a reflected integer flag, but
+                        // the denoiser is a compute kernel and still uses the keyword, like the screen
+                        // space Dispatch path.
+                        SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
+                        cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.SsrGbufferSmoothnessFlag,
+                            gbufferNormals ? 1 : 0);
                         bool pbrHistoryValid = m_History.ssrPbrHasValidHistory;
                         PushDenoiserShaderVariables(cmd, ref cameraData, denoiser, screenWidth, screenHeight,
                             traceWidth, traceHeight, pbrHistoryValid);
@@ -433,7 +442,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     Dispatch(cmd, ref cameraData, settings, depthTexture, normalTexture, motionTexture,
                         screenWidth, screenHeight, traceWidth, traceHeight, viewCount, useTextureArray,
-                        octNormals, pbr, halfResolution, debugParams);
+                        octNormals, gbufferNormals, pbr, halfResolution, debugParams);
                 }
             }
 
@@ -478,6 +487,7 @@ namespace UnityEngine.Rendering.Universal
             int viewCount,
             bool useTextureArray,
             bool octNormals,
+            bool gbufferNormals,
             bool pbr,
             bool halfResolution,
             bool debugParams)
@@ -491,6 +501,8 @@ namespace UnityEngine.Rendering.Universal
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
             SetKeyword(denoiser, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(denoiser, ScreenSpaceLightingShaderIDs.SsgiNormalsOctKeyword, octNormals);
+            cmd.SetComputeIntParam(compute, ScreenSpaceLightingShaderIDs.SsrGbufferSmoothnessFlag, gbufferNormals ? 1 : 0);
+            cmd.SetComputeIntParam(denoiser, ScreenSpaceLightingShaderIDs.SsrGbufferSmoothnessFlag, gbufferNormals ? 1 : 0);
 
             if (useTextureArray)
             {
@@ -653,11 +665,13 @@ namespace UnityEngine.Rendering.Universal
             int viewCount,
             bool useTextureArray,
             bool octNormals,
+            bool gbufferNormals,
             bool halfResolution)
         {
             var compute = m_Resources.ssrCompute;
             SetKeyword(compute, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
+            cmd.SetComputeIntParam(compute, ScreenSpaceLightingShaderIDs.SsrGbufferSmoothnessFlag, gbufferNormals ? 1 : 0);
             // The raygen traces the GGX distribution, so the march must sample the same direction
             // instead of the Approximation mirror direction.
             SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, false);
@@ -707,6 +721,7 @@ namespace UnityEngine.Rendering.Universal
             int traceWidth,
             int traceHeight,
             bool octNormals,
+            bool gbufferNormals,
             bool screenSpaceFirst,
             RTHandle colorPyramid,
             RTHandle motionTexture)
@@ -773,6 +788,8 @@ namespace UnityEngine.Rendering.Universal
             // the ClusteredDeferred compute shader, so bind it here instead of relying on the global.
             cmd.SetRayTracingVectorParam(shader, s_CdCameraPositionWS, m_CameraPositionWS);
             cmd.SetRayTracingIntParam(shader, ScreenSpaceLightingShaderIDs.SsrNormalsOctFlag, octNormals ? 1 : 0);
+            cmd.SetRayTracingIntParam(shader, ScreenSpaceLightingShaderIDs.SsrGbufferSmoothnessFlag,
+                gbufferNormals ? 1 : 0);
             cmd.SetRayTracingIntParam(shader, ScreenSpaceLightingShaderIDs.SsrHitLightCount, m_AdditionalLightCount);
             cmd.SetRayTracingIntParam(shader, ScreenSpaceLightingShaderIDs.SsrBlueNoiseValid,
                 m_Resources.hasSsrBlueNoise ? 1 : 0);
