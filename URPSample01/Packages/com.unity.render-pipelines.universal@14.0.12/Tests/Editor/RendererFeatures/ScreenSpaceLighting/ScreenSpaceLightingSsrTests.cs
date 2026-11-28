@@ -90,6 +90,17 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
+        public void SsrTracingModeDefaultsToRayTracedOnly()
+        {
+            var settings = new ScreenSpaceLightingSettings();
+            Assert.AreEqual(SsrTracingMode.RayTracedOnly, settings.ssrTracingMode);
+            // Existing feature assets predate the field, so its serialized default must stay index 0
+            // or they would silently switch to the mixed path.
+            Assert.AreEqual(0, (int)SsrTracingMode.RayTracedOnly);
+            Assert.AreEqual(1, (int)SsrTracingMode.ScreenSpaceFirst);
+        }
+
+        [Test]
         public void FirstFrameHasNoPreviousColorButStillAllocatesTheOutput()
         {
             m_History.BeginFrame();

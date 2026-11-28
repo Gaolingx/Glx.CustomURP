@@ -145,6 +145,11 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int SsrHitLightCount = Shader.PropertyToID("_SsrHitLightCount");
         internal static readonly int SsrBlueNoiseValid = Shader.PropertyToID("_SsrBlueNoiseValid");
 
+        // Screen-space-first tracing: the march publishes hit UVs the raygen resolves from the
+        // previous color pyramid instead of tracing hardware rays for those pixels.
+        internal static readonly int SsrSsHitPointTexture = Shader.PropertyToID("_SsrSsHitPointTexture");
+        internal static readonly int SsrScreenSpaceFirst = Shader.PropertyToID("_SsrScreenSpaceFirst");
+
         // Constant buffer members.
         internal static readonly int SsrScreenSize = Shader.PropertyToID("_SsrScreenSize");
         internal static readonly int SsrTraceSize = Shader.PropertyToID("_SsrTraceSize");

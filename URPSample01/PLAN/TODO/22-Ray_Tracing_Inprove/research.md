@@ -97,3 +97,15 @@ P0-2 和 P0-3 建议先做：前者直接减少你看到的空洞和 HW 依赖�
 - clear coat mask：URP Lit 的 coat mask 目前没有现成的 GBuffer 通道，先不放进 P0/P1。
 
 建议：可以先把 **P0-2 + P0-3** 落成具体 plan（含改动清单、测试与证据格式），或者直接开做；P1-1 建议等 R2b 那篇计划定稿后再动。
+
+## 3. 2026-11-28 更新：队列退役后的 Mixed 开关
+
+**基线已变：** 请求队列（R1/R2/HitSs/merge）在 `6e48ea8` 与 `0b1df8f` 后整体退役；HEAD 的 RT 路径是全屏逐像素 N 采样 raygen 直写着色（`RayTracingSsr.raytrace`），屏幕空间路径只在设备不能光追时作为回退。因此上文 R1/R2 相关的 P0/P1 条目不再适用。
+
+本次实现的是 §1 中 HDRP **RayTracing + Performance（Mixed）** 的调度等价物，而不是命中着色等价物：
+
+- 开关：`ScreenSpaceLightingSettings.ssrTracingMode`，`RayTracedOnly`（默认，序列化值 0，既有资产行为不变）/ `ScreenSpaceFirst`。
+- `ScreenSpaceFirst` 帧内顺序：用回退路径同一个 `ScreenSpaceReflectionsTracing` 核（PBR GGX 方向）写 trace 分辨率的 hit UV → raygen 对命中像素用 motion 重投影采样前帧颜色金字塔（粗糙度 mip + 屏幕边缘 fade）并跳过 `TraceRay`，未命中像素才按 `rayTracingSamples` 打硬件射线。
+- 依赖：前帧颜色金字塔、motion、共享 depth pyramid、`ssrPbrHitPoint` 缺任一（冷启动/无运动相机）时该帧回退 RayTracedOnly，并在 Editor/Dev 下打一行 `[SSL][SSR] tracing mode:` 状态日志。
+- 与 HDRP Mixed 的已知差异：HDRP 把 SS 命中写进 GBuffer 再统一 lighting（无时域色差）；我们采样前帧颜色金字塔，所以缝合区仍有 SSR 惯例的滞后，这正是 §1 结论 1 指出的差异，本次不做 GBuffer 统一着色。
+- 验证：`dotnet build` Runtime/Editor/Tests 三个 csproj 0 error；HLSL 需回 Unity 编译。Frame Debugger 中 `ScreenSpaceFirst` 应看到 “SSR Trace”（compute）后紧跟 “SSR Ray Traced”（DispatchRays），`RayTracedOnly` 只有后者。像素与性能证据仍需 Unity 侧采集，本文不视为已验收。

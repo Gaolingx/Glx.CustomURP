@@ -14,6 +14,15 @@ namespace UnityEngine.Rendering.Universal
         A3 = 2
     }
 
+    // How the hardware traced reflection path resolves its rays. RayTracedOnly matches HDRP's
+    // RayTracing mode; ScreenSpaceFirst mirrors HDRP's Mixed tracing: the screen space march runs
+    // first and only the pixels it cannot resolve trace hardware rays.
+    internal enum SsrTracingMode
+    {
+        RayTracedOnly = 0,
+        ScreenSpaceFirst = 1
+    }
+
     [Serializable]
     internal sealed class ScreenSpaceLightingSettings
     {
@@ -36,6 +45,9 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField, Range(1, 32), Tooltip("Ray-traced reflection samples per pixel per frame. Every trace pixel is ray traced each frame; the reflection denoiser accumulates the samples across frames.")]
         internal int rayTracingSamples = 1;
+
+        [SerializeField, Tooltip("RayTracedOnly traces every pixel in hardware. ScreenSpaceFirst marches the previous frame color pyramid first and only traces hardware rays for the pixels the march cannot resolve (mirrors HDRP's Mixed tracing). ScreenSpaceFirst needs the previous color pyramid and motion vectors; on a frame without them it falls back to RayTracedOnly.")]
+        internal SsrTracingMode ssrTracingMode = SsrTracingMode.RayTracedOnly;
 
         [SerializeField, Tooltip("Environment source mixed with SSR in the deferred indirect-specular composite. A1 samples _GlossyEnvironmentCubeMap (default); A2 uses the published GI probe atlas when the probe fallback runs (directional irradiance, no roughness mips; probe coverage blends it over the cubemap); A3 uses the ambient irradiance stand-in.")]
         internal SsrIndirectSource ssrIndirectSource = SsrIndirectSource.A1;

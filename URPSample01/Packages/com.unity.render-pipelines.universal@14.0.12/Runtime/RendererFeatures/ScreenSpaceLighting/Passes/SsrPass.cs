@@ -12,6 +12,10 @@ namespace UnityEngine.Rendering.Universal
     // algorithm only selects the fallback used when the device cannot trace. This mirrors HDRP's
     // RayTracing mode: no screen space march and no per-pixel mixing of the two sources.
     //
+    // SsrTracingMode.ScreenSpaceFirst opts into HDRP's Mixed tracing instead: the screen space march
+    // runs first and the raygen resolves its hits from the previous color pyramid, tracing hardware
+    // rays only for the pixels the march missed. RayTracedOnly stays the default.
+    //
     // Screen-space Approximation: Trace writes the mirror hit, Reproject samples the previous color
     // pyramid and writes radiance + weight. At full resolution that result is the material-facing
     // texture; at half resolution it is bilaterally upsampled into the full resolution output.
@@ -113,6 +117,12 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_OutputTexture;
         bool m_ProducedOutput;
         bool m_LoggedMissingResources;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // ScreenSpaceFirst silently degrades to ray traced only on a frame without the previous
+        // color pyramid, so publish the resolved mode once per change instead of leaving a switch
+        // that appears to do nothing.
+        int m_LoggedTracingMode = -1;
+#endif
         readonly ScreenSpaceLightingXrViewConstants[] m_XrViews = new ScreenSpaceLightingXrViewConstants[ScreenSpaceLightingXr.k_MaxViews];
         readonly Matrix4x4[] m_XrViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
         readonly Matrix4x4[] m_XrInvViewProjScratch = new Matrix4x4[ScreenSpaceLightingXr.k_MaxViews];
@@ -386,8 +396,17 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (rayTraced)
                 {
+                    bool screenSpaceFirst = ResolveScreenSpaceFirst(motionTexture);
+                    if (screenSpaceFirst)
+                        DispatchScreenSpaceFirstTrace(cmd, ref cameraData, settings, depthTexture,
+                            normalTexture, screenWidth, screenHeight, traceWidth, traceHeight, viewCount,
+                            useTextureArray, octNormals, halfResolution);
                     DispatchRayTraced(cmd, ref cameraData, settings, depthTexture, normalTexture,
-                        screenWidth, screenHeight, traceWidth, traceHeight, octNormals);
+                        screenWidth, screenHeight, traceWidth, traceHeight, octNormals,
+                        screenSpaceFirst, m_History.readColorPyramid, motionTexture);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    LogTracingMode(screenSpaceFirst);
+#endif
 
                     if (denoiseFrame)
                     {
@@ -604,11 +623,79 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // ScreenSpaceFirst mirrors HDRP's Mixed tracing: the screen space march runs first and the
+        // raygen resolves its hit pixels from the previous color pyramid, tracing hardware rays only
+        // where the march missed. It consumes the march's hit texture and reprojects with motion
+        // vectors, so it is only active when both plus the shared depth pyramid exist; a cold start
+        // or a camera without motion vectors keeps the ray traced only behavior.
+        bool ResolveScreenSpaceFirst(RTHandle motionTexture)
+        {
+            return m_Settings.ssrTracingMode == SsrTracingMode.ScreenSpaceFirst &&
+                m_Resources.ssrCompute != null &&
+                m_History.readColorPyramid != null && motionTexture != null &&
+                m_History.depthPyramid != null && m_History.depthPyramidOffsets != null &&
+                m_History.ssrPbrHitPoint != null;
+        }
+
+        // The hybrid march reuses the screen space fallback's trace kernel in PBR mode: every trace
+        // pixel samples one GGX direction, marches the packed depth pyramid and writes either the hit
+        // UV or the miss sentinel into the PBR hit point texture the raygen reads.
+        void DispatchScreenSpaceFirstTrace(
+            CommandBuffer cmd,
+            ref CameraData cameraData,
+            ScreenSpaceReflection settings,
+            RTHandle depthTexture,
+            RTHandle normalTexture,
+            int screenWidth,
+            int screenHeight,
+            int traceWidth,
+            int traceHeight,
+            int viewCount,
+            bool useTextureArray,
+            bool octNormals,
+            bool halfResolution)
+        {
+            var compute = m_Resources.ssrCompute;
+            SetKeyword(compute, ScreenSpaceShaderIDs.XrArrayKeyword, useTextureArray);
+            SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrNormalsOctKeyword, octNormals);
+            // The raygen traces the GGX distribution, so the march must sample the same direction
+            // instead of the Approximation mirror direction.
+            SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrApproxKeyword, false);
+            SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsrHalfResKeyword, halfResolution);
+            SetKeyword(compute, ScreenSpaceLightingShaderIDs.SsgiBlueNoiseKeyword, m_Resources.hasSsrBlueNoise);
+
+            var cb = CreateShaderVariables(ref cameraData, settings, screenWidth, screenHeight,
+                traceWidth, traceHeight, m_History.ssrPbrHasValidHistory);
+            PushShaderVariables(cmd, compute, cb);
+            PushSsrRayLength(cmd, compute, ref cameraData, settings);
+
+            var traceKernel = compute.FindKernel("ScreenSpaceReflectionsTracing");
+            BindSsrBlueNoise(cmd, compute, traceKernel);
+            cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrDepthTexture, depthTexture);
+            cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
+            cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramid, m_History.depthPyramid);
+            cmd.SetComputeBufferParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsgiDepthPyramidMipLevelOffsets, m_History.depthPyramidOffsets);
+            cmd.SetComputeTextureParam(compute, traceKernel, ScreenSpaceLightingShaderIDs.SsrHitPointTextureRW, m_History.ssrPbrHitPoint);
+            using (new ProfilingScope(cmd, s_Trace))
+                cmd.DispatchCompute(compute, traceKernel,
+                    ScreenSpaceLightingRenderUtils.DivideRoundUp(traceWidth, k_TileSize),
+                    ScreenSpaceLightingRenderUtils.DivideRoundUp(traceHeight, k_TileSize), viewCount);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            s_TraceDispatchCount++;
+#endif
+#if UNITY_EDITOR
+            s_EditorTraceDispatchCount++;
+#endif
+        }
+
         // Full-screen ray traced reflections: one thread per trace pixel traces
         // settings.rayTracingSamples rays, shades every hit with the shared single-point kernel and
         // writes un-premultiplied radiance plus the resolved share into ssrPbrOriginal. The reflection
         // denoiser then accumulates the samples across frames, exactly like the screen-space PBR
         // signal. Misses publish weight 0 so the material keeps its probe/sky term.
+        //
+        // With screenSpaceFirst the raygen first resolves the march's hit pixels from the previous
+        // color pyramid and only traces rays for the rest, matching HDRP's Mixed tracing.
         void DispatchRayTraced(
             CommandBuffer cmd,
             ref CameraData cameraData,
@@ -619,7 +706,10 @@ namespace UnityEngine.Rendering.Universal
             int screenHeight,
             int traceWidth,
             int traceHeight,
-            bool octNormals)
+            bool octNormals,
+            bool screenSpaceFirst,
+            RTHandle colorPyramid,
+            RTHandle motionTexture)
         {
             var shader = m_Resources.rayTracingSsr;
             float near = Mathf.Max(1e-5f, cameraData.camera.nearClipPlane);
@@ -630,6 +720,9 @@ namespace UnityEngine.Rendering.Universal
             float roughnessFadeLength = roughnessFadeEnd - roughnessFadeStart;
             float fadeRcpLength = roughnessFadeLength != 0f ? 1f / roughnessFadeLength : 0f;
             float fadeEndTimesRcpLength = roughnessFadeLength != 0f ? roughnessFadeEnd * fadeRcpLength : 1f;
+            // The screen-space-first branch fades its reprojected pyramid sample at the screen edge,
+            // so it needs the same edge fade slope the compute reprojection receives.
+            float edgeFadeRcpLength = Mathf.Min(1f / Mathf.Max(1e-4f, settings.screenFadeDistance.value), float.MaxValue);
             int samples = Mathf.Clamp(m_Settings.rayTracingSamples, 1, 32);
 
             cmd.SetRayTracingShaderPass(shader, "GlxDXR");
@@ -640,12 +733,34 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsrNormalTexture, normalTexture);
             cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsrRtRadianceRW, m_History.ssrPbrOriginal);
 
+            // The raygen declares the screen-space-first inputs unconditionally and Unity drops a
+            // dispatch at the first unbound declared texture, so bind the march output plus
+            // placeholders for frames where the march did not run.
+            cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsrSsHitPointTexture, m_History.ssrPbrHitPoint);
+            if (screenSpaceFirst)
+            {
+                cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsrColorPyramid, colorPyramid);
+                cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsrMotionTexture, motionTexture);
+            }
+            else
+            {
+                cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsrColorPyramid, Texture2D.blackTexture);
+                cmd.SetRayTracingTextureParam(shader, ScreenSpaceLightingShaderIDs.SsrMotionTexture, Texture2D.blackTexture);
+            }
+            cmd.SetRayTracingIntParam(shader, ScreenSpaceLightingShaderIDs.SsrScreenSpaceFirst, screenSpaceFirst ? 1 : 0);
+            // The raygen samples the previous color pyramid with the roughness mip, so it needs the
+            // same top mip and reprojection limits the compute reprojection uses.
+            cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrPyramidParams,
+                new Vector4(Mathf.Max(0, m_History.colorPyramidMipCount - 1), 0f, 0f, 0f));
+            cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrColorPyramidScaleAndLimitPrev,
+                new Vector4(1f, 1f, 1f, 1f));
+
             cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrScreenSize,
                 new Vector4(screenWidth, screenHeight, 1f / screenWidth, 1f / screenHeight));
             cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrTraceSize,
                 new Vector4(traceWidth, traceHeight, 1f / traceWidth, 1f / traceHeight));
             cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrRoughnessFadeParams,
-                new Vector4(fadeRcpLength, fadeEndTimesRcpLength, roughnessFadeEnd, 0f));
+                new Vector4(fadeRcpLength, fadeEndTimesRcpLength, roughnessFadeEnd, edgeFadeRcpLength));
             cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrRayTraceParams,
                 new Vector4(Mathf.Min(settings.rayLength.value, far), Time.frameCount, samples, settings.biasFactor.value));
             cmd.SetRayTracingVectorParam(shader, ScreenSpaceLightingShaderIDs.SsrCameraPositionWS, m_CameraPositionWS);
@@ -1010,6 +1125,20 @@ namespace UnityEngine.Rendering.Universal
             else
                 compute.DisableKeyword(keyword);
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        void LogTracingMode(bool screenSpaceFirst)
+        {
+            int mode = screenSpaceFirst ? 1 : 0;
+            if (m_LoggedTracingMode == mode)
+                return;
+
+            m_LoggedTracingMode = mode;
+            Debug.Log(screenSpaceFirst
+                ? "[SSL][SSR] tracing mode: screen-space first (the march resolves, hardware rays fill the misses)"
+                : "[SSL][SSR] tracing mode: ray traced only (the march is disabled or unavailable this frame)");
+        }
+#endif
 
         void LogMissingResourcesOnce()
         {

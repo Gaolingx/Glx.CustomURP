@@ -5,6 +5,11 @@
 // the resolved share. The reflection denoiser owns the temporal accumulation, so there is no request
 // queue, budget or per-pixel classification.
 //
+// With _SsrScreenSpaceFirst the raygen first checks the hit UV the screen space march published for
+// this trace pixel. A resolved hit samples the previous color pyramid (motion reprojected, roughness
+// mip) and skips TraceRay; a miss traces the configured hardware rays. This mirrors HDRP's Mixed
+// tracing, where the raymarch writes the hit and the raygen only handles the unresolved pixels.
+//
 // The ray tracing compiler runs without the SRP core prelude (core Common.hlsl is suppressed), so
 // this file is self-contained: it declares the light globals it reads and reproduces the URP direct
 // BRDF (same GGX approximation as ShaderLibrary/BRDF.hlsl) instead of including ClusteredDeferred.
@@ -38,6 +43,16 @@ Texture2D<float> _SsgiOwenScrambledTexture;
 Texture2D<float> _SsgiScramblingTileXSPP;
 Texture2D<float> _SsgiRankingTileXSPP;
 RWTexture2D<float4> _SsrRtRadianceRW;
+
+// Screen-space-first inputs. The march publishes a hit NDC (or the miss sentinel) per trace pixel;
+// resolved pixels read the previous color pyramid through their motion vector.
+Texture2D<float2> _SsrSsHitPointTexture;
+Texture2D<float4> _SsrColorPyramid;
+Texture2D<float2> _SsrMotionTexture;
+SamplerState s_ssr_color_pyramid_linear_clamp_sampler;
+float4 _SsrPyramidParams;
+float4 _SsrColorPyramidScaleAndLimitPrev;
+uint _SsrScreenSpaceFirst;
 
 float4 _SsrScreenSize;
 float4 _SsrTraceSize;
@@ -121,6 +136,52 @@ float SsrPerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength,
 {
     float t = saturate(fadeEndTimesRcpLength - perceptualRoughness * fadeRcpLength);
     return t * t * (3.0 - 2.0 * t);
+}
+
+// EdgeOfScreenFade from ScreenSpaceLightingCommon.hlsl, reproduced without the SRP core prelude.
+float SsrEdgeOfScreenFade(float2 coordNDC, float fadeRcpLength)
+{
+    float2 t = saturate(fadeRcpLength - abs(coordNDC * 2.0 - 1.0) * fadeRcpLength);
+    return (t.x * t.x * (3.0 - 2.0 * t.x)) * (t.y * t.y * (3.0 - 2.0 * t.y));
+}
+
+// Resolves the trace pixel the screen space march hit, mirroring SsrReadOriginalColor in
+// ScreenSpaceReflections.compute: reproject the hit pixel with its motion vector and sample the
+// previous color pyramid with the roughness mip. Returns 0 and opacity 0 for a miss, an
+// off-screen reprojection or an invalid color, which hands the pixel to the hardware trace.
+float3 SsrReadScreenSpaceHit(uint2 traceCoord, float perceptualRoughness, out float opacity)
+{
+    opacity = 0.0;
+    float2 hitNdc = _SsrSsHitPointTexture.Load(int3(traceCoord, 0));
+    if (!(hitNdc.x <= 1.0 && hitNdc.y >= 0.0))
+        return 0.0;
+
+    uint2 hitPixel = (uint2)(saturate(hitNdc) * _SsrScreenSize.xy);
+    hitPixel = min(hitPixel, (uint2)_SsrScreenSize.xy - 1u);
+    float2 motion = _SsrMotionTexture.Load(int3(hitPixel, 0)).xy;
+    float2 prevNdc = hitNdc - motion;
+
+    float mip = lerp(0.0, _SsrPyramidParams.x, perceptualRoughness);
+    float2 diffLimit = _SsrColorPyramidScaleAndLimitPrev.xy - _SsrColorPyramidScaleAndLimitPrev.zw;
+    float2 limit = _SsrColorPyramidScaleAndLimitPrev.xy - diffLimit * pow(2.0, 1.5 + ceil(abs(mip)));
+    if (any(prevNdc < 0.0) || any(prevNdc > limit))
+        return 0.0;
+
+    float edge = SsrEdgeOfScreenFade(prevNdc, _SsrRoughnessFadeParams.w);
+    opacity = edge * SsrPerceptualRoughnessFade(perceptualRoughness,
+        _SsrRoughnessFadeParams.x, _SsrRoughnessFadeParams.y);
+    if (opacity <= 0.0)
+        return 0.0;
+
+    float3 color = _SsrColorPyramid.SampleLevel(s_ssr_color_pyramid_linear_clamp_sampler,
+        prevNdc * _SsrColorPyramidScaleAndLimitPrev.xy, mip).rgb;
+    if (!all(isfinite(color)) || any(color < 0.0))
+    {
+        opacity = 0.0;
+        return 0.0;
+    }
+
+    return color;
 }
 
 // Heitz 2018 GGX visible normal sampling. Inputs/outputs are world space.
@@ -295,6 +356,19 @@ void TraceSsrFullScreen()
             float3 biasedPosWS = camPosWS + (positionWS - camPosWS) *
                 (1.0 - 0.001 * rcp(max(dot(normalWS, normalize(viewWS)), 1e-6)));
             viewWS = normalize(camPosWS - biasedPosWS);
+
+            if (_SsrScreenSpaceFirst != 0)
+            {
+                // The march resolved this ray: keep the reprojected previous frame radiance and stop
+                // before TraceRay. The denoiser accumulates it like any hardware hit.
+                float ssOpacity;
+                float3 ssColor = SsrReadScreenSpaceHit(traceCoord, perceptualRoughness, ssOpacity);
+                if (ssOpacity > 0.0)
+                {
+                    _SsrRtRadianceRW[traceCoord] = float4(ssColor, ssOpacity);
+                    return;
+                }
+            }
 
             uint sampleCount = max((uint)_SsrRayTraceParams.z, 1u);
             uint baseSample = (uint)_SsrRayTraceParams.y * sampleCount;
